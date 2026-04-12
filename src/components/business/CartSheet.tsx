@@ -1,4 +1,5 @@
 import { useCart } from "@/contexts/CartContext";
+import { useCreateOrder } from "@/hooks/useDatabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,24 +8,53 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
 
-const CartSheet = () => {
+interface CartSheetProps {
+  businessId?: string;
+}
+
+const CartSheet = ({ businessId }: CartSheetProps) => {
   const { items, removeItem, clearCart, total, count } = useCart();
+  const createOrder = useCreateOrder();
   const [checkout, setCheckout] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
-  const handleOrder = () => {
+  const handleOrder = async () => {
     if (!name || !email || !phone) {
       toast.error("Udfyld venligst alle felter");
       return;
     }
+
+    if (businessId) {
+      try {
+        await createOrder.mutateAsync({
+          order: {
+            business_id: businessId,
+            customer_name: name,
+            customer_email: email,
+            customer_phone: phone,
+            total_amount: total,
+          },
+          items: items.map((item) => ({
+            service_id: item.serviceId,
+            service_name: item.serviceName,
+            quantity: item.quantity,
+            unit_price: item.total,
+            total_price: item.total * item.quantity,
+            details: { description: item.details },
+          })),
+        });
+      } catch (e: any) {
+        toast.error("Fejl ved oprettelse af ordre: " + e.message);
+        return;
+      }
+    }
+
     toast.success("Din ordre er modtaget! Vi kontakter dig snarest.");
     clearCart();
     setCheckout(false);
-    setName("");
-    setEmail("");
-    setPhone("");
+    setName(""); setEmail(""); setPhone("");
   };
 
   return (
@@ -113,8 +143,8 @@ const CartSheet = () => {
               </Card>
             </div>
             <div className="space-y-2 border-t border-border pt-4">
-              <Button onClick={handleOrder} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                Bestil nu – {total} kr
+              <Button onClick={handleOrder} disabled={createOrder.isPending} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+                {createOrder.isPending ? "Opretter ordre..." : `Bestil nu – ${total} kr`}
               </Button>
               <Button variant="outline" onClick={() => setCheckout(false)} className="w-full">
                 Tilbage til kurv
