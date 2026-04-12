@@ -1,16 +1,12 @@
 import { useParams, Link } from "react-router-dom";
-import { useBusinessBySlug, useServices, useReviews, useCreateReview } from "@/hooks/useDatabase";
+import { useBusinessBySlug, useServices, useReviews } from "@/hooks/useDatabase";
 import { CartProvider } from "@/contexts/CartContext";
 import CartSheet from "@/components/business/CartSheet";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Star, Mail, Phone, MapPin, Clock, CheckCircle, ShieldCheck } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
 
 /* ───── Main Content ───── */
 const DynamicBusinessContent = () => {
