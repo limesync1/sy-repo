@@ -150,14 +150,20 @@ const DynamicBusinessContent = () => {
                   <span className="text-sm text-muted-foreground">{services.length} {services.length === 1 ? "service" : "services"}</span>
                 </div>
 
-                {/* If there are subcategories, group them */}
-                {Object.keys(groupedServices).length > 1 ? (
-                  <div className="space-y-8">
-                    {Object.entries(groupedServices).map(([sub, items]) => (
-                      <div key={sub}>
-                        <h3 className="mb-3 text-base font-semibold text-foreground">{sub}</h3>
-                        <div className="grid gap-4 md:grid-cols-2">
-                          {items!.map((s) => <DynamicServiceCard key={s.id} service={s} />)}
+                {Object.keys(groupedServices).length > 1 || Object.values(groupedServices).some(subs => Object.keys(subs).some(k => k !== "")) ? (
+                  <div className="space-y-10">
+                    {Object.entries(groupedServices).map(([cat, subs]) => (
+                      <div key={cat}>
+                        <h3 className="mb-4 text-lg font-bold text-foreground">{cat}</h3>
+                        <div className="space-y-6 pl-0 md:pl-4">
+                          {Object.entries(subs).map(([sub, items]) => (
+                            <div key={sub || "default"}>
+                              {sub && <h4 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">{sub}</h4>}
+                              <div className="grid gap-4 md:grid-cols-2">
+                                {items.map((s) => <DynamicServiceCard key={s.id} service={s} />)}
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     ))}
