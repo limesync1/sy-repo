@@ -112,7 +112,7 @@ const RequestQuote = () => {
       </nav>
 
       <div className="relative z-10 container mx-auto px-4 py-12 md:py-20">
-        <div className="mx-auto max-w-lg">
+        <div className="mx-auto max-w-3xl">
           {/* Header */}
           <div className="mb-10 text-center animate-fade-in">
             <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-4 py-1.5 text-sm font-medium text-accent">
@@ -222,7 +222,7 @@ const RequestQuote = () => {
                       }`}
                     >
                       {isTop && (
-                        <div className="h-0.5 w-full bg-gradient-to-r from-accent via-[hsl(200,80%,55%)] to-[hsl(260,60%,65%)]" />
+                        <div className="h-0.5 w-full bg-gradient-to-r from-accent to-[hsl(200,80%,55%)]" />
                       )}
 
                       <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-5 sm:p-6">
