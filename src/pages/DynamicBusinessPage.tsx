@@ -179,8 +179,6 @@ const DynamicBusinessContent = () => {
               ) : (
                 <p className="mb-6 text-muted-foreground">Ingen anmeldelser endnu — vær den første!</p>
               )}
-
-              <ReviewForm businessId={business.id} />
             </section>
           </div>
 
