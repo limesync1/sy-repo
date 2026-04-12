@@ -80,7 +80,7 @@ const DynamicBusinessContent = () => {
     if (!groupedServices[cat][sub]) groupedServices[cat][sub] = [];
     groupedServices[cat][sub].push(s);
   });
-  const hasCategories = Object.keys(groupedServices).length > 1 || Object.values(groupedServices).some(subs => Object.keys(subs).length > 1 || Object.keys(subs).some(k => k !== ""));
+  
 
   return (
     <div className="min-h-screen bg-background">
