@@ -3,10 +3,11 @@ import { useBusinessBySlug, useServices, useReviews } from "@/hooks/useDatabase"
 import { CartProvider } from "@/contexts/CartContext";
 import CartSheet from "@/components/business/CartSheet";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
+import BusinessSEO from "@/components/business/BusinessSEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Star, Mail, Phone, MapPin, Clock, CheckCircle, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Star, Mail, Phone, MapPin, Clock, CheckCircle, ShieldCheck, ArrowDown } from "lucide-react";
 
 /* ───── Main Content ───── */
 const DynamicBusinessContent = () => {
@@ -39,15 +40,35 @@ const DynamicBusinessContent = () => {
     if (!groupedServices[cat][sub]) groupedServices[cat][sub] = [];
     groupedServices[cat][sub].push(s);
   });
-  
+
+  const scrollToServices = () => {
+    document.getElementById("services")?.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
     <div className="min-h-screen bg-background">
+      {/* SEO */}
+      <BusinessSEO
+        name={business.name}
+        description={business.description}
+        city={business.city}
+        address={business.address}
+        zipCode={business.zip_code}
+        phone={business.phone}
+        email={business.email}
+        logoUrl={business.logo_url}
+        coverImageUrl={business.cover_image_url}
+        avgRating={avgRating}
+        reviewCount={reviews?.length || 0}
+        slug={business.slug}
+        openingHours={business.opening_hours as Record<string, string> | undefined}
+      />
+
       {/* ── Sticky Nav ── */}
-      <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+      <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80" aria-label="Virksomhedsnavigation">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8">
           <div className="flex items-center gap-3">
-            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors"><ArrowLeft className="h-5 w-5" /></Link>
+            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Tilbage til forsiden"><ArrowLeft className="h-5 w-5" /></Link>
             <Link to="/"><img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-7" /></Link>
             <Separator orientation="vertical" className="mx-1 h-5" />
             <span className="hidden text-sm font-medium text-foreground sm:inline">{business.name}</span>
@@ -57,20 +78,20 @@ const DynamicBusinessContent = () => {
       </nav>
 
       {/* ── Hero / Cover ── */}
-      <header className={`relative overflow-hidden ${hasCover ? "h-56 md:h-72 lg:h-[22rem]" : "h-40 md:h-52"}`}>
+      <header className={`relative overflow-hidden ${hasCover ? "h-60 md:h-80 lg:h-[24rem]" : "h-44 md:h-56"}`}>
         {hasCover ? (
-          <img src={business.cover_image_url!} alt={business.name} className="absolute inset-0 h-full w-full object-cover" />
+          <img src={business.cover_image_url!} alt={`${business.name} coverbillede`} className="absolute inset-0 h-full w-full object-cover" loading="eager" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-secondary via-secondary to-muted" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-foreground/25 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 mx-auto flex max-w-7xl items-end gap-5 px-4 pb-6 md:px-8">
           {business.logo_url && (
-            <div className="shrink-0 rounded-2xl border-4 border-background bg-background shadow-xl h-20 w-20 md:h-28 md:w-28 lg:h-32 lg:w-32">
-              <img src={business.logo_url} alt={business.name} className="h-full w-full rounded-xl object-contain" />
+            <div className="shrink-0 rounded-2xl border-4 border-background bg-background shadow-xl h-20 w-20 md:h-28 md:w-28 lg:h-32 lg:w-32 overflow-hidden">
+              <img src={business.logo_url} alt={`${business.name} logo`} className="h-full w-full rounded-xl object-contain" loading="eager" />
             </div>
           )}
-          <div className="min-w-0 pb-1">
+          <div className="min-w-0 pb-1 flex-1">
             <h1 className="text-2xl font-extrabold text-background drop-shadow-lg md:text-4xl lg:text-5xl">{business.name}</h1>
             <div className="mt-1.5 flex flex-wrap items-center gap-3 text-sm text-background/80">
               {business.city && <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{business.city}</span>}
@@ -82,12 +103,21 @@ const DynamicBusinessContent = () => {
               )}
               {business.is_verified && <span className="flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5 text-accent" />Verificeret</span>}
             </div>
+            {services && services.length > 0 && (
+              <Button
+                onClick={scrollToServices}
+                size="sm"
+                className="mt-3 gap-1.5 bg-background/95 text-foreground hover:bg-background shadow-lg backdrop-blur-sm"
+              >
+                Se services <ArrowDown className="h-3.5 w-3.5" />
+              </Button>
+            )}
           </div>
         </div>
       </header>
 
       {/* ── Body ── */}
-      <div className="mx-auto max-w-7xl px-4 md:px-8">
+      <main className="mx-auto max-w-7xl px-4 md:px-8">
         <div className="grid gap-8 py-8 md:gap-10 md:py-12 lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_380px]">
 
           {/* ── Main Column ── */}
@@ -95,17 +125,17 @@ const DynamicBusinessContent = () => {
 
             {/* About */}
             {business.description && (
-              <section>
-                <h2 className="mb-3 text-lg font-bold text-foreground">Om {business.name}</h2>
-                <p className="max-w-2xl leading-relaxed text-muted-foreground">{business.description}</p>
+              <section aria-labelledby="about-heading">
+                <h2 id="about-heading" className="mb-3 text-lg font-bold text-foreground">Om {business.name}</h2>
+                <p className="max-w-2xl leading-relaxed text-muted-foreground whitespace-pre-line">{business.description}</p>
               </section>
             )}
 
             {/* Services */}
             {services && services.length > 0 && (
-              <section id="services">
+              <section id="services" aria-labelledby="services-heading">
                 <div className="mb-5 flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-foreground">Services</h2>
+                  <h2 id="services-heading" className="text-xl font-bold text-foreground">Services</h2>
                   <span className="text-sm text-muted-foreground">{services.length} {services.length === 1 ? "service" : "services"}</span>
                 </div>
 
@@ -136,24 +166,24 @@ const DynamicBusinessContent = () => {
             )}
 
             {/* Reviews */}
-            <section id="reviews">
-              <div className="mb-5 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-foreground">Anmeldelser</h2>
-                {avgRating && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className="flex gap-0.5">
-                      {[1,2,3,4,5].map((i) => (
-                        <Star key={i} className={`h-4 w-4 ${i <= Math.round(Number(avgRating)) ? "fill-accent text-accent" : "text-muted"}`} />
-                      ))}
+            {reviews && reviews.length > 0 && (
+              <section id="reviews" aria-labelledby="reviews-heading">
+                <div className="mb-5 flex items-center justify-between">
+                  <h2 id="reviews-heading" className="text-xl font-bold text-foreground">Anmeldelser</h2>
+                  {avgRating && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="flex gap-0.5">
+                        {[1,2,3,4,5].map((i) => (
+                          <Star key={i} className={`h-4 w-4 ${i <= Math.round(Number(avgRating)) ? "fill-accent text-accent" : "text-muted"}`} />
+                        ))}
+                      </div>
+                      <span className="font-medium text-foreground">{avgRating}</span>
+                      <span className="text-muted-foreground">({reviews?.length})</span>
                     </div>
-                    <span className="font-medium text-foreground">{avgRating}</span>
-                    <span className="text-muted-foreground">({reviews?.length})</span>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
 
-              {reviews && reviews.length > 0 ? (
-                <div className="mb-6 grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2">
                   {reviews.map((r) => (
                     <Card key={r.id} className="border-border">
                       <CardContent className="p-4">
@@ -176,14 +206,13 @@ const DynamicBusinessContent = () => {
                     </Card>
                   ))}
                 </div>
-              ) : (
-                <p className="mb-6 text-muted-foreground">Ingen anmeldelser endnu — vær den første!</p>
-              )}
-            </section>
+              </section>
+            )}
           </div>
 
           {/* ── Sidebar ── */}
           <aside className="space-y-5 lg:sticky lg:top-20 lg:self-start">
+            {/* Contact Card */}
             <Card className="border-border bg-secondary/30">
               <CardContent className="p-5">
                 <h3 className="mb-1 font-bold text-foreground">Kontakt {business.name}</h3>
@@ -209,6 +238,7 @@ const DynamicBusinessContent = () => {
               </CardContent>
             </Card>
 
+            {/* Opening Hours */}
             {openingHours.length > 0 && (
               <Card className="border-border">
                 <CardContent className="p-5">
@@ -227,20 +257,28 @@ const DynamicBusinessContent = () => {
               </Card>
             )}
 
-            <div className="space-y-2 rounded-xl bg-secondary/40 p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle className="h-4 w-4 text-accent" /> Verificeret virksomhed
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <ShieldCheck className="h-4 w-4 text-accent" /> Sikker betaling
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Star className="h-4 w-4 text-accent" /> Ægte anmeldelser
-              </div>
-            </div>
+            {/* Trust Badges */}
+            <Card className="border-border bg-secondary/20">
+              <CardContent className="p-4 space-y-2.5">
+                {business.is_verified && (
+                  <div className="flex items-center gap-2.5 text-sm text-foreground">
+                    <CheckCircle className="h-4 w-4 text-accent" />
+                    <span className="font-medium">Verificeret virksomhed</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2.5 text-sm text-foreground">
+                  <ShieldCheck className="h-4 w-4 text-accent" />
+                  <span className="font-medium">Sikker betaling</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-sm text-foreground">
+                  <Star className="h-4 w-4 text-accent" />
+                  <span className="font-medium">Ægte anmeldelser</span>
+                </div>
+              </CardContent>
+            </Card>
           </aside>
         </div>
-      </div>
+      </main>
 
       <footer className="border-t border-border bg-secondary/30 py-8">
         <div className="mx-auto max-w-7xl px-4 text-center text-sm text-muted-foreground md:px-8">
