@@ -3,7 +3,7 @@ import { demoBusiness, demoServices } from "@/data/demoData";
 import ServiceCard from "@/components/business/ServiceCard";
 import CartSheet from "@/components/business/CartSheet";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -44,7 +44,7 @@ const BusinessPageContent = () => {
           <h1 className="mb-3 text-4xl font-extrabold text-foreground md:text-5xl">{biz.name}</h1>
           <p className="mx-auto max-w-lg text-lg text-muted-foreground">{biz.tagline}</p>
           <div className="mt-4 flex items-center justify-center gap-1">
-            {[1,2,3,4,5].map((i) => <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />)}
+            {[1,2,3,4,5].map((i) => <Star key={i} className="h-5 w-5 fill-accent text-accent" />)}
             <span className="ml-2 text-sm text-muted-foreground">4.8 (127 anmeldelser)</span>
           </div>
         </div>
