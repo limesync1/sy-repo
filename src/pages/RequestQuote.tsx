@@ -222,7 +222,7 @@ const RequestQuote = () => {
                       }`}
                     >
                       {isTop && (
-                        <div className="h-0.5 w-full bg-gradient-to-r from-accent via-[hsl(200,80%,55%)] to-[hsl(260,60%,65%)]" />
+                        <div className="h-0.5 w-full bg-gradient-to-r from-accent to-[hsl(200,80%,55%)]" />
                       )}
 
                       <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-5 sm:p-6">
