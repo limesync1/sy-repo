@@ -172,28 +172,24 @@ const DynamicServiceCard = ({ service }: Props) => {
               return (
                 <div
                   key={step.id}
-                  className={`flex items-center justify-between gap-3 px-4 py-3 ${
+                  className={`px-4 py-3 ${
                     idx !== sortedSteps.length - 1 ? "border-b border-border" : ""
                   }`}
                 >
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium text-foreground">{step.label}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {step.price_per_unit} kr / {step.unit}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="min-w-0">
+                      <span className="text-sm font-medium text-foreground">{step.label}</span>
+                      <span className="ml-1.5 text-xs text-muted-foreground">({step.price_per_unit} kr/{step.unit})</span>
                     </div>
+                    <span className="text-sm font-semibold text-foreground shrink-0">{stepTotal} kr</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <StepperInput
-                      value={stepValues[step.id] || 1}
-                      onChange={(v) => setStepValues((prev) => ({ ...prev, [step.id]: v }))}
-                      min={step.min_value || 1}
-                      max={step.max_value || 100}
-                      unit={step.unit}
-                    />
-                    <span className="w-16 text-right text-sm font-semibold text-foreground">
-                      {stepTotal} kr
-                    </span>
-                  </div>
+                  <StepperInput
+                    value={stepValues[step.id] || 1}
+                    onChange={(v) => setStepValues((prev) => ({ ...prev, [step.id]: v }))}
+                    min={step.min_value || 1}
+                    max={step.max_value || 100}
+                    unit={step.unit}
+                  />
                 </div>
               );
             })}
