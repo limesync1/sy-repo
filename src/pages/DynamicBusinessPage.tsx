@@ -70,7 +70,7 @@ const DynamicBusinessContent = () => {
           <div className="flex items-center gap-3">
             <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Tilbage til forsiden"><ArrowLeft className="h-5 w-5" /></Link>
             <Link to="/"><img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-7" /></Link>
-            <Separator orientation="vertical" className="mx-1 h-5" />
+            <Separator orientation="vertical" className="mx-1 h-5 hidden sm:block" />
             <span className="hidden text-sm font-medium text-foreground sm:inline">{business.name}</span>
           </div>
           <CartSheet businessId={business.id} />
@@ -229,10 +229,15 @@ const DynamicBusinessContent = () => {
                     </a>
                   )}
                   {business.address && (
-                    <div className="flex items-start gap-2.5 rounded-lg border border-border bg-card px-4 py-2.5 text-sm text-muted-foreground">
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${business.address}${business.zip_code ? `, ${business.zip_code}` : ""}${business.city ? ` ${business.city}` : ""}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-start gap-2.5 rounded-lg border border-border bg-card px-4 py-2.5 text-sm text-foreground font-medium transition-colors hover:bg-secondary"
+                    >
                       <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                       <span>{business.address}{business.zip_code ? `, ${business.zip_code}` : ""}{business.city ? ` ${business.city}` : ""}</span>
-                    </div>
+                    </a>
                   )}
                 </div>
               </CardContent>
