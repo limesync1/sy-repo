@@ -166,12 +166,25 @@ const ServiceRow = ({ service, onDelete }: { service: any; onDelete: () => void 
   );
 };
 
+const SUBCATEGORIES: Record<string, string[]> = {
+  "Rengøring": ["Privatrengøring", "Erhvervsrengøring", "Bofællesskaber", "Trappevask", "Vinduespolering"],
+  "Håndværker": ["Tømrer", "Snedker", "Murer", "Gulvlægning", "Renovering"],
+  "Flyttehjælp": ["Privat flytning", "Erhvervsflytning", "Pianoflytning", "Opbevaring"],
+  "Haveservice": ["Havevedligehold", "Anlægsarbejde", "Træfældning", "Hækkeklipning"],
+  "Maler": ["Indvendig maling", "Udvendig maling", "Tapetsering", "Facaderenovering"],
+  "VVS": ["Blikkenslager", "Vandinstallation", "Varmeinstallation", "Kloakarbejde"],
+  "Elektriker": ["Elinstallation", "Fejlfinding", "EL-tjek", "Belysning"],
+  "Sikkerhed": ["Alarmsystemer", "Videoovervågning", "Adgangskontrol", "Vagt"],
+};
+
 const ServiceForm = ({ businessId, existingService, onClose }: { businessId: string; existingService?: any; onClose: () => void }) => {
   const createService = useCreateService();
   const updateService = useUpdateService();
   const upsertSteps = useUpsertCalculatorSteps();
   const [name, setName] = useState(existingService?.name || "");
   const [description, setDescription] = useState(existingService?.description || "");
+  const [subcategory, setSubcategory] = useState(existingService?.subcategory || "");
+  const [imageUrl, setImageUrl] = useState(existingService?.image_url || "");
   const [pricingType, setPricingType] = useState(existingService?.pricing_type || "fast_pris");
   const [basePrice, setBasePrice] = useState(existingService?.base_price?.toString() || "");
   const [unit, setUnit] = useState(existingService?.unit || "");
@@ -191,13 +204,13 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
     if (!name.trim()) { toast.error("Indtast et servicenavn"); return; }
     try {
       if (existingService) {
-        await updateService.mutateAsync({ id: existingService.id, name: name.trim(), description: description.trim() || null, pricing_type: pricingType as any, base_price: basePrice ? parseFloat(basePrice) : null, unit: unit || null });
+        await updateService.mutateAsync({ id: existingService.id, name: name.trim(), description: description.trim() || null, pricing_type: pricingType as any, base_price: basePrice ? parseFloat(basePrice) : null, unit: unit || null, subcategory: subcategory || null, image_url: imageUrl || null } as any);
         if (pricingType === "prisberegner") {
           await upsertSteps.mutateAsync({ serviceId: existingService.id, steps: steps.map((s, i) => ({ service_id: existingService.id, label: s.label, unit: s.unit, price_per_unit: parseFloat(s.price_per_unit) || 0, min_value: parseFloat(s.min_value) || 1, max_value: parseFloat(s.max_value) || 100, default_value: parseFloat(s.default_value) || 1, sort_order: i })) });
         }
         toast.success("Service opdateret");
       } else {
-        const result = await createService.mutateAsync({ business_id: businessId, name: name.trim(), description: description.trim() || null, pricing_type: pricingType as any, base_price: basePrice ? parseFloat(basePrice) : null, unit: unit || null });
+        const result = await createService.mutateAsync({ business_id: businessId, name: name.trim(), description: description.trim() || null, pricing_type: pricingType as any, base_price: basePrice ? parseFloat(basePrice) : null, unit: unit || null, subcategory: subcategory || null, image_url: imageUrl || null } as any);
         if (pricingType === "prisberegner" && steps.length > 0) {
           await upsertSteps.mutateAsync({ serviceId: result.id, steps: steps.map((s, i) => ({ service_id: result.id, label: s.label, unit: s.unit, price_per_unit: parseFloat(s.price_per_unit) || 0, min_value: parseFloat(s.min_value) || 1, max_value: parseFloat(s.max_value) || 100, default_value: parseFloat(s.default_value) || 1, sort_order: i })) });
         }
@@ -211,6 +224,20 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
     <div className="space-y-4">
       <Input placeholder="Servicenavn" value={name} onChange={(e) => setName(e.target.value)} />
       <Textarea placeholder="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} />
+      <div>
+        <label className="mb-1 block text-sm font-medium text-foreground">Underkategori</label>
+        <Select value={subcategory} onValueChange={setSubcategory}>
+          <SelectTrigger><SelectValue placeholder="Vælg underkategori (valgfrit)" /></SelectTrigger>
+          <SelectContent>
+            {Object.entries(SUBCATEGORIES).map(([cat, subs]) => (
+              subs.map((sub) => (
+                <SelectItem key={sub} value={sub}>{cat} → {sub}</SelectItem>
+              ))
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Input placeholder="Billede URL (valgfrit)" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
       <Select value={pricingType} onValueChange={setPricingType}>
         <SelectTrigger><SelectValue /></SelectTrigger>
         <SelectContent>

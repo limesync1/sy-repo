@@ -19,32 +19,32 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-accent/15 via-accent/5 to-background" />
-      <div className="absolute -top-40 -right-40 h-[500px] w-[500px] rounded-full bg-accent/10 blur-3xl" />
-      <div className="absolute -bottom-20 -left-20 h-[300px] w-[300px] rounded-full bg-accent/8 blur-3xl" />
+    <section className="relative overflow-hidden bg-foreground">
+      {/* Subtle pattern overlay */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(184_90%_42%/0.12),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,hsl(184_90%_42%/0.08),transparent_50%)]" />
 
       <div className="container relative mx-auto px-4 pt-8 pb-24 md:pt-12 md:pb-32">
         <nav className="mb-16 flex items-center justify-between md:mb-24">
-          <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-9 md:h-11" />
+          <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-9 brightness-0 invert md:h-11" />
           <Link to="/auth">
-            <Button variant="outline" size="sm" className="border-accent/30 text-foreground hover:bg-accent/10">
+            <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
               Log ind
             </Button>
           </Link>
         </nav>
 
         <div className="mx-auto max-w-3xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5 text-sm font-medium text-foreground">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-sm font-medium text-white/80">
             <span className="h-2 w-2 rounded-full bg-accent" />
             Danmarks nye platform for services
           </div>
 
-          <h1 className="mb-6 text-4xl font-extrabold tracking-tight text-foreground md:text-5xl lg:text-6xl">
+          <h1 className="mb-6 text-4xl font-extrabold tracking-tight text-white md:text-5xl lg:text-6xl">
             Find den rette service
-            <span className="bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent"> – hurtigt og nemt</span>
+            <span className="text-accent"> – hurtigt og nemt</span>
           </h1>
-          <p className="mx-auto mb-10 max-w-xl text-lg text-muted-foreground md:text-xl">
+          <p className="mx-auto mb-10 max-w-xl text-lg text-white/60 md:text-xl">
             Sammenlign priser, læs anmeldelser og book de bedste serviceydere i hele Danmark.
           </p>
 
@@ -56,15 +56,15 @@ const HeroSection = () => {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="h-13 rounded-xl border-accent/20 bg-card pl-11 text-base shadow-sm focus-visible:ring-accent"
+                className="h-13 rounded-xl border-white/10 bg-white pl-11 text-base text-foreground shadow-lg placeholder:text-muted-foreground focus-visible:ring-accent"
               />
             </div>
             <Button
               size="lg"
               onClick={handleSearch}
-              className="h-13 rounded-xl bg-accent px-8 text-base font-semibold text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90"
+              className="h-13 rounded-xl bg-accent px-8 text-base font-semibold text-accent-foreground shadow-lg hover:bg-accent/90"
             >
-              Find en service
+              Søg
             </Button>
           </div>
 
@@ -73,7 +73,7 @@ const HeroSection = () => {
               <Link
                 key={s}
                 to={`/search?category=${encodeURIComponent(s)}`}
-                className="rounded-full border border-border bg-card/80 px-4 py-1.5 text-sm text-muted-foreground backdrop-blur transition-all hover:border-accent/40 hover:text-foreground hover:shadow-sm"
+                className="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-white/60 backdrop-blur transition-all hover:border-accent/40 hover:text-white hover:bg-white/10"
               >
                 {s}
               </Link>

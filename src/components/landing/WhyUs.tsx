@@ -35,9 +35,9 @@ const WhyUs = () => {
         </div>
         <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2 lg:grid-cols-4">
           {benefits.map((b) => (
-            <div key={b.title} className="rounded-2xl border border-border/60 bg-card p-6 text-center shadow-sm transition-all hover:shadow-md">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10">
-                <b.icon className="h-6 w-6 text-accent" />
+            <div key={b.title} className="rounded-2xl border border-border bg-card p-6 text-center shadow-sm transition-all hover:shadow-md">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-foreground text-background">
+                <b.icon className="h-6 w-6" />
               </div>
               <h3 className="mb-2 text-lg font-bold text-foreground">{b.title}</h3>
               <p className="text-sm leading-relaxed text-muted-foreground">{b.description}</p>
