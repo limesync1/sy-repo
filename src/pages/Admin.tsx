@@ -239,7 +239,13 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
           </SelectContent>
         </Select>
       </div>
-      <Input placeholder="Billede URL (valgfrit)" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+      <ImageUpload
+        folder={`${(document.querySelector('[data-user-id]') as any)?.dataset?.userId || 'unknown'}/services`}
+        currentUrl={imageUrl || null}
+        onUploaded={setImageUrl}
+        label="Servicebillede (valgfrit)"
+        aspectRatio="aspect-video"
+      />
       <Select value={pricingType} onValueChange={setPricingType}>
         <SelectTrigger><SelectValue /></SelectTrigger>
         <SelectContent>
