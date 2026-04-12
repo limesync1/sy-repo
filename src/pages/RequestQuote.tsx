@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+// Input removed — not used on this page
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -223,7 +223,7 @@ const RequestQuote = () => {
                                 )}
                                 {match.business.avg_rating && (
                                   <span className="flex items-center gap-1">
-                                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                                    <Star className="h-3.5 w-3.5 fill-accent text-accent" />
                                     {match.business.avg_rating} ({match.business.review_count})
                                   </span>
                                 )}
