@@ -20,62 +20,66 @@ const BusinessCard = ({ biz }: { biz: any }) => {
   return (
     <Link to={`/b/${biz.slug}`} className="group block">
       <Card className="h-full overflow-hidden border-border transition-all group-hover:border-foreground/20 group-hover:shadow-lg">
-        {/* Cover / fallback */}
-        <div className="relative h-40 overflow-hidden bg-secondary md:h-44">
-          {biz.cover_image_url ? (
-            <img src={biz.cover_image_url} alt={biz.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
-              {biz.logo_url ? (
-                <img src={biz.logo_url} alt={biz.name} className="h-16 w-16 rounded-xl object-contain opacity-50" />
-              ) : (
-                <span className="text-3xl font-bold text-muted-foreground/20">{biz.name.charAt(0)}</span>
-              )}
-            </div>
-          )}
-          {/* Floating logo */}
-          {biz.logo_url && biz.cover_image_url && (
-            <div className="absolute bottom-3 left-3 h-12 w-12 rounded-xl border-2 border-background bg-background shadow-md">
-              <img src={biz.logo_url} alt="" className="h-full w-full rounded-lg object-contain" />
-            </div>
-          )}
-          {biz.is_verified && (
-            <Badge className="absolute right-3 top-3 gap-1 border-none bg-background/80 text-foreground backdrop-blur-sm">
-              <ShieldCheck className="h-3 w-3 text-accent" /> Verificeret
-            </Badge>
-          )}
-        </div>
-
-        <CardContent className="p-4 md:p-5">
-          <div className="mb-1.5 flex items-start justify-between gap-2">
-            <h3 className="text-base font-bold text-foreground md:text-lg">{biz.name}</h3>
-            {avgRating !== null && (
-              <div className="flex shrink-0 items-center gap-1 text-sm">
-                <Star className="h-3.5 w-3.5 fill-accent text-accent" />
-                <span className="font-semibold text-foreground">{avgRating.toFixed(1)}</span>
-                <span className="text-xs text-muted-foreground">({reviews?.length})</span>
+        <div className="flex flex-col sm:flex-row">
+          {/* Image */}
+          <div className="relative h-44 w-full shrink-0 overflow-hidden bg-secondary sm:h-auto sm:w-48 md:w-56">
+            {biz.cover_image_url ? (
+              <img src={biz.cover_image_url} alt={biz.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+            ) : (
+              <div className="flex h-full min-h-[120px] w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
+                {biz.logo_url ? (
+                  <img src={biz.logo_url} alt={biz.name} className="h-14 w-14 rounded-xl object-contain opacity-50" />
+                ) : (
+                  <span className="text-3xl font-bold text-muted-foreground/20">{biz.name.charAt(0)}</span>
+                )}
               </div>
             )}
+            {biz.is_verified && (
+              <Badge className="absolute right-3 top-3 gap-1 border-none bg-background/80 text-foreground backdrop-blur-sm">
+                <ShieldCheck className="h-3 w-3 text-accent" /> Verificeret
+              </Badge>
+            )}
           </div>
 
-          {biz.description && (
-            <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{biz.description}</p>
-          )}
+          {/* Content */}
+          <CardContent className="flex flex-1 flex-col justify-center p-4 sm:p-5">
+            <div className="mb-1.5 flex items-start justify-between gap-2">
+              <div className="flex items-center gap-3">
+                {biz.logo_url && (
+                  <div className="hidden h-10 w-10 shrink-0 rounded-lg border border-border bg-background sm:flex items-center justify-center">
+                    <img src={biz.logo_url} alt="" className="h-8 w-8 rounded object-contain" />
+                  </div>
+                )}
+                <h3 className="text-base font-bold text-foreground md:text-lg">{biz.name}</h3>
+              </div>
+              {avgRating !== null && (
+                <div className="flex shrink-0 items-center gap-1 text-sm">
+                  <Star className="h-3.5 w-3.5 fill-accent text-accent" />
+                  <span className="font-semibold text-foreground">{avgRating.toFixed(1)}</span>
+                  <span className="text-xs text-muted-foreground">({reviews?.length})</span>
+                </div>
+              )}
+            </div>
 
-          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            {biz.city && (
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" /> {biz.city}
-              </span>
+            {biz.description && (
+              <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{biz.description}</p>
             )}
-            {biz.phone && (
-              <span className="flex items-center gap-1">
-                <Phone className="h-3 w-3" /> {biz.phone}
-              </span>
-            )}
-            {biz.category && <Badge variant="outline" className="text-xs">{biz.category}</Badge>}
-          </div>
-        </CardContent>
+
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              {biz.city && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3 w-3" /> {biz.city}
+                </span>
+              )}
+              {biz.phone && (
+                <span className="flex items-center gap-1">
+                  <Phone className="h-3 w-3" /> {biz.phone}
+                </span>
+              )}
+              {biz.category && <Badge variant="outline" className="text-xs">{biz.category}</Badge>}
+            </div>
+          </CardContent>
+        </div>
       </Card>
     </Link>
   );
