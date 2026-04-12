@@ -407,7 +407,10 @@ const QuotesTab = ({ business }: { business: any }) => {
 };
 
 // Settings Tab
+const DAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
+
 const SettingsTab = ({ business }: { business: any }) => {
+  const { user } = useAuth();
   const updateBiz = useUpdateBusiness();
   const [name, setName] = useState(business.name);
   const [description, setDescription] = useState(business.description || "");
@@ -415,9 +418,18 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [email, setEmail] = useState(business.email || "");
   const [address, setAddress] = useState(business.address || "");
   const [city, setCity] = useState(business.city || "");
+  const [zipCode, setZipCode] = useState(business.zip_code || "");
   const [category, setCategory] = useState(business.category || "");
+  const [logoUrl, setLogoUrl] = useState(business.logo_url || "");
+  const [coverUrl, setCoverUrl] = useState(business.cover_image_url || "");
+
+  const existingHours = (business.opening_hours && typeof business.opening_hours === "object") ? business.opening_hours as Record<string, string> : {};
+  const [hours, setHours] = useState<Record<string, string>>(
+    DAYS.reduce((acc, d) => ({ ...acc, [d]: existingHours[d] || "" }), {} as Record<string, string>)
+  );
 
   const handleSave = () => {
+    const openingHours = Object.fromEntries(Object.entries(hours).filter(([, v]) => v.trim()));
     updateBiz.mutate({
       id: business.id,
       name: name.trim(),
@@ -426,7 +438,11 @@ const SettingsTab = ({ business }: { business: any }) => {
       email: email.trim() || null,
       address: address.trim() || null,
       city: city.trim() || null,
+      zip_code: zipCode.trim() || null,
       category: category || null,
+      logo_url: logoUrl || null,
+      cover_image_url: coverUrl || null,
+      opening_hours: openingHours,
     } as any, {
       onSuccess: () => toast.success("Indstillinger gemt"),
       onError: (e) => toast.error(e.message),
@@ -434,22 +450,79 @@ const SettingsTab = ({ business }: { business: any }) => {
   };
 
   return (
-    <div className="max-w-lg">
-      <h2 className="mb-4 text-xl font-bold text-foreground">Virksomhedsindstillinger</h2>
-      <div className="space-y-4">
-        <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} />
-        <Textarea placeholder="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} />
-        <Select value={category} onValueChange={setCategory}>
-          <SelectTrigger><SelectValue placeholder="Vælg kategori" /></SelectTrigger>
-          <SelectContent>
-            {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Input placeholder="Telefon" value={phone} onChange={(e) => setPhone(e.target.value)} />
-        <Input placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <Input placeholder="Adresse" value={address} onChange={(e) => setAddress(e.target.value)} />
-        <Input placeholder="By" value={city} onChange={(e) => setCity(e.target.value)} />
-        <Button onClick={handleSave} disabled={updateBiz.isPending} className="bg-accent text-accent-foreground hover:bg-accent/90">
+    <div className="max-w-2xl">
+      <h2 className="mb-6 text-xl font-bold text-foreground">Virksomhedsindstillinger</h2>
+      
+      <div className="space-y-6">
+        {/* Images */}
+        <div>
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Billeder</h3>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <ImageUpload
+              folder={`${user!.id}/logos`}
+              currentUrl={logoUrl || null}
+              onUploaded={setLogoUrl}
+              label="Logo"
+              aspectRatio="aspect-square"
+            />
+            <ImageUpload
+              folder={`${user!.id}/covers`}
+              currentUrl={coverUrl || null}
+              onUploaded={setCoverUrl}
+              label="Coverbillede"
+              aspectRatio="aspect-video"
+            />
+          </div>
+        </div>
+
+        {/* Basic info */}
+        <div>
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Grundlæggende</h3>
+          <div className="space-y-3">
+            <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} />
+            <Textarea placeholder="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} />
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger><SelectValue placeholder="Vælg kategori" /></SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Contact */}
+        <div>
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Kontakt</h3>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input placeholder="Telefon" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <Input placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input placeholder="Adresse" value={address} onChange={(e) => setAddress(e.target.value)} />
+            <div className="flex gap-2">
+              <Input placeholder="Postnr." value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="w-24" />
+              <Input placeholder="By" value={city} onChange={(e) => setCity(e.target.value)} className="flex-1" />
+            </div>
+          </div>
+        </div>
+
+        {/* Opening hours */}
+        <div>
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Åbningstider</h3>
+          <div className="space-y-2">
+            {DAYS.map((day) => (
+              <div key={day} className="flex items-center gap-3">
+                <span className="w-20 text-sm text-muted-foreground">{day}</span>
+                <Input
+                  placeholder="Fx 08:00 - 16:00 eller Lukket"
+                  value={hours[day]}
+                  onChange={(e) => setHours((prev) => ({ ...prev, [day]: e.target.value }))}
+                  className="flex-1"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <Button onClick={handleSave} disabled={updateBiz.isPending} className="bg-foreground text-background hover:bg-foreground/90">
           {updateBiz.isPending ? "Gemmer..." : "Gem indstillinger"}
         </Button>
       </div>
