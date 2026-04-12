@@ -87,27 +87,19 @@ const RequestQuote = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[hsl(222,30%,18%)]">
-      {/* Animated gradient background */}
+    <div className="relative min-h-screen overflow-hidden bg-[hsl(230,25%,12%)]">
+      {/* Animated gradient orbs */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="animate-magic-bg-1 absolute -left-1/4 -top-1/4 h-[80vh] w-[80vh] rounded-full bg-[radial-gradient(circle,hsl(184_90%_42%/0.2),transparent_60%)] blur-3xl" />
-        <div className="animate-magic-bg-2 absolute -right-1/4 top-1/3 h-[70vh] w-[70vh] rounded-full bg-[radial-gradient(circle,hsl(260_80%_60%/0.15),transparent_60%)] blur-3xl" />
-        <div className="animate-magic-bg-3 absolute -bottom-1/4 left-1/3 h-[60vh] w-[60vh] rounded-full bg-[radial-gradient(circle,hsl(184_90%_42%/0.12),transparent_60%)] blur-3xl" />
+        <div className="animate-magic-bg-1 absolute -left-[20%] -top-[10%] h-[700px] w-[700px] rounded-full bg-[hsl(184,90%,42%)] opacity-[0.08] blur-[120px]" />
+        <div className="animate-magic-bg-2 absolute -right-[15%] top-[20%] h-[600px] w-[600px] rounded-full bg-[hsl(270,70%,55%)] opacity-[0.07] blur-[120px]" />
+        <div className="animate-magic-bg-3 absolute bottom-[-10%] left-[30%] h-[500px] w-[500px] rounded-full bg-[hsl(200,80%,50%)] opacity-[0.06] blur-[120px]" />
       </div>
 
-      {/* Subtle grid overlay */}
-      <div className="pointer-events-none absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: `linear-gradient(hsl(184 90% 42%) 1px, transparent 1px), linear-gradient(90deg, hsl(184 90% 42%) 1px, transparent 1px)`,
-          backgroundSize: '60px 60px',
-        }}
-      />
-
       {/* Nav */}
-      <nav className="relative z-50 border-b border-white/10 bg-white/5 backdrop-blur-xl">
+      <nav className="relative z-50 border-b border-white/[0.06]">
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
-            <Link to="/" className="text-white/50 transition-colors hover:text-white">
+            <Link to="/" className="text-white/40 transition-colors hover:text-white">
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <Link to="/">
@@ -115,62 +107,60 @@ const RequestQuote = () => {
             </Link>
           </div>
           <Link to="/auth">
-            <Button size="sm" className="border border-white/10 bg-white/10 text-white backdrop-blur hover:bg-white/20">Log ind</Button>
+            <Button size="sm" className="border border-white/10 bg-white/[0.06] text-white/80 hover:bg-white/10 hover:text-white">Log ind</Button>
           </Link>
         </div>
       </nav>
 
-      <div className="relative z-10 container mx-auto px-4 py-12 md:py-20">
-        <div className="mx-auto max-w-3xl">
+      <div className="relative z-10 container mx-auto px-4 py-16 md:py-24">
+        <div className="mx-auto max-w-xl">
           {/* Header */}
           <div className="mb-10 text-center animate-fade-in">
             <h1 className="mb-3 text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
               Find dine 3 bedste tilbud
             </h1>
-            <p className="mx-auto max-w-md text-base text-white/50 md:text-lg">
-              Beskriv dit behov og vores AI finder de bedste serviceydere til dig – med det samme.
+            <p className="mx-auto max-w-sm text-base text-white/40 md:text-lg">
+              Beskriv dit behov — vores AI matcher dig med de bedste serviceydere.
             </p>
           </div>
 
           {/* Form */}
           {!matches && !isLoading && (
-            <div className="mx-auto max-w-lg animate-fade-in" style={{ animationDelay: '0.15s' }}>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl md:p-8">
-                <form onSubmit={handleFind} className="space-y-5">
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium text-white/70">Kategori</label>
-                    <Select value={category} onValueChange={setCategory}>
-                      <SelectTrigger className="h-12 border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:ring-accent/50">
-                        <SelectValue placeholder="Hvad har du brug for?" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CATEGORIES.map((cat) => (
-                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium text-white/70">Beskriv dit behov</label>
-                    <Textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Fx: Jeg har brug for rengøring af 3-værelses lejlighed, 85m², hver 14. dag."
-                      className="min-h-[130px] border-white/10 bg-white/5 text-white placeholder:text-white/25 focus-visible:ring-accent/50"
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full h-12 bg-gradient-to-r from-accent to-[hsl(200,80%,50%)] text-white text-base font-semibold shadow-[0_0_30px_hsl(184_90%_42%/0.3)] transition-all hover:shadow-[0_0_40px_hsl(184_90%_42%/0.5)] hover:brightness-110"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5" />
-                      Find tilbud med AI
-                    </span>
-                  </Button>
-                </form>
-              </div>
+            <div className="mx-auto max-w-md animate-fade-in" style={{ animationDelay: '0.15s' }}>
+              <form onSubmit={handleFind} className="space-y-5">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-white/50">Kategori</label>
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger className="h-12 rounded-xl border-white/[0.08] bg-white/[0.04] text-white focus:border-accent/40 focus:ring-1 focus:ring-accent/30">
+                      <SelectValue placeholder="Hvad har du brug for?" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIES.map((cat) => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-white/50">Beskriv dit behov</label>
+                  <Textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Fx: Rengøring af 3-værelses lejlighed, 85m², hver 14. dag i København NV."
+                    className="min-h-[120px] rounded-xl border-white/[0.08] bg-white/[0.04] text-white placeholder:text-white/20 focus-visible:border-accent/40 focus-visible:ring-1 focus-visible:ring-accent/30"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-12 rounded-xl bg-accent text-white text-base font-semibold shadow-[0_4px_24px_hsl(184_90%_42%/0.25)] transition-all hover:shadow-[0_4px_32px_hsl(184_90%_42%/0.4)] hover:brightness-110"
+                >
+                  <span className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5" />
+                    Find tilbud med AI
+                  </span>
+                </Button>
+              </form>
             </div>
           )}
 
