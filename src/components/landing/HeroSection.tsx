@@ -20,15 +20,26 @@ const HeroSection = () => {
 
   return (
     <section className="relative overflow-hidden bg-foreground">
-      {/* Subtle pattern overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(184_90%_42%/0.12),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,hsl(184_90%_42%/0.08),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(184_90%_42%/0.08),transparent_50%)]" />
 
-      <div className="container relative mx-auto px-4 pt-8 pb-24 md:pt-12 md:pb-32">
-        <nav className="mb-16 flex items-center justify-between md:mb-24">
-          <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-9 md:h-11" />
+      <div className="container relative mx-auto px-4 pt-6 pb-20 md:pt-8 md:pb-28">
+        <nav className="mb-12 flex items-center justify-between md:mb-20">
+          <div className="flex items-center gap-8">
+            <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-9 md:h-11" />
+            <div className="hidden items-center gap-6 md:flex">
+              <Link to="/search" className="text-sm font-medium text-white/60 transition-colors hover:text-white">
+                Find services
+              </Link>
+              <Link to="/quote" className="text-sm font-medium text-white/60 transition-colors hover:text-white">
+                Få tilbud
+              </Link>
+              <Link to="/search?category=Rengøring" className="text-sm font-medium text-white/60 transition-colors hover:text-white">
+                Kategorier
+              </Link>
+            </div>
+          </div>
           <Link to="/auth">
-            <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
+            <Button size="sm" className="bg-white text-foreground font-semibold hover:bg-white/90">
               Log ind
             </Button>
           </Link>
@@ -56,13 +67,13 @@ const HeroSection = () => {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="h-13 rounded-xl border-white/10 bg-white pl-11 text-base text-foreground shadow-lg placeholder:text-muted-foreground focus-visible:ring-accent"
+                className="h-12 rounded-xl border-white/10 bg-white pl-11 text-base text-foreground shadow-lg placeholder:text-muted-foreground focus-visible:ring-accent"
               />
             </div>
             <Button
               size="lg"
               onClick={handleSearch}
-              className="h-13 rounded-xl bg-accent px-8 text-base font-semibold text-accent-foreground shadow-lg hover:bg-accent/90"
+              className="h-12 rounded-xl bg-accent px-8 text-base font-semibold text-accent-foreground shadow-lg hover:bg-accent/90"
             >
               Søg
             </Button>
