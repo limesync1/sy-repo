@@ -64,7 +64,7 @@ const SearchPage = () => {
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <Link to="/">
-              <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-8" />
+              <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-8" />
             </Link>
           </div>
           <Link to="/auth">
