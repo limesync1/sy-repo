@@ -21,7 +21,7 @@ const Categories = () => {
             Populære kategorier
           </h2>
         </div>
-        <div className="mx-auto grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
           {categories.map((cat) => (
             <button
               key={cat.label}

@@ -31,10 +31,10 @@ const HowItWorks = () => {
             Sådan virker det
           </h2>
         </div>
-        <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-3">
+        <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 md:flex-row md:items-stretch">
           {steps.map((step, i) => (
-            <div key={step.title} className="relative">
-              <div className="rounded-2xl border border-border/60 bg-card p-8 text-center shadow-sm transition-all hover:shadow-md">
+            <>
+              <div key={step.title} className="flex-1 rounded-2xl border border-border/60 bg-card p-8 text-center shadow-sm transition-all hover:shadow-md">
                 <div className={`mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-xl ${step.color}`}>
                   <step.icon className="h-7 w-7" />
                 </div>
@@ -45,11 +45,11 @@ const HowItWorks = () => {
                 <p className="text-muted-foreground">{step.description}</p>
               </div>
               {i < steps.length - 1 && (
-                <div className="absolute -right-3 top-1/2 z-10 hidden -translate-y-1/2 md:block">
+                <div key={`arrow-${i}`} className="hidden items-center md:flex">
                   <ArrowRight className="h-6 w-6 text-accent" />
                 </div>
               )}
-            </div>
+            </>
           ))}
         </div>
       </div>
