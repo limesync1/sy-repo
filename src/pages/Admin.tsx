@@ -204,13 +204,13 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
     if (!name.trim()) { toast.error("Indtast et servicenavn"); return; }
     try {
       if (existingService) {
-        await updateService.mutateAsync({ id: existingService.id, name: name.trim(), description: description.trim() || null, pricing_type: pricingType as any, base_price: basePrice ? parseFloat(basePrice) : null, unit: unit || null });
+        await updateService.mutateAsync({ id: existingService.id, name: name.trim(), description: description.trim() || null, pricing_type: pricingType as any, base_price: basePrice ? parseFloat(basePrice) : null, unit: unit || null, subcategory: subcategory || null, image_url: imageUrl || null } as any);
         if (pricingType === "prisberegner") {
           await upsertSteps.mutateAsync({ serviceId: existingService.id, steps: steps.map((s, i) => ({ service_id: existingService.id, label: s.label, unit: s.unit, price_per_unit: parseFloat(s.price_per_unit) || 0, min_value: parseFloat(s.min_value) || 1, max_value: parseFloat(s.max_value) || 100, default_value: parseFloat(s.default_value) || 1, sort_order: i })) });
         }
         toast.success("Service opdateret");
       } else {
-        const result = await createService.mutateAsync({ business_id: businessId, name: name.trim(), description: description.trim() || null, pricing_type: pricingType as any, base_price: basePrice ? parseFloat(basePrice) : null, unit: unit || null });
+        const result = await createService.mutateAsync({ business_id: businessId, name: name.trim(), description: description.trim() || null, pricing_type: pricingType as any, base_price: basePrice ? parseFloat(basePrice) : null, unit: unit || null, subcategory: subcategory || null, image_url: imageUrl || null } as any);
         if (pricingType === "prisberegner" && steps.length > 0) {
           await upsertSteps.mutateAsync({ serviceId: result.id, steps: steps.map((s, i) => ({ service_id: result.id, label: s.label, unit: s.unit, price_per_unit: parseFloat(s.price_per_unit) || 0, min_value: parseFloat(s.min_value) || 1, max_value: parseFloat(s.max_value) || 100, default_value: parseFloat(s.default_value) || 1, sort_order: i })) });
         }
@@ -224,6 +224,20 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
     <div className="space-y-4">
       <Input placeholder="Servicenavn" value={name} onChange={(e) => setName(e.target.value)} />
       <Textarea placeholder="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} />
+      <div>
+        <label className="mb-1 block text-sm font-medium text-foreground">Underkategori</label>
+        <Select value={subcategory} onValueChange={setSubcategory}>
+          <SelectTrigger><SelectValue placeholder="Vælg underkategori (valgfrit)" /></SelectTrigger>
+          <SelectContent>
+            {Object.entries(SUBCATEGORIES).map(([cat, subs]) => (
+              subs.map((sub) => (
+                <SelectItem key={sub} value={sub}>{cat} → {sub}</SelectItem>
+              ))
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Input placeholder="Billede URL (valgfrit)" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
       <Select value={pricingType} onValueChange={setPricingType}>
         <SelectTrigger><SelectValue /></SelectTrigger>
         <SelectContent>
