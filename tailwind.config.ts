@@ -57,6 +57,8 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        "service-accent": "hsl(184, 90%, 69%)",
+        "service-accent-dark": "hsl(184, 90%, 55%)",
       },
       borderRadius: {
         lg: "var(--radius)",
