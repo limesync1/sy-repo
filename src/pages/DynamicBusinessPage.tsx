@@ -12,7 +12,7 @@ import { ArrowLeft, Star, Mail, Phone, MapPin, Clock, CheckCircle, ShieldCheck }
 import { useState } from "react";
 import { toast } from "sonner";
 
-/* ───── Review Form (extracted) ───── */
+/* ───── Review Form ───── */
 const ReviewForm = ({ businessId }: { businessId: string }) => {
   const createReview = useCreateReview();
   const [name, setName] = useState("");
@@ -68,14 +68,21 @@ const DynamicBusinessContent = () => {
   const openingHours = business.opening_hours && typeof business.opening_hours === "object"
     ? Object.entries(business.opening_hours as Record<string, string>).filter(([, v]) => v)
     : [];
-
   const hasCover = !!business.cover_image_url;
+
+  // Group services by subcategory
+  const groupedServices = services?.reduce((acc, s) => {
+    const key = (s as any).subcategory || "Øvrige";
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(s);
+    return acc;
+  }, {} as Record<string, typeof services>) || {};
 
   return (
     <div className="min-h-screen bg-background">
       {/* ── Sticky Nav ── */}
       <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8">
           <div className="flex items-center gap-3">
             <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors"><ArrowLeft className="h-5 w-5" /></Link>
             <Link to="/"><img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-7" /></Link>
@@ -87,24 +94,22 @@ const DynamicBusinessContent = () => {
       </nav>
 
       {/* ── Hero / Cover ── */}
-      <header className={`relative overflow-hidden ${hasCover ? "h-64 md:h-80 lg:h-96" : "h-48 md:h-56"}`}>
+      <header className={`relative overflow-hidden ${hasCover ? "h-56 md:h-72 lg:h-[22rem]" : "h-40 md:h-52"}`}>
         {hasCover ? (
           <img src={business.cover_image_url!} alt={business.name} className="absolute inset-0 h-full w-full object-cover" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-secondary via-secondary to-muted" />
         )}
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-foreground/20 to-transparent" />
-        {/* Content over image */}
-        <div className="absolute inset-x-0 bottom-0 mx-auto flex max-w-6xl items-end gap-5 px-4 pb-6 md:px-8">
+        <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/30 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 mx-auto flex max-w-7xl items-end gap-5 px-4 pb-6 md:px-8">
           {business.logo_url && (
-            <div className="shrink-0 rounded-2xl border-4 border-background bg-background shadow-xl h-20 w-20 md:h-28 md:w-28">
+            <div className="shrink-0 rounded-2xl border-4 border-background bg-background shadow-xl h-20 w-20 md:h-28 md:w-28 lg:h-32 lg:w-32">
               <img src={business.logo_url} alt={business.name} className="h-full w-full rounded-xl object-contain" />
             </div>
           )}
           <div className="min-w-0 pb-1">
             <h1 className="text-2xl font-extrabold text-background drop-shadow-lg md:text-4xl lg:text-5xl">{business.name}</h1>
-            <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-background/80">
+            <div className="mt-1.5 flex flex-wrap items-center gap-3 text-sm text-background/80">
               {business.city && <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{business.city}</span>}
               {avgRating && (
                 <span className="flex items-center gap-1">
@@ -119,8 +124,8 @@ const DynamicBusinessContent = () => {
       </header>
 
       {/* ── Body ── */}
-      <div className="mx-auto max-w-6xl px-4 md:px-8">
-        <div className="grid gap-8 py-8 md:py-12 lg:grid-cols-[1fr_320px]">
+      <div className="mx-auto max-w-7xl px-4 md:px-8">
+        <div className="grid gap-8 py-8 md:gap-10 md:py-12 lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_380px]">
 
           {/* ── Main Column ── */}
           <div className="min-w-0 space-y-10">
@@ -129,7 +134,7 @@ const DynamicBusinessContent = () => {
             {business.description && (
               <section>
                 <h2 className="mb-3 text-lg font-bold text-foreground">Om {business.name}</h2>
-                <p className="leading-relaxed text-muted-foreground">{business.description}</p>
+                <p className="max-w-2xl leading-relaxed text-muted-foreground">{business.description}</p>
               </section>
             )}
 
@@ -140,9 +145,24 @@ const DynamicBusinessContent = () => {
                   <h2 className="text-xl font-bold text-foreground">Services</h2>
                   <span className="text-sm text-muted-foreground">{services.length} {services.length === 1 ? "service" : "services"}</span>
                 </div>
-                <div className="space-y-4">
-                  {services.map((s) => <DynamicServiceCard key={s.id} service={s} />)}
-                </div>
+
+                {/* If there are subcategories, group them */}
+                {Object.keys(groupedServices).length > 1 ? (
+                  <div className="space-y-8">
+                    {Object.entries(groupedServices).map(([sub, items]) => (
+                      <div key={sub}>
+                        <h3 className="mb-3 text-base font-semibold text-foreground">{sub}</h3>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          {items!.map((s) => <DynamicServiceCard key={s.id} service={s} />)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {services.map((s) => <DynamicServiceCard key={s.id} service={s} />)}
+                  </div>
+                )}
               </section>
             )}
 
@@ -169,7 +189,7 @@ const DynamicBusinessContent = () => {
                     <Card key={r.id} className="border-border">
                       <CardContent className="p-4">
                         <div className="mb-2 flex items-center gap-2">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-sm font-bold text-foreground">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-sm font-bold text-foreground">
                             {r.reviewer_name.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -197,7 +217,6 @@ const DynamicBusinessContent = () => {
 
           {/* ── Sidebar ── */}
           <aside className="space-y-5 lg:sticky lg:top-20 lg:self-start">
-            {/* Quick contact CTA */}
             <Card className="border-border bg-secondary/30">
               <CardContent className="p-5">
                 <h3 className="mb-1 font-bold text-foreground">Kontakt {business.name}</h3>
@@ -223,7 +242,6 @@ const DynamicBusinessContent = () => {
               </CardContent>
             </Card>
 
-            {/* Opening hours */}
             {openingHours.length > 0 && (
               <Card className="border-border">
                 <CardContent className="p-5">
@@ -242,7 +260,6 @@ const DynamicBusinessContent = () => {
               </Card>
             )}
 
-            {/* Trust signals */}
             <div className="space-y-2 rounded-xl bg-secondary/40 p-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <CheckCircle className="h-4 w-4 text-accent" /> Verificeret virksomhed
@@ -258,9 +275,8 @@ const DynamicBusinessContent = () => {
         </div>
       </div>
 
-      {/* ── Footer ── */}
       <footer className="border-t border-border bg-secondary/30 py-8">
-        <div className="mx-auto max-w-6xl px-4 text-center text-sm text-muted-foreground md:px-8">
+        <div className="mx-auto max-w-7xl px-4 text-center text-sm text-muted-foreground md:px-8">
           <p>© {new Date().getFullYear()} {business.name} · Drevet af <Link to="/" className="font-medium text-foreground hover:underline">Serviceydere</Link></p>
         </div>
       </footer>
