@@ -98,8 +98,8 @@ const DynamicBusinessContent = () => {
         {/* Content over image */}
         <div className="absolute inset-x-0 bottom-0 mx-auto flex max-w-6xl items-end gap-5 px-4 pb-6 md:px-8">
           {business.logo_url && (
-            <div className="shrink-0 overflow-hidden rounded-2xl border-4 border-background bg-background shadow-xl h-20 w-20 md:h-28 md:w-28">
-              <img src={business.logo_url} alt={business.name} className="h-full w-full object-cover" />
+            <div className="shrink-0 rounded-2xl border-4 border-background bg-background shadow-xl h-20 w-20 md:h-28 md:w-28">
+              <img src={business.logo_url} alt={business.name} className="h-full w-full rounded-xl object-contain" />
             </div>
           )}
           <div className="min-w-0 pb-1">
