@@ -166,12 +166,25 @@ const ServiceRow = ({ service, onDelete }: { service: any; onDelete: () => void 
   );
 };
 
+const SUBCATEGORIES: Record<string, string[]> = {
+  "Rengøring": ["Privatrengøring", "Erhvervsrengøring", "Bofællesskaber", "Trappevask", "Vinduespolering"],
+  "Håndværker": ["Tømrer", "Snedker", "Murer", "Gulvlægning", "Renovering"],
+  "Flyttehjælp": ["Privat flytning", "Erhvervsflytning", "Pianoflytning", "Opbevaring"],
+  "Haveservice": ["Havevedligehold", "Anlægsarbejde", "Træfældning", "Hækkeklipning"],
+  "Maler": ["Indvendig maling", "Udvendig maling", "Tapetsering", "Facaderenovering"],
+  "VVS": ["Blikkenslager", "Vandinstallation", "Varmeinstallation", "Kloakarbejde"],
+  "Elektriker": ["Elinstallation", "Fejlfinding", "EL-tjek", "Belysning"],
+  "Sikkerhed": ["Alarmsystemer", "Videoovervågning", "Adgangskontrol", "Vagt"],
+};
+
 const ServiceForm = ({ businessId, existingService, onClose }: { businessId: string; existingService?: any; onClose: () => void }) => {
   const createService = useCreateService();
   const updateService = useUpdateService();
   const upsertSteps = useUpsertCalculatorSteps();
   const [name, setName] = useState(existingService?.name || "");
   const [description, setDescription] = useState(existingService?.description || "");
+  const [subcategory, setSubcategory] = useState(existingService?.subcategory || "");
+  const [imageUrl, setImageUrl] = useState(existingService?.image_url || "");
   const [pricingType, setPricingType] = useState(existingService?.pricing_type || "fast_pris");
   const [basePrice, setBasePrice] = useState(existingService?.base_price?.toString() || "");
   const [unit, setUnit] = useState(existingService?.unit || "");
