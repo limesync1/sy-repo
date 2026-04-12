@@ -11,13 +11,33 @@ interface Props {
   service: Service & { calculator_steps?: CalculatorStep[] };
 }
 
-/* ── Stepper: +/- with number display ── */
+/* ── Smart step size based on unit and range ── */
+const getSmartStep = (unit: string, min: number, max: number): number => {
+  const range = max - min;
+  // Large-area units
+  if (["m²", "m2", "m"].includes(unit)) {
+    if (range >= 500) return 10;
+    if (range >= 100) return 5;
+    return 1;
+  }
+  if (["km"].includes(unit)) return range >= 50 ? 5 : 1;
+  if (["timer"].includes(unit)) return 0.5;
+  if (["kr"].includes(unit)) {
+    if (range >= 5000) return 500;
+    if (range >= 1000) return 100;
+    return 50;
+  }
+  // Default for stk, rum, etc.
+  return 1;
+};
+
+/* ── Stepper: +/- with editable number ── */
 const StepperInput = ({
   value,
   onChange,
   min,
   max,
-  step = 1,
+  step: stepOverride,
   unit,
 }: {
   value: number;
@@ -27,8 +47,12 @@ const StepperInput = ({
   step?: number;
   unit: string;
 }) => {
+  const step = stepOverride ?? getSmartStep(unit, min, max);
   const dec = () => onChange(Math.max(min, +(value - step).toFixed(2)));
   const inc = () => onChange(Math.min(max, +(value + step).toFixed(2)));
+
+  // Show editable input for large-range units
+  const isLargeRange = (max - min) > 20;
 
   return (
     <div className="flex items-center gap-0">
@@ -40,9 +64,24 @@ const StepperInput = ({
       >
         <Minus className="h-3.5 w-3.5" />
       </button>
-      <div className="flex h-9 min-w-[4.5rem] items-center justify-center border-y border-border bg-card px-2 text-sm font-semibold text-foreground">
-        {value} {unit}
-      </div>
+      {isLargeRange ? (
+        <input
+          type="number"
+          value={value}
+          onChange={(e) => {
+            const v = parseFloat(e.target.value);
+            if (!isNaN(v)) onChange(Math.max(min, Math.min(max, v)));
+          }}
+          min={min}
+          max={max}
+          step={step}
+          className="flex h-9 w-[5rem] items-center border-y border-border bg-card px-2 text-center text-sm font-semibold text-foreground outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        />
+      ) : (
+        <div className="flex h-9 min-w-[4rem] items-center justify-center border-y border-border bg-card px-2 text-sm font-semibold text-foreground">
+          {value}
+        </div>
+      )}
       <button
         type="button"
         onClick={inc}
@@ -51,10 +90,10 @@ const StepperInput = ({
       >
         <Plus className="h-3.5 w-3.5" />
       </button>
+      <span className="ml-2 text-xs text-muted-foreground">{unit}</span>
     </div>
   );
 };
-
 const DynamicServiceCard = ({ service }: Props) => {
   const { addItem } = useCart();
   const [hours, setHours] = useState(1);
@@ -204,7 +243,7 @@ const DynamicServiceCard = ({ service }: Props) => {
           </div>
         )}
 
-        <Button onClick={handleAdd} className="w-full gap-2 bg-foreground text-background hover:bg-foreground/90">
+        <Button onClick={handleAdd} className="w-full gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
           <ShoppingCart className="h-4 w-4" />
           Tilføj til kurv – {total} kr
         </Button>
