@@ -201,7 +201,7 @@ const SearchPage = () => {
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
           </div>
         ) : businesses && businesses.length > 0 ? (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
             {businesses.map((biz) => (
               <BusinessCard key={biz.id} biz={biz} />
             ))}
