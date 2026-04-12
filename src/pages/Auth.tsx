@@ -34,7 +34,7 @@ const Auth = () => {
       <Card className="w-full max-w-sm border-border/60">
         <CardHeader className="text-center">
           <Link to="/">
-            <img src="/serviceydere-logo.png" alt="Serviceydere" className="mx-auto mb-4 h-10" />
+            <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="mx-auto mb-4 h-10" />
           </Link>
           <CardTitle className="text-2xl">{isSignUp ? "Opret konto" : "Log ind"}</CardTitle>
         </CardHeader>
