@@ -87,13 +87,12 @@ const RequestQuote = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-foreground">
+    <div className="relative min-h-screen overflow-hidden bg-[hsl(222,30%,18%)]">
       {/* Animated gradient background */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="animate-magic-bg-1 absolute -left-1/4 -top-1/4 h-[80vh] w-[80vh] rounded-full bg-[radial-gradient(circle,hsl(184_90%_42%/0.15),transparent_60%)] blur-3xl" />
-        <div className="animate-magic-bg-2 absolute -right-1/4 top-1/3 h-[70vh] w-[70vh] rounded-full bg-[radial-gradient(circle,hsl(260_80%_60%/0.12),transparent_60%)] blur-3xl" />
-        <div className="animate-magic-bg-3 absolute -bottom-1/4 left-1/3 h-[60vh] w-[60vh] rounded-full bg-[radial-gradient(circle,hsl(184_90%_42%/0.1),transparent_60%)] blur-3xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,hsl(222_47%_11%/0.6))]" />
+        <div className="animate-magic-bg-1 absolute -left-1/4 -top-1/4 h-[80vh] w-[80vh] rounded-full bg-[radial-gradient(circle,hsl(184_90%_42%/0.2),transparent_60%)] blur-3xl" />
+        <div className="animate-magic-bg-2 absolute -right-1/4 top-1/3 h-[70vh] w-[70vh] rounded-full bg-[radial-gradient(circle,hsl(260_80%_60%/0.15),transparent_60%)] blur-3xl" />
+        <div className="animate-magic-bg-3 absolute -bottom-1/4 left-1/3 h-[60vh] w-[60vh] rounded-full bg-[radial-gradient(circle,hsl(184_90%_42%/0.12),transparent_60%)] blur-3xl" />
       </div>
 
       {/* Subtle grid overlay */}
