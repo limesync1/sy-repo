@@ -237,7 +237,6 @@ const DynamicBusinessContent = () => {
                     >
                       <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                       <span>{business.address}{business.zip_code ? `, ${business.zip_code}` : ""}{business.city ? ` ${business.city}` : ""}</span>
-                    </div>
                     </a>
                   )}
                 </div>
