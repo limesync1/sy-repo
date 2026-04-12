@@ -223,9 +223,9 @@ const DynamicServiceCard = ({ service }: Props) => {
                     <span className="text-sm font-semibold text-foreground shrink-0">{stepTotal} kr</span>
                   </div>
                   <StepperInput
-                    value={stepValues[step.id] || 1}
+                    value={stepValues[step.id] ?? 0}
                     onChange={(v) => setStepValues((prev) => ({ ...prev, [step.id]: v }))}
-                    min={step.min_value || 1}
+                    min={0}
                     max={step.max_value || 100}
                     unit={step.unit}
                   />
