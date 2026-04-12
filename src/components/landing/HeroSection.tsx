@@ -46,10 +46,6 @@ const HeroSection = () => {
         </nav>
 
         <div className="mx-auto max-w-3xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-sm font-medium text-white/80">
-            <span className="h-2 w-2 rounded-full bg-accent" />
-            Danmarks nye platform for services
-          </div>
 
           <h1 className="mb-6 text-4xl font-extrabold tracking-tight text-white md:text-5xl lg:text-6xl">
             Find den rette service
