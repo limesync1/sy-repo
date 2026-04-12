@@ -26,7 +26,7 @@ const HeroSection = () => {
 
       <div className="container relative mx-auto px-4 pt-8 pb-24 md:pt-12 md:pb-32">
         <nav className="mb-16 flex items-center justify-between md:mb-24">
-          <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-9 brightness-0 invert md:h-11" />
+          <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-9 md:h-11" />
           <Link to="/auth">
             <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
               Log ind
