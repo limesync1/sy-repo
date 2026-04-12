@@ -60,7 +60,7 @@ const CartSheet = ({ businessId }: CartSheetProps) => {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" className="relative gap-2 border-accent/30 hover:bg-accent/10">
+        <Button variant="outline" className="relative gap-2 border-accent/30 hover:bg-accent/10 hover:text-accent-foreground hover:border-accent">
           <ShoppingCart className="h-5 w-5" />
           Kurv
           {count > 0 && (
