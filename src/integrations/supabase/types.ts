@@ -353,6 +353,7 @@ export type Database = {
           name: string
           pricing_type: Database["public"]["Enums"]["pricing_type"]
           sort_order: number | null
+          subcategory: string | null
           unit: string | null
           updated_at: string
         }
@@ -367,6 +368,7 @@ export type Database = {
           name: string
           pricing_type?: Database["public"]["Enums"]["pricing_type"]
           sort_order?: number | null
+          subcategory?: string | null
           unit?: string | null
           updated_at?: string
         }
@@ -381,6 +383,7 @@ export type Database = {
           name?: string
           pricing_type?: Database["public"]["Enums"]["pricing_type"]
           sort_order?: number | null
+          subcategory?: string | null
           unit?: string | null
           updated_at?: string
         }
