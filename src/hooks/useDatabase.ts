@@ -27,6 +27,25 @@ export const useBusinessBySlug = (slug: string) => {
   });
 };
 
+// Fetch all active businesses (public)
+export const useAllBusinesses = (category?: string, search?: string) => {
+  return useQuery({
+    queryKey: ["businesses", category, search],
+    queryFn: async () => {
+      let query = supabase
+        .from("businesses")
+        .select("*")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
+      if (category) query = query.eq("category", category);
+      if (search) query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+  });
+};
+
 // Fetch current user's business
 export const useMyBusiness = () => {
   const { user } = useAuth();
@@ -165,9 +184,7 @@ export const useUpsertCalculatorSteps = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ serviceId, steps }: { serviceId: string; steps: TablesInsert<"calculator_steps">[] }) => {
-      // Delete existing steps
       await supabase.from("calculator_steps").delete().eq("service_id", serviceId);
-      // Insert new ones
       if (steps.length > 0) {
         const { error } = await supabase.from("calculator_steps").insert(steps);
         if (error) throw error;
@@ -214,5 +231,78 @@ export const useUpdateOrderStatus = () => {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["orders"] }),
+  });
+};
+
+// Create review (public)
+export const useCreateReview = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (review: TablesInsert<"reviews">) => {
+      const { data, error } = await supabase.from("reviews").insert(review).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => qc.invalidateQueries({ queryKey: ["reviews", data.business_id] }),
+  });
+};
+
+// Create quote request (public)
+export const useCreateQuoteRequest = () => {
+  return useMutation({
+    mutationFn: async (req: TablesInsert<"quote_requests">) => {
+      const { data, error } = await supabase.from("quote_requests").insert(req).select().single();
+      if (error) throw error;
+      return data;
+    },
+  });
+};
+
+// Fetch quote requests (for businesses in matching category)
+export const useQuoteRequests = (category?: string | null) => {
+  return useQuery({
+    queryKey: ["quote-requests", category],
+    queryFn: async () => {
+      let query = supabase
+        .from("quote_requests")
+        .select("*")
+        .eq("status", "open")
+        .order("created_at", { ascending: false });
+      if (category) query = query.eq("category", category);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!category,
+  });
+};
+
+// Create quote (business owner)
+export const useCreateQuote = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (quote: TablesInsert<"quotes">) => {
+      const { data, error } = await supabase.from("quotes").insert(quote).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["quote-requests"] }),
+  });
+};
+
+// Fetch quotes for a business
+export const useMyQuotes = (businessId: string | undefined) => {
+  return useQuery({
+    queryKey: ["my-quotes", businessId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quotes")
+        .select("*, quote_requests(*)")
+        .eq("business_id", businessId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!businessId,
   });
 };

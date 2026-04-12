@@ -1,5 +1,6 @@
 import { MessageSquarePlus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const GetQuotes = () => {
   return (
@@ -16,10 +17,12 @@ const GetQuotes = () => {
           <p className="mb-8 text-lg text-muted-foreground">
             Beskriv dit projekt og modtag op til 3 tilbud fra verificerede serviceydere – helt gratis og uforpligtende.
           </p>
-          <Button size="lg" className="h-13 gap-2 rounded-xl bg-accent px-8 text-base font-semibold text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90">
-            Få tilbud nu
-            <ArrowRight className="h-5 w-5" />
-          </Button>
+          <Link to="/quote">
+            <Button size="lg" className="h-13 gap-2 rounded-xl bg-accent px-8 text-base font-semibold text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90">
+              Få tilbud nu
+              <ArrowRight className="h-5 w-5" />
+            </Button>
+          </Link>
         </div>
       </div>
     </section>

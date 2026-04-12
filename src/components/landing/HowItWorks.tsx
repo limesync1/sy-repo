@@ -5,19 +5,19 @@ const steps = [
     icon: Search,
     title: "Søg",
     description: "Find serviceydere i din kategori og dit område.",
-    color: "bg-blue-50 text-blue-600",
+    color: "bg-accent/10 text-accent",
   },
   {
     icon: BarChart3,
     title: "Sammenlign",
     description: "Se priser, anmeldelser og beregn din pris direkte.",
-    color: "bg-emerald-50 text-emerald-600",
+    color: "bg-accent/10 text-accent",
   },
   {
     icon: CalendarCheck,
     title: "Book",
     description: "Vælg den bedste og bestil med det samme.",
-    color: "bg-violet-50 text-violet-600",
+    color: "bg-accent/10 text-accent",
   },
 ];
 
@@ -31,10 +31,16 @@ const HowItWorks = () => {
             Sådan virker det
           </h2>
         </div>
-        <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 md:flex-row md:items-stretch">
+        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-3">
           {steps.map((step, i) => (
-            <>
-              <div key={step.title} className="flex-1 rounded-2xl border border-border/60 bg-card p-8 text-center shadow-sm transition-all hover:shadow-md">
+            <div key={step.title} className="relative text-center">
+              {/* Arrow between cards on desktop */}
+              {i < steps.length - 1 && (
+                <div className="absolute -right-4 top-1/2 z-10 hidden -translate-y-1/2 md:block lg:-right-5">
+                  <ArrowRight className="h-6 w-6 text-accent" />
+                </div>
+              )}
+              <div className="rounded-2xl border border-border/60 bg-card p-8 shadow-sm transition-all hover:shadow-md">
                 <div className={`mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-xl ${step.color}`}>
                   <step.icon className="h-7 w-7" />
                 </div>
@@ -44,12 +50,7 @@ const HowItWorks = () => {
                 <h3 className="mb-2 text-xl font-bold text-foreground">{step.title}</h3>
                 <p className="text-muted-foreground">{step.description}</p>
               </div>
-              {i < steps.length - 1 && (
-                <div key={`arrow-${i}`} className="hidden items-center md:flex">
-                  <ArrowRight className="h-6 w-6 text-accent" />
-                </div>
-              )}
-            </>
+            </div>
           ))}
         </div>
       </div>
