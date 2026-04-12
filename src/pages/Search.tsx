@@ -1,17 +1,87 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { useAllBusinesses } from "@/hooks/useDatabase";
+import { useAllBusinesses, useReviews } from "@/hooks/useDatabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search as SearchIcon, ArrowLeft, MapPin, X } from "lucide-react";
+import { Search as SearchIcon, ArrowLeft, MapPin, X, Star, Phone, ShieldCheck } from "lucide-react";
 
 const CATEGORIES = [
   "Rengøring", "Håndværker", "Flyttehjælp", "Haveservice",
   "Maler", "VVS", "Elektriker", "Sikkerhed",
 ];
 
+/* ── Business Card with rating ── */
+const BusinessCard = ({ biz }: { biz: any }) => {
+  const { data: reviews } = useReviews(biz.id);
+  const avgRating = reviews?.length ? (reviews.reduce((a: number, r: any) => a + r.rating, 0) / reviews.length) : null;
+
+  return (
+    <Link to={`/b/${biz.slug}`} className="group block">
+      <Card className="h-full overflow-hidden border-border transition-all group-hover:border-foreground/20 group-hover:shadow-lg">
+        {/* Cover / fallback */}
+        <div className="relative h-40 overflow-hidden bg-secondary md:h-44">
+          {biz.cover_image_url ? (
+            <img src={biz.cover_image_url} alt={biz.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
+              {biz.logo_url ? (
+                <img src={biz.logo_url} alt={biz.name} className="h-16 w-16 rounded-xl object-contain opacity-50" />
+              ) : (
+                <span className="text-3xl font-bold text-muted-foreground/20">{biz.name.charAt(0)}</span>
+              )}
+            </div>
+          )}
+          {/* Floating logo */}
+          {biz.logo_url && biz.cover_image_url && (
+            <div className="absolute bottom-3 left-3 h-12 w-12 rounded-xl border-2 border-background bg-background shadow-md">
+              <img src={biz.logo_url} alt="" className="h-full w-full rounded-lg object-contain" />
+            </div>
+          )}
+          {biz.is_verified && (
+            <Badge className="absolute right-3 top-3 gap-1 border-none bg-background/80 text-foreground backdrop-blur-sm">
+              <ShieldCheck className="h-3 w-3 text-accent" /> Verificeret
+            </Badge>
+          )}
+        </div>
+
+        <CardContent className="p-4 md:p-5">
+          <div className="mb-1.5 flex items-start justify-between gap-2">
+            <h3 className="text-base font-bold text-foreground md:text-lg">{biz.name}</h3>
+            {avgRating !== null && (
+              <div className="flex shrink-0 items-center gap-1 text-sm">
+                <Star className="h-3.5 w-3.5 fill-accent text-accent" />
+                <span className="font-semibold text-foreground">{avgRating.toFixed(1)}</span>
+                <span className="text-xs text-muted-foreground">({reviews?.length})</span>
+              </div>
+            )}
+          </div>
+
+          {biz.description && (
+            <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{biz.description}</p>
+          )}
+
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            {biz.city && (
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3 w-3" /> {biz.city}
+              </span>
+            )}
+            {biz.phone && (
+              <span className="flex items-center gap-1">
+                <Phone className="h-3 w-3" /> {biz.phone}
+              </span>
+            )}
+            {biz.category && <Badge variant="outline" className="text-xs">{biz.category}</Badge>}
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+};
+
+/* ── Search Page ── */
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialCategory = searchParams.get("category") || "";
@@ -21,15 +91,11 @@ const SearchPage = () => {
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
 
-  // Debounce search input
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(inputValue);
-    }, 300);
+    const timer = setTimeout(() => setDebouncedQuery(inputValue), 300);
     return () => clearTimeout(timer);
   }, [inputValue]);
 
-  // Sync URL params
   useEffect(() => {
     const params = new URLSearchParams();
     if (selectedCategory) params.set("category", selectedCategory);
@@ -58,7 +124,7 @@ const SearchPage = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
-        <div className="container mx-auto flex items-center justify-between px-4 py-3">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8">
           <div className="flex items-center gap-3">
             <Link to="/" className="text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-5 w-5" />
@@ -73,7 +139,7 @@ const SearchPage = () => {
         </div>
       </nav>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
         {/* Search bar */}
         <div className="mx-auto mb-6 max-w-2xl">
           <div className="relative">
@@ -119,10 +185,7 @@ const SearchPage = () => {
             <span className="text-sm text-muted-foreground">
               {businesses?.length || 0} resultat{businesses?.length !== 1 ? "er" : ""}
             </span>
-            <button
-              onClick={clearFilters}
-              className="text-sm text-accent hover:underline"
-            >
+            <button onClick={clearFilters} className="text-sm text-accent hover:underline">
               Ryd filtre
             </button>
           </div>
@@ -134,34 +197,9 @@ const SearchPage = () => {
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
           </div>
         ) : businesses && businesses.length > 0 ? (
-          <div className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {businesses.map((biz) => (
-              <Link key={biz.id} to={`/b/${biz.slug}`}>
-                <Card className="h-full border-border transition-all hover:border-foreground/20 hover:shadow-lg">
-                  {biz.cover_image_url && (
-                    <div className="aspect-video overflow-hidden rounded-t-lg">
-                      <img src={biz.cover_image_url} alt={biz.name} className="h-full w-full object-cover" />
-                    </div>
-                  )}
-                  <CardContent className="p-5">
-                    <div className="mb-2 flex items-start justify-between gap-2">
-                      <h3 className="text-lg font-bold text-foreground">{biz.name}</h3>
-                      {biz.is_verified && <Badge variant="secondary" className="shrink-0">Verificeret</Badge>}
-                    </div>
-                    {biz.description && (
-                      <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">{biz.description}</p>
-                    )}
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      {biz.city && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" /> {biz.city}
-                        </span>
-                      )}
-                      {(biz as any).category && <Badge variant="outline">{(biz as any).category}</Badge>}
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+              <BusinessCard key={biz.id} biz={biz} />
             ))}
           </div>
         ) : (

@@ -223,22 +223,53 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
     } catch (e: any) { toast.error(e.message); }
   };
 
+  const [customSubcategory, setCustomSubcategory] = useState(false);
+
+  // Check if current subcategory is a preset
+  const isPreset = Object.values(SUBCATEGORIES).flat().includes(subcategory);
+
   return (
     <div className="space-y-4">
       <Input placeholder="Servicenavn" value={name} onChange={(e) => setName(e.target.value)} />
       <Textarea placeholder="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} />
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">Underkategori</label>
-        <Select value={subcategory} onValueChange={setSubcategory}>
-          <SelectTrigger><SelectValue placeholder="Vælg underkategori (valgfrit)" /></SelectTrigger>
-          <SelectContent>
-            {Object.entries(SUBCATEGORIES).map(([cat, subs]) => (
-              subs.map((sub) => (
-                <SelectItem key={sub} value={sub}>{cat} → {sub}</SelectItem>
-              ))
-            ))}
-          </SelectContent>
-        </Select>
+        {!customSubcategory && (isPreset || !subcategory) ? (
+          <div className="space-y-2">
+            <Select value={subcategory} onValueChange={setSubcategory}>
+              <SelectTrigger><SelectValue placeholder="Vælg underkategori (valgfrit)" /></SelectTrigger>
+              <SelectContent>
+                {Object.entries(SUBCATEGORIES).map(([cat, subs]) => (
+                  subs.map((sub) => (
+                    <SelectItem key={sub} value={sub}>{cat} → {sub}</SelectItem>
+                  ))
+                ))}
+              </SelectContent>
+            </Select>
+            <button
+              type="button"
+              onClick={() => { setCustomSubcategory(true); setSubcategory(""); }}
+              className="text-xs text-accent hover:underline"
+            >
+              Eller skriv din egen underkategori
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Input
+              placeholder="Fx Rengøring af kontor"
+              value={subcategory}
+              onChange={(e) => setSubcategory(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => { setCustomSubcategory(false); setSubcategory(""); }}
+              className="text-xs text-accent hover:underline"
+            >
+              Vælg fra listen i stedet
+            </button>
+          </div>
+        )}
       </div>
       <ImageUpload
         folder={`${user!.id}/services`}

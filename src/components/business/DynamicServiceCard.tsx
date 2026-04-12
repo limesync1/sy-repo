@@ -5,7 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
-import { ImageIcon } from "lucide-react";
+import { ImageIcon, ShoppingCart } from "lucide-react";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 
 interface Props {
@@ -51,72 +51,84 @@ const DynamicServiceCard = ({ service }: Props) => {
 
   return (
     <Card className="overflow-hidden border-border transition-all hover:shadow-md">
-      <div className="flex flex-col sm:flex-row">
-        {/* Thumbnail */}
-        <div className="relative h-48 w-full shrink-0 overflow-hidden bg-secondary sm:h-auto sm:w-40">
-          {service.image_url ? (
-            <img src={service.image_url} alt={service.name} className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
-            </div>
+      {/* Image on top for all screen sizes */}
+      {service.image_url && (
+        <div className="relative h-44 w-full overflow-hidden bg-secondary md:h-52">
+          <img src={service.image_url} alt={service.name} className="h-full w-full object-cover" />
+          <Badge variant="outline" className="absolute right-3 top-3 border-background/50 bg-background/80 backdrop-blur-sm">
+            {pricingLabels[service.pricing_type]}
+          </Badge>
+        </div>
+      )}
+      {!service.image_url && (
+        <div className="relative flex h-32 w-full items-center justify-center bg-secondary/50">
+          <ImageIcon className="h-10 w-10 text-muted-foreground/20" />
+          <Badge variant="outline" className="absolute right-3 top-3">
+            {pricingLabels[service.pricing_type]}
+          </Badge>
+        </div>
+      )}
+
+      <CardContent className="p-5 md:p-6">
+        <div className="mb-3">
+          <h3 className="text-lg font-bold text-foreground md:text-xl">{service.name}</h3>
+          {(service as any).subcategory && (
+            <span className="text-xs font-medium text-accent">{(service as any).subcategory}</span>
           )}
+          {service.description && <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{service.description}</p>}
         </div>
 
-        <CardContent className="flex-1 p-5">
-          <div className="mb-3 flex items-start justify-between gap-2">
-            <div>
-              <h3 className="text-xl font-bold text-foreground">{service.name}</h3>
-              {(service as any).subcategory && (
-                <span className="text-xs text-muted-foreground">{(service as any).subcategory}</span>
-              )}
-              {service.description && <p className="mt-1 text-sm text-muted-foreground">{service.description}</p>}
-            </div>
-            <Badge variant="outline">{pricingLabels[service.pricing_type]}</Badge>
+        {service.pricing_type === "fast_pris" && (
+          <div className="mb-4 flex items-baseline gap-1">
+            <span className="text-2xl font-bold text-foreground">{service.base_price}</span>
+            <span className="text-sm text-muted-foreground">kr</span>
           </div>
+        )}
 
-          {service.pricing_type === "fast_pris" && (
-            <p className="mb-4 text-2xl font-bold text-foreground">{service.base_price} kr</p>
-          )}
-
-          {service.pricing_type === "timepris" && (
-            <div className="mb-4 space-y-3">
-              <p className="text-sm text-muted-foreground">{service.base_price} kr / time</p>
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-muted-foreground">Timer:</span>
-                <Slider value={[hours]} onValueChange={([v]) => setHours(v)} min={1} max={10} step={0.5} className="flex-1" />
-                <span className="w-12 text-right font-medium text-foreground">{hours}</span>
-              </div>
-              <p className="text-2xl font-bold text-foreground">{calculateTotal()} kr</p>
+        {service.pricing_type === "timepris" && (
+          <div className="mb-4 space-y-3">
+            <p className="text-sm text-muted-foreground">{service.base_price} kr / time</p>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-muted-foreground">Timer:</span>
+              <Slider value={[hours]} onValueChange={([v]) => setHours(v)} min={1} max={10} step={0.5} className="flex-1" />
+              <span className="w-12 text-right font-medium text-foreground">{hours}</span>
             </div>
-          )}
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-bold text-foreground">{calculateTotal()}</span>
+              <span className="text-sm text-muted-foreground">kr</span>
+            </div>
+          </div>
+        )}
 
-          {service.pricing_type === "prisberegner" && service.calculator_steps && (
-            <div className="mb-4 space-y-4">
-              {service.calculator_steps.map((step) => (
-                <div key={step.id} className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{step.label} ({step.unit})</span>
-                    <span className="font-medium text-foreground">{stepValues[step.id]} × {step.price_per_unit} kr</span>
-                  </div>
-                  <Slider
-                    value={[stepValues[step.id]]}
-                    onValueChange={([v]) => setStepValues((prev) => ({ ...prev, [step.id]: v }))}
-                    min={step.min_value || 1}
-                    max={step.max_value || 100}
-                    step={1}
-                  />
+        {service.pricing_type === "prisberegner" && service.calculator_steps && (
+          <div className="mb-4 space-y-4 rounded-lg bg-secondary/30 p-4">
+            {service.calculator_steps.map((step) => (
+              <div key={step.id} className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{step.label} ({step.unit})</span>
+                  <span className="font-medium text-foreground">{stepValues[step.id]} × {step.price_per_unit} kr</span>
                 </div>
-              ))}
-              <p className="text-2xl font-bold text-foreground">{calculateTotal()} kr</p>
+                <Slider
+                  value={[stepValues[step.id]]}
+                  onValueChange={([v]) => setStepValues((prev) => ({ ...prev, [step.id]: v }))}
+                  min={step.min_value || 1}
+                  max={step.max_value || 100}
+                  step={1}
+                />
+              </div>
+            ))}
+            <div className="flex items-baseline gap-1 border-t border-border pt-3">
+              <span className="text-2xl font-bold text-foreground">{calculateTotal()}</span>
+              <span className="text-sm text-muted-foreground">kr i alt</span>
             </div>
-          )}
+          </div>
+        )}
 
-          <Button onClick={handleAdd} className="w-full bg-foreground text-background hover:bg-foreground/90">
-            Tilføj til kurv – {calculateTotal()} kr
-          </Button>
-        </CardContent>
-      </div>
+        <Button onClick={handleAdd} className="w-full gap-2 bg-foreground text-background hover:bg-foreground/90">
+          <ShoppingCart className="h-4 w-4" />
+          Tilføj til kurv – {calculateTotal()} kr
+        </Button>
+      </CardContent>
     </Card>
   );
 };
