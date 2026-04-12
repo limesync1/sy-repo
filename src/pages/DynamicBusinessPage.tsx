@@ -70,13 +70,17 @@ const DynamicBusinessContent = () => {
     : [];
   const hasCover = !!business.cover_image_url;
 
-  // Group services by subcategory
-  const groupedServices = services?.reduce((acc, s) => {
-    const key = (s as any).subcategory || "Øvrige";
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(s);
-    return acc;
-  }, {} as Record<string, typeof services>) || {};
+  // Group services: Category → Subcategory → Services
+  type ServiceItem = NonNullable<typeof services>[number];
+  const groupedServices: Record<string, Record<string, ServiceItem[]>> = {};
+  services?.forEach((s) => {
+    const cat = (s as any).service_category || "Øvrige";
+    const sub = (s as any).subcategory || "";
+    if (!groupedServices[cat]) groupedServices[cat] = {};
+    if (!groupedServices[cat][sub]) groupedServices[cat][sub] = [];
+    groupedServices[cat][sub].push(s);
+  });
+  const hasCategories = Object.keys(groupedServices).length > 1 || Object.values(groupedServices).some(subs => Object.keys(subs).length > 1 || Object.keys(subs).some(k => k !== ""));
 
   return (
     <div className="min-h-screen bg-background">
