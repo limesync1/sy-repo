@@ -1,8 +1,8 @@
-import { BadgeCheck, Star, DollarSign, ShieldCheck } from "lucide-react";
+import { BadgeCheck, Star, CircleDollarSign, ShieldCheck } from "lucide-react";
 
 const benefits = [
   {
-    icon: DollarSign,
+    icon: CircleDollarSign,
     title: "Gratis at bruge",
     description: "Det koster dig ikke en krone at søge, sammenligne og indhente tilbud.",
   },
@@ -25,19 +25,22 @@ const benefits = [
 
 const WhyUs = () => {
   return (
-    <section className="py-20">
+    <section className="py-20 md:py-28">
       <div className="container mx-auto px-4">
-        <h2 className="mb-12 text-center text-3xl font-bold text-foreground md:text-4xl">
-          Hvorfor Serviceydere?
-        </h2>
-        <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-14 text-center">
+          <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-accent">Fordele</p>
+          <h2 className="text-3xl font-bold text-foreground md:text-4xl">
+            Hvorfor Serviceydere?
+          </h2>
+        </div>
+        <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2 lg:grid-cols-4">
           {benefits.map((b) => (
-            <div key={b.title} className="flex flex-col items-center text-center">
-              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary/15">
-                <b.icon className="h-7 w-7 text-primary" />
+            <div key={b.title} className="rounded-2xl border border-border/60 bg-card p-6 text-center shadow-sm transition-all hover:shadow-md">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10">
+                <b.icon className="h-6 w-6 text-accent" />
               </div>
-              <h3 className="mb-2 text-lg font-semibold text-foreground">{b.title}</h3>
-              <p className="text-sm text-muted-foreground">{b.description}</p>
+              <h3 className="mb-2 text-lg font-bold text-foreground">{b.title}</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">{b.description}</p>
             </div>
           ))}
         </div>

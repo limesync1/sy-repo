@@ -1,11 +1,11 @@
 const Footer = () => {
   return (
-    <footer className="border-t border-border bg-card py-12">
+    <footer className="border-t border-border bg-muted/30 py-12">
       <div className="container mx-auto px-4">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
-            <h3 className="mb-3 text-lg font-bold text-foreground">Serviceydere</h3>
-            <p className="text-sm text-muted-foreground">
+            <img src="/serviceydere-logo.png" alt="Serviceydere" className="mb-4 h-8" />
+            <p className="text-sm leading-relaxed text-muted-foreground">
               Find og sammenlign serviceydere i hele Danmark – hurtigt, nemt og gratis.
             </p>
           </div>
