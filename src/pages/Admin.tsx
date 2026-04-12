@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Plus, Trash2, LogOut, ExternalLink, ArrowLeft } from "lucide-react";
-import type { TablesInsert } from "@/integrations/supabase/types";
+
 
 const Admin = () => {
   const { user, loading, signOut } = useAuth();
