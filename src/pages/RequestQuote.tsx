@@ -2,10 +2,9 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2, AlertCircle, Wand2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -87,39 +86,43 @@ const RequestQuote = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[hsl(230,25%,12%)]">
-      {/* Animated gradient orbs */}
+    <div className="relative min-h-screen overflow-hidden bg-background">
+      {/* Animated gradient orbs — soft pastel on light bg */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="animate-magic-bg-1 absolute -left-[20%] -top-[10%] h-[700px] w-[700px] rounded-full bg-[hsl(184,90%,42%)] opacity-[0.08] blur-[120px]" />
-        <div className="animate-magic-bg-2 absolute -right-[15%] top-[20%] h-[600px] w-[600px] rounded-full bg-[hsl(270,70%,55%)] opacity-[0.07] blur-[120px]" />
-        <div className="animate-magic-bg-3 absolute bottom-[-10%] left-[30%] h-[500px] w-[500px] rounded-full bg-[hsl(200,80%,50%)] opacity-[0.06] blur-[120px]" />
+        <div className="animate-magic-bg-1 absolute -left-[15%] -top-[20%] h-[600px] w-[600px] rounded-full bg-[hsl(184,90%,80%)] opacity-40 blur-[140px]" />
+        <div className="animate-magic-bg-2 absolute -right-[10%] top-[10%] h-[500px] w-[500px] rounded-full bg-[hsl(260,70%,85%)] opacity-35 blur-[130px]" />
+        <div className="animate-magic-bg-3 absolute -bottom-[15%] left-[20%] h-[550px] w-[550px] rounded-full bg-[hsl(200,80%,82%)] opacity-30 blur-[140px]" />
       </div>
 
       {/* Nav */}
-      <nav className="relative z-50 border-b border-white/[0.06]">
+      <nav className="relative z-50 border-b border-border/50 bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
-            <Link to="/" className="text-white/40 transition-colors hover:text-white">
+            <Link to="/" className="text-muted-foreground transition-colors hover:text-foreground">
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <Link to="/">
-              <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-8" />
+              <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-8" />
             </Link>
           </div>
           <Link to="/auth">
-            <Button size="sm" className="border border-white/10 bg-white/[0.06] text-white/80 hover:bg-white/10 hover:text-white">Log ind</Button>
+            <Button size="sm" variant="outline">Log ind</Button>
           </Link>
         </div>
       </nav>
 
       <div className="relative z-10 container mx-auto px-4 py-16 md:py-24">
-        <div className="mx-auto max-w-xl">
+        <div className="mx-auto max-w-2xl">
           {/* Header */}
           <div className="mb-10 text-center animate-fade-in">
-            <h1 className="mb-3 text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
+            <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-4 py-1.5 text-sm font-medium text-accent">
+              <Sparkles className="h-4 w-4" />
+              AI-drevet matching
+            </div>
+            <h1 className="mb-3 text-3xl font-bold tracking-tight text-foreground md:text-4xl lg:text-5xl">
               Find dine 3 bedste tilbud
             </h1>
-            <p className="mx-auto max-w-sm text-base text-white/40 md:text-lg">
+            <p className="mx-auto max-w-md text-base text-muted-foreground md:text-lg">
               Beskriv dit behov — vores AI matcher dig med de bedste serviceydere.
             </p>
           </div>
@@ -127,40 +130,42 @@ const RequestQuote = () => {
           {/* Form */}
           {!matches && !isLoading && (
             <div className="mx-auto max-w-md animate-fade-in" style={{ animationDelay: '0.15s' }}>
-              <form onSubmit={handleFind} className="space-y-5">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-white/50">Kategori</label>
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger className="h-12 rounded-xl border-white/[0.08] bg-white/[0.04] text-white focus:border-accent/40 focus:ring-1 focus:ring-accent/30">
-                      <SelectValue placeholder="Hvad har du brug for?" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CATEGORIES.map((cat) => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-white/50">Beskriv dit behov</label>
-                  <Textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Fx: Rengøring af 3-værelses lejlighed, 85m², hver 14. dag i København NV."
-                    className="min-h-[120px] rounded-xl border-white/[0.08] bg-white/[0.04] text-white placeholder:text-white/20 focus-visible:border-accent/40 focus-visible:ring-1 focus-visible:ring-accent/30"
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full h-12 rounded-xl bg-accent text-white text-base font-semibold shadow-[0_4px_24px_hsl(184_90%_42%/0.25)] transition-all hover:shadow-[0_4px_32px_hsl(184_90%_42%/0.4)] hover:brightness-110"
-                >
-                  <span className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5" />
-                    Find tilbud med AI
-                  </span>
-                </Button>
-              </form>
+              <div className="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-xl shadow-accent/[0.03] backdrop-blur-sm md:p-8">
+                <form onSubmit={handleFind} className="space-y-5">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">Kategori</label>
+                    <Select value={category} onValueChange={setCategory}>
+                      <SelectTrigger className="h-12 rounded-xl">
+                        <SelectValue placeholder="Hvad har du brug for?" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.map((cat) => (
+                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">Beskriv dit behov</label>
+                    <Textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Fx: Rengøring af 3-værelses lejlighed, 85m², hver 14. dag i København NV."
+                      className="min-h-[120px] rounded-xl"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full h-12 rounded-xl bg-accent text-accent-foreground text-base font-semibold shadow-[0_4px_20px_hsl(184_90%_42%/0.2)] transition-all hover:shadow-[0_4px_28px_hsl(184_90%_42%/0.35)] hover:brightness-105"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5" />
+                      Find tilbud med AI
+                    </span>
+                  </Button>
+                </form>
+              </div>
             </div>
           )}
 
@@ -168,18 +173,18 @@ const RequestQuote = () => {
           {isLoading && (
             <div className="mt-12 flex flex-col items-center gap-6 text-center animate-fade-in">
               <div className="relative">
-                <div className="absolute inset-0 animate-ping rounded-full bg-accent/20" />
-                <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-accent/30 bg-accent/10 shadow-[0_0_60px_hsl(184_90%_42%/0.3)] backdrop-blur">
+                <div className="absolute inset-0 animate-ping rounded-full bg-accent/15" />
+                <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-accent/20 bg-accent/5 shadow-[0_0_40px_hsl(184_90%_42%/0.15)]">
                   <Loader2 className="h-8 w-8 animate-spin text-accent" />
                 </div>
               </div>
               <div>
-                <p className="text-xl font-semibold text-white">Analyserer dit behov...</p>
-                <p className="mt-1 text-white/40">Finder de bedste serviceydere i {category}</p>
+                <p className="text-xl font-semibold text-foreground">Analyserer dit behov...</p>
+                <p className="mt-1 text-muted-foreground">Finder de bedste serviceydere i {category}</p>
               </div>
               <div className="flex gap-1.5">
                 {[0, 1, 2].map((i) => (
-                  <div key={i} className="h-2 w-2 animate-bounce rounded-full bg-accent/60" style={{ animationDelay: `${i * 0.15}s` }} />
+                  <div key={i} className="h-2 w-2 animate-bounce rounded-full bg-accent/50" style={{ animationDelay: `${i * 0.15}s` }} />
                 ))}
               </div>
             </div>
@@ -187,10 +192,10 @@ const RequestQuote = () => {
 
           {/* Error state */}
           {error && !isLoading && (
-            <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur animate-fade-in">
-              <AlertCircle className="mx-auto mb-3 h-10 w-10 text-white/40" />
-              <p className="mb-4 text-white/70">{error}</p>
-              <Button variant="outline" onClick={handleReset} className="border-white/10 text-white hover:bg-white/10">Prøv igen</Button>
+            <div className="mt-8 rounded-2xl border border-border bg-card p-8 text-center animate-fade-in">
+              <AlertCircle className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+              <p className="mb-4 text-foreground">{error}</p>
+              <Button variant="outline" onClick={handleReset}>Prøv igen</Button>
             </div>
           )}
 
@@ -198,109 +203,106 @@ const RequestQuote = () => {
           {matches && matches.length > 0 && !isLoading && (
             <div className="space-y-8 animate-fade-in">
               <div className="text-center">
-                <div className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/10 px-4 py-1.5 text-sm font-medium text-accent">
+                <div className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-4 py-1.5 text-sm font-medium text-accent">
                   <Sparkles className="h-4 w-4" />
                   {matches.length} {matches.length === 1 ? "match fundet" : "matches fundet"}
                 </div>
               </div>
 
-              <div className="grid gap-6 md:grid-cols-3">
+              <div className="space-y-4">
                 {matches.map((match, i) => {
                   const isTop = i === 0;
                   return (
                     <div
                       key={match.business_id}
-                      className={`group relative flex flex-col overflow-hidden rounded-2xl border backdrop-blur-xl transition-all duration-300 ${
+                      className={`group overflow-hidden rounded-2xl border bg-card/80 backdrop-blur-sm transition-all duration-300 ${
                         isTop
-                          ? "border-accent/30 bg-white/[0.08] shadow-[0_0_40px_hsl(184_90%_42%/0.12)] md:-mt-2 md:mb-2"
-                          : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/[0.07]"
+                          ? "border-accent/25 shadow-lg shadow-accent/[0.06]"
+                          : "border-border/60 hover:border-accent/15 hover:shadow-md"
                       }`}
                     >
-                      {/* Top accent bar */}
                       {isTop && (
-                        <div className="h-1 w-full bg-gradient-to-r from-accent to-[hsl(200,80%,55%)]" />
+                        <div className="h-0.5 w-full bg-gradient-to-r from-accent via-[hsl(200,80%,55%)] to-[hsl(260,60%,65%)]" />
                       )}
 
-                      <div className="flex flex-1 flex-col p-5">
-                        {/* Rank + match score header */}
-                        <div className="mb-4 flex items-center justify-between">
-                          <span className={`text-3xl font-black ${isTop ? "text-accent" : "text-white/20"}`}>
+                      <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-5 sm:p-6">
+                        {/* Rank */}
+                        <div className="flex items-center gap-4 sm:flex-col sm:items-center sm:gap-1">
+                          <span className={`text-3xl font-black ${isTop ? "text-accent" : "text-muted-foreground/30"}`}>
                             #{i + 1}
                           </span>
-                          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                            isTop ? "bg-accent/15 text-accent" : "bg-white/5 text-white/50"
+                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                            isTop ? "bg-accent/10 text-accent" : "bg-secondary text-muted-foreground"
                           }`}>
-                            {match.match_score}% match
+                            {match.match_score}%
                           </span>
                         </div>
 
-                        {/* Logo + name */}
-                        <div className="mb-3 flex items-center gap-3">
-                          {match.business.logo_url ? (
-                            <img src={match.business.logo_url} alt="" className="h-10 w-10 rounded-lg object-contain bg-white/10 p-1" />
-                          ) : (
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-lg font-bold text-white/60">
-                              {match.business.name.charAt(0)}
+                        {/* Main content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              {match.business.logo_url ? (
+                                <img src={match.business.logo_url} alt="" className="h-11 w-11 rounded-xl border border-border object-contain bg-background p-1" />
+                              ) : (
+                                <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-secondary text-lg font-bold text-muted-foreground">
+                                  {match.business.name.charAt(0)}
+                                </div>
+                              )}
+                              <div className="min-w-0">
+                                <h3 className="truncate text-lg font-bold text-foreground">{match.business.name}</h3>
+                                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                  {match.business.city && (
+                                    <span className="flex items-center gap-1">
+                                      <MapPin className="h-3 w-3" /> {match.business.city}
+                                    </span>
+                                  )}
+                                  {match.business.avg_rating && (
+                                    <span className="flex items-center gap-1 text-accent">
+                                      <Star className="h-3 w-3 fill-accent" /> {match.business.avg_rating}
+                                      <span className="text-muted-foreground">({match.business.review_count})</span>
+                                    </span>
+                                  )}
+                                  {match.business.is_verified && (
+                                    <span className="flex items-center gap-1 text-accent">
+                                      <BadgeCheck className="h-3 w-3" /> Verificeret
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <div className="text-lg font-bold text-foreground">{match.estimated_price}</div>
+                              <div className="text-xs text-muted-foreground">Estimeret</div>
+                            </div>
+                          </div>
+
+                          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                            {match.reason}
+                          </p>
+
+                          {match.business.services.length > 0 && (
+                            <div className="mt-3 flex flex-wrap gap-1.5">
+                              {match.business.services.slice(0, 4).map((s) => (
+                                <Badge key={s.id} variant="secondary" className="text-xs font-normal">
+                                  {s.name}
+                                </Badge>
+                              ))}
                             </div>
                           )}
-                          <div className="min-w-0">
-                            <h3 className="truncate text-lg font-bold text-white">{match.business.name}</h3>
-                            {match.business.city && (
-                              <span className="flex items-center gap-1 text-xs text-white/40">
-                                <MapPin className="h-3 w-3" /> {match.business.city}
-                              </span>
-                            )}
+
+                          <div className="mt-4">
+                            <Link to={`/b/${match.business.slug}`}>
+                              <Button size="sm" className={`gap-2 ${
+                                isTop
+                                  ? "bg-accent text-accent-foreground hover:bg-accent/90"
+                                  : "bg-foreground text-background hover:bg-foreground/90"
+                              }`}>
+                                Se virksomhed & bestil
+                                <ArrowRight className="h-4 w-4" />
+                              </Button>
+                            </Link>
                           </div>
-                        </div>
-
-                        {/* Rating + verified */}
-                        <div className="mb-3 flex items-center gap-3 text-sm">
-                          {match.business.avg_rating && (
-                            <span className="flex items-center gap-1 text-accent">
-                              <Star className="h-3.5 w-3.5 fill-accent" />
-                              {match.business.avg_rating}
-                              <span className="text-white/30">({match.business.review_count})</span>
-                            </span>
-                          )}
-                          {match.business.is_verified && (
-                            <span className="flex items-center gap-1 text-xs text-accent/80">
-                              <BadgeCheck className="h-3.5 w-3.5" /> Verificeret
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Reason */}
-                        <p className="mb-4 flex-1 text-sm leading-relaxed text-white/45">
-                          {match.reason}
-                        </p>
-
-                        {/* Services */}
-                        {match.business.services.length > 0 && (
-                          <div className="mb-4 flex flex-wrap gap-1.5">
-                            {match.business.services.slice(0, 3).map((s) => (
-                              <span key={s.id} className="rounded-full bg-white/5 px-2.5 py-0.5 text-xs text-white/50">
-                                {s.name}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Price + CTA */}
-                        <div className="mt-auto border-t border-white/5 pt-4">
-                          <div className="mb-3 flex items-baseline justify-between">
-                            <span className="text-xs text-white/30">Estimeret pris</span>
-                            <span className="text-lg font-bold text-white">{match.estimated_price}</span>
-                          </div>
-                          <Link to={`/b/${match.business.slug}`} className="block">
-                            <Button className={`w-full gap-2 ${
-                              isTop
-                                ? "bg-accent text-white hover:bg-accent/90"
-                                : "bg-white/10 text-white hover:bg-white/15"
-                            }`}>
-                              Se virksomhed
-                              <ArrowRight className="h-4 w-4" />
-                            </Button>
-                          </Link>
                         </div>
                       </div>
                     </div>
@@ -309,7 +311,7 @@ const RequestQuote = () => {
               </div>
 
               <div className="text-center pt-2">
-                <Button variant="outline" onClick={handleReset} className="gap-2 border-white/10 text-white hover:bg-white/10">
+                <Button variant="outline" onClick={handleReset} className="gap-2">
                   <Sparkles className="h-4 w-4" />
                   Søg igen
                 </Button>
