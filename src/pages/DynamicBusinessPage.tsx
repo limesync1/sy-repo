@@ -12,43 +12,6 @@ import { ArrowLeft, Star, Mail, Phone, MapPin, Clock, CheckCircle, ShieldCheck }
 import { useState } from "react";
 import { toast } from "sonner";
 
-/* ───── Review Form ───── */
-const ReviewForm = ({ businessId }: { businessId: string }) => {
-  const createReview = useCreateReview();
-  const [name, setName] = useState("");
-  const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState("");
-
-  const submit = async () => {
-    if (!name.trim()) { toast.error("Indtast dit navn"); return; }
-    try {
-      await createReview.mutateAsync({ business_id: businessId, reviewer_name: name.trim(), rating, comment: comment.trim() || null });
-      toast.success("Anmeldelse sendt!");
-      setName(""); setRating(5); setComment("");
-    } catch (e: any) { toast.error(e.message); }
-  };
-
-  return (
-    <Card className="border-border bg-card">
-      <CardContent className="space-y-4 p-6">
-        <h3 className="font-semibold text-foreground">Skriv en anmeldelse</h3>
-        <Input placeholder="Dit navn" value={name} onChange={(e) => setName(e.target.value)} />
-        <div className="flex gap-1">
-          {[1,2,3,4,5].map((i) => (
-            <button key={i} onClick={() => setRating(i)} className="p-0.5">
-              <Star className={`h-5 w-5 transition-colors ${i <= rating ? "fill-accent text-accent" : "text-muted hover:text-accent/50"}`} />
-            </button>
-          ))}
-        </div>
-        <Textarea placeholder="Din kommentar (valgfrit)" value={comment} onChange={(e) => setComment(e.target.value)} rows={3} />
-        <Button onClick={submit} disabled={createReview.isPending} className="w-full bg-foreground text-background hover:bg-foreground/90">
-          {createReview.isPending ? "Sender..." : "Send anmeldelse"}
-        </Button>
-      </CardContent>
-    </Card>
-  );
-};
-
 /* ───── Main Content ───── */
 const DynamicBusinessContent = () => {
   const { slug } = useParams<{ slug: string }>();
