@@ -100,7 +100,7 @@ const DynamicServiceCard = ({ service }: Props) => {
   const [stepValues, setStepValues] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
     service.calculator_steps?.forEach((s) => {
-      initial[s.id] = s.default_value || 1;
+      initial[s.id] = s.default_value ?? 0;
     });
     return initial;
   });
