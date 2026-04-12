@@ -371,30 +371,33 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
               <SelectItem value="prisberegner">Prisberegner</SelectItem>
             </SelectContent>
           </Select>
-      {(pricingType === "fast_pris" || pricingType === "timepris") && (
-        <div className="flex gap-2">
-          <Input type="number" placeholder={pricingType === "fast_pris" ? "Pris (kr)" : "Timepris (kr)"} value={basePrice} onChange={(e) => setBasePrice(e.target.value)} />
-          {pricingType === "timepris" && <Input placeholder="Enhed (fx timer)" value={unit} onChange={(e) => setUnit(e.target.value)} />}
-        </div>
-      )}
-      {pricingType === "prisberegner" && (
-        <div className="space-y-3 rounded-lg border border-border/60 p-4">
-          <div className="flex items-center justify-between">
-            <h4 className="font-semibold text-foreground">Beregnertrin</h4>
-            <Button variant="outline" size="sm" onClick={addStep}><Plus className="mr-1 h-3 w-3" /> Tilføj trin</Button>
-          </div>
-          {steps.map((step, i) => (
-            <div key={i} className="grid grid-cols-5 gap-2 items-end">
-              <Input placeholder="Label" value={step.label} onChange={(e) => updateStep(i, "label", e.target.value)} />
-              <Input placeholder="Enhed" value={step.unit} onChange={(e) => updateStep(i, "unit", e.target.value)} />
-              <Input type="number" placeholder="Pris/enhed" value={step.price_per_unit} onChange={(e) => updateStep(i, "price_per_unit", e.target.value)} />
-              <Input type="number" placeholder="Max" value={step.max_value} onChange={(e) => updateStep(i, "max_value", e.target.value)} />
-              <Button variant="ghost" size="sm" onClick={() => removeStep(i)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+          {(pricingType === "fast_pris" || pricingType === "timepris") && (
+            <div className="flex gap-2">
+              <Input type="number" placeholder={pricingType === "fast_pris" ? "Pris (kr)" : "Timepris (kr)"} value={basePrice} onChange={(e) => setBasePrice(e.target.value)} />
+              {pricingType === "timepris" && <Input placeholder="Enhed (fx timer)" value={unit} onChange={(e) => setUnit(e.target.value)} />}
             </div>
-          ))}
-          {steps.length === 0 && <p className="text-sm text-muted-foreground">Tilføj mindst ét trin til prisberegneren.</p>}
+          )}
+          {pricingType === "prisberegner" && (
+            <div className="space-y-3 rounded-lg border border-border/60 p-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold text-foreground">Beregnertrin</h4>
+                <Button variant="outline" size="sm" onClick={addStep}><Plus className="mr-1 h-3 w-3" /> Tilføj trin</Button>
+              </div>
+              {steps.map((step, i) => (
+                <div key={i} className="grid grid-cols-5 gap-2 items-end">
+                  <Input placeholder="Label" value={step.label} onChange={(e) => updateStep(i, "label", e.target.value)} />
+                  <Input placeholder="Enhed" value={step.unit} onChange={(e) => updateStep(i, "unit", e.target.value)} />
+                  <Input type="number" placeholder="Pris/enhed" value={step.price_per_unit} onChange={(e) => updateStep(i, "price_per_unit", e.target.value)} />
+                  <Input type="number" placeholder="Max" value={step.max_value} onChange={(e) => updateStep(i, "max_value", e.target.value)} />
+                  <Button variant="ghost" size="sm" onClick={() => removeStep(i)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                </div>
+              ))}
+              {steps.length === 0 && <p className="text-sm text-muted-foreground">Tilføj mindst ét trin til prisberegneren.</p>}
+            </div>
+          )}
         </div>
       )}
+
       <div className="flex gap-2">
         <Button onClick={handleSave} className="bg-accent text-accent-foreground hover:bg-accent/90">
           {existingService ? "Gem ændringer" : "Opret service"}
