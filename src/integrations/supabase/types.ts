@@ -17,6 +17,7 @@ export type Database = {
       businesses: {
         Row: {
           address: string | null
+          category: string | null
           city: string | null
           cover_image_url: string | null
           created_at: string
@@ -36,6 +37,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          category?: string | null
           city?: string | null
           cover_image_url?: string | null
           created_at?: string
@@ -55,6 +57,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          category?: string | null
           city?: string | null
           cover_image_url?: string | null
           created_at?: string
@@ -215,6 +218,87 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_requests: {
+        Row: {
+          category: string
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          description: string
+          id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          description: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          description?: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      quotes: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          message: string | null
+          price: number
+          quote_request_id: string
+          status: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          price: number
+          quote_request_id: string
+          status?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          price?: number
+          quote_request_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_quote_request_id_fkey"
+            columns: ["quote_request_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests"
             referencedColumns: ["id"]
           },
         ]
