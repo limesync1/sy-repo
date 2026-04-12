@@ -32,7 +32,8 @@ const AdminDashboard = () => {
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <Link to="/" className="text-muted-foreground hover:text-foreground"><ArrowLeft className="h-5 w-5" /></Link>
-            <span className="font-bold text-foreground">{business.name} – Admin</span>
+            <Link to="/"><img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-8" /></Link>
+            <span className="text-sm font-medium text-muted-foreground">Admin</span>
           </div>
           <div className="flex items-center gap-2">
             <Link to={`/b/${business.slug}`}>
