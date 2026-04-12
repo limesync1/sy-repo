@@ -104,22 +104,6 @@ const RequestQuote = () => {
         }}
       />
 
-      {/* Floating particles */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className="animate-float absolute h-1 w-1 rounded-full bg-accent/30"
-            style={{
-              left: `${15 + i * 15}%`,
-              top: `${10 + (i % 3) * 30}%`,
-              animationDelay: `${i * 0.8}s`,
-              animationDuration: `${4 + i * 0.5}s`,
-            }}
-          />
-        ))}
-      </div>
-
       {/* Nav */}
       <nav className="relative z-50 border-b border-white/10 bg-white/5 backdrop-blur-xl">
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
@@ -141,11 +125,8 @@ const RequestQuote = () => {
         <div className="mx-auto max-w-3xl">
           {/* Header */}
           <div className="mb-10 text-center animate-fade-in">
-            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-accent/20 bg-accent/10 shadow-[0_0_40px_hsl(184_90%_42%/0.2)] backdrop-blur">
-              <Wand2 className="h-8 w-8 text-accent" />
-            </div>
             <h1 className="mb-3 text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
-              Find dine <span className="bg-gradient-to-r from-accent to-[hsl(260,80%,70%)] bg-clip-text text-transparent">3 bedste tilbud</span>
+              Find dine 3 bedste tilbud
             </h1>
             <p className="mx-auto max-w-md text-base text-white/50 md:text-lg">
               Beskriv dit behov og vores AI finder de bedste serviceydere til dig – med det samme.
