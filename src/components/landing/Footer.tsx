@@ -6,7 +6,7 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
-            <img src="/serviceydere-logo.png" alt="Serviceydere" className="mb-4 h-8 brightness-0 invert" />
+            <img src="/serviceydere-logo.png" alt="Serviceydere" className="mb-4 h-8" />
             <p className="text-sm leading-relaxed text-white/50">
               Find og sammenlign serviceydere i hele Danmark – hurtigt, nemt og gratis.
             </p>
