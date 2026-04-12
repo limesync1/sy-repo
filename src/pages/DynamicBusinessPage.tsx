@@ -62,7 +62,7 @@ const DynamicBusinessContent = () => {
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <Link to="/" className="text-muted-foreground hover:text-foreground"><ArrowLeft className="h-5 w-5" /></Link>
-            <span className="font-bold text-foreground">{business.name}</span>
+            <Link to="/"><img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-8" /></Link>
           </div>
           <CartSheet businessId={business.id} />
         </div>
@@ -144,7 +144,7 @@ const DynamicBusinessContent = () => {
               <Button
                 onClick={handleReviewSubmit}
                 disabled={createReview.isPending}
-                className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+                className="w-full bg-foreground text-background hover:bg-foreground/90"
               >
                 {createReview.isPending ? "Sender..." : "Send anmeldelse"}
               </Button>
@@ -153,38 +153,9 @@ const DynamicBusinessContent = () => {
         </div>
       </section>
 
-      {/* Contact */}
-      <section className="border-t border-border/50 bg-muted/30 py-16">
-        <div className="container mx-auto max-w-lg px-4">
-          <h2 className="mb-6 text-center text-2xl font-bold text-foreground">Kontakt os</h2>
-          <div className="mb-6 flex flex-col items-center gap-2 text-sm text-muted-foreground">
-            {business.email && <span className="flex items-center gap-2"><Mail className="h-4 w-4 text-accent" />{business.email}</span>}
-            {business.phone && <span className="flex items-center gap-2"><Phone className="h-4 w-4 text-accent" />{business.phone}</span>}
-            {business.address && <span className="flex items-center gap-2"><MapPin className="h-4 w-4 text-accent" />{business.address}{business.city ? `, ${business.city}` : ""}</span>}
-          </div>
-          <Card className="border-border/60">
-            <CardContent className="space-y-4 p-6">
-              <Input placeholder="Dit navn" value={contactName} onChange={(e) => setContactName(e.target.value)} />
-              <Input type="email" placeholder="Din e-mail" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
-              <Textarea placeholder="Din besked..." value={contactMsg} onChange={(e) => setContactMsg(e.target.value)} className="min-h-[100px]" />
-              <Button
-                onClick={() => {
-                  if (!contactName || !contactEmail || !contactMsg) { toast.error("Udfyld venligst alle felter"); return; }
-                  toast.success("Besked sendt!");
-                  setContactName(""); setContactEmail(""); setContactMsg("");
-                }}
-                className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
-              >
-                Send besked
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
       {/* Footer */}
-      <footer className="border-t border-border bg-muted/30 py-8 text-center text-sm text-muted-foreground">
-        <p>© {new Date().getFullYear()} {business.name} · Drevet af <Link to="/" className="font-medium text-accent hover:underline">Serviceydere</Link></p>
+      <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
+        <p>© {new Date().getFullYear()} {business.name} · Drevet af <Link to="/" className="font-medium text-foreground hover:underline">Serviceydere</Link></p>
       </footer>
     </div>
   );
