@@ -168,15 +168,45 @@ const ServiceRow = ({ service, onDelete }: { service: any; onDelete: () => void 
   );
 };
 
-const SUBCATEGORIES: Record<string, string[]> = {
-  "Rengøring": ["Privatrengøring", "Erhvervsrengøring", "Bofællesskaber", "Trappevask", "Vinduespolering"],
-  "Håndværker": ["Tømrer", "Snedker", "Murer", "Gulvlægning", "Renovering"],
-  "Flyttehjælp": ["Privat flytning", "Erhvervsflytning", "Pianoflytning", "Opbevaring"],
-  "Haveservice": ["Havevedligehold", "Anlægsarbejde", "Træfældning", "Hækkeklipning"],
-  "Maler": ["Indvendig maling", "Udvendig maling", "Tapetsering", "Facaderenovering"],
-  "VVS": ["Blikkenslager", "Vandinstallation", "Varmeinstallation", "Kloakarbejde"],
-  "Elektriker": ["Elinstallation", "Fejlfinding", "EL-tjek", "Belysning"],
-  "Sikkerhed": ["Alarmsystemer", "Videoovervågning", "Adgangskontrol", "Vagt"],
+const SERVICE_CATEGORIES: Record<string, Record<string, string[]>> = {
+  "Rengøring": {
+    "Privatrengøring": ["Hjemmerengøring", "Hovedrengøring", "Flytterengøring"],
+    "Erhvervsrengøring": ["Rengøring af kontor", "Gulvrens", "Sanitetsrengøring"],
+    "Trappevask": ["Trappevask", "Opgangsrengøring"],
+    "Vinduespolering": ["Traditionel vinduespolering", "Vinduespolering med rentvandsanlæg"],
+  },
+  "Håndværker": {
+    "Tømrer": ["Tilbygning", "Tagarbejde", "Altan"],
+    "Murer": ["Murværk", "Flisearbejde", "Facaderenovering"],
+    "Gulvlægning": ["Trægulv", "Vinylgulv", "Epoxygulv"],
+  },
+  "Haveservice": {
+    "Havevedligehold": ["Græsslåning", "Hækkeklipning", "Ukrudtsbekæmpelse"],
+    "Anlægsarbejde": ["Beplantning", "Belægning", "Haveprojekt"],
+    "Træfældning": ["Træfældning", "Stubbefræsning", "Beskæring"],
+  },
+  "Maler": {
+    "Indvendig maling": ["Vægmaling", "Loftmaling", "Lakering"],
+    "Udvendig maling": ["Facademaling", "Vinduer og døre"],
+    "Tapetsering": ["Tapetsering", "Fibervæv"],
+  },
+  "VVS": {
+    "Vandinstallation": ["Vandhane", "Toilet", "Badeværelse"],
+    "Varmeinstallation": ["Radiator", "Gulvvarme", "Varmepumpe"],
+    "Kloakarbejde": ["Kloakservice", "Afløb", "Drænarbejde"],
+  },
+  "Elektriker": {
+    "Elinstallation": ["Stikkontakter", "Belysning", "Eltavle"],
+    "EL-tjek": ["Elftersynsrapport", "Sikkerhedsgennemgang"],
+  },
+  "Flyttehjælp": {
+    "Privat flytning": ["Lokal flytning", "Langdistance flytning"],
+    "Erhvervsflytning": ["Kontorflytning", "Lagerflytning"],
+  },
+  "Sikkerhed": {
+    "Alarmsystemer": ["Tyverialarm", "Brandalarm"],
+    "Videoovervågning": ["IP-kamera", "Videoovervågning"],
+  },
 };
 
 const ServiceForm = ({ businessId, existingService, onClose }: { businessId: string; existingService?: any; onClose: () => void }) => {
@@ -184,14 +214,26 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   const createService = useCreateService();
   const updateService = useUpdateService();
   const upsertSteps = useUpsertCalculatorSteps();
+
+  const [serviceCategory, setServiceCategory] = useState(existingService?.service_category || "");
+  const [subcategory, setSubcategory] = useState(existingService?.subcategory || "");
   const [name, setName] = useState(existingService?.name || "");
   const [description, setDescription] = useState(existingService?.description || "");
-  const [subcategory, setSubcategory] = useState(existingService?.subcategory || "");
   const [imageUrl, setImageUrl] = useState(existingService?.image_url || "");
   const [pricingType, setPricingType] = useState(existingService?.pricing_type || "fast_pris");
   const [basePrice, setBasePrice] = useState(existingService?.base_price?.toString() || "");
   const [unit, setUnit] = useState(existingService?.unit || "");
   const [steps, setSteps] = useState<any[]>(existingService?.calculator_steps || []);
+  const [customCategory, setCustomCategory] = useState(false);
+  const [customSubcategory, setCustomSubcategory] = useState(false);
+
+  const categoryOptions = Object.keys(SERVICE_CATEGORIES);
+  const subcategoryOptions = serviceCategory && SERVICE_CATEGORIES[serviceCategory]
+    ? Object.keys(SERVICE_CATEGORIES[serviceCategory])
+    : [];
+  const productSuggestions = serviceCategory && subcategory && SERVICE_CATEGORIES[serviceCategory]?.[subcategory]
+    ? SERVICE_CATEGORIES[serviceCategory][subcategory]
+    : [];
 
   const addStep = () => {
     setSteps([...steps, { label: "", unit: "stk", price_per_unit: 0, min_value: 1, max_value: 100, default_value: 1, sort_order: steps.length }]);
@@ -205,15 +247,27 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
 
   const handleSave = async () => {
     if (!name.trim()) { toast.error("Indtast et servicenavn"); return; }
+    if (!serviceCategory.trim()) { toast.error("Vælg en kategori"); return; }
     try {
+      const payload = {
+        name: name.trim(),
+        description: description.trim() || null,
+        pricing_type: pricingType as any,
+        base_price: basePrice ? parseFloat(basePrice) : null,
+        unit: unit || null,
+        subcategory: subcategory.trim() || null,
+        service_category: serviceCategory.trim() || null,
+        image_url: imageUrl || null,
+      };
+
       if (existingService) {
-        await updateService.mutateAsync({ id: existingService.id, name: name.trim(), description: description.trim() || null, pricing_type: pricingType as any, base_price: basePrice ? parseFloat(basePrice) : null, unit: unit || null, subcategory: subcategory || null, image_url: imageUrl || null } as any);
+        await updateService.mutateAsync({ id: existingService.id, ...payload } as any);
         if (pricingType === "prisberegner") {
           await upsertSteps.mutateAsync({ serviceId: existingService.id, steps: steps.map((s, i) => ({ service_id: existingService.id, label: s.label, unit: s.unit, price_per_unit: parseFloat(s.price_per_unit) || 0, min_value: parseFloat(s.min_value) || 1, max_value: parseFloat(s.max_value) || 100, default_value: parseFloat(s.default_value) || 1, sort_order: i })) });
         }
         toast.success("Service opdateret");
       } else {
-        const result = await createService.mutateAsync({ business_id: businessId, name: name.trim(), description: description.trim() || null, pricing_type: pricingType as any, base_price: basePrice ? parseFloat(basePrice) : null, unit: unit || null, subcategory: subcategory || null, image_url: imageUrl || null } as any);
+        const result = await createService.mutateAsync({ business_id: businessId, ...payload } as any);
         if (pricingType === "prisberegner" && steps.length > 0) {
           await upsertSteps.mutateAsync({ serviceId: result.id, steps: steps.map((s, i) => ({ service_id: result.id, label: s.label, unit: s.unit, price_per_unit: parseFloat(s.price_per_unit) || 0, min_value: parseFloat(s.min_value) || 1, max_value: parseFloat(s.max_value) || 100, default_value: parseFloat(s.default_value) || 1, sort_order: i })) });
         }
@@ -223,93 +277,127 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
     } catch (e: any) { toast.error(e.message); }
   };
 
-  const [customSubcategory, setCustomSubcategory] = useState(false);
-
-  // Check if current subcategory is a preset
-  const isPreset = Object.values(SUBCATEGORIES).flat().includes(subcategory);
-
   return (
     <div className="space-y-4">
-      <Input placeholder="Servicenavn" value={name} onChange={(e) => setName(e.target.value)} />
-      <Textarea placeholder="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} />
-      <div>
-        <label className="mb-1 block text-sm font-medium text-foreground">Underkategori</label>
-        {!customSubcategory && (isPreset || !subcategory) ? (
+      {/* Step 1: Category */}
+      <div className="rounded-lg border border-border p-4 space-y-3">
+        <h4 className="text-sm font-semibold text-foreground">1. Kategori</h4>
+        {!customCategory ? (
           <div className="space-y-2">
-            <Select value={subcategory} onValueChange={setSubcategory}>
-              <SelectTrigger><SelectValue placeholder="Vælg underkategori (valgfrit)" /></SelectTrigger>
+            <Select value={serviceCategory} onValueChange={(v) => { setServiceCategory(v); setSubcategory(""); setCustomSubcategory(false); }}>
+              <SelectTrigger><SelectValue placeholder="Vælg kategori (fx Rengøring)" /></SelectTrigger>
               <SelectContent>
-                {Object.entries(SUBCATEGORIES).map(([cat, subs]) => (
-                  subs.map((sub) => (
-                    <SelectItem key={sub} value={sub}>{cat} → {sub}</SelectItem>
-                  ))
-                ))}
+                {categoryOptions.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
-            <button
-              type="button"
-              onClick={() => { setCustomSubcategory(true); setSubcategory(""); }}
-              className="text-xs text-accent hover:underline"
-            >
-              Eller skriv din egen underkategori
+            <button type="button" onClick={() => { setCustomCategory(true); setServiceCategory(""); }} className="text-xs text-accent hover:underline">
+              Skriv din egen kategori
             </button>
           </div>
         ) : (
           <div className="space-y-2">
-            <Input
-              placeholder="Fx Rengøring af kontor"
-              value={subcategory}
-              onChange={(e) => setSubcategory(e.target.value)}
-            />
-            <button
-              type="button"
-              onClick={() => { setCustomSubcategory(false); setSubcategory(""); }}
-              className="text-xs text-accent hover:underline"
-            >
-              Vælg fra listen i stedet
+            <Input placeholder="Fx Vinduespolering" value={serviceCategory} onChange={(e) => setServiceCategory(e.target.value)} />
+            <button type="button" onClick={() => { setCustomCategory(false); setServiceCategory(""); }} className="text-xs text-accent hover:underline">
+              Vælg fra listen
             </button>
           </div>
         )}
       </div>
-      <ImageUpload
-        folder={`${user!.id}/services`}
-        currentUrl={imageUrl || null}
-        onUploaded={setImageUrl}
-        label="Servicebillede (valgfrit)"
-        aspectRatio="aspect-video"
-      />
-      <Select value={pricingType} onValueChange={setPricingType}>
-        <SelectTrigger><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="fast_pris">Fast pris</SelectItem>
-          <SelectItem value="timepris">Timepris</SelectItem>
-          <SelectItem value="prisberegner">Prisberegner</SelectItem>
-        </SelectContent>
-      </Select>
-      {(pricingType === "fast_pris" || pricingType === "timepris") && (
-        <div className="flex gap-2">
-          <Input type="number" placeholder={pricingType === "fast_pris" ? "Pris (kr)" : "Timepris (kr)"} value={basePrice} onChange={(e) => setBasePrice(e.target.value)} />
-          {pricingType === "timepris" && <Input placeholder="Enhed (fx timer)" value={unit} onChange={(e) => setUnit(e.target.value)} />}
-        </div>
-      )}
-      {pricingType === "prisberegner" && (
-        <div className="space-y-3 rounded-lg border border-border/60 p-4">
-          <div className="flex items-center justify-between">
-            <h4 className="font-semibold text-foreground">Beregnertrin</h4>
-            <Button variant="outline" size="sm" onClick={addStep}><Plus className="mr-1 h-3 w-3" /> Tilføj trin</Button>
-          </div>
-          {steps.map((step, i) => (
-            <div key={i} className="grid grid-cols-5 gap-2 items-end">
-              <Input placeholder="Label" value={step.label} onChange={(e) => updateStep(i, "label", e.target.value)} />
-              <Input placeholder="Enhed" value={step.unit} onChange={(e) => updateStep(i, "unit", e.target.value)} />
-              <Input type="number" placeholder="Pris/enhed" value={step.price_per_unit} onChange={(e) => updateStep(i, "price_per_unit", e.target.value)} />
-              <Input type="number" placeholder="Max" value={step.max_value} onChange={(e) => updateStep(i, "max_value", e.target.value)} />
-              <Button variant="ghost" size="sm" onClick={() => removeStep(i)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+
+      {/* Step 2: Subcategory */}
+      {serviceCategory && (
+        <div className="rounded-lg border border-border p-4 space-y-3">
+          <h4 className="text-sm font-semibold text-foreground">2. Underkategori</h4>
+          {!customSubcategory && subcategoryOptions.length > 0 ? (
+            <div className="space-y-2">
+              <Select value={subcategory} onValueChange={setSubcategory}>
+                <SelectTrigger><SelectValue placeholder="Vælg underkategori (fx Erhvervsrengøring)" /></SelectTrigger>
+                <SelectContent>
+                  {subcategoryOptions.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <button type="button" onClick={() => { setCustomSubcategory(true); setSubcategory(""); }} className="text-xs text-accent hover:underline">
+                Skriv din egen underkategori
+              </button>
             </div>
-          ))}
-          {steps.length === 0 && <p className="text-sm text-muted-foreground">Tilføj mindst ét trin til prisberegneren.</p>}
+          ) : (
+            <div className="space-y-2">
+              <Input placeholder="Fx Erhvervsrengøring" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} />
+              {subcategoryOptions.length > 0 && (
+                <button type="button" onClick={() => { setCustomSubcategory(false); setSubcategory(""); }} className="text-xs text-accent hover:underline">
+                  Vælg fra listen
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
+
+      {/* Step 3: Product/service details */}
+      {serviceCategory && (
+        <div className="rounded-lg border border-border p-4 space-y-4">
+          <h4 className="text-sm font-semibold text-foreground">3. Service / Produkt</h4>
+
+          {/* Name with suggestions */}
+          <div>
+            <Input placeholder="Servicenavn (fx Rengøring af kontor)" value={name} onChange={(e) => setName(e.target.value)} />
+            {productSuggestions.length > 0 && !name && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {productSuggestions.map((s) => (
+                  <button key={s} type="button" onClick={() => setName(s)} className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:border-foreground/30 hover:text-foreground transition-colors">
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <Textarea placeholder="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} />
+
+          <ImageUpload
+            folder={`${user!.id}/services`}
+            currentUrl={imageUrl || null}
+            onUploaded={setImageUrl}
+            label="Servicebillede"
+            aspectRatio="aspect-video"
+          />
+
+          {/* Pricing */}
+          <Select value={pricingType} onValueChange={setPricingType}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="fast_pris">Fast pris</SelectItem>
+              <SelectItem value="timepris">Timepris</SelectItem>
+              <SelectItem value="prisberegner">Prisberegner</SelectItem>
+            </SelectContent>
+          </Select>
+          {(pricingType === "fast_pris" || pricingType === "timepris") && (
+            <div className="flex gap-2">
+              <Input type="number" placeholder={pricingType === "fast_pris" ? "Pris (kr)" : "Timepris (kr)"} value={basePrice} onChange={(e) => setBasePrice(e.target.value)} />
+              {pricingType === "timepris" && <Input placeholder="Enhed (fx timer)" value={unit} onChange={(e) => setUnit(e.target.value)} />}
+            </div>
+          )}
+          {pricingType === "prisberegner" && (
+            <div className="space-y-3 rounded-lg border border-border/60 p-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold text-foreground">Beregnertrin</h4>
+                <Button variant="outline" size="sm" onClick={addStep}><Plus className="mr-1 h-3 w-3" /> Tilføj trin</Button>
+              </div>
+              {steps.map((step, i) => (
+                <div key={i} className="grid grid-cols-5 gap-2 items-end">
+                  <Input placeholder="Label" value={step.label} onChange={(e) => updateStep(i, "label", e.target.value)} />
+                  <Input placeholder="Enhed" value={step.unit} onChange={(e) => updateStep(i, "unit", e.target.value)} />
+                  <Input type="number" placeholder="Pris/enhed" value={step.price_per_unit} onChange={(e) => updateStep(i, "price_per_unit", e.target.value)} />
+                  <Input type="number" placeholder="Max" value={step.max_value} onChange={(e) => updateStep(i, "max_value", e.target.value)} />
+                  <Button variant="ghost" size="sm" onClick={() => removeStep(i)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                </div>
+              ))}
+              {steps.length === 0 && <p className="text-sm text-muted-foreground">Tilføj mindst ét trin til prisberegneren.</p>}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex gap-2">
         <Button onClick={handleSave} className="bg-accent text-accent-foreground hover:bg-accent/90">
           {existingService ? "Gem ændringer" : "Opret service"}

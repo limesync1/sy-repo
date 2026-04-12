@@ -1,0 +1,1 @@
+ALTER TABLE public.services ADD COLUMN service_category text;

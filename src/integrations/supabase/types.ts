@@ -352,6 +352,7 @@ export type Database = {
           is_active: boolean | null
           name: string
           pricing_type: Database["public"]["Enums"]["pricing_type"]
+          service_category: string | null
           sort_order: number | null
           subcategory: string | null
           unit: string | null
@@ -367,6 +368,7 @@ export type Database = {
           is_active?: boolean | null
           name: string
           pricing_type?: Database["public"]["Enums"]["pricing_type"]
+          service_category?: string | null
           sort_order?: number | null
           subcategory?: string | null
           unit?: string | null
@@ -382,6 +384,7 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           pricing_type?: Database["public"]["Enums"]["pricing_type"]
+          service_category?: string | null
           sort_order?: number | null
           subcategory?: string | null
           unit?: string | null
