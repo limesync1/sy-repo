@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { useMyBusiness, useServices, useOrders, useCreateBusiness, useCreateService, useUpdateService, useDeleteService, useUpdateBusiness, useUpdateOrderStatus, useUpsertCalculatorSteps } from "@/hooks/useDatabase";
+import { useMyBusiness, useServices, useOrders, useCreateBusiness, useCreateService, useUpdateService, useDeleteService, useUpdateBusiness, useUpdateOrderStatus, useUpsertCalculatorSteps, useQuoteRequests, useCreateQuote, useMyQuotes } from "@/hooks/useDatabase";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,15 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Plus, Trash2, LogOut, ExternalLink, ArrowLeft } from "lucide-react";
-
+import { Plus, Trash2, LogOut, ExternalLink, ArrowLeft, Send } from "lucide-react";
 
 const Admin = () => {
   const { user, loading, signOut } = useAuth();
-
   if (loading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
   if (!user) return <Navigate to="/auth" replace />;
-
   return <AdminDashboard />;
 };
 
@@ -51,29 +48,28 @@ const AdminDashboard = () => {
           <TabsList className="mb-6">
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="orders">Ordrer</TabsTrigger>
+            <TabsTrigger value="quotes">Tilbud</TabsTrigger>
             <TabsTrigger value="settings">Indstillinger</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="services">
-            <ServicesTab businessId={business.id} />
-          </TabsContent>
-          <TabsContent value="orders">
-            <OrdersTab businessId={business.id} />
-          </TabsContent>
-          <TabsContent value="settings">
-            <SettingsTab business={business} />
-          </TabsContent>
+          <TabsContent value="services"><ServicesTab businessId={business.id} /></TabsContent>
+          <TabsContent value="orders"><OrdersTab businessId={business.id} /></TabsContent>
+          <TabsContent value="quotes"><QuotesTab business={business} /></TabsContent>
+          <TabsContent value="settings"><SettingsTab business={business} /></TabsContent>
         </Tabs>
       </div>
     </div>
   );
 };
 
+const CATEGORIES = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS", "Elektriker", "Sikkerhed"];
+
 const CreateBusinessForm = () => {
   const { user } = useAuth();
   const createBiz = useCreateBusiness();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
 
   const handleCreate = () => {
     if (!name.trim()) { toast.error("Indtast et navn"); return; }
@@ -83,7 +79,8 @@ const CreateBusinessForm = () => {
       slug,
       description: description.trim() || null,
       owner_id: user!.id,
-    }, {
+      category: category || null,
+    } as any, {
       onSuccess: () => toast.success("Virksomhed oprettet!"),
       onError: (e) => toast.error(e.message),
     });
@@ -96,6 +93,12 @@ const CreateBusinessForm = () => {
         <CardContent className="space-y-4">
           <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} />
           <Textarea placeholder="Beskrivelse (valgfrit)" value={description} onChange={(e) => setDescription(e.target.value)} />
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger><SelectValue placeholder="Vælg kategori" /></SelectTrigger>
+            <SelectContent>
+              {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
           <Button onClick={handleCreate} disabled={createBiz.isPending} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
             {createBiz.isPending ? "Opretter..." : "Opret virksomhed"}
           </Button>
@@ -108,7 +111,6 @@ const CreateBusinessForm = () => {
 // Services Tab
 const ServicesTab = ({ businessId }: { businessId: string }) => {
   const { data: services, isLoading } = useServices(businessId);
-  const createService = useCreateService();
   const deleteService = useDeleteService();
   const [showForm, setShowForm] = useState(false);
 
@@ -122,14 +124,7 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
           <Plus className="h-4 w-4" /> Tilføj service
         </Button>
       </div>
-
-      {showForm && (
-        <ServiceForm
-          businessId={businessId}
-          onClose={() => setShowForm(false)}
-        />
-      )}
-
+      {showForm && <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />}
       <div className="space-y-3">
         {services?.map((s) => (
           <ServiceRow key={s.id} service={s} onDelete={() => deleteService.mutate(s.id)} />
@@ -185,74 +180,31 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   const addStep = () => {
     setSteps([...steps, { label: "", unit: "stk", price_per_unit: 0, min_value: 1, max_value: 100, default_value: 1, sort_order: steps.length }]);
   };
-
   const updateStep = (i: number, field: string, value: any) => {
     const updated = [...steps];
     updated[i] = { ...updated[i], [field]: value };
     setSteps(updated);
   };
-
   const removeStep = (i: number) => setSteps(steps.filter((_, idx) => idx !== i));
 
   const handleSave = async () => {
     if (!name.trim()) { toast.error("Indtast et servicenavn"); return; }
-
     try {
       if (existingService) {
-        await updateService.mutateAsync({
-          id: existingService.id,
-          name: name.trim(),
-          description: description.trim() || null,
-          pricing_type: pricingType as any,
-          base_price: basePrice ? parseFloat(basePrice) : null,
-          unit: unit || null,
-        });
+        await updateService.mutateAsync({ id: existingService.id, name: name.trim(), description: description.trim() || null, pricing_type: pricingType as any, base_price: basePrice ? parseFloat(basePrice) : null, unit: unit || null });
         if (pricingType === "prisberegner") {
-          await upsertSteps.mutateAsync({
-            serviceId: existingService.id,
-            steps: steps.map((s, i) => ({
-              service_id: existingService.id,
-              label: s.label,
-              unit: s.unit,
-              price_per_unit: parseFloat(s.price_per_unit) || 0,
-              min_value: parseFloat(s.min_value) || 1,
-              max_value: parseFloat(s.max_value) || 100,
-              default_value: parseFloat(s.default_value) || 1,
-              sort_order: i,
-            })),
-          });
+          await upsertSteps.mutateAsync({ serviceId: existingService.id, steps: steps.map((s, i) => ({ service_id: existingService.id, label: s.label, unit: s.unit, price_per_unit: parseFloat(s.price_per_unit) || 0, min_value: parseFloat(s.min_value) || 1, max_value: parseFloat(s.max_value) || 100, default_value: parseFloat(s.default_value) || 1, sort_order: i })) });
         }
         toast.success("Service opdateret");
       } else {
-        const result = await createService.mutateAsync({
-          business_id: businessId,
-          name: name.trim(),
-          description: description.trim() || null,
-          pricing_type: pricingType as any,
-          base_price: basePrice ? parseFloat(basePrice) : null,
-          unit: unit || null,
-        });
+        const result = await createService.mutateAsync({ business_id: businessId, name: name.trim(), description: description.trim() || null, pricing_type: pricingType as any, base_price: basePrice ? parseFloat(basePrice) : null, unit: unit || null });
         if (pricingType === "prisberegner" && steps.length > 0) {
-          await upsertSteps.mutateAsync({
-            serviceId: result.id,
-            steps: steps.map((s, i) => ({
-              service_id: result.id,
-              label: s.label,
-              unit: s.unit,
-              price_per_unit: parseFloat(s.price_per_unit) || 0,
-              min_value: parseFloat(s.min_value) || 1,
-              max_value: parseFloat(s.max_value) || 100,
-              default_value: parseFloat(s.default_value) || 1,
-              sort_order: i,
-            })),
-          });
+          await upsertSteps.mutateAsync({ serviceId: result.id, steps: steps.map((s, i) => ({ service_id: result.id, label: s.label, unit: s.unit, price_per_unit: parseFloat(s.price_per_unit) || 0, min_value: parseFloat(s.min_value) || 1, max_value: parseFloat(s.max_value) || 100, default_value: parseFloat(s.default_value) || 1, sort_order: i })) });
         }
         toast.success("Service oprettet");
       }
       onClose();
-    } catch (e: any) {
-      toast.error(e.message);
-    }
+    } catch (e: any) { toast.error(e.message); }
   };
 
   return (
@@ -267,14 +219,12 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
           <SelectItem value="prisberegner">Prisberegner</SelectItem>
         </SelectContent>
       </Select>
-
       {(pricingType === "fast_pris" || pricingType === "timepris") && (
         <div className="flex gap-2">
           <Input type="number" placeholder={pricingType === "fast_pris" ? "Pris (kr)" : "Timepris (kr)"} value={basePrice} onChange={(e) => setBasePrice(e.target.value)} />
           {pricingType === "timepris" && <Input placeholder="Enhed (fx timer)" value={unit} onChange={(e) => setUnit(e.target.value)} />}
         </div>
       )}
-
       {pricingType === "prisberegner" && (
         <div className="space-y-3 rounded-lg border border-border/60 p-4">
           <div className="flex items-center justify-between">
@@ -293,7 +243,6 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
           {steps.length === 0 && <p className="text-sm text-muted-foreground">Tilføj mindst ét trin til prisberegneren.</p>}
         </div>
       )}
-
       <div className="flex gap-2">
         <Button onClick={handleSave} className="bg-accent text-accent-foreground hover:bg-accent/90">
           {existingService ? "Gem ændringer" : "Opret service"}
@@ -308,15 +257,8 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
 const OrdersTab = ({ businessId }: { businessId: string }) => {
   const { data: orders, isLoading } = useOrders(businessId);
   const updateStatus = useUpdateOrderStatus();
-
-  const statusLabels: Record<string, string> = {
-    pending: "Afventer", confirmed: "Bekræftet", in_progress: "I gang", completed: "Afsluttet", cancelled: "Annulleret",
-  };
-  const statusColors: Record<string, string> = {
-    pending: "bg-yellow-100 text-yellow-800", confirmed: "bg-blue-100 text-blue-800",
-    in_progress: "bg-purple-100 text-purple-800", completed: "bg-green-100 text-green-800",
-    cancelled: "bg-red-100 text-red-800",
-  };
+  const statusLabels: Record<string, string> = { pending: "Afventer", confirmed: "Bekræftet", in_progress: "I gang", completed: "Afsluttet", cancelled: "Annulleret" };
+  const statusColors: Record<string, string> = { pending: "bg-yellow-100 text-yellow-800", confirmed: "bg-blue-100 text-blue-800", in_progress: "bg-purple-100 text-purple-800", completed: "bg-green-100 text-green-800", cancelled: "bg-red-100 text-red-800" };
 
   if (isLoading) return <p className="text-muted-foreground">Indlæser ordrer...</p>;
 
@@ -337,25 +279,99 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                     <p key={item.id} className="text-xs text-muted-foreground">• {item.service_name} ({item.total_price} kr)</p>
                   ))}
                 </div>
-                <Select
-                  value={order.status}
-                  onValueChange={(val) => updateStatus.mutate({ id: order.id, status: val })}
-                >
+                <Select value={order.status} onValueChange={(val) => updateStatus.mutate({ id: order.id, status: val })}>
                   <SelectTrigger className="w-36">
                     <Badge className={statusColors[order.status]}>{statusLabels[order.status]}</Badge>
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(statusLabels).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v}</SelectItem>
-                    ))}
+                    {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
             </CardContent>
           </Card>
         ))}
-        {(!orders || orders.length === 0) && (
-          <p className="py-8 text-center text-muted-foreground">Ingen ordrer endnu.</p>
+        {(!orders || orders.length === 0) && <p className="py-8 text-center text-muted-foreground">Ingen ordrer endnu.</p>}
+      </div>
+    </div>
+  );
+};
+
+// Quotes Tab
+const QuotesTab = ({ business }: { business: any }) => {
+  const { data: quoteRequests, isLoading } = useQuoteRequests(business.category);
+  const { data: myQuotes } = useMyQuotes(business.id);
+  const createQuote = useCreateQuote();
+  const [activeRequest, setActiveRequest] = useState<string | null>(null);
+  const [price, setPrice] = useState("");
+  const [message, setMessage] = useState("");
+
+  const respondedIds = new Set(myQuotes?.map((q: any) => q.quote_request_id) || []);
+
+  const handleSendQuote = async (requestId: string) => {
+    if (!price) { toast.error("Indtast en pris"); return; }
+    try {
+      await createQuote.mutateAsync({
+        quote_request_id: requestId,
+        business_id: business.id,
+        price: parseFloat(price),
+        message: message.trim() || null,
+      });
+      toast.success("Tilbud sendt!");
+      setActiveRequest(null);
+      setPrice("");
+      setMessage("");
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  if (!business.category) {
+    return (
+      <div className="py-8 text-center">
+        <p className="text-muted-foreground">Vælg en kategori i indstillinger for at se relevante tilbudsanmodninger.</p>
+      </div>
+    );
+  }
+
+  if (isLoading) return <p className="text-muted-foreground">Indlæser tilbudsanmodninger...</p>;
+
+  return (
+    <div>
+      <h2 className="mb-4 text-xl font-bold text-foreground">Tilbudsanmodninger i {business.category}</h2>
+      <div className="space-y-3">
+        {quoteRequests?.map((req: any) => (
+          <Card key={req.id} className="border-border/60">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-foreground">{req.customer_name}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{req.description}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{new Date(req.created_at).toLocaleDateString("da-DK")}</p>
+                </div>
+                {respondedIds.has(req.id) ? (
+                  <Badge className="bg-green-100 text-green-800">Besvaret</Badge>
+                ) : (
+                  <Button size="sm" onClick={() => setActiveRequest(activeRequest === req.id ? null : req.id)} className="gap-1 bg-accent text-accent-foreground hover:bg-accent/90">
+                    <Send className="h-3 w-3" /> Afgiv tilbud
+                  </Button>
+                )}
+              </div>
+              {activeRequest === req.id && (
+                <div className="mt-4 space-y-3 rounded-lg border border-border/50 p-4">
+                  <Input type="number" placeholder="Din pris (kr)" value={price} onChange={(e) => setPrice(e.target.value)} />
+                  <Textarea placeholder="Besked til kunden (valgfrit)" value={message} onChange={(e) => setMessage(e.target.value)} />
+                  <div className="flex gap-2">
+                    <Button onClick={() => handleSendQuote(req.id)} disabled={createQuote.isPending} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                      {createQuote.isPending ? "Sender..." : "Send tilbud"}
+                    </Button>
+                    <Button variant="outline" onClick={() => setActiveRequest(null)}>Annuller</Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+        {(!quoteRequests || quoteRequests.length === 0) && (
+          <p className="py-8 text-center text-muted-foreground">Ingen åbne tilbudsanmodninger i din kategori.</p>
         )}
       </div>
     </div>
@@ -371,6 +387,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [email, setEmail] = useState(business.email || "");
   const [address, setAddress] = useState(business.address || "");
   const [city, setCity] = useState(business.city || "");
+  const [category, setCategory] = useState(business.category || "");
 
   const handleSave = () => {
     updateBiz.mutate({
@@ -381,7 +398,8 @@ const SettingsTab = ({ business }: { business: any }) => {
       email: email.trim() || null,
       address: address.trim() || null,
       city: city.trim() || null,
-    }, {
+      category: category || null,
+    } as any, {
       onSuccess: () => toast.success("Indstillinger gemt"),
       onError: (e) => toast.error(e.message),
     });
@@ -393,6 +411,12 @@ const SettingsTab = ({ business }: { business: any }) => {
       <div className="space-y-4">
         <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} />
         <Textarea placeholder="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <Select value={category} onValueChange={setCategory}>
+          <SelectTrigger><SelectValue placeholder="Vælg kategori" /></SelectTrigger>
+          <SelectContent>
+            {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+          </SelectContent>
+        </Select>
         <Input placeholder="Telefon" value={phone} onChange={(e) => setPhone(e.target.value)} />
         <Input placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} />
         <Input placeholder="Adresse" value={address} onChange={(e) => setAddress(e.target.value)} />

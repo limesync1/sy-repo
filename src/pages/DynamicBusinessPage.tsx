@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useBusinessBySlug, useServices, useReviews } from "@/hooks/useDatabase";
+import { useBusinessBySlug, useServices, useReviews, useCreateReview } from "@/hooks/useDatabase";
 import { CartProvider } from "@/contexts/CartContext";
 import CartSheet from "@/components/business/CartSheet";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
@@ -16,10 +16,16 @@ const DynamicBusinessContent = () => {
   const { data: business, isLoading: bizLoading, error: bizError } = useBusinessBySlug(slug || "");
   const { data: services } = useServices(business?.id);
   const { data: reviews } = useReviews(business?.id);
+  const createReview = useCreateReview();
 
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactMsg, setContactMsg] = useState("");
+
+  // Review form state
+  const [reviewName, setReviewName] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
 
   if (bizLoading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
   if (bizError || !business) return (
@@ -30,6 +36,24 @@ const DynamicBusinessContent = () => {
   );
 
   const avgRating = reviews?.length ? (reviews.reduce((a, r) => a + r.rating, 0) / reviews.length).toFixed(1) : null;
+
+  const handleReviewSubmit = async () => {
+    if (!reviewName.trim()) { toast.error("Indtast dit navn"); return; }
+    try {
+      await createReview.mutateAsync({
+        business_id: business.id,
+        reviewer_name: reviewName.trim(),
+        rating: reviewRating,
+        comment: reviewComment.trim() || null,
+      });
+      toast.success("Anmeldelse sendt!");
+      setReviewName("");
+      setReviewRating(5);
+      setReviewComment("");
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -71,6 +95,63 @@ const DynamicBusinessContent = () => {
           </div>
         </section>
       )}
+
+      {/* Reviews */}
+      <section className="border-t border-border/50 py-16">
+        <div className="container mx-auto max-w-3xl px-4">
+          <h2 className="mb-8 text-center text-3xl font-bold text-foreground">Anmeldelser</h2>
+
+          {/* Existing reviews */}
+          {reviews && reviews.length > 0 ? (
+            <div className="mb-10 space-y-4">
+              {reviews.map((r) => (
+                <Card key={r.id} className="border-border/60">
+                  <CardContent className="p-5">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="font-semibold text-foreground">{r.reviewer_name}</span>
+                      <div className="flex gap-0.5">
+                        {[1,2,3,4,5].map((i) => (
+                          <Star key={i} className={`h-4 w-4 ${i <= r.rating ? "fill-accent text-accent" : "text-muted"}`} />
+                        ))}
+                      </div>
+                    </div>
+                    {r.comment && <p className="text-sm text-muted-foreground">{r.comment}</p>}
+                    <p className="mt-2 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("da-DK")}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="mb-8 text-center text-muted-foreground">Ingen anmeldelser endnu. Vær den første!</p>
+          )}
+
+          {/* Review form */}
+          <Card className="border-border/60">
+            <CardContent className="space-y-4 p-6">
+              <h3 className="font-semibold text-foreground">Skriv en anmeldelse</h3>
+              <Input placeholder="Dit navn" value={reviewName} onChange={(e) => setReviewName(e.target.value)} />
+              <div>
+                <label className="mb-1 block text-sm text-muted-foreground">Bedømmelse</label>
+                <div className="flex gap-1">
+                  {[1,2,3,4,5].map((i) => (
+                    <button key={i} onClick={() => setReviewRating(i)} className="p-0.5">
+                      <Star className={`h-6 w-6 transition-colors ${i <= reviewRating ? "fill-accent text-accent" : "text-muted hover:text-accent/50"}`} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <Textarea placeholder="Din kommentar (valgfrit)" value={reviewComment} onChange={(e) => setReviewComment(e.target.value)} />
+              <Button
+                onClick={handleReviewSubmit}
+                disabled={createReview.isPending}
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+              >
+                {createReview.isPending ? "Sender..." : "Send anmeldelse"}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
 
       {/* Contact */}
       <section className="border-t border-border/50 bg-muted/30 py-16">

@@ -1,14 +1,15 @@
 import { Sparkles, Wrench, Truck, TreePine, Paintbrush, Droplets, Zap, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const categories = [
-  { icon: Sparkles, label: "Rengøring", count: 124 },
-  { icon: Wrench, label: "Håndværker", count: 89 },
-  { icon: Truck, label: "Flyttehjælp", count: 56 },
-  { icon: TreePine, label: "Haveservice", count: 73 },
-  { icon: Paintbrush, label: "Maler", count: 41 },
-  { icon: Droplets, label: "VVS", count: 67 },
-  { icon: Zap, label: "Elektriker", count: 52 },
-  { icon: ShieldCheck, label: "Sikkerhed", count: 31 },
+  { icon: Sparkles, label: "Rengøring" },
+  { icon: Wrench, label: "Håndværker" },
+  { icon: Truck, label: "Flyttehjælp" },
+  { icon: TreePine, label: "Haveservice" },
+  { icon: Paintbrush, label: "Maler" },
+  { icon: Droplets, label: "VVS" },
+  { icon: Zap, label: "Elektriker" },
+  { icon: ShieldCheck, label: "Sikkerhed" },
 ];
 
 const Categories = () => {
@@ -23,16 +24,16 @@ const Categories = () => {
         </div>
         <div className="mx-auto grid max-w-5xl grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
           {categories.map((cat) => (
-            <button
+            <Link
               key={cat.label}
+              to={`/search?category=${encodeURIComponent(cat.label)}`}
               className="group flex flex-col items-center gap-3 rounded-2xl border border-border/60 bg-card p-6 shadow-sm transition-all hover:border-accent/40 hover:shadow-md"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 transition-colors group-hover:bg-accent/20">
                 <cat.icon className="h-6 w-6 text-accent" />
               </div>
               <span className="font-semibold text-foreground">{cat.label}</span>
-              <span className="text-xs text-muted-foreground">{cat.count} virksomheder</span>
-            </button>
+            </Link>
           ))}
         </div>
       </div>

@@ -9,6 +9,8 @@ import BusinessPage from "./pages/BusinessPage";
 import DynamicBusinessPage from "./pages/DynamicBusinessPage";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import Search from "./pages/Search";
+import RequestQuote from "./pages/RequestQuote";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +27,8 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/demo" element={<BusinessPage />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/quote" element={<RequestQuote />} />
             <Route path="/b/:slug" element={<DynamicBusinessPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
