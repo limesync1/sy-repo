@@ -180,6 +180,7 @@ const SUBCATEGORIES: Record<string, string[]> = {
 };
 
 const ServiceForm = ({ businessId, existingService, onClose }: { businessId: string; existingService?: any; onClose: () => void }) => {
+  const { user } = useAuth();
   const createService = useCreateService();
   const updateService = useUpdateService();
   const upsertSteps = useUpsertCalculatorSteps();
@@ -240,7 +241,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
         </Select>
       </div>
       <ImageUpload
-        folder={`${(document.querySelector('[data-user-id]') as any)?.dataset?.userId || 'unknown'}/services`}
+        folder={`${user!.id}/services`}
         currentUrl={imageUrl || null}
         onUploaded={setImageUrl}
         label="Servicebillede (valgfrit)"
