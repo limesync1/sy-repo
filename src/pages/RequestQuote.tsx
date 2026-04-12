@@ -90,8 +90,8 @@ const RequestQuote = () => {
       {/* Animated gradient orbs — soft pastel on light bg */}
       <div className="pointer-events-none absolute inset-0">
         <div className="animate-magic-bg-1 absolute -left-[15%] -top-[20%] h-[600px] w-[600px] rounded-full bg-[hsl(184,90%,80%)] opacity-40 blur-[140px]" />
-        <div className="animate-magic-bg-2 absolute -right-[10%] top-[10%] h-[500px] w-[500px] rounded-full bg-[hsl(260,70%,85%)] opacity-35 blur-[130px]" />
-        <div className="animate-magic-bg-3 absolute -bottom-[15%] left-[20%] h-[550px] w-[550px] rounded-full bg-[hsl(200,80%,82%)] opacity-30 blur-[140px]" />
+        <div className="animate-magic-bg-2 absolute -right-[10%] top-[10%] h-[500px] w-[500px] rounded-full bg-[hsl(184,70%,85%)] opacity-30 blur-[130px]" />
+        <div className="animate-magic-bg-3 absolute -bottom-[15%] left-[20%] h-[550px] w-[550px] rounded-full bg-[hsl(190,80%,82%)] opacity-25 blur-[140px]" />
       </div>
 
       {/* Nav */}
@@ -111,8 +111,8 @@ const RequestQuote = () => {
         </div>
       </nav>
 
-      <div className="relative z-10 container mx-auto px-4 py-16 md:py-24">
-        <div className="mx-auto max-w-2xl">
+      <div className="relative z-10 container mx-auto px-4 py-12 md:py-20">
+        <div className="mx-auto max-w-lg">
           {/* Header */}
           <div className="mb-10 text-center animate-fade-in">
             <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-4 py-1.5 text-sm font-medium text-accent">
