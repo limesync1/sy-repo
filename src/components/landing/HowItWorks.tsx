@@ -1,4 +1,4 @@
-import { Search, BarChart3, CalendarCheck, ArrowRight } from "lucide-react";
+import { Search, BarChart3, CalendarCheck } from "lucide-react";
 
 const steps = [
   {
@@ -30,12 +30,7 @@ const HowItWorks = () => {
         </div>
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-3">
           {steps.map((step, i) => (
-            <div key={step.title} className="relative text-center">
-              {i < steps.length - 1 && (
-                <div className="absolute -right-4 top-1/2 z-10 hidden -translate-y-1/2 md:block lg:-right-5">
-                  <ArrowRight className="h-6 w-6 text-muted-foreground/40" />
-                </div>
-              )}
+            <div key={step.title} className="text-center">
               <div className="rounded-2xl border border-border bg-card p-8 shadow-sm transition-all hover:shadow-md">
                 <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-foreground text-background">
                   <step.icon className="h-7 w-7" />
