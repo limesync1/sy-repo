@@ -243,7 +243,7 @@ const DynamicServiceCard = ({ service }: Props) => {
           </div>
         )}
 
-        <Button onClick={handleAdd} className="w-full gap-2 bg-foreground text-background hover:bg-foreground/90">
+        <Button onClick={handleAdd} className="w-full gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
           <ShoppingCart className="h-4 w-4" />
           Tilføj til kurv – {total} kr
         </Button>
