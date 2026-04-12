@@ -207,94 +207,122 @@ const RequestQuote = () => {
 
           {/* Results */}
           {matches && matches.length > 0 && !isLoading && (
-            <div className="space-y-6 animate-fade-in">
+            <div className="space-y-8 animate-fade-in">
               <div className="text-center">
-                <p className="text-sm font-medium text-white/40">
-                  Vi fandt {matches.length} {matches.length === 1 ? "match" : "matches"} til dig
-                </p>
+                <div className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/10 px-4 py-1.5 text-sm font-medium text-accent">
+                  <Sparkles className="h-4 w-4" />
+                  {matches.length} {matches.length === 1 ? "match fundet" : "matches fundet"}
+                </div>
               </div>
 
-              <div className="space-y-4">
-                {matches.map((match, i) => (
-                  <div
-                    key={match.business_id}
-                    className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl transition-all duration-300 hover:border-accent/30 hover:bg-white/[0.08] hover:shadow-[0_0_40px_hsl(184_90%_42%/0.1)]"
-                    style={{ animationDelay: `${i * 0.1}s` }}
-                  >
-                    <div className="flex flex-col md:flex-row">
-                      {/* Rank */}
-                      <div className="relative flex items-center justify-center border-b border-white/5 bg-white/[0.03] p-6 md:w-32 md:border-b-0 md:border-r">
-                        <div className="text-center">
-                          <div className="bg-gradient-to-b from-accent to-[hsl(260,80%,70%)] bg-clip-text text-5xl font-black text-transparent">
+              <div className="grid gap-6 md:grid-cols-3">
+                {matches.map((match, i) => {
+                  const isTop = i === 0;
+                  return (
+                    <div
+                      key={match.business_id}
+                      className={`group relative flex flex-col overflow-hidden rounded-2xl border backdrop-blur-xl transition-all duration-300 ${
+                        isTop
+                          ? "border-accent/30 bg-white/[0.08] shadow-[0_0_40px_hsl(184_90%_42%/0.12)] md:-mt-2 md:mb-2"
+                          : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/[0.07]"
+                      }`}
+                    >
+                      {/* Top accent bar */}
+                      {isTop && (
+                        <div className="h-1 w-full bg-gradient-to-r from-accent to-[hsl(200,80%,55%)]" />
+                      )}
+
+                      <div className="flex flex-1 flex-col p-5">
+                        {/* Rank + match score header */}
+                        <div className="mb-4 flex items-center justify-between">
+                          <span className={`text-3xl font-black ${isTop ? "text-accent" : "text-white/20"}`}>
                             #{i + 1}
-                          </div>
-                          <div className="mt-1.5 rounded-full bg-accent/10 px-3 py-0.5 text-xs font-semibold text-accent">
+                          </span>
+                          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            isTop ? "bg-accent/15 text-accent" : "bg-white/5 text-white/50"
+                          }`}>
                             {match.match_score}% match
-                          </div>
+                          </span>
                         </div>
-                      </div>
 
-                      {/* Info */}
-                      <div className="flex-1 p-6">
-                        <div className="mb-3 flex items-start justify-between gap-3">
-                          <div>
-                            <h3 className="text-xl font-bold text-white">{match.business.name}</h3>
-                            <div className="mt-1.5 flex flex-wrap items-center gap-3 text-sm text-white/40">
-                              {match.business.city && (
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="h-3.5 w-3.5" /> {match.business.city}
-                                </span>
-                              )}
-                              {match.business.avg_rating && (
-                                <span className="flex items-center gap-1 text-accent">
-                                  <Star className="h-3.5 w-3.5 fill-accent" />
-                                  {match.business.avg_rating} ({match.business.review_count})
-                                </span>
-                              )}
-                              {match.business.is_verified && (
-                                <span className="flex items-center gap-1 text-accent">
-                                  <BadgeCheck className="h-3.5 w-3.5" /> Verificeret
-                                </span>
-                              )}
+                        {/* Logo + name */}
+                        <div className="mb-3 flex items-center gap-3">
+                          {match.business.logo_url ? (
+                            <img src={match.business.logo_url} alt="" className="h-10 w-10 rounded-lg object-contain bg-white/10 p-1" />
+                          ) : (
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-lg font-bold text-white/60">
+                              {match.business.name.charAt(0)}
                             </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-white">{match.estimated_price}</div>
-                            <div className="text-xs text-white/30">Estimeret pris</div>
+                          )}
+                          <div className="min-w-0">
+                            <h3 className="truncate text-lg font-bold text-white">{match.business.name}</h3>
+                            {match.business.city && (
+                              <span className="flex items-center gap-1 text-xs text-white/40">
+                                <MapPin className="h-3 w-3" /> {match.business.city}
+                              </span>
+                            )}
                           </div>
                         </div>
 
-                        <p className="mb-4 text-sm leading-relaxed text-white/50">
+                        {/* Rating + verified */}
+                        <div className="mb-3 flex items-center gap-3 text-sm">
+                          {match.business.avg_rating && (
+                            <span className="flex items-center gap-1 text-accent">
+                              <Star className="h-3.5 w-3.5 fill-accent" />
+                              {match.business.avg_rating}
+                              <span className="text-white/30">({match.business.review_count})</span>
+                            </span>
+                          )}
+                          {match.business.is_verified && (
+                            <span className="flex items-center gap-1 text-xs text-accent/80">
+                              <BadgeCheck className="h-3.5 w-3.5" /> Verificeret
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Reason */}
+                        <p className="mb-4 flex-1 text-sm leading-relaxed text-white/45">
                           {match.reason}
                         </p>
 
+                        {/* Services */}
                         {match.business.services.length > 0 && (
                           <div className="mb-4 flex flex-wrap gap-1.5">
-                            {match.business.services.slice(0, 4).map((s) => (
-                              <Badge key={s.id} variant="outline" className="border-white/10 bg-white/5 text-xs text-white/60">
+                            {match.business.services.slice(0, 3).map((s) => (
+                              <span key={s.id} className="rounded-full bg-white/5 px-2.5 py-0.5 text-xs text-white/50">
                                 {s.name}
-                                {s.subcategory && ` · ${s.subcategory}`}
-                              </Badge>
+                              </span>
                             ))}
                           </div>
                         )}
 
-                        <Link to={`/b/${match.business.slug}`}>
-                          <Button className="gap-2 bg-gradient-to-r from-accent to-[hsl(200,80%,50%)] text-white shadow-[0_0_20px_hsl(184_90%_42%/0.2)] transition-all hover:shadow-[0_0_30px_hsl(184_90%_42%/0.4)] hover:brightness-110">
-                            Se virksomhed & bestil
-                            <ArrowRight className="h-4 w-4" />
-                          </Button>
-                        </Link>
+                        {/* Price + CTA */}
+                        <div className="mt-auto border-t border-white/5 pt-4">
+                          <div className="mb-3 flex items-baseline justify-between">
+                            <span className="text-xs text-white/30">Estimeret pris</span>
+                            <span className="text-lg font-bold text-white">{match.estimated_price}</span>
+                          </div>
+                          <Link to={`/b/${match.business.slug}`} className="block">
+                            <Button className={`w-full gap-2 ${
+                              isTop
+                                ? "bg-accent text-white hover:bg-accent/90"
+                                : "bg-white/10 text-white hover:bg-white/15"
+                            }`}>
+                              Se virksomhed
+                              <ArrowRight className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
-              <div className="text-center pt-4">
+              <div className="text-center pt-2">
                 <Button variant="outline" onClick={handleReset} className="gap-2 border-white/10 text-white hover:bg-white/10">
                   <Sparkles className="h-4 w-4" />
-                  Søg igen med nye kriterier
+                  Søg igen
                 </Button>
               </div>
             </div>
