@@ -240,12 +240,11 @@ const RequestQuote = () => {
 
                         {/* Main content */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3">
                               {match.business.logo_url ? (
-                                <img src={match.business.logo_url} alt="" className="h-11 w-11 rounded-xl border border-border object-contain bg-background p-1" />
+                                <img src={match.business.logo_url} alt="" className="h-11 w-11 shrink-0 rounded-xl border border-border object-contain bg-background p-1" />
                               ) : (
-                                <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-secondary text-lg font-bold text-muted-foreground">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-secondary text-lg font-bold text-muted-foreground">
                                   {match.business.name.charAt(0)}
                                 </div>
                               )}
@@ -270,11 +269,11 @@ const RequestQuote = () => {
                                   )}
                                 </div>
                               </div>
-                            </div>
-                            <div className="text-right shrink-0">
-                              <div className="text-lg font-bold text-foreground">{match.estimated_price}</div>
-                              <div className="text-xs text-muted-foreground">Estimeret</div>
-                            </div>
+                          </div>
+
+                          <div className="mt-2 flex items-baseline gap-2">
+                            <span className="text-lg font-bold text-foreground">{match.estimated_price}</span>
+                            <span className="text-xs text-muted-foreground">estimeret</span>
                           </div>
 
                           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
