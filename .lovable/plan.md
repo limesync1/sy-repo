@@ -1,30 +1,37 @@
 
 
-# Fase 1 — Serviceydere Landing Page
+# Fix: Layout, bredde og responsivt design
 
-Kundefokuseret forside. Ingen "Opret din virksomhed"-CTA — virksomheder tiltrækkes via markedsføring.
+## Identificerede problemer
 
-## Sektioner
+1. **App.css `#root` styles** — Vite's standard `max-width: 1280px`, `padding: 2rem` og `text-align: center` begrænser hele sidens layout og tilføjer uønsket padding
+2. **`h-13` er ikke en standard Tailwind-klasse** — Knapperne i Hero og GetQuotes bruger `h-13` som ikke findes i Tailwind v3, så de får forkert højde
+3. **Pile i "Sådan virker det"** — `absolute -right-3` clipper uden for kortet og vises forkert
+4. **Sektionsbredder er uens** — Nogle sektioner bruger `max-w-4xl`, andre `max-w-5xl`, og hero bruger `max-w-3xl`/`max-w-xl`
 
-1. **Hero** — Logo (fra uploadede filer), tagline ("Find den rette service – hurtigt og nemt"), søgefelt med kategori-forslag, CTA-knap "Find en service". Accent `#6AE9F5` på knapper/accents, lyst tema.
+## Plan
 
-2. **Sådan virker det** — 3 trin: Søg → Sammenlign → Book. Ikoner + kort tekst.
+### 1. Fjern App.css default styles
+Ryd `#root`-blokkken i `src/App.css` (fjern max-width, padding, text-align) så landing page'n fylder fuld bredde.
 
-3. **Populære kategorier** — Grid med kategori-kort (Rengøring, Håndværker, Flyttehjælp, Haveservice, etc.) med ikoner.
+### 2. Fix knaphøjde
+Tilføj `h-13` spacing i `tailwind.config.ts` under `extend.spacing` (eller erstat `h-13` med `h-[3.25rem]` i HeroSection og GetQuotes).
 
-4. **Indhent 3 tilbud** — Kort sektion: "Beskriv dit projekt og modtag 3 tilbud" + CTA-knap.
+### 3. Fix pile i HowItWorks
+Flyt pilene så de placeres korrekt mellem kortene ved at bruge `gap`-baseret layout i stedet for `absolute -right-3`, eller juster positionen til `-right-6` med `overflow-visible` på containeren.
 
-5. **Hvorfor Serviceydere?** — 3-4 fordele for kunder (Gratis at bruge, Verificerede virksomheder, Sammenlign priser, Ægte anmeldelser).
+### 4. Ensret sektionsbredder
+Sørg for at alle sektioner bruger konsistent `max-w`-bredde og at container-padding er ens på tværs af sektionerne.
 
-6. **Footer** — Logo, links, kontakt, sociale medier.
+### 5. Mobil-responsivitet
+- Reducer heading-størrelse på mobil (allerede delvist gjort med `md:text-4xl`)
+- Sørg for at kategori-grid går fra 2 kolonner på mobil til 4 på desktop
+- Juster padding/margins til mobil
 
-## Teknisk
-
-- Opdater `src/pages/Index.tsx` med alle sektioner som komponenter
-- Opret komponenter: `HeroSection`, `HowItWorks`, `Categories`, `GetQuotes`, `WhyUs`, `Footer`
-- Kopier uploadede logo-filer til `public/`
-- Opdater favicon med `serviceydere-ikon.png`
-- Opdater `index.html` title til "Serviceydere – Find den rette service"
-- Accent `#6AE9F5`, dansk sprog, responsivt design
-- Tilføj custom farver i `tailwind.config.ts`
+### Filer der ændres
+- `src/App.css` — Fjern #root constraints
+- `tailwind.config.ts` — Tilføj h-13 spacing
+- `src/components/landing/HowItWorks.tsx` — Fix pileplacering
+- `src/components/landing/HeroSection.tsx` — Juster knap/input højde
+- `src/components/landing/GetQuotes.tsx` — Juster knaphøjde
 
