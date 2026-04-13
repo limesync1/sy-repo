@@ -16,7 +16,7 @@ import { useState } from "react";
 import {
   Plus, Trash2, LogOut, Send, GripVertical,
   Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart, MessageSquare,
-  Star, Settings, Eye, Menu, X, ChevronRight, ExternalLink,
+  Star, Settings, Eye, Menu, X, ExternalLink,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import DashboardTab from "@/components/admin/DashboardTab";
