@@ -455,9 +455,19 @@ const RequestQuote = () => {
                 }
                 return (
                   <div className="grid gap-5 sm:grid-cols-2">
-                    {activeServices.map((s) => (
-                      <DynamicServiceCard key={s.id} service={toServiceCardProps(s)} />
-                    ))}
+                    {activeServices.map((s) => {
+                      const prefill = selectedBusiness?.service_prefills?.find(p => p.service_id === s.id);
+                      const stepVals: Record<string, number> = {};
+                      prefill?.step_values?.forEach(sv => { stepVals[sv.step_id] = sv.value; });
+                      return (
+                        <DynamicServiceCard
+                          key={s.id}
+                          service={toServiceCardProps(s)}
+                          initialStepValues={Object.keys(stepVals).length > 0 ? stepVals : undefined}
+                          initialHours={prefill?.hours}
+                        />
+                      );
+                    })}
                   </div>
                 );
               })()}
