@@ -96,13 +96,13 @@ const StepperInput = ({
     </div>
   );
 };
-const DynamicServiceCard = ({ service }: Props) => {
+const DynamicServiceCard = ({ service, initialStepValues, initialHours }: Props) => {
   const { addItem } = useCart();
-  const [hours, setHours] = useState(1);
+  const [hours, setHours] = useState(initialHours ?? 1);
   const [stepValues, setStepValues] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
     service.calculator_steps?.forEach((s) => {
-      initial[s.id] = 0;
+      initial[s.id] = initialStepValues?.[s.id] ?? 0;
     });
     return initial;
   });
