@@ -1,261 +1,91 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { useMyBusiness, useServices, useOrders, useCreateBusiness, useCreateService, useUpdateService, useDeleteService, useUpdateBusiness, useUpdateOrderStatus, useUpsertCalculatorSteps, useQuoteRequests, useCreateQuote, useMyQuotes } from "@/hooks/useDatabase";
+import {
+  useMyBusiness, useServices, useOrders, useCreateBusiness, useCreateService,
+  useUpdateService, useDeleteService, useUpdateBusiness, useUpdateOrderStatus,
+  useUpsertCalculatorSteps, useQuoteRequests, useCreateQuote, useMyQuotes, useReviews,
+} from "@/hooks/useDatabase";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Plus, Trash2, LogOut, ExternalLink, ArrowLeft, Send, GripVertical, Sparkles, Calculator } from "lucide-react";
+import {
+  Plus, Trash2, LogOut, ExternalLink, ArrowLeft, Send, GripVertical,
+  Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart, MessageSquare,
+  Star, Settings, Eye,
+} from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
+import DashboardTab from "@/components/admin/DashboardTab";
+import ReviewsTab from "@/components/admin/ReviewsTab";
 
-/* ─── Calculator Step Templates ─── */
-const STEP_TEMPLATES: Record<string, { label: string; steps: Array<{ label: string; unit: string; price_per_unit: number; min_value: number; max_value: number; default_value: number }> }[]> = {
-  "Rengøring": [
-    {
-      label: "Kontor / erhvervsrengøring",
-      steps: [
-        { label: "Støvsugning", unit: "m²", price_per_unit: 5, min_value: 10, max_value: 500, default_value: 50 },
-        { label: "Tømning af skraldespande", unit: "stk", price_per_unit: 5, min_value: 1, max_value: 50, default_value: 5 },
-        { label: "Aftørring af borde", unit: "stk", price_per_unit: 12, min_value: 1, max_value: 50, default_value: 5 },
-        { label: "Gulvvask", unit: "m²", price_per_unit: 8, min_value: 10, max_value: 500, default_value: 50 },
-      ],
-    },
-    {
-      label: "Privat hjemmerengøring",
-      steps: [
-        { label: "Antal rum", unit: "rum", price_per_unit: 80, min_value: 1, max_value: 15, default_value: 4 },
-        { label: "Badeværelser", unit: "stk", price_per_unit: 120, min_value: 0, max_value: 5, default_value: 1 },
-        { label: "Køkken", unit: "stk", price_per_unit: 150, min_value: 0, max_value: 2, default_value: 1 },
-      ],
-    },
-    {
-      label: "Vinduespolering",
-      steps: [
-        { label: "Vinduer", unit: "stk", price_per_unit: 25, min_value: 1, max_value: 100, default_value: 10 },
-        { label: "Franske altandøre", unit: "stk", price_per_unit: 60, min_value: 0, max_value: 20, default_value: 0 },
-      ],
-    },
-    {
-      label: "Flytterengøring",
-      steps: [
-        { label: "Boligstørrelse", unit: "m²", price_per_unit: 15, min_value: 20, max_value: 300, default_value: 80 },
-        { label: "Ovn rengøring", unit: "stk", price_per_unit: 200, min_value: 0, max_value: 2, default_value: 1 },
-        { label: "Køleskab rengøring", unit: "stk", price_per_unit: 150, min_value: 0, max_value: 3, default_value: 1 },
-      ],
-    },
-  ],
-  "Haveservice": [
-    {
-      label: "Græsslåning",
-      steps: [
-        { label: "Areal", unit: "m²", price_per_unit: 2, min_value: 50, max_value: 5000, default_value: 200 },
-        { label: "Kantklipning", unit: "m", price_per_unit: 5, min_value: 0, max_value: 200, default_value: 20 },
-      ],
-    },
-    {
-      label: "Hækkeklipning",
-      steps: [
-        { label: "Hæklængde", unit: "m", price_per_unit: 40, min_value: 1, max_value: 200, default_value: 10 },
-        { label: "Højde", unit: "m", price_per_unit: 30, min_value: 1, max_value: 5, default_value: 2 },
-      ],
-    },
-  ],
-  "Maler": [
-    {
-      label: "Vægmaling",
-      steps: [
-        { label: "Vægflade", unit: "m²", price_per_unit: 45, min_value: 5, max_value: 500, default_value: 30 },
-        { label: "Loftflade", unit: "m²", price_per_unit: 55, min_value: 0, max_value: 200, default_value: 0 },
-        { label: "Antal strøg", unit: "stk", price_per_unit: 15, min_value: 1, max_value: 3, default_value: 2 },
-      ],
-    },
-  ],
-  "Håndværker": [
-    {
-      label: "Generelt håndværkerarbejde",
-      steps: [
-        { label: "Arbejdstimer", unit: "timer", price_per_unit: 400, min_value: 1, max_value: 40, default_value: 2 },
-        { label: "Materialer", unit: "kr", price_per_unit: 1, min_value: 0, max_value: 10000, default_value: 0 },
-      ],
-    },
-  ],
-  "VVS": [
-    {
-      label: "VVS-arbejde",
-      steps: [
-        { label: "Arbejdstimer", unit: "timer", price_per_unit: 500, min_value: 1, max_value: 20, default_value: 1 },
-        { label: "Materialer", unit: "kr", price_per_unit: 1, min_value: 0, max_value: 10000, default_value: 0 },
-        { label: "Kørsel", unit: "km", price_per_unit: 8, min_value: 0, max_value: 100, default_value: 10 },
-      ],
-    },
-  ],
-  "Elektriker": [
-    {
-      label: "El-arbejde",
-      steps: [
-        { label: "Arbejdstimer", unit: "timer", price_per_unit: 450, min_value: 1, max_value: 20, default_value: 1 },
-        { label: "Stikkontakter", unit: "stk", price_per_unit: 350, min_value: 0, max_value: 20, default_value: 0 },
-        { label: "Lampeudtag", unit: "stk", price_per_unit: 400, min_value: 0, max_value: 20, default_value: 0 },
-      ],
-    },
-  ],
-};
-
-const Admin = () => {
-  const { user, loading } = useAuth();
-  if (loading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
-  if (!user) return <Navigate to="/auth" replace />;
-  return <AdminDashboard />;
-};
-
-const AdminDashboard = () => {
-  const { signOut } = useAuth();
-  const { data: business, isLoading } = useMyBusiness();
-
-  if (isLoading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
-  if (!business) return <CreateBusinessForm />;
-
-  return (
-    <div className="min-h-screen bg-background">
-      <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
-        <div className="container mx-auto flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="text-muted-foreground hover:text-foreground"><ArrowLeft className="h-5 w-5" /></Link>
-            <Link to="/"><img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-8" /></Link>
-            <span className="text-sm font-medium text-muted-foreground">Admin</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link to={`/b/${business.slug}`}>
-              <Button variant="outline" size="sm" className="gap-1"><ExternalLink className="h-4 w-4" /> Se side</Button>
-            </Link>
-            <Button variant="ghost" size="sm" onClick={signOut}><LogOut className="h-4 w-4" /></Button>
-          </div>
-        </div>
-      </nav>
-
-      <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="services">
-          <TabsList className="mb-6">
-            <TabsTrigger value="services">Services</TabsTrigger>
-            <TabsTrigger value="orders">Ordrer</TabsTrigger>
-            <TabsTrigger value="quotes">Tilbud</TabsTrigger>
-            <TabsTrigger value="settings">Indstillinger</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="services"><ServicesTab businessId={business.id} /></TabsContent>
-          <TabsContent value="orders"><OrdersTab businessId={business.id} /></TabsContent>
-          <TabsContent value="quotes"><QuotesTab business={business} /></TabsContent>
-          <TabsContent value="settings"><SettingsTab business={business} /></TabsContent>
-        </Tabs>
-      </div>
-    </div>
-  );
-};
-
+/* ─── Constants ─── */
 const CATEGORIES = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS", "Elektriker", "Sikkerhed"];
 
-const CreateBusinessForm = () => {
-  const { user } = useAuth();
-  const createBiz = useCreateBusiness();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
-
-  const handleCreate = () => {
-    if (!name.trim()) { toast.error("Indtast et navn"); return; }
-    const slug = name.toLowerCase().replace(/[^a-z0-9æøå]+/g, "-").replace(/^-|-$/g, "");
-    createBiz.mutate({
-      name: name.trim(), slug, description: description.trim() || null,
-      owner_id: user!.id, category: category || null,
-    } as any, {
-      onSuccess: () => toast.success("Virksomhed oprettet!"),
-      onError: (e) => toast.error(e.message),
-    });
-  };
-
-  return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader><CardTitle>Opret din virksomhed</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} />
-          <Textarea placeholder="Beskrivelse (valgfrit)" value={description} onChange={(e) => setDescription(e.target.value)} />
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger><SelectValue placeholder="Vælg kategori" /></SelectTrigger>
-            <SelectContent>
-              {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Button onClick={handleCreate} disabled={createBiz.isPending} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-            {createBiz.isPending ? "Opretter..." : "Opret virksomhed"}
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
-
-// Services Tab
-const ServicesTab = ({ businessId }: { businessId: string }) => {
-  const { data: services, isLoading } = useServices(businessId);
-  const deleteService = useDeleteService();
-  const [showForm, setShowForm] = useState(false);
-
-  if (isLoading) return <p className="text-muted-foreground">Indlæser services...</p>;
-
-  return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-foreground">Services ({services?.length || 0})</h2>
-        <Button onClick={() => setShowForm(true)} className="gap-1 bg-accent text-accent-foreground hover:bg-accent/90">
-          <Plus className="h-4 w-4" /> Tilføj service
-        </Button>
-      </div>
-      {showForm && <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />}
-      <div className="space-y-3">
-        {services?.map((s) => (
-          <ServiceRow key={s.id} service={s} onDelete={() => deleteService.mutate(s.id)} />
-        ))}
-        {(!services || services.length === 0) && !showForm && (
-          <p className="py-8 text-center text-muted-foreground">Ingen services endnu. Tilføj din første!</p>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const ServiceRow = ({ service, onDelete }: { service: any; onDelete: () => void }) => {
-  const [editing, setEditing] = useState(false);
-  const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
-
-  return (
-    <Card className="border-border/60">
-      <CardContent className="flex items-center justify-between p-4">
-        <div>
-          <h3 className="font-semibold text-foreground">{service.name}</h3>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Badge variant="secondary">{pricingLabels[service.pricing_type] || service.pricing_type}</Badge>
-            {service.base_price && <span>{service.base_price} kr{service.unit ? ` / ${service.unit}` : ""}</span>}
-            {service.calculator_steps?.length > 0 && <span>· {service.calculator_steps.length} beregnertrin</span>}
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setEditing(!editing)}>Rediger</Button>
-          <Button variant="ghost" size="sm" onClick={onDelete}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-        </div>
-      </CardContent>
-      {editing && (
-        <CardContent className="border-t border-border/50 pt-4">
-          <ServiceForm businessId={service.business_id} existingService={service} onClose={() => setEditing(false)} />
-        </CardContent>
-      )}
-    </Card>
-  );
+const STEP_TEMPLATES: Record<string, { label: string; steps: Array<{ label: string; unit: string; price_per_unit: number; min_value: number; max_value: number; default_value: number }> }[]> = {
+  "Rengøring": [
+    { label: "Kontor / erhvervsrengøring", steps: [
+      { label: "Støvsugning", unit: "m²", price_per_unit: 5, min_value: 10, max_value: 500, default_value: 50 },
+      { label: "Tømning af skraldespande", unit: "stk", price_per_unit: 5, min_value: 1, max_value: 50, default_value: 5 },
+      { label: "Aftørring af borde", unit: "stk", price_per_unit: 12, min_value: 1, max_value: 50, default_value: 5 },
+      { label: "Gulvvask", unit: "m²", price_per_unit: 8, min_value: 10, max_value: 500, default_value: 50 },
+    ]},
+    { label: "Privat hjemmerengøring", steps: [
+      { label: "Antal rum", unit: "rum", price_per_unit: 80, min_value: 1, max_value: 15, default_value: 4 },
+      { label: "Badeværelser", unit: "stk", price_per_unit: 120, min_value: 0, max_value: 5, default_value: 1 },
+      { label: "Køkken", unit: "stk", price_per_unit: 150, min_value: 0, max_value: 2, default_value: 1 },
+    ]},
+    { label: "Vinduespolering", steps: [
+      { label: "Vinduer", unit: "stk", price_per_unit: 25, min_value: 1, max_value: 100, default_value: 10 },
+      { label: "Franske altandøre", unit: "stk", price_per_unit: 60, min_value: 0, max_value: 20, default_value: 0 },
+    ]},
+    { label: "Flytterengøring", steps: [
+      { label: "Boligstørrelse", unit: "m²", price_per_unit: 15, min_value: 20, max_value: 300, default_value: 80 },
+      { label: "Ovn rengøring", unit: "stk", price_per_unit: 200, min_value: 0, max_value: 2, default_value: 1 },
+      { label: "Køleskab rengøring", unit: "stk", price_per_unit: 150, min_value: 0, max_value: 3, default_value: 1 },
+    ]},
+  ],
+  "Haveservice": [
+    { label: "Græsslåning", steps: [
+      { label: "Areal", unit: "m²", price_per_unit: 2, min_value: 50, max_value: 5000, default_value: 200 },
+      { label: "Kantklipning", unit: "m", price_per_unit: 5, min_value: 0, max_value: 200, default_value: 20 },
+    ]},
+    { label: "Hækkeklipning", steps: [
+      { label: "Hæklængde", unit: "m", price_per_unit: 40, min_value: 1, max_value: 200, default_value: 10 },
+      { label: "Højde", unit: "m", price_per_unit: 30, min_value: 1, max_value: 5, default_value: 2 },
+    ]},
+  ],
+  "Maler": [
+    { label: "Vægmaling", steps: [
+      { label: "Vægflade", unit: "m²", price_per_unit: 45, min_value: 5, max_value: 500, default_value: 30 },
+      { label: "Loftflade", unit: "m²", price_per_unit: 55, min_value: 0, max_value: 200, default_value: 0 },
+      { label: "Antal strøg", unit: "stk", price_per_unit: 15, min_value: 1, max_value: 3, default_value: 2 },
+    ]},
+  ],
+  "Håndværker": [
+    { label: "Generelt håndværkerarbejde", steps: [
+      { label: "Arbejdstimer", unit: "timer", price_per_unit: 400, min_value: 1, max_value: 40, default_value: 2 },
+      { label: "Materialer", unit: "kr", price_per_unit: 1, min_value: 0, max_value: 10000, default_value: 0 },
+    ]},
+  ],
+  "VVS": [
+    { label: "VVS-arbejde", steps: [
+      { label: "Arbejdstimer", unit: "timer", price_per_unit: 500, min_value: 1, max_value: 20, default_value: 1 },
+      { label: "Materialer", unit: "kr", price_per_unit: 1, min_value: 0, max_value: 10000, default_value: 0 },
+      { label: "Kørsel", unit: "km", price_per_unit: 8, min_value: 0, max_value: 100, default_value: 10 },
+    ]},
+  ],
+  "Elektriker": [
+    { label: "El-arbejde", steps: [
+      { label: "Arbejdstimer", unit: "timer", price_per_unit: 450, min_value: 1, max_value: 20, default_value: 1 },
+      { label: "Stikkontakter", unit: "stk", price_per_unit: 350, min_value: 0, max_value: 20, default_value: 0 },
+      { label: "Lampeudtag", unit: "stk", price_per_unit: 400, min_value: 0, max_value: 20, default_value: 0 },
+    ]},
+  ],
 };
 
 const SERVICE_CATEGORIES: Record<string, Record<string, string[]>> = {
@@ -299,18 +129,234 @@ const SERVICE_CATEGORIES: Record<string, Record<string, string[]>> = {
   },
 };
 
-/* ─── Calculator Step Preview ─── */
+/* ─── Entry ─── */
+const Admin = () => {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
+  if (!user) return <Navigate to="/auth" replace />;
+  return <AdminDashboard />;
+};
+
+/* ─── Main Dashboard ─── */
+const AdminDashboard = () => {
+  const { signOut } = useAuth();
+  const { data: business, isLoading } = useMyBusiness();
+  const [activeTab, setActiveTab] = useState("dashboard");
+
+  if (isLoading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
+  if (!business) return <CreateBusinessForm />;
+
+  const tabs = [
+    { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
+    { value: "services", label: "Services", icon: Wrench },
+    { value: "orders", label: "Ordrer", icon: ShoppingCart },
+    { value: "quotes", label: "Tilbud", icon: MessageSquare },
+    { value: "reviews", label: "Anmeldelser", icon: Star },
+    { value: "settings", label: "Indstillinger", icon: Settings },
+  ];
+
+  return (
+    <div className="min-h-screen bg-secondary/30">
+      {/* Navigation */}
+      <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
+        <div className="container mx-auto flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <Link to="/" className="text-muted-foreground hover:text-foreground"><ArrowLeft className="h-5 w-5" /></Link>
+            <Link to="/"><img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-8" /></Link>
+            <span className="hidden sm:inline text-sm font-medium text-muted-foreground">/ Admin</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link to={`/b/${business.slug}`}>
+              <Button variant="outline" size="sm" className="gap-1"><Eye className="h-4 w-4" /> <span className="hidden sm:inline">Se side</span></Button>
+            </Link>
+            <Button variant="ghost" size="sm" onClick={signOut}><LogOut className="h-4 w-4" /></Button>
+          </div>
+        </div>
+      </nav>
+
+      <div className="container mx-auto px-4 py-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          {/* Scrollable tab bar */}
+          <div className="mb-6 -mx-4 px-4 overflow-x-auto">
+            <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 gap-1 bg-card border border-border/60 p-1">
+              {tabs.map((tab) => (
+                <TabsTrigger key={tab.value} value={tab.value} className="gap-1.5 whitespace-nowrap data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
+                  <tab.icon className="h-4 w-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+
+          <TabsContent value="dashboard"><DashboardWrapper business={business} /></TabsContent>
+          <TabsContent value="services"><ServicesTab businessId={business.id} /></TabsContent>
+          <TabsContent value="orders"><OrdersTab businessId={business.id} /></TabsContent>
+          <TabsContent value="quotes"><QuotesTab business={business} /></TabsContent>
+          <TabsContent value="reviews"><ReviewsWrapper businessId={business.id} /></TabsContent>
+          <TabsContent value="settings"><SettingsTab business={business} /></TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+};
+
+/* ─── Dashboard Wrapper (fetches data) ─── */
+const DashboardWrapper = ({ business }: { business: any }) => {
+  const { data: orders } = useOrders(business.id);
+  const { data: services } = useServices(business.id);
+  const { data: reviews } = useReviews(business.id);
+
+  const revenue = orders?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0;
+  const pendingOrders = orders?.filter((o) => o.status === "pending").length || 0;
+  const avgRating = reviews && reviews.length > 0
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+    : 0;
+
+  return (
+    <DashboardTab
+      business={business}
+      ordersCount={orders?.length || 0}
+      revenue={revenue}
+      servicesCount={services?.length || 0}
+      averageRating={avgRating}
+      reviewsCount={reviews?.length || 0}
+      pendingOrders={pendingOrders}
+      recentOrders={orders || []}
+    />
+  );
+};
+
+/* ─── Reviews Wrapper ─── */
+const ReviewsWrapper = ({ businessId }: { businessId: string }) => {
+  const { data: reviews, isLoading } = useReviews(businessId);
+  return <ReviewsTab reviews={reviews || []} isLoading={isLoading} />;
+};
+
+/* ─── Create Business ─── */
+const CreateBusinessForm = () => {
+  const { user } = useAuth();
+  const createBiz = useCreateBusiness();
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+
+  const handleCreate = () => {
+    if (!name.trim()) { toast.error("Indtast et navn"); return; }
+    const slug = name.toLowerCase().replace(/[^a-z0-9æøå]+/g, "-").replace(/^-|-$/g, "");
+    createBiz.mutate({
+      name: name.trim(), slug, description: description.trim() || null,
+      owner_id: user!.id, category: category || null,
+    } as any, {
+      onSuccess: () => toast.success("Virksomhed oprettet!"),
+      onError: (e) => toast.error(e.message),
+    });
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-secondary/30 px-4">
+      <Card className="w-full max-w-md border-border/60">
+        <CardContent className="space-y-4 p-6">
+          <div>
+            <h2 className="text-xl font-bold text-foreground">Opret din virksomhed</h2>
+            <p className="text-sm text-muted-foreground">Udfyld oplysningerne for at komme i gang.</p>
+          </div>
+          <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} />
+          <Textarea placeholder="Beskrivelse (valgfrit)" value={description} onChange={(e) => setDescription(e.target.value)} />
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger><SelectValue placeholder="Vælg kategori" /></SelectTrigger>
+            <SelectContent>
+              {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Button onClick={handleCreate} disabled={createBiz.isPending} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+            {createBiz.isPending ? "Opretter..." : "Opret virksomhed"}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+/* ─── Services Tab ─── */
+const ServicesTab = ({ businessId }: { businessId: string }) => {
+  const { data: services, isLoading } = useServices(businessId);
+  const deleteService = useDeleteService();
+  const [showForm, setShowForm] = useState(false);
+
+  if (isLoading) return <p className="text-muted-foreground">Indlæser services...</p>;
+
+  return (
+    <div>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-xl font-bold text-foreground">Services ({services?.length || 0})</h2>
+        <Button onClick={() => setShowForm(true)} className="gap-1 bg-accent text-accent-foreground hover:bg-accent/90">
+          <Plus className="h-4 w-4" /> Tilføj service
+        </Button>
+      </div>
+      {showForm && (
+        <Card className="mb-4 border-border/60">
+          <CardContent className="p-4">
+            <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />
+          </CardContent>
+        </Card>
+      )}
+      <div className="space-y-3">
+        {services?.map((s) => (
+          <ServiceRow key={s.id} service={s} onDelete={() => deleteService.mutate(s.id)} />
+        ))}
+        {(!services || services.length === 0) && !showForm && (
+          <div className="py-12 text-center">
+            <Wrench className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
+            <p className="text-muted-foreground">Ingen services endnu.</p>
+            <p className="text-sm text-muted-foreground">Tilføj din første service for at komme i gang.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const ServiceRow = ({ service, onDelete }: { service: any; onDelete: () => void }) => {
+  const [editing, setEditing] = useState(false);
+  const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
+
+  return (
+    <Card className="border-border/60 overflow-hidden">
+      <CardContent className="flex items-center justify-between p-4">
+        <div className="min-w-0 flex-1">
+          <h3 className="font-semibold text-foreground">{service.name}</h3>
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <Badge variant="secondary">{pricingLabels[service.pricing_type] || service.pricing_type}</Badge>
+            {service.base_price != null && <span>{service.base_price} kr{service.unit ? ` / ${service.unit}` : ""}</span>}
+            {service.calculator_steps?.length > 0 && <span>· {service.calculator_steps.length} beregnertrin</span>}
+            {service.subcategory && <Badge variant="outline" className="text-xs">{service.subcategory}</Badge>}
+          </div>
+        </div>
+        <div className="ml-3 flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setEditing(!editing)}>
+            {editing ? "Luk" : "Rediger"}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onDelete}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+        </div>
+      </CardContent>
+      {editing && (
+        <CardContent className="border-t border-border/50 p-4">
+          <ServiceForm businessId={service.business_id} existingService={service} onClose={() => setEditing(false)} />
+        </CardContent>
+      )}
+    </Card>
+  );
+};
+
+/* ─── Calculator Preview ─── */
 const CalculatorPreview = ({ steps }: { steps: any[] }) => {
   const [values, setValues] = useState<Record<number, number>>(() => {
     const init: Record<number, number> = {};
-    steps.forEach((s, i) => { init[i] = parseFloat(s.default_value) || 1; });
+    steps.forEach((s, i) => { init[i] = parseFloat(s.default_value) || 0; });
     return init;
   });
 
-  const total = steps.reduce((sum, step, i) => {
-    return sum + (values[i] || 0) * (parseFloat(step.price_per_unit) || 0);
-  }, 0);
-
+  const total = steps.reduce((sum, step, i) => sum + (values[i] || 0) * (parseFloat(step.price_per_unit) || 0), 0);
   if (steps.length === 0) return null;
 
   return (
@@ -330,7 +376,7 @@ const CalculatorPreview = ({ steps }: { steps: any[] }) => {
               </div>
               <div className="flex items-center gap-3">
                 <span className="rounded-lg border border-border bg-secondary px-3 py-1.5 text-sm font-semibold text-foreground">
-                  {values[idx] || 1} {step.unit || "stk"}
+                  {values[idx] || 0} {step.unit || "stk"}
                 </span>
                 <span className="w-16 text-right text-sm font-semibold text-foreground">{stepTotal} kr</span>
               </div>
@@ -346,6 +392,7 @@ const CalculatorPreview = ({ steps }: { steps: any[] }) => {
   );
 };
 
+/* ─── Service Form ─── */
 const ServiceForm = ({ businessId, existingService, onClose }: { businessId: string; existingService?: any; onClose: () => void }) => {
   const { user } = useAuth();
   const createService = useCreateService();
@@ -369,12 +416,10 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
     ? Object.keys(SERVICE_CATEGORIES[serviceCategory]) : [];
   const productSuggestions = serviceCategory && subcategory && SERVICE_CATEGORIES[serviceCategory]?.[subcategory]
     ? SERVICE_CATEGORIES[serviceCategory][subcategory] : [];
-
-  // Get available templates for this category
   const availableTemplates = STEP_TEMPLATES[serviceCategory] || [];
 
   const addStep = () => {
-    setSteps([...steps, { label: "", unit: "stk", price_per_unit: 0, min_value: 1, max_value: 100, default_value: 1, sort_order: steps.length }]);
+    setSteps([...steps, { label: "", unit: "stk", price_per_unit: 0, min_value: 0, max_value: 100, default_value: 0, sort_order: steps.length }]);
   };
   const updateStep = (i: number, field: string, value: any) => {
     const updated = [...steps];
@@ -391,12 +436,9 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   const handleSave = async () => {
     if (!name.trim()) { toast.error("Indtast et servicenavn"); return; }
     if (!serviceCategory.trim()) { toast.error("Vælg en kategori"); return; }
-    if (pricingType === "prisberegner" && steps.length === 0) {
-      toast.error("Tilføj mindst ét beregnertrin"); return;
-    }
-    if (pricingType === "prisberegner" && steps.some(s => !s.label.trim())) {
-      toast.error("Alle beregnertrin skal have et navn"); return;
-    }
+    if (pricingType === "prisberegner" && steps.length === 0) { toast.error("Tilføj mindst ét beregnertrin"); return; }
+    if (pricingType === "prisberegner" && steps.some(s => !s.label.trim())) { toast.error("Alle beregnertrin skal have et navn"); return; }
+
     try {
       const payload = {
         name: name.trim(),
@@ -412,13 +454,31 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       if (existingService) {
         await updateService.mutateAsync({ id: existingService.id, ...payload } as any);
         if (pricingType === "prisberegner") {
-          await upsertSteps.mutateAsync({ serviceId: existingService.id, steps: steps.map((s, i) => ({ service_id: existingService.id, label: s.label, unit: s.unit, price_per_unit: parseFloat(s.price_per_unit) || 0, min_value: parseFloat(s.min_value) || 1, max_value: parseFloat(s.max_value) || 100, default_value: parseFloat(s.default_value) || 1, sort_order: i })) });
+          await upsertSteps.mutateAsync({
+            serviceId: existingService.id,
+            steps: steps.map((s, i) => ({
+              service_id: existingService.id, label: s.label, unit: s.unit,
+              price_per_unit: parseFloat(s.price_per_unit) || 0,
+              min_value: parseFloat(s.min_value) || 0,
+              max_value: parseFloat(s.max_value) || 100,
+              default_value: parseFloat(s.default_value) || 0, sort_order: i,
+            })),
+          });
         }
         toast.success("Service opdateret");
       } else {
         const result = await createService.mutateAsync({ business_id: businessId, ...payload } as any);
         if (pricingType === "prisberegner" && steps.length > 0) {
-          await upsertSteps.mutateAsync({ serviceId: result.id, steps: steps.map((s, i) => ({ service_id: result.id, label: s.label, unit: s.unit, price_per_unit: parseFloat(s.price_per_unit) || 0, min_value: parseFloat(s.min_value) || 1, max_value: parseFloat(s.max_value) || 100, default_value: parseFloat(s.default_value) || 1, sort_order: i })) });
+          await upsertSteps.mutateAsync({
+            serviceId: result.id,
+            steps: steps.map((s, i) => ({
+              service_id: result.id, label: s.label, unit: s.unit,
+              price_per_unit: parseFloat(s.price_per_unit) || 0,
+              min_value: parseFloat(s.min_value) || 0,
+              max_value: parseFloat(s.max_value) || 100,
+              default_value: parseFloat(s.default_value) || 0, sort_order: i,
+            })),
+          });
         }
         toast.success("Service oprettet");
       }
@@ -435,20 +495,14 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
           <div className="space-y-2">
             <Select value={serviceCategory} onValueChange={(v) => { setServiceCategory(v); setSubcategory(""); setCustomSubcategory(false); }}>
               <SelectTrigger><SelectValue placeholder="Vælg kategori (fx Rengøring)" /></SelectTrigger>
-              <SelectContent>
-                {categoryOptions.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-              </SelectContent>
+              <SelectContent>{categoryOptions.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
             </Select>
-            <button type="button" onClick={() => { setCustomCategory(true); setServiceCategory(""); }} className="text-xs text-accent hover:underline">
-              Skriv din egen kategori
-            </button>
+            <button type="button" onClick={() => { setCustomCategory(true); setServiceCategory(""); }} className="text-xs text-accent hover:underline">Skriv din egen kategori</button>
           </div>
         ) : (
           <div className="space-y-2">
             <Input placeholder="Fx Vinduespolering" value={serviceCategory} onChange={(e) => setServiceCategory(e.target.value)} />
-            <button type="button" onClick={() => { setCustomCategory(false); setServiceCategory(""); }} className="text-xs text-accent hover:underline">
-              Vælg fra listen
-            </button>
+            <button type="button" onClick={() => { setCustomCategory(false); setServiceCategory(""); }} className="text-xs text-accent hover:underline">Vælg fra listen</button>
           </div>
         )}
       </div>
@@ -460,42 +514,33 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
           {!customSubcategory && subcategoryOptions.length > 0 ? (
             <div className="space-y-2">
               <Select value={subcategory} onValueChange={setSubcategory}>
-                <SelectTrigger><SelectValue placeholder="Vælg underkategori (fx Erhvervsrengøring)" /></SelectTrigger>
-                <SelectContent>
-                  {subcategoryOptions.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
+                <SelectTrigger><SelectValue placeholder="Vælg underkategori" /></SelectTrigger>
+                <SelectContent>{subcategoryOptions.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
-              <button type="button" onClick={() => { setCustomSubcategory(true); setSubcategory(""); }} className="text-xs text-accent hover:underline">
-                Skriv din egen underkategori
-              </button>
+              <button type="button" onClick={() => { setCustomSubcategory(true); setSubcategory(""); }} className="text-xs text-accent hover:underline">Skriv din egen underkategori</button>
             </div>
           ) : (
             <div className="space-y-2">
               <Input placeholder="Fx Erhvervsrengøring" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} />
               {subcategoryOptions.length > 0 && (
-                <button type="button" onClick={() => { setCustomSubcategory(false); setSubcategory(""); }} className="text-xs text-accent hover:underline">
-                  Vælg fra listen
-                </button>
+                <button type="button" onClick={() => { setCustomSubcategory(false); setSubcategory(""); }} className="text-xs text-accent hover:underline">Vælg fra listen</button>
               )}
             </div>
           )}
         </div>
       )}
 
-      {/* Step 3: Product/service details */}
+      {/* Step 3: Service details */}
       {serviceCategory && (
         <div className="rounded-lg border border-border p-4 space-y-4">
           <h4 className="text-sm font-semibold text-foreground">3. Service / Produkt</h4>
 
-          {/* Name with suggestions */}
           <div>
             <Input placeholder="Servicenavn (fx Rengøring af kontor)" value={name} onChange={(e) => setName(e.target.value)} />
             {productSuggestions.length > 0 && !name && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {productSuggestions.map((s) => (
-                  <button key={s} type="button" onClick={() => setName(s)} className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:border-foreground/30 hover:text-foreground transition-colors">
-                    {s}
-                  </button>
+                  <button key={s} type="button" onClick={() => setName(s)} className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:border-foreground/30 hover:text-foreground transition-colors">{s}</button>
                 ))}
               </div>
             )}
@@ -503,13 +548,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
 
           <Textarea placeholder="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} />
 
-          <ImageUpload
-            folder={`${user!.id}/services`}
-            currentUrl={imageUrl || null}
-            onUploaded={setImageUrl}
-            label="Servicebillede"
-            aspectRatio="aspect-video"
-          />
+          <ImageUpload folder={`${user!.id}/services`} currentUrl={imageUrl || null} onUploaded={setImageUrl} label="Servicebillede" aspectRatio="aspect-video" />
 
           {/* Pricing Type */}
           <div className="space-y-2">
@@ -520,16 +559,8 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                 { value: "timepris", label: "Timepris", desc: "Pris pr. time" },
                 { value: "prisberegner", label: "Prisberegner", desc: "Kunden beregner selv" },
               ].map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setPricingType(opt.value)}
-                  className={`rounded-lg border p-3 text-left transition-all ${
-                    pricingType === opt.value
-                      ? "border-accent bg-accent/5 ring-1 ring-accent"
-                      : "border-border hover:border-foreground/30"
-                  }`}
-                >
+                <button key={opt.value} type="button" onClick={() => setPricingType(opt.value)}
+                  className={`rounded-lg border p-3 text-left transition-all ${pricingType === opt.value ? "border-accent bg-accent/5 ring-1 ring-accent" : "border-border hover:border-foreground/30"}`}>
                   <span className="block text-sm font-semibold text-foreground">{opt.label}</span>
                   <span className="block text-xs text-muted-foreground">{opt.desc}</span>
                 </button>
@@ -537,7 +568,6 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
             </div>
           </div>
 
-          {/* Fast pris / Timepris fields */}
           {(pricingType === "fast_pris" || pricingType === "timepris") && (
             <div className="flex gap-2">
               <Input type="number" placeholder={pricingType === "fast_pris" ? "Pris (kr)" : "Timepris (kr)"} value={basePrice} onChange={(e) => setBasePrice(e.target.value)} />
@@ -545,10 +575,8 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
             </div>
           )}
 
-          {/* Prisberegner */}
           {pricingType === "prisberegner" && (
             <div className="space-y-4">
-              {/* Templates */}
               {availableTemplates.length > 0 && steps.length === 0 && (
                 <div className="rounded-lg border border-accent/30 bg-accent/5 p-4 space-y-3">
                   <div className="flex items-center gap-2">
@@ -558,12 +586,8 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                   <p className="text-xs text-muted-foreground">Vælg en skabelon og tilpas priserne til din virksomhed.</p>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {availableTemplates.map((t) => (
-                      <button
-                        key={t.label}
-                        type="button"
-                        onClick={() => applyTemplate(t)}
-                        className="rounded-lg border border-border bg-card p-3 text-left transition-all hover:border-accent/50 hover:bg-accent/5"
-                      >
+                      <button key={t.label} type="button" onClick={() => applyTemplate(t)}
+                        className="rounded-lg border border-border bg-card p-3 text-left transition-all hover:border-accent/50 hover:bg-accent/5">
                         <span className="block text-sm font-medium text-foreground">{t.label}</span>
                         <span className="block text-xs text-muted-foreground">{t.steps.length} trin · {t.steps.map(s => s.unit).join(", ")}</span>
                       </button>
@@ -572,16 +596,13 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                 </div>
               )}
 
-              {/* Steps editor */}
               <div className="space-y-3 rounded-lg border border-border p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-semibold text-foreground">Beregnertrin</h4>
-                    <p className="text-xs text-muted-foreground">Hvert trin lader kunden vælge en mængde. Prisen beregnes automatisk.</p>
+                    <p className="text-xs text-muted-foreground">Hvert trin lader kunden vælge en mængde.</p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={addStep} className="gap-1">
-                    <Plus className="h-3 w-3" /> Tilføj trin
-                  </Button>
+                  <Button variant="outline" size="sm" onClick={addStep} className="gap-1"><Plus className="h-3 w-3" /> Tilføj trin</Button>
                 </div>
 
                 {steps.map((step, i) => (
@@ -605,9 +626,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                         <Select value={step.unit} onValueChange={(v) => updateStep(i, "unit", v)}>
                           <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            {["stk", "m²", "m", "timer", "rum", "km", "kg", "kr"].map((u) => (
-                              <SelectItem key={u} value={u}>{u}</SelectItem>
-                            ))}
+                            {["stk", "m²", "m", "timer", "rum", "km", "kg", "kr"].map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
@@ -619,7 +638,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                       </div>
                       <div>
                         <label className="mb-1 block text-xs text-muted-foreground">Min</label>
-                        <Input type="number" placeholder="1" value={step.min_value} onChange={(e) => updateStep(i, "min_value", e.target.value)} className="h-9" />
+                        <Input type="number" placeholder="0" value={step.min_value} onChange={(e) => updateStep(i, "min_value", e.target.value)} className="h-9" />
                       </div>
                       <div>
                         <label className="mb-1 block text-xs text-muted-foreground">Max</label>
@@ -627,7 +646,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                       </div>
                       <div>
                         <label className="mb-1 block text-xs text-muted-foreground">Standard</label>
-                        <Input type="number" placeholder="1" value={step.default_value} onChange={(e) => updateStep(i, "default_value", e.target.value)} className="h-9" />
+                        <Input type="number" placeholder="0" value={step.default_value} onChange={(e) => updateStep(i, "default_value", e.target.value)} className="h-9" />
                       </div>
                     </div>
                   </div>
@@ -643,7 +662,6 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                 )}
               </div>
 
-              {/* Live Preview */}
               <CalculatorPreview steps={steps} />
             </div>
           )}
@@ -660,32 +678,66 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   );
 };
 
-// Orders Tab
+/* ─── Orders Tab ─── */
 const OrdersTab = ({ businessId }: { businessId: string }) => {
   const { data: orders, isLoading } = useOrders(businessId);
   const updateStatus = useUpdateOrderStatus();
-  const statusLabels: Record<string, string> = { pending: "Afventer", confirmed: "Bekræftet", in_progress: "I gang", completed: "Afsluttet", cancelled: "Annulleret" };
-  const statusColors: Record<string, string> = { pending: "bg-yellow-100 text-yellow-800", confirmed: "bg-blue-100 text-blue-800", in_progress: "bg-purple-100 text-purple-800", completed: "bg-green-100 text-green-800", cancelled: "bg-red-100 text-red-800" };
+  const [filter, setFilter] = useState<string>("all");
+
+  const statusLabels: Record<string, string> = {
+    pending: "Afventer", confirmed: "Bekræftet", in_progress: "I gang",
+    completed: "Afsluttet", cancelled: "Annulleret",
+  };
+  const statusColors: Record<string, string> = {
+    pending: "bg-yellow-100 text-yellow-800", confirmed: "bg-blue-100 text-blue-800",
+    in_progress: "bg-purple-100 text-purple-800", completed: "bg-green-100 text-green-800",
+    cancelled: "bg-red-100 text-red-800",
+  };
 
   if (isLoading) return <p className="text-muted-foreground">Indlæser ordrer...</p>;
 
+  const filteredOrders = filter === "all" ? orders : orders?.filter((o) => o.status === filter);
+
   return (
     <div>
-      <h2 className="mb-4 text-xl font-bold text-foreground">Ordrer ({orders?.length || 0})</h2>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-xl font-bold text-foreground">Ordrer ({orders?.length || 0})</h2>
+        <div className="flex flex-wrap gap-1.5">
+          <Button variant={filter === "all" ? "default" : "outline"} size="sm" onClick={() => setFilter("all")}
+            className={filter === "all" ? "bg-accent text-accent-foreground" : ""}>
+            Alle
+          </Button>
+          {Object.entries(statusLabels).map(([key, label]) => {
+            const count = orders?.filter((o) => o.status === key).length || 0;
+            return (
+              <Button key={key} variant={filter === key ? "default" : "outline"} size="sm" onClick={() => setFilter(key)}
+                className={filter === key ? "bg-accent text-accent-foreground" : ""}>
+                {label} {count > 0 && <Badge variant="secondary" className="ml-1 text-xs">{count}</Badge>}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="space-y-3">
-        {orders?.map((order) => (
+        {filteredOrders?.map((order) => (
           <Card key={order.id} className="border-border/60">
             <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-semibold text-foreground">{order.customer_name}</h3>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-foreground">{order.customer_name}</h3>
+                    <Badge className={statusColors[order.status]}>{statusLabels[order.status]}</Badge>
+                  </div>
                   <p className="text-sm text-muted-foreground">{order.customer_email}</p>
                   {order.customer_phone && <p className="text-sm text-muted-foreground">{order.customer_phone}</p>}
-                  <p className="mt-1 font-bold text-foreground">{order.total_amount} kr</p>
-                  <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString("da-DK")}</p>
+                  {order.notes && <p className="mt-1 text-sm text-foreground italic">"{order.notes}"</p>}
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  </p>
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                  <Badge className={statusColors[order.status]}>{statusLabels[order.status]}</Badge>
+                <div className="flex items-center gap-3">
+                  <span className="text-lg font-bold text-foreground whitespace-nowrap">{order.total_amount} kr</span>
                   <Select value={order.status} onValueChange={(s) => updateStatus.mutate({ id: order.id, status: s })}>
                     <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -695,10 +747,13 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                 </div>
               </div>
               {(order as any).order_items?.length > 0 && (
-                <div className="mt-3 space-y-1 border-t border-border/50 pt-3">
+                <div className="mt-3 space-y-1 rounded-lg bg-secondary/30 p-3">
                   {(order as any).order_items.map((item: any) => (
                     <div key={item.id} className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">{item.service_name} {item.details ? `(${typeof item.details === 'string' ? item.details : JSON.stringify(item.details)})` : ""}</span>
+                      <span className="text-muted-foreground">
+                        {item.service_name}
+                        {item.quantity > 1 && ` × ${item.quantity}`}
+                      </span>
                       <span className="font-medium text-foreground">{item.total_price} kr</span>
                     </div>
                   ))}
@@ -707,13 +762,20 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
             </CardContent>
           </Card>
         ))}
-        {(!orders || orders.length === 0) && <p className="py-8 text-center text-muted-foreground">Ingen ordrer endnu.</p>}
+        {(!filteredOrders || filteredOrders.length === 0) && (
+          <div className="py-12 text-center">
+            <ShoppingCart className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
+            <p className="text-muted-foreground">
+              {filter === "all" ? "Ingen ordrer endnu." : `Ingen ordrer med status "${statusLabels[filter]}".`}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-// Quotes Tab
+/* ─── Quotes Tab ─── */
 const QuotesTab = ({ business }: { business: any }) => {
   const { data: requests, isLoading } = useQuoteRequests(business.category);
   const { data: myQuotes } = useMyQuotes(business.id);
@@ -733,7 +795,10 @@ const QuotesTab = ({ business }: { business: any }) => {
       price: parseFloat(d.price),
       message: d.message || null,
     }, {
-      onSuccess: () => { toast.success("Tilbud sendt!"); setQuoteData((prev) => { const copy = { ...prev }; delete copy[requestId]; return copy; }); },
+      onSuccess: () => {
+        toast.success("Tilbud sendt!");
+        setQuoteData((prev) => { const copy = { ...prev }; delete copy[requestId]; return copy; });
+      },
       onError: (e) => toast.error(e.message),
     });
   };
@@ -746,23 +811,27 @@ const QuotesTab = ({ business }: { business: any }) => {
           <Card key={req.id} className="border-border/60">
             <CardContent className="p-4">
               <div className="mb-2">
-                <h3 className="font-semibold text-foreground">{req.customer_name}</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-foreground">{req.customer_name}</h3>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(req.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
+                  </span>
+                </div>
                 <p className="text-sm text-muted-foreground">{req.customer_email}</p>
+                {req.customer_phone && <p className="text-sm text-muted-foreground">{req.customer_phone}</p>}
                 <Badge variant="secondary" className="mt-1">{req.category}</Badge>
               </div>
               <p className="mb-3 text-sm text-foreground">{req.description}</p>
               {answeredIds.has(req.id) ? (
-                <Badge className="bg-green-100 text-green-800">Besvaret</Badge>
+                <Badge className="bg-green-100 text-green-800">✓ Besvaret</Badge>
               ) : (
                 <div className="space-y-2 border-t border-border/50 pt-3">
                   <div className="flex gap-2">
-                    <Input
-                      type="number" placeholder="Din pris (kr)"
+                    <Input type="number" placeholder="Din pris (kr)"
                       value={quoteData[req.id]?.price || ""}
                       onChange={(e) => setQuoteData((prev) => ({ ...prev, [req.id]: { ...prev[req.id], price: e.target.value, message: prev[req.id]?.message || "" } }))}
                     />
-                    <Input
-                      placeholder="Besked (valgfrit)"
+                    <Input placeholder="Besked (valgfrit)"
                       value={quoteData[req.id]?.message || ""}
                       onChange={(e) => setQuoteData((prev) => ({ ...prev, [req.id]: { ...prev[req.id], message: e.target.value, price: prev[req.id]?.price || "" } }))}
                     />
@@ -775,13 +844,18 @@ const QuotesTab = ({ business }: { business: any }) => {
             </CardContent>
           </Card>
         ))}
-        {(!requests || requests.length === 0) && <p className="py-8 text-center text-muted-foreground">Ingen åbne anmodninger i din kategori.</p>}
+        {(!requests || requests.length === 0) && (
+          <div className="py-12 text-center">
+            <MessageSquare className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
+            <p className="text-muted-foreground">Ingen åbne anmodninger i din kategori.</p>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-// Settings Tab
+/* ─── Settings Tab ─── */
 const SettingsTab = ({ business }: { business: any }) => {
   const updateBiz = useUpdateBusiness();
   const { user } = useAuth();
@@ -801,18 +875,13 @@ const SettingsTab = ({ business }: { business: any }) => {
 
   const save = () => {
     updateBiz.mutate({
-      id: business.id,
-      name: name.trim(),
+      id: business.id, name: name.trim(),
       description: description.trim() || null,
-      phone: phone.trim() || null,
-      email: email.trim() || null,
-      address: address.trim() || null,
-      city: city.trim() || null,
+      phone: phone.trim() || null, email: email.trim() || null,
+      address: address.trim() || null, city: city.trim() || null,
       zip_code: zipCode.trim() || null,
-      logo_url: logoUrl || null,
-      cover_image_url: coverUrl || null,
-      category: category || null,
-      opening_hours: openHours,
+      logo_url: logoUrl || null, cover_image_url: coverUrl || null,
+      category: category || null, opening_hours: openHours,
     } as any, {
       onSuccess: () => toast.success("Indstillinger gemt"),
       onError: (e) => toast.error(e.message),
@@ -830,9 +899,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <Textarea placeholder="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} />
           <Select value={category} onValueChange={setCategory}>
             <SelectTrigger><SelectValue placeholder="Kategori" /></SelectTrigger>
-            <SelectContent>
-              {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
+            <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
           </Select>
         </CardContent>
       </Card>
@@ -864,12 +931,8 @@ const SettingsTab = ({ business }: { business: any }) => {
           {DAYS.map((day) => (
             <div key={day} className="flex items-center gap-3">
               <span className="w-24 text-sm text-muted-foreground">{day}</span>
-              <Input
-                placeholder="Fx 08:00 - 16:00"
-                value={openHours[day] || ""}
-                onChange={(e) => setOpenHours({ ...openHours, [day]: e.target.value })}
-                className="flex-1"
-              />
+              <Input placeholder="Fx 08:00 - 16:00" value={openHours[day] || ""}
+                onChange={(e) => setOpenHours({ ...openHours, [day]: e.target.value })} className="flex-1" />
             </div>
           ))}
         </CardContent>
