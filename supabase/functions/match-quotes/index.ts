@@ -21,21 +21,20 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch businesses in this category with their services and reviews
+    // Fetch businesses with services (including calculator_steps) and reviews
     const { data: businesses, error: bizError } = await supabase
       .from("businesses")
-      .select("*, services(*), reviews(*)")
+      .select("*, services(*, calculator_steps(*)), reviews(*)")
       .eq("is_active", true)
       .eq("category", category);
 
     if (bizError) throw bizError;
 
-    // Also fetch businesses without category (or all if few results)
     let allBusinesses = businesses || [];
     if (allBusinesses.length < 3) {
       const { data: moreBiz } = await supabase
         .from("businesses")
-        .select("*, services(*), reviews(*)")
+        .select("*, services(*, calculator_steps(*)), reviews(*)")
         .eq("is_active", true)
         .limit(20);
       if (moreBiz) {
@@ -151,9 +150,8 @@ ${bizSummaries}`,
     if (!toolCall) throw new Error("No tool call returned from AI");
 
     const parsed = JSON.parse(toolCall.function.arguments);
-    const matchedIds = parsed.matches.map((m: any) => m.business_id);
 
-    // Enrich with full business data
+    // Enrich with full business data including calculator_steps
     const enrichedMatches = parsed.matches.map((m: any) => {
       const biz = allBusinesses.find((b: any) => b.id === m.business_id);
       if (!biz) return null;
@@ -176,9 +174,23 @@ ${bizSummaries}`,
           services: (biz.services || []).map((s: any) => ({
             id: s.id,
             name: s.name,
+            description: s.description,
             base_price: s.base_price,
             pricing_type: s.pricing_type,
             subcategory: s.subcategory,
+            image_url: s.image_url,
+            unit: s.unit,
+            is_active: s.is_active,
+            calculator_steps: (s.calculator_steps || []).map((cs: any) => ({
+              id: cs.id,
+              label: cs.label,
+              unit: cs.unit,
+              price_per_unit: cs.price_per_unit,
+              min_value: cs.min_value,
+              max_value: cs.max_value,
+              default_value: cs.default_value,
+              sort_order: cs.sort_order,
+            })),
           })),
         },
       };

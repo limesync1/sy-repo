@@ -8,6 +8,9 @@ interface CartContextType {
   clearCart: () => void;
   total: number;
   count: number;
+  businessId: string | null;
+  businessName: string | null;
+  setCartBusiness: (id: string, name: string) => void;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -20,6 +23,17 @@ export const useCart = () => {
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [businessId, setBusinessId] = useState<string | null>(null);
+  const [businessName, setBusinessName] = useState<string | null>(null);
+
+  const setCartBusiness = (id: string, name: string) => {
+    if (businessId && businessId !== id) {
+      // Switching business — clear cart
+      setItems([]);
+    }
+    setBusinessId(id);
+    setBusinessName(name);
+  };
 
   const addItem = (item: CartItem) => {
     setItems((prev) => {
@@ -32,16 +46,27 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const removeItem = (serviceId: string) => {
-    setItems((prev) => prev.filter((i) => i.serviceId !== serviceId));
+    setItems((prev) => {
+      const next = prev.filter((i) => i.serviceId !== serviceId);
+      if (next.length === 0) {
+        setBusinessId(null);
+        setBusinessName(null);
+      }
+      return next;
+    });
   };
 
-  const clearCart = () => setItems([]);
+  const clearCart = () => {
+    setItems([]);
+    setBusinessId(null);
+    setBusinessName(null);
+  };
 
   const total = items.reduce((acc, i) => acc + i.total * i.quantity, 0);
   const count = items.reduce((acc, i) => acc + i.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, clearCart, total, count }}>
+    <CartContext.Provider value={{ items, addItem, removeItem, clearCart, total, count, businessId, businessName, setCartBusiness }}>
       {children}
     </CartContext.Provider>
   );
