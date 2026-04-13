@@ -264,9 +264,7 @@ const AdminDashboard = () => {
 
         {/* Page content */}
         <main className="flex-1 p-4 sm:p-6">
-          <div className="mx-auto max-w-4xl">
-            {renderContent()}
-          </div>
+          {renderContent()}
         </main>
       </div>
     </div>
