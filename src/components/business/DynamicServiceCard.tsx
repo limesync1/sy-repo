@@ -9,6 +9,8 @@ import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 
 interface Props {
   service: Service & { calculator_steps?: CalculatorStep[] };
+  initialStepValues?: Record<string, number>;
+  initialHours?: number;
 }
 
 /* ── Smart step size based on unit and range ── */
