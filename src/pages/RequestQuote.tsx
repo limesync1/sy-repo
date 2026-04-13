@@ -4,14 +4,39 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2, AlertCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2, AlertCircle, ShoppingCart, Check, ChevronLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useCart } from "@/contexts/CartContext";
+import DynamicServiceCard from "@/components/business/DynamicServiceCard";
+import CartSheet from "@/components/business/CartSheet";
 
 const CATEGORIES = [
   "Rengøring", "Håndværker", "Flyttehjælp", "Haveservice",
   "Maler", "VVS", "Elektriker", "Sikkerhed",
 ];
+
+interface MatchedService {
+  id: string;
+  name: string;
+  description: string | null;
+  base_price: number | null;
+  pricing_type: string;
+  subcategory: string | null;
+  image_url: string | null;
+  unit: string | null;
+  is_active: boolean | null;
+  calculator_steps: {
+    id: string;
+    label: string;
+    unit: string;
+    price_per_unit: number;
+    min_value: number | null;
+    max_value: number | null;
+    default_value: number | null;
+    sort_order: number | null;
+  }[];
+}
 
 interface MatchedBusiness {
   business_id: string;
@@ -29,13 +54,7 @@ interface MatchedBusiness {
     cover_image_url: string | null;
     avg_rating: number | null;
     review_count: number;
-    services: {
-      id: string;
-      name: string;
-      base_price: number | null;
-      pricing_type: string;
-      subcategory: string | null;
-    }[];
+    services: MatchedService[];
   };
 }
 
@@ -45,6 +64,8 @@ const RequestQuote = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [matches, setMatches] = useState<MatchedBusiness[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedBusiness, setSelectedBusiness] = useState<MatchedBusiness | null>(null);
+  const { count, setCartBusiness, businessId } = useCart();
 
   const handleFind = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +77,7 @@ const RequestQuote = () => {
     setIsLoading(true);
     setError(null);
     setMatches(null);
+    setSelectedBusiness(null);
 
     try {
       const { data, error: fnError } = await supabase.functions.invoke("match-quotes", {
@@ -83,11 +105,47 @@ const RequestQuote = () => {
     setError(null);
     setDescription("");
     setCategory("");
+    setSelectedBusiness(null);
   };
+
+  const handleSelectBusiness = (match: MatchedBusiness) => {
+    setSelectedBusiness(match);
+    setCartBusiness(match.business.id, match.business.name);
+  };
+
+  // Convert matched service to the shape DynamicServiceCard expects
+  const toServiceCardProps = (s: MatchedService) => ({
+    id: s.id,
+    name: s.name,
+    description: s.description,
+    base_price: s.base_price,
+    pricing_type: s.pricing_type as any,
+    subcategory: s.subcategory,
+    image_url: s.image_url,
+    unit: s.unit,
+    is_active: s.is_active,
+    business_id: selectedBusiness!.business.id,
+    created_at: "",
+    updated_at: "",
+    service_category: null,
+    sort_order: 0,
+    calculator_steps: s.calculator_steps.map((cs) => ({
+      id: cs.id,
+      label: cs.label,
+      unit: cs.unit,
+      price_per_unit: cs.price_per_unit,
+      min_value: cs.min_value,
+      max_value: cs.max_value,
+      default_value: cs.default_value,
+      sort_order: cs.sort_order,
+      service_id: s.id,
+      created_at: "",
+    })),
+  });
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
-      {/* Animated gradient orbs — soft pastel on light bg */}
+      {/* Animated gradient orbs */}
       <div className="pointer-events-none absolute inset-0">
         <div className="animate-magic-bg-1 absolute -left-[15%] -top-[20%] h-[600px] w-[600px] rounded-full bg-[hsl(184,90%,80%)] opacity-40 blur-[140px]" />
         <div className="animate-magic-bg-2 absolute -right-[10%] top-[10%] h-[500px] w-[500px] rounded-full bg-[hsl(184,70%,85%)] opacity-30 blur-[130px]" />
@@ -105,71 +163,75 @@ const RequestQuote = () => {
               <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-8" />
             </Link>
           </div>
-          <Link to="/auth">
-            <Button size="sm" variant="outline">Log ind</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            {count > 0 && <CartSheet />}
+            <Link to="/auth">
+              <Button size="sm" variant="outline">Log ind</Button>
+            </Link>
+          </div>
         </div>
       </nav>
 
       <div className="relative z-10 container mx-auto px-4 py-12 md:py-20">
-        <div className="mx-auto max-w-3xl">
-          {/* Header */}
-          <div className="mb-10 text-center animate-fade-in">
-            <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-4 py-1.5 text-sm font-medium text-accent">
-              <Sparkles className="h-4 w-4" />
-              AI-drevet matching
-            </div>
-            <h1 className="mb-3 text-3xl font-bold tracking-tight text-foreground md:text-4xl lg:text-5xl">
-              Find dine 3 bedste tilbud
-            </h1>
-            <p className="mx-auto max-w-md text-base text-muted-foreground md:text-lg">
-              Beskriv dit behov — vores AI matcher dig med de bedste serviceydere.
-            </p>
-          </div>
+        <div className="mx-auto max-w-4xl">
 
-          {/* Form */}
-          {!matches && !isLoading && (
-            <div className="mx-auto max-w-md animate-fade-in" style={{ animationDelay: '0.15s' }}>
-              <div className="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-xl shadow-accent/[0.03] backdrop-blur-sm md:p-8">
-                <form onSubmit={handleFind} className="space-y-5">
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium text-foreground">Kategori</label>
-                    <Select value={category} onValueChange={setCategory}>
-                      <SelectTrigger className="h-12 rounded-xl">
-                        <SelectValue placeholder="Hvad har du brug for?" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CATEGORIES.map((cat) => (
-                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium text-foreground">Beskriv dit behov</label>
-                    <Textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Fx: Rengøring af 3-værelses lejlighed, 85m², hver 14. dag i København NV."
-                      className="min-h-[120px] rounded-xl"
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full h-12 rounded-xl bg-accent text-accent-foreground text-base font-semibold shadow-[0_4px_20px_hsl(184_90%_42%/0.2)] transition-all hover:shadow-[0_4px_28px_hsl(184_90%_42%/0.35)] hover:brightness-105"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5" />
-                      Find tilbud med AI
-                    </span>
-                  </Button>
-                </form>
+          {/* ─── STEP 1: Search form ─── */}
+          {!matches && !isLoading && !selectedBusiness && (
+            <>
+              <div className="mb-10 text-center animate-fade-in">
+                <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-4 py-1.5 text-sm font-medium text-accent">
+                  <Sparkles className="h-4 w-4" />
+                  AI-drevet matching
+                </div>
+                <h1 className="mb-3 text-3xl font-bold tracking-tight text-foreground md:text-4xl lg:text-5xl">
+                  Find dine 3 bedste tilbud
+                </h1>
+                <p className="mx-auto max-w-md text-base text-muted-foreground md:text-lg">
+                  Beskriv dit behov — vores AI matcher dig med de bedste serviceydere.
+                </p>
               </div>
-            </div>
+
+              <div className="mx-auto max-w-md animate-fade-in" style={{ animationDelay: '0.15s' }}>
+                <div className="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-xl shadow-accent/[0.03] backdrop-blur-sm md:p-8">
+                  <form onSubmit={handleFind} className="space-y-5">
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-foreground">Kategori</label>
+                      <Select value={category} onValueChange={setCategory}>
+                        <SelectTrigger className="h-12 rounded-xl">
+                          <SelectValue placeholder="Hvad har du brug for?" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CATEGORIES.map((cat) => (
+                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-foreground">Beskriv dit behov</label>
+                      <Textarea
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Fx: Rengøring af 3-værelses lejlighed, 85m², hver 14. dag i København NV."
+                        className="min-h-[120px] rounded-xl"
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full h-12 rounded-xl bg-accent text-accent-foreground text-base font-semibold shadow-[0_4px_20px_hsl(184_90%_42%/0.2)] transition-all hover:shadow-[0_4px_28px_hsl(184_90%_42%/0.35)] hover:brightness-105"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Sparkles className="h-5 w-5" />
+                        Find tilbud med AI
+                      </span>
+                    </Button>
+                  </form>
+                </div>
+              </div>
+            </>
           )}
 
-          {/* Loading state */}
+          {/* ─── Loading ─── */}
           {isLoading && (
             <div className="mt-12 flex flex-col items-center gap-6 text-center animate-fade-in">
               <div className="relative">
@@ -190,7 +252,7 @@ const RequestQuote = () => {
             </div>
           )}
 
-          {/* Error state */}
+          {/* ─── Error ─── */}
           {error && !isLoading && (
             <div className="mt-8 rounded-2xl border border-border bg-card p-8 text-center animate-fade-in">
               <AlertCircle className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
@@ -199,23 +261,27 @@ const RequestQuote = () => {
             </div>
           )}
 
-          {/* Results */}
-          {matches && matches.length > 0 && !isLoading && (
+          {/* ─── STEP 2: Pick a business ─── */}
+          {matches && matches.length > 0 && !isLoading && !selectedBusiness && (
             <div className="space-y-8 animate-fade-in">
               <div className="text-center">
                 <div className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-4 py-1.5 text-sm font-medium text-accent">
                   <Sparkles className="h-4 w-4" />
                   {matches.length} {matches.length === 1 ? "match fundet" : "matches fundet"}
                 </div>
+                <h2 className="mt-4 text-2xl font-bold text-foreground">Vælg en serviceudbyder</h2>
+                <p className="mt-1 text-muted-foreground">Vælg den virksomhed du vil bruge — derefter kan du sammensætte dine services.</p>
               </div>
 
               <div className="space-y-4">
                 {matches.map((match, i) => {
                   const isTop = i === 0;
+                  const activeServices = match.business.services.filter(s => s.is_active !== false);
                   return (
-                    <div
+                    <button
                       key={match.business_id}
-                      className={`group overflow-hidden rounded-2xl border bg-card/80 backdrop-blur-sm transition-all duration-300 ${
+                      onClick={() => handleSelectBusiness(match)}
+                      className={`group w-full text-left overflow-hidden rounded-2xl border bg-card/80 backdrop-blur-sm transition-all duration-300 ${
                         isTop
                           ? "border-accent/25 shadow-lg shadow-accent/[0.06]"
                           : "border-border/60 hover:border-accent/15 hover:shadow-md"
@@ -241,34 +307,34 @@ const RequestQuote = () => {
                         {/* Main content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3">
-                              {match.business.logo_url ? (
-                                <img src={match.business.logo_url} alt="" className="h-11 w-11 shrink-0 rounded-xl border border-border object-contain bg-background p-1" />
-                              ) : (
-                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-secondary text-lg font-bold text-muted-foreground">
-                                  {match.business.name.charAt(0)}
-                                </div>
-                              )}
-                              <div className="min-w-0">
-                                <h3 className="truncate text-lg font-bold text-foreground">{match.business.name}</h3>
-                                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                  {match.business.city && (
-                                    <span className="flex items-center gap-1">
-                                      <MapPin className="h-3 w-3" /> {match.business.city}
-                                    </span>
-                                  )}
-                                  {match.business.avg_rating && (
-                                    <span className="flex items-center gap-1 text-accent">
-                                      <Star className="h-3 w-3 fill-accent" /> {match.business.avg_rating}
-                                      <span className="text-muted-foreground">({match.business.review_count})</span>
-                                    </span>
-                                  )}
-                                  {match.business.is_verified && (
-                                    <span className="flex items-center gap-1 text-accent">
-                                      <BadgeCheck className="h-3 w-3" /> Verificeret
-                                    </span>
-                                  )}
-                                </div>
+                            {match.business.logo_url ? (
+                              <img src={match.business.logo_url} alt="" className="h-11 w-11 shrink-0 rounded-xl border border-border object-contain bg-background p-1" />
+                            ) : (
+                              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-secondary text-lg font-bold text-muted-foreground">
+                                {match.business.name.charAt(0)}
                               </div>
+                            )}
+                            <div className="min-w-0">
+                              <h3 className="truncate text-lg font-bold text-foreground">{match.business.name}</h3>
+                              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                {match.business.city && (
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="h-3 w-3" /> {match.business.city}
+                                  </span>
+                                )}
+                                {match.business.avg_rating && (
+                                  <span className="flex items-center gap-1 text-accent">
+                                    <Star className="h-3 w-3 fill-accent" /> {match.business.avg_rating}
+                                    <span className="text-muted-foreground">({match.business.review_count})</span>
+                                  </span>
+                                )}
+                                {match.business.is_verified && (
+                                  <span className="flex items-center gap-1 text-accent">
+                                    <BadgeCheck className="h-3 w-3" /> Verificeret
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
 
                           <div className="mt-2 flex items-baseline gap-2">
@@ -280,31 +346,27 @@ const RequestQuote = () => {
                             {match.reason}
                           </p>
 
-                          {match.business.services.length > 0 && (
+                          {activeServices.length > 0 && (
                             <div className="mt-3 flex flex-wrap gap-1.5">
-                              {match.business.services.slice(0, 4).map((s) => (
+                              {activeServices.slice(0, 5).map((s) => (
                                 <Badge key={s.id} variant="secondary" className="text-xs font-normal">
                                   {s.name}
+                                  {s.pricing_type === "fast_pris" && s.base_price ? ` · ${s.base_price} kr` : ""}
                                 </Badge>
                               ))}
+                              {activeServices.length > 5 && (
+                                <Badge variant="secondary" className="text-xs font-normal">+{activeServices.length - 5}</Badge>
+                              )}
                             </div>
                           )}
 
-                          <div className="mt-4">
-                            <Link to={`/b/${match.business.slug}`}>
-                              <Button size="sm" className={`gap-2 ${
-                                isTop
-                                  ? "bg-accent text-accent-foreground hover:bg-accent/90"
-                                  : "bg-foreground text-background hover:bg-foreground/90"
-                              }`}>
-                                Se virksomhed & bestil
-                                <ArrowRight className="h-4 w-4" />
-                              </Button>
-                            </Link>
+                          <div className="mt-4 flex items-center gap-2 text-sm font-medium text-accent group-hover:underline">
+                            Vælg og tilpas services
+                            <ArrowRight className="h-4 w-4" />
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -315,6 +377,101 @@ const RequestQuote = () => {
                   Søg igen
                 </Button>
               </div>
+            </div>
+          )}
+
+          {/* ─── STEP 3: Configure services from selected business ─── */}
+          {selectedBusiness && !isLoading && (
+            <div className="space-y-6 animate-fade-in">
+              {/* Back to results */}
+              <Button
+                variant="ghost"
+                onClick={() => setSelectedBusiness(null)}
+                className="gap-2 text-muted-foreground hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Tilbage til resultater
+              </Button>
+
+              {/* Business header */}
+              <div className="rounded-2xl border border-border/60 bg-card/80 p-5 backdrop-blur-sm">
+                <div className="flex items-center gap-4">
+                  {selectedBusiness.business.logo_url ? (
+                    <img src={selectedBusiness.business.logo_url} alt="" className="h-14 w-14 shrink-0 rounded-xl border border-border object-contain bg-background p-1" />
+                  ) : (
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border bg-secondary text-xl font-bold text-muted-foreground">
+                      {selectedBusiness.business.name.charAt(0)}
+                    </div>
+                  )}
+                  <div>
+                    <h2 className="text-xl font-bold text-foreground">{selectedBusiness.business.name}</h2>
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                      {selectedBusiness.business.city && (
+                        <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {selectedBusiness.business.city}</span>
+                      )}
+                      {selectedBusiness.business.avg_rating && (
+                        <span className="flex items-center gap-1 text-accent">
+                          <Star className="h-3.5 w-3.5 fill-accent" /> {selectedBusiness.business.avg_rating}
+                        </span>
+                      )}
+                      {selectedBusiness.business.is_verified && (
+                        <span className="flex items-center gap-1 text-accent"><BadgeCheck className="h-3.5 w-3.5" /> Verificeret</span>
+                      )}
+                      <Badge variant="secondary" className="text-xs">{selectedBusiness.match_score}% match</Badge>
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">{selectedBusiness.reason}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Info banner */}
+              <div className="flex items-start gap-3 rounded-xl border border-accent/20 bg-accent/5 p-4">
+                <ShoppingCart className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+                <div className="text-sm text-foreground">
+                  <p className="font-medium">Tilpas og tilføj services til din kurv</p>
+                  <p className="mt-0.5 text-muted-foreground">Brug prisberegnerne nedenfor til at specificere dit behov og tilføj de services du ønsker.</p>
+                </div>
+              </div>
+
+              {/* Service cards */}
+              {(() => {
+                const activeServices = selectedBusiness.business.services.filter(s => s.is_active !== false);
+                if (activeServices.length === 0) {
+                  return (
+                    <div className="rounded-xl border border-border bg-card p-8 text-center">
+                      <p className="text-muted-foreground">Denne virksomhed har ingen aktive services endnu.</p>
+                      <Link to={`/b/${selectedBusiness.business.slug}`} className="mt-3 inline-block text-sm font-medium text-accent hover:underline">
+                        Besøg virksomhedens side →
+                      </Link>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    {activeServices.map((s) => (
+                      <DynamicServiceCard key={s.id} service={toServiceCardProps(s)} />
+                    ))}
+                  </div>
+                );
+              })()}
+
+              {/* Cart summary bar */}
+              {count > 0 && businessId === selectedBusiness.business.id && (
+                <div className="sticky bottom-4 z-20 rounded-2xl border border-accent/20 bg-card/95 p-4 shadow-xl backdrop-blur-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+                        <Check className="h-5 w-5 text-accent" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{count} {count === 1 ? "service" : "services"} i kurven</p>
+                        <p className="text-xs text-muted-foreground">fra {selectedBusiness.business.name}</p>
+                      </div>
+                    </div>
+                    <CartSheet />
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
