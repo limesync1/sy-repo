@@ -38,11 +38,18 @@ interface MatchedService {
   }[];
 }
 
+interface ServicePrefill {
+  service_id: string;
+  hours?: number;
+  step_values?: { step_id: string; value: number }[];
+}
+
 interface MatchedBusiness {
   business_id: string;
   match_score: number;
   reason: string;
   estimated_price: string;
+  service_prefills?: ServicePrefill[];
   business: {
     id: string;
     name: string;
