@@ -324,7 +324,7 @@ const CreateBusinessForm = () => {
             <Sparkles className="h-6 w-6 text-accent" />
           </div>
           <CardTitle className="text-xl">Opret din virksomhed</CardTitle>
-          <p className="text-sm text-muted-foreground">Udfyld oplysningerne for at komme i gang.</p>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">Udfyld oplysningerne for at komme i gang.</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} />
@@ -335,7 +335,7 @@ const CreateBusinessForm = () => {
               {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button onClick={handleCreate} disabled={createBiz.isPending} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+          <Button onClick={handleCreate} disabled={createBiz.isPending} className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-lg text-[13px]">
             {createBiz.isPending ? "Opretter..." : "Opret virksomhed"}
           </Button>
         </CardContent>
@@ -756,7 +756,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       )}
 
       <div className="flex gap-2 pt-2">
-        <Button onClick={handleSave} className="bg-accent text-accent-foreground hover:bg-accent/90">
+        <Button onClick={handleSave} className="bg-foreground text-background hover:bg-foreground/90 rounded-lg text-[13px]">
           {existingService ? "Gem ændringer" : "Opret service"}
         </Button>
         <Button variant="outline" onClick={onClose}>Annuller</Button>
@@ -786,11 +786,11 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
   const filteredOrders = filter === "all" ? orders : orders?.filter((o) => o.status === filter);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold text-foreground">Ordrer</h2>
-          <p className="text-sm text-muted-foreground">{orders?.length || 0} ordrer i alt</p>
+          <h2 className="text-[15px] font-semibold text-foreground">Ordrer</h2>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">{orders?.length || 0} ordrer i alt</p>
         </div>
         <div className="flex flex-wrap gap-1.5">
           <Button variant={filter === "all" ? "default" : "outline"} size="sm" onClick={() => setFilter("all")}
@@ -809,18 +809,18 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {filteredOrders?.map((order) => (
-          <Card key={order.id} className="transition-shadow hover:shadow-md">
-            <CardContent className="p-4 sm:p-5">
+          <Card key={order.id} className="rounded-xl shadow-sm border-[#e1e3e5]">
+            <CardContent className="p-3.5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-foreground">{order.customer_name}</h3>
+                    <h3 className="text-[13px] font-semibold text-foreground">{order.customer_name}</h3>
                     <Badge className={statusColors[order.status]}>{statusLabels[order.status]}</Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">{order.customer_email}</p>
-                  {order.customer_phone && <p className="text-sm text-muted-foreground">{order.customer_phone}</p>}
+                  <p className="mt-0.5 text-[13px] text-muted-foreground">{order.customer_email}</p>
+                  {order.customer_phone && <p className="mt-0.5 text-[13px] text-muted-foreground">{order.customer_phone}</p>}
                   {order.notes && <p className="mt-1 text-sm text-foreground/80 italic">"{order.notes}"</p>}
                   <p className="mt-1 text-xs text-muted-foreground">
                     {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
@@ -853,7 +853,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
           </Card>
         ))}
         {(!filteredOrders || filteredOrders.length === 0) && (
-          <Card className="border-dashed">
+          <Card className="rounded-xl border-dashed border-[#e1e3e5]">
             <CardContent className="flex flex-col items-center justify-center py-16">
               <div className="mb-4 rounded-xl bg-muted p-3">
                 <ShoppingCart className="h-8 w-8 text-muted-foreground/50" />
@@ -898,24 +898,24 @@ const QuotesTab = ({ business }: { business: any }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-bold text-foreground">Tilbudsanmodninger</h2>
-        <p className="text-sm text-muted-foreground">{requests?.length || 0} anmodninger i din kategori</p>
+        <h2 className="text-[15px] font-semibold text-foreground">Tilbudsanmodninger</h2>
+        <p className="mt-0.5 text-[13px] text-muted-foreground">{requests?.length || 0} anmodninger i din kategori</p>
       </div>
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {requests?.map((req) => (
-          <Card key={req.id} className="transition-shadow hover:shadow-md">
-            <CardContent className="p-4 sm:p-5">
+          <Card key={req.id} className="rounded-xl shadow-sm border-[#e1e3e5]">
+            <CardContent className="p-3.5">
               <div className="mb-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-foreground">{req.customer_name}</h3>
+                  <h3 className="text-[13px] font-semibold text-foreground">{req.customer_name}</h3>
                   <span className="text-xs text-muted-foreground">
                     {new Date(req.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground">{req.customer_email}</p>
-                {req.customer_phone && <p className="text-sm text-muted-foreground">{req.customer_phone}</p>}
+                <p className="mt-0.5 text-[13px] text-muted-foreground">{req.customer_email}</p>
+                {req.customer_phone && <p className="mt-0.5 text-[13px] text-muted-foreground">{req.customer_phone}</p>}
                 <Badge variant="secondary" className="mt-1.5">{req.category}</Badge>
               </div>
               <p className="mb-3 text-sm text-foreground">{req.description}</p>
@@ -933,7 +933,7 @@ const QuotesTab = ({ business }: { business: any }) => {
                       onChange={(e) => setQuoteData((prev) => ({ ...prev, [req.id]: { ...prev[req.id], message: e.target.value, price: prev[req.id]?.price || "" } }))}
                     />
                   </div>
-                  <Button size="sm" onClick={() => handleSendQuote(req.id)} className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90">
+                  <Button size="sm" onClick={() => handleSendQuote(req.id)} className="gap-1.5 bg-foreground text-background hover:bg-foreground/90 rounded-lg text-[13px]">
                     <Send className="h-3.5 w-3.5" /> Send tilbud
                   </Button>
                 </div>
@@ -942,7 +942,7 @@ const QuotesTab = ({ business }: { business: any }) => {
           </Card>
         ))}
         {(!requests || requests.length === 0) && (
-          <Card className="border-dashed">
+          <Card className="rounded-xl border-dashed border-[#e1e3e5]">
             <CardContent className="flex flex-col items-center justify-center py-16">
               <div className="mb-4 rounded-xl bg-muted p-3">
                 <MessageSquare className="h-8 w-8 text-muted-foreground/50" />
@@ -993,8 +993,8 @@ const SettingsTab = ({ business }: { business: any }) => {
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-foreground">Indstillinger</h2>
-        <p className="text-sm text-muted-foreground">Administrer din virksomheds profil og oplysninger.</p>
+        <h2 className="text-[15px] font-semibold text-foreground">Indstillinger</h2>
+        <p className="mt-0.5 text-[13px] text-muted-foreground">Administrer din virksomheds profil og oplysninger.</p>
       </div>
 
       <Card>
@@ -1040,7 +1040,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         <CardHeader>
           <CardTitle className="text-base">Åbningstider</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2.5">
           {DAYS.map((day) => (
             <div key={day} className="flex items-center gap-3">
               <span className="w-24 text-sm text-muted-foreground">{day}</span>
@@ -1051,7 +1051,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </CardContent>
       </Card>
 
-      <Button onClick={save} disabled={updateBiz.isPending} className="bg-accent text-accent-foreground hover:bg-accent/90">
+      <Button onClick={save} disabled={updateBiz.isPending} className="bg-foreground text-background hover:bg-foreground/90 rounded-lg text-[13px]">
         {updateBiz.isPending ? "Gemmer..." : "Gem indstillinger"}
       </Button>
     </div>
