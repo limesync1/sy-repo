@@ -264,9 +264,7 @@ const AdminDashboard = () => {
 
         {/* Page content */}
         <main className="flex-1 p-4 sm:p-6">
-          <div className="mx-auto max-w-4xl">
-            {renderContent()}
-          </div>
+          {renderContent()}
         </main>
       </div>
     </div>
@@ -1000,7 +998,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   };
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-3xl space-y-6">
       <div>
         <h2 className="text-xl font-bold text-foreground">Indstillinger</h2>
         <p className="text-sm text-muted-foreground">Administrer din virksomheds profil og oplysninger.</p>
