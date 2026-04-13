@@ -8,16 +8,15 @@ import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useState } from "react";
 import {
-  Plus, Trash2, LogOut, ArrowLeft, Send, GripVertical,
+  Plus, Trash2, LogOut, Send, GripVertical,
   Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart, MessageSquare,
-  Star, Settings, Eye,
+  Star, Settings, Eye, Menu, X, ChevronRight, ExternalLink,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import DashboardTab from "@/components/admin/DashboardTab";
@@ -129,6 +128,15 @@ const SERVICE_CATEGORIES: Record<string, Record<string, string[]>> = {
   },
 };
 
+const NAV_ITEMS = [
+  { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
+  { value: "services", label: "Services", icon: Wrench },
+  { value: "orders", label: "Ordrer", icon: ShoppingCart },
+  { value: "quotes", label: "Tilbud", icon: MessageSquare },
+  { value: "reviews", label: "Anmeldelser", icon: Star },
+  { value: "settings", label: "Indstillinger", icon: Settings },
+];
+
 /* ─── Entry ─── */
 const Admin = () => {
   const { user, loading } = useAuth();
@@ -142,65 +150,134 @@ const AdminDashboard = () => {
   const { signOut } = useAuth();
   const { data: business, isLoading } = useMyBusiness();
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (isLoading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
   if (!business) return <CreateBusinessForm />;
 
-  const tabs = [
-    { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
-    { value: "services", label: "Services", icon: Wrench },
-    { value: "orders", label: "Ordrer", icon: ShoppingCart },
-    { value: "quotes", label: "Tilbud", icon: MessageSquare },
-    { value: "reviews", label: "Anmeldelser", icon: Star },
-    { value: "settings", label: "Indstillinger", icon: Settings },
-  ];
+  const renderContent = () => {
+    switch (activeTab) {
+      case "dashboard": return <DashboardWrapper business={business} />;
+      case "services": return <ServicesTab businessId={business.id} />;
+      case "orders": return <OrdersTab businessId={business.id} />;
+      case "quotes": return <QuotesTab business={business} />;
+      case "reviews": return <ReviewsWrapper businessId={business.id} />;
+      case "settings": return <SettingsTab business={business} />;
+      default: return null;
+    }
+  };
+
+  const currentNav = NAV_ITEMS.find(n => n.value === activeTab);
 
   return (
-    <div className="min-h-screen bg-secondary/30">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
-        <div className="container mx-auto flex items-center justify-between px-4 py-3">
+    <div className="flex min-h-screen bg-muted/30">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-card transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        {/* Sidebar header */}
+        <div className="flex h-16 items-center justify-between border-b border-border px-5">
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-7" />
+          </Link>
+          <button onClick={() => setSidebarOpen(false)} className="rounded-md p-1 text-muted-foreground hover:text-foreground lg:hidden">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Business info */}
+        <div className="border-b border-border px-5 py-4">
           <div className="flex items-center gap-3">
-            <Link to="/" className="text-muted-foreground hover:text-foreground"><ArrowLeft className="h-5 w-5" /></Link>
-            <Link to="/"><img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-8" /></Link>
-            <span className="hidden sm:inline text-sm font-medium text-muted-foreground">/ Admin</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link to={`/b/${business.slug}`}>
-              <Button variant="outline" size="sm" className="gap-1"><Eye className="h-4 w-4" /> <span className="hidden sm:inline">Se side</span></Button>
-            </Link>
-            <Button variant="ghost" size="sm" onClick={signOut}><LogOut className="h-4 w-4" /></Button>
+            {business.logo_url ? (
+              <img src={business.logo_url} alt="" className="h-9 w-9 rounded-lg object-cover" />
+            ) : (
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 text-accent font-bold text-sm">
+                {business.name.charAt(0)}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-foreground">{business.name}</p>
+              {business.category && <p className="truncate text-xs text-muted-foreground">{business.category}</p>}
+            </div>
           </div>
         </div>
-      </nav>
 
-      <div className="container mx-auto px-4 py-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          {/* Scrollable tab bar */}
-          <div className="mb-6 -mx-4 px-4 overflow-x-auto">
-            <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 gap-1 bg-card border border-border/60 p-1">
-              {tabs.map((tab) => (
-                <TabsTrigger key={tab.value} value={tab.value} className="gap-1.5 whitespace-nowrap data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
-                  <tab.icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+        {/* Nav items */}
+        <nav className="flex-1 space-y-1 px-3 py-4">
+          {NAV_ITEMS.map((item) => {
+            const isActive = activeTab === item.value;
+            return (
+              <button
+                key={item.value}
+                onClick={() => { setActiveTab(item.value); setSidebarOpen(false); }}
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-accent/10 text-accent"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                <item.icon className="h-[18px] w-[18px]" />
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Sidebar footer */}
+        <div className="border-t border-border p-3 space-y-1">
+          <Link
+            to={`/b/${business.slug}`}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <ExternalLink className="h-[18px] w-[18px]" />
+            Se din side
+          </Link>
+          <button
+            onClick={signOut}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+          >
+            <LogOut className="h-[18px] w-[18px]" />
+            Log ud
+          </button>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <div className="flex flex-1 flex-col min-w-0">
+        {/* Top bar */}
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-card/95 backdrop-blur px-4 sm:px-6">
+          <button onClick={() => setSidebarOpen(true)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden">
+            <Menu className="h-5 w-5" />
+          </button>
+          <div className="flex items-center gap-2 text-sm">
+            <span className="hidden sm:inline text-muted-foreground">Admin</span>
+            <ChevronRight className="hidden sm:block h-3.5 w-3.5 text-muted-foreground/50" />
+            <span className="font-semibold text-foreground">{currentNav?.label}</span>
           </div>
+          <div className="ml-auto flex items-center gap-2">
+            <Link to={`/b/${business.slug}`}>
+              <Button variant="outline" size="sm" className="gap-1.5 hidden sm:inline-flex">
+                <Eye className="h-4 w-4" /> Se side
+              </Button>
+            </Link>
+          </div>
+        </header>
 
-          <TabsContent value="dashboard"><DashboardWrapper business={business} /></TabsContent>
-          <TabsContent value="services"><ServicesTab businessId={business.id} /></TabsContent>
-          <TabsContent value="orders"><OrdersTab businessId={business.id} /></TabsContent>
-          <TabsContent value="quotes"><QuotesTab business={business} /></TabsContent>
-          <TabsContent value="reviews"><ReviewsWrapper businessId={business.id} /></TabsContent>
-          <TabsContent value="settings"><SettingsTab business={business} /></TabsContent>
-        </Tabs>
+        {/* Page content */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          <div className="mx-auto max-w-5xl">
+            {renderContent()}
+          </div>
+        </main>
       </div>
     </div>
   );
 };
 
-/* ─── Dashboard Wrapper (fetches data) ─── */
+/* ─── Dashboard Wrapper ─── */
 const DashboardWrapper = ({ business }: { business: any }) => {
   const { data: orders } = useOrders(business.id);
   const { data: services } = useServices(business.id);
@@ -253,13 +330,16 @@ const CreateBusinessForm = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary/30 px-4">
-      <Card className="w-full max-w-md border-border/60">
-        <CardContent className="space-y-4 p-6">
-          <div>
-            <h2 className="text-xl font-bold text-foreground">Opret din virksomhed</h2>
-            <p className="text-sm text-muted-foreground">Udfyld oplysningerne for at komme i gang.</p>
+    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10">
+            <Sparkles className="h-6 w-6 text-accent" />
           </div>
+          <CardTitle className="text-xl">Opret din virksomhed</CardTitle>
+          <p className="text-sm text-muted-foreground">Udfyld oplysningerne for at komme i gang.</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} />
           <Textarea placeholder="Beskrivelse (valgfrit)" value={description} onChange={(e) => setDescription(e.target.value)} />
           <Select value={category} onValueChange={setCategory}>
@@ -286,30 +366,42 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
   if (isLoading) return <p className="text-muted-foreground">Indlæser services...</p>;
 
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-foreground">Services ({services?.length || 0})</h2>
-        <Button onClick={() => setShowForm(true)} className="gap-1 bg-accent text-accent-foreground hover:bg-accent/90">
-          <Plus className="h-4 w-4" /> Tilføj service
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-foreground">Services</h2>
+          <p className="text-sm text-muted-foreground">{services?.length || 0} services oprettet</p>
+        </div>
+        <Button onClick={() => setShowForm(true)} className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90">
+          <Plus className="h-4 w-4" /> Tilføj
         </Button>
       </div>
+
       {showForm && (
-        <Card className="mb-4 border-border/60">
-          <CardContent className="p-4">
+        <Card>
+          <CardContent className="p-5">
             <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />
           </CardContent>
         </Card>
       )}
+
       <div className="space-y-3">
         {services?.map((s) => (
           <ServiceRow key={s.id} service={s} onDelete={() => deleteService.mutate(s.id)} />
         ))}
         {(!services || services.length === 0) && !showForm && (
-          <div className="py-12 text-center">
-            <Wrench className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
-            <p className="text-muted-foreground">Ingen services endnu.</p>
-            <p className="text-sm text-muted-foreground">Tilføj din første service for at komme i gang.</p>
-          </div>
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <div className="mb-4 rounded-xl bg-muted p-3">
+                <Wrench className="h-8 w-8 text-muted-foreground/50" />
+              </div>
+              <p className="font-medium text-foreground">Ingen services endnu</p>
+              <p className="mt-1 text-sm text-muted-foreground">Tilføj din første service for at komme i gang.</p>
+              <Button onClick={() => setShowForm(true)} className="mt-4 gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90">
+                <Plus className="h-4 w-4" /> Tilføj service
+              </Button>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
@@ -321,15 +413,15 @@ const ServiceRow = ({ service, onDelete }: { service: any; onDelete: () => void 
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
 
   return (
-    <Card className="border-border/60 overflow-hidden">
-      <CardContent className="flex items-center justify-between p-4">
+    <Card className="overflow-hidden transition-shadow hover:shadow-md">
+      <CardContent className="flex items-center justify-between p-4 sm:p-5">
         <div className="min-w-0 flex-1">
           <h3 className="font-semibold text-foreground">{service.name}</h3>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <Badge variant="secondary">{pricingLabels[service.pricing_type] || service.pricing_type}</Badge>
+          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <Badge variant="secondary" className="font-normal">{pricingLabels[service.pricing_type] || service.pricing_type}</Badge>
             {service.base_price != null && <span>{service.base_price} kr{service.unit ? ` / ${service.unit}` : ""}</span>}
-            {service.calculator_steps?.length > 0 && <span>· {service.calculator_steps.length} beregnertrin</span>}
-            {service.subcategory && <Badge variant="outline" className="text-xs">{service.subcategory}</Badge>}
+            {service.calculator_steps?.length > 0 && <span className="text-xs">· {service.calculator_steps.length} beregnertrin</span>}
+            {service.subcategory && <Badge variant="outline" className="text-xs font-normal">{service.subcategory}</Badge>}
           </div>
         </div>
         <div className="ml-3 flex gap-2">
@@ -340,9 +432,9 @@ const ServiceRow = ({ service, onDelete }: { service: any; onDelete: () => void 
         </div>
       </CardContent>
       {editing && (
-        <CardContent className="border-t border-border/50 p-4">
+        <div className="border-t border-border p-5">
           <ServiceForm businessId={service.business_id} existingService={service} onClose={() => setEditing(false)} />
-        </CardContent>
+        </div>
       )}
     </Card>
   );
@@ -360,10 +452,10 @@ const CalculatorPreview = ({ steps }: { steps: any[] }) => {
   if (steps.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-accent/30 bg-accent/5 p-4">
+    <div className="rounded-xl border border-accent/20 bg-accent/5 p-4">
       <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-accent">
         <Calculator className="h-4 w-4" />
-        Forhåndsvisning (som kunden ser det)
+        Forhåndsvisning
       </div>
       <div className="rounded-lg border border-border bg-card overflow-hidden">
         {steps.filter(s => s.label).map((step, idx) => {
@@ -375,7 +467,7 @@ const CalculatorPreview = ({ steps }: { steps: any[] }) => {
                 <div className="text-xs text-muted-foreground">{parseFloat(step.price_per_unit) || 0} kr / {step.unit || "stk"}</div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="rounded-lg border border-border bg-secondary px-3 py-1.5 text-sm font-semibold text-foreground">
+                <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-sm font-semibold text-foreground">
                   {values[idx] || 0} {step.unit || "stk"}
                 </span>
                 <span className="w-16 text-right text-sm font-semibold text-foreground">{stepTotal} kr</span>
@@ -383,9 +475,9 @@ const CalculatorPreview = ({ steps }: { steps: any[] }) => {
             </div>
           );
         })}
-        <div className="flex items-center justify-between bg-secondary/40 px-4 py-3">
+        <div className="flex items-center justify-between bg-muted/50 px-4 py-3">
           <span className="text-sm font-semibold text-foreground">I alt</span>
-          <span className="text-lg font-bold text-foreground">{total} kr</span>
+          <span className="text-lg font-bold text-accent">{total} kr</span>
         </div>
       </div>
     </div>
@@ -430,7 +522,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
 
   const applyTemplate = (template: typeof availableTemplates[number]) => {
     setSteps(template.steps.map((s, i) => ({ ...s, sort_order: i })));
-    toast.success(`Skabelon "${template.label}" anvendt – tilpas priserne til dine egne`);
+    toast.success(`Skabelon "${template.label}" anvendt`);
   };
 
   const handleSave = async () => {
@@ -487,10 +579,13 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Step 1: Category */}
-      <div className="rounded-lg border border-border p-4 space-y-3">
-        <h4 className="text-sm font-semibold text-foreground">1. Kategori</h4>
+      <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
+        <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-accent-foreground">1</span>
+          Kategori
+        </h4>
         {!customCategory ? (
           <div className="space-y-2">
             <Select value={serviceCategory} onValueChange={(v) => { setServiceCategory(v); setSubcategory(""); setCustomSubcategory(false); }}>
@@ -509,8 +604,11 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
 
       {/* Step 2: Subcategory */}
       {serviceCategory && (
-        <div className="rounded-lg border border-border p-4 space-y-3">
-          <h4 className="text-sm font-semibold text-foreground">2. Underkategori</h4>
+        <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
+          <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-accent-foreground">2</span>
+            Underkategori
+          </h4>
           {!customSubcategory && subcategoryOptions.length > 0 ? (
             <div className="space-y-2">
               <Select value={subcategory} onValueChange={setSubcategory}>
@@ -532,15 +630,18 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
 
       {/* Step 3: Service details */}
       {serviceCategory && (
-        <div className="rounded-lg border border-border p-4 space-y-4">
-          <h4 className="text-sm font-semibold text-foreground">3. Service / Produkt</h4>
+        <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-4">
+          <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-accent-foreground">3</span>
+            Service / Produkt
+          </h4>
 
           <div>
             <Input placeholder="Servicenavn (fx Rengøring af kontor)" value={name} onChange={(e) => setName(e.target.value)} />
             {productSuggestions.length > 0 && !name && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {productSuggestions.map((s) => (
-                  <button key={s} type="button" onClick={() => setName(s)} className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:border-foreground/30 hover:text-foreground transition-colors">{s}</button>
+                  <button key={s} type="button" onClick={() => setName(s)} className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:border-accent/50 hover:text-foreground transition-colors">{s}</button>
                 ))}
               </div>
             )}
@@ -560,7 +661,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                 { value: "prisberegner", label: "Prisberegner", desc: "Kunden beregner selv" },
               ].map((opt) => (
                 <button key={opt.value} type="button" onClick={() => setPricingType(opt.value)}
-                  className={`rounded-lg border p-3 text-left transition-all ${pricingType === opt.value ? "border-accent bg-accent/5 ring-1 ring-accent" : "border-border hover:border-foreground/30"}`}>
+                  className={`rounded-lg border p-3 text-left transition-all ${pricingType === opt.value ? "border-accent bg-accent/10 ring-1 ring-accent/50" : "border-border hover:border-muted-foreground/30"}`}>
                   <span className="block text-sm font-semibold text-foreground">{opt.label}</span>
                   <span className="block text-xs text-muted-foreground">{opt.desc}</span>
                 </button>
@@ -578,16 +679,15 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
           {pricingType === "prisberegner" && (
             <div className="space-y-4">
               {availableTemplates.length > 0 && steps.length === 0 && (
-                <div className="rounded-lg border border-accent/30 bg-accent/5 p-4 space-y-3">
+                <div className="rounded-lg border border-accent/20 bg-accent/5 p-4 space-y-3">
                   <div className="flex items-center gap-2">
                     <Sparkles className="h-4 w-4 text-accent" />
                     <span className="text-sm font-semibold text-foreground">Hurtigstart med skabelon</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Vælg en skabelon og tilpas priserne til din virksomhed.</p>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {availableTemplates.map((t) => (
                       <button key={t.label} type="button" onClick={() => applyTemplate(t)}
-                        className="rounded-lg border border-border bg-card p-3 text-left transition-all hover:border-accent/50 hover:bg-accent/5">
+                        className="rounded-lg border border-border bg-card p-3 text-left transition-all hover:border-accent/50 hover:shadow-sm">
                         <span className="block text-sm font-medium text-foreground">{t.label}</span>
                         <span className="block text-xs text-muted-foreground">{t.steps.length} trin · {t.steps.map(s => s.unit).join(", ")}</span>
                       </button>
@@ -602,11 +702,11 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                     <h4 className="font-semibold text-foreground">Beregnertrin</h4>
                     <p className="text-xs text-muted-foreground">Hvert trin lader kunden vælge en mængde.</p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={addStep} className="gap-1"><Plus className="h-3 w-3" /> Tilføj trin</Button>
+                  <Button variant="outline" size="sm" onClick={addStep} className="gap-1"><Plus className="h-3 w-3" /> Tilføj</Button>
                 </div>
 
                 {steps.map((step, i) => (
-                  <div key={i} className="rounded-lg border border-border/60 bg-secondary/20 p-3 space-y-3">
+                  <div key={i} className="rounded-lg border border-border bg-card p-3 space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <GripVertical className="h-4 w-4 text-muted-foreground/40" />
@@ -653,9 +753,9 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                 ))}
 
                 {steps.length === 0 && (
-                  <div className="py-6 text-center space-y-2">
+                  <div className="py-6 text-center">
                     <Calculator className="mx-auto h-8 w-8 text-muted-foreground/30" />
-                    <p className="text-sm text-muted-foreground">
+                    <p className="mt-2 text-sm text-muted-foreground">
                       {availableTemplates.length > 0 ? "Vælg en skabelon ovenfor eller tilføj trin manuelt." : "Tilføj trin for at oprette din prisberegner."}
                     </p>
                   </div>
@@ -668,7 +768,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 pt-2">
         <Button onClick={handleSave} className="bg-accent text-accent-foreground hover:bg-accent/90">
           {existingService ? "Gem ændringer" : "Opret service"}
         </Button>
@@ -699,9 +799,12 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
   const filteredOrders = filter === "all" ? orders : orders?.filter((o) => o.status === filter);
 
   return (
-    <div>
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-xl font-bold text-foreground">Ordrer ({orders?.length || 0})</h2>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-foreground">Ordrer</h2>
+          <p className="text-sm text-muted-foreground">{orders?.length || 0} ordrer i alt</p>
+        </div>
         <div className="flex flex-wrap gap-1.5">
           <Button variant={filter === "all" ? "default" : "outline"} size="sm" onClick={() => setFilter("all")}
             className={filter === "all" ? "bg-accent text-accent-foreground" : ""}>
@@ -721,8 +824,8 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
 
       <div className="space-y-3">
         {filteredOrders?.map((order) => (
-          <Card key={order.id} className="border-border/60">
-            <CardContent className="p-4">
+          <Card key={order.id} className="transition-shadow hover:shadow-md">
+            <CardContent className="p-4 sm:p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
@@ -731,7 +834,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                   </div>
                   <p className="text-sm text-muted-foreground">{order.customer_email}</p>
                   {order.customer_phone && <p className="text-sm text-muted-foreground">{order.customer_phone}</p>}
-                  {order.notes && <p className="mt-1 text-sm text-foreground italic">"{order.notes}"</p>}
+                  {order.notes && <p className="mt-1 text-sm text-foreground/80 italic">"{order.notes}"</p>}
                   <p className="mt-1 text-xs text-muted-foreground">
                     {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                   </p>
@@ -747,7 +850,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                 </div>
               </div>
               {(order as any).order_items?.length > 0 && (
-                <div className="mt-3 space-y-1 rounded-lg bg-secondary/30 p-3">
+                <div className="mt-3 space-y-1 rounded-lg bg-muted/50 p-3">
                   {(order as any).order_items.map((item: any) => (
                     <div key={item.id} className="flex justify-between text-sm">
                       <span className="text-muted-foreground">
@@ -763,12 +866,16 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
           </Card>
         ))}
         {(!filteredOrders || filteredOrders.length === 0) && (
-          <div className="py-12 text-center">
-            <ShoppingCart className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
-            <p className="text-muted-foreground">
-              {filter === "all" ? "Ingen ordrer endnu." : `Ingen ordrer med status "${statusLabels[filter]}".`}
-            </p>
-          </div>
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <div className="mb-4 rounded-xl bg-muted p-3">
+                <ShoppingCart className="h-8 w-8 text-muted-foreground/50" />
+              </div>
+              <p className="font-medium text-foreground">
+                {filter === "all" ? "Ingen ordrer endnu" : `Ingen ordrer med status "${statusLabels[filter]}"`}
+              </p>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
@@ -804,13 +911,16 @@ const QuotesTab = ({ business }: { business: any }) => {
   };
 
   return (
-    <div>
-      <h2 className="mb-4 text-xl font-bold text-foreground">Tilbudsanmodninger</h2>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-bold text-foreground">Tilbudsanmodninger</h2>
+        <p className="text-sm text-muted-foreground">{requests?.length || 0} anmodninger i din kategori</p>
+      </div>
       <div className="space-y-3">
         {requests?.map((req) => (
-          <Card key={req.id} className="border-border/60">
-            <CardContent className="p-4">
-              <div className="mb-2">
+          <Card key={req.id} className="transition-shadow hover:shadow-md">
+            <CardContent className="p-4 sm:p-5">
+              <div className="mb-3">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-foreground">{req.customer_name}</h3>
                   <span className="text-xs text-muted-foreground">
@@ -819,13 +929,13 @@ const QuotesTab = ({ business }: { business: any }) => {
                 </div>
                 <p className="text-sm text-muted-foreground">{req.customer_email}</p>
                 {req.customer_phone && <p className="text-sm text-muted-foreground">{req.customer_phone}</p>}
-                <Badge variant="secondary" className="mt-1">{req.category}</Badge>
+                <Badge variant="secondary" className="mt-1.5">{req.category}</Badge>
               </div>
               <p className="mb-3 text-sm text-foreground">{req.description}</p>
               {answeredIds.has(req.id) ? (
                 <Badge className="bg-green-100 text-green-800">✓ Besvaret</Badge>
               ) : (
-                <div className="space-y-2 border-t border-border/50 pt-3">
+                <div className="space-y-2 border-t border-border pt-3">
                   <div className="flex gap-2">
                     <Input type="number" placeholder="Din pris (kr)"
                       value={quoteData[req.id]?.price || ""}
@@ -836,8 +946,8 @@ const QuotesTab = ({ business }: { business: any }) => {
                       onChange={(e) => setQuoteData((prev) => ({ ...prev, [req.id]: { ...prev[req.id], message: e.target.value, price: prev[req.id]?.price || "" } }))}
                     />
                   </div>
-                  <Button size="sm" onClick={() => handleSendQuote(req.id)} className="gap-1 bg-accent text-accent-foreground hover:bg-accent/90">
-                    <Send className="h-3 w-3" /> Send tilbud
+                  <Button size="sm" onClick={() => handleSendQuote(req.id)} className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90">
+                    <Send className="h-3.5 w-3.5" /> Send tilbud
                   </Button>
                 </div>
               )}
@@ -845,10 +955,15 @@ const QuotesTab = ({ business }: { business: any }) => {
           </Card>
         ))}
         {(!requests || requests.length === 0) && (
-          <div className="py-12 text-center">
-            <MessageSquare className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
-            <p className="text-muted-foreground">Ingen åbne anmodninger i din kategori.</p>
-          </div>
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <div className="mb-4 rounded-xl bg-muted p-3">
+                <MessageSquare className="h-8 w-8 text-muted-foreground/50" />
+              </div>
+              <p className="font-medium text-foreground">Ingen åbne anmodninger</p>
+              <p className="mt-1 text-sm text-muted-foreground">Anmodninger i din kategori vises her.</p>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
@@ -890,11 +1005,16 @@ const SettingsTab = ({ business }: { business: any }) => {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <h2 className="text-xl font-bold text-foreground">Indstillinger</h2>
+      <div>
+        <h2 className="text-xl font-bold text-foreground">Indstillinger</h2>
+        <p className="text-sm text-muted-foreground">Administrer din virksomheds profil og oplysninger.</p>
+      </div>
 
-      <Card className="border-border/60">
-        <CardContent className="space-y-4 p-6">
-          <h3 className="font-semibold text-foreground">Generelt</h3>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Generelt</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} />
           <Textarea placeholder="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} />
           <Select value={category} onValueChange={setCategory}>
@@ -904,9 +1024,11 @@ const SettingsTab = ({ business }: { business: any }) => {
         </CardContent>
       </Card>
 
-      <Card className="border-border/60">
-        <CardContent className="space-y-4 p-6">
-          <h3 className="font-semibold text-foreground">Kontaktoplysninger</h3>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Kontaktoplysninger</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <Input placeholder="Telefon" value={phone} onChange={(e) => setPhone(e.target.value)} />
           <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
           <Input placeholder="Adresse" value={address} onChange={(e) => setAddress(e.target.value)} />
@@ -917,17 +1039,21 @@ const SettingsTab = ({ business }: { business: any }) => {
         </CardContent>
       </Card>
 
-      <Card className="border-border/60">
-        <CardContent className="space-y-4 p-6">
-          <h3 className="font-semibold text-foreground">Billeder</h3>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Billeder</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="Logo" aspectRatio="aspect-square" />
           <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="Coverbillede" aspectRatio="aspect-video" />
         </CardContent>
       </Card>
 
-      <Card className="border-border/60">
-        <CardContent className="space-y-4 p-6">
-          <h3 className="font-semibold text-foreground">Åbningstider</h3>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Åbningstider</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
           {DAYS.map((day) => (
             <div key={day} className="flex items-center gap-3">
               <span className="w-24 text-sm text-muted-foreground">{day}</span>
