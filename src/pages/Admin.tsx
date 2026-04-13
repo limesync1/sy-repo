@@ -170,56 +170,56 @@ const AdminDashboard = () => {
   const currentNav = NAV_ITEMS.find(n => n.value === activeTab);
 
   return (
-    <div className="flex min-h-screen bg-muted/30">
+    <div className="flex min-h-screen bg-secondary/40">
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-card transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      {/* Sidebar — Shopify-inspired dark */}
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-60 flex-col bg-[hsl(222,47%,11%)] transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         {/* Sidebar header */}
-        <div className="flex h-16 items-center justify-between border-b border-border px-5">
+        <div className="flex h-14 items-center justify-between px-4">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-7" />
+            <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-6" />
           </Link>
-          <button onClick={() => setSidebarOpen(false)} className="rounded-md p-1 text-muted-foreground hover:text-foreground lg:hidden">
+          <button onClick={() => setSidebarOpen(false)} className="rounded-md p-1 text-white/50 hover:text-white lg:hidden">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Business info */}
-        <div className="border-b border-border px-5 py-4">
-          <div className="flex items-center gap-3">
+        <div className="mx-3 mb-3 rounded-lg bg-white/[0.08] px-3 py-2.5">
+          <div className="flex items-center gap-2.5">
             {business.logo_url ? (
-              <img src={business.logo_url} alt="" className="h-9 w-9 rounded-lg object-cover" />
+              <img src={business.logo_url} alt="" className="h-8 w-8 rounded-md object-contain bg-white/10 p-0.5" />
             ) : (
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 text-accent font-bold text-sm">
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent/20 text-accent font-bold text-xs">
                 {business.name.charAt(0)}
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-foreground">{business.name}</p>
-              {business.category && <p className="truncate text-xs text-muted-foreground">{business.category}</p>}
+              <p className="truncate text-[13px] font-semibold text-white">{business.name}</p>
+              {business.category && <p className="truncate text-[11px] text-white/50">{business.category}</p>}
             </div>
           </div>
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 space-y-1 px-3 py-4">
+        <nav className="flex-1 space-y-0.5 px-3">
           {NAV_ITEMS.map((item) => {
             const isActive = activeTab === item.value;
             return (
               <button
                 key={item.value}
                 onClick={() => { setActiveTab(item.value); setSidebarOpen(false); }}
-                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium transition-colors ${
                   isActive
-                    ? "bg-accent/10 text-accent"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ? "bg-white/[0.12] text-white"
+                    : "text-white/60 hover:bg-white/[0.06] hover:text-white/90"
                 }`}
               >
-                <item.icon className="h-[18px] w-[18px]" />
+                <item.icon className="h-[17px] w-[17px]" />
                 {item.label}
               </button>
             );
@@ -227,19 +227,19 @@ const AdminDashboard = () => {
         </nav>
 
         {/* Sidebar footer */}
-        <div className="border-t border-border p-3 space-y-1">
+        <div className="border-t border-white/[0.08] p-3 space-y-0.5">
           <Link
             to={`/b/${business.slug}`}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium text-white/60 hover:bg-white/[0.06] hover:text-white/90 transition-colors"
           >
-            <ExternalLink className="h-[18px] w-[18px]" />
+            <ExternalLink className="h-[17px] w-[17px]" />
             Se din side
           </Link>
           <button
             onClick={signOut}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+            className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium text-white/60 hover:bg-red-500/20 hover:text-red-400 transition-colors"
           >
-            <LogOut className="h-[18px] w-[18px]" />
+            <LogOut className="h-[17px] w-[17px]" />
             Log ud
           </button>
         </div>
@@ -248,27 +248,23 @@ const AdminDashboard = () => {
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-card/95 backdrop-blur px-4 sm:px-6">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-card px-4 sm:px-6">
           <button onClick={() => setSidebarOpen(true)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden">
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-2 text-sm">
-            <span className="hidden sm:inline text-muted-foreground">Admin</span>
-            <ChevronRight className="hidden sm:block h-3.5 w-3.5 text-muted-foreground/50" />
-            <span className="font-semibold text-foreground">{currentNav?.label}</span>
-          </div>
+          <h1 className="text-base font-semibold text-foreground">{currentNav?.label}</h1>
           <div className="ml-auto flex items-center gap-2">
             <Link to={`/b/${business.slug}`}>
-              <Button variant="outline" size="sm" className="gap-1.5 hidden sm:inline-flex">
-                <Eye className="h-4 w-4" /> Se side
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs hidden sm:inline-flex">
+                <Eye className="h-3.5 w-3.5" /> Se side
               </Button>
             </Link>
           </div>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
-          <div className="mx-auto max-w-5xl">
+        <main className="flex-1 p-4 sm:p-6">
+          <div className="mx-auto max-w-4xl">
             {renderContent()}
           </div>
         </main>
