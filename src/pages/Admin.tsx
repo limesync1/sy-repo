@@ -170,16 +170,16 @@ const AdminDashboard = () => {
   const currentNav = NAV_ITEMS.find(n => n.value === activeTab);
 
   return (
-    <div className="flex min-h-screen bg-secondary/40">
+    <div className="flex min-h-screen bg-[#f6f6f7]">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar — Shopify-inspired dark */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-60 flex-col bg-[hsl(222,47%,11%)] transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[220px] flex-col bg-[hsl(222,47%,11%)] transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         {/* Sidebar header */}
-        <div className="flex h-14 items-center justify-between px-4">
+        <div className="flex h-14 shrink-0 items-center justify-between px-3">
           <Link to="/" className="flex items-center gap-2">
             <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-6" />
           </Link>
@@ -189,57 +189,57 @@ const AdminDashboard = () => {
         </div>
 
         {/* Business info */}
-        <div className="mx-3 mb-3 rounded-lg bg-white/[0.08] px-3 py-2.5">
-          <div className="flex items-center gap-2.5">
+        <div className="mx-2 mb-2 shrink-0 rounded-lg bg-white/[0.08] px-2.5 py-2">
+          <div className="flex items-center gap-2">
             {business.logo_url ? (
-              <img src={business.logo_url} alt="" className="h-8 w-8 rounded-md object-contain bg-white/10 p-0.5" />
+              <img src={business.logo_url} alt="" className="h-7 w-7 shrink-0 rounded object-contain bg-white/10 p-0.5" />
             ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent/20 text-accent font-bold text-xs">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-accent/20 text-accent font-bold text-[11px]">
                 {business.name.charAt(0)}
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-semibold text-white">{business.name}</p>
-              {business.category && <p className="truncate text-[11px] text-white/50">{business.category}</p>}
+              <p className="truncate text-[12px] font-medium text-white">{business.name}</p>
+              {business.category && <p className="truncate text-[10px] text-white/40">{business.category}</p>}
             </div>
           </div>
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 space-y-0.5 px-3">
+        <nav className="flex-1 space-y-px px-2 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
             const isActive = activeTab === item.value;
             return (
               <button
                 key={item.value}
                 onClick={() => { setActiveTab(item.value); setSidebarOpen(false); }}
-                className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium transition-colors ${
+                className={`flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-[13px] font-medium transition-colors ${
                   isActive
                     ? "bg-white/[0.12] text-white"
-                    : "text-white/60 hover:bg-white/[0.06] hover:text-white/90"
+                    : "text-white/55 hover:bg-white/[0.06] hover:text-white/90"
                 }`}
               >
-                <item.icon className="h-[17px] w-[17px]" />
+                <item.icon className="h-4 w-4 shrink-0" />
                 {item.label}
               </button>
             );
           })}
         </nav>
 
-        {/* Sidebar footer */}
-        <div className="border-t border-white/[0.08] p-3 space-y-0.5">
+        {/* Sidebar footer — always visible */}
+        <div className="shrink-0 border-t border-white/[0.06] px-2 py-2 space-y-px">
           <Link
             to={`/b/${business.slug}`}
-            className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium text-white/60 hover:bg-white/[0.06] hover:text-white/90 transition-colors"
+            className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-[13px] font-medium text-white/55 hover:bg-white/[0.06] hover:text-white/90 transition-colors"
           >
-            <ExternalLink className="h-[17px] w-[17px]" />
+            <ExternalLink className="h-4 w-4 shrink-0" />
             Se din side
           </Link>
           <button
             onClick={signOut}
-            className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium text-white/60 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+            className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-[13px] font-medium text-white/55 hover:bg-red-500/20 hover:text-red-400 transition-colors"
           >
-            <LogOut className="h-[17px] w-[17px]" />
+            <LogOut className="h-4 w-4 shrink-0" />
             Log ud
           </button>
         </div>
@@ -248,22 +248,15 @@ const AdminDashboard = () => {
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-card px-4 sm:px-6">
-          <button onClick={() => setSidebarOpen(true)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden">
+        <header className="sticky top-0 z-30 flex h-[52px] shrink-0 items-center gap-3 border-b border-[#e1e3e5] bg-white px-4 sm:px-5">
+          <button onClick={() => setSidebarOpen(true)} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden">
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="text-base font-semibold text-foreground">{currentNav?.label}</h1>
-          <div className="ml-auto flex items-center gap-2">
-            <Link to={`/b/${business.slug}`}>
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs hidden sm:inline-flex">
-                <Eye className="h-3.5 w-3.5" /> Se side
-              </Button>
-            </Link>
-          </div>
+          <h1 className="text-[15px] font-semibold text-foreground">{currentNav?.label}</h1>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-4 sm:p-6">
+        <main className="flex-1 p-3 sm:p-5">
           {renderContent()}
         </main>
       </div>
