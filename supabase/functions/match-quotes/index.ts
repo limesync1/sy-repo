@@ -21,7 +21,6 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch businesses with services (including calculator_steps) and reviews
     const { data: businesses, error: bizError } = await supabase
       .from("businesses")
       .select("*, services(*, calculator_steps(*)), reviews(*)")
@@ -49,16 +48,27 @@ serve(async (req) => {
       });
     }
 
-    // Build context for AI
+    // Build detailed context including calculator step IDs
     const bizSummaries = allBusinesses.map((b: any) => {
       const avgRating = b.reviews?.length > 0
         ? (b.reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / b.reviews.length).toFixed(1)
         : "Ingen";
-      const serviceList = (b.services || []).map((s: any) => 
-        `${s.name} (${s.pricing_type === "fast_pris" ? `${s.base_price} kr` : s.pricing_type === "timepris" ? `${s.base_price} kr/t` : "prisberegner"})${s.subcategory ? ` [${s.subcategory}]` : ""}`
-      ).join(", ");
-      return `ID: ${b.id} | Navn: ${b.name} | By: ${b.city || "Ukendt"} | Rating: ${avgRating} (${b.reviews?.length || 0} anmeldelser) | Verificeret: ${b.is_verified ? "Ja" : "Nej"} | Services: ${serviceList || "Ingen"} | Beskrivelse: ${b.description || ""}`;
-    }).join("\n");
+      const serviceList = (b.services || []).map((s: any) => {
+        let sDesc = `Service[id=${s.id}]: ${s.name} (${s.pricing_type === "fast_pris" ? `${s.base_price} kr` : s.pricing_type === "timepris" ? `${s.base_price} kr/t` : "prisberegner"})`;
+        if (s.subcategory) sDesc += ` [${s.subcategory}]`;
+        if (s.pricing_type === "prisberegner" && s.calculator_steps?.length > 0) {
+          const steps = s.calculator_steps.map((cs: any) =>
+            `  Step[id=${cs.id}]: "${cs.label}" (${cs.price_per_unit} kr/${cs.unit}, min=${cs.min_value}, max=${cs.max_value})`
+          ).join("\n");
+          sDesc += `\n${steps}`;
+        }
+        if (s.pricing_type === "timepris") {
+          sDesc += ` (timepris: angiv antal timer)`;
+        }
+        return sDesc;
+      }).join("\n");
+      return `ID: ${b.id} | Navn: ${b.name} | By: ${b.city || "Ukendt"} | Rating: ${avgRating} (${b.reviews?.length || 0} anmeldelser) | Verificeret: ${b.is_verified ? "Ja" : "Nej"}\nServices:\n${serviceList || "Ingen"}\nBeskrivelse: ${b.description || ""}`;
+    }).join("\n---\n");
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -74,16 +84,21 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `Du er en ekspert-matcher for serviceydere i Danmark. Du modtager en kundes behov og en liste af virksomheder. 
-            
-Vælg de 3 bedste matches. For hver match skal du give:
-- business_id (ID fra listen)
-- match_score (1-100)
-- reason (2-3 sætninger på dansk om HVORFOR denne virksomhed passer til kundens behov)
-- estimated_price (et estimeret prisinterval i kr baseret på services, fx "800-1.200 kr")
+            content: `Du er en ekspert-matcher for serviceydere i Danmark. Du modtager en kundes behov og en liste af virksomheder med deres services og prisberegnertrin.
 
-Prioriter: relevante services/underkategorier, gode anmeldelser, verificerede virksomheder, og geografisk nærhed.
-Hvis der er færre end 3 gode matches, returner kun dem der passer.`,
+Din opgave:
+1. Vælg de 3 bedste matches
+2. For HVER match, udpeg de relevante services og UDFYLD prisberegner-trin baseret på kundens beskrivelse
+
+For hver match returner:
+- business_id
+- match_score (1-100)
+- reason (2-3 sætninger dansk)
+- estimated_price (prisinterval baseret på beregnede priser)
+- service_prefills: array af { service_id, hours (kun for timepris), step_values: array af { step_id, value } }
+
+VIGTIGT: Læs kundens beskrivelse nøje og udtræk mængder/antal. Fx "15 m2 støvsugning" → sæt step med enhed m2 til 15. "3 skraldespande" → sæt relevant step til 3.
+Kun inkluder services der er relevante for kundens behov. Udfyld KUN trin der matcher kundens beskrivelse.`,
           },
           {
             role: "user",
@@ -100,7 +115,7 @@ ${bizSummaries}`,
             type: "function",
             function: {
               name: "return_matches",
-              description: "Return the matched businesses",
+              description: "Return the matched businesses with pre-filled service values",
               parameters: {
                 type: "object",
                 properties: {
@@ -113,8 +128,32 @@ ${bizSummaries}`,
                         match_score: { type: "number" },
                         reason: { type: "string" },
                         estimated_price: { type: "string" },
+                        service_prefills: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              service_id: { type: "string" },
+                              hours: { type: "number", description: "For timepris services, the recommended hours" },
+                              step_values: {
+                                type: "array",
+                                items: {
+                                  type: "object",
+                                  properties: {
+                                    step_id: { type: "string" },
+                                    value: { type: "number" },
+                                  },
+                                  required: ["step_id", "value"],
+                                  additionalProperties: false,
+                                },
+                              },
+                            },
+                            required: ["service_id"],
+                            additionalProperties: false,
+                          },
+                        },
                       },
-                      required: ["business_id", "match_score", "reason", "estimated_price"],
+                      required: ["business_id", "match_score", "reason", "estimated_price", "service_prefills"],
                       additionalProperties: false,
                     },
                   },
@@ -151,7 +190,6 @@ ${bizSummaries}`,
 
     const parsed = JSON.parse(toolCall.function.arguments);
 
-    // Enrich with full business data including calculator_steps
     const enrichedMatches = parsed.matches.map((m: any) => {
       const biz = allBusinesses.find((b: any) => b.id === m.business_id);
       if (!biz) return null;

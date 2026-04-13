@@ -38,11 +38,18 @@ interface MatchedService {
   }[];
 }
 
+interface ServicePrefill {
+  service_id: string;
+  hours?: number;
+  step_values?: { step_id: string; value: number }[];
+}
+
 interface MatchedBusiness {
   business_id: string;
   match_score: number;
   reason: string;
   estimated_price: string;
+  service_prefills?: ServicePrefill[];
   business: {
     id: string;
     name: string;
@@ -448,9 +455,19 @@ const RequestQuote = () => {
                 }
                 return (
                   <div className="grid gap-5 sm:grid-cols-2">
-                    {activeServices.map((s) => (
-                      <DynamicServiceCard key={s.id} service={toServiceCardProps(s)} />
-                    ))}
+                    {activeServices.map((s) => {
+                      const prefill = selectedBusiness?.service_prefills?.find(p => p.service_id === s.id);
+                      const stepVals: Record<string, number> = {};
+                      prefill?.step_values?.forEach(sv => { stepVals[sv.step_id] = sv.value; });
+                      return (
+                        <DynamicServiceCard
+                          key={s.id}
+                          service={toServiceCardProps(s)}
+                          initialStepValues={Object.keys(stepVals).length > 0 ? stepVals : undefined}
+                          initialHours={prefill?.hours}
+                        />
+                      );
+                    })}
                   </div>
                 );
               })()}

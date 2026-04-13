@@ -9,6 +9,8 @@ import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 
 interface Props {
   service: Service & { calculator_steps?: CalculatorStep[] };
+  initialStepValues?: Record<string, number>;
+  initialHours?: number;
 }
 
 /* ── Smart step size based on unit and range ── */
@@ -94,13 +96,13 @@ const StepperInput = ({
     </div>
   );
 };
-const DynamicServiceCard = ({ service }: Props) => {
+const DynamicServiceCard = ({ service, initialStepValues, initialHours }: Props) => {
   const { addItem } = useCart();
-  const [hours, setHours] = useState(1);
+  const [hours, setHours] = useState(initialHours ?? 1);
   const [stepValues, setStepValues] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
     service.calculator_steps?.forEach((s) => {
-      initial[s.id] = 0;
+      initial[s.id] = initialStepValues?.[s.id] ?? 0;
     });
     return initial;
   });
