@@ -29,7 +29,7 @@ const App = () => (
             <Route path="/admin" element={<Admin />} />
             <Route path="/demo" element={<BusinessPage />} />
             <Route path="/search" element={<Search />} />
-            <Route path="/quote" element={<RequestQuote />} />
+            <Route path="/quote" element={<CartProvider><RequestQuote /></CartProvider>} />
             <Route path="/b/:slug" element={<DynamicBusinessPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
