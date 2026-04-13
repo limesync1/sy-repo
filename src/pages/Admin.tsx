@@ -16,7 +16,7 @@ import { useState } from "react";
 import {
   Plus, Trash2, LogOut, Send, GripVertical,
   Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart, MessageSquare,
-  Star, Settings, Eye, Menu, X, ExternalLink,
+  Star, Settings, Menu, X, ExternalLink,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import DashboardTab from "@/components/admin/DashboardTab";
@@ -170,16 +170,16 @@ const AdminDashboard = () => {
   const currentNav = NAV_ITEMS.find(n => n.value === activeTab);
 
   return (
-    <div className="flex min-h-screen bg-secondary/40">
+    <div className="flex min-h-screen bg-[#f6f6f7]">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar — Shopify-inspired dark */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-60 flex-col bg-[hsl(222,47%,11%)] transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[220px] flex-col bg-[hsl(222,47%,11%)] transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         {/* Sidebar header */}
-        <div className="flex h-14 items-center justify-between px-4">
+        <div className="flex h-14 shrink-0 items-center justify-between px-3">
           <Link to="/" className="flex items-center gap-2">
             <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-6" />
           </Link>
@@ -189,57 +189,57 @@ const AdminDashboard = () => {
         </div>
 
         {/* Business info */}
-        <div className="mx-3 mb-3 rounded-lg bg-white/[0.08] px-3 py-2.5">
-          <div className="flex items-center gap-2.5">
+        <div className="mx-2 mb-2 shrink-0 rounded-lg bg-white/[0.08] px-2.5 py-2">
+          <div className="flex items-center gap-2">
             {business.logo_url ? (
-              <img src={business.logo_url} alt="" className="h-8 w-8 rounded-md object-contain bg-white/10 p-0.5" />
+              <img src={business.logo_url} alt="" className="h-7 w-7 shrink-0 rounded object-contain bg-white/10 p-0.5" />
             ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent/20 text-accent font-bold text-xs">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-accent/20 text-accent font-bold text-[11px]">
                 {business.name.charAt(0)}
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-semibold text-white">{business.name}</p>
-              {business.category && <p className="truncate text-[11px] text-white/50">{business.category}</p>}
+              <p className="truncate text-[12px] font-medium text-white">{business.name}</p>
+              {business.category && <p className="truncate text-[10px] text-white/40">{business.category}</p>}
             </div>
           </div>
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 space-y-0.5 px-3">
+        <nav className="flex-1 space-y-px px-2 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
             const isActive = activeTab === item.value;
             return (
               <button
                 key={item.value}
                 onClick={() => { setActiveTab(item.value); setSidebarOpen(false); }}
-                className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium transition-colors ${
+                className={`flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-[13px] font-medium transition-colors ${
                   isActive
                     ? "bg-white/[0.12] text-white"
-                    : "text-white/60 hover:bg-white/[0.06] hover:text-white/90"
+                    : "text-white/55 hover:bg-white/[0.06] hover:text-white/90"
                 }`}
               >
-                <item.icon className="h-[17px] w-[17px]" />
+                <item.icon className="h-4 w-4 shrink-0" />
                 {item.label}
               </button>
             );
           })}
         </nav>
 
-        {/* Sidebar footer */}
-        <div className="border-t border-white/[0.08] p-3 space-y-0.5">
+        {/* Sidebar footer — always visible */}
+        <div className="shrink-0 border-t border-white/[0.06] px-2 py-2 space-y-px">
           <Link
             to={`/b/${business.slug}`}
-            className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium text-white/60 hover:bg-white/[0.06] hover:text-white/90 transition-colors"
+            className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-[13px] font-medium text-white/55 hover:bg-white/[0.06] hover:text-white/90 transition-colors"
           >
-            <ExternalLink className="h-[17px] w-[17px]" />
+            <ExternalLink className="h-4 w-4 shrink-0" />
             Se din side
           </Link>
           <button
             onClick={signOut}
-            className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium text-white/60 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+            className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-[13px] font-medium text-white/55 hover:bg-red-500/20 hover:text-red-400 transition-colors"
           >
-            <LogOut className="h-[17px] w-[17px]" />
+            <LogOut className="h-4 w-4 shrink-0" />
             Log ud
           </button>
         </div>
@@ -248,22 +248,15 @@ const AdminDashboard = () => {
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-card px-4 sm:px-6">
-          <button onClick={() => setSidebarOpen(true)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden">
+        <header className="sticky top-0 z-30 flex h-[52px] shrink-0 items-center gap-3 border-b border-[#e1e3e5] bg-white px-4 sm:px-5">
+          <button onClick={() => setSidebarOpen(true)} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden">
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="text-base font-semibold text-foreground">{currentNav?.label}</h1>
-          <div className="ml-auto flex items-center gap-2">
-            <Link to={`/b/${business.slug}`}>
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs hidden sm:inline-flex">
-                <Eye className="h-3.5 w-3.5" /> Se side
-              </Button>
-            </Link>
-          </div>
+          <h1 className="text-[15px] font-semibold text-foreground">{currentNav?.label}</h1>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-4 sm:p-6">
+        <main className="flex-1 p-3 sm:p-5">
           {renderContent()}
         </main>
       </div>
@@ -331,7 +324,7 @@ const CreateBusinessForm = () => {
             <Sparkles className="h-6 w-6 text-accent" />
           </div>
           <CardTitle className="text-xl">Opret din virksomhed</CardTitle>
-          <p className="text-sm text-muted-foreground">Udfyld oplysningerne for at komme i gang.</p>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">Udfyld oplysningerne for at komme i gang.</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} />
@@ -342,7 +335,7 @@ const CreateBusinessForm = () => {
               {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button onClick={handleCreate} disabled={createBiz.isPending} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+          <Button onClick={handleCreate} disabled={createBiz.isPending} className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-lg text-[13px]">
             {createBiz.isPending ? "Opretter..." : "Opret virksomhed"}
           </Button>
         </CardContent>
@@ -357,42 +350,42 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
   const deleteService = useDeleteService();
   const [showForm, setShowForm] = useState(false);
 
-  if (isLoading) return <p className="text-muted-foreground">Indlæser services...</p>;
+  if (isLoading) return <p className="text-[13px] text-muted-foreground">Indlæser services...</p>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-foreground">Services</h2>
-          <p className="text-sm text-muted-foreground">{services?.length || 0} services oprettet</p>
+          <h2 className="text-[15px] font-semibold text-foreground">Services</h2>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">{services?.length || 0} services oprettet</p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90">
-          <Plus className="h-4 w-4" /> Tilføj
+        <Button onClick={() => setShowForm(true)} size="sm" className="h-8 gap-1.5 rounded-lg text-[13px] bg-foreground text-background hover:bg-foreground/90">
+          <Plus className="h-3.5 w-3.5" /> Tilføj service
         </Button>
       </div>
 
       {showForm && (
-        <Card>
-          <CardContent className="p-5">
+        <Card className="rounded-xl shadow-sm border-[#e1e3e5]">
+          <CardContent className="p-4">
             <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />
           </CardContent>
         </Card>
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {services?.map((s) => (
           <ServiceRow key={s.id} service={s} onDelete={() => deleteService.mutate(s.id)} />
         ))}
         {(!services || services.length === 0) && !showForm && (
-          <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <div className="mb-4 rounded-xl bg-muted p-3">
-                <Wrench className="h-8 w-8 text-muted-foreground/50" />
+          <Card className="rounded-xl border-dashed border-[#e1e3e5]">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <div className="mb-3 rounded-xl bg-muted p-2.5">
+                <Wrench className="h-6 w-6 text-muted-foreground/40" />
               </div>
-              <p className="font-medium text-foreground">Ingen services endnu</p>
-              <p className="mt-1 text-sm text-muted-foreground">Tilføj din første service for at komme i gang.</p>
-              <Button onClick={() => setShowForm(true)} className="mt-4 gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90">
-                <Plus className="h-4 w-4" /> Tilføj service
+              <p className="text-[13px] font-medium text-foreground">Ingen services endnu</p>
+              <p className="mt-0.5 text-[12px] text-muted-foreground">Tilføj din første service for at komme i gang.</p>
+              <Button onClick={() => setShowForm(true)} size="sm" className="mt-3 h-8 gap-1.5 rounded-lg text-[13px] bg-foreground text-background hover:bg-foreground/90">
+                <Plus className="h-3.5 w-3.5" /> Tilføj service
               </Button>
             </CardContent>
           </Card>
@@ -407,26 +400,26 @@ const ServiceRow = ({ service, onDelete }: { service: any; onDelete: () => void 
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
 
   return (
-    <Card className="overflow-hidden transition-shadow hover:shadow-md">
-      <CardContent className="flex items-center justify-between p-4 sm:p-5">
+    <Card className="rounded-xl shadow-sm border-[#e1e3e5] overflow-hidden">
+      <CardContent className="flex items-center justify-between p-3.5">
         <div className="min-w-0 flex-1">
-          <h3 className="font-semibold text-foreground">{service.name}</h3>
-          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <Badge variant="secondary" className="font-normal">{pricingLabels[service.pricing_type] || service.pricing_type}</Badge>
+          <h3 className="text-[13px] font-semibold text-foreground">{service.name}</h3>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[12px] text-muted-foreground">
+            <Badge variant="secondary" className="text-[11px] font-normal px-1.5 py-0 rounded">{pricingLabels[service.pricing_type] || service.pricing_type}</Badge>
             {service.base_price != null && <span>{service.base_price} kr{service.unit ? ` / ${service.unit}` : ""}</span>}
-            {service.calculator_steps?.length > 0 && <span className="text-xs">· {service.calculator_steps.length} beregnertrin</span>}
-            {service.subcategory && <Badge variant="outline" className="text-xs font-normal">{service.subcategory}</Badge>}
+            {service.calculator_steps?.length > 0 && <span>· {service.calculator_steps.length} trin</span>}
+            {service.subcategory && <Badge variant="outline" className="text-[11px] font-normal px-1.5 py-0 rounded">{service.subcategory}</Badge>}
           </div>
         </div>
-        <div className="ml-3 flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setEditing(!editing)}>
+        <div className="ml-3 flex gap-1.5">
+          <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-7 rounded-lg text-[12px] px-2.5">
             {editing ? "Luk" : "Rediger"}
           </Button>
-          <Button variant="ghost" size="sm" onClick={onDelete}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+          <Button variant="ghost" size="sm" onClick={onDelete} className="h-7 w-7 p-0 rounded-lg"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
         </div>
       </CardContent>
       {editing && (
-        <div className="border-t border-border p-5">
+        <div className="border-t border-[#e1e3e5] p-4">
           <ServiceForm businessId={service.business_id} existingService={service} onClose={() => setEditing(false)} />
         </div>
       )}
@@ -763,7 +756,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       )}
 
       <div className="flex gap-2 pt-2">
-        <Button onClick={handleSave} className="bg-accent text-accent-foreground hover:bg-accent/90">
+        <Button onClick={handleSave} className="bg-foreground text-background hover:bg-foreground/90 rounded-lg text-[13px]">
           {existingService ? "Gem ændringer" : "Opret service"}
         </Button>
         <Button variant="outline" onClick={onClose}>Annuller</Button>
@@ -793,11 +786,11 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
   const filteredOrders = filter === "all" ? orders : orders?.filter((o) => o.status === filter);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold text-foreground">Ordrer</h2>
-          <p className="text-sm text-muted-foreground">{orders?.length || 0} ordrer i alt</p>
+          <h2 className="text-[15px] font-semibold text-foreground">Ordrer</h2>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">{orders?.length || 0} ordrer i alt</p>
         </div>
         <div className="flex flex-wrap gap-1.5">
           <Button variant={filter === "all" ? "default" : "outline"} size="sm" onClick={() => setFilter("all")}
@@ -816,18 +809,18 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {filteredOrders?.map((order) => (
-          <Card key={order.id} className="transition-shadow hover:shadow-md">
-            <CardContent className="p-4 sm:p-5">
+          <Card key={order.id} className="rounded-xl shadow-sm border-[#e1e3e5]">
+            <CardContent className="p-3.5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-foreground">{order.customer_name}</h3>
+                    <h3 className="text-[13px] font-semibold text-foreground">{order.customer_name}</h3>
                     <Badge className={statusColors[order.status]}>{statusLabels[order.status]}</Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">{order.customer_email}</p>
-                  {order.customer_phone && <p className="text-sm text-muted-foreground">{order.customer_phone}</p>}
+                  <p className="mt-0.5 text-[13px] text-muted-foreground">{order.customer_email}</p>
+                  {order.customer_phone && <p className="mt-0.5 text-[13px] text-muted-foreground">{order.customer_phone}</p>}
                   {order.notes && <p className="mt-1 text-sm text-foreground/80 italic">"{order.notes}"</p>}
                   <p className="mt-1 text-xs text-muted-foreground">
                     {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
@@ -860,7 +853,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
           </Card>
         ))}
         {(!filteredOrders || filteredOrders.length === 0) && (
-          <Card className="border-dashed">
+          <Card className="rounded-xl border-dashed border-[#e1e3e5]">
             <CardContent className="flex flex-col items-center justify-center py-16">
               <div className="mb-4 rounded-xl bg-muted p-3">
                 <ShoppingCart className="h-8 w-8 text-muted-foreground/50" />
@@ -905,24 +898,24 @@ const QuotesTab = ({ business }: { business: any }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-bold text-foreground">Tilbudsanmodninger</h2>
-        <p className="text-sm text-muted-foreground">{requests?.length || 0} anmodninger i din kategori</p>
+        <h2 className="text-[15px] font-semibold text-foreground">Tilbudsanmodninger</h2>
+        <p className="mt-0.5 text-[13px] text-muted-foreground">{requests?.length || 0} anmodninger i din kategori</p>
       </div>
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {requests?.map((req) => (
-          <Card key={req.id} className="transition-shadow hover:shadow-md">
-            <CardContent className="p-4 sm:p-5">
+          <Card key={req.id} className="rounded-xl shadow-sm border-[#e1e3e5]">
+            <CardContent className="p-3.5">
               <div className="mb-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-foreground">{req.customer_name}</h3>
+                  <h3 className="text-[13px] font-semibold text-foreground">{req.customer_name}</h3>
                   <span className="text-xs text-muted-foreground">
                     {new Date(req.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground">{req.customer_email}</p>
-                {req.customer_phone && <p className="text-sm text-muted-foreground">{req.customer_phone}</p>}
+                <p className="mt-0.5 text-[13px] text-muted-foreground">{req.customer_email}</p>
+                {req.customer_phone && <p className="mt-0.5 text-[13px] text-muted-foreground">{req.customer_phone}</p>}
                 <Badge variant="secondary" className="mt-1.5">{req.category}</Badge>
               </div>
               <p className="mb-3 text-sm text-foreground">{req.description}</p>
@@ -940,7 +933,7 @@ const QuotesTab = ({ business }: { business: any }) => {
                       onChange={(e) => setQuoteData((prev) => ({ ...prev, [req.id]: { ...prev[req.id], message: e.target.value, price: prev[req.id]?.price || "" } }))}
                     />
                   </div>
-                  <Button size="sm" onClick={() => handleSendQuote(req.id)} className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90">
+                  <Button size="sm" onClick={() => handleSendQuote(req.id)} className="gap-1.5 bg-foreground text-background hover:bg-foreground/90 rounded-lg text-[13px]">
                     <Send className="h-3.5 w-3.5" /> Send tilbud
                   </Button>
                 </div>
@@ -949,7 +942,7 @@ const QuotesTab = ({ business }: { business: any }) => {
           </Card>
         ))}
         {(!requests || requests.length === 0) && (
-          <Card className="border-dashed">
+          <Card className="rounded-xl border-dashed border-[#e1e3e5]">
             <CardContent className="flex flex-col items-center justify-center py-16">
               <div className="mb-4 rounded-xl bg-muted p-3">
                 <MessageSquare className="h-8 w-8 text-muted-foreground/50" />
@@ -1000,8 +993,8 @@ const SettingsTab = ({ business }: { business: any }) => {
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-foreground">Indstillinger</h2>
-        <p className="text-sm text-muted-foreground">Administrer din virksomheds profil og oplysninger.</p>
+        <h2 className="text-[15px] font-semibold text-foreground">Indstillinger</h2>
+        <p className="mt-0.5 text-[13px] text-muted-foreground">Administrer din virksomheds profil og oplysninger.</p>
       </div>
 
       <Card>
@@ -1047,7 +1040,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         <CardHeader>
           <CardTitle className="text-base">Åbningstider</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2.5">
           {DAYS.map((day) => (
             <div key={day} className="flex items-center gap-3">
               <span className="w-24 text-sm text-muted-foreground">{day}</span>
@@ -1058,7 +1051,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </CardContent>
       </Card>
 
-      <Button onClick={save} disabled={updateBiz.isPending} className="bg-accent text-accent-foreground hover:bg-accent/90">
+      <Button onClick={save} disabled={updateBiz.isPending} className="bg-foreground text-background hover:bg-foreground/90 rounded-lg text-[13px]">
         {updateBiz.isPending ? "Gemmer..." : "Gem indstillinger"}
       </Button>
     </div>
