@@ -350,42 +350,42 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
   const deleteService = useDeleteService();
   const [showForm, setShowForm] = useState(false);
 
-  if (isLoading) return <p className="text-muted-foreground">Indlæser services...</p>;
+  if (isLoading) return <p className="text-[13px] text-muted-foreground">Indlæser services...</p>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-foreground">Services</h2>
-          <p className="text-sm text-muted-foreground">{services?.length || 0} services oprettet</p>
+          <h2 className="text-[15px] font-semibold text-foreground">Services</h2>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">{services?.length || 0} services oprettet</p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90">
-          <Plus className="h-4 w-4" /> Tilføj
+        <Button onClick={() => setShowForm(true)} size="sm" className="h-8 gap-1.5 rounded-lg text-[13px] bg-foreground text-background hover:bg-foreground/90">
+          <Plus className="h-3.5 w-3.5" /> Tilføj service
         </Button>
       </div>
 
       {showForm && (
-        <Card>
-          <CardContent className="p-5">
+        <Card className="rounded-xl shadow-sm border-[#e1e3e5]">
+          <CardContent className="p-4">
             <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />
           </CardContent>
         </Card>
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {services?.map((s) => (
           <ServiceRow key={s.id} service={s} onDelete={() => deleteService.mutate(s.id)} />
         ))}
         {(!services || services.length === 0) && !showForm && (
-          <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <div className="mb-4 rounded-xl bg-muted p-3">
-                <Wrench className="h-8 w-8 text-muted-foreground/50" />
+          <Card className="rounded-xl border-dashed border-[#e1e3e5]">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <div className="mb-3 rounded-xl bg-muted p-2.5">
+                <Wrench className="h-6 w-6 text-muted-foreground/40" />
               </div>
-              <p className="font-medium text-foreground">Ingen services endnu</p>
-              <p className="mt-1 text-sm text-muted-foreground">Tilføj din første service for at komme i gang.</p>
-              <Button onClick={() => setShowForm(true)} className="mt-4 gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90">
-                <Plus className="h-4 w-4" /> Tilføj service
+              <p className="text-[13px] font-medium text-foreground">Ingen services endnu</p>
+              <p className="mt-0.5 text-[12px] text-muted-foreground">Tilføj din første service for at komme i gang.</p>
+              <Button onClick={() => setShowForm(true)} size="sm" className="mt-3 h-8 gap-1.5 rounded-lg text-[13px] bg-foreground text-background hover:bg-foreground/90">
+                <Plus className="h-3.5 w-3.5" /> Tilføj service
               </Button>
             </CardContent>
           </Card>
