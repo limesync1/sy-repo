@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useState } from "react";
 import {
-  Plus, Trash2, LogOut, ExternalLink, ArrowLeft, Send, GripVertical,
+  Plus, Trash2, LogOut, ArrowLeft, Send, GripVertical,
   Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart, MessageSquare,
   Star, Settings, Eye,
 } from "lucide-react";

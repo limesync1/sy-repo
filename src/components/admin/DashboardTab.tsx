@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, DollarSign, Star, Briefcase, TrendingUp, Clock } from "lucide-react";
+import { ShoppingCart, DollarSign, Star, Briefcase, Clock } from "lucide-react";
 import type { Business } from "@/hooks/useDatabase";
 
 interface Props {
