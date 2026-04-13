@@ -400,26 +400,26 @@ const ServiceRow = ({ service, onDelete }: { service: any; onDelete: () => void 
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
 
   return (
-    <Card className="overflow-hidden transition-shadow hover:shadow-md">
-      <CardContent className="flex items-center justify-between p-4 sm:p-5">
+    <Card className="rounded-xl shadow-sm border-[#e1e3e5] overflow-hidden">
+      <CardContent className="flex items-center justify-between p-3.5">
         <div className="min-w-0 flex-1">
-          <h3 className="font-semibold text-foreground">{service.name}</h3>
-          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <Badge variant="secondary" className="font-normal">{pricingLabels[service.pricing_type] || service.pricing_type}</Badge>
+          <h3 className="text-[13px] font-semibold text-foreground">{service.name}</h3>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[12px] text-muted-foreground">
+            <Badge variant="secondary" className="text-[11px] font-normal px-1.5 py-0 rounded">{pricingLabels[service.pricing_type] || service.pricing_type}</Badge>
             {service.base_price != null && <span>{service.base_price} kr{service.unit ? ` / ${service.unit}` : ""}</span>}
-            {service.calculator_steps?.length > 0 && <span className="text-xs">· {service.calculator_steps.length} beregnertrin</span>}
-            {service.subcategory && <Badge variant="outline" className="text-xs font-normal">{service.subcategory}</Badge>}
+            {service.calculator_steps?.length > 0 && <span>· {service.calculator_steps.length} trin</span>}
+            {service.subcategory && <Badge variant="outline" className="text-[11px] font-normal px-1.5 py-0 rounded">{service.subcategory}</Badge>}
           </div>
         </div>
-        <div className="ml-3 flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setEditing(!editing)}>
+        <div className="ml-3 flex gap-1.5">
+          <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-7 rounded-lg text-[12px] px-2.5">
             {editing ? "Luk" : "Rediger"}
           </Button>
-          <Button variant="ghost" size="sm" onClick={onDelete}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+          <Button variant="ghost" size="sm" onClick={onDelete} className="h-7 w-7 p-0 rounded-lg"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
         </div>
       </CardContent>
       {editing && (
-        <div className="border-t border-border p-5">
+        <div className="border-t border-[#e1e3e5] p-4">
           <ServiceForm businessId={service.business_id} existingService={service} onClose={() => setEditing(false)} />
         </div>
       )}
