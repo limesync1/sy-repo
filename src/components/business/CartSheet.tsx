@@ -12,8 +12,9 @@ interface CartSheetProps {
   businessId?: string;
 }
 
-const CartSheet = ({ businessId }: CartSheetProps) => {
-  const { items, removeItem, clearCart, total, count } = useCart();
+const CartSheet = ({ businessId: businessIdProp }: CartSheetProps) => {
+  const { items, removeItem, clearCart, total, count, businessId: cartBusinessId, businessName } = useCart();
+  const businessId = businessIdProp || cartBusinessId;
   const createOrder = useCreateOrder();
   const [checkout, setCheckout] = useState(false);
   const [name, setName] = useState("");
