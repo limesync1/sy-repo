@@ -359,8 +359,19 @@ const RequestQuote = () => {
                             {match.reason}
                           </p>
 
+                          {/* Categories */}
+                          {match.business.categories && match.business.categories.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {match.business.categories.map((cat) => (
+                                <span key={cat} className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/50 px-2 py-0.5 text-[11px] font-medium text-foreground">
+                                  {CATEGORY_ICONS[cat] || "📋"} {cat}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
                           {activeServices.length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-1.5">
+                            <div className="mt-2 flex flex-wrap gap-1.5">
                               {activeServices.slice(0, 5).map((s) => (
                                 <Badge key={s.id} variant="secondary" className="text-xs font-normal">
                                   {s.name}
