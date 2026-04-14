@@ -997,12 +997,80 @@ const SettingsTab = ({ business }: { business: any }) => {
   );
   const [openHours, setOpenHours] = useState<Record<string, string>>(business.opening_hours || {});
 
+  // CVR lookup
+  const [cvrQuery, setCvrQuery] = useState("");
+  const [cvrLoading, setCvrLoading] = useState(false);
+  const [cvrResult, setCvrResult] = useState<any>(null);
+  const [cvrError, setCvrError] = useState("");
+
+  // Zip code auto-fill city
+  const [zipLoading, setZipLoading] = useState(false);
+
   const DAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
+  const CATEGORY_ICONS: Record<string, string> = {
+    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
+    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
+  };
 
   const toggleSettingsCategory = (c: string) => {
     setSelectedCategories((prev) =>
       prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
     );
+  };
+
+  const lookupCvr = async () => {
+    const q = cvrQuery.trim();
+    if (!q) return;
+    setCvrLoading(true);
+    setCvrError("");
+    setCvrResult(null);
+    try {
+      const isNumber = /^\d+$/.test(q);
+      const url = isNumber
+        ? `https://cvrapi.dk/api?vat=${q}&country=dk`
+        : `https://cvrapi.dk/api?name=${encodeURIComponent(q)}&country=dk`;
+      const res = await fetch(url, { headers: { "User-Agent": "Serviceydere/1.0" } });
+      if (!res.ok) throw new Error("Ikke fundet");
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setCvrResult(data);
+    } catch (e: any) {
+      setCvrError(e.message || "Kunne ikke finde virksomheden");
+    }
+    setCvrLoading(false);
+  };
+
+  const applyCvrData = () => {
+    if (!cvrResult) return;
+    if (cvrResult.name) setName(cvrResult.name);
+    if (cvrResult.phone) setPhone(cvrResult.phone.replace(/\s/g, ""));
+    if (cvrResult.email) setEmail(cvrResult.email);
+    if (cvrResult.address) setAddress(cvrResult.address);
+    if (cvrResult.city) setCity(cvrResult.city);
+    if (cvrResult.zipcode) setZipCode(cvrResult.zipcode.toString());
+    toast.success("Oplysninger udfyldt fra CVR");
+    setCvrResult(null);
+    setCvrQuery("");
+  };
+
+  const handleZipChange = async (val: string) => {
+    setZipCode(val);
+    if (val.length === 4 && /^\d{4}$/.test(val)) {
+      setZipLoading(true);
+      try {
+        const res = await fetch(`https://api.dataforsyningen.dk/postnumre/${val}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.navn) setCity(data.navn);
+        }
+      } catch {}
+      setZipLoading(false);
+    }
+  };
+
+  const handlePhoneChange = (val: string) => {
+    const cleaned = val.replace(/[^\d+]/g, "");
+    setPhone(cleaned);
   };
 
   const save = () => {
@@ -1022,35 +1090,98 @@ const SettingsTab = ({ business }: { business: any }) => {
     });
   };
 
+  const hasChanges = name !== business.name || description !== (business.description || "") ||
+    phone !== (business.phone || "") || email !== (business.email || "") ||
+    address !== (business.address || "") || city !== (business.city || "") ||
+    zipCode !== (business.zip_code || "") || logoUrl !== (business.logo_url || "") ||
+    coverUrl !== (business.cover_image_url || "");
+
   return (
-    <div className="max-w-3xl space-y-5">
-      <div>
-        <h2 className="text-base font-semibold text-foreground">Indstillinger</h2>
-        <p className="mt-0.5 text-sm text-muted-foreground">Administrer din virksomheds profil og oplysninger.</p>
+    <div className="max-w-3xl space-y-6">
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">Indstillinger</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">Administrer din virksomheds profil og oplysninger.</p>
+        </div>
+        <Button onClick={save} disabled={updateBiz.isPending || !hasChanges}
+          className="h-9 rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:bg-muted disabled:text-muted-foreground text-sm font-medium px-5 shadow-sm">
+          {updateBiz.isPending ? "Gemmer..." : "Gem ændringer"}
+        </Button>
       </div>
 
+      {/* CVR Lookup */}
+      <Card className="rounded-xl border-accent/20 bg-gradient-to-b from-accent/[0.03] to-transparent shadow-sm">
+        <CardContent className="p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="h-4 w-4 text-accent" />
+            <h3 className="text-sm font-semibold text-foreground">Automatisk udfyldning fra CVR</h3>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">Indtast CVR-nummer eller virksomhedsnavn for at auto-udfylde alle felter.</p>
+          <div className="flex gap-2">
+            <Input
+              placeholder="CVR-nummer eller virksomhedsnavn..."
+              value={cvrQuery}
+              onChange={(e) => setCvrQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && lookupCvr()}
+              className="bg-card flex-1"
+            />
+            <Button onClick={lookupCvr} disabled={cvrLoading || !cvrQuery.trim()} size="sm"
+              className="h-10 rounded-lg bg-foreground text-background hover:bg-foreground/90 px-4 text-sm font-medium">
+              {cvrLoading ? "Søger..." : "Søg"}
+            </Button>
+          </div>
+          {cvrError && <p className="mt-2 text-xs text-destructive">{cvrError}</p>}
+          {cvrResult && (
+            <div className="mt-3 rounded-lg border border-accent/20 bg-card p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{cvrResult.name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    CVR: {cvrResult.vat} · {cvrResult.address}, {cvrResult.zipcode} {cvrResult.city}
+                  </p>
+                  {cvrResult.phone && <p className="text-xs text-muted-foreground">Tlf: {cvrResult.phone}</p>}
+                  {cvrResult.email && <p className="text-xs text-muted-foreground">Email: {cvrResult.email}</p>}
+                </div>
+                <Button size="sm" onClick={applyCvrData}
+                  className="shrink-0 h-8 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 text-xs font-medium">
+                  Anvend oplysninger
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* General */}
       <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground">Generelt</h3>
-          <div className="space-y-3">
+        <CardContent className="p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Settings className="h-4 w-4 text-muted-foreground" />
+            Generelt
+          </h3>
+          <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-muted-foreground">Virksomhedsnavn</label>
-              <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} />
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Virksomhedsnavn</label>
+              <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-10" />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-muted-foreground">Beskrivelse</label>
-              <Textarea placeholder="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Beskrivelse</label>
+              <Textarea placeholder="Hvad gør din virksomhed? Hvad er jeres speciale?" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="bg-card" />
+              <p className="mt-1 text-xs text-muted-foreground">{description.length}/500 tegn</p>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-muted-foreground">Brancher</label>
-              <div className="flex flex-wrap gap-2">
+              <label className="mb-2 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Brancher</label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {CATEGORIES.map((c) => (
                   <button key={c} type="button" onClick={() => toggleSettingsCategory(c)}
-                    className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-all ${
+                    className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2.5 text-left transition-all ${
                       selectedCategories.includes(c)
-                        ? "border-foreground bg-foreground text-background"
-                        : "border-border bg-card text-foreground hover:border-foreground/40"
-                    }`}>{c}</button>
+                        ? "border-foreground bg-foreground/5 shadow-sm"
+                        : "border-border bg-card hover:border-foreground/30"
+                    }`}>
+                    <span className="text-lg">{CATEGORY_ICONS[c] || "📋"}</span>
+                    <span className="text-xs font-medium text-foreground">{c}</span>
+                  </button>
                 ))}
               </div>
             </div>
@@ -1058,66 +1189,115 @@ const SettingsTab = ({ business }: { business: any }) => {
         </CardContent>
       </Card>
 
+      {/* Contact */}
       <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground">Kontaktoplysninger</h3>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+        <CardContent className="p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Plus className="h-4 w-4 text-muted-foreground" />
+            Kontaktoplysninger
+          </h3>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-muted-foreground">Telefon</label>
-                <Input placeholder="Telefon" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Telefon</label>
+                <Input placeholder="12 34 56 78" value={phone} onChange={(e) => handlePhoneChange(e.target.value)}
+                  className="bg-card h-10" type="tel" />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-muted-foreground">Email</label>
-                <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
+                <Input placeholder="kontakt@virksomhed.dk" value={email} onChange={(e) => setEmail(e.target.value)}
+                  className="bg-card h-10" type="email" />
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-muted-foreground">Adresse</label>
-              <Input placeholder="Adresse" value={address} onChange={(e) => setAddress(e.target.value)} />
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Adresse</label>
+              <Input placeholder="Vejnavn 123" value={address} onChange={(e) => setAddress(e.target.value)} className="bg-card h-10" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-muted-foreground">Postnummer</label>
-                <Input placeholder="Postnummer" value={zipCode} onChange={(e) => setZipCode(e.target.value)} />
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Postnummer</label>
+                <div className="relative">
+                  <Input placeholder="2100" value={zipCode} onChange={(e) => handleZipChange(e.target.value)}
+                    className="bg-card h-10" maxLength={4} />
+                  {zipLoading && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted-foreground/20 border-t-accent" />
+                    </div>
+                  )}
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">By udfyldes automatisk</p>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-muted-foreground">By</label>
-                <Input placeholder="By" value={city} onChange={(e) => setCity(e.target.value)} />
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">By</label>
+                <Input placeholder="København" value={city} onChange={(e) => setCity(e.target.value)} className="bg-card h-10" />
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
+      {/* Images */}
       <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-4 space-y-4">
+        <CardContent className="p-5 space-y-4">
           <h3 className="text-sm font-semibold text-foreground">Billeder</h3>
-          <div className="flex flex-wrap gap-4">
-            <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="Logo" aspectRatio="aspect-square" className="w-20" />
-            <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="Coverbillede" aspectRatio="aspect-video" className="w-36" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Logo</label>
+              <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Coverbillede</label>
+              <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-48" />
+            </div>
           </div>
         </CardContent>
       </Card>
 
+      {/* Opening Hours */}
       <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-4 space-y-4">
+        <CardContent className="p-5 space-y-4">
           <h3 className="text-sm font-semibold text-foreground">Åbningstider</h3>
           <div className="space-y-2">
-            {DAYS.map((day) => (
-              <div key={day} className="flex items-center gap-3">
-                <span className="w-20 text-sm font-medium text-muted-foreground">{day}</span>
-                <Input placeholder="Fx 08:00 - 16:00" value={openHours[day] || ""}
-                  onChange={(e) => setOpenHours({ ...openHours, [day]: e.target.value })} className="flex-1 h-8 text-sm" />
-              </div>
-            ))}
+            {DAYS.map((day) => {
+              const isWeekend = day === "Lørdag" || day === "Søndag";
+              return (
+                <div key={day} className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
+                  openHours[day] ? "bg-secondary/30" : isWeekend ? "opacity-60" : ""
+                }`}>
+                  <span className="w-20 text-sm font-medium text-foreground">{day}</span>
+                  <Input
+                    placeholder={isWeekend ? "Lukket" : "Fx 08:00 - 16:00"}
+                    value={openHours[day] || ""}
+                    onChange={(e) => setOpenHours({ ...openHours, [day]: e.target.value })}
+                    className="flex-1 h-8 text-sm bg-card"
+                  />
+                  {openHours[day] && (
+                    <button onClick={() => { const h = { ...openHours }; delete h[day]; setOpenHours(h); }}
+                      className="text-xs text-muted-foreground hover:text-destructive transition-colors">
+                      Ryd
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
 
-      <Button onClick={save} disabled={updateBiz.isPending} className="h-8 bg-foreground text-background hover:bg-foreground/90 rounded-lg text-sm">
-        {updateBiz.isPending ? "Gemmer..." : "Gem indstillinger"}
-      </Button>
+      {/* Sticky save bar */}
+      {hasChanges && (
+        <div className="sticky bottom-4 z-20">
+          <Card className="rounded-xl border-accent/30 bg-card shadow-lg">
+            <CardContent className="flex items-center justify-between p-3">
+              <p className="text-sm text-muted-foreground">Du har ændringer der ikke er gemt.</p>
+              <Button onClick={save} disabled={updateBiz.isPending}
+                className="h-9 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 text-sm font-semibold px-6 shadow-sm">
+                {updateBiz.isPending ? "Gemmer..." : "Gem ændringer"}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
