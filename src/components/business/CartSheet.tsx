@@ -58,6 +58,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
             customer_email: email,
             customer_phone: phone,
             total_amount: bizTotal,
+            customer_id: user?.id || null,
           },
           items: group.items.map((item) => ({
             service_id: item.serviceId,

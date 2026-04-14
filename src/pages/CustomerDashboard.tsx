@@ -1,6 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMySubscriptions, useUpdateSubscription, useMyProfile, useUpdateProfile, useCreateReview } from "@/hooks/useDatabase";
+import {
+  useMySubscriptions, useUpdateSubscription, useMyProfile, useUpdateProfile,
+  useCreateReview, useMyOrders,
+} from "@/hooks/useDatabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,10 +14,12 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Package, User, Star, LogOut, Pause, Play, XCircle,
   CalendarClock, ArrowLeft, ExternalLink, ShieldCheck, Settings,
-  Store, ChevronRight, Sparkles,
+  Store, ChevronRight, Sparkles, ShoppingCart, Check, X,
+  Clock, AlertTriangle, CheckCircle2, MessageSquare, FileText,
 } from "lucide-react";
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -22,9 +28,17 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secon
   cancelled: { label: "Opsagt", variant: "destructive" },
 };
 
+const ORDER_STATUS: Record<string, { label: string; color: string; icon: typeof Clock }> = {
+  pending: { label: "Afventer", color: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
+  confirmed: { label: "Godkendt", color: "bg-green-50 text-green-700 border-green-200", icon: CheckCircle2 },
+  in_progress: { label: "I gang", color: "bg-blue-50 text-blue-700 border-blue-200", icon: Clock },
+  completed: { label: "Afsluttet", color: "bg-secondary text-foreground border-border", icon: CheckCircle2 },
+  cancelled: { label: "Annulleret", color: "bg-destructive/5 text-destructive border-destructive/20", icon: XCircle },
+};
+
 const CustomerDashboard = () => {
   const { user, loading, signOut } = useAuth();
-  const [tab, setTab] = useState<"subscriptions" | "profile">("subscriptions");
+  const [tab, setTab] = useState<"orders" | "subscriptions" | "profile">("orders");
 
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-background">
@@ -37,13 +51,13 @@ const CustomerDashboard = () => {
   if (!user) return <Navigate to="/auth" replace />;
 
   const tabs = [
-    { key: "subscriptions" as const, label: "Mine services", icon: Package, description: "Administrer dine aktive services" },
-    { key: "profile" as const, label: "Min profil", icon: Settings, description: "Opdater dine oplysninger" },
+    { key: "orders" as const, label: "Bestillinger", icon: ShoppingCart },
+    { key: "subscriptions" as const, label: "Abonnementer", icon: Package },
+    { key: "profile" as const, label: "Min profil", icon: Settings },
   ];
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ── Top nav ── */}
       <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
@@ -71,7 +85,6 @@ const CustomerDashboard = () => {
       </header>
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        {/* ── Hero section ── */}
         <div className="py-6 sm:py-8">
           <div className="flex items-center gap-3 mb-1">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
@@ -81,36 +94,352 @@ const CustomerDashboard = () => {
               <h1 className="text-xl font-bold text-foreground sm:text-2xl">
                 Velkommen, {user.email?.split("@")[0]}
               </h1>
-              <p className="text-sm text-muted-foreground">Administrer dine services og profil</p>
+              <p className="text-sm text-muted-foreground">Administrer dine bestillinger og services</p>
             </div>
           </div>
         </div>
 
-        {/* ── Tab navigation ── */}
-        <div className="grid grid-cols-2 gap-3 mb-8 sm:flex sm:gap-2">
+        <div className="grid grid-cols-3 gap-2 mb-8 sm:flex sm:gap-2">
           {tabs.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               onClick={() => setTab(key)}
-              className={`flex items-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all ${
+              className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all ${
                 tab === key
                   ? "border-foreground bg-foreground text-background"
                   : "border-border bg-card text-muted-foreground hover:border-foreground/20 hover:text-foreground"
               }`}
             >
               <Icon className="h-4 w-4" />
-              {label}
+              <span className="hidden sm:inline">{label}</span>
             </button>
           ))}
         </div>
 
-        {/* ── Content ── */}
         <div className="pb-12">
+          {tab === "orders" && <OrdersView />}
           {tab === "subscriptions" && <SubscriptionsView />}
           {tab === "profile" && <ProfileView />}
         </div>
       </div>
     </div>
+  );
+};
+
+/* ════════════════════════════════════════════════ */
+/*  Orders View — shows proposals, accepts/rejects  */
+/* ════════════════════════════════════════════════ */
+const OrdersView = () => {
+  const { data: orders, isLoading } = useMyOrders();
+  const qc = useQueryClient();
+  const [filter, setFilter] = useState<string>("all");
+
+  if (isLoading) return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {[1, 2].map((i) => <div key={i} className="h-48 animate-pulse rounded-2xl bg-secondary/50" />)}
+    </div>
+  );
+
+  if (!orders || orders.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border py-16 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary mb-4">
+          <ShoppingCart className="h-8 w-8 text-muted-foreground/40" />
+        </div>
+        <h3 className="text-lg font-semibold text-foreground">Ingen bestillinger endnu</h3>
+        <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+          Bestil en service hos en virksomhed, og den dukker automatisk op her.
+        </p>
+        <div className="mt-5 flex gap-3">
+          <Link to="/search">
+            <Button variant="outline" className="gap-2 rounded-xl"><Store className="h-4 w-4" /> Find virksomheder</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Count proposals needing attention
+  const proposalCount = orders.filter(o => o.business_response === "adjusted" && !o.customer_response).length;
+
+  const filteredOrders = filter === "all" ? orders
+    : filter === "proposals" ? orders.filter(o => o.business_response === "adjusted" && !o.customer_response)
+    : orders.filter(o => o.status === filter);
+
+  const handleCustomerResponse = async (orderId: string, response: "accepted" | "rejected", order: any) => {
+    try {
+      const { error } = await supabase.from("orders").update({
+        customer_response: response,
+        status: response === "accepted" ? ("confirmed" as const) : ("pending" as const),
+        total_amount: response === "accepted" ? (order.adjusted_amount || order.total_amount) : order.total_amount,
+      }).eq("id", orderId);
+      if (error) throw error;
+
+      toast.success(response === "accepted" ? "Du har godkendt forslaget!" : "Du har afvist forslaget. Virksomheden vil modtage besked.");
+      qc.invalidateQueries({ queryKey: ["my-orders"] });
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      {/* Proposal alert */}
+      {proposalCount > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-amber-900">
+              {proposalCount} {proposalCount === 1 ? "forslag" : "forslag"} fra virksomheder afventer dit svar
+            </p>
+            <p className="text-xs text-amber-700">Gennemgå og godkend eller afvis de tilpassede aftaler</p>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => setFilter("proposals")}
+            className="ml-auto shrink-0 rounded-xl text-xs border-amber-300 text-amber-800 hover:bg-amber-100">
+            Se forslag
+          </Button>
+        </div>
+      )}
+
+      {/* Filter */}
+      <div className="flex gap-0 border-b border-border overflow-x-auto">
+        {[
+          { key: "all", label: "Alle" },
+          ...(proposalCount > 0 ? [{ key: "proposals", label: `Forslag (${proposalCount})` }] : []),
+          { key: "pending", label: "Afventer" },
+          { key: "confirmed", label: "Godkendt" },
+          { key: "completed", label: "Afsluttet" },
+          { key: "cancelled", label: "Annulleret" },
+        ].map(({ key, label }) => (
+          <button key={key} onClick={() => setFilter(key)}
+            className={`relative px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
+              filter === key
+                ? "text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-foreground after:rounded-t"
+                : "text-muted-foreground hover:text-foreground"
+            }`}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Orders */}
+      {filteredOrders && filteredOrders.length > 0 ? (
+        <div className="space-y-3">
+          {filteredOrders.map((order: any) => (
+            <OrderCard key={order.id} order={order} onRespond={handleCustomerResponse} />
+          ))}
+        </div>
+      ) : (
+        <div className="py-12 text-center">
+          <FileText className="mx-auto mb-3 h-8 w-8 text-muted-foreground/30" />
+          <p className="text-sm text-muted-foreground">Ingen bestillinger i denne kategori</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── Order Card ── */
+const OrderCard = ({ order, onRespond }: {
+  order: any;
+  onRespond: (orderId: string, response: "accepted" | "rejected", order: any) => void;
+}) => {
+  const [expanded, setExpanded] = useState(false);
+  const statusCfg = ORDER_STATUS[order.status] || ORDER_STATUS.pending;
+  const biz = order.businesses || {};
+  const items = order.order_items || [];
+  const hasProposal = order.business_response === "adjusted" && !order.customer_response;
+  const customerAccepted = order.customer_response === "accepted";
+  const customerRejected = order.customer_response === "rejected";
+
+  return (
+    <Card className={`rounded-2xl overflow-hidden transition-all ${
+      hasProposal ? "border-amber-200 shadow-md ring-1 ring-amber-100" : "border-border"
+    }`}>
+      <CardContent className="p-0">
+        {/* Proposal banner */}
+        {hasProposal && (
+          <div className="flex items-center gap-2 bg-amber-50 px-4 py-2.5 border-b border-amber-200">
+            <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+            <span className="text-sm font-semibold text-amber-800">Virksomheden har sendt et tilpasset forslag</span>
+          </div>
+        )}
+
+        {/* Header */}
+        <button onClick={() => setExpanded(!expanded)} className="w-full text-left px-4 py-3.5 hover:bg-muted/20 transition-colors">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              {biz.logo_url ? (
+                <img src={biz.logo_url} alt="" className="h-9 w-9 rounded-lg border border-border object-contain bg-card p-0.5 shrink-0" />
+              ) : (
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary border border-border shrink-0">
+                  <Store className="h-4 w-4 text-muted-foreground" />
+                </div>
+              )}
+              <div className="min-w-0">
+                <h4 className="text-sm font-semibold text-foreground truncate">{biz.name || "Virksomhed"}</h4>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
+                  {items.length > 0 && ` · ${items.length} ${items.length === 1 ? "service" : "services"}`}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${statusCfg.color}`}>
+                {statusCfg.label}
+              </span>
+              <div className="text-right">
+                <span className="text-sm font-bold text-foreground">
+                  {hasProposal ? order.adjusted_amount : order.total_amount} kr
+                </span>
+                {hasProposal && order.adjusted_amount !== order.total_amount && (
+                  <span className="block text-[11px] text-muted-foreground line-through">{order.total_amount} kr</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </button>
+
+        {/* Expanded content */}
+        {expanded && (
+          <div className="border-t border-border bg-muted/5 px-4 py-4 space-y-4">
+            {/* Original order items */}
+            <div className="rounded-xl border border-border overflow-hidden">
+              <div className="px-4 py-2.5 bg-muted/40 border-b border-border">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Din bestilling</span>
+              </div>
+              {items.map((item: any) => (
+                <div key={item.id} className="border-b border-border last:border-b-0 px-4 py-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <span className="text-sm font-semibold text-foreground">{item.service_name}</span>
+                      {item.details?.interval && item.details.interval !== "engangskøb" && (
+                        <span className="ml-2 inline-flex items-center rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">
+                          {INTERVAL_LABELS[item.details.interval] || item.details.interval}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-sm font-bold text-foreground shrink-0">{item.total_price} kr</span>
+                  </div>
+                  {item.details?.stepDetails && (
+                    <div className="mt-2 space-y-1">
+                      {(item.details.stepDetails as any[]).map((sd: any, i: number) => (
+                        <div key={i} className="flex justify-between text-xs text-muted-foreground">
+                          <span>{sd.label}: <span className="font-medium text-foreground/80">{sd.value} {sd.unit}</span></span>
+                          <span className="font-medium text-foreground/70">{sd.subtotal} kr</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div className="px-4 py-2.5 flex justify-between bg-muted/30">
+                <span className="text-sm font-bold text-foreground">I alt</span>
+                <span className="text-sm font-bold text-foreground">{order.total_amount} kr</span>
+              </div>
+            </div>
+
+            {/* Business message */}
+            {order.business_message && (
+              <div className="rounded-xl bg-secondary/30 border border-border px-4 py-3">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-xs font-semibold text-muted-foreground">Besked fra virksomheden</span>
+                </div>
+                <p className="text-sm text-foreground">{order.business_message}</p>
+              </div>
+            )}
+
+            {/* Proposal section */}
+            {order.business_response === "adjusted" && order.adjusted_details && (
+              <div className={`rounded-xl border overflow-hidden ${
+                hasProposal ? "border-amber-200" : customerAccepted ? "border-green-200" : "border-destructive/20"
+              }`}>
+                <div className={`px-4 py-2.5 border-b flex items-center gap-2 ${
+                  hasProposal ? "bg-amber-50 border-amber-200" : customerAccepted ? "bg-green-50 border-green-200" : "bg-destructive/5 border-destructive/20"
+                }`}>
+                  {hasProposal ? (
+                    <><AlertTriangle className="h-3.5 w-3.5 text-amber-600" /><span className="text-xs font-semibold text-amber-800">Tilpasset forslag fra virksomheden</span></>
+                  ) : customerAccepted ? (
+                    <><CheckCircle2 className="h-3.5 w-3.5 text-green-600" /><span className="text-xs font-semibold text-green-800">Du godkendte dette forslag</span></>
+                  ) : (
+                    <><XCircle className="h-3.5 w-3.5 text-destructive" /><span className="text-xs font-semibold text-destructive">Du afviste dette forslag</span></>
+                  )}
+                </div>
+                {((order.adjusted_details as any)?.items || []).map((item: any, idx: number) => (
+                  <div key={idx} className="border-b border-border/50 last:border-b-0 px-4 py-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <span className="text-sm font-medium text-foreground">{item.service_name}</span>
+                        {item.details?.interval && item.details.interval !== "engangskøb" && (
+                          <span className="ml-2 text-[11px] text-accent">{INTERVAL_LABELS[item.details.interval] || item.details.interval}</span>
+                        )}
+                      </div>
+                      <span className="text-sm font-semibold text-foreground">{item.total_price} kr</span>
+                    </div>
+                    {item.details?.stepDetails?.map((sd: any, i: number) => (
+                      <div key={i} className="flex justify-between text-xs text-muted-foreground mt-0.5 pl-0.5">
+                        <span>{sd.label}: {sd.value} {sd.unit}</span>
+                        <span>{sd.subtotal} kr</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+                <div className={`px-4 py-2.5 flex justify-between ${
+                  hasProposal ? "bg-amber-50" : customerAccepted ? "bg-green-50" : "bg-destructive/5"
+                }`}>
+                  <span className="text-sm font-bold text-foreground">Tilpasset pris</span>
+                  <div className="text-right">
+                    <span className="text-sm font-bold text-foreground">{order.adjusted_amount} kr</span>
+                    {order.adjusted_amount !== order.total_amount && (
+                      <span className="ml-2 text-xs text-muted-foreground line-through">{order.total_amount} kr</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Accept/reject button for proposals */}
+            {hasProposal && (
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Button size="sm" onClick={() => onRespond(order.id, "accepted", order)}
+                  className="gap-1.5 rounded-xl text-xs bg-green-600 text-white hover:bg-green-700 shadow-sm">
+                  <Check className="h-3.5 w-3.5" /> Godkend forslag ({order.adjusted_amount} kr)
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => onRespond(order.id, "rejected", order)}
+                  className="gap-1.5 rounded-xl text-xs text-destructive hover:text-destructive hover:bg-destructive/5">
+                  <X className="h-3.5 w-3.5" /> Afvis forslag
+                </Button>
+              </div>
+            )}
+
+            {/* Status messages for non-proposal states */}
+            {order.business_response === "accepted" && (
+              <div className="flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 px-4 py-3">
+                <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                <span className="text-sm text-green-800 font-medium">Virksomheden har godkendt din bestilling</span>
+              </div>
+            )}
+            {order.business_response === "rejected" && (
+              <div className="flex items-center gap-2 rounded-xl bg-destructive/5 border border-destructive/20 px-4 py-3">
+                <XCircle className="h-4 w-4 text-destructive shrink-0" />
+                <span className="text-sm text-destructive font-medium">Virksomheden har desværre afvist din bestilling</span>
+              </div>
+            )}
+
+            {/* Link to business */}
+            {biz.slug && (
+              <Link to={`/b/${biz.slug}`}
+                className="inline-flex items-center gap-1.5 text-sm text-accent hover:underline">
+                Se virksomhedens side <ChevronRight className="h-3.5 w-3.5" />
+              </Link>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
@@ -124,9 +453,7 @@ const SubscriptionsView = () => {
 
   if (isLoading) return (
     <div className="grid gap-4 sm:grid-cols-2">
-      {[1, 2].map((i) => (
-        <div key={i} className="h-48 animate-pulse rounded-2xl bg-secondary/50" />
-      ))}
+      {[1, 2].map((i) => <div key={i} className="h-48 animate-pulse rounded-2xl bg-secondary/50" />)}
     </div>
   );
 
@@ -136,14 +463,12 @@ const SubscriptionsView = () => {
       onError: (e) => toast.error(e.message),
     });
   };
-
   const handleResume = (id: string) => {
     updateSub.mutate({ id, status: "active", paused_at: null }, {
       onSuccess: () => toast.success("Service genoptaget"),
       onError: (e) => toast.error(e.message),
     });
   };
-
   const handleCancel = (id: string) => {
     if (!confirm("Er du sikker på, at du vil opsige denne service?")) return;
     updateSub.mutate({ id, status: "cancelled", cancelled_at: new Date().toISOString() }, {
@@ -158,27 +483,14 @@ const SubscriptionsView = () => {
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary mb-4">
           <Package className="h-8 w-8 text-muted-foreground/40" />
         </div>
-        <h3 className="text-lg font-semibold text-foreground">Ingen aktive services</h3>
+        <h3 className="text-lg font-semibold text-foreground">Ingen aktive abonnementer</h3>
         <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-          Bestil en service hos en virksomhed, og den dukker automatisk op her.
+          Bestil en tilbagevendende service, og dit abonnement vises her.
         </p>
-        <div className="mt-5 flex gap-3">
-          <Link to="/search">
-            <Button variant="outline" className="gap-2 rounded-xl">
-              <Store className="h-4 w-4" /> Find virksomheder
-            </Button>
-          </Link>
-          <Link to="/quote">
-            <Button className="gap-2 rounded-xl bg-accent text-accent-foreground hover:bg-accent/90">
-              <Sparkles className="h-4 w-4" /> Få tilbud med AI
-            </Button>
-          </Link>
-        </div>
       </div>
     );
   }
 
-  // Group by business
   const grouped: Record<string, { biz: any; subs: any[] }> = {};
   subscriptions.forEach((sub: any) => {
     const bizId = sub.business_id;
@@ -190,7 +502,6 @@ const SubscriptionsView = () => {
     <div className="space-y-8">
       {Object.entries(grouped).map(([bizId, { biz, subs }]) => (
         <div key={bizId}>
-          {/* Business header */}
           <div className="mb-4 flex items-center gap-3">
             {biz.logo_url ? (
               <img src={biz.logo_url} alt="" className="h-10 w-10 rounded-xl border border-border object-contain bg-card p-0.5" />
@@ -212,20 +523,16 @@ const SubscriptionsView = () => {
             )}
           </div>
 
-          {/* Service cards */}
           <div className="grid gap-3 sm:grid-cols-2">
             {subs.map((sub: any) => {
               const cfg = STATUS_CONFIG[sub.status] || STATUS_CONFIG.active;
               return (
                 <Card key={sub.id} className="overflow-hidden rounded-2xl border-border transition-shadow hover:shadow-md">
                   <CardContent className="p-0">
-                    {/* Status bar */}
                     <div className={`h-1 w-full ${
                       sub.status === "active" ? "bg-accent" : sub.status === "paused" ? "bg-yellow-400" : "bg-destructive"
                     }`} />
-
                     <div className="p-5 space-y-4">
-                      {/* Title row */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <h4 className="font-semibold text-foreground">{sub.service_name}</h4>
@@ -249,7 +556,6 @@ const SubscriptionsView = () => {
                         </div>
                       </div>
 
-                      {/* Step details */}
                       {sub.details && (sub.details as any).stepDetails && (
                         <div className="rounded-xl bg-secondary/40 overflow-hidden divide-y divide-border">
                           {((sub.details as any).stepDetails as any[]).map((sd: any, i: number) => (
@@ -261,42 +567,27 @@ const SubscriptionsView = () => {
                         </div>
                       )}
 
-                      {/* Description details */}
-                      {sub.details && (sub.details as any).description && !(sub.details as any).stepDetails?.length && (
-                        <p className="text-xs text-muted-foreground rounded-xl bg-secondary/40 px-3.5 py-2">
-                          {(sub.details as any).description}
-                        </p>
-                      )}
-
-                      {/* Actions */}
                       <div className="flex flex-wrap gap-2 pt-1">
                         {sub.status === "active" && (
                           <>
                             <Button variant="outline" size="sm" onClick={() => handlePause(sub.id)}
-                              className="gap-1.5 rounded-xl text-xs">
-                              <Pause className="h-3.5 w-3.5" /> Sæt på pause
-                            </Button>
+                              className="gap-1.5 rounded-xl text-xs"><Pause className="h-3.5 w-3.5" /> Sæt på pause</Button>
                             <Button variant="outline" size="sm" onClick={() => handleCancel(sub.id)}
                               className="gap-1.5 rounded-xl text-xs text-destructive hover:text-destructive hover:bg-destructive/5">
-                              <XCircle className="h-3.5 w-3.5" /> Opsig
-                            </Button>
+                              <XCircle className="h-3.5 w-3.5" /> Opsig</Button>
                             <Button variant="outline" size="sm"
                               onClick={() => setReviewingId(reviewingId === sub.id ? null : sub.id)}
-                              className="gap-1.5 rounded-xl text-xs ml-auto">
-                              <Star className="h-3.5 w-3.5" /> Anmeld
-                            </Button>
+                              className="gap-1.5 rounded-xl text-xs ml-auto"><Star className="h-3.5 w-3.5" /> Anmeld</Button>
                           </>
                         )}
                         {sub.status === "paused" && (
                           <>
                             <Button size="sm" onClick={() => handleResume(sub.id)}
                               className="gap-1.5 rounded-xl text-xs bg-accent text-accent-foreground hover:bg-accent/90">
-                              <Play className="h-3.5 w-3.5" /> Genoptag
-                            </Button>
+                              <Play className="h-3.5 w-3.5" /> Genoptag</Button>
                             <Button variant="outline" size="sm" onClick={() => handleCancel(sub.id)}
                               className="gap-1.5 rounded-xl text-xs text-destructive hover:text-destructive">
-                              <XCircle className="h-3.5 w-3.5" /> Opsig
-                            </Button>
+                              <XCircle className="h-3.5 w-3.5" /> Opsig</Button>
                           </>
                         )}
                         {sub.status === "cancelled" && (
@@ -306,13 +597,8 @@ const SubscriptionsView = () => {
                         )}
                       </div>
 
-                      {/* Review form */}
                       {reviewingId === sub.id && (
-                        <ReviewForm
-                          businessId={sub.business_id}
-                          subscriptionId={sub.id}
-                          onDone={() => setReviewingId(null)}
-                        />
+                        <ReviewForm businessId={sub.business_id} subscriptionId={sub.id} onDone={() => setReviewingId(null)} />
                       )}
                     </div>
                   </CardContent>
@@ -340,12 +626,10 @@ const ReviewForm = ({ businessId, subscriptionId, onDone }: { businessId: string
     createReview.mutate({
       business_id: businessId,
       reviewer_name: user?.email?.split("@")[0] || "Kunde",
-      rating,
-      comment: comment.trim() || null,
-      customer_id: user?.id,
-      subscription_id: subscriptionId,
+      rating, comment: comment.trim() || null,
+      customer_id: user?.id, subscription_id: subscriptionId,
     }, {
-      onSuccess: () => { toast.success("Anmeldelse sendt! Tak for din feedback."); onDone(); },
+      onSuccess: () => { toast.success("Anmeldelse sendt!"); onDone(); },
       onError: (e) => toast.error(e.message),
     });
   };
@@ -359,39 +643,23 @@ const ReviewForm = ({ businessId, subscriptionId, onDone }: { businessId: string
         <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Din bedømmelse</label>
         <div className="flex gap-1">
           {[1, 2, 3, 4, 5].map((i) => (
-            <button
-              key={i}
-              onClick={() => setRating(i)}
-              onMouseEnter={() => setHoveredStar(i)}
-              onMouseLeave={() => setHoveredStar(0)}
-              type="button"
-              className="transition-transform hover:scale-110"
-            >
-              <Star className={`h-7 w-7 transition-colors ${
-                i <= (hoveredStar || rating) ? "fill-accent text-accent" : "text-border"
-              }`} />
+            <button key={i} onClick={() => setRating(i)} onMouseEnter={() => setHoveredStar(i)} onMouseLeave={() => setHoveredStar(0)} type="button" className="transition-transform hover:scale-110">
+              <Star className={`h-7 w-7 transition-colors ${i <= (hoveredStar || rating) ? "fill-accent text-accent" : "text-border"}`} />
             </button>
           ))}
         </div>
       </div>
       <div>
         <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Kommentar (valgfrit)</label>
-        <Textarea
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          placeholder="Fortæl om din oplevelse med denne service..."
-          rows={3}
-          className="rounded-xl"
-        />
+        <Textarea value={comment} onChange={(e) => setComment(e.target.value)}
+          placeholder="Fortæl om din oplevelse..." rows={3} className="bg-card" />
       </div>
       <div className="flex gap-2">
         <Button size="sm" onClick={handleSubmit} disabled={createReview.isPending}
           className="rounded-xl bg-accent text-accent-foreground hover:bg-accent/90">
           {createReview.isPending ? "Sender..." : "Send anmeldelse"}
         </Button>
-        <Button size="sm" variant="ghost" onClick={onDone} className="rounded-xl">
-          Annuller
-        </Button>
+        <Button variant="outline" size="sm" onClick={onDone} className="rounded-xl">Annuller</Button>
       </div>
     </div>
   );
@@ -408,26 +676,19 @@ const ProfileView = () => {
   const [phone, setPhone] = useState("");
   const [initialized, setInitialized] = useState(false);
 
-  useEffect(() => {
-    if (profile && !initialized) {
-      setDisplayName(profile.display_name || "");
-      setPhone(profile.phone || "");
-      setInitialized(true);
-    }
-  }, [profile, initialized]);
+  if (isLoading) return <div className="h-40 animate-pulse rounded-2xl bg-secondary/50" />;
 
-  if (isLoading) return (
-    <div className="max-w-lg">
-      <div className="h-64 animate-pulse rounded-2xl bg-secondary/50" />
-    </div>
-  );
+  if (profile && !initialized) {
+    setDisplayName(profile.display_name || "");
+    setPhone(profile.phone || "");
+    setInitialized(true);
+  }
 
   const handleSave = () => {
+    if (!user) return;
     updateProfile.mutate({
-      userId: user!.id,
-      display_name: displayName.trim() || null,
-      phone: phone.trim() || null,
-    } as any, {
+      userId: user.id, display_name: displayName.trim() || null, phone: phone.trim() || null,
+    }, {
       onSuccess: () => toast.success("Profil opdateret!"),
       onError: (e) => toast.error(e.message),
     });
@@ -435,64 +696,32 @@ const ProfileView = () => {
 
   return (
     <div className="max-w-lg space-y-6">
-      <Card className="overflow-hidden rounded-2xl border-border">
-        <div className="h-1 w-full bg-accent" />
+      <Card className="rounded-2xl border-border shadow-sm">
         <CardContent className="p-6 space-y-5">
-          {/* Avatar + email header */}
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 text-xl font-bold text-accent">
-              {(user?.email || "U").charAt(0).toUpperCase()}
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10">
+              <User className="h-7 w-7 text-accent" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground">{displayName || user?.email?.split("@")[0]}</h3>
+              <h3 className="font-semibold text-foreground">{displayName || user?.email?.split("@")[0] || "Bruger"}</h3>
               <p className="text-sm text-muted-foreground">{user?.email}</p>
             </div>
           </div>
-
           <Separator />
-
           <div className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">Navn</label>
-              <Input
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Dit fulde navn"
-                className="h-11 rounded-xl"
-              />
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Visningsnavn</label>
+              <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Dit navn" className="bg-card" />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">Telefon</label>
-              <Input
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+45 00 00 00 00"
-                className="h-11 rounded-xl"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">E-mail</label>
-              <Input value={user?.email || ""} disabled className="h-11 rounded-xl bg-secondary/50" />
-              <p className="mt-1 text-xs text-muted-foreground">E-mail kan ikke ændres</p>
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Telefon</label>
+              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="12 34 56 78" className="bg-card" type="tel" />
             </div>
           </div>
-
           <Button onClick={handleSave} disabled={updateProfile.isPending}
-            className="w-full h-11 rounded-xl bg-accent text-accent-foreground hover:bg-accent/90">
+            className="w-full rounded-xl bg-foreground text-background hover:bg-foreground/90">
             {updateProfile.isPending ? "Gemmer..." : "Gem ændringer"}
           </Button>
-        </CardContent>
-      </Card>
-
-      <Card className="rounded-2xl border-border bg-secondary/20">
-        <CardContent className="p-5 space-y-3">
-          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-accent" /> Sikkerhed & privatliv
-          </h3>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Dine data er beskyttet og bruges kun til at levere de services, du har bestilt.
-            Du kan til enhver tid opsige dine services fra dit kundepanel.
-          </p>
         </CardContent>
       </Card>
     </div>
