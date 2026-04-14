@@ -32,7 +32,6 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
     }
 
     try {
-      // Create one order per business
       for (const [businessId, group] of Object.entries(groupedByBusiness)) {
         const bizTotal = group.items.reduce((acc, i) => acc + i.total * i.quantity, 0);
 
@@ -58,7 +57,6 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
           })),
         });
 
-        // Create subscriptions for recurring items
         if (user && businessId !== "unknown") {
           for (const item of group.items) {
             if (item.interval && item.interval !== "engangskøb") {
@@ -80,11 +78,11 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
         }
       }
     } catch (e: any) {
-      toast.error("Fejl ved oprettelse af bestilling: " + e.message);
+      toast.error("Fejl ved oprettelse af aftale: " + e.message);
       return;
     }
 
-    toast.success("Din bestilling er modtaget! Vi kontakter dig snarest.");
+    toast.success("Din aftale er sendt! Virksomheden vil gennemgå og bekræfte den.");
     clearCart();
     setCheckout(false);
     setName(""); setEmail(""); setPhone("");
@@ -97,7 +95,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
       <SheetTrigger asChild>
         <Button variant="outline" className="relative gap-2 border-accent/30 hover:bg-accent/10 hover:text-foreground hover:border-accent">
           <Package className="h-5 w-5" />
-          Bestilling
+          Aftale
           {count > 0 && (
             <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground">
               {count}
@@ -108,7 +106,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
       <SheetContent className="flex w-full flex-col sm:max-w-md">
         <SheetHeader>
           <SheetTitle>
-            <span className="block">Din bestilling</span>
+            <span className="block">Din aftale</span>
             {businessCount > 1 && (
               <span className="block text-xs font-normal text-muted-foreground">{businessCount} virksomheder</span>
             )}
@@ -118,7 +116,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
         {items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center text-center">
             <Package className="mb-4 h-12 w-12 text-muted-foreground/30" />
-            <p className="text-muted-foreground">Din bestilling er tom</p>
+            <p className="text-muted-foreground">Din aftale er tom</p>
             <p className="mt-1 text-sm text-muted-foreground/70">Tilføj services fra virksomhedernes sider</p>
           </div>
         ) : !checkout ? (
@@ -126,7 +124,6 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
             <div className="flex-1 space-y-5 overflow-y-auto py-4">
               {Object.entries(groupedByBusiness).map(([bizId, group]) => (
                 <div key={bizId}>
-                  {/* Business header */}
                   <div className="flex items-center gap-2.5 mb-3 px-1">
                     {group.businessLogoUrl ? (
                       <img src={group.businessLogoUrl} alt="" className="h-7 w-7 rounded-lg object-contain bg-secondary p-0.5 border border-border" />
@@ -138,7 +135,6 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                     <span className="text-sm font-semibold text-foreground">{group.businessName}</span>
                   </div>
 
-                  {/* Items */}
                   <div className="space-y-2">
                     {group.items.map((item) => (
                       <Card key={item.serviceId} className="border-border overflow-hidden">
@@ -187,7 +183,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 <span>{total} kr</span>
               </div>
               <Button onClick={() => setCheckout(true)} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                Gå til bestilling
+                Gå til aftale
               </Button>
             </div>
           </div>
@@ -207,10 +203,9 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 00 00 00 00" />
               </div>
 
-              {/* Order summary grouped by business */}
               <Card className="border-border/60">
                 <CardContent className="p-4 space-y-3">
-                  <h4 className="text-sm font-semibold text-foreground">Bestillingsopsummering</h4>
+                  <h4 className="text-sm font-semibold text-foreground">Aftaleopsummering</h4>
 
                   {Object.entries(groupedByBusiness).map(([bizId, group]) => {
                     const bizTotal = group.items.reduce((acc, i) => acc + i.total * i.quantity, 0);
@@ -251,15 +246,19 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 </CardContent>
               </Card>
 
+              <p className="text-xs text-muted-foreground bg-accent/5 rounded-lg px-3 py-2 border border-accent/20">
+                💡 Aftalen sendes til virksomheden for godkendelse. Du modtager besked når de har svaret.
+              </p>
+
               {user && items.some(i => i.interval && i.interval !== "engangskøb") && (
                 <p className="text-xs text-muted-foreground bg-accent/5 rounded-lg px-3 py-2 border border-accent/20">
-                  💡 Tilbagevendende services oprettes automatisk i dit kundepanel, hvor du kan pause eller opsige dem.
+                  🔄 Tilbagevendende services oprettes automatisk i dit kundepanel efter godkendelse.
                 </p>
               )}
             </div>
             <div className="space-y-2 border-t border-border pt-4">
               <Button onClick={handleOrder} disabled={createOrder.isPending} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                {createOrder.isPending ? "Opretter bestilling..." : `Bestil nu – ${total} kr`}
+                {createOrder.isPending ? "Sender aftale..." : `Send aftale – ${total} kr`}
               </Button>
               <Button variant="outline" onClick={() => setCheckout(false)} className="w-full">
                 Tilbage

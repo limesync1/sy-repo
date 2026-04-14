@@ -4,6 +4,7 @@ import {
   useUpdateService, useDeleteService, useUpdateBusiness, useUpdateOrderStatus,
   useUpsertCalculatorSteps, useQuoteRequests, useCreateQuote, useMyQuotes, useReviews,
 } from "@/hooks/useDatabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -131,7 +132,7 @@ const SERVICE_CATEGORIES: Record<string, Record<string, string[]>> = {
 const NAV_ITEMS = [
   { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
   { value: "services", label: "Services", icon: Wrench },
-  { value: "orders", label: "Ordrer", icon: ShoppingCart },
+  { value: "orders", label: "Aftaler", icon: ShoppingCart },
   { value: "quotes", label: "Tilbud", icon: MessageSquare },
   { value: "reviews", label: "Anmeldelser", icon: Star },
   { value: "settings", label: "Indstillinger", icon: Settings },
@@ -969,12 +970,16 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   );
 };
 
-/* ─── Orders Tab ─── */
+/* ─── Aftaler Tab (Orders) ─── */
 const OrdersTab = ({ businessId }: { businessId: string }) => {
   const { data: orders, isLoading } = useOrders(businessId);
   const updateStatus = useUpdateOrderStatus();
   const [filter, setFilter] = useState<string>("all");
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
+  const [responseType, setResponseType] = useState<"accepted" | "rejected" | "adjusted">("accepted");
+  const [responseMessage, setResponseMessage] = useState("");
+  const [adjustedAmount, setAdjustedAmount] = useState("");
 
   const statusLabels: Record<string, string> = {
     pending: "Afventer", confirmed: "Bekræftet", in_progress: "I gang",
@@ -987,25 +992,54 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
     completed: { bg: "bg-green-50", text: "text-green-700", dot: "bg-green-400" },
     cancelled: { bg: "bg-red-50", text: "text-red-700", dot: "bg-red-400" },
   };
+  const responseLabels: Record<string, { label: string; color: string }> = {
+    accepted: { label: "Godkendt", color: "bg-green-50 text-green-700" },
+    rejected: { label: "Afvist", color: "bg-red-50 text-red-700" },
+    adjusted: { label: "Tilpasset", color: "bg-amber-50 text-amber-700" },
+  };
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser ordrer...</p>;
+  if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser aftaler...</p>;
 
   const filteredOrders = filter === "all" ? orders : orders?.filter((o) => o.status === filter);
   const counts: Record<string, number> = { all: orders?.length || 0 };
   orders?.forEach(o => { counts[o.status] = (counts[o.status] || 0) + 1; });
 
+  const handleResponse = async (orderId: string) => {
+    try {
+      await supabase.from("orders").update({
+        business_response: responseType,
+        business_message: responseMessage || null,
+        adjusted_amount: responseType === "adjusted" && adjustedAmount ? parseFloat(adjustedAmount) : null,
+        status: responseType === "accepted" ? "confirmed" : responseType === "rejected" ? "cancelled" : "pending",
+      }).eq("id", orderId);
+
+      toast.success(
+        responseType === "accepted" ? "Aftale godkendt!" :
+        responseType === "rejected" ? "Aftale afvist" :
+        "Tilpasningsforslag sendt til kunden"
+      );
+      setRespondingTo(null);
+      setResponseMessage("");
+      setAdjustedAmount("");
+      // Invalidate orders query
+      window.location.reload();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-base font-semibold text-foreground">Ordrer</h2>
-        <p className="mt-0.5 text-sm text-muted-foreground">{orders?.length || 0} ordrer i alt</p>
+        <h2 className="text-base font-semibold text-foreground">Aftaler</h2>
+        <p className="mt-0.5 text-sm text-muted-foreground">{orders?.length || 0} aftaler i alt</p>
       </div>
 
-      {/* Status filter tabs — Shopify style */}
-      <div className="flex gap-0 border-b border-[#e1e3e5]">
+      {/* Status filter tabs */}
+      <div className="flex gap-0 border-b border-[#e1e3e5] overflow-x-auto">
         {[{ key: "all", label: "Alle" }, ...Object.entries(statusLabels).map(([k, v]) => ({ key: k, label: v }))].map(({ key, label }) => (
           <button key={key} onClick={() => setFilter(key)}
-            className={`relative px-3 py-2.5 text-sm font-medium transition-colors ${
+            className={`relative px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
               filter === key
                 ? "text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-foreground after:rounded-t"
                 : "text-muted-foreground hover:text-foreground"
@@ -1023,90 +1057,194 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
         ))}
       </div>
 
-      {/* Orders table */}
+      {/* Orders list */}
       {filteredOrders && filteredOrders.length > 0 ? (
-        <Card className="rounded-xl shadow-sm border-[#e1e3e5] overflow-hidden">
-          <div className="divide-y divide-[#e1e3e5]">
-            {/* Table header */}
-            <div className="hidden sm:grid sm:grid-cols-[1fr_120px_100px_100px_140px] gap-3 px-4 py-2.5 bg-[#f6f6f7] text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              <span>Kunde</span>
-              <span>Dato</span>
-              <span>Status</span>
-              <span className="text-right">Beløb</span>
-              <span>Handling</span>
-            </div>
-            {filteredOrders.map((order) => {
-              const cfg = statusConfig[order.status] || statusConfig.pending;
-              const isExpanded = expandedOrder === order.id;
-              return (
-                <div key={order.id}>
-                  <button onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
-                    className="w-full text-left grid grid-cols-1 sm:grid-cols-[1fr_120px_100px_100px_140px] gap-2 sm:gap-3 px-4 py-3 hover:bg-muted/30 transition-colors items-center">
-                    <div className="min-w-0">
+        <div className="space-y-3">
+          {filteredOrders.map((order) => {
+            const cfg = statusConfig[order.status] || statusConfig.pending;
+            const isExpanded = expandedOrder === order.id;
+            const isResponding = respondingTo === order.id;
+            const resp = (order as any).business_response;
+            const respCfg = resp ? responseLabels[resp] : null;
+
+            return (
+              <Card key={order.id} className="rounded-xl shadow-sm border-[#e1e3e5] overflow-hidden">
+                <button onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
+                  className="w-full text-left px-4 py-3.5 hover:bg-muted/20 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-foreground truncate">{order.customer_name}</p>
                       <p className="text-xs text-muted-foreground truncate">{order.customer_email}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground hidden sm:block">
-                      {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
-                    </p>
-                    <div className="hidden sm:block">
+                    <div className="flex items-center gap-2 ml-3">
                       <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${cfg.bg} ${cfg.text}`}>
                         <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
                         {statusLabels[order.status]}
                       </span>
-                    </div>
-                    <p className="text-sm font-semibold text-foreground text-right hidden sm:block">{order.total_amount} kr</p>
-                    <div className="hidden sm:block" onClick={(e) => e.stopPropagation()}>
-                      <Select value={order.status} onValueChange={(s) => updateStatus.mutate({ id: order.id, status: s })}>
-                        <SelectTrigger className="h-8 text-sm w-full"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {/* Mobile extras */}
-                    <div className="flex items-center justify-between sm:hidden">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${cfg.bg} ${cfg.text}`}>
-                        <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
-                        {statusLabels[order.status]}
+                      {respCfg && (
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${respCfg.color}`}>
+                          {respCfg.label}
+                        </span>
+                      )}
+                      <span className="text-sm font-semibold text-foreground whitespace-nowrap">
+                        {(order as any).adjusted_amount || order.total_amount} kr
                       </span>
-                      <span className="text-sm font-semibold">{order.total_amount} kr</span>
                     </div>
-                  </button>
-                  {isExpanded && (
-                    <div className="border-t border-[#e1e3e5] bg-muted/20 px-4 py-3 space-y-3">
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div><span className="text-muted-foreground">Email:</span> <span className="text-foreground">{order.customer_email}</span></div>
-                        {order.customer_phone && <div><span className="text-muted-foreground">Tlf:</span> <span className="text-foreground">{order.customer_phone}</span></div>}
-                        <div><span className="text-muted-foreground">Dato:</span> <span className="text-foreground">{new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span></div>
-                      </div>
-                      {order.notes && <p className="text-sm italic text-foreground/80 bg-white rounded-lg px-3 py-2 border border-border">"{order.notes}"</p>}
-                      {(order as any).order_items?.length > 0 && (
-                        <div className="rounded-lg bg-white border border-border overflow-hidden">
-                          <div className="px-3 py-2 bg-muted/50 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Produkter</div>
-                          {(order as any).order_items.map((item: any) => (
-                            <div key={item.id} className="flex justify-between px-3 py-2 text-sm border-t border-border">
-                              <span className="text-foreground">{item.service_name}{item.quantity > 1 && ` × ${item.quantity}`}</span>
+                  </div>
+                  <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+                    <span>{new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}</span>
+                    {(order as any).order_items?.length > 0 && (
+                      <span>· {(order as any).order_items.length} {(order as any).order_items.length === 1 ? "service" : "services"}</span>
+                    )}
+                  </div>
+                </button>
+
+                {isExpanded && (
+                  <div className="border-t border-[#e1e3e5] bg-muted/10 px-4 py-4 space-y-4">
+                    {/* Customer details */}
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div><span className="text-muted-foreground">Email:</span> <span className="text-foreground">{order.customer_email}</span></div>
+                      {order.customer_phone && <div><span className="text-muted-foreground">Tlf:</span> <span className="text-foreground">{order.customer_phone}</span></div>}
+                    </div>
+
+                    {/* Order items */}
+                    {(order as any).order_items?.length > 0 && (
+                      <div className="rounded-xl bg-card border border-border overflow-hidden">
+                        <div className="px-3.5 py-2 bg-muted/50 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Services i aftalen</div>
+                        {(order as any).order_items.map((item: any) => (
+                          <div key={item.id} className="border-t border-border px-3.5 py-2.5">
+                            <div className="flex justify-between text-sm">
+                              <span className="font-medium text-foreground">{item.service_name}{item.quantity > 1 && ` × ${item.quantity}`}</span>
                               <span className="font-semibold text-foreground">{item.total_price} kr</span>
                             </div>
+                            {item.details?.stepDetails && (
+                              <div className="mt-1.5 space-y-0.5">
+                                {(item.details.stepDetails as any[]).map((sd: any, i: number) => (
+                                  <div key={i} className="flex justify-between text-xs text-muted-foreground pl-2">
+                                    <span>{sd.label}: {sd.value} {sd.unit}</span>
+                                    <span>{sd.subtotal} kr</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {item.details?.interval && item.details.interval !== "engangskøb" && (
+                              <span className="mt-1 inline-block text-xs text-accent">{item.details.interval}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {order.notes && <p className="text-sm italic text-foreground/80 bg-card rounded-lg px-3 py-2 border border-border">"{order.notes}"</p>}
+
+                    {/* Business response display */}
+                    {(order as any).business_message && (
+                      <div className="rounded-xl bg-accent/5 border border-accent/20 px-3.5 py-3">
+                        <p className="text-xs font-semibold text-accent mb-1">Din besked til kunden:</p>
+                        <p className="text-sm text-foreground">{(order as any).business_message}</p>
+                        {(order as any).adjusted_amount && (
+                          <p className="mt-1 text-sm font-semibold text-foreground">Tilpasset pris: {(order as any).adjusted_amount} kr</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Response actions */}
+                    {!resp && order.status === "pending" && !isResponding && (
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("accepted"); }}
+                          className="gap-1.5 rounded-xl text-xs bg-green-600 text-white hover:bg-green-700">
+                          ✓ Godkend aftale
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("adjusted"); }}
+                          className="gap-1.5 rounded-xl text-xs">
+                          ✎ Tilpas aftale
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("rejected"); }}
+                          className="gap-1.5 rounded-xl text-xs text-destructive hover:text-destructive hover:bg-destructive/5">
+                          ✕ Afvis
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Response form */}
+                    {isResponding && (
+                      <div className="rounded-xl border border-accent/20 bg-accent/5 p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
+                        <h4 className="text-sm font-semibold text-foreground">
+                          {responseType === "accepted" ? "Godkend aftale" : responseType === "rejected" ? "Afvis aftale" : "Tilpas aftale"}
+                        </h4>
+
+                        {/* Response type selector */}
+                        <div className="flex gap-2">
+                          {(["accepted", "adjusted", "rejected"] as const).map((type) => (
+                            <button key={type} onClick={() => setResponseType(type)}
+                              className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
+                                responseType === type
+                                  ? "border-foreground bg-foreground text-background"
+                                  : "border-border bg-card text-muted-foreground hover:border-foreground/30"
+                              }`}>
+                              {type === "accepted" ? "Godkend" : type === "adjusted" ? "Tilpas" : "Afvis"}
+                            </button>
                           ))}
                         </div>
-                      )}
-                      <div className="sm:hidden" onClick={(e) => e.stopPropagation()}>
+
+                        {responseType === "adjusted" && (
+                          <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Tilpasset pris (kr)</label>
+                            <Input type="number" placeholder={order.total_amount.toString()} value={adjustedAmount}
+                              onChange={(e) => setAdjustedAmount(e.target.value)} className="h-9 text-sm" />
+                          </div>
+                        )}
+
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                            Besked til kunden {responseType === "accepted" ? "(valgfrit)" : ""}
+                          </label>
+                          <Textarea value={responseMessage} onChange={(e) => setResponseMessage(e.target.value)}
+                            placeholder={
+                              responseType === "accepted" ? "Tak for din aftale! Vi glæder os til at hjælpe dig."
+                              : responseType === "adjusted" ? "Vi vil gerne foreslå en tilpasning af aftalen..."
+                              : "Vi kan desværre ikke udføre denne opgave fordi..."
+                            }
+                            rows={3} className="text-sm" />
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => handleResponse(order.id)}
+                            className={`rounded-xl text-xs ${
+                              responseType === "accepted" ? "bg-green-600 hover:bg-green-700 text-white" :
+                              responseType === "rejected" ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" :
+                              "bg-foreground text-background hover:bg-foreground/90"
+                            }`}>
+                            {responseType === "accepted" ? "Bekræft godkendelse" :
+                             responseType === "rejected" ? "Bekræft afvisning" :
+                             "Send tilpasningsforslag"}
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => { setRespondingTo(null); setResponseMessage(""); setAdjustedAmount(""); }}
+                            className="rounded-xl text-xs">
+                            Annuller
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Status change for non-pending */}
+                    {resp && order.status !== "cancelled" && (
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <label className="mb-1 block text-xs font-medium text-muted-foreground">Opdater status</label>
                         <Select value={order.status} onValueChange={(s) => updateStatus.mutate({ id: order.id, status: s })}>
-                          <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="h-8 text-sm w-48"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </Card>
+                    )}
+                  </div>
+                )}
+              </Card>
+            );
+          })}
+        </div>
       ) : (
         <Card className="rounded-xl border-dashed border-[#e1e3e5]">
           <CardContent className="flex flex-col items-center justify-center py-12">
@@ -1114,9 +1252,9 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
               <ShoppingCart className="h-6 w-6 text-muted-foreground/40" />
             </div>
             <p className="text-sm font-medium text-foreground">
-              {filter === "all" ? "Ingen ordrer endnu" : `Ingen ordrer med status "${statusLabels[filter]}"`}
+              {filter === "all" ? "Ingen aftaler endnu" : `Ingen aftaler med status "${statusLabels[filter]}"`}
             </p>
-            <p className="mt-0.5 text-sm text-muted-foreground">Ordrer vil vises her når de kommer ind.</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">Aftaler vil vises her når de kommer ind.</p>
           </CardContent>
         </Card>
       )}
