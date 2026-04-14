@@ -7,12 +7,11 @@ interface CartContextType {
   removeItem: (serviceId: string) => void;
   updateItemInterval: (serviceId: string, interval: string) => void;
   clearCart: () => void;
+  clearBusinessItems: (businessId: string) => void;
   total: number;
   count: number;
-  businessId: string | null;
-  businessName: string | null;
-  businessLogoUrl: string | null;
-  setCartBusiness: (id: string, name: string, logoUrl?: string) => void;
+  /** Grouped items by businessId */
+  groupedByBusiness: Record<string, { businessName: string; businessLogoUrl?: string; items: CartItem[] }>;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -25,24 +24,8 @@ export const useCart = () => {
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [businessId, setBusinessId] = useState<string | null>(null);
-  const [businessName, setBusinessName] = useState<string | null>(null);
-  const [businessLogoUrl, setBusinessLogoUrl] = useState<string | null>(null);
-
-  const setCartBusiness = (id: string, name: string, logoUrl?: string) => {
-    if (businessId && businessId !== id) {
-      setItems([]);
-    }
-    setBusinessId(id);
-    setBusinessName(name);
-    setBusinessLogoUrl(logoUrl || null);
-  };
 
   const addItem = (item: CartItem) => {
-    // Auto-set business info from item
-    if (item.businessId) {
-      setCartBusiness(item.businessId, item.businessName || "", item.businessLogoUrl);
-    }
     setItems((prev) => {
       const existing = prev.find((i) => i.serviceId === item.serviceId);
       if (existing) {
@@ -53,15 +36,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const removeItem = (serviceId: string) => {
-    setItems((prev) => {
-      const next = prev.filter((i) => i.serviceId !== serviceId);
-      if (next.length === 0) {
-        setBusinessId(null);
-        setBusinessName(null);
-        setBusinessLogoUrl(null);
-      }
-      return next;
-    });
+    setItems((prev) => prev.filter((i) => i.serviceId !== serviceId));
   };
 
   const updateItemInterval = (serviceId: string, interval: string) => {
@@ -72,16 +47,31 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const clearCart = () => {
     setItems([]);
-    setBusinessId(null);
-    setBusinessName(null);
-    setBusinessLogoUrl(null);
+  };
+
+  const clearBusinessItems = (businessId: string) => {
+    setItems((prev) => prev.filter((i) => i.businessId !== businessId));
   };
 
   const total = items.reduce((acc, i) => acc + i.total * i.quantity, 0);
   const count = items.reduce((acc, i) => acc + i.quantity, 0);
 
+  // Group items by business
+  const groupedByBusiness: Record<string, { businessName: string; businessLogoUrl?: string; items: CartItem[] }> = {};
+  items.forEach((item) => {
+    const bId = item.businessId || "unknown";
+    if (!groupedByBusiness[bId]) {
+      groupedByBusiness[bId] = {
+        businessName: item.businessName || "Ukendt virksomhed",
+        businessLogoUrl: item.businessLogoUrl || undefined,
+        items: [],
+      };
+    }
+    groupedByBusiness[bId].items.push(item);
+  });
+
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateItemInterval, clearCart, total, count, businessId, businessName, businessLogoUrl, setCartBusiness }}>
+    <CartContext.Provider value={{ items, addItem, removeItem, updateItemInterval, clearCart, clearBusinessItems, total, count, groupedByBusiness }}>
       {children}
     </CartContext.Provider>
   );

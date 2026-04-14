@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Trash2, Package, CalendarClock } from "lucide-react";
+import { Trash2, Package, CalendarClock, Store } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
@@ -15,10 +15,9 @@ interface CartSheetProps {
   businessId?: string;
 }
 
-const CartSheet = ({ businessId: businessIdProp }: CartSheetProps) => {
-  const { items, removeItem, updateItemInterval, clearCart, total, count, businessId: cartBusinessId, businessName, businessLogoUrl } = useCart();
+const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
+  const { items, removeItem, clearCart, total, count, groupedByBusiness } = useCart();
   const { user } = useAuth();
-  const businessId = businessIdProp || cartBusinessId;
   const createOrder = useCreateOrder();
   const createSubscription = useCreateSubscription();
   const [checkout, setCheckout] = useState(false);
@@ -32,17 +31,20 @@ const CartSheet = ({ businessId: businessIdProp }: CartSheetProps) => {
       return;
     }
 
-    if (businessId) {
-      try {
+    try {
+      // Create one order per business
+      for (const [businessId, group] of Object.entries(groupedByBusiness)) {
+        const bizTotal = group.items.reduce((acc, i) => acc + i.total * i.quantity, 0);
+
         const orderResult = await createOrder.mutateAsync({
           order: {
-            business_id: businessId,
+            business_id: businessId === "unknown" ? undefined : businessId,
             customer_name: name,
             customer_email: email,
             customer_phone: phone,
-            total_amount: total,
+            total_amount: bizTotal,
           },
-          items: items.map((item) => ({
+          items: group.items.map((item) => ({
             service_id: item.serviceId,
             service_name: item.serviceName,
             quantity: item.quantity,
@@ -56,9 +58,9 @@ const CartSheet = ({ businessId: businessIdProp }: CartSheetProps) => {
           })),
         });
 
-        // Create subscriptions for recurring items if user is logged in
-        if (user) {
-          for (const item of items) {
+        // Create subscriptions for recurring items
+        if (user && businessId !== "unknown") {
+          for (const item of group.items) {
             if (item.interval && item.interval !== "engangskøb") {
               await createSubscription.mutateAsync({
                 customer_id: user.id,
@@ -76,10 +78,10 @@ const CartSheet = ({ businessId: businessIdProp }: CartSheetProps) => {
             }
           }
         }
-      } catch (e: any) {
-        toast.error("Fejl ved oprettelse af bestilling: " + e.message);
-        return;
       }
+    } catch (e: any) {
+      toast.error("Fejl ved oprettelse af bestilling: " + e.message);
+      return;
     }
 
     toast.success("Din bestilling er modtaget! Vi kontakter dig snarest.");
@@ -87,6 +89,8 @@ const CartSheet = ({ businessId: businessIdProp }: CartSheetProps) => {
     setCheckout(false);
     setName(""); setEmail(""); setPhone("");
   };
+
+  const businessCount = Object.keys(groupedByBusiness).length;
 
   return (
     <Sheet>
@@ -103,14 +107,11 @@ const CartSheet = ({ businessId: businessIdProp }: CartSheetProps) => {
       </SheetTrigger>
       <SheetContent className="flex w-full flex-col sm:max-w-md">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-3">
-            {businessLogoUrl && (
-              <img src={businessLogoUrl} alt="" className="h-8 w-8 rounded-lg object-contain bg-secondary p-0.5" />
+          <SheetTitle>
+            <span className="block">Din bestilling</span>
+            {businessCount > 1 && (
+              <span className="block text-xs font-normal text-muted-foreground">{businessCount} virksomheder</span>
             )}
-            <div>
-              <span className="block">Din bestilling</span>
-              {businessName && <span className="block text-xs font-normal text-muted-foreground">{businessName}</span>}
-            </div>
           </SheetTitle>
         </SheetHeader>
 
@@ -118,48 +119,66 @@ const CartSheet = ({ businessId: businessIdProp }: CartSheetProps) => {
           <div className="flex flex-1 flex-col items-center justify-center text-center">
             <Package className="mb-4 h-12 w-12 text-muted-foreground/30" />
             <p className="text-muted-foreground">Din bestilling er tom</p>
-            <p className="mt-1 text-sm text-muted-foreground/70">Tilføj services fra virksomhedens side</p>
+            <p className="mt-1 text-sm text-muted-foreground/70">Tilføj services fra virksomhedernes sider</p>
           </div>
         ) : !checkout ? (
           <div className="flex flex-1 flex-col">
-            <div className="flex-1 space-y-3 overflow-y-auto py-4">
-              {items.map((item) => (
-                <Card key={item.serviceId} className="border-border overflow-hidden">
-                  <CardContent className="p-4 space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div className="min-w-0 flex-1">
-                        <h4 className="font-semibold text-foreground">{item.serviceName}</h4>
-                        {item.interval && item.interval !== "engangskøb" && (
-                          <Badge variant="secondary" className="mt-1 text-xs gap-1">
-                            <CalendarClock className="h-3 w-3" />
-                            {INTERVAL_LABELS[item.interval] || item.interval}
-                          </Badge>
-                        )}
+            <div className="flex-1 space-y-5 overflow-y-auto py-4">
+              {Object.entries(groupedByBusiness).map(([bizId, group]) => (
+                <div key={bizId}>
+                  {/* Business header */}
+                  <div className="flex items-center gap-2.5 mb-3 px-1">
+                    {group.businessLogoUrl ? (
+                      <img src={group.businessLogoUrl} alt="" className="h-7 w-7 rounded-lg object-contain bg-secondary p-0.5 border border-border" />
+                    ) : (
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary border border-border">
+                        <Store className="h-3.5 w-3.5 text-muted-foreground" />
                       </div>
-                      <button onClick={() => removeItem(item.serviceId)} className="text-muted-foreground hover:text-destructive ml-2">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
+                    )}
+                    <span className="text-sm font-semibold text-foreground">{group.businessName}</span>
+                  </div>
 
-                    {/* Step details */}
-                    {item.stepDetails && item.stepDetails.length > 0 && (
-                      <div className="rounded-lg bg-secondary/30 divide-y divide-border">
-                        {item.stepDetails.map((sd, i) => (
-                          <div key={i} className="flex justify-between px-3 py-1.5 text-xs">
-                            <span className="text-muted-foreground">{sd.label}: {sd.value} {sd.unit}</span>
-                            <span className="font-medium text-foreground">{sd.subtotal} kr</span>
+                  {/* Items */}
+                  <div className="space-y-2">
+                    {group.items.map((item) => (
+                      <Card key={item.serviceId} className="border-border overflow-hidden">
+                        <CardContent className="p-3.5 space-y-1.5">
+                          <div className="flex items-start justify-between">
+                            <div className="min-w-0 flex-1">
+                              <h4 className="text-sm font-semibold text-foreground">{item.serviceName}</h4>
+                              {item.interval && item.interval !== "engangskøb" && (
+                                <Badge variant="secondary" className="mt-1 text-xs gap-1">
+                                  <CalendarClock className="h-3 w-3" />
+                                  {INTERVAL_LABELS[item.interval] || item.interval}
+                                </Badge>
+                              )}
+                            </div>
+                            <button onClick={() => removeItem(item.serviceId)} className="text-muted-foreground hover:text-destructive ml-2">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
                           </div>
-                        ))}
-                      </div>
-                    )}
 
-                    {!item.stepDetails?.length && item.details && (
-                      <p className="text-xs text-muted-foreground">{item.details}</p>
-                    )}
+                          {item.stepDetails && item.stepDetails.length > 0 && (
+                            <div className="rounded-lg bg-secondary/30 divide-y divide-border">
+                              {item.stepDetails.map((sd, i) => (
+                                <div key={i} className="flex justify-between px-3 py-1.5 text-xs">
+                                  <span className="text-muted-foreground">{sd.label}: {sd.value} {sd.unit}</span>
+                                  <span className="font-medium text-foreground">{sd.subtotal} kr</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
 
-                    <p className="text-right font-bold text-foreground">{item.total} kr</p>
-                  </CardContent>
-                </Card>
+                          {!item.stepDetails?.length && item.details && (
+                            <p className="text-xs text-muted-foreground">{item.details}</p>
+                          )}
+
+                          <p className="text-right text-sm font-bold text-foreground">{item.total} kr</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
             <div className="border-t border-border pt-4">
@@ -174,7 +193,7 @@ const CartSheet = ({ businessId: businessIdProp }: CartSheetProps) => {
           </div>
         ) : (
           <div className="flex flex-1 flex-col py-4">
-            <div className="flex-1 space-y-4">
+            <div className="flex-1 space-y-4 overflow-y-auto">
               <div>
                 <label className="mb-1 block text-sm font-medium text-foreground">Fulde navn</label>
                 <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Dit navn" />
@@ -188,38 +207,42 @@ const CartSheet = ({ businessId: businessIdProp }: CartSheetProps) => {
                 <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 00 00 00 00" />
               </div>
 
-              {/* Order summary */}
+              {/* Order summary grouped by business */}
               <Card className="border-border/60">
-                <CardContent className="p-4 space-y-2">
+                <CardContent className="p-4 space-y-3">
                   <h4 className="text-sm font-semibold text-foreground">Bestillingsopsummering</h4>
 
-                  {/* Business info */}
-                  {businessName && (
-                    <div className="flex items-center gap-2 pb-2 border-b border-border">
-                      {businessLogoUrl && (
-                        <img src={businessLogoUrl} alt="" className="h-6 w-6 rounded object-contain bg-secondary p-0.5" />
-                      )}
-                      <span className="text-sm font-medium text-foreground">{businessName}</span>
-                    </div>
-                  )}
-
-                  {items.map((item) => (
-                    <div key={item.serviceId} className="space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-foreground font-medium">{item.serviceName}</span>
-                        <span className="font-semibold">{item.total} kr</span>
-                      </div>
-                      {item.interval && item.interval !== "engangskøb" && (
-                        <span className="text-xs text-accent">{INTERVAL_LABELS[item.interval]}</span>
-                      )}
-                      {item.stepDetails?.map((sd, i) => (
-                        <div key={i} className="flex justify-between text-xs text-muted-foreground pl-2">
-                          <span>{sd.label}: {sd.value} {sd.unit}</span>
-                          <span>{sd.subtotal} kr</span>
+                  {Object.entries(groupedByBusiness).map(([bizId, group]) => {
+                    const bizTotal = group.items.reduce((acc, i) => acc + i.total * i.quantity, 0);
+                    return (
+                      <div key={bizId} className="space-y-1.5">
+                        <div className="flex items-center gap-2 pb-1 border-b border-border">
+                          {group.businessLogoUrl && (
+                            <img src={group.businessLogoUrl} alt="" className="h-5 w-5 rounded object-contain bg-secondary p-0.5" />
+                          )}
+                          <span className="text-sm font-medium text-foreground">{group.businessName}</span>
+                          <span className="ml-auto text-xs font-semibold text-muted-foreground">{bizTotal} kr</span>
                         </div>
-                      ))}
-                    </div>
-                  ))}
+                        {group.items.map((item) => (
+                          <div key={item.serviceId} className="space-y-0.5">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-foreground">{item.serviceName}</span>
+                              <span className="font-semibold">{item.total} kr</span>
+                            </div>
+                            {item.interval && item.interval !== "engangskøb" && (
+                              <span className="text-xs text-accent">{INTERVAL_LABELS[item.interval]}</span>
+                            )}
+                            {item.stepDetails?.map((sd, i) => (
+                              <div key={i} className="flex justify-between text-xs text-muted-foreground pl-2">
+                                <span>{sd.label}: {sd.value} {sd.unit}</span>
+                                <span>{sd.subtotal} kr</span>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
 
                   <div className="border-t border-border pt-2 flex justify-between font-bold">
                     <span>Total</span>
