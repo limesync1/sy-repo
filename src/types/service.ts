@@ -2,21 +2,18 @@
 export interface CalculatorOption {
   id: string;
   label: string;
-  priceAdjustment: number; // added to total
+  priceAdjustment: number;
 }
 
 export interface CalculatorStep {
   id: string;
   label: string;
   type: "choice" | "multi-choice" | "number" | "yes-no";
-  // For choice/multi-choice
   options?: CalculatorOption[];
-  // For number
   unit?: string;
   pricePerUnit?: number;
   min?: number;
   max?: number;
-  // For yes-no
   yesPrice?: number;
 }
 
@@ -26,13 +23,10 @@ export interface Service {
   description: string;
   image: string;
   priceType: "fixed" | "hourly" | "calculator";
-  // Fixed
   fixedPrice?: number;
-  // Hourly
   hourlyRate?: number;
   minHours?: number;
   maxHours?: number;
-  // Calculator
   calculatorSteps?: CalculatorStep[];
   basePrice?: number;
 }
@@ -43,6 +37,11 @@ export interface CartItem {
   total: number;
   details: string;
   quantity: number;
+  interval?: string;
+  businessId?: string;
+  businessName?: string;
+  businessLogoUrl?: string;
+  stepDetails?: { label: string; value: number; unit: string; subtotal: number }[];
 }
 
 export interface BusinessInfo {
@@ -56,3 +55,11 @@ export interface BusinessInfo {
   faq: { question: string; answer: string }[];
   contact: { email: string; phone: string; address: string };
 }
+
+export const INTERVAL_LABELS: Record<string, string> = {
+  engangskøb: "Engangskøb",
+  ugentlig: "Ugentlig",
+  hver_14_dag: "Hver 14. dag",
+  månedlig: "Månedlig",
+  kvartalsvis: "Kvartalsvis",
+};

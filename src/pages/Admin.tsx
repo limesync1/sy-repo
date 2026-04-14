@@ -200,7 +200,7 @@ const AdminDashboard = () => {
             )}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-white">{business.name}</p>
-              {business.category && <p className="truncate text-xs text-white/40">{business.category}</p>}
+              {business.categories && business.categories.length > 0 && <p className="truncate text-xs text-white/40">{(business.categories as string[]).join(", ")}</p>}
             </div>
           </div>
         </div>
@@ -302,23 +302,37 @@ const CreateBusinessForm = () => {
   const createBiz = useCreateBusiness();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  const toggleCategory = (c: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
+    );
+  };
 
   const handleCreate = () => {
     if (!name.trim()) { toast.error("Indtast et navn"); return; }
+    if (selectedCategories.length === 0) { toast.error("Vælg mindst én branche"); return; }
     const slug = name.toLowerCase().replace(/[^a-z0-9æøå]+/g, "-").replace(/^-|-$/g, "");
     createBiz.mutate({
       name: name.trim(), slug, description: description.trim() || null,
-      owner_id: user!.id, category: category || null,
+      owner_id: user!.id,
+      category: selectedCategories[0] || null,
+      categories: selectedCategories,
     } as any, {
       onSuccess: () => toast.success("Virksomhed oprettet!"),
       onError: (e) => toast.error(e.message),
     });
   };
 
+  const CATEGORY_ICONS: Record<string, string> = {
+    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
+    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-      <Card className="w-full max-w-md shadow-lg">
+      <Card className="w-full max-w-lg shadow-lg">
         <CardHeader className="text-center">
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10">
             <Sparkles className="h-6 w-6 text-accent" />
@@ -329,12 +343,22 @@ const CreateBusinessForm = () => {
         <CardContent className="space-y-4">
           <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} />
           <Textarea placeholder="Beskrivelse (valgfrit)" value={description} onChange={(e) => setDescription(e.target.value)} />
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger><SelectValue placeholder="Vælg kategori" /></SelectTrigger>
-            <SelectContent>
-              {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div>
+            <label className="mb-2 block text-sm font-medium text-foreground">Vælg brancher (vælg en eller flere)</label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {CATEGORIES.map((c) => (
+                <button key={c} type="button" onClick={() => toggleCategory(c)}
+                  className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-3 text-center transition-all ${
+                    selectedCategories.includes(c)
+                      ? "border-foreground bg-foreground/5 shadow-sm"
+                      : "border-border bg-white hover:border-foreground/30"
+                  }`}>
+                  <span className="text-xl">{CATEGORY_ICONS[c] || "📋"}</span>
+                  <span className="text-xs font-medium text-foreground">{c}</span>
+                </button>
+              ))}
+            </div>
+          </div>
           <Button onClick={handleCreate} disabled={createBiz.isPending} className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-lg text-sm">
             {createBiz.isPending ? "Opretter..." : "Opret virksomhed"}
           </Button>
@@ -490,6 +514,23 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   const [steps, setSteps] = useState<any[]>(existingService?.calculator_steps || []);
   const [customCategory, setCustomCategory] = useState(false);
   const [customSubcategory, setCustomSubcategory] = useState(false);
+  const [intervalOptions, setIntervalOptions] = useState<string[]>(
+    existingService?.interval_options || ["engangskøb"]
+  );
+
+  const ALL_INTERVALS = [
+    { value: "engangskøb", label: "Engangskøb" },
+    { value: "ugentlig", label: "Ugentlig" },
+    { value: "hver_14_dag", label: "Hver 14. dag" },
+    { value: "månedlig", label: "Månedlig" },
+    { value: "kvartalsvis", label: "Kvartalsvis" },
+  ];
+
+  const toggleInterval = (v: string) => {
+    setIntervalOptions((prev) =>
+      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]
+    );
+  };
 
   const categoryOptions = Object.keys(SERVICE_CATEGORIES);
   const subcategoryOptions = serviceCategory && SERVICE_CATEGORIES[serviceCategory]
@@ -498,12 +539,13 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
     ? SERVICE_CATEGORIES[serviceCategory][subcategory] : [];
   const availableTemplates = STEP_TEMPLATES[serviceCategory] || [];
 
-  const totalSteps = pricingType === "prisberegner" ? 4 : 3;
+  const totalSteps = pricingType === "prisberegner" ? 5 : 4;
   const FORM_STEPS = [
     { num: 1, label: "Kategori", color: "bg-blue-500" },
     { num: 2, label: "Detaljer", color: "bg-violet-500" },
     { num: 3, label: "Pris", color: "bg-emerald-500" },
     ...(pricingType === "prisberegner" ? [{ num: 4, label: "Beregner", color: "bg-amber-500" }] : []),
+    { num: pricingType === "prisberegner" ? 5 : 4, label: "Interval", color: "bg-cyan-500" },
   ];
 
   const addStep = () => {
@@ -547,6 +589,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
         subcategory: subcategory.trim() || null,
         service_category: serviceCategory.trim() || null,
         image_url: imageUrl || null,
+        interval_options: intervalOptions.length > 0 ? intervalOptions : ["engangskøb"],
       };
 
       if (existingService) {
@@ -874,7 +917,31 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
         </div>
       )}
 
-      {/* Navigation buttons */}
+      {/* Step: Interval */}
+      {currentStep === totalSteps && (
+        <div className="space-y-5">
+          <div>
+            <h4 className="text-base font-semibold text-foreground">Vælg intervaller</h4>
+            <p className="mt-1 text-sm text-muted-foreground">Hvilke intervaller kan kunden vælge for denne service?</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            {ALL_INTERVALS.map((iv) => (
+              <button key={iv.value} type="button" onClick={() => toggleInterval(iv.value)}
+                className={`rounded-xl border-2 px-4 py-3 text-center transition-all ${
+                  intervalOptions.includes(iv.value)
+                    ? "border-foreground bg-foreground/5 shadow-sm"
+                    : "border-border bg-white hover:border-foreground/30"
+                }`}>
+                <span className="text-sm font-medium text-foreground">{iv.label}</span>
+              </button>
+            ))}
+          </div>
+          {intervalOptions.length === 0 && (
+            <p className="text-sm text-destructive">Vælg mindst ét interval</p>
+          )}
+        </div>
+      )}
+
       <div className="flex items-center justify-between pt-3 border-t border-border">
         <div className="flex gap-2">
           {currentStep > 1 && (
@@ -1059,7 +1126,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
 
 /* ─── Quotes Tab ─── */
 const QuotesTab = ({ business }: { business: any }) => {
-  const { data: requests, isLoading } = useQuoteRequests(business.category);
+  const { data: requests, isLoading } = useQuoteRequests(business.categories as string[] || (business.category ? [business.category] : null));
   const { data: myQuotes } = useMyQuotes(business.id);
   const createQuote = useCreateQuote();
   const [quoteData, setQuoteData] = useState<Record<string, { price: string; message: string }>>({});
@@ -1174,10 +1241,18 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [zipCode, setZipCode] = useState(business.zip_code || "");
   const [logoUrl, setLogoUrl] = useState(business.logo_url || "");
   const [coverUrl, setCoverUrl] = useState(business.cover_image_url || "");
-  const [category, setCategory] = useState(business.category || "");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    (business.categories as string[]) || (business.category ? [business.category] : [])
+  );
   const [openHours, setOpenHours] = useState<Record<string, string>>(business.opening_hours || {});
 
   const DAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
+
+  const toggleSettingsCategory = (c: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
+    );
+  };
 
   const save = () => {
     updateBiz.mutate({
@@ -1187,7 +1262,9 @@ const SettingsTab = ({ business }: { business: any }) => {
       address: address.trim() || null, city: city.trim() || null,
       zip_code: zipCode.trim() || null,
       logo_url: logoUrl || null, cover_image_url: coverUrl || null,
-      category: category || null, opening_hours: openHours,
+      category: selectedCategories[0] || null,
+      categories: selectedCategories,
+      opening_hours: openHours,
     } as any, {
       onSuccess: () => toast.success("Indstillinger gemt"),
       onError: (e) => toast.error(e.message),
@@ -1214,11 +1291,17 @@ const SettingsTab = ({ business }: { business: any }) => {
               <Textarea placeholder="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-muted-foreground">Kategori</label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger><SelectValue placeholder="Kategori" /></SelectTrigger>
-                <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-              </Select>
+              <label className="mb-2 block text-sm font-medium text-muted-foreground">Brancher</label>
+              <div className="flex flex-wrap gap-2">
+                {CATEGORIES.map((c) => (
+                  <button key={c} type="button" onClick={() => toggleSettingsCategory(c)}
+                    className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-all ${
+                      selectedCategories.includes(c)
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border bg-white text-foreground hover:border-foreground/40"
+                    }`}>{c}</button>
+                ))}
+              </div>
             </div>
           </div>
         </CardContent>

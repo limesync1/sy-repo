@@ -10,6 +10,7 @@ import BusinessPage from "./pages/BusinessPage";
 import DynamicBusinessPage from "./pages/DynamicBusinessPage";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import CustomerDashboard from "./pages/CustomerDashboard";
 import Search from "./pages/Search";
 import RequestQuote from "./pages/RequestQuote";
 import NotFound from "./pages/NotFound";
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/dashboard" element={<CustomerDashboard />} />
             <Route path="/demo" element={<BusinessPage />} />
             <Route path="/search" element={<Search />} />
             <Route path="/quote" element={<CartProvider><RequestQuote /></CartProvider>} />

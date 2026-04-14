@@ -136,6 +136,7 @@ const RequestQuote = () => {
     updated_at: "",
     service_category: null,
     sort_order: 0,
+    interval_options: ["engangskøb"] as string[],
     calculator_steps: s.calculator_steps.map((cs) => ({
       id: cs.id,
       label: cs.label,

@@ -17,6 +17,7 @@ export type Database = {
       businesses: {
         Row: {
           address: string | null
+          categories: string[] | null
           category: string | null
           city: string | null
           cover_image_url: string | null
@@ -37,6 +38,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          categories?: string[] | null
           category?: string | null
           city?: string | null
           cover_image_url?: string | null
@@ -57,6 +59,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          categories?: string[] | null
           category?: string | null
           city?: string | null
           cover_image_url?: string | null
@@ -222,6 +225,36 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       quote_requests: {
         Row: {
           category: string
@@ -308,28 +341,34 @@ export type Database = {
           business_id: string
           comment: string | null
           created_at: string
+          customer_id: string | null
           id: string
           is_verified: boolean | null
           rating: number
           reviewer_name: string
+          subscription_id: string | null
         }
         Insert: {
           business_id: string
           comment?: string | null
           created_at?: string
+          customer_id?: string | null
           id?: string
           is_verified?: boolean | null
           rating: number
           reviewer_name: string
+          subscription_id?: string | null
         }
         Update: {
           business_id?: string
           comment?: string | null
           created_at?: string
+          customer_id?: string | null
           id?: string
           is_verified?: boolean | null
           rating?: number
           reviewer_name?: string
+          subscription_id?: string | null
         }
         Relationships: [
           {
@@ -337,6 +376,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
             referencedColumns: ["id"]
           },
         ]
@@ -349,6 +395,7 @@ export type Database = {
           description: string | null
           id: string
           image_url: string | null
+          interval_options: string[] | null
           is_active: boolean | null
           name: string
           pricing_type: Database["public"]["Enums"]["pricing_type"]
@@ -365,6 +412,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          interval_options?: string[] | null
           is_active?: boolean | null
           name: string
           pricing_type?: Database["public"]["Enums"]["pricing_type"]
@@ -381,6 +429,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          interval_options?: string[] | null
           is_active?: boolean | null
           name?: string
           pricing_type?: Database["public"]["Enums"]["pricing_type"]
@@ -396,6 +445,82 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          business_id: string
+          cancelled_at: string | null
+          created_at: string
+          customer_id: string
+          details: Json | null
+          id: string
+          interval: string
+          next_service_date: string | null
+          order_id: string | null
+          paused_at: string | null
+          service_id: string
+          service_name: string
+          status: string
+          total_price: number
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          cancelled_at?: string | null
+          created_at?: string
+          customer_id: string
+          details?: Json | null
+          id?: string
+          interval?: string
+          next_service_date?: string | null
+          order_id?: string | null
+          paused_at?: string | null
+          service_id: string
+          service_name: string
+          status?: string
+          total_price?: number
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          cancelled_at?: string | null
+          created_at?: string
+          customer_id?: string
+          details?: Json | null
+          id?: string
+          interval?: string
+          next_service_date?: string | null
+          order_id?: string | null
+          paused_at?: string | null
+          service_id?: string
+          service_name?: string
+          status?: string
+          total_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
             referencedColumns: ["id"]
           },
         ]

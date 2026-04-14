@@ -9,6 +9,8 @@ export type CalculatorStep = Tables<"calculator_steps">;
 export type Order = Tables<"orders">;
 export type OrderItem = Tables<"order_items">;
 export type Review = Tables<"reviews">;
+export type Subscription = Tables<"subscriptions">;
+export type Profile = Tables<"profiles">;
 
 // Fetch business by slug (public)
 export const useBusinessBySlug = (slug: string) => {
@@ -37,7 +39,7 @@ export const useAllBusinesses = (category?: string, search?: string) => {
         .select("*")
         .eq("is_active", true)
         .order("created_at", { ascending: false });
-      if (category) query = query.eq("category", category);
+      if (category) query = query.contains("categories", [category]);
       if (search) query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
       const { data, error } = await query;
       if (error) throw error;
@@ -258,22 +260,24 @@ export const useCreateQuoteRequest = () => {
   });
 };
 
-// Fetch quote requests (for businesses in matching category)
-export const useQuoteRequests = (category?: string | null) => {
+// Fetch quote requests (for businesses in matching categories)
+export const useQuoteRequests = (categories?: string[] | null) => {
   return useQuery({
-    queryKey: ["quote-requests", category],
+    queryKey: ["quote-requests", categories],
     queryFn: async () => {
       let query = supabase
         .from("quote_requests")
         .select("*")
         .eq("status", "open")
         .order("created_at", { ascending: false });
-      if (category) query = query.eq("category", category);
+      if (categories && categories.length > 0) {
+        query = query.in("category", categories);
+      }
       const { data, error } = await query;
       if (error) throw error;
       return data;
     },
-    enabled: !!category,
+    enabled: !!categories && categories.length > 0,
   });
 };
 
@@ -304,5 +308,105 @@ export const useMyQuotes = (businessId: string | undefined) => {
       return data;
     },
     enabled: !!businessId,
+  });
+};
+
+// ── Subscriptions ──
+
+// Customer: fetch my subscriptions
+export const useMySubscriptions = () => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["my-subscriptions", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("*, businesses(name, slug, logo_url), services(name, pricing_type)")
+        .eq("customer_id", user!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+};
+
+// Business: fetch subscriptions for my business
+export const useBusinessSubscriptions = (businessId: string | undefined) => {
+  return useQuery({
+    queryKey: ["business-subscriptions", businessId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("*, profiles(display_name, phone)")
+        .eq("business_id", businessId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!businessId,
+  });
+};
+
+// Create subscription
+export const useCreateSubscription = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (sub: TablesInsert<"subscriptions">) => {
+      const { data, error } = await supabase.from("subscriptions").insert(sub).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my-subscriptions"] });
+      qc.invalidateQueries({ queryKey: ["business-subscriptions"] });
+    },
+  });
+};
+
+// Update subscription (pause/cancel/resume)
+export const useUpdateSubscription = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string } & Partial<TablesUpdate<"subscriptions">>) => {
+      const { data, error } = await supabase.from("subscriptions").update(updates as any).eq("id", id).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my-subscriptions"] });
+      qc.invalidateQueries({ queryKey: ["business-subscriptions"] });
+    },
+  });
+};
+
+// Fetch my profile
+export const useMyProfile = () => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["my-profile", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+};
+
+// Update my profile
+export const useUpdateProfile = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, ...updates }: { userId: string } & Partial<TablesUpdate<"profiles">>) => {
+      const { data, error } = await supabase.from("profiles").update(updates as any).eq("user_id", userId).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-profile"] }),
   });
 };
