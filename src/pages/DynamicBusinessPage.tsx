@@ -22,6 +22,28 @@ const DynamicBusinessContent = () => {
   const { data: reviews } = useReviews(business?.id);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
+  // Memoize grouped services
+  type ServiceItem = NonNullable<typeof services>[number];
+  const groupedServices = useMemo(() => {
+    const groups: Record<string, Record<string, ServiceItem[]>> = {};
+    services?.forEach((s) => {
+      const cat = (s as any).service_category || "Øvrige";
+      const sub = (s as any).subcategory || "";
+      if (!groups[cat]) groups[cat] = {};
+      if (!groups[cat][sub]) groups[cat][sub] = [];
+      groups[cat][sub].push(s);
+    });
+    return groups;
+  }, [services]);
+
+  const categories = Object.keys(groupedServices);
+  const hasMultipleCategories = categories.length > 1;
+
+  const displayedServices = useMemo(() => {
+    if (!activeCategory) return groupedServices;
+    return { [activeCategory]: groupedServices[activeCategory] };
+  }, [activeCategory, groupedServices]);
+
   if (isLoading) return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="flex flex-col items-center gap-3">
@@ -45,26 +67,6 @@ const DynamicBusinessContent = () => {
     ? Object.entries(business.opening_hours as Record<string, string>).filter(([, v]) => v)
     : [];
   const hasCover = !!business.cover_image_url;
-
-  // Group services by category → subcategory
-  type ServiceItem = NonNullable<typeof services>[number];
-  const groupedServices: Record<string, Record<string, ServiceItem[]>> = {};
-  services?.forEach((s) => {
-    const cat = (s as any).service_category || "Øvrige";
-    const sub = (s as any).subcategory || "";
-    if (!groupedServices[cat]) groupedServices[cat] = {};
-    if (!groupedServices[cat][sub]) groupedServices[cat][sub] = [];
-    groupedServices[cat][sub].push(s);
-  });
-
-  const categories = Object.keys(groupedServices);
-  const hasMultipleCategories = categories.length > 1;
-
-  // Filter services by active category
-  const displayedServices = useMemo(() => {
-    if (!activeCategory) return groupedServices;
-    return { [activeCategory]: groupedServices[activeCategory] };
-  }, [activeCategory, groupedServices]);
 
   const scrollToServices = () => {
     document.getElementById("services")?.scrollIntoView({ behavior: "smooth" });
