@@ -247,8 +247,6 @@ const CartSheet = ({ businessId: businessIdProp }: CartSheetProps) => {
       </SheetContent>
     </Sheet>
   );
-});
-
-CartSheet.displayName = "CartSheet";
+};
 
 export default CartSheet;
