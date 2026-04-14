@@ -1091,6 +1091,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       category: selectedCategories[0] || null,
       categories: selectedCategories,
       opening_hours: openHours,
+      notification_settings: notifSettings,
     } as any, {
       onSuccess: () => toast.success("Indstillinger gemt"),
       onError: (e) => toast.error(e.message),
