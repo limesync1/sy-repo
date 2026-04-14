@@ -977,9 +977,9 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
         </Card>
       ) : (
         <Card className="rounded-xl border-dashed border-[#e1e3e5]">
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <div className="mb-4 rounded-xl bg-muted p-3">
-              <ShoppingCart className="h-8 w-8 text-muted-foreground/50" />
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <div className="mb-3 rounded-xl bg-muted p-2.5">
+              <ShoppingCart className="h-6 w-6 text-muted-foreground/40" />
             </div>
             <p className="text-[13px] font-medium text-foreground">
               {filter === "all" ? "Ingen ordrer endnu" : `Ingen ordrer med status "${statusLabels[filter]}"`}
