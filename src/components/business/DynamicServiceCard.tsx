@@ -5,18 +5,19 @@ import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 import { ImageIcon, ShoppingCart, Minus, Plus } from "lucide-react";
+import { INTERVAL_LABELS } from "@/types/service";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 
 interface Props {
   service: Service & { calculator_steps?: CalculatorStep[] };
   initialStepValues?: Record<string, number>;
   initialHours?: number;
+  businessName?: string;
+  businessLogoUrl?: string;
 }
 
-/* ── Smart step size based on unit and range ── */
 const getSmartStep = (unit: string, min: number, max: number): number => {
   const range = max - min;
-  // Large-area units
   if (["m²", "m2", "m"].includes(unit)) {
     if (range >= 500) return 10;
     if (range >= 100) return 5;
@@ -29,54 +30,29 @@ const getSmartStep = (unit: string, min: number, max: number): number => {
     if (range >= 1000) return 100;
     return 50;
   }
-  // Default for stk, rum, etc.
   return 1;
 };
 
-/* ── Stepper: +/- with editable number ── */
 const StepperInput = ({
-  value,
-  onChange,
-  min,
-  max,
-  step: stepOverride,
-  unit,
+  value, onChange, min, max, step: stepOverride, unit,
 }: {
-  value: number;
-  onChange: (v: number) => void;
-  min: number;
-  max: number;
-  step?: number;
-  unit: string;
+  value: number; onChange: (v: number) => void; min: number; max: number; step?: number; unit: string;
 }) => {
   const step = stepOverride ?? getSmartStep(unit, min, max);
   const dec = () => onChange(Math.max(min, +(value - step).toFixed(2)));
   const inc = () => onChange(Math.min(max, +(value + step).toFixed(2)));
-
-  // Show editable input for large-range units
   const isLargeRange = (max - min) > 20;
 
   return (
     <div className="flex items-center gap-0">
-      <button
-        type="button"
-        onClick={dec}
-        disabled={value <= min}
-        className="flex h-9 w-9 items-center justify-center rounded-l-lg border border-border bg-secondary text-foreground transition-colors hover:bg-secondary/80 disabled:opacity-30"
-      >
+      <button type="button" onClick={dec} disabled={value <= min}
+        className="flex h-9 w-9 items-center justify-center rounded-l-lg border border-border bg-secondary text-foreground transition-colors hover:bg-secondary/80 disabled:opacity-30">
         <Minus className="h-3.5 w-3.5" />
       </button>
       {isLargeRange ? (
-        <input
-          type="number"
-          value={value}
-          onChange={(e) => {
-            const v = parseFloat(e.target.value);
-            if (!isNaN(v)) onChange(Math.max(min, Math.min(max, v)));
-          }}
-          min={min}
-          max={max}
-          step={step}
+        <input type="number" value={value}
+          onChange={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) onChange(Math.max(min, Math.min(max, v))); }}
+          min={min} max={max} step={step}
           className="flex h-9 w-[5rem] items-center border-y border-border bg-card px-2 text-center text-sm font-semibold text-foreground outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         />
       ) : (
@@ -84,21 +60,21 @@ const StepperInput = ({
           {value}
         </div>
       )}
-      <button
-        type="button"
-        onClick={inc}
-        disabled={value >= max}
-        className="flex h-9 w-9 items-center justify-center rounded-r-lg border border-border bg-secondary text-foreground transition-colors hover:bg-secondary/80 disabled:opacity-30"
-      >
+      <button type="button" onClick={inc} disabled={value >= max}
+        className="flex h-9 w-9 items-center justify-center rounded-r-lg border border-border bg-secondary text-foreground transition-colors hover:bg-secondary/80 disabled:opacity-30">
         <Plus className="h-3.5 w-3.5" />
       </button>
       <span className="ml-2 text-xs text-muted-foreground">{unit}</span>
     </div>
   );
 };
-const DynamicServiceCard = ({ service, initialStepValues, initialHours }: Props) => {
+
+const DynamicServiceCard = ({ service, initialStepValues, initialHours, businessName, businessLogoUrl }: Props) => {
   const { addItem } = useCart();
   const [hours, setHours] = useState(initialHours ?? 1);
+  const [selectedInterval, setSelectedInterval] = useState(
+    (service.interval_options && service.interval_options.length > 0) ? service.interval_options[0] : "engangskøb"
+  );
   const [stepValues, setStepValues] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
     service.calculator_steps?.forEach((s) => {
@@ -108,9 +84,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours }: Props)
   });
 
   const pricingLabels: Record<string, string> = {
-    fast_pris: "Fast pris",
-    timepris: "Timepris",
-    prisberegner: "Prisberegner",
+    fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner",
   };
 
   const calculateTotal = (): number => {
@@ -128,15 +102,36 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours }: Props)
   const handleAdd = () => {
     const total = calculateTotal();
     let details = "";
-    if (service.pricing_type === "fast_pris") details = "Fast pris";
-    else if (service.pricing_type === "timepris") details = `${hours} timer`;
-    else {
-      details = (service.calculator_steps || [])
-        .map((s) => `${s.label}: ${stepValues[s.id]} ${s.unit}`)
-        .join(", ");
+    const stepDetails: { label: string; value: number; unit: string; subtotal: number }[] = [];
+
+    if (service.pricing_type === "fast_pris") {
+      details = "Fast pris";
+    } else if (service.pricing_type === "timepris") {
+      details = `${hours} timer`;
+      stepDetails.push({ label: "Timer", value: hours, unit: "timer", subtotal: total });
+    } else {
+      const parts: string[] = [];
+      (service.calculator_steps || []).forEach((s) => {
+        const val = stepValues[s.id] || 0;
+        parts.push(`${s.label}: ${val} ${s.unit}`);
+        stepDetails.push({ label: s.label, value: val, unit: s.unit, subtotal: val * s.price_per_unit });
+      });
+      details = parts.join(", ");
     }
-    addItem({ serviceId: service.id, serviceName: service.name, total, details, quantity: 1 });
-    toast.success(`${service.name} tilføjet til kurv`);
+
+    addItem({
+      serviceId: service.id,
+      serviceName: service.name,
+      total,
+      details,
+      quantity: 1,
+      interval: selectedInterval,
+      businessId: service.business_id,
+      businessName,
+      businessLogoUrl: businessLogoUrl || undefined,
+      stepDetails,
+    });
+    toast.success(`${service.name} tilføjet til bestilling`);
   };
 
   const sortedSteps = [...(service.calculator_steps || [])].sort(
@@ -144,10 +139,12 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours }: Props)
   );
 
   const total = calculateTotal();
+  const intervals = service.interval_options && service.interval_options.length > 0
+    ? service.interval_options : ["engangskøb"];
+  const showIntervals = intervals.length > 1 || (intervals.length === 1 && intervals[0] !== "engangskøb");
 
   return (
     <Card className="overflow-hidden border-border transition-all hover:shadow-md">
-      {/* Image */}
       {service.image_url ? (
         <div className="relative h-44 w-full overflow-hidden bg-secondary md:h-52">
           <img src={service.image_url} alt={service.name} className="h-full w-full object-cover" loading="lazy" />
@@ -165,7 +162,6 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours }: Props)
       )}
 
       <CardContent className="p-5">
-        {/* Header */}
         <div className="mb-4">
           <h3 className="text-lg font-bold text-foreground">{service.name}</h3>
           {(service as any).subcategory && (
@@ -189,14 +185,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours }: Props)
           <div className="mb-4 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">{service.base_price} kr / time</span>
-              <StepperInput
-                value={hours}
-                onChange={setHours}
-                min={0.5}
-                max={24}
-                step={0.5}
-                unit="t"
-              />
+              <StepperInput value={hours} onChange={setHours} min={0.5} max={24} step={0.5} unit="t" />
             </div>
             <div className="flex items-baseline gap-1 pt-1">
               <span className="text-2xl font-bold text-foreground">{total}</span>
@@ -211,12 +200,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours }: Props)
             {sortedSteps.map((step, idx) => {
               const stepTotal = (stepValues[step.id] || 0) * step.price_per_unit;
               return (
-                <div
-                  key={step.id}
-                  className={`px-4 py-3 ${
-                    idx !== sortedSteps.length - 1 ? "border-b border-border" : ""
-                  }`}
-                >
+                <div key={step.id} className={`px-4 py-3 ${idx !== sortedSteps.length - 1 ? "border-b border-border" : ""}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="min-w-0">
                       <span className="text-sm font-medium text-foreground">{step.label}</span>
@@ -227,14 +211,11 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours }: Props)
                   <StepperInput
                     value={stepValues[step.id] ?? 0}
                     onChange={(v) => setStepValues((prev) => ({ ...prev, [step.id]: v }))}
-                    min={0}
-                    max={step.max_value || 100}
-                    unit={step.unit}
+                    min={0} max={step.max_value || 100} unit={step.unit}
                   />
                 </div>
               );
             })}
-            {/* Total row */}
             <div className="flex items-center justify-between bg-secondary/40 px-4 py-3">
               <span className="text-sm font-semibold text-foreground">I alt</span>
               <div className="flex items-baseline gap-1">
@@ -245,9 +226,28 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours }: Props)
           </div>
         )}
 
+        {/* Interval selector */}
+        {showIntervals && (
+          <div className="mb-4">
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Vælg interval</label>
+            <div className="flex flex-wrap gap-1.5">
+              {intervals.map((iv) => (
+                <button key={iv} type="button" onClick={() => setSelectedInterval(iv)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                    selectedInterval === iv
+                      ? "border-accent bg-accent text-accent-foreground"
+                      : "border-border bg-card text-muted-foreground hover:border-accent/40"
+                  }`}>
+                  {INTERVAL_LABELS[iv] || iv}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <Button onClick={handleAdd} className="w-full gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
           <ShoppingCart className="h-4 w-4" />
-          Tilføj til kurv – {total} kr
+          Tilføj til bestilling – {total} kr
         </Button>
       </CardContent>
     </Card>
