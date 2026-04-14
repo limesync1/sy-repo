@@ -107,7 +107,18 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
   const handleAdd = () => {
     const total = roundPrice(calculateTotal());
     let details = "";
-    const stepDetails: { label: string; value: number; unit: string; price_per_unit: number; subtotal: number }[] = [];
+    const stepDetails: {
+      id?: string;
+      label: string;
+      value: number;
+      unit: string;
+      price_per_unit: number;
+      subtotal: number;
+      min_value?: number;
+      max_value?: number;
+      default_value?: number;
+      sort_order?: number;
+    }[] = [];
 
     if (service.pricing_type === "fast_pris") {
       details = "Fast pris";
