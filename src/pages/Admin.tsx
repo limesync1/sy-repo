@@ -156,7 +156,7 @@ const AdminDashboard = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "dashboard": return <DashboardWrapper business={business} />;
+      case "dashboard": return <DashboardWrapper business={business} onNavigate={setActiveTab} />;
       case "services": return <ServicesTab businessId={business.id} />;
       case "orders": return <AftaleTab businessId={business.id} />;
       
@@ -264,7 +264,7 @@ const AdminDashboard = () => {
 };
 
 /* ─── Dashboard Wrapper ─── */
-const DashboardWrapper = ({ business }: { business: any }) => {
+const DashboardWrapper = ({ business, onNavigate }: { business: any; onNavigate: (tab: string) => void }) => {
   const { data: orders } = useOrders(business.id);
   const { data: services } = useServices(business.id);
   const { data: reviews } = useReviews(business.id);
@@ -285,6 +285,7 @@ const DashboardWrapper = ({ business }: { business: any }) => {
       reviewsCount={reviews?.length || 0}
       pendingOrders={pendingOrders}
       recentOrders={orders || []}
+      onNavigate={onNavigate}
     />
   );
 };

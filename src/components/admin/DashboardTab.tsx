@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
   Handshake, DollarSign, Star, Briefcase, Clock, TrendingUp,
-  ArrowRight, CheckCircle2, AlertCircle, ImageIcon, MapPin, Phone,
+  ArrowRight, AlertCircle, MapPin,
 } from "lucide-react";
 import type { Business } from "@/hooks/useDatabase";
 import { useMemo } from "react";
