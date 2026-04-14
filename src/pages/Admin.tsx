@@ -1277,7 +1277,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                                   : "border-foreground bg-foreground text-background"
                                   : "border-border bg-card text-muted-foreground hover:border-foreground/30"
                               }`}>
-                              {type === "accepted" ? "✓ Godkend" : type === "adjusted" ? "✎ Tilpas" : "✕ Afvis"}
+                              {type === "accepted" ? "✓ Godkend" : type === "adjusted" ? <><Pencil className="h-3 w-3" /> Tilpas</> : "✕ Afvis"}
                             </button>
                           ))}
                         </div>
