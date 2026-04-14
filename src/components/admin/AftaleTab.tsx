@@ -6,14 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   ShoppingCart, Pencil, Minus, Plus, Check, X, MessageSquare,
   ChevronDown, ChevronUp, Clock, User, Mail, Phone, ArrowRight,
-  AlertTriangle, CheckCircle2, XCircle, RefreshCw, CalendarClock,
-  Play, Pause, Package,
+  CheckCircle2, XCircle, RefreshCw, CalendarClock,
+  Play, Pause,
 } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
 import {
