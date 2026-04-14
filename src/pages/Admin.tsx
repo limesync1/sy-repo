@@ -371,22 +371,62 @@ const CreateBusinessForm = () => {
 /* ─── Services Tab ─── */
 const ServicesTab = ({ businessId }: { businessId: string }) => {
   const { data: services, isLoading } = useServices(businessId);
+  const { data: orders } = useOrders(businessId);
   const deleteService = useDeleteService();
   const [showForm, setShowForm] = useState(false);
+  const [filterCategory, setFilterCategory] = useState("");
+
+  // Count orders per service
+  const orderCountByService: Record<string, number> = {};
+  orders?.forEach((o: any) => {
+    o.order_items?.forEach((item: any) => {
+      if (item.service_id) {
+        orderCountByService[item.service_id] = (orderCountByService[item.service_id] || 0) + item.quantity;
+      }
+    });
+  });
+
+  const uniqueCategories = [...new Set((services || []).map((s: any) => s.service_category).filter(Boolean))];
+  const filtered = filterCategory
+    ? services?.filter((s: any) => s.service_category === filterCategory)
+    : services;
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser services...</p>;
 
+  const CATEGORY_ICONS: Record<string, string> = {
+    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
+    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
+  };
+
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold text-foreground">Services</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">{services?.length || 0} services oprettet</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            {services?.length || 0} services · {Object.values(orderCountByService).reduce((a, b) => a + b, 0)} bestillinger i alt
+          </p>
         </div>
         <Button onClick={() => setShowForm(true)} size="sm" className="h-8 gap-1.5 rounded-lg text-sm bg-foreground text-background hover:bg-foreground/90">
           <Plus className="h-3.5 w-3.5" /> Tilføj service
         </Button>
       </div>
+
+      {/* Category filter chips */}
+      {uniqueCategories.length > 1 && (
+        <div className="flex flex-wrap gap-1.5">
+          <button onClick={() => setFilterCategory("")}
+            className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${!filterCategory ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
+            Alle
+          </button>
+          {uniqueCategories.map((cat) => (
+            <button key={cat} onClick={() => setFilterCategory(filterCategory === cat ? "" : cat)}
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${filterCategory === cat ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
+              <span>{CATEGORY_ICONS[cat] || "📋"}</span> {cat}
+            </button>
+          ))}
+        </div>
+      )}
 
       {showForm && (
         <Card className="rounded-xl shadow-md border-accent/20 bg-gradient-to-b from-accent/[0.03] to-transparent">
@@ -397,16 +437,18 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
       )}
 
       <div className="space-y-2.5">
-        {services?.map((s) => (
-          <ServiceRow key={s.id} service={s} onDelete={() => deleteService.mutate(s.id)} />
+        {filtered?.map((s: any) => (
+          <ServiceRow key={s.id} service={s} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
         ))}
-        {(!services || services.length === 0) && !showForm && (
+        {(!filtered || filtered.length === 0) && !showForm && (
           <Card className="rounded-xl border-dashed border-border">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <div className="mb-3 rounded-xl bg-muted p-2.5">
                 <Wrench className="h-6 w-6 text-muted-foreground/40" />
               </div>
-              <p className="text-sm font-medium text-foreground">Ingen services endnu</p>
+              <p className="text-sm font-medium text-foreground">
+                {filterCategory ? `Ingen services i "${filterCategory}"` : "Ingen services endnu"}
+              </p>
               <p className="mt-0.5 text-sm text-muted-foreground">Tilføj din første service for at komme i gang.</p>
               <Button onClick={() => setShowForm(true)} size="sm" className="mt-3 h-8 gap-1.5 rounded-lg text-sm bg-foreground text-background hover:bg-foreground/90">
                 <Plus className="h-3.5 w-3.5" /> Tilføj service
@@ -419,27 +461,88 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
   );
 };
 
-const ServiceRow = ({ service, onDelete }: { service: any; onDelete: () => void }) => {
+const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCount: number; onDelete: () => void }) => {
   const [editing, setEditing] = useState(false);
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
+  const pricingIcons: Record<string, string> = { fast_pris: "💰", timepris: "⏱️", prisberegner: "🧮" };
+  const CATEGORY_ICONS: Record<string, string> = {
+    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
+    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
+  };
+
+  const intervals = service.interval_options || [];
+  const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
 
   return (
-    <Card className="rounded-xl shadow-sm border-border overflow-hidden">
-      <CardContent className="flex items-center justify-between p-3.5">
-        <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-semibold text-foreground">{service.name}</h3>
-          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
-            <Badge variant="secondary" className="text-xs font-normal px-1.5 py-0 rounded">{pricingLabels[service.pricing_type] || service.pricing_type}</Badge>
-            {service.base_price != null && <span>{service.base_price} kr{service.unit ? ` / ${service.unit}` : ""}</span>}
-            {service.calculator_steps?.length > 0 && <span>· {service.calculator_steps.length} trin</span>}
-            {service.subcategory && <Badge variant="outline" className="text-xs font-normal px-1.5 py-0 rounded">{service.subcategory}</Badge>}
+    <Card className="rounded-xl shadow-sm border-border overflow-hidden transition-shadow hover:shadow-md">
+      <CardContent className="p-0">
+        <div className="flex items-stretch">
+          {/* Left accent strip with category icon */}
+          <div className="flex w-12 shrink-0 flex-col items-center justify-center bg-secondary/50 border-r border-border">
+            <span className="text-lg">{CATEGORY_ICONS[service.service_category] || "📋"}</span>
           </div>
-        </div>
-        <div className="ml-3 flex gap-1.5">
-          <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-7 rounded-lg text-sm px-2.5">
-            {editing ? "Luk" : "Rediger"}
-          </Button>
-          <Button variant="ghost" size="sm" onClick={onDelete} className="h-7 w-7 p-0 rounded-lg"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+
+          {/* Main content */}
+          <div className="flex-1 p-3.5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-foreground truncate">{service.name}</h3>
+                  {service.is_active === false && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 rounded border-destructive/30 text-destructive">Inaktiv</Badge>
+                  )}
+                </div>
+                {service.description && (
+                  <p className="mt-0.5 text-xs text-muted-foreground line-clamp-1">{service.description}</p>
+                )}
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-0.5 text-[11px] font-medium text-foreground">
+                    <span className="text-xs">{pricingIcons[service.pricing_type]}</span>
+                    {pricingLabels[service.pricing_type] || service.pricing_type}
+                  </span>
+                  {service.base_price != null && (
+                    <span className="inline-flex items-center rounded-md border border-border bg-card px-2 py-0.5 text-[11px] font-semibold text-foreground">
+                      {service.base_price} kr{service.unit ? ` / ${service.unit}` : ""}
+                    </span>
+                  )}
+                  {service.calculator_steps?.length > 0 && (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-0.5 text-[11px] text-muted-foreground">
+                      <Calculator className="h-3 w-3" /> {service.calculator_steps.length} trin
+                    </span>
+                  )}
+                  {service.subcategory && (
+                    <span className="inline-flex items-center rounded-md border border-accent/20 bg-accent/5 px-2 py-0.5 text-[11px] font-medium text-accent">
+                      {service.subcategory}
+                    </span>
+                  )}
+                  {service.service_category && !service.subcategory && (
+                    <span className="inline-flex items-center rounded-md border border-border bg-secondary/50 px-2 py-0.5 text-[11px] text-muted-foreground">
+                      {service.service_category}
+                    </span>
+                  )}
+                  {hasRecurring && (
+                    <span className="inline-flex items-center gap-0.5 rounded-md border border-blue-500/20 bg-blue-500/5 px-2 py-0.5 text-[11px] font-medium text-blue-600">
+                      🔄 Abonnement
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Right side: order count + actions */}
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="text-right hidden sm:block">
+                  <span className="block text-sm font-bold text-foreground">{orderCount}</span>
+                  <span className="block text-[10px] text-muted-foreground">bestillinger</span>
+                </div>
+                <div className="flex gap-1">
+                  <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-7 rounded-lg text-xs px-2.5 border-border hover:bg-secondary">
+                    {editing ? "Luk" : "Rediger"}
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={onDelete} className="h-7 w-7 p-0 rounded-lg hover:bg-destructive/10 transition-colors"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </CardContent>
       {editing && (
