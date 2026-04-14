@@ -548,13 +548,76 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
 
   const pendingCount = counts["pending"] || 0;
 
+  // Active subscriptions with upcoming dates
+  const activeSubscriptions = (subscriptions || []).filter(s => s.status === "active");
+  const upcomingSubs = activeSubscriptions
+    .filter(s => s.next_service_date)
+    .sort((a, b) => new Date(a.next_service_date!).getTime() - new Date(b.next_service_date!).getTime());
+
   return (
     <div className="space-y-5">
-      {/* Header with pending alert */}
-      <div>
-        <h2 className="text-base font-semibold text-foreground">Aftaler</h2>
-        <p className="mt-0.5 text-sm text-muted-foreground">{orders?.length || 0} aftaler i alt</p>
+      {/* Header with view toggle */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-base font-semibold text-foreground">Aftaler & Abonnementer</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            {orders?.length || 0} bestillinger · {activeSubscriptions.length} aktive abonnementer
+          </p>
+        </div>
+        <div className="flex rounded-lg border border-border overflow-hidden">
+          <button onClick={() => setActiveView("orders")}
+            className={`px-3 py-1.5 text-xs font-medium transition-colors ${activeView === "orders" ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}>
+            Bestillinger
+          </button>
+          <button onClick={() => setActiveView("subscriptions")}
+            className={`px-3 py-1.5 text-xs font-medium transition-colors ${activeView === "subscriptions" ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}>
+            Abonnementer {activeSubscriptions.length > 0 && `(${activeSubscriptions.length})`}
+          </button>
+        </div>
       </div>
+
+      {/* Upcoming services alert */}
+      {activeView === "orders" && upcomingSubs.length > 0 && (
+        <div className="rounded-xl border border-accent/20 bg-accent/5 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <CalendarClock className="h-4 w-4 text-accent" />
+            <span className="text-sm font-semibold text-foreground">Kommende services</span>
+          </div>
+          <div className="space-y-1.5">
+            {upcomingSubs.slice(0, 3).map(sub => {
+              const nextDate = new Date(sub.next_service_date!);
+              const daysUntil = Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+              const profile = (sub as any).profiles;
+              return (
+                <div key={sub.id} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold ${
+                      daysUntil <= 2 ? "bg-destructive/10 text-destructive" : daysUntil <= 7 ? "bg-amber-500/10 text-amber-700" : "bg-accent/10 text-accent"
+                    }`}>{daysUntil}d</span>
+                    <span className="font-medium text-foreground">{sub.service_name}</span>
+                    <span className="text-muted-foreground">— {profile?.display_name || "Kunde"}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
+                  </span>
+                </div>
+              );
+            })}
+            {upcomingSubs.length > 3 && (
+              <button onClick={() => setActiveView("subscriptions")} className="text-xs text-accent hover:underline mt-1">
+                Se alle {upcomingSubs.length} abonnementer →
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeView === "subscriptions" ? (
+        /* Subscriptions view */
+        <SubscriptionsView subscriptions={subscriptions || []} />
+      ) : (
+        /* Orders view */
+        <>
 
       {pendingCount > 0 && (
         <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
