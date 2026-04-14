@@ -679,7 +679,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
             <label className="mb-1 block text-xs font-medium text-muted-foreground">Beskrivelse</label>
             <Textarea placeholder="Beskrivelse af servicen" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-white" />
           </div>
-          <ImageUpload folder={`${user!.id}/services`} currentUrl={imageUrl || null} onUploaded={setImageUrl} label="Servicebillede (valgfrit)" aspectRatio="aspect-video" className="max-w-[200px]" />
+          <ImageUpload folder={`${user!.id}/services`} currentUrl={imageUrl || null} onUploaded={setImageUrl} label="Servicebillede (valgfrit)" aspectRatio="aspect-video" className="w-36" />
         </div>
       )}
 
@@ -856,7 +856,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
     cancelled: { bg: "bg-red-50", text: "text-red-700", dot: "bg-red-400" },
   };
 
-  if (isLoading) return <p className="text-muted-foreground">Indlæser ordrer...</p>;
+  if (isLoading) return <p className="text-[13px] text-muted-foreground">Indlæser ordrer...</p>;
 
   const filteredOrders = filter === "all" ? orders : orders?.filter((o) => o.status === filter);
   const counts: Record<string, number> = { all: orders?.length || 0 };
@@ -977,13 +977,14 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
         </Card>
       ) : (
         <Card className="rounded-xl border-dashed border-[#e1e3e5]">
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <div className="mb-4 rounded-xl bg-muted p-3">
-              <ShoppingCart className="h-8 w-8 text-muted-foreground/50" />
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <div className="mb-3 rounded-xl bg-muted p-2.5">
+              <ShoppingCart className="h-6 w-6 text-muted-foreground/40" />
             </div>
-            <p className="font-medium text-foreground">
+            <p className="text-[13px] font-medium text-foreground">
               {filter === "all" ? "Ingen ordrer endnu" : `Ingen ordrer med status "${statusLabels[filter]}"`}
             </p>
+            <p className="mt-0.5 text-[12px] text-muted-foreground">Ordrer vil vises her når de kommer ind.</p>
           </CardContent>
         </Card>
       )}
@@ -998,7 +999,7 @@ const QuotesTab = ({ business }: { business: any }) => {
   const createQuote = useCreateQuote();
   const [quoteData, setQuoteData] = useState<Record<string, { price: string; message: string }>>({});
 
-  if (isLoading) return <p className="text-muted-foreground">Indlæser anmodninger...</p>;
+  if (isLoading) return <p className="text-[13px] text-muted-foreground">Indlæser anmodninger...</p>;
 
   const answeredIds = new Set(myQuotes?.map((q) => q.quote_request_id));
 
@@ -1025,56 +1026,72 @@ const QuotesTab = ({ business }: { business: any }) => {
         <h2 className="text-[15px] font-semibold text-foreground">Tilbudsanmodninger</h2>
         <p className="mt-0.5 text-[13px] text-muted-foreground">{requests?.length || 0} anmodninger i din kategori</p>
       </div>
-      <div className="space-y-2.5">
-        {requests?.map((req) => (
-          <Card key={req.id} className="rounded-xl shadow-sm border-[#e1e3e5]">
-            <CardContent className="p-3.5">
-              <div className="mb-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-[13px] font-semibold text-foreground">{req.customer_name}</h3>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(req.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
-                  </span>
-                </div>
-                <p className="mt-0.5 text-[13px] text-muted-foreground">{req.customer_email}</p>
-                {req.customer_phone && <p className="mt-0.5 text-[13px] text-muted-foreground">{req.customer_phone}</p>}
-                <Badge variant="secondary" className="mt-1.5">{req.category}</Badge>
-              </div>
-              <p className="mb-3 text-sm text-foreground">{req.description}</p>
-              {answeredIds.has(req.id) ? (
-                <Badge className="bg-green-100 text-green-800">✓ Besvaret</Badge>
-              ) : (
-                <div className="space-y-2 border-t border-border pt-3">
-                  <div className="flex gap-2">
-                    <Input type="number" placeholder="Din pris (kr)"
-                      value={quoteData[req.id]?.price || ""}
-                      onChange={(e) => setQuoteData((prev) => ({ ...prev, [req.id]: { ...prev[req.id], price: e.target.value, message: prev[req.id]?.message || "" } }))}
-                    />
-                    <Input placeholder="Besked (valgfrit)"
-                      value={quoteData[req.id]?.message || ""}
-                      onChange={(e) => setQuoteData((prev) => ({ ...prev, [req.id]: { ...prev[req.id], message: e.target.value, price: prev[req.id]?.price || "" } }))}
-                    />
+
+      {requests && requests.length > 0 ? (
+        <Card className="rounded-xl shadow-sm border-[#e1e3e5] overflow-hidden">
+          <div className="divide-y divide-[#e1e3e5]">
+            {requests.map((req) => (
+              <div key={req.id} className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-semibold text-foreground">
+                        {req.customer_name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h3 className="text-[13px] font-semibold text-foreground">{req.customer_name}</h3>
+                        <p className="text-[11px] text-muted-foreground">{req.customer_email}{req.customer_phone ? ` · ${req.customer_phone}` : ""}</p>
+                      </div>
+                    </div>
                   </div>
-                  <Button size="sm" onClick={() => handleSendQuote(req.id)} className="gap-1.5 bg-foreground text-background hover:bg-foreground/90 rounded-lg text-[13px]">
-                    <Send className="h-3.5 w-3.5" /> Send tilbud
-                  </Button>
+                  <div className="flex items-center gap-2 ml-3">
+                    <Badge variant="secondary" className="text-[11px] font-normal px-1.5 py-0 rounded">{req.category}</Badge>
+                    <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                      {new Date(req.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
+                    </span>
+                  </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-        {(!requests || requests.length === 0) && (
-          <Card className="rounded-xl border-dashed border-[#e1e3e5]">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <div className="mb-4 rounded-xl bg-muted p-3">
-                <MessageSquare className="h-8 w-8 text-muted-foreground/50" />
+                <p className="mt-2 text-[13px] text-foreground/85 leading-relaxed">{req.description}</p>
+                {answeredIds.has(req.id) ? (
+                  <div className="mt-2.5">
+                    <Badge className="bg-green-50 text-green-700 text-[11px] font-normal px-2 py-0.5 rounded-full">✓ Besvaret</Badge>
+                  </div>
+                ) : (
+                  <div className="mt-3 flex items-end gap-2">
+                    <div className="flex-1">
+                      <label className="mb-1 block text-[11px] font-medium text-muted-foreground">Pris (kr)</label>
+                      <Input type="number" placeholder="0" className="h-8 text-[13px]"
+                        value={quoteData[req.id]?.price || ""}
+                        onChange={(e) => setQuoteData((prev) => ({ ...prev, [req.id]: { ...prev[req.id], price: e.target.value, message: prev[req.id]?.message || "" } }))}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="mb-1 block text-[11px] font-medium text-muted-foreground">Besked (valgfrit)</label>
+                      <Input placeholder="Kort besked" className="h-8 text-[13px]"
+                        value={quoteData[req.id]?.message || ""}
+                        onChange={(e) => setQuoteData((prev) => ({ ...prev, [req.id]: { ...prev[req.id], message: e.target.value, price: prev[req.id]?.price || "" } }))}
+                      />
+                    </div>
+                    <Button size="sm" onClick={() => handleSendQuote(req.id)} className="h-8 gap-1.5 bg-foreground text-background hover:bg-foreground/90 rounded-lg text-[12px] shrink-0">
+                      <Send className="h-3 w-3" /> Send
+                    </Button>
+                  </div>
+                )}
               </div>
-              <p className="font-medium text-foreground">Ingen åbne anmodninger</p>
-              <p className="mt-1 text-sm text-muted-foreground">Anmodninger i din kategori vises her.</p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+            ))}
+          </div>
+        </Card>
+      ) : (
+        <Card className="rounded-xl border-dashed border-[#e1e3e5]">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <div className="mb-3 rounded-xl bg-muted p-2.5">
+              <MessageSquare className="h-6 w-6 text-muted-foreground/40" />
+            </div>
+            <p className="text-[13px] font-medium text-foreground">Ingen åbne anmodninger</p>
+            <p className="mt-0.5 text-[12px] text-muted-foreground">Anmodninger i din kategori vises her.</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
@@ -1113,67 +1130,93 @@ const SettingsTab = ({ business }: { business: any }) => {
   };
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-3xl space-y-5">
       <div>
         <h2 className="text-[15px] font-semibold text-foreground">Indstillinger</h2>
         <p className="mt-0.5 text-[13px] text-muted-foreground">Administrer din virksomheds profil og oplysninger.</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Generelt</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} />
-          <Textarea placeholder="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} />
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger><SelectValue placeholder="Kategori" /></SelectTrigger>
-            <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Kontaktoplysninger</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Input placeholder="Telefon" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <Input placeholder="Adresse" value={address} onChange={(e) => setAddress(e.target.value)} />
-          <div className="grid grid-cols-2 gap-2">
-            <Input placeholder="Postnummer" value={zipCode} onChange={(e) => setZipCode(e.target.value)} />
-            <Input placeholder="By" value={city} onChange={(e) => setCity(e.target.value)} />
+      <Card className="rounded-xl shadow-sm border-[#e1e3e5]">
+        <CardContent className="p-4 space-y-4">
+          <h3 className="text-[13px] font-semibold text-foreground">Generelt</h3>
+          <div className="space-y-3">
+            <div>
+              <label className="mb-1 block text-[12px] font-medium text-muted-foreground">Virksomhedsnavn</label>
+              <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-[12px] font-medium text-muted-foreground">Beskrivelse</label>
+              <Textarea placeholder="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
+            </div>
+            <div>
+              <label className="mb-1 block text-[12px] font-medium text-muted-foreground">Kategori</label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger><SelectValue placeholder="Kategori" /></SelectTrigger>
+                <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Billeder</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-4">
-          <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="Logo" aspectRatio="aspect-square" className="w-28" />
-          <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="Coverbillede" aspectRatio="aspect-video" className="w-48" />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Åbningstider</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2.5">
-          {DAYS.map((day) => (
-            <div key={day} className="flex items-center gap-3">
-              <span className="w-24 text-sm text-muted-foreground">{day}</span>
-              <Input placeholder="Fx 08:00 - 16:00" value={openHours[day] || ""}
-                onChange={(e) => setOpenHours({ ...openHours, [day]: e.target.value })} className="flex-1" />
+      <Card className="rounded-xl shadow-sm border-[#e1e3e5]">
+        <CardContent className="p-4 space-y-4">
+          <h3 className="text-[13px] font-semibold text-foreground">Kontaktoplysninger</h3>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block text-[12px] font-medium text-muted-foreground">Telefon</label>
+                <Input placeholder="Telefon" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-[12px] font-medium text-muted-foreground">Email</label>
+                <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              </div>
             </div>
-          ))}
+            <div>
+              <label className="mb-1 block text-[12px] font-medium text-muted-foreground">Adresse</label>
+              <Input placeholder="Adresse" value={address} onChange={(e) => setAddress(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block text-[12px] font-medium text-muted-foreground">Postnummer</label>
+                <Input placeholder="Postnummer" value={zipCode} onChange={(e) => setZipCode(e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-[12px] font-medium text-muted-foreground">By</label>
+                <Input placeholder="By" value={city} onChange={(e) => setCity(e.target.value)} />
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      <Button onClick={save} disabled={updateBiz.isPending} className="bg-foreground text-background hover:bg-foreground/90 rounded-lg text-[13px]">
+      <Card className="rounded-xl shadow-sm border-[#e1e3e5]">
+        <CardContent className="p-4 space-y-4">
+          <h3 className="text-[13px] font-semibold text-foreground">Billeder</h3>
+          <div className="flex flex-wrap gap-4">
+            <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="Logo" aspectRatio="aspect-square" className="w-20" />
+            <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="Coverbillede" aspectRatio="aspect-video" className="w-36" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-xl shadow-sm border-[#e1e3e5]">
+        <CardContent className="p-4 space-y-4">
+          <h3 className="text-[13px] font-semibold text-foreground">Åbningstider</h3>
+          <div className="space-y-2">
+            {DAYS.map((day) => (
+              <div key={day} className="flex items-center gap-3">
+                <span className="w-20 text-[12px] font-medium text-muted-foreground">{day}</span>
+                <Input placeholder="Fx 08:00 - 16:00" value={openHours[day] || ""}
+                  onChange={(e) => setOpenHours({ ...openHours, [day]: e.target.value })} className="flex-1 h-8 text-[13px]" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Button onClick={save} disabled={updateBiz.isPending} className="h-8 bg-foreground text-background hover:bg-foreground/90 rounded-lg text-[13px]">
         {updateBiz.isPending ? "Gemmer..." : "Gem indstillinger"}
       </Button>
     </div>
