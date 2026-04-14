@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, DollarSign, Star, Briefcase, Clock, TrendingUp } from "lucide-react";
+import { Handshake, DollarSign, Star, Briefcase, Clock, TrendingUp } from "lucide-react";
 import type { Business } from "@/hooks/useDatabase";
 
 interface Props {
@@ -17,7 +17,7 @@ interface Props {
 const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRating, reviewsCount, pendingOrders, recentOrders }: Props) => {
   const stats = [
     { label: "Omsætning", value: `${revenue.toLocaleString("da-DK")} kr`, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { label: "Ordrer", value: ordersCount, icon: ShoppingCart, color: "text-blue-600", bg: "bg-blue-50" },
+    { label: "Aftaler", value: ordersCount, icon: Handshake, color: "text-blue-600", bg: "bg-blue-50" },
     { label: "Services", value: servicesCount, icon: Briefcase, color: "text-violet-600", bg: "bg-violet-50" },
     { label: "Bedømmelse", value: reviewsCount > 0 ? `${averageRating.toFixed(1)} ★` : "–", icon: Star, color: "text-amber-600", bg: "bg-amber-50" },
   ];
@@ -25,6 +25,9 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
   const statusLabels: Record<string, string> = {
     pending: "Afventer", confirmed: "Bekræftet", in_progress: "I gang",
     completed: "Afsluttet", cancelled: "Annulleret",
+  };
+  const responseLabels: Record<string, string> = {
+    accepted: "Godkendt", rejected: "Afvist", adjusted: "Tilpasset",
   };
   const statusColors: Record<string, string> = {
     pending: "bg-yellow-100 text-yellow-800",
@@ -67,8 +70,8 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
               <Clock className="h-4 w-4 text-amber-700" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground">{pendingOrders} afventende {pendingOrders === 1 ? "ordre" : "ordrer"}</p>
-              <p className="text-sm text-muted-foreground">Gå til Ordrer for at behandle dem.</p>
+              <p className="text-sm font-semibold text-foreground">{pendingOrders} afventende {pendingOrders === 1 ? "aftale" : "aftaler"}</p>
+              <p className="text-sm text-muted-foreground">Gå til Aftaler for at behandle dem.</p>
             </div>
           </CardContent>
         </Card>
@@ -76,7 +79,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
 
       {/* Recent Orders */}
       <div>
-        <h3 className="mb-3 text-[14px] font-semibold text-foreground">Seneste ordrer</h3>
+        <h3 className="mb-3 text-[14px] font-semibold text-foreground">Seneste aftaler</h3>
         {recentOrders.length > 0 ? (
           <Card className="rounded-xl shadow-sm border-[#e1e3e5] overflow-hidden">
             <div className="divide-y divide-[#e1e3e5]">
@@ -90,6 +93,11 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
                   </div>
                   <div className="flex items-center gap-2.5 ml-4">
                     <Badge className={`${statusColors[order.status] || ""} text-xs font-normal px-2 py-0.5`}>{statusLabels[order.status] || order.status}</Badge>
+                    {order.business_response && (
+                      <Badge variant="outline" className="text-xs font-normal px-1.5 py-0">
+                        {responseLabels[order.business_response] || order.business_response}
+                      </Badge>
+                    )}
                     <span className="text-sm font-semibold text-foreground whitespace-nowrap w-16 text-right">{order.total_amount} kr</span>
                   </div>
                 </div>
@@ -102,8 +110,8 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
               <div className="mb-3 rounded-xl bg-muted p-2.5">
                 <TrendingUp className="h-6 w-6 text-muted-foreground/40" />
               </div>
-              <p className="text-sm font-medium text-foreground">Ingen ordrer endnu</p>
-              <p className="mt-0.5 text-sm text-muted-foreground">Ordrer vil vises her når de kommer ind.</p>
+              <p className="text-sm font-medium text-foreground">Ingen aftaler endnu</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">Aftaler vil vises her når de kommer ind.</p>
             </CardContent>
           </Card>
         )}
