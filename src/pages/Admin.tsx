@@ -16,8 +16,8 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  Plus, Trash2, LogOut, Send,
-  Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart, MessageSquare,
+  Plus, Trash2, LogOut,
+  Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart,
   Star, Settings, Menu, X, ExternalLink,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
