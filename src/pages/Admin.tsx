@@ -1248,6 +1248,12 @@ const SettingsTab = ({ business }: { business: any }) => {
 
   const DAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
 
+  const toggleSettingsCategory = (c: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
+    );
+  };
+
   const save = () => {
     updateBiz.mutate({
       id: business.id, name: name.trim(),
@@ -1256,7 +1262,9 @@ const SettingsTab = ({ business }: { business: any }) => {
       address: address.trim() || null, city: city.trim() || null,
       zip_code: zipCode.trim() || null,
       logo_url: logoUrl || null, cover_image_url: coverUrl || null,
-      category: category || null, opening_hours: openHours,
+      category: selectedCategories[0] || null,
+      categories: selectedCategories,
+      opening_hours: openHours,
     } as any, {
       onSuccess: () => toast.success("Indstillinger gemt"),
       onError: (e) => toast.error(e.message),
@@ -1283,11 +1291,17 @@ const SettingsTab = ({ business }: { business: any }) => {
               <Textarea placeholder="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-muted-foreground">Kategori</label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger><SelectValue placeholder="Kategori" /></SelectTrigger>
-                <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-              </Select>
+              <label className="mb-2 block text-sm font-medium text-muted-foreground">Brancher</label>
+              <div className="flex flex-wrap gap-2">
+                {CATEGORIES.map((c) => (
+                  <button key={c} type="button" onClick={() => toggleSettingsCategory(c)}
+                    className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-all ${
+                      selectedCategories.includes(c)
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border bg-white text-foreground hover:border-foreground/40"
+                    }`}>{c}</button>
+                ))}
+              </div>
             </div>
           </div>
         </CardContent>
