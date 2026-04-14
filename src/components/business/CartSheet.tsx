@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateOrder, useCreateSubscription } from "@/hooks/useDatabase";
@@ -15,7 +16,7 @@ interface CartSheetProps {
   businessId?: string;
 }
 
-const CartSheet = ({ businessId: businessIdProp }: CartSheetProps) => {
+const CartSheet = forwardRef<HTMLButtonElement, CartSheetProps>(({ businessId: businessIdProp }, ref) => {
   const { items, removeItem, updateItemInterval, clearCart, total, count, businessId: cartBusinessId, businessName, businessLogoUrl } = useCart();
   const { user } = useAuth();
   const businessId = businessIdProp || cartBusinessId;
