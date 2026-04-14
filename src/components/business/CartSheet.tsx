@@ -248,6 +248,8 @@ const CartSheet = forwardRef<HTMLButtonElement, CartSheetProps>(({ businessId: b
       </SheetContent>
     </Sheet>
   );
-};
+});
+
+CartSheet.displayName = "CartSheet";
 
 export default CartSheet;
