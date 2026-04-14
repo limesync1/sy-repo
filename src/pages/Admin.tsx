@@ -1,36 +1,26 @@
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useMyBusiness, useServices, useOrders, useCreateBusiness, useCreateService,
-  useUpdateService, useDeleteService, useUpdateBusiness, useUpdateOrderStatus,
+  useUpdateService, useDeleteService, useUpdateBusiness,
   useUpsertCalculatorSteps, useReviews,
 } from "@/hooks/useDatabase";
-import { supabase } from "@/integrations/supabase/client";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import {
-  Plus, Trash2, LogOut, Pencil,
-  Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart, Minus,
+  Plus, Trash2, LogOut,
+  Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart,
   Star, Settings, Menu, X, ExternalLink,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import DashboardTab from "@/components/admin/DashboardTab";
 import ReviewsTab from "@/components/admin/ReviewsTab";
 import AftaleTab from "@/components/admin/AftaleTab";
-import { INTERVAL_LABELS } from "@/types/service";
-import {
-  buildPricingSnapshot,
-  getSmartStep,
-  roundPrice,
-} from "@/lib/service-pricing";
-import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 
 /* ─── Constants ─── */
 const CATEGORIES = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS", "Elektriker", "Sikkerhed"];
