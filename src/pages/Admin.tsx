@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Plus, Trash2, LogOut, Send,
   Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart, MessageSquare,
@@ -1004,14 +1005,16 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
   const counts: Record<string, number> = { all: orders?.length || 0 };
   orders?.forEach(o => { counts[o.status] = (counts[o.status] || 0) + 1; });
 
+  const qc = useQueryClient();
   const handleResponse = async (orderId: string) => {
     try {
-      await supabase.from("orders").update({
+      const { error } = await supabase.from("orders").update({
         business_response: responseType,
         business_message: responseMessage || null,
         adjusted_amount: responseType === "adjusted" && adjustedAmount ? parseFloat(adjustedAmount) : null,
-        status: responseType === "accepted" ? "confirmed" : responseType === "rejected" ? "cancelled" : "pending",
+        status: responseType === "accepted" ? "confirmed" as const : responseType === "rejected" ? "cancelled" as const : "pending" as const,
       }).eq("id", orderId);
+      if (error) throw error;
 
       toast.success(
         responseType === "accepted" ? "Aftale godkendt!" :
@@ -1021,8 +1024,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
       setRespondingTo(null);
       setResponseMessage("");
       setAdjustedAmount("");
-      // Invalidate orders query
-      window.location.reload();
+      qc.invalidateQueries({ queryKey: ["orders"] });
     } catch (e: any) {
       toast.error(e.message);
     }
@@ -1148,8 +1150,8 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                       </div>
                     )}
 
-                    {/* Response actions */}
-                    {!resp && order.status === "pending" && !isResponding && (
+                    {/* Response actions — show if no response yet, or allow changing */}
+                    {order.status !== "completed" && order.status !== "cancelled" && !isResponding && (
                       <div className="flex gap-2">
                         <Button size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("accepted"); }}
                           className="gap-1.5 rounded-xl text-xs bg-green-600 text-white hover:bg-green-700">
