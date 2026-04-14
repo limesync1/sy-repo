@@ -302,23 +302,37 @@ const CreateBusinessForm = () => {
   const createBiz = useCreateBusiness();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  const toggleCategory = (c: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
+    );
+  };
 
   const handleCreate = () => {
     if (!name.trim()) { toast.error("Indtast et navn"); return; }
+    if (selectedCategories.length === 0) { toast.error("Vælg mindst én branche"); return; }
     const slug = name.toLowerCase().replace(/[^a-z0-9æøå]+/g, "-").replace(/^-|-$/g, "");
     createBiz.mutate({
       name: name.trim(), slug, description: description.trim() || null,
-      owner_id: user!.id, category: category || null,
+      owner_id: user!.id,
+      category: selectedCategories[0] || null,
+      categories: selectedCategories,
     } as any, {
       onSuccess: () => toast.success("Virksomhed oprettet!"),
       onError: (e) => toast.error(e.message),
     });
   };
 
+  const CATEGORY_ICONS: Record<string, string> = {
+    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
+    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-      <Card className="w-full max-w-md shadow-lg">
+      <Card className="w-full max-w-lg shadow-lg">
         <CardHeader className="text-center">
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10">
             <Sparkles className="h-6 w-6 text-accent" />
@@ -329,12 +343,22 @@ const CreateBusinessForm = () => {
         <CardContent className="space-y-4">
           <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} />
           <Textarea placeholder="Beskrivelse (valgfrit)" value={description} onChange={(e) => setDescription(e.target.value)} />
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger><SelectValue placeholder="Vælg kategori" /></SelectTrigger>
-            <SelectContent>
-              {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div>
+            <label className="mb-2 block text-sm font-medium text-foreground">Vælg brancher (vælg en eller flere)</label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {CATEGORIES.map((c) => (
+                <button key={c} type="button" onClick={() => toggleCategory(c)}
+                  className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-3 text-center transition-all ${
+                    selectedCategories.includes(c)
+                      ? "border-foreground bg-foreground/5 shadow-sm"
+                      : "border-border bg-white hover:border-foreground/30"
+                  }`}>
+                  <span className="text-xl">{CATEGORY_ICONS[c] || "📋"}</span>
+                  <span className="text-xs font-medium text-foreground">{c}</span>
+                </button>
+              ))}
+            </div>
+          </div>
           <Button onClick={handleCreate} disabled={createBiz.isPending} className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-lg text-sm">
             {createBiz.isPending ? "Opretter..." : "Opret virksomhed"}
           </Button>
