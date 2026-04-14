@@ -388,8 +388,8 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
       </div>
 
       {showForm && (
-        <Card className="rounded-xl shadow-sm border-border">
-          <CardContent className="p-4">
+        <Card className="rounded-xl shadow-md border-accent/20 bg-gradient-to-b from-accent/[0.03] to-transparent">
+          <CardContent className="p-5 sm:p-6">
             <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />
           </CardContent>
         </Card>
@@ -442,7 +442,7 @@ const ServiceRow = ({ service, onDelete }: { service: any; onDelete: () => void 
         </div>
       </CardContent>
       {editing && (
-        <div className="border-t border-border p-4">
+        <div className="border-t border-border bg-secondary/20 p-5">
           <ServiceForm businessId={service.business_id} existingService={service} onClose={() => setEditing(false)} />
         </div>
       )}
@@ -634,28 +634,30 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   return (
     <div className="space-y-6">
       {/* Step Progress Bar */}
-      <div className="flex items-center">
-        {FORM_STEPS.map((s, i) => (
-          <div key={s.num} className="flex flex-1 items-center">
-            <button
-              onClick={() => { if (s.num <= currentStep || canGoNext()) setCurrentStep(s.num); }}
-              className="flex items-center gap-2"
-            >
-              <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-all ${
-                currentStep === s.num ? `${s.color} text-white shadow-md scale-110` :
-                s.num < currentStep ? "bg-green-500 text-white" : "bg-muted text-muted-foreground"
-              }`}>
-                {s.num < currentStep ? "✓" : s.num}
-              </span>
-              <span className={`hidden sm:block text-sm font-medium ${
-                currentStep === s.num ? "text-foreground" : s.num < currentStep ? "text-green-600" : "text-muted-foreground"
-              }`}>{s.label}</span>
-            </button>
-            {i < FORM_STEPS.length - 1 && (
-              <div className={`mx-3 h-0.5 flex-1 rounded-full transition-colors ${FORM_STEPS[i + 1].num <= currentStep ? "bg-green-300" : "bg-border"}`} />
-            )}
-          </div>
-        ))}
+      <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
+        <div className="flex items-center">
+          {FORM_STEPS.map((s, i) => (
+            <div key={s.num} className="flex flex-1 items-center">
+              <button
+                onClick={() => { if (s.num <= currentStep || canGoNext()) setCurrentStep(s.num); }}
+                className="group flex items-center gap-2"
+              >
+                <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition-all ${
+                  currentStep === s.num ? "bg-foreground text-background shadow-sm ring-2 ring-foreground/20" :
+                  s.num < currentStep ? "bg-accent/15 text-accent ring-1 ring-accent/30" : "bg-secondary text-muted-foreground"
+                }`}>
+                  {s.num < currentStep ? "✓" : s.num}
+                </span>
+                <span className={`hidden sm:block text-sm font-medium transition-colors ${
+                  currentStep === s.num ? "text-foreground" : s.num < currentStep ? "text-accent" : "text-muted-foreground"
+                }`}>{s.label}</span>
+              </button>
+              {i < FORM_STEPS.length - 1 && (
+                <div className={`mx-2 sm:mx-3 h-px flex-1 transition-colors ${FORM_STEPS[i + 1].num <= currentStep ? "bg-accent/40" : "bg-border"}`} />
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Step 1: Category — Card grid instead of dropdown */}
@@ -753,7 +755,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">Servicenavn</label>
-            <Input placeholder="Fx Rengøring af kontor" value={name} onChange={(e) => setName(e.target.value)} className="bg-white h-11 text-base" />
+            <Input placeholder="Fx Rengøring af kontor" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-11 text-base" />
             {productSuggestions.length > 0 && !name && (
               <div className="mt-2.5 flex flex-wrap gap-2">
                 <span className="text-sm text-muted-foreground mr-1">Forslag:</span>
@@ -807,12 +809,12 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                 <label className="mb-1.5 block text-sm font-medium text-foreground">
                   {pricingType === "fast_pris" ? "Pris (kr)" : "Timepris (kr)"}
                 </label>
-                <Input type="number" placeholder="0" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} className="bg-white h-11 text-base" />
+                <Input type="number" placeholder="0" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} className="bg-card h-11 text-base" />
               </div>
               {pricingType === "timepris" && (
                 <div className="flex-1">
                   <label className="mb-1.5 block text-sm font-medium text-foreground">Enhed</label>
-                  <Input placeholder="Fx timer" value={unit} onChange={(e) => setUnit(e.target.value)} className="bg-white h-11 text-base" />
+                  <Input placeholder="Fx timer" value={unit} onChange={(e) => setUnit(e.target.value)} className="bg-card h-11 text-base" />
                 </div>
               )}
             </div>
@@ -855,37 +857,37 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
             </div>
 
             {steps.map((step, i) => (
-              <Card key={i} className="rounded-xl shadow-sm border-border">
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-sm font-bold text-background">{i + 1}</span>
-                      <span className="text-sm font-semibold text-foreground">{step.label || `Trin ${i + 1}`}</span>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={() => removeStep(i)} className="h-8 w-8 p-0">
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+              <Card key={i} className="rounded-xl shadow-sm border-border overflow-hidden">
+                <div className="flex items-center justify-between bg-secondary/40 px-4 py-2.5 border-b border-border">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-md bg-foreground text-[11px] font-bold text-background">{i + 1}</span>
+                    <span className="text-sm font-semibold text-foreground">{step.label || `Trin ${i + 1}`}</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <Button variant="ghost" size="sm" onClick={() => removeStep(i)} className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                <CardContent className="p-4 space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="mb-1 block text-sm text-muted-foreground">Navn</label>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Navn</label>
                       <Input placeholder="Fx Støvsugning" value={step.label} onChange={(e) => updateStep(i, "label", e.target.value)} className="bg-card" />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm text-muted-foreground">Enhed</label>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Enhed</label>
                       <div className="flex flex-wrap gap-1.5">
                         {["stk", "m²", "m", "timer", "rum", "km", "kg", "kr"].map((u) => (
                           <button key={u} type="button" onClick={() => updateStep(i, "unit", u)}
-                            className={`rounded-full border px-3 py-1.5 text-sm transition-all ${
+                            className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${
                               step.unit === u
                                 ? "border-foreground bg-foreground text-background"
-                                : "border-border bg-card text-muted-foreground hover:border-foreground/40"
+                                : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground"
                             }`}>{u}</button>
                         ))}
                       </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-4 gap-2.5">
                     {[
                       { label: `Pris / ${step.unit || "enhed"}`, field: "price_per_unit", value: step.price_per_unit },
                       { label: "Min", field: "min_value", value: step.min_value },
@@ -893,8 +895,8 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                       { label: "Standard", field: "default_value", value: step.default_value },
                     ].map((f) => (
                       <div key={f.field}>
-                        <label className="mb-1 block text-sm text-muted-foreground">{f.label}</label>
-                        <Input type="number" placeholder="0" value={f.value} onChange={(e) => updateStep(i, f.field, e.target.value)} />
+                        <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">{f.label}</label>
+                        <Input type="number" placeholder="0" value={f.value} onChange={(e) => updateStep(i, f.field, e.target.value)} className="bg-card text-sm" />
                       </div>
                     ))}
                   </div>
@@ -941,24 +943,26 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
         </div>
       )}
 
-      <div className="flex items-center justify-between pt-3 border-t border-border">
+      <div className="flex items-center justify-between pt-4 border-t border-border">
         <div className="flex gap-2">
           {currentStep > 1 && (
-            <Button variant="outline" onClick={() => setCurrentStep(currentStep - 1)} className="rounded-lg">
+            <Button variant="outline" onClick={() => setCurrentStep(currentStep - 1)} className="rounded-lg h-10 px-4 text-sm font-medium">
               ← Tilbage
             </Button>
           )}
-          <Button variant="ghost" onClick={onClose} className="rounded-lg text-muted-foreground">Annuller</Button>
+          <Button variant="ghost" onClick={onClose} className="rounded-lg h-10 px-4 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary">
+            Annuller
+          </Button>
         </div>
         <div>
           {currentStep < totalSteps ? (
             <Button onClick={() => { if (canGoNext()) setCurrentStep(currentStep + 1); else toast.error("Udfyld venligst de påkrævede felter"); }}
               disabled={!canGoNext()}
-              className="rounded-lg bg-foreground text-background hover:bg-foreground/90 px-6">
+              className="rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:bg-muted disabled:text-muted-foreground h-10 px-6 text-sm font-semibold shadow-sm">
               Næste →
             </Button>
           ) : (
-            <Button onClick={handleSave} className="rounded-lg bg-green-600 text-white hover:bg-green-700 px-6">
+            <Button onClick={handleSave} className="rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 h-10 px-6 text-sm font-semibold shadow-sm">
               {existingService ? "Gem ændringer" : "✓ Opret service"}
             </Button>
           )}
