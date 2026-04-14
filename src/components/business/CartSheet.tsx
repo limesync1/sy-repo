@@ -53,6 +53,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
               description: item.details,
               interval: item.interval,
               stepDetails: item.stepDetails,
+              pricingSnapshot: item.pricingSnapshot,
             },
           })),
         });
@@ -71,6 +72,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 details: {
                   description: item.details,
                   stepDetails: item.stepDetails,
+                  pricingSnapshot: item.pricingSnapshot,
                 },
               });
             }

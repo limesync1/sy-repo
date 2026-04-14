@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { ImageIcon, ShoppingCart, Minus, Plus } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
+import { buildPricingSnapshot, roundPrice } from "@/lib/service-pricing";
 
 interface Props {
   service: Service & { calculator_steps?: CalculatorStep[] };
@@ -87,6 +88,10 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
     fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner",
   };
 
+  const sortedSteps = [...(service.calculator_steps || [])].sort(
+    (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+  );
+
   const calculateTotal = (): number => {
     if (service.pricing_type === "fast_pris") return service.base_price || 0;
     if (service.pricing_type === "timepris") return (service.base_price || 0) * hours;
@@ -100,21 +105,54 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
   };
 
   const handleAdd = () => {
-    const total = calculateTotal();
+    const total = roundPrice(calculateTotal());
     let details = "";
-    const stepDetails: { label: string; value: number; unit: string; price_per_unit: number; subtotal: number }[] = [];
+    const stepDetails: {
+      id?: string;
+      label: string;
+      value: number;
+      unit: string;
+      price_per_unit: number;
+      subtotal: number;
+      min_value?: number;
+      max_value?: number;
+      default_value?: number;
+      sort_order?: number;
+    }[] = [];
 
     if (service.pricing_type === "fast_pris") {
       details = "Fast pris";
     } else if (service.pricing_type === "timepris") {
       details = `${hours} timer`;
-      stepDetails.push({ label: "Timer", value: hours, unit: "timer", price_per_unit: service.base_price || 0, subtotal: total });
+      stepDetails.push({
+        id: "hours",
+        label: "Timer",
+        value: hours,
+        unit: "timer",
+        price_per_unit: service.base_price || 0,
+        subtotal: total,
+        min_value: 0.5,
+        max_value: 24,
+        default_value: hours,
+        sort_order: 0,
+      });
     } else {
       const parts: string[] = [];
-      (service.calculator_steps || []).forEach((s) => {
+      sortedSteps.forEach((s) => {
         const val = stepValues[s.id] || 0;
         parts.push(`${s.label}: ${val} ${s.unit}`);
-        stepDetails.push({ label: s.label, value: val, unit: s.unit, price_per_unit: s.price_per_unit, subtotal: val * s.price_per_unit });
+        stepDetails.push({
+          id: s.id,
+          label: s.label,
+          value: val,
+          unit: s.unit,
+          price_per_unit: s.price_per_unit,
+          subtotal: roundPrice(val * s.price_per_unit),
+          min_value: s.min_value ?? 0,
+          max_value: s.max_value ?? 100,
+          default_value: s.default_value ?? 0,
+          sort_order: s.sort_order ?? 0,
+        });
       });
       details = parts.join(", ");
     }
@@ -130,13 +168,10 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
       businessName,
       businessLogoUrl: businessLogoUrl || undefined,
       stepDetails,
+      pricingSnapshot: buildPricingSnapshot({ ...service, calculator_steps: sortedSteps }),
     });
     toast.success(`${service.name} tilføjet til bestilling`);
   };
-
-  const sortedSteps = [...(service.calculator_steps || [])].sort(
-    (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
-  );
 
   const total = calculateTotal();
   const intervals = service.interval_options && service.interval_options.length > 0
