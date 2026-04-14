@@ -29,6 +29,7 @@ export type Database = {
           is_verified: boolean | null
           logo_url: string | null
           name: string
+          notification_settings: Json
           opening_hours: Json | null
           owner_id: string
           phone: string | null
@@ -50,6 +51,7 @@ export type Database = {
           is_verified?: boolean | null
           logo_url?: string | null
           name: string
+          notification_settings?: Json
           opening_hours?: Json | null
           owner_id: string
           phone?: string | null
@@ -71,6 +73,7 @@ export type Database = {
           is_verified?: boolean | null
           logo_url?: string | null
           name?: string
+          notification_settings?: Json
           opening_hours?: Json | null
           owner_id?: string
           phone?: string | null
