@@ -4,6 +4,7 @@ import {
   useUpdateService, useDeleteService, useUpdateBusiness, useUpdateOrderStatus,
   useUpsertCalculatorSteps, useQuoteRequests, useCreateQuote, useMyQuotes, useReviews,
 } from "@/hooks/useDatabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1005,12 +1006,6 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
 
   const handleResponse = async (orderId: string) => {
     try {
-      const updates: any = {
-        id: orderId,
-        status: responseType === "accepted" ? "confirmed" : responseType === "rejected" ? "cancelled" : "pending",
-      };
-      // We use updateStatus but also need to update business_response fields
-      // For now, update status and use a separate call for response fields
       await supabase.from("orders").update({
         business_response: responseType,
         business_message: responseMessage || null,
