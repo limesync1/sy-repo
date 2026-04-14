@@ -1282,49 +1282,83 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                           ))}
                         </div>
 
-                        {/* Line-item adjustment editor */}
+                        {/* Line-item adjustment editor — matches service card layout */}
                         {responseType === "adjusted" && adjustedItems[order.id] && (
                           <div className="space-y-3">
-                            <p className="text-xs text-muted-foreground">Rediger priserne eller mængderne herunder. Kunden vil se dine ændringer.</p>
+                            <p className="text-xs text-muted-foreground">Rediger mængder og priser. Kunden ser præcis dine ændringer.</p>
                             {adjustedItems[order.id].map((item, itemIdx) => (
-                              <div key={itemIdx} className="rounded-xl border border-border bg-muted/20 overflow-hidden">
-                                <div className="px-3.5 py-2 bg-muted/40 flex justify-between items-center">
+                              <div key={itemIdx} className="rounded-xl border border-border overflow-hidden">
+                                <div className="px-4 py-2.5 bg-muted/40 flex justify-between items-center">
                                   <span className="text-sm font-semibold text-foreground">{item.service_name}</span>
-                                  <span className="text-sm font-bold text-foreground">{Math.round(item.total_price)} kr</span>
+                                  <div className="flex items-baseline gap-1">
+                                    <span className="text-lg font-bold text-foreground">{Math.round(item.total_price)}</span>
+                                    <span className="text-xs text-muted-foreground">kr</span>
+                                  </div>
                                 </div>
                                 {item.details?.stepDetails && item.details.stepDetails.length > 0 ? (
                                   <div className="divide-y divide-border">
-                                    {item.details.stepDetails.map((sd: any, stepIdx: number) => (
-                                      <div key={stepIdx} className="px-3.5 py-2.5 grid grid-cols-[1fr_80px_80px_70px] gap-2 items-center">
-                                        <span className="text-sm text-foreground">{sd.label}</span>
-                                        <div>
-                                          <label className="text-[10px] text-muted-foreground block mb-0.5">Antal ({sd.unit})</label>
-                                          <Input type="number" value={sd.value} className="h-8 text-sm"
-                                            onChange={(e) => updateAdjustedStep(order.id, itemIdx, stepIdx, "value", parseFloat(e.target.value) || 0)} />
+                                    {item.details.stepDetails.map((sd: any, stepIdx: number) => {
+                                      const stepTotal = Math.round(sd.subtotal);
+                                      return (
+                                        <div key={stepIdx} className="px-4 py-3">
+                                          <div className="flex items-center justify-between mb-2">
+                                            <div className="min-w-0">
+                                              <span className="text-sm font-medium text-foreground">{sd.label}</span>
+                                              <span className="ml-1.5 text-xs text-muted-foreground">({sd.price_per_unit} kr/{sd.unit})</span>
+                                            </div>
+                                            <span className="text-sm font-semibold text-foreground shrink-0">{stepTotal} kr</span>
+                                          </div>
+                                          <div className="flex items-center gap-0">
+                                            <button type="button" onClick={() => updateAdjustedStep(order.id, itemIdx, stepIdx, "value", Math.max(0, sd.value - 1))}
+                                              disabled={sd.value <= 0}
+                                              className="flex h-9 w-9 items-center justify-center rounded-l-lg border border-border bg-secondary text-foreground transition-colors hover:bg-secondary/80 disabled:opacity-30">
+                                              <Minus className="h-3.5 w-3.5" />
+                                            </button>
+                                            <input type="number" value={sd.value}
+                                              onChange={(e) => updateAdjustedStep(order.id, itemIdx, stepIdx, "value", parseFloat(e.target.value) || 0)}
+                                              className="flex h-9 w-[5rem] items-center border-y border-border bg-card px-2 text-center text-sm font-semibold text-foreground outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                            />
+                                            <button type="button" onClick={() => updateAdjustedStep(order.id, itemIdx, stepIdx, "value", sd.value + 1)}
+                                              className="flex h-9 w-9 items-center justify-center rounded-r-lg border border-border bg-secondary text-foreground transition-colors hover:bg-secondary/80">
+                                              <Plus className="h-3.5 w-3.5" />
+                                            </button>
+                                            <span className="ml-2 text-xs text-muted-foreground">{sd.unit}</span>
+                                          </div>
+                                          <div className="mt-2 flex items-center gap-2">
+                                            <span className="text-xs text-muted-foreground">Pris pr. {sd.unit}:</span>
+                                            <input type="number" value={sd.price_per_unit}
+                                              onChange={(e) => updateAdjustedStep(order.id, itemIdx, stepIdx, "price_per_unit", parseFloat(e.target.value) || 0)}
+                                              className="h-7 w-20 rounded-md border border-border bg-card px-2 text-xs font-medium text-foreground outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                            />
+                                            <span className="text-xs text-muted-foreground">kr</span>
+                                          </div>
                                         </div>
-                                        <div>
-                                          <label className="text-[10px] text-muted-foreground block mb-0.5">Pris/{sd.unit}</label>
-                                          <Input type="number" value={sd.price_per_unit} className="h-8 text-sm"
-                                            onChange={(e) => updateAdjustedStep(order.id, itemIdx, stepIdx, "price_per_unit", parseFloat(e.target.value) || 0)} />
-                                        </div>
-                                        <div className="text-right">
-                                          <label className="text-[10px] text-muted-foreground block mb-0.5">Subtotal</label>
-                                          <span className="text-sm font-semibold text-foreground">{Math.round(sd.subtotal)} kr</span>
-                                        </div>
+                                      );
+                                    })}
+                                    <div className="flex items-center justify-between bg-secondary/40 px-4 py-3">
+                                      <span className="text-sm font-semibold text-foreground">I alt</span>
+                                      <div className="flex items-baseline gap-1">
+                                        <span className="text-xl font-bold text-foreground">{Math.round(item.total_price)}</span>
+                                        <span className="text-sm text-muted-foreground">kr</span>
                                       </div>
-                                    ))}
+                                    </div>
                                   </div>
                                 ) : (
-                                  <div className="px-3.5 py-2.5">
-                                    <label className="text-xs text-muted-foreground block mb-1">Tilpasset pris (kr)</label>
-                                    <Input type="number" value={item.total_price} className="h-8 text-sm w-32"
+                                  <div className="px-4 py-3">
+                                    <label className="text-xs text-muted-foreground block mb-1.5">Tilpasset pris (kr)</label>
+                                    <Input type="number" value={item.total_price} className="h-9 text-sm w-32"
                                       onChange={(e) => updateAdjustedFixedPrice(order.id, itemIdx, parseFloat(e.target.value) || 0)} />
+                                  </div>
+                                )}
+                                {item.details?.interval && item.details.interval !== "engangskøb" && (
+                                  <div className="px-4 py-2 border-t border-border bg-accent/5">
+                                    <span className="text-xs font-medium text-accent">Interval: {item.details.interval}</span>
                                   </div>
                                 )}
                               </div>
                             ))}
                             <div className="flex justify-between items-center px-1 pt-1">
-                              <span className="text-sm text-muted-foreground">Oprindelig pris: <span className="line-through">{order.total_amount} kr</span></span>
+                              <span className="text-sm text-muted-foreground">Oprindelig: <span className="line-through">{order.total_amount} kr</span></span>
                               <span className="text-base font-bold text-foreground">Ny pris: {Math.round(getAdjustedTotal(order.id))} kr</span>
                             </div>
                           </div>
