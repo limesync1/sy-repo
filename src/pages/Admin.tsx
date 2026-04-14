@@ -917,7 +917,31 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
         </div>
       )}
 
-      {/* Navigation buttons */}
+      {/* Step: Interval */}
+      {currentStep === totalSteps && (
+        <div className="space-y-5">
+          <div>
+            <h4 className="text-base font-semibold text-foreground">Vælg intervaller</h4>
+            <p className="mt-1 text-sm text-muted-foreground">Hvilke intervaller kan kunden vælge for denne service?</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            {ALL_INTERVALS.map((iv) => (
+              <button key={iv.value} type="button" onClick={() => toggleInterval(iv.value)}
+                className={`rounded-xl border-2 px-4 py-3 text-center transition-all ${
+                  intervalOptions.includes(iv.value)
+                    ? "border-foreground bg-foreground/5 shadow-sm"
+                    : "border-border bg-white hover:border-foreground/30"
+                }`}>
+                <span className="text-sm font-medium text-foreground">{iv.label}</span>
+              </button>
+            ))}
+          </div>
+          {intervalOptions.length === 0 && (
+            <p className="text-sm text-destructive">Vælg mindst ét interval</p>
+          )}
+        </div>
+      )}
+
       <div className="flex items-center justify-between pt-3 border-t border-border">
         <div className="flex gap-2">
           {currentStep > 1 && (
