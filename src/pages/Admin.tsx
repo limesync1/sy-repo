@@ -589,6 +589,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
         subcategory: subcategory.trim() || null,
         service_category: serviceCategory.trim() || null,
         image_url: imageUrl || null,
+        interval_options: intervalOptions.length > 0 ? intervalOptions : ["engangskøb"],
       };
 
       if (existingService) {
