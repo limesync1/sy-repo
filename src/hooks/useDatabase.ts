@@ -311,6 +311,24 @@ export const useMyQuotes = (businessId: string | undefined) => {
   });
 };
 
+// ── Customer Orders ──
+export const useMyOrders = () => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["my-orders", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orders")
+        .select("*, order_items(*), businesses(name, slug, logo_url)")
+        .eq("customer_id", user!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+};
+
 // ── Subscriptions ──
 
 // Customer: fetch my subscriptions
