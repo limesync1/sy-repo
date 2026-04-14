@@ -1,11 +1,11 @@
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateOrder, useCreateSubscription } from "@/hooks/useDatabase";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Package, CalendarClock, Store } from "lucide-react";
+import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
@@ -20,10 +20,13 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
   const { user } = useAuth();
   const createOrder = useCreateOrder();
   const createSubscription = useCreateSubscription();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
   const [checkout, setCheckout] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [orderSuccess, setOrderSuccess] = useState(false);
 
   const handleOrder = async () => {
     if (!name || !email || !phone) {
@@ -84,16 +87,26 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
       return;
     }
 
-    toast.success("Din aftale er sendt! Virksomheden vil gennemgå og bekræfte den.");
+    // Show success state briefly, then redirect
+    setOrderSuccess(true);
     clearCart();
-    setCheckout(false);
-    setName(""); setEmail(""); setPhone("");
+    setTimeout(() => {
+      setOpen(false);
+      setCheckout(false);
+      setOrderSuccess(false);
+      setName(""); setEmail(""); setPhone("");
+      if (user) {
+        navigate("/dashboard");
+      } else {
+        toast.success("Din aftale er sendt! Virksomheden vil gennemgå og bekræfte den.");
+      }
+    }, 2000);
   };
 
   const businessCount = Object.keys(groupedByBusiness).length;
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setCheckout(false); setOrderSuccess(false); } }}>
       <SheetTrigger asChild>
         <Button variant="outline" className="relative gap-2 border-accent/30 hover:bg-accent/10 hover:text-foreground hover:border-accent">
           <Package className="h-5 w-5" />
@@ -105,28 +118,57 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="flex w-full flex-col sm:max-w-md">
-        <SheetHeader>
-          <SheetTitle>
-            <span className="block">Din aftale</span>
-            {businessCount > 1 && (
-              <span className="block text-xs font-normal text-muted-foreground">{businessCount} virksomheder</span>
-            )}
-          </SheetTitle>
-        </SheetHeader>
+      <SheetContent className="flex w-full flex-col sm:max-w-md p-0">
+        {/* Header */}
+        <div className="shrink-0 border-b border-border px-5 py-4">
+          <SheetHeader className="p-0">
+            <SheetTitle className="text-left">
+              {checkout ? (
+                <button onClick={() => setCheckout(false)} className="flex items-center gap-2 text-base font-semibold text-foreground hover:text-foreground/80 transition-colors">
+                  <ChevronLeft className="h-4 w-4" /> Bekræft aftale
+                </button>
+              ) : (
+                <div>
+                  <span className="block text-base">Din aftale</span>
+                  {items.length > 0 && (
+                    <span className="block text-xs font-normal text-muted-foreground mt-0.5">
+                      {count} {count === 1 ? "service" : "services"}{businessCount > 1 ? ` · ${businessCount} virksomheder` : ""}
+                    </span>
+                  )}
+                </div>
+              )}
+            </SheetTitle>
+          </SheetHeader>
+        </div>
 
-        {items.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center text-center">
-            <Package className="mb-4 h-12 w-12 text-muted-foreground/30" />
-            <p className="text-muted-foreground">Din aftale er tom</p>
-            <p className="mt-1 text-sm text-muted-foreground/70">Tilføj services fra virksomhedernes sider</p>
+        {/* Success state */}
+        {orderSuccess ? (
+          <div className="flex flex-1 flex-col items-center justify-center text-center px-6">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mb-4">
+              <CheckCircle2 className="h-8 w-8 text-green-600" />
+            </div>
+            <h3 className="text-lg font-bold text-foreground">Aftale sendt!</h3>
+            <p className="mt-2 text-sm text-muted-foreground max-w-xs">
+              Virksomheden vil gennemgå din aftale og vende tilbage med svar.
+              {user && " Du bliver nu sendt til dit kundepanel."}
+            </p>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="flex flex-1 flex-col items-center justify-center text-center px-6">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary mb-4">
+              <Package className="h-7 w-7 text-muted-foreground/30" />
+            </div>
+            <p className="text-sm font-medium text-foreground">Din aftale er tom</p>
+            <p className="mt-1 text-sm text-muted-foreground">Tilføj services fra virksomhedernes sider</p>
           </div>
         ) : !checkout ? (
-          <div className="flex flex-1 flex-col">
-            <div className="flex-1 space-y-5 overflow-y-auto py-4">
+          /* ── Cart items view ── */
+          <div className="flex flex-1 flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
               {Object.entries(groupedByBusiness).map(([bizId, group]) => (
                 <div key={bizId}>
-                  <div className="flex items-center gap-2.5 mb-3 px-1">
+                  {/* Business header */}
+                  <div className="flex items-center gap-2.5 mb-3">
                     {group.businessLogoUrl ? (
                       <img src={group.businessLogoUrl} alt="" className="h-7 w-7 rounded-lg object-contain bg-secondary p-0.5 border border-border" />
                     ) : (
@@ -137,30 +179,34 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                     <span className="text-sm font-semibold text-foreground">{group.businessName}</span>
                   </div>
 
+                  {/* Items */}
                   <div className="space-y-2">
                     {group.items.map((item) => (
-                      <Card key={item.serviceId} className="border-border overflow-hidden">
-                        <CardContent className="p-3.5 space-y-1.5">
-                          <div className="flex items-start justify-between">
+                      <div key={item.serviceId} className="rounded-xl border border-border bg-card overflow-hidden">
+                        <div className="p-3.5">
+                          <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">
                               <h4 className="text-sm font-semibold text-foreground">{item.serviceName}</h4>
                               {item.interval && item.interval !== "engangskøb" && (
-                                <Badge variant="secondary" className="mt-1 text-xs gap-1">
+                                <Badge variant="secondary" className="mt-1 text-[11px] gap-1 px-2 py-0.5">
                                   <CalendarClock className="h-3 w-3" />
                                   {INTERVAL_LABELS[item.interval] || item.interval}
                                 </Badge>
                               )}
                             </div>
-                            <button onClick={() => removeItem(item.serviceId)} className="text-muted-foreground hover:text-destructive ml-2">
+                            <button onClick={() => removeItem(item.serviceId)}
+                              className="text-muted-foreground hover:text-destructive transition-colors p-1 -m-1">
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
 
                           {item.stepDetails && item.stepDetails.length > 0 && (
-                            <div className="rounded-lg bg-secondary/30 divide-y divide-border">
+                            <div className="mt-2.5 rounded-lg bg-secondary/30 divide-y divide-border/50">
                               {item.stepDetails.map((sd, i) => (
                                 <div key={i} className="flex justify-between px-3 py-1.5 text-xs">
-                                  <span className="text-muted-foreground">{sd.label}: {sd.value} {sd.unit}</span>
+                                  <span className="text-muted-foreground">
+                                    {sd.label}: <span className="text-foreground/80">{sd.value} {sd.unit}</span>
+                                  </span>
                                   <span className="font-medium text-foreground">{sd.subtotal} kr</span>
                                 </div>
                               ))}
@@ -168,102 +214,111 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                           )}
 
                           {!item.stepDetails?.length && item.details && (
-                            <p className="text-xs text-muted-foreground">{item.details}</p>
+                            <p className="text-xs text-muted-foreground mt-1.5">{item.details}</p>
                           )}
 
-                          <p className="text-right text-sm font-bold text-foreground">{item.total} kr</p>
-                        </CardContent>
-                      </Card>
+                          <p className="text-right text-sm font-bold text-foreground mt-2">{item.total} kr</p>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
               ))}
             </div>
-            <div className="border-t border-border pt-4">
-              <div className="mb-4 flex items-center justify-between text-lg font-bold">
-                <span>Total</span>
-                <span>{total} kr</span>
+
+            {/* Footer */}
+            <div className="shrink-0 border-t border-border bg-card px-5 py-4">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Total</span>
+                <span className="text-lg font-bold text-foreground">{total} kr</span>
               </div>
-              <Button onClick={() => setCheckout(true)} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+              <Button onClick={() => setCheckout(true)} className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90">
                 Gå til aftale
               </Button>
             </div>
           </div>
         ) : (
-          <div className="flex flex-1 flex-col py-4">
-            <div className="flex-1 space-y-4 overflow-y-auto">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-foreground">Fulde navn</label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Dit navn" />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-foreground">E-mail</label>
-                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="din@email.dk" />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-foreground">Telefon</label>
-                <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 00 00 00 00" />
+          /* ── Checkout view ── */
+          <div className="flex flex-1 flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+              {/* Contact form */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-foreground">Dine oplysninger</h4>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Fulde navn</label>
+                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Dit navn" className="rounded-lg" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">E-mail</label>
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="din@email.dk" className="rounded-lg" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Telefon</label>
+                  <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 00 00 00 00" className="rounded-lg" />
+                </div>
               </div>
 
-              <Card className="border-border/60">
-                <CardContent className="p-4 space-y-3">
-                  <h4 className="text-sm font-semibold text-foreground">Aftaleopsummering</h4>
+              {/* Order summary */}
+              <div className="rounded-xl border border-border overflow-hidden">
+                <div className="px-4 py-2.5 bg-muted/40 border-b border-border">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Aftaleopsummering</h4>
+                </div>
 
-                  {Object.entries(groupedByBusiness).map(([bizId, group]) => {
-                    const bizTotal = group.items.reduce((acc, i) => acc + i.total * i.quantity, 0);
-                    return (
-                      <div key={bizId} className="space-y-1.5">
-                        <div className="flex items-center gap-2 pb-1 border-b border-border">
-                          {group.businessLogoUrl && (
-                            <img src={group.businessLogoUrl} alt="" className="h-5 w-5 rounded object-contain bg-secondary p-0.5" />
-                          )}
-                          <span className="text-sm font-medium text-foreground">{group.businessName}</span>
-                          <span className="ml-auto text-xs font-semibold text-muted-foreground">{bizTotal} kr</span>
-                        </div>
-                        {group.items.map((item) => (
-                          <div key={item.serviceId} className="space-y-0.5">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-foreground">{item.serviceName}</span>
-                              <span className="font-semibold">{item.total} kr</span>
-                            </div>
-                            {item.interval && item.interval !== "engangskøb" && (
-                              <span className="text-xs text-accent">{INTERVAL_LABELS[item.interval]}</span>
-                            )}
-                            {item.stepDetails?.map((sd, i) => (
-                              <div key={i} className="flex justify-between text-xs text-muted-foreground pl-2">
-                                <span>{sd.label}: {sd.value} {sd.unit}</span>
-                                <span>{sd.subtotal} kr</span>
-                              </div>
-                            ))}
-                          </div>
-                        ))}
+                {Object.entries(groupedByBusiness).map(([bizId, group]) => {
+                  const bizTotal = group.items.reduce((acc, i) => acc + i.total * i.quantity, 0);
+                  return (
+                    <div key={bizId} className="border-b border-border last:border-b-0">
+                      <div className="flex items-center gap-2 px-4 py-2 bg-muted/20">
+                        {group.businessLogoUrl && (
+                          <img src={group.businessLogoUrl} alt="" className="h-5 w-5 rounded object-contain bg-secondary p-0.5" />
+                        )}
+                        <span className="text-xs font-semibold text-foreground flex-1">{group.businessName}</span>
+                        <span className="text-xs font-bold text-foreground">{bizTotal} kr</span>
                       </div>
-                    );
-                  })}
+                      {group.items.map((item) => (
+                        <div key={item.serviceId} className="px-4 py-2 border-t border-border/50">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-foreground">{item.serviceName}</span>
+                            <span className="font-semibold text-foreground">{item.total} kr</span>
+                          </div>
+                          {item.interval && item.interval !== "engangskøb" && (
+                            <span className="text-[11px] text-accent">{INTERVAL_LABELS[item.interval]}</span>
+                          )}
+                          {item.stepDetails?.map((sd, i) => (
+                            <div key={i} className="flex justify-between text-xs text-muted-foreground pl-2 mt-0.5">
+                              <span>{sd.label}: {sd.value} {sd.unit}</span>
+                              <span>{sd.subtotal} kr</span>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
 
-                  <div className="border-t border-border pt-2 flex justify-between font-bold">
-                    <span>Total</span>
-                    <span>{total} kr</span>
-                  </div>
-                </CardContent>
-              </Card>
+                <div className="px-4 py-2.5 flex justify-between bg-muted/30 border-t border-border">
+                  <span className="text-sm font-bold text-foreground">Total</span>
+                  <span className="text-sm font-bold text-foreground">{total} kr</span>
+                </div>
+              </div>
 
-              <p className="text-xs text-muted-foreground bg-accent/5 rounded-lg px-3 py-2 border border-accent/20">
+              {/* Info notices */}
+              <p className="text-xs text-muted-foreground bg-accent/5 rounded-xl px-3.5 py-2.5 border border-accent/20">
                 💡 Aftalen sendes til virksomheden for godkendelse. Du modtager besked når de har svaret.
               </p>
 
               {user && items.some(i => i.interval && i.interval !== "engangskøb") && (
-                <p className="text-xs text-muted-foreground bg-accent/5 rounded-lg px-3 py-2 border border-accent/20">
+                <p className="text-xs text-muted-foreground bg-accent/5 rounded-xl px-3.5 py-2.5 border border-accent/20">
                   🔄 Tilbagevendende services oprettes automatisk i dit kundepanel efter godkendelse.
                 </p>
               )}
             </div>
-            <div className="space-y-2 border-t border-border pt-4">
-              <Button onClick={handleOrder} disabled={createOrder.isPending} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+
+            {/* Submit footer */}
+            <div className="shrink-0 border-t border-border bg-card px-5 py-4 space-y-2">
+              <Button onClick={handleOrder} disabled={createOrder.isPending}
+                className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90">
                 {createOrder.isPending ? "Sender aftale..." : `Send aftale – ${total} kr`}
-              </Button>
-              <Button variant="outline" onClick={() => setCheckout(false)} className="w-full">
-                Tilbage
               </Button>
             </div>
           </div>
