@@ -1150,8 +1150,8 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                       </div>
                     )}
 
-                    {/* Response actions */}
-                    {!resp && order.status === "pending" && !isResponding && (
+                    {/* Response actions — show if no response yet, or allow changing */}
+                    {order.status !== "completed" && order.status !== "cancelled" && !isResponding && (
                       <div className="flex gap-2">
                         <Button size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("accepted"); }}
                           className="gap-1.5 rounded-xl text-xs bg-green-600 text-white hover:bg-green-700">
