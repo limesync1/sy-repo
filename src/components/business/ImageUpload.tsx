@@ -6,15 +6,25 @@ import { toast } from "sonner";
 
 interface Props {
   bucket?: string;
-  folder: string; // e.g. "{userId}/logos"
+  folder: string;
   currentUrl?: string | null;
   onUploaded: (url: string) => void;
   label?: string;
   className?: string;
-  aspectRatio?: string; // e.g. "aspect-square" or "aspect-video"
+  aspectRatio?: string;
+  objectFit?: "cover" | "contain";
 }
 
-const ImageUpload = ({ bucket = "business-assets", folder, currentUrl, onUploaded, label = "Upload billede", className = "", aspectRatio = "aspect-square" }: Props) => {
+const ImageUpload = ({
+  bucket = "business-assets",
+  folder,
+  currentUrl,
+  onUploaded,
+  label = "Upload billede",
+  className = "",
+  aspectRatio = "aspect-square",
+  objectFit = "cover",
+}: Props) => {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentUrl || null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -63,13 +73,15 @@ const ImageUpload = ({ bucket = "business-assets", folder, currentUrl, onUploade
     if (inputRef.current) inputRef.current.value = "";
   };
 
+  const fitClass = objectFit === "contain" ? "object-contain p-2" : "object-cover";
+
   return (
     <div className={className}>
-      <label className="mb-1 block text-sm font-medium text-foreground">{label}</label>
+      {label && <label className="mb-1 block text-sm font-medium text-foreground">{label}</label>}
       <div className={`relative overflow-hidden rounded-xl border-2 border-dashed border-border bg-secondary/30 ${aspectRatio} flex items-center justify-center`}>
         {preview ? (
           <>
-            <img src={preview} alt="Preview" className="h-full w-full object-cover" />
+            <img src={preview} alt="Preview" className={`h-full w-full ${fitClass}`} />
             <button
               onClick={handleRemove}
               className="absolute right-2 top-2 rounded-full bg-foreground/80 p-1 text-background hover:bg-foreground"
