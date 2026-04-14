@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Plus, Trash2, LogOut, Send,
   Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart, MessageSquare,
