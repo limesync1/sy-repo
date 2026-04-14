@@ -72,6 +72,7 @@ const RequestQuote = () => {
   const [matches, setMatches] = useState<MatchedBusiness[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<MatchedBusiness | null>(null);
+  const [showAllServices, setShowAllServices] = useState(false);
   const { count, setCartBusiness, businessId } = useCart();
 
   const handleFind = async (e: React.FormEvent) => {
@@ -117,6 +118,7 @@ const RequestQuote = () => {
 
   const handleSelectBusiness = (match: MatchedBusiness) => {
     setSelectedBusiness(match);
+    setShowAllServices(false);
     setCartBusiness(match.business.id, match.business.name);
   };
 
@@ -444,6 +446,13 @@ const RequestQuote = () => {
               {/* Service cards */}
               {(() => {
                 const activeServices = selectedBusiness.business.services.filter(s => s.is_active !== false);
+                // Find the matched/prefilled service(s)
+                const prefillIds = (selectedBusiness.service_prefills || []).map(p => p.service_id);
+                const matchedServices = prefillIds.length > 0
+                  ? activeServices.filter(s => prefillIds.includes(s.id))
+                  : activeServices.slice(0, 1); // fallback: show first service
+                const otherServices = activeServices.filter(s => !matchedServices.some(ms => ms.id === s.id));
+
                 if (activeServices.length === 0) {
                   return (
                     <div className="rounded-xl border border-border bg-card p-8 text-center">
@@ -454,21 +463,54 @@ const RequestQuote = () => {
                     </div>
                   );
                 }
+
+                const renderCard = (s: MatchedService) => {
+                  const prefill = selectedBusiness?.service_prefills?.find(p => p.service_id === s.id);
+                  const stepVals: Record<string, number> = {};
+                  prefill?.step_values?.forEach(sv => { stepVals[sv.step_id] = sv.value; });
+                  return (
+                    <DynamicServiceCard
+                      key={s.id}
+                      service={toServiceCardProps(s)}
+                      initialStepValues={Object.keys(stepVals).length > 0 ? stepVals : undefined}
+                      initialHours={prefill?.hours}
+                      businessName={selectedBusiness.business.name}
+                      businessLogoUrl={selectedBusiness.business.logo_url || undefined}
+                    />
+                  );
+                };
+
                 return (
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    {activeServices.map((s) => {
-                      const prefill = selectedBusiness?.service_prefills?.find(p => p.service_id === s.id);
-                      const stepVals: Record<string, number> = {};
-                      prefill?.step_values?.forEach(sv => { stepVals[sv.step_id] = sv.value; });
-                      return (
-                        <DynamicServiceCard
-                          key={s.id}
-                          service={toServiceCardProps(s)}
-                          initialStepValues={Object.keys(stepVals).length > 0 ? stepVals : undefined}
-                          initialHours={prefill?.hours}
-                        />
-                      );
-                    })}
+                  <div className="space-y-6">
+                    {/* Matched service(s) */}
+                    <div>
+                      <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Anbefalet service</h3>
+                      <div className="grid gap-5 sm:grid-cols-2">
+                        {matchedServices.map(renderCard)}
+                      </div>
+                    </div>
+
+                    {/* Other services toggle */}
+                    {otherServices.length > 0 && (
+                      <div>
+                        {!showAllServices ? (
+                          <button
+                            onClick={() => setShowAllServices(true)}
+                            className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/60 bg-secondary/30 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
+                          >
+                            Se {otherServices.length} andre services fra {selectedBusiness.business.name}
+                            <ArrowRight className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <>
+                            <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Andre services</h3>
+                            <div className="grid gap-5 sm:grid-cols-2">
+                              {otherServices.map(renderCard)}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })()}
