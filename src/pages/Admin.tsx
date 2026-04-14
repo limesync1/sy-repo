@@ -1247,7 +1247,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                         </Button>
                         <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); initAdjustedItems(order); setRespondingTo(order.id); setResponseType("adjusted"); }}
                           className="gap-1.5 rounded-xl text-xs">
-                          ✎ Tilpas aftale
+                          <Pencil className="h-3 w-3" /> Tilpas aftale
                         </Button>
                         <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("rejected"); }}
                           className="gap-1.5 rounded-xl text-xs text-destructive hover:text-destructive hover:bg-destructive/5">
