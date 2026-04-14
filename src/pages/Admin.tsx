@@ -1359,7 +1359,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Logo</label>
-              <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" />
+              <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Coverbillede</label>
