@@ -435,7 +435,9 @@ const AdjustmentDisplay = ({ order }: { order: any }) => {
 const AftaleTab = ({ businessId }: { businessId: string }) => {
   const { data: orders, isLoading } = useOrders(businessId);
   const { data: services } = useServices(businessId);
+  const { data: subscriptions } = useBusinessSubscriptions(businessId);
   const qc = useQueryClient();
+  const [activeView, setActiveView] = useState<"orders" | "subscriptions">("orders");
   const [filter, setFilter] = useState<string>("all");
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
