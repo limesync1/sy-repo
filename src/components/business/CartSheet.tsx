@@ -30,7 +30,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
 
   const handleOrder = async () => {
     if (!name || !email || !phone) {
-      toast.error("Udfyld venligst alle felter");
+      toast.error("Udfyld venligst alle felter for at sende bestillingen");
       return;
     }
 
@@ -83,7 +83,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
         }
       }
     } catch (e: any) {
-      toast.error("Fejl ved oprettelse af aftale: " + e.message);
+      toast.error("Fejl ved oprettelse af bestilling: " + e.message);
       return;
     }
 
@@ -98,7 +98,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
       if (user) {
         navigate("/dashboard");
       } else {
-        toast.success("Din aftale er sendt! Virksomheden vil gennemgå og bekræfte den.");
+        toast.success("Din bestilling er sendt! Virksomheden vil gennemgå og bekræfte den.");
       }
     }, 2000);
   };
@@ -110,7 +110,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
       <SheetTrigger asChild>
         <Button variant="outline" className="relative gap-2 border-accent/30 hover:bg-accent/10 hover:text-foreground hover:border-accent">
           <Package className="h-5 w-5" />
-          Aftale
+          Bestilling
           {count > 0 && (
             <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground">
               {count}
@@ -124,12 +124,12 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
           <SheetHeader className="p-0">
             <SheetTitle className="text-left">
               {checkout ? (
-                <button onClick={() => setCheckout(false)} className="flex items-center gap-2 text-base font-semibold text-foreground hover:text-foreground/80 transition-colors">
-                  <ChevronLeft className="h-4 w-4" /> Bekræft aftale
-                </button>
-              ) : (
-                <div>
-                  <span className="block text-base">Din aftale</span>
+                 <button onClick={() => setCheckout(false)} className="flex items-center gap-2 text-base font-semibold text-foreground hover:text-foreground/80 transition-colors">
+                   <ChevronLeft className="h-4 w-4" /> Bekræft bestilling
+                 </button>
+               ) : (
+                 <div>
+                   <span className="block text-base">Din bestilling</span>
                   {items.length > 0 && (
                     <span className="block text-xs font-normal text-muted-foreground mt-0.5">
                       {count} {count === 1 ? "service" : "services"}{businessCount > 1 ? ` · ${businessCount} virksomheder` : ""}
@@ -147,10 +147,10 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mb-4">
               <CheckCircle2 className="h-8 w-8 text-green-600" />
             </div>
-            <h3 className="text-lg font-bold text-foreground">Aftale sendt!</h3>
-            <p className="mt-2 text-sm text-muted-foreground max-w-xs">
-              Virksomheden vil gennemgå din aftale og vende tilbage med svar.
-              {user && " Du bliver nu sendt til dit kundepanel."}
+             <h3 className="text-lg font-bold text-foreground">Bestilling sendt!</h3>
+             <p className="mt-2 text-sm text-muted-foreground max-w-xs">
+               Virksomheden vil gennemgå din bestilling og vende tilbage med svar.
+               {user && " Du bliver nu sendt til dit kundepanel."}
             </p>
           </div>
         ) : items.length === 0 ? (
@@ -158,8 +158,8 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary mb-4">
               <Package className="h-7 w-7 text-muted-foreground/30" />
             </div>
-            <p className="text-sm font-medium text-foreground">Din aftale er tom</p>
-            <p className="mt-1 text-sm text-muted-foreground">Tilføj services fra virksomhedernes sider</p>
+             <p className="text-sm font-medium text-foreground">Din bestilling er tom</p>
+             <p className="mt-1 text-sm text-muted-foreground">Tilføj services fra virksomhedernes sider</p>
           </div>
         ) : !checkout ? (
           /* ── Cart items view ── */
@@ -232,9 +232,9 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 <span className="text-sm font-medium text-muted-foreground">Total</span>
                 <span className="text-lg font-bold text-foreground">{total} kr</span>
               </div>
-              <Button onClick={() => setCheckout(true)} className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90">
-                Gå til aftale
-              </Button>
+               <Button onClick={() => setCheckout(true)} className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90">
+                 Gå til bestilling
+               </Button>
             </div>
           </div>
         ) : (
@@ -261,7 +261,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
               {/* Order summary */}
               <div className="rounded-xl border border-border overflow-hidden">
                 <div className="px-4 py-2.5 bg-muted/40 border-b border-border">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Aftaleopsummering</h4>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bestillingsopsummering</h4>
                 </div>
 
                 {Object.entries(groupedByBusiness).map(([bizId, group]) => {
@@ -303,9 +303,9 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
               </div>
 
               {/* Info notices */}
-              <p className="text-xs text-muted-foreground bg-accent/5 rounded-xl px-3.5 py-2.5 border border-accent/20">
-                💡 Aftalen sendes til virksomheden for godkendelse. Du modtager besked når de har svaret.
-              </p>
+               <p className="text-xs text-muted-foreground bg-accent/5 rounded-xl px-3.5 py-2.5 border border-accent/20">
+                 💡 Bestillingen sendes til virksomheden for godkendelse. Du modtager besked når de har svaret.
+               </p>
 
               {user && items.some(i => i.interval && i.interval !== "engangskøb") && (
                 <p className="text-xs text-muted-foreground bg-accent/5 rounded-xl px-3.5 py-2.5 border border-accent/20">
@@ -318,7 +318,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
             <div className="shrink-0 border-t border-border bg-card px-5 py-4 space-y-2">
               <Button onClick={handleOrder} disabled={createOrder.isPending}
                 className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90">
-                {createOrder.isPending ? "Sender aftale..." : `Send aftale – ${total} kr`}
+                {createOrder.isPending ? "Sender bestilling..." : `Send bestilling – ${total} kr`}
               </Button>
             </div>
           </div>
