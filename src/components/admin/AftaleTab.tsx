@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import {
   ShoppingCart, Pencil, Minus, Plus, Check, X, MessageSquare,
   ChevronDown, ChevronUp, Clock, User, Mail, Phone, ArrowRight,
-  AlertTriangle, CheckCircle2, XCircle, RefreshCw,
+  AlertTriangle, CheckCircle2, XCircle, RefreshCw, CalendarClock,
 } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
 import {
