@@ -41,7 +41,34 @@ export interface CartItem {
   businessId?: string;
   businessName?: string;
   businessLogoUrl?: string;
-  stepDetails?: { label: string; value: number; unit: string; subtotal: number }[];
+  stepDetails?: {
+    id?: string;
+    label: string;
+    value: number;
+    unit: string;
+    price_per_unit?: number;
+    subtotal: number;
+    min_value?: number;
+    max_value?: number;
+    default_value?: number;
+    sort_order?: number;
+  }[];
+  pricingSnapshot?: {
+    pricing_type?: string;
+    base_price?: number;
+    unit?: string | null;
+    interval_options?: string[] | null;
+    calculator_steps?: {
+      id: string;
+      label: string;
+      unit: string;
+      price_per_unit: number;
+      min_value?: number;
+      max_value?: number;
+      default_value?: number;
+      sort_order?: number;
+    }[];
+  };
 }
 
 export interface BusinessInfo {

@@ -23,6 +23,15 @@ import {
 import ImageUpload from "@/components/business/ImageUpload";
 import DashboardTab from "@/components/admin/DashboardTab";
 import ReviewsTab from "@/components/admin/ReviewsTab";
+import { INTERVAL_LABELS } from "@/types/service";
+import {
+  buildPricingSnapshot,
+  getSmartStep,
+  roundPrice,
+  type PricingSnapshot,
+  type ServiceStepDetail,
+} from "@/lib/service-pricing";
+import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 
 /* ─── Constants ─── */
 const CATEGORIES = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS", "Elektriker", "Sikkerhed"];
@@ -971,8 +980,170 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
 };
 
 /* ─── Aftaler Tab (Orders) ─── */
+type BusinessService = Service & { calculator_steps?: CalculatorStep[] };
+
+type AdjustmentStep = Required<Pick<ServiceStepDetail, "label" | "value" | "unit" | "subtotal">> & {
+  id: string;
+  price_per_unit: number;
+  min_value: number;
+  max_value: number;
+  default_value: number;
+  sort_order: number;
+};
+
+type AdjustmentItem = {
+  service_id?: string | null;
+  service_name: string;
+  pricing_type: PricingSnapshot["pricing_type"];
+  unit_price: number;
+  quantity: number;
+  total_price: number;
+  details: {
+    description?: string;
+    interval?: string;
+    pricingSnapshot: PricingSnapshot;
+    stepDetails?: AdjustmentStep[];
+  };
+};
+
+const parseNumber = (value: unknown, fallback = 0) => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value.replace(",", "."));
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const parseValueFromDescription = (description?: string) => {
+  if (!description) return 0;
+  const match = description.match(/(\d+(?:[.,]\d+)?)/);
+  return match ? parseNumber(match[1], 0) : 0;
+};
+
+const clampValue = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const getIntervalOptions = (snapshot: PricingSnapshot, currentInterval?: string) => {
+  const options = snapshot.interval_options && snapshot.interval_options.length > 0
+    ? snapshot.interval_options
+    : ["engangskøb"];
+  return Array.from(new Set([...(currentInterval ? [currentInterval] : []), ...options]));
+};
+
+const normalizePricingSnapshot = (rawSnapshot: any, service?: BusinessService, item?: any): PricingSnapshot => {
+  const liveSnapshot = service ? buildPricingSnapshot(service) : undefined;
+  const rawSteps = Array.isArray(rawSnapshot?.calculator_steps) && rawSnapshot.calculator_steps.length > 0
+    ? rawSnapshot.calculator_steps
+    : liveSnapshot?.calculator_steps || [];
+
+  return {
+    pricing_type: (rawSnapshot?.pricing_type || liveSnapshot?.pricing_type || (item?.details?.stepDetails?.length ? "prisberegner" : "fast_pris")) as PricingSnapshot["pricing_type"],
+    base_price: parseNumber(rawSnapshot?.base_price, liveSnapshot?.base_price ?? item?.unit_price ?? item?.total_price ?? 0),
+    unit: rawSnapshot?.unit ?? liveSnapshot?.unit ?? service?.unit ?? null,
+    interval_options: Array.from(new Set([
+      ...(Array.isArray(rawSnapshot?.interval_options) ? rawSnapshot.interval_options : liveSnapshot?.interval_options || ["engangskøb"]),
+      item?.details?.interval || "engangskøb",
+    ].filter(Boolean))),
+    calculator_steps: rawSteps
+      .map((step: any, index: number) => ({
+        id: String(step.id ?? `step-${index}`),
+        label: step.label ?? `Trin ${index + 1}`,
+        unit: step.unit ?? service?.unit ?? "stk",
+        price_per_unit: parseNumber(step.price_per_unit, 0),
+        min_value: parseNumber(step.min_value, 0),
+        max_value: parseNumber(step.max_value, Math.max(parseNumber(step.default_value, 0), 100)),
+        default_value: parseNumber(step.default_value, parseNumber(step.min_value, 0)),
+        sort_order: parseNumber(step.sort_order, index),
+      }))
+      .sort((a, b) => a.sort_order - b.sort_order),
+  };
+};
+
+const buildAdjustmentItem = (item: any, service?: BusinessService): AdjustmentItem => {
+  const snapshot = normalizePricingSnapshot(item.details?.pricingSnapshot, service, item);
+  const storedSteps = Array.isArray(item.details?.stepDetails) ? item.details.stepDetails : [];
+  let stepDetails: AdjustmentStep[] = [];
+
+  if (snapshot.pricing_type === "timepris") {
+    const firstStep = storedSteps[0];
+    const pricePerUnit = parseNumber(firstStep?.price_per_unit, snapshot.base_price || 0);
+    const derivedValue = parseNumber(
+      firstStep?.value,
+      parseValueFromDescription(item.details?.description) || (pricePerUnit > 0 ? roundPrice(parseNumber(item.total_price, 0) / pricePerUnit) : 1),
+    ) || 1;
+
+    stepDetails = [{
+      id: String(firstStep?.id ?? "hours"),
+      label: firstStep?.label ?? "Timer",
+      unit: firstStep?.unit ?? snapshot.unit ?? "timer",
+      value: derivedValue,
+      price_per_unit: pricePerUnit,
+      subtotal: roundPrice(firstStep?.subtotal ?? derivedValue * pricePerUnit),
+      min_value: parseNumber(firstStep?.min_value, 0.5),
+      max_value: parseNumber(firstStep?.max_value, 24),
+      default_value: parseNumber(firstStep?.default_value, derivedValue),
+      sort_order: parseNumber(firstStep?.sort_order, 0),
+    }];
+  }
+
+  if (snapshot.pricing_type === "prisberegner") {
+    const sourceSteps = snapshot.calculator_steps.length > 0
+      ? snapshot.calculator_steps
+      : storedSteps.map((step: any, index: number) => ({
+          id: String(step.id ?? `step-${index}`),
+          label: step.label ?? `Trin ${index + 1}`,
+          unit: step.unit ?? "stk",
+          price_per_unit: parseNumber(step.price_per_unit, 0),
+          min_value: parseNumber(step.min_value, 0),
+          max_value: parseNumber(step.max_value, Math.max(parseNumber(step.value, 0), 100)),
+          default_value: parseNumber(step.default_value, parseNumber(step.value, 0)),
+          sort_order: parseNumber(step.sort_order, index),
+        }));
+
+    stepDetails = sourceSteps.map((config, index) => {
+      const stored = storedSteps.find((step: any) => step.id === config.id)
+        ?? storedSteps.find((step: any) => step.label === config.label);
+      const value = parseNumber(stored?.value, config.default_value);
+      const pricePerUnit = parseNumber(stored?.price_per_unit, config.price_per_unit);
+      return {
+        id: String(config.id ?? `step-${index}`),
+        label: config.label,
+        unit: stored?.unit ?? config.unit,
+        value,
+        price_per_unit: pricePerUnit,
+        subtotal: roundPrice(stored?.subtotal ?? value * pricePerUnit),
+        min_value: parseNumber(stored?.min_value, config.min_value),
+        max_value: parseNumber(stored?.max_value, config.max_value),
+        default_value: parseNumber(stored?.default_value, config.default_value),
+        sort_order: parseNumber(stored?.sort_order, config.sort_order),
+      };
+    }).sort((a, b) => a.sort_order - b.sort_order);
+  }
+
+  const totalPrice = stepDetails.length > 0
+    ? roundPrice(stepDetails.reduce((sum, step) => sum + step.subtotal, 0))
+    : roundPrice(parseNumber(item.total_price, snapshot.base_price));
+
+  return {
+    service_id: item.service_id,
+    service_name: item.service_name,
+    pricing_type: snapshot.pricing_type,
+    unit_price: roundPrice(parseNumber(item.unit_price, totalPrice)),
+    quantity: parseNumber(item.quantity, 1),
+    total_price: totalPrice,
+    details: {
+      description: item.details?.description,
+      interval: item.details?.interval ?? "engangskøb",
+      pricingSnapshot: snapshot,
+      stepDetails,
+    },
+  };
+};
+
 const OrdersTab = ({ businessId }: { businessId: string }) => {
   const { data: orders, isLoading } = useOrders(businessId);
+  const { data: services } = useServices(businessId);
   const updateStatus = useUpdateOrderStatus();
   const qc = useQueryClient();
   const [filter, setFilter] = useState<string>("all");
@@ -980,11 +1151,11 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const [responseType, setResponseType] = useState<"accepted" | "rejected" | "adjusted">("accepted");
   const [responseMessage, setResponseMessage] = useState("");
-  const [adjustedItems, setAdjustedItems] = useState<Record<string, { service_name: string; unit_price: number; quantity: number; total_price: number; details: any }[]>>({});
+  const [adjustedItems, setAdjustedItems] = useState<Record<string, AdjustmentItem[]>>({});
 
   const statusLabels: Record<string, string> = {
-    pending: "Afventer", confirmed: "Bekræftet", in_progress: "I gang",
-    completed: "Afsluttet", cancelled: "Annulleret",
+    pending: "Afventer", confirmed: "Godkendt", in_progress: "I gang",
+    completed: "Afsluttet", cancelled: "Lukket",
   };
   const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
     pending: { bg: "bg-yellow-50", text: "text-yellow-700", dot: "bg-yellow-400" },
@@ -996,29 +1167,22 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
   const responseLabels: Record<string, { label: string; color: string }> = {
     accepted: { label: "Godkendt", color: "bg-green-50 text-green-700" },
     rejected: { label: "Afvist", color: "bg-red-50 text-red-700" },
-    adjusted: { label: "Tilpasset", color: "bg-amber-50 text-amber-700" },
+    adjusted: { label: "Tilpasning sendt", color: "bg-amber-50 text-amber-700" },
   };
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser aftaler...</p>;
+
+  const servicesById = (services || []).reduce<Record<string, BusinessService>>((acc, service) => {
+    acc[service.id] = service as BusinessService;
+    return acc;
+  }, {});
 
   const filteredOrders = filter === "all" ? orders : orders?.filter((o) => o.status === filter);
   const counts: Record<string, number> = { all: orders?.length || 0 };
   orders?.forEach(o => { counts[o.status] = (counts[o.status] || 0) + 1; });
 
   const initAdjustedItems = (order: any) => {
-    const items = (order.order_items || []).map((item: any) => ({
-      service_name: item.service_name,
-      unit_price: item.unit_price,
-      quantity: item.quantity,
-      total_price: item.total_price,
-      details: item.details ? {
-        ...item.details,
-        stepDetails: item.details.stepDetails?.map((sd: any) => ({
-          ...sd,
-          price_per_unit: sd.price_per_unit ?? (sd.value ? Math.round(sd.subtotal / sd.value * 100) / 100 : 0),
-        })),
-      } : {},
-    }));
+    const items = (order.order_items || []).map((item: any) => buildAdjustmentItem(item, item.service_id ? servicesById[item.service_id] : undefined));
     setAdjustedItems((prev) => ({ ...prev, [order.id]: items }));
   };
 
@@ -1027,20 +1191,29 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
       const items = [...(prev[orderId] || [])];
       const item = { ...items[itemIdx] };
       const details = { ...item.details };
-      const steps = [...(details.stepDetails || [])];
+      const steps = [...(details.stepDetails || [])] as AdjustmentStep[];
       const step = { ...steps[stepIdx] };
       if (field === "value") {
-        step.value = value;
-        step.subtotal = Math.round(value * step.price_per_unit * 100) / 100;
+        step.value = clampValue(value, step.min_value, step.max_value);
+        step.subtotal = roundPrice(step.value * step.price_per_unit);
       } else if (field === "price_per_unit") {
-        step.price_per_unit = value;
-        step.subtotal = Math.round(step.value * value * 100) / 100;
+        step.price_per_unit = Math.max(0, value);
+        step.subtotal = roundPrice(step.value * step.price_per_unit);
       }
       steps[stepIdx] = step;
       details.stepDetails = steps;
       item.details = details;
-      item.total_price = steps.reduce((sum: number, s: any) => sum + (s.subtotal || 0), 0);
+      item.total_price = roundPrice(steps.reduce((sum: number, s: AdjustmentStep) => sum + (s.subtotal || 0), 0));
       item.unit_price = item.total_price;
+      items[itemIdx] = item;
+      return { ...prev, [orderId]: items };
+    });
+  };
+
+  const updateAdjustedInterval = (orderId: string, itemIdx: number, interval: string) => {
+    setAdjustedItems((prev) => {
+      const items = [...(prev[orderId] || [])];
+      const item = { ...items[itemIdx], details: { ...items[itemIdx].details, interval } };
       items[itemIdx] = item;
       return { ...prev, [orderId]: items };
     });
@@ -1050,8 +1223,8 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
     setAdjustedItems((prev) => {
       const items = [...(prev[orderId] || [])];
       const item = { ...items[itemIdx] };
-      item.total_price = newPrice;
-      item.unit_price = newPrice;
+      item.total_price = roundPrice(Math.max(0, newPrice));
+      item.unit_price = item.total_price;
       items[itemIdx] = item;
       return { ...prev, [orderId]: items };
     });
@@ -1127,6 +1300,16 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
             const isResponding = respondingTo === order.id;
             const resp = order.business_response;
             const respCfg = resp ? responseLabels[resp] : null;
+            const canRespond = order.status === "pending";
+            const statusOptions = order.status === "confirmed"
+              ? ["confirmed", "in_progress", "completed", "cancelled"]
+              : order.status === "in_progress"
+                ? ["in_progress", "completed", "cancelled"]
+                : order.status === "completed"
+                  ? ["completed"]
+                  : order.status === "cancelled"
+                    ? ["cancelled"]
+                    : [];
 
             return (
               <Card key={order.id} className="rounded-xl shadow-sm border-[#e1e3e5] overflow-hidden">
@@ -1171,25 +1354,32 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                     {/* Order items */}
                     {(order as any).order_items?.length > 0 && (
                       <div className="rounded-xl bg-card border border-border overflow-hidden">
-                        <div className="px-3.5 py-2 bg-muted/50 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Services i aftalen</div>
+                          <div className="px-3.5 py-2 bg-muted/50 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Det kunden bestilte</div>
                         {(order as any).order_items.map((item: any) => (
                           <div key={item.id} className="border-t border-border px-3.5 py-2.5">
-                            <div className="flex justify-between text-sm">
-                              <span className="font-medium text-foreground">{item.service_name}{item.quantity > 1 && ` × ${item.quantity}`}</span>
-                              <span className="font-semibold text-foreground">{item.total_price} kr</span>
-                            </div>
+                              <div className="flex flex-wrap items-start justify-between gap-3 text-sm">
+                                <div>
+                                  <span className="font-medium text-foreground">{item.service_name}{item.quantity > 1 && ` × ${item.quantity}`}</span>
+                                  {item.details?.interval && (
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                      Interval: {INTERVAL_LABELS[item.details.interval] || item.details.interval}
+                                    </p>
+                                  )}
+                                </div>
+                                <span className="font-semibold text-foreground">{item.total_price} kr</span>
+                              </div>
                             {item.details?.stepDetails && (
                               <div className="mt-1.5 space-y-0.5">
                                 {(item.details.stepDetails as any[]).map((sd: any, i: number) => (
                                   <div key={i} className="flex justify-between text-xs text-muted-foreground pl-2">
-                                    <span>{sd.label}: {sd.value} {sd.unit}</span>
+                                      <span>
+                                        {sd.label}: {sd.value} {sd.unit}
+                                        {sd.price_per_unit ? ` × ${sd.price_per_unit} kr/${sd.unit}` : ""}
+                                      </span>
                                     <span>{sd.subtotal} kr</span>
                                   </div>
                                 ))}
                               </div>
-                            )}
-                            {item.details?.interval && item.details.interval !== "engangskøb" && (
-                              <span className="mt-1 inline-block text-xs text-accent">{item.details.interval}</span>
                             )}
                           </div>
                         ))}
@@ -1216,11 +1406,18 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                     {/* Adjusted details display */}
                     {resp === "adjusted" && order.adjusted_details && !isResponding && (
                       <div className="rounded-xl bg-amber-50/50 border border-amber-200 overflow-hidden">
-                        <div className="px-3.5 py-2 bg-amber-100/50 text-xs font-semibold text-amber-800">Tilpasset prisforslag</div>
+                        <div className="px-3.5 py-2 bg-amber-100/50 text-xs font-semibold text-amber-800">Dit seneste tilpasningsforslag</div>
                         {((order.adjusted_details as any)?.items || []).map((item: any, idx: number) => (
                           <div key={idx} className="border-t border-amber-200/60 px-3.5 py-2">
-                            <div className="flex justify-between text-sm">
-                              <span className="font-medium text-foreground">{item.service_name}</span>
+                            <div className="flex flex-wrap items-start justify-between gap-3 text-sm">
+                              <div>
+                                <span className="font-medium text-foreground">{item.service_name}</span>
+                                {item.details?.interval && (
+                                  <p className="mt-1 text-xs text-muted-foreground">
+                                    Interval: {INTERVAL_LABELS[item.details.interval] || item.details.interval}
+                                  </p>
+                                )}
+                              </div>
                               <span className="font-semibold text-foreground">{item.total_price} kr</span>
                             </div>
                             {item.details?.stepDetails?.map((sd: any, i: number) => (
@@ -1239,7 +1436,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                     )}
 
                     {/* Response actions */}
-                    {order.status !== "completed" && order.status !== "cancelled" && !isResponding && (
+                    {canRespond && !isResponding && (
                       <div className="flex flex-wrap gap-2">
                         <Button size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("accepted"); }}
                           className="gap-1.5 rounded-xl text-xs bg-green-600 text-white hover:bg-green-700">
@@ -1285,20 +1482,26 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                         {/* Line-item adjustment editor — matches service card layout */}
                         {responseType === "adjusted" && adjustedItems[order.id] && (
                           <div className="space-y-3">
-                            <p className="text-xs text-muted-foreground">Rediger mængder og priser. Kunden ser præcis dine ændringer.</p>
+                            <p className="text-xs text-muted-foreground">Du redigerer nu de samme felter, som kunden brugte ved bestilling.</p>
                             {adjustedItems[order.id].map((item, itemIdx) => (
                               <div key={itemIdx} className="rounded-xl border border-border overflow-hidden">
                                 <div className="px-4 py-2.5 bg-muted/40 flex justify-between items-center">
-                                  <span className="text-sm font-semibold text-foreground">{item.service_name}</span>
+                                  <div>
+                                    <span className="text-sm font-semibold text-foreground">{item.service_name}</span>
+                                    <p className="mt-0.5 text-xs text-muted-foreground">
+                                      {item.pricing_type === "fast_pris" ? "Fast pris" : item.pricing_type === "timepris" ? "Timepris" : "Prisberegner"}
+                                    </p>
+                                  </div>
                                   <div className="flex items-baseline gap-1">
-                                    <span className="text-lg font-bold text-foreground">{Math.round(item.total_price)}</span>
+                                    <span className="text-lg font-bold text-foreground">{roundPrice(item.total_price)}</span>
                                     <span className="text-xs text-muted-foreground">kr</span>
                                   </div>
                                 </div>
                                 {item.details?.stepDetails && item.details.stepDetails.length > 0 ? (
                                   <div className="divide-y divide-border">
-                                    {item.details.stepDetails.map((sd: any, stepIdx: number) => {
-                                      const stepTotal = Math.round(sd.subtotal);
+                                    {item.details.stepDetails.map((sd, stepIdx) => {
+                                      const stepTotal = roundPrice(sd.subtotal);
+                                      const stepSize = getSmartStep(sd.unit, sd.min_value, sd.max_value);
                                       return (
                                         <div key={stepIdx} className="px-4 py-3">
                                           <div className="flex items-center justify-between mb-2">
@@ -1309,25 +1512,30 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                                             <span className="text-sm font-semibold text-foreground shrink-0">{stepTotal} kr</span>
                                           </div>
                                           <div className="flex items-center gap-0">
-                                            <button type="button" onClick={() => updateAdjustedStep(order.id, itemIdx, stepIdx, "value", Math.max(0, sd.value - 1))}
-                                              disabled={sd.value <= 0}
+                                            <button type="button" onClick={() => updateAdjustedStep(order.id, itemIdx, stepIdx, "value", roundPrice(sd.value - stepSize))}
+                                              disabled={sd.value <= sd.min_value}
                                               className="flex h-9 w-9 items-center justify-center rounded-l-lg border border-border bg-secondary text-foreground transition-colors hover:bg-secondary/80 disabled:opacity-30">
                                               <Minus className="h-3.5 w-3.5" />
                                             </button>
                                             <input type="number" value={sd.value}
-                                              onChange={(e) => updateAdjustedStep(order.id, itemIdx, stepIdx, "value", parseFloat(e.target.value) || 0)}
+                                              onChange={(e) => updateAdjustedStep(order.id, itemIdx, stepIdx, "value", parseNumber(e.target.value, sd.min_value))}
+                                              min={sd.min_value}
+                                              max={sd.max_value}
+                                              step={stepSize}
                                               className="flex h-9 w-[5rem] items-center border-y border-border bg-card px-2 text-center text-sm font-semibold text-foreground outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                             />
-                                            <button type="button" onClick={() => updateAdjustedStep(order.id, itemIdx, stepIdx, "value", sd.value + 1)}
+                                            <button type="button" onClick={() => updateAdjustedStep(order.id, itemIdx, stepIdx, "value", roundPrice(sd.value + stepSize))}
+                                              disabled={sd.value >= sd.max_value}
                                               className="flex h-9 w-9 items-center justify-center rounded-r-lg border border-border bg-secondary text-foreground transition-colors hover:bg-secondary/80">
                                               <Plus className="h-3.5 w-3.5" />
                                             </button>
                                             <span className="ml-2 text-xs text-muted-foreground">{sd.unit}</span>
                                           </div>
+                                          <p className="mt-1 text-[11px] text-muted-foreground">Muligt spænd: {sd.min_value}–{sd.max_value} {sd.unit}</p>
                                           <div className="mt-2 flex items-center gap-2">
                                             <span className="text-xs text-muted-foreground">Pris pr. {sd.unit}:</span>
                                             <input type="number" value={sd.price_per_unit}
-                                              onChange={(e) => updateAdjustedStep(order.id, itemIdx, stepIdx, "price_per_unit", parseFloat(e.target.value) || 0)}
+                                              onChange={(e) => updateAdjustedStep(order.id, itemIdx, stepIdx, "price_per_unit", parseNumber(e.target.value, 0))}
                                               className="h-7 w-20 rounded-md border border-border bg-card px-2 text-xs font-medium text-foreground outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                             />
                                             <span className="text-xs text-muted-foreground">kr</span>
@@ -1338,7 +1546,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                                     <div className="flex items-center justify-between bg-secondary/40 px-4 py-3">
                                       <span className="text-sm font-semibold text-foreground">I alt</span>
                                       <div className="flex items-baseline gap-1">
-                                        <span className="text-xl font-bold text-foreground">{Math.round(item.total_price)}</span>
+                                        <span className="text-xl font-bold text-foreground">{roundPrice(item.total_price)}</span>
                                         <span className="text-sm text-muted-foreground">kr</span>
                                       </div>
                                     </div>
@@ -1350,16 +1558,37 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                                       onChange={(e) => updateAdjustedFixedPrice(order.id, itemIdx, parseFloat(e.target.value) || 0)} />
                                   </div>
                                 )}
-                                {item.details?.interval && item.details.interval !== "engangskøb" && (
-                                  <div className="px-4 py-2 border-t border-border bg-accent/5">
-                                    <span className="text-xs font-medium text-accent">Interval: {item.details.interval}</span>
-                                  </div>
-                                )}
+                                {(() => {
+                                  const intervalOptions = getIntervalOptions(item.details.pricingSnapshot, item.details.interval);
+                                  const showIntervals = intervalOptions.length > 1 || (intervalOptions.length === 1 && intervalOptions[0] !== "engangskøb");
+                                  if (!showIntervals) return null;
+                                  return (
+                                    <div className="border-t border-border px-4 py-3 bg-accent/5">
+                                      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Interval</label>
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {intervalOptions.map((interval) => (
+                                          <button
+                                            key={interval}
+                                            type="button"
+                                            onClick={() => updateAdjustedInterval(order.id, itemIdx, interval)}
+                                            className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                                              item.details.interval === interval
+                                                ? "border-accent bg-accent text-accent-foreground"
+                                                : "border-border bg-card text-muted-foreground hover:border-accent/40"
+                                            }`}
+                                          >
+                                            {INTERVAL_LABELS[interval] || interval}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
                               </div>
                             ))}
                             <div className="flex justify-between items-center px-1 pt-1">
                               <span className="text-sm text-muted-foreground">Oprindelig: <span className="line-through">{order.total_amount} kr</span></span>
-                              <span className="text-base font-bold text-foreground">Ny pris: {Math.round(getAdjustedTotal(order.id))} kr</span>
+                              <span className="text-base font-bold text-foreground">Ny pris: {roundPrice(getAdjustedTotal(order.id))} kr</span>
                             </div>
                           </div>
                         )}
@@ -1386,7 +1615,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                             }`}>
                             {responseType === "accepted" ? "Bekræft godkendelse" :
                              responseType === "rejected" ? "Bekræft afvisning" :
-                             `Send tilpasning – ${Math.round(getAdjustedTotal(order.id))} kr`}
+                             `Send tilpasning – ${roundPrice(getAdjustedTotal(order.id))} kr`}
                           </Button>
                           <Button variant="ghost" size="sm" onClick={() => { setRespondingTo(null); setResponseMessage(""); }}
                             className="rounded-xl text-xs">
@@ -1397,13 +1626,13 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                     )}
 
                     {/* Status change for responded orders */}
-                    {resp && order.status !== "cancelled" && !isResponding && (
+                    {statusOptions.length > 0 && !isResponding && (
                       <div onClick={(e) => e.stopPropagation()}>
                         <label className="mb-1 block text-xs font-medium text-muted-foreground">Opdater status</label>
                         <Select value={order.status} onValueChange={(s) => updateStatus.mutate({ id: order.id, status: s })}>
                           <SelectTrigger className="h-8 text-sm w-48"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                            {statusOptions.map((status) => <SelectItem key={status} value={status}>{statusLabels[status]}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
