@@ -1004,14 +1004,16 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
   const counts: Record<string, number> = { all: orders?.length || 0 };
   orders?.forEach(o => { counts[o.status] = (counts[o.status] || 0) + 1; });
 
+  const qc = __useQueryClient();
   const handleResponse = async (orderId: string) => {
     try {
-      await supabase.from("orders").update({
+      const { error } = await supabase.from("orders").update({
         business_response: responseType,
         business_message: responseMessage || null,
         adjusted_amount: responseType === "adjusted" && adjustedAmount ? parseFloat(adjustedAmount) : null,
-        status: responseType === "accepted" ? "confirmed" : responseType === "rejected" ? "cancelled" : "pending",
+        status: responseType === "accepted" ? "confirmed" as const : responseType === "rejected" ? "cancelled" as const : "pending" as const,
       }).eq("id", orderId);
+      if (error) throw error;
 
       toast.success(
         responseType === "accepted" ? "Aftale godkendt!" :
@@ -1021,8 +1023,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
       setRespondingTo(null);
       setResponseMessage("");
       setAdjustedAmount("");
-      // Invalidate orders query
-      window.location.reload();
+      qc.invalidateQueries({ queryKey: ["orders"] });
     } catch (e: any) {
       toast.error(e.message);
     }
