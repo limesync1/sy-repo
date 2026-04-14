@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   useMyBusiness, useServices, useOrders, useCreateBusiness, useCreateService,
   useUpdateService, useDeleteService, useUpdateBusiness, useUpdateOrderStatus,
-  useUpsertCalculatorSteps, useQuoteRequests, useCreateQuote, useMyQuotes, useReviews,
+  useUpsertCalculatorSteps, useReviews,
 } from "@/hooks/useDatabase";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigate, Link } from "react-router-dom";
