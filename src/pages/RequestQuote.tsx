@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2, Ale
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
 import CartSheet from "@/components/business/CartSheet";
 
@@ -15,6 +16,11 @@ const CATEGORIES = [
   "Rengøring", "Håndværker", "Flyttehjælp", "Haveservice",
   "Maler", "VVS", "Elektriker", "Sikkerhed",
 ];
+
+const CATEGORY_ICONS: Record<string, string> = {
+  "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
+  "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
+};
 
 interface MatchedService {
   id: string;
@@ -26,6 +32,8 @@ interface MatchedService {
   image_url: string | null;
   unit: string | null;
   is_active: boolean | null;
+  interval_options?: string[];
+  service_category?: string | null;
   calculator_steps: {
     id: string;
     label: string;
@@ -56,6 +64,7 @@ interface MatchedBusiness {
     slug: string;
     description: string | null;
     city: string | null;
+    categories?: string[];
     is_verified: boolean;
     logo_url: string | null;
     cover_image_url: string | null;
@@ -74,6 +83,7 @@ const RequestQuote = () => {
   const [selectedBusiness, setSelectedBusiness] = useState<MatchedBusiness | null>(null);
   const [showAllServices, setShowAllServices] = useState(false);
   const { count } = useCart();
+  const { user } = useAuth();
 
   const handleFind = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,9 +146,9 @@ const RequestQuote = () => {
     business_id: selectedBusiness!.business.id,
     created_at: "",
     updated_at: "",
-    service_category: null,
+    service_category: s.service_category || null,
     sort_order: 0,
-    interval_options: ["engangskøb"] as string[],
+    interval_options: s.interval_options || ["engangskøb"],
     calculator_steps: s.calculator_steps.map((cs) => ({
       id: cs.id,
       label: cs.label,
@@ -175,9 +185,15 @@ const RequestQuote = () => {
           </div>
           <div className="flex items-center gap-2">
             {count > 0 && <CartSheet />}
-            <Link to="/auth">
-              <Button size="sm" variant="outline">Log ind</Button>
-            </Link>
+            {user ? (
+              <Link to="/dashboard">
+                <Button size="sm" variant="outline">Mit panel</Button>
+              </Link>
+            ) : (
+              <Link to="/auth">
+                <Button size="sm" variant="outline">Log ind</Button>
+              </Link>
+            )}
           </div>
         </div>
       </nav>
@@ -356,8 +372,19 @@ const RequestQuote = () => {
                             {match.reason}
                           </p>
 
+                          {/* Categories */}
+                          {match.business.categories && match.business.categories.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {match.business.categories.map((cat) => (
+                                <span key={cat} className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/50 px-2 py-0.5 text-[11px] font-medium text-foreground">
+                                  {CATEGORY_ICONS[cat] || "📋"} {cat}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
                           {activeServices.length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-1.5">
+                            <div className="mt-2 flex flex-wrap gap-1.5">
                               {activeServices.slice(0, 5).map((s) => (
                                 <Badge key={s.id} variant="secondary" className="text-xs font-normal">
                                   {s.name}

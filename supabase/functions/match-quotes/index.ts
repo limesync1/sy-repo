@@ -21,15 +21,31 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Query by categories array (contains) instead of single category field
     const { data: businesses, error: bizError } = await supabase
       .from("businesses")
       .select("*, services(*, calculator_steps(*)), reviews(*)")
       .eq("is_active", true)
-      .eq("category", category);
+      .contains("categories", [category]);
 
     if (bizError) throw bizError;
 
     let allBusinesses = businesses || [];
+
+    // Fallback: also try old single-category field for backwards compat
+    if (allBusinesses.length < 3) {
+      const { data: legacyBiz } = await supabase
+        .from("businesses")
+        .select("*, services(*, calculator_steps(*)), reviews(*)")
+        .eq("is_active", true)
+        .eq("category", category);
+      if (legacyBiz) {
+        const existingIds = new Set(allBusinesses.map((b: any) => b.id));
+        allBusinesses = [...allBusinesses, ...legacyBiz.filter((b: any) => !existingIds.has(b.id))];
+      }
+    }
+
+    // If still not enough, grab more businesses
     if (allBusinesses.length < 3) {
       const { data: moreBiz } = await supabase
         .from("businesses")
@@ -53,9 +69,15 @@ serve(async (req) => {
       const avgRating = b.reviews?.length > 0
         ? (b.reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / b.reviews.length).toFixed(1)
         : "Ingen";
+      const cats = Array.isArray(b.categories) && b.categories.length > 0
+        ? b.categories.join(", ")
+        : b.category || "Ingen";
       const serviceList = (b.services || []).map((s: any) => {
         let sDesc = `Service[id=${s.id}]: ${s.name} (${s.pricing_type === "fast_pris" ? `${s.base_price} kr` : s.pricing_type === "timepris" ? `${s.base_price} kr/t` : "prisberegner"})`;
         if (s.subcategory) sDesc += ` [${s.subcategory}]`;
+        if (s.interval_options && s.interval_options.length > 0) {
+          sDesc += ` [intervaller: ${s.interval_options.join(", ")}]`;
+        }
         if (s.pricing_type === "prisberegner" && s.calculator_steps?.length > 0) {
           const steps = s.calculator_steps.map((cs: any) =>
             `  Step[id=${cs.id}]: "${cs.label}" (${cs.price_per_unit} kr/${cs.unit}, min=${cs.min_value}, max=${cs.max_value})`
@@ -67,7 +89,7 @@ serve(async (req) => {
         }
         return sDesc;
       }).join("\n");
-      return `ID: ${b.id} | Navn: ${b.name} | By: ${b.city || "Ukendt"} | Rating: ${avgRating} (${b.reviews?.length || 0} anmeldelser) | Verificeret: ${b.is_verified ? "Ja" : "Nej"}\nServices:\n${serviceList || "Ingen"}\nBeskrivelse: ${b.description || ""}`;
+      return `ID: ${b.id} | Navn: ${b.name} | By: ${b.city || "Ukendt"} | Brancher: ${cats} | Rating: ${avgRating} (${b.reviews?.length || 0} anmeldelser) | Verificeret: ${b.is_verified ? "Ja" : "Nej"}\nServices:\n${serviceList || "Ingen"}\nBeskrivelse: ${b.description || ""}`;
     }).join("\n---\n");
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -87,7 +109,7 @@ serve(async (req) => {
             content: `Du er en ekspert-matcher for serviceydere i Danmark. Du modtager en kundes behov og en liste af virksomheder med deres services og prisberegnertrin.
 
 Din opgave:
-1. Vælg de 3 bedste matches
+1. Vælg de 3 bedste matches (eller færre hvis der ikke er nok relevante)
 2. For HVER match, udpeg de relevante services og UDFYLD prisberegner-trin baseret på kundens beskrivelse
 
 For hver match returner:
@@ -204,6 +226,7 @@ ${bizSummaries}`,
           slug: biz.slug,
           description: biz.description,
           city: biz.city,
+          categories: biz.categories || (biz.category ? [biz.category] : []),
           is_verified: biz.is_verified,
           logo_url: biz.logo_url,
           cover_image_url: biz.cover_image_url,
@@ -219,6 +242,8 @@ ${bizSummaries}`,
             image_url: s.image_url,
             unit: s.unit,
             is_active: s.is_active,
+            interval_options: s.interval_options || ["engangskøb"],
+            service_category: s.service_category,
             calculator_steps: (s.calculator_steps || []).map((cs: any) => ({
               id: cs.id,
               label: cs.label,
