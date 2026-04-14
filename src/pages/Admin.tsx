@@ -1261,6 +1261,41 @@ const SettingsTab = ({ business }: { business: any }) => {
         </CardContent>
       </Card>
 
+      {/* Notification Settings */}
+      <Card className="rounded-xl shadow-sm border-border">
+        <CardContent className="p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            Notifikationsindstillinger
+          </h3>
+          <p className="text-xs text-muted-foreground">Vælg hvilke hændelser du vil modtage varsler om.</p>
+          <div className="space-y-3">
+            {([
+              { key: "new_order", label: "Nye bestillinger", desc: "Modtag besked når en kunde opretter en ny bestilling" },
+              { key: "upcoming_service", label: "Kommende services", desc: "Påmindelse når en abonnements-service skal udføres snart" },
+              { key: "subscription_change", label: "Abonnementsændringer", desc: "Besked når en kunde pauser eller annullerer et abonnement" },
+              { key: "new_review", label: "Nye anmeldelser", desc: "Besked når en kunde skriver en anmeldelse" },
+            ] as const).map(({ key, label, desc }) => (
+              <div key={key} className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-3">
+                <div>
+                  <p className="text-sm font-medium text-foreground">{label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+                </div>
+                <button
+                  onClick={() => setNotifSettings(prev => ({ ...prev, [key]: !prev[key] }))}
+                  className={`relative mt-0.5 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${
+                    notifSettings[key] ? "bg-accent" : "bg-border"
+                  }`}>
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm transition-transform mt-0.5 ${
+                    notifSettings[key] ? "translate-x-4 ml-0.5" : "translate-x-0.5"
+                  }`} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Opening Hours */}
       <Card className="rounded-xl shadow-sm border-border">
         <CardContent className="p-5 space-y-4">
