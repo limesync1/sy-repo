@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
-import { ImageIcon, ShoppingCart, Minus, Plus } from "lucide-react";
+import { ImageIcon, ShoppingCart, Minus, Plus, Check } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 import { buildPricingSnapshot, roundPrice } from "@/lib/service-pricing";
@@ -83,6 +83,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
     });
     return initial;
   });
+  const [justAdded, setJustAdded] = useState(false);
 
   const pricingLabels: Record<string, string> = {
     fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner",
@@ -170,7 +171,10 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
       stepDetails,
       pricingSnapshot: buildPricingSnapshot({ ...service, calculator_steps: sortedSteps }),
     });
+
+    setJustAdded(true);
     toast.success(`${service.name} tilføjet til bestilling`);
+    setTimeout(() => setJustAdded(false), 1500);
   };
 
   const total = calculateTotal();
@@ -179,31 +183,39 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
   const showIntervals = intervals.length > 1 || (intervals.length === 1 && intervals[0] !== "engangskøb");
 
   return (
-    <Card className="overflow-hidden border-border transition-all hover:shadow-md">
+    <Card className="overflow-hidden border-border group transition-all hover:shadow-lg hover:border-accent/20">
+      {/* Image or placeholder */}
       {service.image_url ? (
-        <div className="relative h-44 w-full overflow-hidden bg-secondary md:h-52">
-          <img src={service.image_url} alt={service.name} className="h-full w-full object-cover" loading="lazy" />
-          <Badge variant="outline" className="absolute right-3 top-3 border-background/50 bg-background/80 backdrop-blur-sm text-xs">
+        <div className="relative h-44 w-full overflow-hidden bg-secondary">
+          <img
+            src={service.image_url}
+            alt={service.name}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <Badge variant="outline" className="absolute right-3 top-3 border-background/50 bg-background/90 backdrop-blur-sm text-xs font-medium">
             {pricingLabels[service.pricing_type]}
           </Badge>
         </div>
       ) : (
-        <div className="relative flex h-28 w-full items-center justify-center bg-secondary/40">
-          <ImageIcon className="h-8 w-8 text-muted-foreground/20" />
-          <Badge variant="outline" className="absolute right-3 top-3 text-xs">
+        <div className="relative flex h-24 w-full items-center justify-center bg-gradient-to-br from-secondary to-muted/50">
+          <ImageIcon className="h-8 w-8 text-muted-foreground/15" />
+          <Badge variant="outline" className="absolute right-3 top-3 text-xs font-medium">
             {pricingLabels[service.pricing_type]}
           </Badge>
         </div>
       )}
 
       <CardContent className="p-5">
+        {/* Title & description */}
         <div className="mb-4">
-          <h3 className="text-lg font-bold text-foreground">{service.name}</h3>
+          <h3 className="text-lg font-bold text-foreground leading-tight">{service.name}</h3>
           {(service as any).subcategory && (
-            <span className="text-xs font-medium text-accent">{(service as any).subcategory}</span>
+            <span className="text-xs font-medium text-accent mt-0.5 inline-block">{(service as any).subcategory}</span>
           )}
           {service.description && (
-            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{service.description}</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground line-clamp-2">{service.description}</p>
           )}
         </div>
 
@@ -223,7 +235,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
               <StepperInput value={hours} onChange={setHours} min={0.5} max={24} step={0.5} unit="t" />
             </div>
             <div className="flex items-baseline gap-1 pt-1">
-              <span className="text-2xl font-bold text-foreground">{total}</span>
+              <span className="text-2xl font-bold text-foreground">{roundPrice(total)}</span>
               <span className="text-sm text-muted-foreground">kr</span>
             </div>
           </div>
@@ -241,7 +253,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
                       <span className="text-sm font-medium text-foreground">{step.label}</span>
                       <span className="ml-1.5 text-xs text-muted-foreground">({step.price_per_unit} kr/{step.unit})</span>
                     </div>
-                    <span className="text-sm font-semibold text-foreground shrink-0">{stepTotal} kr</span>
+                    <span className="text-sm font-semibold text-foreground shrink-0">{roundPrice(stepTotal)} kr</span>
                   </div>
                   <StepperInput
                     value={stepValues[step.id] ?? 0}
@@ -251,10 +263,10 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
                 </div>
               );
             })}
-            <div className="flex items-center justify-between bg-secondary/40 px-4 py-3">
+            <div className="flex items-center justify-between bg-accent/5 px-4 py-3 border-t border-accent/20">
               <span className="text-sm font-semibold text-foreground">I alt</span>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-bold text-foreground">{total}</span>
+                <span className="text-xl font-bold text-foreground">{roundPrice(total)}</span>
                 <span className="text-sm text-muted-foreground">kr</span>
               </div>
             </div>
@@ -270,7 +282,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
                 <button key={iv} type="button" onClick={() => setSelectedInterval(iv)}
                   className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                     selectedInterval === iv
-                      ? "border-accent bg-accent text-accent-foreground"
+                      ? "border-accent bg-accent text-accent-foreground shadow-sm"
                       : "border-border bg-card text-muted-foreground hover:border-accent/40"
                   }`}>
                   {INTERVAL_LABELS[iv] || iv}
@@ -280,9 +292,27 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           </div>
         )}
 
-        <Button onClick={handleAdd} className="w-full gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
-          <ShoppingCart className="h-4 w-4" />
-          Tilføj til bestilling – {total} kr
+        {/* Add button */}
+        <Button
+          onClick={handleAdd}
+          disabled={justAdded}
+          className={`w-full gap-2 transition-all ${
+            justAdded
+              ? "bg-accent/80 text-accent-foreground"
+              : "bg-accent text-accent-foreground hover:bg-accent/90 hover:shadow-md"
+          }`}
+        >
+          {justAdded ? (
+            <>
+              <Check className="h-4 w-4" />
+              Tilføjet!
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="h-4 w-4" />
+              Tilføj til bestilling – {roundPrice(total)} kr
+            </>
+          )}
         </Button>
       </CardContent>
     </Card>
