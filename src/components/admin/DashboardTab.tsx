@@ -38,8 +38,8 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
     <div className="space-y-5">
       {/* Welcome */}
       <div>
-        <h2 className="text-[15px] font-semibold text-foreground">Velkommen tilbage 👋</h2>
-        <p className="mt-0.5 text-[13px] text-muted-foreground">Her er et overblik over {business.name}.</p>
+        <h2 className="text-base font-semibold text-foreground">Velkommen tilbage 👋</h2>
+        <p className="mt-0.5 text-sm text-muted-foreground">Her er et overblik over {business.name}.</p>
       </div>
 
       {/* Stats Grid */}
@@ -48,12 +48,12 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
           <Card key={stat.label} className="rounded-xl shadow-sm border-[#e1e3e5]">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <p className="text-[12px] font-medium text-muted-foreground">{stat.label}</p>
+                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
                 <div className={`rounded-lg p-1.5 ${stat.bg}`}>
                   <stat.icon className={`h-3.5 w-3.5 ${stat.color}`} />
                 </div>
               </div>
-              <p className="mt-1.5 text-xl font-semibold text-foreground">{stat.value}</p>
+              <p className="mt-1.5 text-2xl font-semibold text-foreground">{stat.value}</p>
             </CardContent>
           </Card>
         ))}
@@ -67,8 +67,8 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
               <Clock className="h-4 w-4 text-amber-700" />
             </div>
             <div>
-              <p className="text-[13px] font-semibold text-foreground">{pendingOrders} afventende {pendingOrders === 1 ? "ordre" : "ordrer"}</p>
-              <p className="text-[12px] text-muted-foreground">Gå til Ordrer for at behandle dem.</p>
+              <p className="text-sm font-semibold text-foreground">{pendingOrders} afventende {pendingOrders === 1 ? "ordre" : "ordrer"}</p>
+              <p className="text-sm text-muted-foreground">Gå til Ordrer for at behandle dem.</p>
             </div>
           </CardContent>
         </Card>
@@ -83,14 +83,14 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
               {recentOrders.slice(0, 5).map((order) => (
                 <div key={order.id} className="flex items-center justify-between px-4 py-3">
                   <div className="min-w-0 flex-1">
-                    <p className="text-[13px] font-medium text-foreground truncate">{order.customer_name}</p>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-sm font-medium text-foreground truncate">{order.customer_name}</p>
+                    <p className="text-xs text-muted-foreground">
                       {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
                     </p>
                   </div>
                   <div className="flex items-center gap-2.5 ml-4">
-                    <Badge className={`${statusColors[order.status] || ""} text-[11px] font-normal px-2 py-0.5`}>{statusLabels[order.status] || order.status}</Badge>
-                    <span className="text-[13px] font-semibold text-foreground whitespace-nowrap w-16 text-right">{order.total_amount} kr</span>
+                    <Badge className={`${statusColors[order.status] || ""} text-xs font-normal px-2 py-0.5`}>{statusLabels[order.status] || order.status}</Badge>
+                    <span className="text-sm font-semibold text-foreground whitespace-nowrap w-16 text-right">{order.total_amount} kr</span>
                   </div>
                 </div>
               ))}
@@ -102,8 +102,8 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
               <div className="mb-3 rounded-xl bg-muted p-2.5">
                 <TrendingUp className="h-6 w-6 text-muted-foreground/40" />
               </div>
-              <p className="text-[13px] font-medium text-foreground">Ingen ordrer endnu</p>
-              <p className="mt-0.5 text-[12px] text-muted-foreground">Ordrer vil vises her når de kommer ind.</p>
+              <p className="text-sm font-medium text-foreground">Ingen ordrer endnu</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">Ordrer vil vises her når de kommer ind.</p>
             </CardContent>
           </Card>
         )}

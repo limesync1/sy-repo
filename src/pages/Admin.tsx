@@ -177,7 +177,7 @@ const AdminDashboard = () => {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[220px] flex-col bg-[hsl(222,47%,11%)] transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[240px] flex-col bg-[hsl(222,47%,11%)] transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         {/* Sidebar header */}
         <div className="flex h-14 shrink-0 items-center justify-between px-3">
           <Link to="/" className="flex items-center gap-2">
@@ -194,13 +194,13 @@ const AdminDashboard = () => {
             {business.logo_url ? (
               <img src={business.logo_url} alt="" className="h-7 w-7 shrink-0 rounded object-contain bg-white/10 p-0.5" />
             ) : (
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-accent/20 text-accent font-bold text-[11px]">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-accent/20 text-accent font-bold text-xs">
                 {business.name.charAt(0)}
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[12px] font-medium text-white">{business.name}</p>
-              {business.category && <p className="truncate text-[10px] text-white/40">{business.category}</p>}
+              <p className="truncate text-sm font-medium text-white">{business.name}</p>
+              {business.category && <p className="truncate text-xs text-white/40">{business.category}</p>}
             </div>
           </div>
         </div>
@@ -213,7 +213,7 @@ const AdminDashboard = () => {
               <button
                 key={item.value}
                 onClick={() => { setActiveTab(item.value); setSidebarOpen(false); }}
-                className={`flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-[13px] font-medium transition-colors ${
+                className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-white/[0.12] text-white"
                     : "text-white/55 hover:bg-white/[0.06] hover:text-white/90"
@@ -230,14 +230,14 @@ const AdminDashboard = () => {
         <div className="shrink-0 border-t border-white/[0.06] px-2 py-2 space-y-px">
           <Link
             to={`/b/${business.slug}`}
-            className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-[13px] font-medium text-white/55 hover:bg-white/[0.06] hover:text-white/90 transition-colors"
+            className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-sm font-medium text-white/55 hover:bg-white/[0.06] hover:text-white/90 transition-colors"
           >
             <ExternalLink className="h-4 w-4 shrink-0" />
             Se din side
           </Link>
           <button
             onClick={signOut}
-            className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-[13px] font-medium text-white/55 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+            className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-sm font-medium text-white/55 hover:bg-red-500/20 hover:text-red-400 transition-colors"
           >
             <LogOut className="h-4 w-4 shrink-0" />
             Log ud
@@ -248,15 +248,15 @@ const AdminDashboard = () => {
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-[52px] shrink-0 items-center gap-3 border-b border-[#e1e3e5] bg-white px-4 sm:px-5">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-[#e1e3e5] bg-white px-5 sm:px-6">
           <button onClick={() => setSidebarOpen(true)} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden">
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="text-[15px] font-semibold text-foreground">{currentNav?.label}</h1>
+          <h1 className="text-lg font-semibold text-foreground">{currentNav?.label}</h1>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-3 sm:p-5">
+        <main className="flex-1 p-4 sm:p-6">
           {renderContent()}
         </main>
       </div>
@@ -324,7 +324,7 @@ const CreateBusinessForm = () => {
             <Sparkles className="h-6 w-6 text-accent" />
           </div>
           <CardTitle className="text-xl">Opret din virksomhed</CardTitle>
-          <p className="mt-0.5 text-[13px] text-muted-foreground">Udfyld oplysningerne for at komme i gang.</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">Udfyld oplysningerne for at komme i gang.</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} />
@@ -335,7 +335,7 @@ const CreateBusinessForm = () => {
               {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button onClick={handleCreate} disabled={createBiz.isPending} className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-lg text-[13px]">
+          <Button onClick={handleCreate} disabled={createBiz.isPending} className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-lg text-sm">
             {createBiz.isPending ? "Opretter..." : "Opret virksomhed"}
           </Button>
         </CardContent>
@@ -350,16 +350,16 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
   const deleteService = useDeleteService();
   const [showForm, setShowForm] = useState(false);
 
-  if (isLoading) return <p className="text-[13px] text-muted-foreground">Indlæser services...</p>;
+  if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser services...</p>;
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-[15px] font-semibold text-foreground">Services</h2>
-          <p className="mt-0.5 text-[13px] text-muted-foreground">{services?.length || 0} services oprettet</p>
+          <h2 className="text-base font-semibold text-foreground">Services</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">{services?.length || 0} services oprettet</p>
         </div>
-        <Button onClick={() => setShowForm(true)} size="sm" className="h-8 gap-1.5 rounded-lg text-[13px] bg-foreground text-background hover:bg-foreground/90">
+        <Button onClick={() => setShowForm(true)} size="sm" className="h-8 gap-1.5 rounded-lg text-sm bg-foreground text-background hover:bg-foreground/90">
           <Plus className="h-3.5 w-3.5" /> Tilføj service
         </Button>
       </div>
@@ -382,9 +382,9 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
               <div className="mb-3 rounded-xl bg-muted p-2.5">
                 <Wrench className="h-6 w-6 text-muted-foreground/40" />
               </div>
-              <p className="text-[13px] font-medium text-foreground">Ingen services endnu</p>
-              <p className="mt-0.5 text-[12px] text-muted-foreground">Tilføj din første service for at komme i gang.</p>
-              <Button onClick={() => setShowForm(true)} size="sm" className="mt-3 h-8 gap-1.5 rounded-lg text-[13px] bg-foreground text-background hover:bg-foreground/90">
+              <p className="text-sm font-medium text-foreground">Ingen services endnu</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">Tilføj din første service for at komme i gang.</p>
+              <Button onClick={() => setShowForm(true)} size="sm" className="mt-3 h-8 gap-1.5 rounded-lg text-sm bg-foreground text-background hover:bg-foreground/90">
                 <Plus className="h-3.5 w-3.5" /> Tilføj service
               </Button>
             </CardContent>
@@ -403,16 +403,16 @@ const ServiceRow = ({ service, onDelete }: { service: any; onDelete: () => void 
     <Card className="rounded-xl shadow-sm border-[#e1e3e5] overflow-hidden">
       <CardContent className="flex items-center justify-between p-3.5">
         <div className="min-w-0 flex-1">
-          <h3 className="text-[13px] font-semibold text-foreground">{service.name}</h3>
-          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[12px] text-muted-foreground">
-            <Badge variant="secondary" className="text-[11px] font-normal px-1.5 py-0 rounded">{pricingLabels[service.pricing_type] || service.pricing_type}</Badge>
+          <h3 className="text-sm font-semibold text-foreground">{service.name}</h3>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+            <Badge variant="secondary" className="text-xs font-normal px-1.5 py-0 rounded">{pricingLabels[service.pricing_type] || service.pricing_type}</Badge>
             {service.base_price != null && <span>{service.base_price} kr{service.unit ? ` / ${service.unit}` : ""}</span>}
             {service.calculator_steps?.length > 0 && <span>· {service.calculator_steps.length} trin</span>}
-            {service.subcategory && <Badge variant="outline" className="text-[11px] font-normal px-1.5 py-0 rounded">{service.subcategory}</Badge>}
+            {service.subcategory && <Badge variant="outline" className="text-xs font-normal px-1.5 py-0 rounded">{service.subcategory}</Badge>}
           </div>
         </div>
         <div className="ml-3 flex gap-1.5">
-          <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-7 rounded-lg text-[12px] px-2.5">
+          <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-7 rounded-lg text-sm px-2.5">
             {editing ? "Luk" : "Rediger"}
           </Button>
           <Button variant="ghost" size="sm" onClick={onDelete} className="h-7 w-7 p-0 rounded-lg"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
@@ -592,12 +592,12 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
           <div key={s.num} className="flex flex-1 items-center gap-1">
             <button
               onClick={() => { if (s.num <= currentStep || canGoNext()) setCurrentStep(s.num); }}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-all ${
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition-all ${
                 currentStep === s.num ? `${s.color} text-white shadow-sm` :
                 s.num < currentStep ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"
               }`}
             >
-              <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
+              <span className={`flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold ${
                 currentStep === s.num ? "bg-white/25" : s.num < currentStep ? "bg-green-200" : "bg-muted-foreground/10"
               }`}>
                 {s.num < currentStep ? "✓" : s.num}
@@ -615,7 +615,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       {currentStep === 1 && (
         <div className="rounded-xl border-2 border-blue-100 bg-blue-50/30 p-5 space-y-4">
           <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-[11px] font-bold text-white">1</span>
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-xs font-bold text-white">1</span>
             Vælg kategori og underkategori
           </h4>
           {!customCategory ? (
@@ -661,7 +661,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       {currentStep === 2 && (
         <div className="rounded-xl border-2 border-violet-100 bg-violet-50/30 p-5 space-y-4">
           <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-500 text-[11px] font-bold text-white">2</span>
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-500 text-xs font-bold text-white">2</span>
             Service detaljer
           </h4>
           <div>
@@ -687,7 +687,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       {currentStep === 3 && (
         <div className="rounded-xl border-2 border-emerald-100 bg-emerald-50/30 p-5 space-y-4">
           <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-[11px] font-bold text-white">3</span>
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-white">3</span>
             Pristype
           </h4>
           <div className="grid grid-cols-3 gap-2">
@@ -717,7 +717,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       {currentStep === 4 && pricingType === "prisberegner" && (
         <div className="rounded-xl border-2 border-amber-100 bg-amber-50/30 p-5 space-y-4">
           <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-[11px] font-bold text-white">4</span>
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-white">4</span>
             Opsæt prisberegner
           </h4>
 
@@ -752,7 +752,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
               <div key={i} className="rounded-lg border border-amber-200 bg-white p-3 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-[11px] font-bold text-amber-700">{i + 1}</span>
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">{i + 1}</span>
                     <span className="text-xs font-semibold text-muted-foreground">Trin {i + 1}</span>
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => removeStep(i)} className="h-7 w-7 p-0">
@@ -813,21 +813,21 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       <div className="flex items-center justify-between pt-2">
         <div className="flex gap-2">
           {currentStep > 1 && (
-            <Button variant="outline" onClick={() => setCurrentStep(currentStep - 1)} className="rounded-lg text-[13px]">
+            <Button variant="outline" onClick={() => setCurrentStep(currentStep - 1)} className="rounded-lg text-sm">
               ← Tilbage
             </Button>
           )}
-          <Button variant="outline" onClick={onClose} className="rounded-lg text-[13px]">Annuller</Button>
+          <Button variant="outline" onClick={onClose} className="rounded-lg text-sm">Annuller</Button>
         </div>
         <div>
           {currentStep < totalSteps ? (
             <Button onClick={() => { if (canGoNext()) setCurrentStep(currentStep + 1); else toast.error("Udfyld venligst de påkrævede felter"); }}
               disabled={!canGoNext()}
-              className="rounded-lg text-[13px] bg-foreground text-background hover:bg-foreground/90">
+              className="rounded-lg text-sm bg-foreground text-background hover:bg-foreground/90">
               Næste →
             </Button>
           ) : (
-            <Button onClick={handleSave} className="rounded-lg text-[13px] bg-green-600 text-white hover:bg-green-700">
+            <Button onClick={handleSave} className="rounded-lg text-sm bg-green-600 text-white hover:bg-green-700">
               {existingService ? "Gem ændringer" : "✓ Opret service"}
             </Button>
           )}
@@ -856,7 +856,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
     cancelled: { bg: "bg-red-50", text: "text-red-700", dot: "bg-red-400" },
   };
 
-  if (isLoading) return <p className="text-[13px] text-muted-foreground">Indlæser ordrer...</p>;
+  if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser ordrer...</p>;
 
   const filteredOrders = filter === "all" ? orders : orders?.filter((o) => o.status === filter);
   const counts: Record<string, number> = { all: orders?.length || 0 };
@@ -865,15 +865,15 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-[15px] font-semibold text-foreground">Ordrer</h2>
-        <p className="mt-0.5 text-[13px] text-muted-foreground">{orders?.length || 0} ordrer i alt</p>
+        <h2 className="text-base font-semibold text-foreground">Ordrer</h2>
+        <p className="mt-0.5 text-sm text-muted-foreground">{orders?.length || 0} ordrer i alt</p>
       </div>
 
       {/* Status filter tabs — Shopify style */}
       <div className="flex gap-0 border-b border-[#e1e3e5]">
         {[{ key: "all", label: "Alle" }, ...Object.entries(statusLabels).map(([k, v]) => ({ key: k, label: v }))].map(({ key, label }) => (
           <button key={key} onClick={() => setFilter(key)}
-            className={`relative px-3 py-2.5 text-[13px] font-medium transition-colors ${
+            className={`relative px-3 py-2.5 text-sm font-medium transition-colors ${
               filter === key
                 ? "text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-foreground after:rounded-t"
                 : "text-muted-foreground hover:text-foreground"
@@ -881,7 +881,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
           >
             {label}
             {(counts[key] || 0) > 0 && (
-              <span className={`ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[11px] font-semibold ${
+              <span className={`ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-semibold ${
                 filter === key ? "bg-foreground/10" : "bg-muted"
               }`}>
                 {counts[key] || 0}
@@ -896,7 +896,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
         <Card className="rounded-xl shadow-sm border-[#e1e3e5] overflow-hidden">
           <div className="divide-y divide-[#e1e3e5]">
             {/* Table header */}
-            <div className="hidden sm:grid sm:grid-cols-[1fr_120px_100px_100px_140px] gap-3 px-4 py-2.5 bg-[#f6f6f7] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="hidden sm:grid sm:grid-cols-[1fr_120px_100px_100px_140px] gap-3 px-4 py-2.5 bg-[#f6f6f7] text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <span>Kunde</span>
               <span>Dato</span>
               <span>Status</span>
@@ -911,22 +911,22 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                   <button onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
                     className="w-full text-left grid grid-cols-1 sm:grid-cols-[1fr_120px_100px_100px_140px] gap-2 sm:gap-3 px-4 py-3 hover:bg-muted/30 transition-colors items-center">
                     <div className="min-w-0">
-                      <p className="text-[13px] font-semibold text-foreground truncate">{order.customer_name}</p>
-                      <p className="text-[11px] text-muted-foreground truncate">{order.customer_email}</p>
+                      <p className="text-sm font-semibold text-foreground truncate">{order.customer_name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{order.customer_email}</p>
                     </div>
-                    <p className="text-[12px] text-muted-foreground hidden sm:block">
+                    <p className="text-sm text-muted-foreground hidden sm:block">
                       {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
                     </p>
                     <div className="hidden sm:block">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${cfg.bg} ${cfg.text}`}>
+                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${cfg.bg} ${cfg.text}`}>
                         <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
                         {statusLabels[order.status]}
                       </span>
                     </div>
-                    <p className="text-[13px] font-semibold text-foreground text-right hidden sm:block">{order.total_amount} kr</p>
+                    <p className="text-sm font-semibold text-foreground text-right hidden sm:block">{order.total_amount} kr</p>
                     <div className="hidden sm:block" onClick={(e) => e.stopPropagation()}>
                       <Select value={order.status} onValueChange={(s) => updateStatus.mutate({ id: order.id, status: s })}>
-                        <SelectTrigger className="h-8 text-[12px] w-full"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-8 text-sm w-full"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
                         </SelectContent>
@@ -934,16 +934,16 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                     </div>
                     {/* Mobile extras */}
                     <div className="flex items-center justify-between sm:hidden">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${cfg.bg} ${cfg.text}`}>
+                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${cfg.bg} ${cfg.text}`}>
                         <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
                         {statusLabels[order.status]}
                       </span>
-                      <span className="text-[13px] font-semibold">{order.total_amount} kr</span>
+                      <span className="text-sm font-semibold">{order.total_amount} kr</span>
                     </div>
                   </button>
                   {isExpanded && (
                     <div className="border-t border-[#e1e3e5] bg-muted/20 px-4 py-3 space-y-3">
-                      <div className="grid grid-cols-2 gap-3 text-[12px]">
+                      <div className="grid grid-cols-2 gap-3 text-sm">
                         <div><span className="text-muted-foreground">Email:</span> <span className="text-foreground">{order.customer_email}</span></div>
                         {order.customer_phone && <div><span className="text-muted-foreground">Tlf:</span> <span className="text-foreground">{order.customer_phone}</span></div>}
                         <div><span className="text-muted-foreground">Dato:</span> <span className="text-foreground">{new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span></div>
@@ -951,9 +951,9 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                       {order.notes && <p className="text-sm italic text-foreground/80 bg-white rounded-lg px-3 py-2 border border-border">"{order.notes}"</p>}
                       {(order as any).order_items?.length > 0 && (
                         <div className="rounded-lg bg-white border border-border overflow-hidden">
-                          <div className="px-3 py-2 bg-muted/50 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Produkter</div>
+                          <div className="px-3 py-2 bg-muted/50 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Produkter</div>
                           {(order as any).order_items.map((item: any) => (
-                            <div key={item.id} className="flex justify-between px-3 py-2 text-[13px] border-t border-border">
+                            <div key={item.id} className="flex justify-between px-3 py-2 text-sm border-t border-border">
                               <span className="text-foreground">{item.service_name}{item.quantity > 1 && ` × ${item.quantity}`}</span>
                               <span className="font-semibold text-foreground">{item.total_price} kr</span>
                             </div>
@@ -962,7 +962,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                       )}
                       <div className="sm:hidden" onClick={(e) => e.stopPropagation()}>
                         <Select value={order.status} onValueChange={(s) => updateStatus.mutate({ id: order.id, status: s })}>
-                          <SelectTrigger className="h-8 text-[12px]"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
                           </SelectContent>
@@ -981,10 +981,10 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
             <div className="mb-3 rounded-xl bg-muted p-2.5">
               <ShoppingCart className="h-6 w-6 text-muted-foreground/40" />
             </div>
-            <p className="text-[13px] font-medium text-foreground">
+            <p className="text-sm font-medium text-foreground">
               {filter === "all" ? "Ingen ordrer endnu" : `Ingen ordrer med status "${statusLabels[filter]}"`}
             </p>
-            <p className="mt-0.5 text-[12px] text-muted-foreground">Ordrer vil vises her når de kommer ind.</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">Ordrer vil vises her når de kommer ind.</p>
           </CardContent>
         </Card>
       )}
@@ -999,7 +999,7 @@ const QuotesTab = ({ business }: { business: any }) => {
   const createQuote = useCreateQuote();
   const [quoteData, setQuoteData] = useState<Record<string, { price: string; message: string }>>({});
 
-  if (isLoading) return <p className="text-[13px] text-muted-foreground">Indlæser anmodninger...</p>;
+  if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser anmodninger...</p>;
 
   const answeredIds = new Set(myQuotes?.map((q) => q.quote_request_id));
 
@@ -1023,8 +1023,8 @@ const QuotesTab = ({ business }: { business: any }) => {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-[15px] font-semibold text-foreground">Tilbudsanmodninger</h2>
-        <p className="mt-0.5 text-[13px] text-muted-foreground">{requests?.length || 0} anmodninger i din kategori</p>
+        <h2 className="text-base font-semibold text-foreground">Tilbudsanmodninger</h2>
+        <p className="mt-0.5 text-sm text-muted-foreground">{requests?.length || 0} anmodninger i din kategori</p>
       </div>
 
       {requests && requests.length > 0 ? (
@@ -1035,44 +1035,44 @@ const QuotesTab = ({ business }: { business: any }) => {
                 <div className="flex items-start justify-between">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-semibold text-foreground">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-foreground">
                         {req.customer_name.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <h3 className="text-[13px] font-semibold text-foreground">{req.customer_name}</h3>
-                        <p className="text-[11px] text-muted-foreground">{req.customer_email}{req.customer_phone ? ` · ${req.customer_phone}` : ""}</p>
+                        <h3 className="text-sm font-semibold text-foreground">{req.customer_name}</h3>
+                        <p className="text-xs text-muted-foreground">{req.customer_email}{req.customer_phone ? ` · ${req.customer_phone}` : ""}</p>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 ml-3">
-                    <Badge variant="secondary" className="text-[11px] font-normal px-1.5 py-0 rounded">{req.category}</Badge>
-                    <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                    <Badge variant="secondary" className="text-xs font-normal px-1.5 py-0 rounded">{req.category}</Badge>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
                       {new Date(req.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
                     </span>
                   </div>
                 </div>
-                <p className="mt-2 text-[13px] text-foreground/85 leading-relaxed">{req.description}</p>
+                <p className="mt-2 text-sm text-foreground/85 leading-relaxed">{req.description}</p>
                 {answeredIds.has(req.id) ? (
                   <div className="mt-2.5">
-                    <Badge className="bg-green-50 text-green-700 text-[11px] font-normal px-2 py-0.5 rounded-full">✓ Besvaret</Badge>
+                    <Badge className="bg-green-50 text-green-700 text-xs font-normal px-2 py-0.5 rounded-full">✓ Besvaret</Badge>
                   </div>
                 ) : (
                   <div className="mt-3 flex items-end gap-2">
                     <div className="flex-1">
-                      <label className="mb-1 block text-[11px] font-medium text-muted-foreground">Pris (kr)</label>
-                      <Input type="number" placeholder="0" className="h-8 text-[13px]"
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground">Pris (kr)</label>
+                      <Input type="number" placeholder="0" className="h-8 text-sm"
                         value={quoteData[req.id]?.price || ""}
                         onChange={(e) => setQuoteData((prev) => ({ ...prev, [req.id]: { ...prev[req.id], price: e.target.value, message: prev[req.id]?.message || "" } }))}
                       />
                     </div>
                     <div className="flex-1">
-                      <label className="mb-1 block text-[11px] font-medium text-muted-foreground">Besked (valgfrit)</label>
-                      <Input placeholder="Kort besked" className="h-8 text-[13px]"
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground">Besked (valgfrit)</label>
+                      <Input placeholder="Kort besked" className="h-8 text-sm"
                         value={quoteData[req.id]?.message || ""}
                         onChange={(e) => setQuoteData((prev) => ({ ...prev, [req.id]: { ...prev[req.id], message: e.target.value, price: prev[req.id]?.price || "" } }))}
                       />
                     </div>
-                    <Button size="sm" onClick={() => handleSendQuote(req.id)} className="h-8 gap-1.5 bg-foreground text-background hover:bg-foreground/90 rounded-lg text-[12px] shrink-0">
+                    <Button size="sm" onClick={() => handleSendQuote(req.id)} className="h-8 gap-1.5 bg-foreground text-background hover:bg-foreground/90 rounded-lg text-sm shrink-0">
                       <Send className="h-3 w-3" /> Send
                     </Button>
                   </div>
@@ -1087,8 +1087,8 @@ const QuotesTab = ({ business }: { business: any }) => {
             <div className="mb-3 rounded-xl bg-muted p-2.5">
               <MessageSquare className="h-6 w-6 text-muted-foreground/40" />
             </div>
-            <p className="text-[13px] font-medium text-foreground">Ingen åbne anmodninger</p>
-            <p className="mt-0.5 text-[12px] text-muted-foreground">Anmodninger i din kategori vises her.</p>
+            <p className="text-sm font-medium text-foreground">Ingen åbne anmodninger</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">Anmodninger i din kategori vises her.</p>
           </CardContent>
         </Card>
       )}
@@ -1132,24 +1132,24 @@ const SettingsTab = ({ business }: { business: any }) => {
   return (
     <div className="max-w-3xl space-y-5">
       <div>
-        <h2 className="text-[15px] font-semibold text-foreground">Indstillinger</h2>
-        <p className="mt-0.5 text-[13px] text-muted-foreground">Administrer din virksomheds profil og oplysninger.</p>
+        <h2 className="text-base font-semibold text-foreground">Indstillinger</h2>
+        <p className="mt-0.5 text-sm text-muted-foreground">Administrer din virksomheds profil og oplysninger.</p>
       </div>
 
       <Card className="rounded-xl shadow-sm border-[#e1e3e5]">
         <CardContent className="p-4 space-y-4">
-          <h3 className="text-[13px] font-semibold text-foreground">Generelt</h3>
+          <h3 className="text-sm font-semibold text-foreground">Generelt</h3>
           <div className="space-y-3">
             <div>
-              <label className="mb-1 block text-[12px] font-medium text-muted-foreground">Virksomhedsnavn</label>
+              <label className="mb-1 block text-sm font-medium text-muted-foreground">Virksomhedsnavn</label>
               <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div>
-              <label className="mb-1 block text-[12px] font-medium text-muted-foreground">Beskrivelse</label>
+              <label className="mb-1 block text-sm font-medium text-muted-foreground">Beskrivelse</label>
               <Textarea placeholder="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
             </div>
             <div>
-              <label className="mb-1 block text-[12px] font-medium text-muted-foreground">Kategori</label>
+              <label className="mb-1 block text-sm font-medium text-muted-foreground">Kategori</label>
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger><SelectValue placeholder="Kategori" /></SelectTrigger>
                 <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
@@ -1161,29 +1161,29 @@ const SettingsTab = ({ business }: { business: any }) => {
 
       <Card className="rounded-xl shadow-sm border-[#e1e3e5]">
         <CardContent className="p-4 space-y-4">
-          <h3 className="text-[13px] font-semibold text-foreground">Kontaktoplysninger</h3>
+          <h3 className="text-sm font-semibold text-foreground">Kontaktoplysninger</h3>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-[12px] font-medium text-muted-foreground">Telefon</label>
+                <label className="mb-1 block text-sm font-medium text-muted-foreground">Telefon</label>
                 <Input placeholder="Telefon" value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
               <div>
-                <label className="mb-1 block text-[12px] font-medium text-muted-foreground">Email</label>
+                <label className="mb-1 block text-sm font-medium text-muted-foreground">Email</label>
                 <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-[12px] font-medium text-muted-foreground">Adresse</label>
+              <label className="mb-1 block text-sm font-medium text-muted-foreground">Adresse</label>
               <Input placeholder="Adresse" value={address} onChange={(e) => setAddress(e.target.value)} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-[12px] font-medium text-muted-foreground">Postnummer</label>
+                <label className="mb-1 block text-sm font-medium text-muted-foreground">Postnummer</label>
                 <Input placeholder="Postnummer" value={zipCode} onChange={(e) => setZipCode(e.target.value)} />
               </div>
               <div>
-                <label className="mb-1 block text-[12px] font-medium text-muted-foreground">By</label>
+                <label className="mb-1 block text-sm font-medium text-muted-foreground">By</label>
                 <Input placeholder="By" value={city} onChange={(e) => setCity(e.target.value)} />
               </div>
             </div>
@@ -1193,7 +1193,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
       <Card className="rounded-xl shadow-sm border-[#e1e3e5]">
         <CardContent className="p-4 space-y-4">
-          <h3 className="text-[13px] font-semibold text-foreground">Billeder</h3>
+          <h3 className="text-sm font-semibold text-foreground">Billeder</h3>
           <div className="flex flex-wrap gap-4">
             <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="Logo" aspectRatio="aspect-square" className="w-20" />
             <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="Coverbillede" aspectRatio="aspect-video" className="w-36" />
@@ -1203,20 +1203,20 @@ const SettingsTab = ({ business }: { business: any }) => {
 
       <Card className="rounded-xl shadow-sm border-[#e1e3e5]">
         <CardContent className="p-4 space-y-4">
-          <h3 className="text-[13px] font-semibold text-foreground">Åbningstider</h3>
+          <h3 className="text-sm font-semibold text-foreground">Åbningstider</h3>
           <div className="space-y-2">
             {DAYS.map((day) => (
               <div key={day} className="flex items-center gap-3">
-                <span className="w-20 text-[12px] font-medium text-muted-foreground">{day}</span>
+                <span className="w-20 text-sm font-medium text-muted-foreground">{day}</span>
                 <Input placeholder="Fx 08:00 - 16:00" value={openHours[day] || ""}
-                  onChange={(e) => setOpenHours({ ...openHours, [day]: e.target.value })} className="flex-1 h-8 text-[13px]" />
+                  onChange={(e) => setOpenHours({ ...openHours, [day]: e.target.value })} className="flex-1 h-8 text-sm" />
               </div>
             ))}
           </div>
         </CardContent>
       </Card>
 
-      <Button onClick={save} disabled={updateBiz.isPending} className="h-8 bg-foreground text-background hover:bg-foreground/90 rounded-lg text-[13px]">
+      <Button onClick={save} disabled={updateBiz.isPending} className="h-8 bg-foreground text-background hover:bg-foreground/90 rounded-lg text-sm">
         {updateBiz.isPending ? "Gemmer..." : "Gem indstillinger"}
       </Button>
     </div>
