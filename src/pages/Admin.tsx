@@ -15,7 +15,7 @@ import { useState } from "react";
 import {
   Plus, Trash2, LogOut,
   Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart,
-  Star, Settings, Menu, X, ExternalLink,
+  Star, Settings, Menu, X, ExternalLink, Bell,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import DashboardTab from "@/components/admin/DashboardTab";
@@ -996,6 +996,13 @@ const SettingsTab = ({ business }: { business: any }) => {
     (business.categories as string[]) || (business.category ? [business.category] : [])
   );
   const [openHours, setOpenHours] = useState<Record<string, string>>(business.opening_hours || {});
+  const [notifSettings, setNotifSettings] = useState<Record<string, boolean>>({
+    new_order: true,
+    upcoming_service: true,
+    subscription_change: true,
+    new_review: false,
+    ...(business.notification_settings as Record<string, boolean> || {}),
+  });
 
   // CVR lookup
   const [cvrQuery, setCvrQuery] = useState("");
@@ -1084,6 +1091,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       category: selectedCategories[0] || null,
       categories: selectedCategories,
       opening_hours: openHours,
+      notification_settings: notifSettings,
     } as any, {
       onSuccess: () => toast.success("Indstillinger gemt"),
       onError: (e) => toast.error(e.message),
@@ -1249,6 +1257,41 @@ const SettingsTab = ({ business }: { business: any }) => {
               <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Coverbillede</label>
               <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-48" />
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Notification Settings */}
+      <Card className="rounded-xl shadow-sm border-border">
+        <CardContent className="p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            Notifikationsindstillinger
+          </h3>
+          <p className="text-xs text-muted-foreground">Vælg hvilke hændelser du vil modtage varsler om.</p>
+          <div className="space-y-3">
+            {([
+              { key: "new_order", label: "Nye bestillinger", desc: "Modtag besked når en kunde opretter en ny bestilling" },
+              { key: "upcoming_service", label: "Kommende services", desc: "Påmindelse når en abonnements-service skal udføres snart" },
+              { key: "subscription_change", label: "Abonnementsændringer", desc: "Besked når en kunde pauser eller annullerer et abonnement" },
+              { key: "new_review", label: "Nye anmeldelser", desc: "Besked når en kunde skriver en anmeldelse" },
+            ] as const).map(({ key, label, desc }) => (
+              <div key={key} className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-3">
+                <div>
+                  <p className="text-sm font-medium text-foreground">{label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+                </div>
+                <button
+                  onClick={() => setNotifSettings(prev => ({ ...prev, [key]: !prev[key] }))}
+                  className={`relative mt-0.5 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${
+                    notifSettings[key] ? "bg-accent" : "bg-border"
+                  }`}>
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm transition-transform mt-0.5 ${
+                    notifSettings[key] ? "translate-x-4 ml-0.5" : "translate-x-0.5"
+                  }`} />
+                </button>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

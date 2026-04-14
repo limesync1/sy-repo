@@ -5,21 +5,31 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search as SearchIcon, ArrowLeft, MapPin, X, Star, Phone, ShieldCheck } from "lucide-react";
+import { Search as SearchIcon, ArrowLeft, MapPin, X, Star, Phone, ShieldCheck, Briefcase } from "lucide-react";
 
 const CATEGORIES = [
   "Rengøring", "Håndværker", "Flyttehjælp", "Haveservice",
   "Maler", "VVS", "Elektriker", "Sikkerhed",
 ];
 
+const CATEGORY_ICONS: Record<string, string> = {
+  "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
+  "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
+};
+
 /* ── Business Card with rating ── */
 const BusinessCard = ({ biz }: { biz: any }) => {
   const { data: reviews } = useReviews(biz.id);
   const avgRating = reviews?.length ? (reviews.reduce((a: number, r: any) => a + r.rating, 0) / reviews.length) : null;
 
+  // Use categories array, fallback to single category
+  const categories: string[] = Array.isArray(biz.categories) && biz.categories.length > 0
+    ? biz.categories
+    : biz.category ? [biz.category] : [];
+
   return (
     <Link to={`/b/${biz.slug}`} className="group block">
-      <Card className="h-full overflow-hidden border-border transition-all group-hover:border-foreground/20 group-hover:shadow-lg">
+      <Card className="h-full overflow-hidden rounded-xl border-border transition-all group-hover:border-foreground/20 group-hover:shadow-lg">
         <div className="flex flex-col sm:flex-row">
           {/* Image */}
           <div className="relative h-44 w-full shrink-0 overflow-hidden bg-secondary sm:h-auto sm:w-48 md:w-56">
@@ -76,8 +86,19 @@ const BusinessCard = ({ biz }: { biz: any }) => {
                   <Phone className="h-3 w-3" /> {biz.phone}
                 </span>
               )}
-              {biz.category && <Badge variant="outline" className="text-xs">{biz.category}</Badge>}
             </div>
+
+            {/* Categories */}
+            {categories.length > 0 && (
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
+                {categories.map((cat) => (
+                  <span key={cat} className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/50 px-2.5 py-0.5 text-[11px] font-medium text-foreground">
+                    <span>{CATEGORY_ICONS[cat] || "📋"}</span>
+                    {cat}
+                  </span>
+                ))}
+              </div>
+            )}
           </CardContent>
         </div>
       </Card>
@@ -172,12 +193,13 @@ const SearchPage = () => {
             <button
               key={cat}
               onClick={() => handleCategoryClick(cat)}
-              className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+              className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-all ${
                 selectedCategory === cat
                   ? "border-foreground bg-foreground text-background"
                   : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"
               }`}
             >
+              <span>{CATEGORY_ICONS[cat]}</span>
               {cat}
             </button>
           ))}

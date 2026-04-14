@@ -11,6 +11,19 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 
+/** Calculate next service date based on interval */
+const calculateNextServiceDate = (interval: string): string => {
+  const now = new Date();
+  switch (interval) {
+    case "ugentlig": now.setDate(now.getDate() + 7); break;
+    case "hver_14_dag": now.setDate(now.getDate() + 14); break;
+    case "månedlig": now.setMonth(now.getMonth() + 1); break;
+    case "kvartalsvis": now.setMonth(now.getMonth() + 3); break;
+    default: now.setMonth(now.getMonth() + 1); break;
+  }
+  return now.toISOString();
+};
+
 interface CartSheetProps {
   businessId?: string;
 }
@@ -64,6 +77,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
         if (user && businessId !== "unknown") {
           for (const item of group.items) {
             if (item.interval && item.interval !== "engangskøb") {
+              const nextDate = calculateNextServiceDate(item.interval);
               await createSubscription.mutateAsync({
                 customer_id: user.id,
                 business_id: businessId,
@@ -72,6 +86,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 interval: item.interval,
                 total_price: item.total,
                 order_id: orderResult.id,
+                next_service_date: nextDate,
                 details: {
                   description: item.details,
                   stepDetails: item.stepDetails,
