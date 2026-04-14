@@ -131,7 +131,7 @@ const SERVICE_CATEGORIES: Record<string, Record<string, string[]>> = {
 const NAV_ITEMS = [
   { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
   { value: "services", label: "Services", icon: Wrench },
-  { value: "orders", label: "Ordrer", icon: ShoppingCart },
+  { value: "orders", label: "Aftaler", icon: ShoppingCart },
   { value: "quotes", label: "Tilbud", icon: MessageSquare },
   { value: "reviews", label: "Anmeldelser", icon: Star },
   { value: "settings", label: "Indstillinger", icon: Settings },
