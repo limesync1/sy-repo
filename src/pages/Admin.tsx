@@ -636,27 +636,30 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       {/* Step Progress Bar */}
       <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
         <div className="flex items-center">
-          {FORM_STEPS.map((s, i) => (
-            <div key={s.num} className="flex flex-1 items-center">
-              <button
-                onClick={() => { if (s.num <= currentStep || canGoNext()) setCurrentStep(s.num); }}
-                className="group flex items-center gap-2"
-              >
-                <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition-all ${
-                  currentStep === s.num ? "bg-foreground text-background shadow-sm ring-2 ring-foreground/20" :
-                  s.num < currentStep ? "bg-accent/15 text-accent ring-1 ring-accent/30" : "bg-secondary text-muted-foreground"
-                }`}>
-                  {s.num < currentStep ? "✓" : s.num}
-                </span>
-                <span className={`hidden sm:block text-sm font-medium transition-colors ${
-                  currentStep === s.num ? "text-foreground" : s.num < currentStep ? "text-accent" : "text-muted-foreground"
-                }`}>{s.label}</span>
-              </button>
-              {i < FORM_STEPS.length - 1 && (
-                <div className={`mx-2 sm:mx-3 h-px flex-1 transition-colors ${FORM_STEPS[i + 1].num <= currentStep ? "bg-accent/40" : "bg-border"}`} />
-              )}
-            </div>
-          ))}
+          {FORM_STEPS.map((s, i) => {
+            const isLast = i === FORM_STEPS.length - 1;
+            return (
+              <div key={s.num} className={`flex items-center ${isLast ? "shrink-0" : "flex-1"}`}>
+                <button
+                  onClick={() => { if (s.num <= currentStep || canGoNext()) setCurrentStep(s.num); }}
+                  className="group flex shrink-0 items-center gap-2"
+                >
+                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold transition-all ${
+                    currentStep === s.num ? "bg-foreground text-background shadow-sm ring-2 ring-foreground/20" :
+                    s.num < currentStep ? "bg-accent/15 text-accent ring-1 ring-accent/30" : "bg-secondary text-muted-foreground"
+                  }`}>
+                    {s.num < currentStep ? "✓" : s.num}
+                  </span>
+                  <span className={`hidden sm:block text-sm font-medium whitespace-nowrap transition-colors ${
+                    currentStep === s.num ? "text-foreground" : s.num < currentStep ? "text-accent" : "text-muted-foreground"
+                  }`}>{s.label}</span>
+                </button>
+                {!isLast && (
+                  <div className={`mx-2 sm:mx-3 h-px flex-1 min-w-4 transition-colors ${FORM_STEPS[i + 1].num <= currentStep ? "bg-accent/40" : "bg-border"}`} />
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
