@@ -92,7 +92,7 @@ const CartSheet = forwardRef<HTMLButtonElement, CartSheetProps>(({ businessId: b
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" className="relative gap-2 border-accent/30 hover:bg-accent/10 hover:text-foreground hover:border-accent">
+        <Button ref={ref} variant="outline" className="relative gap-2 border-accent/30 hover:bg-accent/10 hover:text-foreground hover:border-accent">
           <Package className="h-5 w-5" />
           Bestilling
           {count > 0 && (
