@@ -514,6 +514,23 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   const [steps, setSteps] = useState<any[]>(existingService?.calculator_steps || []);
   const [customCategory, setCustomCategory] = useState(false);
   const [customSubcategory, setCustomSubcategory] = useState(false);
+  const [intervalOptions, setIntervalOptions] = useState<string[]>(
+    existingService?.interval_options || ["engangskøb"]
+  );
+
+  const ALL_INTERVALS = [
+    { value: "engangskøb", label: "Engangskøb" },
+    { value: "ugentlig", label: "Ugentlig" },
+    { value: "hver_14_dag", label: "Hver 14. dag" },
+    { value: "månedlig", label: "Månedlig" },
+    { value: "kvartalsvis", label: "Kvartalsvis" },
+  ];
+
+  const toggleInterval = (v: string) => {
+    setIntervalOptions((prev) =>
+      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]
+    );
+  };
 
   const categoryOptions = Object.keys(SERVICE_CATEGORIES);
   const subcategoryOptions = serviceCategory && SERVICE_CATEGORIES[serviceCategory]
@@ -522,12 +539,13 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
     ? SERVICE_CATEGORIES[serviceCategory][subcategory] : [];
   const availableTemplates = STEP_TEMPLATES[serviceCategory] || [];
 
-  const totalSteps = pricingType === "prisberegner" ? 4 : 3;
+  const totalSteps = pricingType === "prisberegner" ? 5 : 4;
   const FORM_STEPS = [
     { num: 1, label: "Kategori", color: "bg-blue-500" },
     { num: 2, label: "Detaljer", color: "bg-violet-500" },
     { num: 3, label: "Pris", color: "bg-emerald-500" },
     ...(pricingType === "prisberegner" ? [{ num: 4, label: "Beregner", color: "bg-amber-500" }] : []),
+    { num: pricingType === "prisberegner" ? 5 : 4, label: "Interval", color: "bg-cyan-500" },
   ];
 
   const addStep = () => {
