@@ -102,19 +102,19 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
   const handleAdd = () => {
     const total = calculateTotal();
     let details = "";
-    const stepDetails: { label: string; value: number; unit: string; subtotal: number }[] = [];
+    const stepDetails: { label: string; value: number; unit: string; price_per_unit: number; subtotal: number }[] = [];
 
     if (service.pricing_type === "fast_pris") {
       details = "Fast pris";
     } else if (service.pricing_type === "timepris") {
       details = `${hours} timer`;
-      stepDetails.push({ label: "Timer", value: hours, unit: "timer", subtotal: total });
+      stepDetails.push({ label: "Timer", value: hours, unit: "timer", price_per_unit: service.base_price || 0, subtotal: total });
     } else {
       const parts: string[] = [];
       (service.calculator_steps || []).forEach((s) => {
         const val = stepValues[s.id] || 0;
         parts.push(`${s.label}: ${val} ${s.unit}`);
-        stepDetails.push({ label: s.label, value: val, unit: s.unit, subtotal: val * s.price_per_unit });
+        stepDetails.push({ label: s.label, value: val, unit: s.unit, price_per_unit: s.price_per_unit, subtotal: val * s.price_per_unit });
       });
       details = parts.join(", ");
     }
