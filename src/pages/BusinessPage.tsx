@@ -1,4 +1,3 @@
-import { CartProvider } from "@/contexts/CartContext";
 import { demoBusiness, demoServices } from "@/data/demoData";
 import ServiceCard from "@/components/business/ServiceCard";
 import CartSheet from "@/components/business/CartSheet";
@@ -141,12 +140,6 @@ const BusinessPageContent = () => {
   );
 };
 
-const BusinessPage = () => {
-  return (
-    <CartProvider>
-      <BusinessPageContent />
-    </CartProvider>
-  );
-};
+const BusinessPage = () => <BusinessPageContent />;
 
 export default BusinessPage;
