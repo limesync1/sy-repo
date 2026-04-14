@@ -1201,11 +1201,16 @@ const SettingsTab = ({ business }: { business: any }) => {
     });
   };
 
+  const origCategories = (business.categories as string[]) || (business.category ? [business.category] : []);
+  const origNotif = business.notification_settings as Record<string, boolean> || {};
   const hasChanges = name !== business.name || description !== (business.description || "") ||
     phone !== (business.phone || "") || email !== (business.email || "") ||
     address !== (business.address || "") || city !== (business.city || "") ||
     zipCode !== (business.zip_code || "") || logoUrl !== (business.logo_url || "") ||
-    coverUrl !== (business.cover_image_url || "");
+    coverUrl !== (business.cover_image_url || "") ||
+    JSON.stringify([...selectedCategories].sort()) !== JSON.stringify([...origCategories].sort()) ||
+    JSON.stringify(openHours) !== JSON.stringify(business.opening_hours || {}) ||
+    JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
 
   return (
     <div className="max-w-3xl space-y-6">
