@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   useMyBusiness, useServices, useOrders, useCreateBusiness, useCreateService,
   useUpdateService, useDeleteService, useUpdateBusiness, useUpdateOrderStatus,
-  useUpsertCalculatorSteps, useQuoteRequests, useCreateQuote, useMyQuotes, useReviews,
+  useUpsertCalculatorSteps, useReviews,
 } from "@/hooks/useDatabase";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigate, Link } from "react-router-dom";
@@ -16,8 +16,8 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  Plus, Trash2, LogOut, Send,
-  Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart, MessageSquare,
+  Plus, Trash2, LogOut,
+  Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart,
   Star, Settings, Menu, X, ExternalLink,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
@@ -134,7 +134,6 @@ const NAV_ITEMS = [
   { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
   { value: "services", label: "Services", icon: Wrench },
   { value: "orders", label: "Aftaler", icon: ShoppingCart },
-  { value: "quotes", label: "Tilbud", icon: MessageSquare },
   { value: "reviews", label: "Anmeldelser", icon: Star },
   { value: "settings", label: "Indstillinger", icon: Settings },
 ];
@@ -162,7 +161,7 @@ const AdminDashboard = () => {
       case "dashboard": return <DashboardWrapper business={business} />;
       case "services": return <ServicesTab businessId={business.id} />;
       case "orders": return <OrdersTab businessId={business.id} />;
-      case "quotes": return <QuotesTab business={business} />;
+      
       case "reviews": return <ReviewsWrapper businessId={business.id} />;
       case "settings": return <SettingsTab business={business} />;
       default: return null;
@@ -1012,7 +1011,13 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
       unit_price: item.unit_price,
       quantity: item.quantity,
       total_price: item.total_price,
-      details: item.details ? { ...item.details, stepDetails: item.details.stepDetails?.map((sd: any) => ({ ...sd })) } : {},
+      details: item.details ? {
+        ...item.details,
+        stepDetails: item.details.stepDetails?.map((sd: any) => ({
+          ...sd,
+          price_per_unit: sd.price_per_unit ?? (sd.value ? Math.round(sd.subtotal / sd.value * 100) / 100 : 0),
+        })),
+      } : {},
     }));
     setAdjustedItems((prev) => ({ ...prev, [order.id]: items }));
   };
@@ -1392,109 +1397,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
   );
 };
 
-/* ─── Quotes Tab ─── */
-const QuotesTab = ({ business }: { business: any }) => {
-  const { data: requests, isLoading } = useQuoteRequests(business.categories as string[] || (business.category ? [business.category] : null));
-  const { data: myQuotes } = useMyQuotes(business.id);
-  const createQuote = useCreateQuote();
-  const [quoteData, setQuoteData] = useState<Record<string, { price: string; message: string }>>({});
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser anmodninger...</p>;
-
-  const answeredIds = new Set(myQuotes?.map((q) => q.quote_request_id));
-
-  const handleSendQuote = (requestId: string) => {
-    const d = quoteData[requestId];
-    if (!d?.price) { toast.error("Indtast en pris"); return; }
-    createQuote.mutate({
-      business_id: business.id,
-      quote_request_id: requestId,
-      price: parseFloat(d.price),
-      message: d.message || null,
-    }, {
-      onSuccess: () => {
-        toast.success("Tilbud sendt!");
-        setQuoteData((prev) => { const copy = { ...prev }; delete copy[requestId]; return copy; });
-      },
-      onError: (e) => toast.error(e.message),
-    });
-  };
-
-  return (
-    <div className="space-y-5">
-      <div>
-        <h2 className="text-base font-semibold text-foreground">Tilbudsanmodninger</h2>
-        <p className="mt-0.5 text-sm text-muted-foreground">{requests?.length || 0} anmodninger i din kategori</p>
-      </div>
-
-      {requests && requests.length > 0 ? (
-        <Card className="rounded-xl shadow-sm border-[#e1e3e5] overflow-hidden">
-          <div className="divide-y divide-[#e1e3e5]">
-            {requests.map((req) => (
-              <div key={req.id} className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-foreground">
-                        {req.customer_name.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-semibold text-foreground">{req.customer_name}</h3>
-                        <p className="text-xs text-muted-foreground">{req.customer_email}{req.customer_phone ? ` · ${req.customer_phone}` : ""}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 ml-3">
-                    <Badge variant="secondary" className="text-xs font-normal px-1.5 py-0 rounded">{req.category}</Badge>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">
-                      {new Date(req.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
-                    </span>
-                  </div>
-                </div>
-                <p className="mt-2 text-sm text-foreground/85 leading-relaxed">{req.description}</p>
-                {answeredIds.has(req.id) ? (
-                  <div className="mt-2.5">
-                    <Badge className="bg-green-50 text-green-700 text-xs font-normal px-2 py-0.5 rounded-full">✓ Besvaret</Badge>
-                  </div>
-                ) : (
-                  <div className="mt-3 flex items-end gap-2">
-                    <div className="flex-1">
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground">Pris (kr)</label>
-                      <Input type="number" placeholder="0" className="h-8 text-sm"
-                        value={quoteData[req.id]?.price || ""}
-                        onChange={(e) => setQuoteData((prev) => ({ ...prev, [req.id]: { ...prev[req.id], price: e.target.value, message: prev[req.id]?.message || "" } }))}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground">Besked (valgfrit)</label>
-                      <Input placeholder="Kort besked" className="h-8 text-sm"
-                        value={quoteData[req.id]?.message || ""}
-                        onChange={(e) => setQuoteData((prev) => ({ ...prev, [req.id]: { ...prev[req.id], message: e.target.value, price: prev[req.id]?.price || "" } }))}
-                      />
-                    </div>
-                    <Button size="sm" onClick={() => handleSendQuote(req.id)} className="h-8 gap-1.5 bg-foreground text-background hover:bg-foreground/90 rounded-lg text-sm shrink-0">
-                      <Send className="h-3 w-3" /> Send
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </Card>
-      ) : (
-        <Card className="rounded-xl border-dashed border-[#e1e3e5]">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <div className="mb-3 rounded-xl bg-muted p-2.5">
-              <MessageSquare className="h-6 w-6 text-muted-foreground/40" />
-            </div>
-            <p className="text-sm font-medium text-foreground">Ingen åbne anmodninger</p>
-            <p className="mt-0.5 text-sm text-muted-foreground">Anmodninger i din kategori vises her.</p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
-};
 
 /* ─── Settings Tab ─── */
 const SettingsTab = ({ business }: { business: any }) => {
