@@ -5,12 +5,14 @@ interface CartContextType {
   items: CartItem[];
   addItem: (item: CartItem) => void;
   removeItem: (serviceId: string) => void;
+  updateItemInterval: (serviceId: string, interval: string) => void;
   clearCart: () => void;
   total: number;
   count: number;
   businessId: string | null;
   businessName: string | null;
-  setCartBusiness: (id: string, name: string) => void;
+  businessLogoUrl: string | null;
+  setCartBusiness: (id: string, name: string, logoUrl?: string) => void;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -25,14 +27,15 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [businessId, setBusinessId] = useState<string | null>(null);
   const [businessName, setBusinessName] = useState<string | null>(null);
+  const [businessLogoUrl, setBusinessLogoUrl] = useState<string | null>(null);
 
-  const setCartBusiness = (id: string, name: string) => {
+  const setCartBusiness = (id: string, name: string, logoUrl?: string) => {
     if (businessId && businessId !== id) {
-      // Switching business — clear cart
       setItems([]);
     }
     setBusinessId(id);
     setBusinessName(name);
+    setBusinessLogoUrl(logoUrl || null);
   };
 
   const addItem = (item: CartItem) => {
@@ -51,22 +54,30 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       if (next.length === 0) {
         setBusinessId(null);
         setBusinessName(null);
+        setBusinessLogoUrl(null);
       }
       return next;
     });
+  };
+
+  const updateItemInterval = (serviceId: string, interval: string) => {
+    setItems((prev) =>
+      prev.map((i) => i.serviceId === serviceId ? { ...i, interval } : i)
+    );
   };
 
   const clearCart = () => {
     setItems([]);
     setBusinessId(null);
     setBusinessName(null);
+    setBusinessLogoUrl(null);
   };
 
   const total = items.reduce((acc, i) => acc + i.total * i.quantity, 0);
   const count = items.reduce((acc, i) => acc + i.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, clearCart, total, count, businessId, businessName, setCartBusiness }}>
+    <CartContext.Provider value={{ items, addItem, removeItem, updateItemInterval, clearCart, total, count, businessId, businessName, businessLogoUrl, setCartBusiness }}>
       {children}
     </CartContext.Provider>
   );
