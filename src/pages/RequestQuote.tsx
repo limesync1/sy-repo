@@ -73,7 +73,7 @@ const RequestQuote = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<MatchedBusiness | null>(null);
   const [showAllServices, setShowAllServices] = useState(false);
-  const { count, setCartBusiness, businessId } = useCart();
+  const { count, items } = useCart();
 
   const handleFind = async (e: React.FormEvent) => {
     e.preventDefault();
