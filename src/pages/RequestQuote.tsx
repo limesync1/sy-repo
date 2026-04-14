@@ -73,7 +73,7 @@ const RequestQuote = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<MatchedBusiness | null>(null);
   const [showAllServices, setShowAllServices] = useState(false);
-  const { count, items } = useCart();
+  const { count } = useCart();
 
   const handleFind = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,7 +119,7 @@ const RequestQuote = () => {
   const handleSelectBusiness = (match: MatchedBusiness) => {
     setSelectedBusiness(match);
     setShowAllServices(false);
-    setCartBusiness(match.business.id, match.business.name);
+    // No longer need to set cart business - multi-business cart
   };
 
   // Convert matched service to the shape DynamicServiceCard expects
@@ -516,7 +516,7 @@ const RequestQuote = () => {
               })()}
 
               {/* Cart summary bar */}
-              {count > 0 && businessId === selectedBusiness.business.id && (
+              {count > 0 && (
                 <div className="sticky bottom-4 z-20 rounded-2xl border border-accent/20 bg-card/95 p-4 shadow-xl backdrop-blur-sm">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
