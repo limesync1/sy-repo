@@ -435,7 +435,6 @@ const AdjustmentDisplay = ({ order }: { order: any }) => {
 const AftaleTab = ({ businessId }: { businessId: string }) => {
   const { data: orders, isLoading } = useOrders(businessId);
   const { data: services } = useServices(businessId);
-  const updateStatus = (useQueryClient() as any) && null; // we use direct supabase
   const qc = useQueryClient();
   const [filter, setFilter] = useState<string>("all");
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
