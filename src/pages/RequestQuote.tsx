@@ -16,6 +16,11 @@ const CATEGORIES = [
   "Maler", "VVS", "Elektriker", "Sikkerhed",
 ];
 
+const CATEGORY_ICONS: Record<string, string> = {
+  "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
+  "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
+};
+
 interface MatchedService {
   id: string;
   name: string;
