@@ -442,7 +442,7 @@ const ServiceRow = ({ service, onDelete }: { service: any; onDelete: () => void 
         </div>
       </CardContent>
       {editing && (
-        <div className="border-t border-border p-4">
+        <div className="border-t border-border bg-secondary/20 p-5">
           <ServiceForm businessId={service.business_id} existingService={service} onClose={() => setEditing(false)} />
         </div>
       )}
@@ -857,37 +857,37 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
             </div>
 
             {steps.map((step, i) => (
-              <Card key={i} className="rounded-xl shadow-sm border-border">
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-sm font-bold text-background">{i + 1}</span>
-                      <span className="text-sm font-semibold text-foreground">{step.label || `Trin ${i + 1}`}</span>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={() => removeStep(i)} className="h-8 w-8 p-0">
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+              <Card key={i} className="rounded-xl shadow-sm border-border overflow-hidden">
+                <div className="flex items-center justify-between bg-secondary/40 px-4 py-2.5 border-b border-border">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-md bg-foreground text-[11px] font-bold text-background">{i + 1}</span>
+                    <span className="text-sm font-semibold text-foreground">{step.label || `Trin ${i + 1}`}</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <Button variant="ghost" size="sm" onClick={() => removeStep(i)} className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                <CardContent className="p-4 space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="mb-1 block text-sm text-muted-foreground">Navn</label>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Navn</label>
                       <Input placeholder="Fx Støvsugning" value={step.label} onChange={(e) => updateStep(i, "label", e.target.value)} className="bg-card" />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm text-muted-foreground">Enhed</label>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Enhed</label>
                       <div className="flex flex-wrap gap-1.5">
                         {["stk", "m²", "m", "timer", "rum", "km", "kg", "kr"].map((u) => (
                           <button key={u} type="button" onClick={() => updateStep(i, "unit", u)}
-                            className={`rounded-full border px-3 py-1.5 text-sm transition-all ${
+                            className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${
                               step.unit === u
                                 ? "border-foreground bg-foreground text-background"
-                                : "border-border bg-card text-muted-foreground hover:border-foreground/40"
+                                : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground"
                             }`}>{u}</button>
                         ))}
                       </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-4 gap-2.5">
                     {[
                       { label: `Pris / ${step.unit || "enhed"}`, field: "price_per_unit", value: step.price_per_unit },
                       { label: "Min", field: "min_value", value: step.min_value },
@@ -895,8 +895,8 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                       { label: "Standard", field: "default_value", value: step.default_value },
                     ].map((f) => (
                       <div key={f.field}>
-                        <label className="mb-1 block text-sm text-muted-foreground">{f.label}</label>
-                        <Input type="number" placeholder="0" value={f.value} onChange={(e) => updateStep(i, f.field, e.target.value)} />
+                        <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">{f.label}</label>
+                        <Input type="number" placeholder="0" value={f.value} onChange={(e) => updateStep(i, f.field, e.target.value)} className="bg-card text-sm" />
                       </div>
                     ))}
                   </div>
