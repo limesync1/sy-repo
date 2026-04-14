@@ -200,7 +200,7 @@ const AdminDashboard = () => {
             )}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-white">{business.name}</p>
-              {business.category && <p className="truncate text-xs text-white/40">{business.category}</p>}
+              {business.categories && business.categories.length > 0 && <p className="truncate text-xs text-white/40">{(business.categories as string[]).join(", ")}</p>}
             </div>
           </div>
         </div>
