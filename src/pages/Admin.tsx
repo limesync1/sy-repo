@@ -996,6 +996,13 @@ const SettingsTab = ({ business }: { business: any }) => {
     (business.categories as string[]) || (business.category ? [business.category] : [])
   );
   const [openHours, setOpenHours] = useState<Record<string, string>>(business.opening_hours || {});
+  const [notifSettings, setNotifSettings] = useState<Record<string, boolean>>({
+    new_order: true,
+    upcoming_service: true,
+    subscription_change: true,
+    new_review: false,
+    ...(business.notification_settings as Record<string, boolean> || {}),
+  });
 
   // CVR lookup
   const [cvrQuery, setCvrQuery] = useState("");
