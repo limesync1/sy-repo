@@ -39,6 +39,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addItem = (item: CartItem) => {
+    // Auto-set business info from item
+    if (item.businessId) {
+      setCartBusiness(item.businessId, item.businessName || "", item.businessLogoUrl);
+    }
     setItems((prev) => {
       const existing = prev.find((i) => i.serviceId === item.serviceId);
       if (existing) {

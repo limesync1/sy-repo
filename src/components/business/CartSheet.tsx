@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateOrder, useCreateSubscription } from "@/hooks/useDatabase";
@@ -15,7 +16,7 @@ interface CartSheetProps {
   businessId?: string;
 }
 
-const CartSheet = ({ businessId: businessIdProp }: CartSheetProps) => {
+const CartSheet = forwardRef<HTMLButtonElement, CartSheetProps>(({ businessId: businessIdProp }, ref) => {
   const { items, removeItem, updateItemInterval, clearCart, total, count, businessId: cartBusinessId, businessName, businessLogoUrl } = useCart();
   const { user } = useAuth();
   const businessId = businessIdProp || cartBusinessId;
@@ -91,7 +92,7 @@ const CartSheet = ({ businessId: businessIdProp }: CartSheetProps) => {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" className="relative gap-2 border-accent/30 hover:bg-accent/10 hover:text-foreground hover:border-accent">
+        <Button ref={ref} variant="outline" className="relative gap-2 border-accent/30 hover:bg-accent/10 hover:text-foreground hover:border-accent">
           <Package className="h-5 w-5" />
           Bestilling
           {count > 0 && (
@@ -247,6 +248,8 @@ const CartSheet = ({ businessId: businessIdProp }: CartSheetProps) => {
       </SheetContent>
     </Sheet>
   );
-};
+});
+
+CartSheet.displayName = "CartSheet";
 
 export default CartSheet;
