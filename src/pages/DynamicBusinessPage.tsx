@@ -149,7 +149,7 @@ const DynamicBusinessContent = () => {
                             <div key={sub || "default"}>
                               {sub && <h4 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">{sub}</h4>}
                               <div className="grid gap-4 md:grid-cols-2">
-                                {items.map((s) => <DynamicServiceCard key={s.id} service={s} />)}
+                                {items.map((s) => <DynamicServiceCard key={s.id} service={s} businessName={business.name} businessLogoUrl={business.logo_url || undefined} />)}
                               </div>
                             </div>
                           ))}
@@ -159,7 +159,7 @@ const DynamicBusinessContent = () => {
                   </div>
                 ) : (
                   <div className="grid gap-4 md:grid-cols-2">
-                    {services.map((s) => <DynamicServiceCard key={s.id} service={s} />)}
+                    {services.map((s) => <DynamicServiceCard key={s.id} service={s} businessName={business.name} businessLogoUrl={business.logo_url || undefined} />)}
                   </div>
                 )}
               </section>
