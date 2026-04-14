@@ -26,6 +26,8 @@ interface MatchedService {
   image_url: string | null;
   unit: string | null;
   is_active: boolean | null;
+  interval_options?: string[];
+  service_category?: string | null;
   calculator_steps: {
     id: string;
     label: string;
@@ -136,9 +138,9 @@ const RequestQuote = () => {
     business_id: selectedBusiness!.business.id,
     created_at: "",
     updated_at: "",
-    service_category: null,
+    service_category: s.service_category || null,
     sort_order: 0,
-    interval_options: ["engangskøb"] as string[],
+    interval_options: s.interval_options || ["engangskøb"],
     calculator_steps: s.calculator_steps.map((cs) => ({
       id: cs.id,
       label: cs.label,
