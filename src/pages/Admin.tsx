@@ -1004,7 +1004,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
   const counts: Record<string, number> = { all: orders?.length || 0 };
   orders?.forEach(o => { counts[o.status] = (counts[o.status] || 0) + 1; });
 
-  const qc = __useQueryClient();
+  const qc = useQueryClient();
   const handleResponse = async (orderId: string) => {
     try {
       const { error } = await supabase.from("orders").update({
