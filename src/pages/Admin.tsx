@@ -23,13 +23,12 @@ import {
 import ImageUpload from "@/components/business/ImageUpload";
 import DashboardTab from "@/components/admin/DashboardTab";
 import ReviewsTab from "@/components/admin/ReviewsTab";
+import AftaleTab from "@/components/admin/AftaleTab";
 import { INTERVAL_LABELS } from "@/types/service";
 import {
   buildPricingSnapshot,
   getSmartStep,
   roundPrice,
-  type PricingSnapshot,
-  type ServiceStepDetail,
 } from "@/lib/service-pricing";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 
