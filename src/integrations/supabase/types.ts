@@ -180,7 +180,11 @@ export type Database = {
       }
       orders: {
         Row: {
+          adjusted_amount: number | null
+          adjusted_details: Json | null
           business_id: string | null
+          business_message: string | null
+          business_response: string | null
           created_at: string
           customer_email: string
           customer_name: string
@@ -192,7 +196,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          adjusted_amount?: number | null
+          adjusted_details?: Json | null
           business_id?: string | null
+          business_message?: string | null
+          business_response?: string | null
           created_at?: string
           customer_email: string
           customer_name: string
@@ -204,7 +212,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          adjusted_amount?: number | null
+          adjusted_details?: Json | null
           business_id?: string | null
+          business_message?: string | null
+          business_response?: string | null
           created_at?: string
           customer_email?: string
           customer_name?: string
