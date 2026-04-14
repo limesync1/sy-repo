@@ -185,9 +185,15 @@ const RequestQuote = () => {
           </div>
           <div className="flex items-center gap-2">
             {count > 0 && <CartSheet />}
-            <Link to="/auth">
-              <Button size="sm" variant="outline">Log ind</Button>
-            </Link>
+            {user ? (
+              <Link to="/dashboard">
+                <Button size="sm" variant="outline">Mit panel</Button>
+              </Link>
+            ) : (
+              <Link to="/auth">
+                <Button size="sm" variant="outline">Log ind</Button>
+              </Link>
+            )}
           </div>
         </div>
       </nav>
