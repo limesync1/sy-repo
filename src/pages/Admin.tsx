@@ -1011,7 +1011,13 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
       unit_price: item.unit_price,
       quantity: item.quantity,
       total_price: item.total_price,
-      details: item.details ? { ...item.details, stepDetails: item.details.stepDetails?.map((sd: any) => ({ ...sd })) } : {},
+      details: item.details ? {
+        ...item.details,
+        stepDetails: item.details.stepDetails?.map((sd: any) => ({
+          ...sd,
+          price_per_unit: sd.price_per_unit ?? (sd.value ? Math.round(sd.subtotal / sd.value * 100) / 100 : 0),
+        })),
+      } : {},
     }));
     setAdjustedItems((prev) => ({ ...prev, [order.id]: items }));
   };
