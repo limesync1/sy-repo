@@ -1126,7 +1126,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
 
 /* ─── Quotes Tab ─── */
 const QuotesTab = ({ business }: { business: any }) => {
-  const { data: requests, isLoading } = useQuoteRequests(business.category);
+  const { data: requests, isLoading } = useQuoteRequests(business.categories as string[] || (business.category ? [business.category] : null));
   const { data: myQuotes } = useMyQuotes(business.id);
   const createQuote = useCreateQuote();
   const [quoteData, setQuoteData] = useState<Record<string, { price: string; message: string }>>({});
@@ -1241,7 +1241,9 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [zipCode, setZipCode] = useState(business.zip_code || "");
   const [logoUrl, setLogoUrl] = useState(business.logo_url || "");
   const [coverUrl, setCoverUrl] = useState(business.cover_image_url || "");
-  const [category, setCategory] = useState(business.category || "");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    (business.categories as string[]) || (business.category ? [business.category] : [])
+  );
   const [openHours, setOpenHours] = useState<Record<string, string>>(business.opening_hours || {});
 
   const DAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
