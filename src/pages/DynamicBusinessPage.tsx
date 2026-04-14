@@ -1,6 +1,5 @@
 import { useParams, Link } from "react-router-dom";
 import { useBusinessBySlug, useServices, useReviews } from "@/hooks/useDatabase";
-import { CartProvider } from "@/contexts/CartContext";
 import CartSheet from "@/components/business/CartSheet";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
 import BusinessSEO from "@/components/business/BusinessSEO";
@@ -478,10 +477,6 @@ const DynamicBusinessContent = () => {
   );
 };
 
-const DynamicBusinessPage = () => (
-  <CartProvider>
-    <DynamicBusinessContent />
-  </CartProvider>
-);
+const DynamicBusinessPage = () => <DynamicBusinessContent />;
 
 export default DynamicBusinessPage;

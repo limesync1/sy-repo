@@ -20,23 +20,25 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/dashboard" element={<CustomerDashboard />} />
-            <Route path="/demo" element={<BusinessPage />} />
-            <Route path="/search" element={<Search />} />
-            <Route path="/quote" element={<CartProvider><RequestQuote /></CartProvider>} />
-            <Route path="/b/:slug" element={<DynamicBusinessPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <CartProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/dashboard" element={<CustomerDashboard />} />
+              <Route path="/demo" element={<BusinessPage />} />
+              <Route path="/search" element={<Search />} />
+              <Route path="/quote" element={<RequestQuote />} />
+              <Route path="/b/:slug" element={<DynamicBusinessPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </CartProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

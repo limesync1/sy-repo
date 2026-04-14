@@ -1,5 +1,7 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { CartItem } from "@/types/service";
+
+const STORAGE_KEY = "serviceydere_cart";
 
 interface CartContextType {
   items: CartItem[];
@@ -10,7 +12,6 @@ interface CartContextType {
   clearBusinessItems: (businessId: string) => void;
   total: number;
   count: number;
-  /** Grouped items by businessId */
   groupedByBusiness: Record<string, { businessName: string; businessLogoUrl?: string; items: CartItem[] }>;
 }
 
@@ -22,10 +23,32 @@ export const useCart = () => {
   return ctx;
 };
 
-export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
+const loadCart = (): CartItem[] => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
 
-  const addItem = (item: CartItem) => {
+const saveCart = (items: CartItem[]) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  } catch { /* quota exceeded — silently fail */ }
+};
+
+export const CartProvider = ({ children }: { children: ReactNode }) => {
+  const [items, setItems] = useState<CartItem[]>(loadCart);
+
+  // Persist to localStorage on every change
+  useEffect(() => {
+    saveCart(items);
+  }, [items]);
+
+  const addItem = useCallback((item: CartItem) => {
     setItems((prev) => {
       const existing = prev.find((i) => i.serviceId === item.serviceId);
       if (existing) {
@@ -33,25 +56,25 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       }
       return [...prev, item];
     });
-  };
+  }, []);
 
-  const removeItem = (serviceId: string) => {
+  const removeItem = useCallback((serviceId: string) => {
     setItems((prev) => prev.filter((i) => i.serviceId !== serviceId));
-  };
+  }, []);
 
-  const updateItemInterval = (serviceId: string, interval: string) => {
+  const updateItemInterval = useCallback((serviceId: string, interval: string) => {
     setItems((prev) =>
       prev.map((i) => i.serviceId === serviceId ? { ...i, interval } : i)
     );
-  };
+  }, []);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setItems([]);
-  };
+  }, []);
 
-  const clearBusinessItems = (businessId: string) => {
+  const clearBusinessItems = useCallback((businessId: string) => {
     setItems((prev) => prev.filter((i) => i.businessId !== businessId));
-  };
+  }, []);
 
   const total = items.reduce((acc, i) => acc + i.total * i.quantity, 0);
   const count = items.reduce((acc, i) => acc + i.quantity, 0);
