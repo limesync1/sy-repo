@@ -584,74 +584,119 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
     } catch (e: any) { toast.error(e.message); }
   };
 
+  const CATEGORY_ICONS: Record<string, string> = {
+    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
+    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
+  };
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Step Progress Bar */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center">
         {FORM_STEPS.map((s, i) => (
-          <div key={s.num} className="flex flex-1 items-center gap-1">
+          <div key={s.num} className="flex flex-1 items-center">
             <button
               onClick={() => { if (s.num <= currentStep || canGoNext()) setCurrentStep(s.num); }}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition-all ${
-                currentStep === s.num ? `${s.color} text-white shadow-sm` :
-                s.num < currentStep ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"
-              }`}
+              className="flex items-center gap-2"
             >
-              <span className={`flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold ${
-                currentStep === s.num ? "bg-white/25" : s.num < currentStep ? "bg-green-200" : "bg-muted-foreground/10"
+              <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-all ${
+                currentStep === s.num ? `${s.color} text-white shadow-md scale-110` :
+                s.num < currentStep ? "bg-green-500 text-white" : "bg-muted text-muted-foreground"
               }`}>
                 {s.num < currentStep ? "✓" : s.num}
               </span>
-              <span className="hidden sm:inline">{s.label}</span>
+              <span className={`hidden sm:block text-sm font-medium ${
+                currentStep === s.num ? "text-foreground" : s.num < currentStep ? "text-green-600" : "text-muted-foreground"
+              }`}>{s.label}</span>
             </button>
             {i < FORM_STEPS.length - 1 && (
-              <div className={`h-0.5 flex-1 rounded ${s.num < currentStep ? "bg-green-200" : "bg-border"}`} />
+              <div className={`mx-3 h-0.5 flex-1 rounded-full transition-colors ${s.num < currentStep ? "bg-green-300" : "bg-border"}`} />
             )}
           </div>
         ))}
       </div>
 
-      {/* Step 1: Category */}
+      {/* Step 1: Category — Card grid instead of dropdown */}
       {currentStep === 1 && (
-        <div className="rounded-xl border-2 border-blue-100 bg-blue-50/30 p-5 space-y-4">
-          <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-xs font-bold text-white">1</span>
-            Vælg kategori og underkategori
-          </h4>
+        <div className="space-y-5">
+          <div>
+            <h4 className="text-base font-semibold text-foreground">Vælg kategori</h4>
+            <p className="mt-1 text-sm text-muted-foreground">Hvilken type service tilbyder du?</p>
+          </div>
+
           {!customCategory ? (
-            <div className="space-y-2">
-              <Select value={serviceCategory} onValueChange={(v) => { setServiceCategory(v); setSubcategory(""); setCustomSubcategory(false); }}>
-                <SelectTrigger className="bg-white"><SelectValue placeholder="Vælg kategori (fx Rengøring)" /></SelectTrigger>
-                <SelectContent>{categoryOptions.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-              </Select>
-              <button type="button" onClick={() => { setCustomCategory(true); setServiceCategory(""); }} className="text-xs text-blue-600 hover:underline">Skriv din egen kategori</button>
-            </div>
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {categoryOptions.map((c) => (
+                  <button key={c} type="button"
+                    onClick={() => { setServiceCategory(c); setSubcategory(""); setCustomSubcategory(false); }}
+                    className={`flex flex-col items-center gap-2 rounded-xl border-2 px-3 py-4 text-center transition-all hover:shadow-sm ${
+                      serviceCategory === c
+                        ? "border-foreground bg-foreground/5 shadow-sm"
+                        : "border-border bg-white hover:border-foreground/30"
+                    }`}
+                  >
+                    <span className="text-2xl">{CATEGORY_ICONS[c] || "📋"}</span>
+                    <span className="text-sm font-medium text-foreground">{c}</span>
+                  </button>
+                ))}
+              </div>
+              <button type="button" onClick={() => { setCustomCategory(true); setServiceCategory(""); }}
+                className="text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors">
+                + Skriv din egen kategori
+              </button>
+            </>
           ) : (
             <div className="space-y-2">
               <Input placeholder="Fx Vinduespolering" value={serviceCategory} onChange={(e) => setServiceCategory(e.target.value)} className="bg-white" />
-              <button type="button" onClick={() => { setCustomCategory(false); setServiceCategory(""); }} className="text-xs text-blue-600 hover:underline">Vælg fra listen</button>
+              <button type="button" onClick={() => { setCustomCategory(false); setServiceCategory(""); }}
+                className="text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors">
+                ← Vælg fra listen
+              </button>
             </div>
           )}
 
-          {serviceCategory && (
-            <div className="space-y-2 pt-2 border-t border-blue-100">
-              <label className="text-xs font-medium text-muted-foreground">Underkategori</label>
-              {!customSubcategory && subcategoryOptions.length > 0 ? (
-                <div className="space-y-2">
-                  <Select value={subcategory} onValueChange={setSubcategory}>
-                    <SelectTrigger className="bg-white"><SelectValue placeholder="Vælg underkategori" /></SelectTrigger>
-                    <SelectContent>{subcategoryOptions.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                  </Select>
-                  <button type="button" onClick={() => { setCustomSubcategory(true); setSubcategory(""); }} className="text-xs text-blue-600 hover:underline">Skriv din egen</button>
-                </div>
+          {/* Subcategory — chips instead of dropdown */}
+          {serviceCategory && subcategoryOptions.length > 0 && (
+            <div className="space-y-3 pt-4 border-t border-border">
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">Underkategori</h4>
+                <p className="mt-0.5 text-sm text-muted-foreground">Vælg den mest passende underkategori</p>
+              </div>
+              {!customSubcategory ? (
+                <>
+                  <div className="flex flex-wrap gap-2">
+                    {subcategoryOptions.map((s) => (
+                      <button key={s} type="button" onClick={() => setSubcategory(s)}
+                        className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                          subcategory === s
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border bg-white text-foreground hover:border-foreground/40"
+                        }`}
+                      >{s}</button>
+                    ))}
+                  </div>
+                  <button type="button" onClick={() => { setCustomSubcategory(true); setSubcategory(""); }}
+                    className="text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors">
+                    + Skriv din egen
+                  </button>
+                </>
               ) : (
                 <div className="space-y-2">
                   <Input placeholder="Fx Erhvervsrengøring" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} className="bg-white" />
-                  {subcategoryOptions.length > 0 && (
-                    <button type="button" onClick={() => { setCustomSubcategory(false); setSubcategory(""); }} className="text-xs text-blue-600 hover:underline">Vælg fra listen</button>
-                  )}
+                  <button type="button" onClick={() => { setCustomSubcategory(false); setSubcategory(""); }}
+                    className="text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors">
+                    ← Vælg fra listen
+                  </button>
                 </div>
               )}
+            </div>
+          )}
+
+          {serviceCategory && subcategoryOptions.length === 0 && !customCategory && (
+            <div className="space-y-2 pt-4 border-t border-border">
+              <label className="text-sm font-medium text-muted-foreground">Underkategori (valgfrit)</label>
+              <Input placeholder="Fx Erhvervsrengøring" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} className="bg-white" />
             </div>
           )}
         </div>
@@ -659,80 +704,100 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
 
       {/* Step 2: Details */}
       {currentStep === 2 && (
-        <div className="rounded-xl border-2 border-violet-100 bg-violet-50/30 p-5 space-y-4">
-          <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-500 text-xs font-bold text-white">2</span>
-            Service detaljer
-          </h4>
+        <div className="space-y-5">
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Navn</label>
-            <Input placeholder="Servicenavn (fx Rengøring af kontor)" value={name} onChange={(e) => setName(e.target.value)} className="bg-white" />
+            <h4 className="text-base font-semibold text-foreground">Service detaljer</h4>
+            <p className="mt-1 text-sm text-muted-foreground">Beskriv din service så kunderne ved hvad de får</p>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">Servicenavn</label>
+            <Input placeholder="Fx Rengøring af kontor" value={name} onChange={(e) => setName(e.target.value)} className="bg-white h-11 text-base" />
             {productSuggestions.length > 0 && !name && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
+              <div className="mt-2.5 flex flex-wrap gap-2">
+                <span className="text-sm text-muted-foreground mr-1">Forslag:</span>
                 {productSuggestions.map((s) => (
-                  <button key={s} type="button" onClick={() => setName(s)} className="rounded-full border border-violet-200 bg-white px-3 py-1 text-xs text-muted-foreground hover:border-violet-400 hover:text-foreground transition-colors">{s}</button>
+                  <button key={s} type="button" onClick={() => setName(s)}
+                    className="rounded-full border border-border bg-white px-3 py-1.5 text-sm text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-colors">{s}</button>
                 ))}
               </div>
             )}
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Beskrivelse</label>
-            <Textarea placeholder="Beskrivelse af servicen" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-white" />
+            <label className="mb-1.5 block text-sm font-medium text-foreground">Beskrivelse</label>
+            <Textarea placeholder="Hvad inkluderer denne service? Hvad kan kunden forvente?" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-white" rows={3} />
           </div>
-          <ImageUpload folder={`${user!.id}/services`} currentUrl={imageUrl || null} onUploaded={setImageUrl} label="Servicebillede (valgfrit)" aspectRatio="aspect-video" className="w-36" />
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">Billede (valgfrit)</label>
+            <ImageUpload folder={`${user!.id}/services`} currentUrl={imageUrl || null} onUploaded={setImageUrl} label="" aspectRatio="aspect-video" className="w-40" />
+          </div>
         </div>
       )}
 
-      {/* Step 3: Pricing */}
+      {/* Step 3: Pricing — big cards */}
       {currentStep === 3 && (
-        <div className="rounded-xl border-2 border-emerald-100 bg-emerald-50/30 p-5 space-y-4">
-          <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-white">3</span>
-            Pristype
-          </h4>
-          <div className="grid grid-cols-3 gap-2">
+        <div className="space-y-5">
+          <div>
+            <h4 className="text-base font-semibold text-foreground">Hvordan vil du prissætte?</h4>
+            <p className="mt-1 text-sm text-muted-foreground">Vælg den prismodel der passer bedst til din service</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
-              { value: "fast_pris", label: "Fast pris", desc: "Én fast pris", color: "border-emerald-400 bg-emerald-50 ring-emerald-300" },
-              { value: "timepris", label: "Timepris", desc: "Pris pr. time", color: "border-emerald-400 bg-emerald-50 ring-emerald-300" },
-              { value: "prisberegner", label: "Prisberegner", desc: "Kunden beregner selv", color: "border-amber-400 bg-amber-50 ring-amber-300" },
+              { value: "fast_pris", label: "Fast pris", desc: "Kunden betaler én fast pris for hele servicen", icon: "💰" },
+              { value: "timepris", label: "Timepris", desc: "Kunden betaler pr. time brugt på opgaven", icon: "⏱️" },
+              { value: "prisberegner", label: "Prisberegner", desc: "Kunden sammensætter selv og ser prisen live", icon: "🧮" },
             ].map((opt) => (
               <button key={opt.value} type="button" onClick={() => setPricingType(opt.value)}
-                className={`rounded-xl border-2 p-3 text-left transition-all ${pricingType === opt.value ? `${opt.color} ring-1` : "border-border bg-white hover:border-muted-foreground/30"}`}>
-                <span className="block text-sm font-semibold text-foreground">{opt.label}</span>
-                <span className="block text-xs text-muted-foreground">{opt.desc}</span>
+                className={`rounded-xl border-2 p-5 text-left transition-all ${
+                  pricingType === opt.value
+                    ? "border-foreground bg-foreground/5 shadow-sm"
+                    : "border-border bg-white hover:border-foreground/30 hover:shadow-sm"
+                }`}>
+                <span className="text-2xl">{opt.icon}</span>
+                <span className="mt-2 block text-sm font-semibold text-foreground">{opt.label}</span>
+                <span className="mt-1 block text-sm text-muted-foreground leading-snug">{opt.desc}</span>
               </button>
             ))}
           </div>
 
           {(pricingType === "fast_pris" || pricingType === "timepris") && (
-            <div className="flex gap-2">
-              <Input type="number" placeholder={pricingType === "fast_pris" ? "Pris (kr)" : "Timepris (kr)"} value={basePrice} onChange={(e) => setBasePrice(e.target.value)} className="bg-white" />
-              {pricingType === "timepris" && <Input placeholder="Enhed (fx timer)" value={unit} onChange={(e) => setUnit(e.target.value)} className="bg-white" />}
+            <div className="flex gap-3 pt-2">
+              <div className="flex-1">
+                <label className="mb-1.5 block text-sm font-medium text-foreground">
+                  {pricingType === "fast_pris" ? "Pris (kr)" : "Timepris (kr)"}
+                </label>
+                <Input type="number" placeholder="0" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} className="bg-white h-11 text-base" />
+              </div>
+              {pricingType === "timepris" && (
+                <div className="flex-1">
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">Enhed</label>
+                  <Input placeholder="Fx timer" value={unit} onChange={(e) => setUnit(e.target.value)} className="bg-white h-11 text-base" />
+                </div>
+              )}
             </div>
           )}
         </div>
       )}
 
-      {/* Step 4: Calculator (only for prisberegner) */}
+      {/* Step 4: Calculator */}
       {currentStep === 4 && pricingType === "prisberegner" && (
-        <div className="rounded-xl border-2 border-amber-100 bg-amber-50/30 p-5 space-y-4">
-          <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-white">4</span>
-            Opsæt prisberegner
-          </h4>
+        <div className="space-y-5">
+          <div>
+            <h4 className="text-base font-semibold text-foreground">Opsæt prisberegner</h4>
+            <p className="mt-1 text-sm text-muted-foreground">Tilføj de trin kunden skal igennem for at beregne prisen</p>
+          </div>
 
           {availableTemplates.length > 0 && steps.length === 0 && (
-            <div className="rounded-lg border border-amber-200 bg-white p-4 space-y-3">
+            <div className="rounded-xl border border-border bg-white p-5 space-y-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-amber-600" />
-                <span className="text-sm font-semibold text-foreground">Hurtigstart med skabelon</span>
+                <Sparkles className="h-5 w-5 text-amber-500" />
+                <span className="text-sm font-semibold text-foreground">Kom hurtigt i gang med en skabelon</span>
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
                 {availableTemplates.map((t) => (
                   <button key={t.label} type="button" onClick={() => applyTemplate(t)}
-                    className="rounded-lg border border-amber-200 bg-amber-50/50 p-3 text-left transition-all hover:border-amber-400 hover:shadow-sm">
-                    <span className="block text-sm font-medium text-foreground">{t.label}</span>
-                    <span className="block text-xs text-muted-foreground">{t.steps.length} trin · {t.steps.map(s => s.unit).join(", ")}</span>
+                    className="rounded-xl border border-border bg-muted/30 p-4 text-left transition-all hover:border-foreground/30 hover:shadow-sm">
+                    <span className="block text-sm font-semibold text-foreground">{t.label}</span>
+                    <span className="mt-1 block text-sm text-muted-foreground">{t.steps.length} trin · {t.steps.map(s => s.unit).filter((v, i, a) => a.indexOf(v) === i).join(", ")}</span>
                   </button>
                 ))}
               </div>
@@ -741,64 +806,64 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-semibold text-foreground text-sm">Beregnertrin</h4>
-                <p className="text-xs text-muted-foreground">Hvert trin lader kunden vælge en mængde.</p>
-              </div>
-              <Button variant="outline" size="sm" onClick={addStep} className="gap-1 border-amber-300 hover:bg-amber-100"><Plus className="h-3 w-3" /> Tilføj</Button>
+              <span className="text-sm font-semibold text-foreground">{steps.length} beregnertrin</span>
+              <Button variant="outline" size="sm" onClick={addStep} className="gap-1.5 rounded-lg">
+                <Plus className="h-3.5 w-3.5" /> Tilføj trin
+              </Button>
             </div>
 
             {steps.map((step, i) => (
-              <div key={i} className="rounded-lg border border-amber-200 bg-white p-3 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">{i + 1}</span>
-                    <span className="text-xs font-semibold text-muted-foreground">Trin {i + 1}</span>
+              <Card key={i} className="rounded-xl shadow-sm border-[#e1e3e5]">
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-sm font-bold text-background">{i + 1}</span>
+                      <span className="text-sm font-semibold text-foreground">{step.label || `Trin ${i + 1}`}</span>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => removeStep(i)} className="h-8 w-8 p-0">
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => removeStep(i)} className="h-7 w-7 p-0">
-                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                  </Button>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="mb-1 block text-xs text-muted-foreground">Navn</label>
-                    <Input placeholder="Fx Støvsugning" value={step.label} onChange={(e) => updateStep(i, "label", e.target.value)} className="h-9 bg-white" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1 block text-sm text-muted-foreground">Navn</label>
+                      <Input placeholder="Fx Støvsugning" value={step.label} onChange={(e) => updateStep(i, "label", e.target.value)} className="bg-white" />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-sm text-muted-foreground">Enhed</label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {["stk", "m²", "m", "timer", "rum", "km", "kg", "kr"].map((u) => (
+                          <button key={u} type="button" onClick={() => updateStep(i, "unit", u)}
+                            className={`rounded-full border px-3 py-1.5 text-sm transition-all ${
+                              step.unit === u
+                                ? "border-foreground bg-foreground text-background"
+                                : "border-border bg-white text-muted-foreground hover:border-foreground/40"
+                            }`}>{u}</button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="mb-1 block text-xs text-muted-foreground">Enhed</label>
-                    <Select value={step.unit} onValueChange={(v) => updateStep(i, "unit", v)}>
-                      <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {["stk", "m²", "m", "timer", "rum", "km", "kg", "kr"].map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-4 gap-3">
+                    {[
+                      { label: `Pris / ${step.unit || "enhed"}`, field: "price_per_unit", value: step.price_per_unit },
+                      { label: "Min", field: "min_value", value: step.min_value },
+                      { label: "Max", field: "max_value", value: step.max_value },
+                      { label: "Standard", field: "default_value", value: step.default_value },
+                    ].map((f) => (
+                      <div key={f.field}>
+                        <label className="mb-1 block text-sm text-muted-foreground">{f.label}</label>
+                        <Input type="number" placeholder="0" value={f.value} onChange={(e) => updateStep(i, f.field, e.target.value)} />
+                      </div>
+                    ))}
                   </div>
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                  <div>
-                    <label className="mb-1 block text-xs text-muted-foreground">Pris / {step.unit || "enhed"}</label>
-                    <Input type="number" placeholder="0" value={step.price_per_unit} onChange={(e) => updateStep(i, "price_per_unit", e.target.value)} className="h-9" />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs text-muted-foreground">Min</label>
-                    <Input type="number" placeholder="0" value={step.min_value} onChange={(e) => updateStep(i, "min_value", e.target.value)} className="h-9" />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs text-muted-foreground">Max</label>
-                    <Input type="number" placeholder="100" value={step.max_value} onChange={(e) => updateStep(i, "max_value", e.target.value)} className="h-9" />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs text-muted-foreground">Standard</label>
-                    <Input type="number" placeholder="0" value={step.default_value} onChange={(e) => updateStep(i, "default_value", e.target.value)} className="h-9" />
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
 
             {steps.length === 0 && (
-              <div className="py-6 text-center rounded-lg border border-dashed border-amber-200 bg-white">
-                <Calculator className="mx-auto h-8 w-8 text-amber-300" />
-                <p className="mt-2 text-sm text-muted-foreground">
+              <div className="py-10 text-center rounded-xl border border-dashed border-border bg-white">
+                <Calculator className="mx-auto h-8 w-8 text-muted-foreground/30" />
+                <p className="mt-3 text-sm text-muted-foreground">
                   {availableTemplates.length > 0 ? "Vælg en skabelon ovenfor eller tilføj trin manuelt." : "Tilføj trin for at oprette din prisberegner."}
                 </p>
               </div>
@@ -810,24 +875,24 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       )}
 
       {/* Navigation buttons */}
-      <div className="flex items-center justify-between pt-2">
+      <div className="flex items-center justify-between pt-3 border-t border-border">
         <div className="flex gap-2">
           {currentStep > 1 && (
-            <Button variant="outline" onClick={() => setCurrentStep(currentStep - 1)} className="rounded-lg text-sm">
+            <Button variant="outline" onClick={() => setCurrentStep(currentStep - 1)} className="rounded-lg">
               ← Tilbage
             </Button>
           )}
-          <Button variant="outline" onClick={onClose} className="rounded-lg text-sm">Annuller</Button>
+          <Button variant="ghost" onClick={onClose} className="rounded-lg text-muted-foreground">Annuller</Button>
         </div>
         <div>
           {currentStep < totalSteps ? (
             <Button onClick={() => { if (canGoNext()) setCurrentStep(currentStep + 1); else toast.error("Udfyld venligst de påkrævede felter"); }}
               disabled={!canGoNext()}
-              className="rounded-lg text-sm bg-foreground text-background hover:bg-foreground/90">
+              className="rounded-lg bg-foreground text-background hover:bg-foreground/90 px-6">
               Næste →
             </Button>
           ) : (
-            <Button onClick={handleSave} className="rounded-lg text-sm bg-green-600 text-white hover:bg-green-700">
+            <Button onClick={handleSave} className="rounded-lg bg-green-600 text-white hover:bg-green-700 px-6">
               {existingService ? "Gem ændringer" : "✓ Opret service"}
             </Button>
           )}
