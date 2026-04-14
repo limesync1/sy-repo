@@ -177,7 +177,7 @@ const AdminDashboard = () => {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[220px] flex-col bg-[hsl(222,47%,11%)] transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[240px] flex-col bg-[hsl(222,47%,11%)] transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         {/* Sidebar header */}
         <div className="flex h-14 shrink-0 items-center justify-between px-3">
           <Link to="/" className="flex items-center gap-2">
@@ -213,7 +213,7 @@ const AdminDashboard = () => {
               <button
                 key={item.value}
                 onClick={() => { setActiveTab(item.value); setSidebarOpen(false); }}
-                className={`flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-sm font-medium transition-colors ${
+                className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-white/[0.12] text-white"
                     : "text-white/55 hover:bg-white/[0.06] hover:text-white/90"
@@ -248,15 +248,15 @@ const AdminDashboard = () => {
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-[52px] shrink-0 items-center gap-3 border-b border-[#e1e3e5] bg-white px-4 sm:px-5">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-[#e1e3e5] bg-white px-5 sm:px-6">
           <button onClick={() => setSidebarOpen(true)} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden">
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="text-base font-semibold text-foreground">{currentNav?.label}</h1>
+          <h1 className="text-lg font-semibold text-foreground">{currentNav?.label}</h1>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-3 sm:p-5">
+        <main className="flex-1 p-4 sm:p-6">
           {renderContent()}
         </main>
       </div>
