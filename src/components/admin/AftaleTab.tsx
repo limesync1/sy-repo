@@ -397,35 +397,76 @@ const AdjustmentEditor = ({
 const AdjustmentDisplay = ({ order }: { order: any }) => {
   if (order.business_response !== "adjusted" || !order.adjusted_details) return null;
   const items = (order.adjusted_details as any)?.items || [];
+  const awaitingCustomer = !order.customer_response;
+  const customerAccepted = order.customer_response === "accepted";
+  const customerRejected = order.customer_response === "rejected";
 
   return (
-    <div className="rounded-xl border border-amber-200 overflow-hidden">
-      <div className="px-4 py-2.5 bg-amber-50 border-b border-amber-200 flex items-center gap-2">
-        <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
-        <span className="text-xs font-semibold text-amber-800">Dit seneste tilpasningsforslag</span>
-      </div>
-      {items.map((item: any, idx: number) => (
-        <div key={idx} className="border-b border-amber-100 last:border-b-0 px-4 py-2.5">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <span className="text-sm font-medium text-foreground">{item.service_name}</span>
-              {item.details?.interval && item.details.interval !== "engangskøb" && (
-                <span className="ml-2 text-[11px] text-amber-700">{INTERVAL_LABELS[item.details.interval] || item.details.interval}</span>
-              )}
-            </div>
-            <span className="text-sm font-semibold text-foreground">{item.total_price} kr</span>
+    <div className="space-y-3">
+      {/* Status banner */}
+      {awaitingCustomer && (
+        <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <Clock className="h-4 w-4 text-amber-600 shrink-0 animate-pulse" />
+          <div>
+            <p className="text-sm font-semibold text-amber-900">Afventer kundens svar</p>
+            <p className="text-xs text-amber-700">Du har sendt et tilpasset forslag. Kunden kan godkende eller afvise det.</p>
           </div>
-          {item.details?.stepDetails?.map((sd: any, i: number) => (
-            <div key={i} className="flex justify-between text-xs text-muted-foreground mt-0.5 pl-0.5">
-              <span>{sd.label}: {sd.value} {sd.unit} × {sd.price_per_unit} kr/{sd.unit}</span>
-              <span>{sd.subtotal} kr</span>
-            </div>
-          ))}
         </div>
-      ))}
-      <div className="px-4 py-2 flex justify-between bg-amber-50 border-t border-amber-200">
-        <span className="text-sm font-bold text-foreground">Tilpasset pris</span>
-        <span className="text-sm font-bold text-foreground">{order.adjusted_amount} kr</span>
+      )}
+      {customerAccepted && (
+        <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
+          <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-green-900">Kunden har godkendt dit forslag</p>
+            <p className="text-xs text-green-700">Aftalen er nu bekræftet til den tilpassede pris.</p>
+          </div>
+        </div>
+      )}
+      {customerRejected && (
+        <div className="flex items-center gap-3 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3">
+          <XCircle className="h-4 w-4 text-destructive shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-destructive">Kunden har afvist dit forslag</p>
+            <p className="text-xs text-muted-foreground">Du kan sende et nyt forslag eller annullere aftalen.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Adjustment details */}
+      <div className={`rounded-xl border overflow-hidden ${
+        awaitingCustomer ? "border-amber-200" : customerAccepted ? "border-green-200" : "border-destructive/20"
+      }`}>
+        <div className={`px-4 py-2.5 border-b flex items-center gap-2 ${
+          awaitingCustomer ? "bg-amber-50 border-amber-200" : customerAccepted ? "bg-green-50 border-green-200" : "bg-destructive/5 border-destructive/20"
+        }`}>
+          <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+          <span className="text-xs font-semibold text-amber-800">Dit tilpasningsforslag</span>
+        </div>
+        {items.map((item: any, idx: number) => (
+          <div key={idx} className="border-b border-border/50 last:border-b-0 px-4 py-2.5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <span className="text-sm font-medium text-foreground">{item.service_name}</span>
+                {item.details?.interval && item.details.interval !== "engangskøb" && (
+                  <span className="ml-2 text-[11px] text-amber-700">{INTERVAL_LABELS[item.details.interval] || item.details.interval}</span>
+                )}
+              </div>
+              <span className="text-sm font-semibold text-foreground">{item.total_price} kr</span>
+            </div>
+            {item.details?.stepDetails?.map((sd: any, i: number) => (
+              <div key={i} className="flex justify-between text-xs text-muted-foreground mt-0.5 pl-0.5">
+                <span>{sd.label}: {sd.value} {sd.unit} × {sd.price_per_unit} kr/{sd.unit}</span>
+                <span>{sd.subtotal} kr</span>
+              </div>
+            ))}
+          </div>
+        ))}
+        <div className={`px-4 py-2 flex justify-between border-t ${
+          awaitingCustomer ? "bg-amber-50 border-amber-200" : customerAccepted ? "bg-green-50 border-green-200" : "bg-destructive/5 border-destructive/20"
+        }`}>
+          <span className="text-sm font-bold text-foreground">Tilpasset pris</span>
+          <span className="text-sm font-bold text-foreground">{order.adjusted_amount} kr</span>
+        </div>
       </div>
     </div>
   );
