@@ -880,6 +880,98 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
           </CardContent>
         </Card>
       )}
+      </>
+      )}
+    </div>
+  );
+};
+
+/* ─── Subscriptions View ─── */
+const SubscriptionsView = ({ subscriptions }: { subscriptions: any[] }) => {
+  const active = subscriptions.filter(s => s.status === "active");
+  const paused = subscriptions.filter(s => s.status === "paused");
+  const cancelled = subscriptions.filter(s => s.status === "cancelled");
+  const [viewFilter, setViewFilter] = useState<"active" | "paused" | "cancelled">("active");
+
+  const filtered = viewFilter === "active" ? active : viewFilter === "paused" ? paused : cancelled;
+
+  const INTERVAL_MAP: Record<string, string> = {
+    ugentlig: "Ugentlig", hver_14_dag: "Hver 14. dag", månedlig: "Månedlig", kvartalsvis: "Kvartalsvis", engangskøb: "Engangskøb",
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2 border-b border-border">
+        {([["active", "Aktive", active.length], ["paused", "Pauserede", paused.length], ["cancelled", "Annullerede", cancelled.length]] as const).map(([key, label, count]) => (
+          <button key={key} onClick={() => setViewFilter(key)}
+            className={`relative px-3 py-2.5 text-sm font-medium transition-colors ${viewFilter === key
+              ? "text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-foreground after:rounded-t"
+              : "text-muted-foreground hover:text-foreground"}`}>
+            {label}
+            {count > 0 && <span className="ml-1.5 text-xs text-muted-foreground">({count})</span>}
+          </button>
+        ))}
+      </div>
+
+      {filtered.length > 0 ? (
+        <div className="space-y-2.5">
+          {filtered.map(sub => {
+            const profile = (sub as any).profiles;
+            const nextDate = sub.next_service_date ? new Date(sub.next_service_date) : null;
+            const daysUntil = nextDate ? Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+
+            return (
+              <Card key={sub.id} className="rounded-xl border-border shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-foreground">{sub.service_name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {profile?.display_name || "Ukendt kunde"}
+                        {profile?.phone && <span className="ml-2">· {profile.phone}</span>}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-sm font-bold text-foreground">{sub.total_price} kr</span>
+                      <span className="block text-[11px] text-muted-foreground">{INTERVAL_MAP[sub.interval] || sub.interval}</span>
+                    </div>
+                  </div>
+
+                  {nextDate && (
+                    <div className="mt-3 flex items-center gap-2 rounded-lg bg-secondary/40 px-3 py-2">
+                      <CalendarClock className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">Næste service:</span>
+                      <span className="text-xs font-semibold text-foreground">
+                        {nextDate.toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long" })}
+                      </span>
+                      {daysUntil !== null && (
+                        <span className={`ml-auto text-[11px] font-bold ${
+                          daysUntil <= 2 ? "text-destructive" : daysUntil <= 7 ? "text-amber-600" : "text-accent"
+                        }`}>
+                          {daysUntil <= 0 ? "I dag!" : `om ${daysUntil} dag${daysUntil !== 1 ? "e" : ""}`}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="mt-2 text-[11px] text-muted-foreground">
+                    Oprettet {new Date(sub.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
+                    {sub.paused_at && ` · Pauseret ${new Date(sub.paused_at).toLocaleDateString("da-DK")}`}
+                    {sub.cancelled_at && ` · Annulleret ${new Date(sub.cancelled_at).toLocaleDateString("da-DK")}`}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <Card className="rounded-xl border-dashed border-border">
+          <CardContent className="flex flex-col items-center justify-center py-10">
+            <CalendarClock className="h-8 w-8 text-muted-foreground/30 mb-2" />
+            <p className="text-sm font-medium text-foreground">Ingen {viewFilter === "active" ? "aktive" : viewFilter === "paused" ? "pauserede" : "annullerede"} abonnementer</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
