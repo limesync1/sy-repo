@@ -161,7 +161,7 @@ const AdminDashboard = () => {
       case "dashboard": return <DashboardWrapper business={business} />;
       case "services": return <ServicesTab businessId={business.id} />;
       case "orders": return <OrdersTab businessId={business.id} />;
-      case "quotes": return <QuotesTab business={business} />;
+      
       case "reviews": return <ReviewsWrapper businessId={business.id} />;
       case "settings": return <SettingsTab business={business} />;
       default: return null;
