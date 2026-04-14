@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   ShoppingCart, Pencil, Minus, Plus, Check, X, MessageSquare,
   ChevronDown, ChevronUp, Clock, User, Mail, Phone, ArrowRight,
-  AlertTriangle, CheckCircle2, XCircle, RefreshCw, CalendarClock,
+  CheckCircle2, XCircle, RefreshCw, CalendarClock,
+  Play, Pause,
 } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
 import {
@@ -171,19 +172,20 @@ const buildAdjustmentItem = (item: any, service?: BusinessService): AdjustmentIt
   };
 };
 
-/* ─── Status config ─── */
+/* ─── Status config ─── 
+   The lifecycle:
+   pending    → Ny bestilling, virksomheden skal svare (godkend/tilpas/afvis)
+   confirmed  → Aftalt (enten direkte godkendt eller efter kundens accept af forslag)
+   in_progress → Arbejdet er i gang
+   completed  → Udført / afsluttet
+   cancelled  → Annulleret
+*/
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; color: string; bg: string; dot: string }> = {
-  pending: { label: "Afventer svar", icon: Clock, color: "text-amber-700", bg: "bg-amber-50", dot: "bg-amber-400" },
-  confirmed: { label: "Godkendt", icon: CheckCircle2, color: "text-blue-700", bg: "bg-blue-50", dot: "bg-blue-400" },
+  pending: { label: "Ny bestilling", icon: Clock, color: "text-amber-700", bg: "bg-amber-50", dot: "bg-amber-400" },
+  confirmed: { label: "Aftalt", icon: CheckCircle2, color: "text-blue-700", bg: "bg-blue-50", dot: "bg-blue-400" },
   in_progress: { label: "I gang", icon: RefreshCw, color: "text-purple-700", bg: "bg-purple-50", dot: "bg-purple-400" },
-  completed: { label: "Afsluttet", icon: CheckCircle2, color: "text-green-700", bg: "bg-green-50", dot: "bg-green-400" },
+  completed: { label: "Udført", icon: CheckCircle2, color: "text-green-700", bg: "bg-green-50", dot: "bg-green-400" },
   cancelled: { label: "Annulleret", icon: XCircle, color: "text-red-700", bg: "bg-red-50", dot: "bg-red-400" },
-};
-
-const RESPONSE_CONFIG: Record<string, { label: string; color: string }> = {
-  accepted: { label: "Godkendt", color: "bg-green-50 text-green-700 border-green-200" },
-  rejected: { label: "Afvist", color: "bg-red-50 text-red-700 border-red-200" },
-  adjusted: { label: "Tilpasset", color: "bg-amber-50 text-amber-700 border-amber-200" },
 };
 
 const PRICING_LABELS: Record<string, string> = {
@@ -192,17 +194,41 @@ const PRICING_LABELS: Record<string, string> = {
   prisberegner: "Prisberegner",
 };
 
-const getNextStatuses = (current: string): string[] => {
-  const map: Record<string, string[]> = {
-    confirmed: ["confirmed", "in_progress", "completed", "cancelled"],
-    in_progress: ["in_progress", "completed", "cancelled"],
-    completed: ["completed"],
-    cancelled: ["cancelled"],
-  };
-  return map[current] || [];
+/* ─── What can the business DO at each stage? ─── */
+const getActions = (order: any): { canRespond: boolean; canProgress: boolean; nextStatus: string | null; nextLabel: string | null } => {
+  const status = order.status;
+  const bizResp = order.business_response;
+  const custResp = order.customer_response;
+
+  // Pending + no business response → business must respond (accept/adjust/reject)
+  if (status === "pending" && !bizResp) {
+    return { canRespond: true, canProgress: false, nextStatus: null, nextLabel: null };
+  }
+
+  // Pending + business adjusted + awaiting customer → can't do anything, waiting
+  if (status === "pending" && bizResp === "adjusted" && !custResp) {
+    return { canRespond: false, canProgress: false, nextStatus: null, nextLabel: null };
+  }
+
+  // Pending + customer rejected → business can re-respond
+  if (status === "pending" && custResp === "rejected") {
+    return { canRespond: true, canProgress: false, nextStatus: null, nextLabel: null };
+  }
+
+  // Confirmed → can start work
+  if (status === "confirmed") {
+    return { canRespond: false, canProgress: true, nextStatus: "in_progress", nextLabel: "Marker som i gang" };
+  }
+
+  // In progress → can complete
+  if (status === "in_progress") {
+    return { canRespond: false, canProgress: true, nextStatus: "completed", nextLabel: "Marker som udført" };
+  }
+
+  return { canRespond: false, canProgress: false, nextStatus: null, nextLabel: null };
 };
 
-/* ─── Stepper Input (matches DynamicServiceCard) ─── */
+/* ─── Stepper Input ─── */
 const StepperInput = ({
   value, onChange, min, max, unit,
 }: {
@@ -232,7 +258,7 @@ const StepperInput = ({
   );
 };
 
-/* ─── Order Detail: What the customer ordered ─── */
+/* ─── Customer Order Summary ─── */
 const CustomerOrderSummary = ({ order }: { order: any }) => {
   const items = (order.order_items || []) as any[];
   if (items.length === 0) return null;
@@ -240,7 +266,7 @@ const CustomerOrderSummary = ({ order }: { order: any }) => {
   return (
     <div className="rounded-xl border border-border overflow-hidden">
       <div className="px-4 py-2.5 bg-muted/40 border-b border-border">
-        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Kundens bestilling</span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bestilte services</span>
       </div>
       {items.map((item: any) => (
         <div key={item.id} className="border-b border-border last:border-b-0 px-4 py-3">
@@ -278,7 +304,7 @@ const CustomerOrderSummary = ({ order }: { order: any }) => {
   );
 };
 
-/* ─── Adjustment Editor (mirrors DynamicServiceCard exactly) ─── */
+/* ─── Adjustment Editor ─── */
 const AdjustmentEditor = ({
   orderId, items, onUpdateStep, onUpdateInterval, onUpdateFixedPrice,
 }: {
@@ -297,7 +323,6 @@ const AdjustmentEditor = ({
 
       {items.map((item, itemIdx) => (
         <div key={itemIdx} className="rounded-xl border border-border overflow-hidden bg-card">
-          {/* Header */}
           <div className="px-4 py-3 bg-muted/30 border-b border-border">
             <div className="flex items-center justify-between">
               <div>
@@ -311,7 +336,6 @@ const AdjustmentEditor = ({
             </div>
           </div>
 
-          {/* Fixed price editor */}
           {item.pricing_type === "fast_pris" && (
             <div className="px-4 py-3">
               <label className="text-xs font-medium text-muted-foreground block mb-1.5">Pris (kr)</label>
@@ -320,7 +344,6 @@ const AdjustmentEditor = ({
             </div>
           )}
 
-          {/* Step-based editor (timepris + prisberegner) */}
           {item.details?.stepDetails && item.details.stepDetails.length > 0 && (
             <div className="divide-y divide-border">
               {item.details.stepDetails.map((sd, stepIdx) => (
@@ -350,7 +373,6 @@ const AdjustmentEditor = ({
                   <p className="mt-1 text-[11px] text-muted-foreground/60">{sd.min_value}–{sd.max_value} {sd.unit}</p>
                 </div>
               ))}
-              {/* Total row */}
               <div className="flex items-center justify-between bg-secondary/40 px-4 py-3">
                 <span className="text-sm font-semibold text-foreground">I alt</span>
                 <div className="flex items-baseline gap-1">
@@ -361,7 +383,6 @@ const AdjustmentEditor = ({
             </div>
           )}
 
-          {/* Interval selector */}
           {(() => {
             const snapshot = item.details.pricingSnapshot;
             const options = snapshot.interval_options && snapshot.interval_options.length > 0
@@ -393,92 +414,156 @@ const AdjustmentEditor = ({
   );
 };
 
-/* ─── Previously sent adjustment display ─── */
+/* ─── Proposal status display ─── */
+const ProposalStatusBanner = ({ order }: { order: any }) => {
+  const bizResp = order.business_response;
+  const custResp = order.customer_response;
+
+  if (bizResp === "adjusted" && !custResp) {
+    return (
+      <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+        <Clock className="h-4 w-4 text-amber-600 shrink-0 animate-pulse" />
+        <div>
+          <p className="text-sm font-semibold text-amber-900">Afventer kundens svar på dit forslag</p>
+          <p className="text-xs text-amber-700">Kunden kan godkende eller afvise dit tilpassede forslag.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (bizResp === "adjusted" && custResp === "accepted") {
+    return (
+      <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
+        <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+        <div>
+          <p className="text-sm font-semibold text-green-900">Kunden godkendte dit forslag</p>
+          <p className="text-xs text-green-700">Aftalen er bekræftet til {order.adjusted_amount} kr. Du kan nu starte arbejdet.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (bizResp === "adjusted" && custResp === "rejected") {
+    return (
+      <div className="flex items-center gap-3 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3">
+        <XCircle className="h-4 w-4 text-destructive shrink-0" />
+        <div>
+          <p className="text-sm font-semibold text-destructive">Kunden afviste dit forslag</p>
+          <p className="text-xs text-muted-foreground">Du kan sende et nyt forslag eller annullere aftalen.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+/* ─── Adjustment details display ─── */
 const AdjustmentDisplay = ({ order }: { order: any }) => {
   if (order.business_response !== "adjusted" || !order.adjusted_details) return null;
   const items = (order.adjusted_details as any)?.items || [];
-  const awaitingCustomer = !order.customer_response;
-  const customerAccepted = order.customer_response === "accepted";
-  const customerRejected = order.customer_response === "rejected";
 
   return (
-    <div className="space-y-3">
-      {/* Status banner */}
-      {awaitingCustomer && (
-        <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-          <Clock className="h-4 w-4 text-amber-600 shrink-0 animate-pulse" />
-          <div>
-            <p className="text-sm font-semibold text-amber-900">Afventer kundens svar</p>
-            <p className="text-xs text-amber-700">Du har sendt et tilpasset forslag. Kunden kan godkende eller afvise det.</p>
-          </div>
-        </div>
-      )}
-      {customerAccepted && (
-        <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
-          <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
-          <div>
-            <p className="text-sm font-semibold text-green-900">Kunden har godkendt dit forslag</p>
-            <p className="text-xs text-green-700">Aftalen er nu bekræftet til den tilpassede pris.</p>
-          </div>
-        </div>
-      )}
-      {customerRejected && (
-        <div className="flex items-center gap-3 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3">
-          <XCircle className="h-4 w-4 text-destructive shrink-0" />
-          <div>
-            <p className="text-sm font-semibold text-destructive">Kunden har afvist dit forslag</p>
-            <p className="text-xs text-muted-foreground">Du kan sende et nyt forslag eller annullere aftalen.</p>
-          </div>
-        </div>
-      )}
-
-      {/* Adjustment details */}
-      <div className={`rounded-xl border overflow-hidden ${
-        awaitingCustomer ? "border-amber-200" : customerAccepted ? "border-green-200" : "border-destructive/20"
-      }`}>
-        <div className={`px-4 py-2.5 border-b flex items-center gap-2 ${
-          awaitingCustomer ? "bg-amber-50 border-amber-200" : customerAccepted ? "bg-green-50 border-green-200" : "bg-destructive/5 border-destructive/20"
-        }`}>
-          <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
-          <span className="text-xs font-semibold text-amber-800">Dit tilpasningsforslag</span>
-        </div>
-        {items.map((item: any, idx: number) => (
-          <div key={idx} className="border-b border-border/50 last:border-b-0 px-4 py-2.5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <span className="text-sm font-medium text-foreground">{item.service_name}</span>
-                {item.details?.interval && item.details.interval !== "engangskøb" && (
-                  <span className="ml-2 text-[11px] text-amber-700">{INTERVAL_LABELS[item.details.interval] || item.details.interval}</span>
-                )}
-              </div>
-              <span className="text-sm font-semibold text-foreground">{item.total_price} kr</span>
+    <div className="rounded-xl border border-border overflow-hidden">
+      <div className="px-4 py-2.5 bg-muted/40 border-b border-border flex items-center gap-2">
+        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Dit tilpasningsforslag</span>
+      </div>
+      {items.map((item: any, idx: number) => (
+        <div key={idx} className="border-b border-border/50 last:border-b-0 px-4 py-2.5">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <span className="text-sm font-medium text-foreground">{item.service_name}</span>
+              {item.details?.interval && item.details.interval !== "engangskøb" && (
+                <span className="ml-2 text-[11px] text-accent">{INTERVAL_LABELS[item.details.interval] || item.details.interval}</span>
+              )}
             </div>
-            {item.details?.stepDetails?.map((sd: any, i: number) => (
-              <div key={i} className="flex justify-between text-xs text-muted-foreground mt-0.5 pl-0.5">
-                <span>{sd.label}: {sd.value} {sd.unit} × {sd.price_per_unit} kr/{sd.unit}</span>
-                <span>{sd.subtotal} kr</span>
-              </div>
-            ))}
+            <span className="text-sm font-semibold text-foreground">{item.total_price} kr</span>
           </div>
-        ))}
-        <div className={`px-4 py-2 flex justify-between border-t ${
-          awaitingCustomer ? "bg-amber-50 border-amber-200" : customerAccepted ? "bg-green-50 border-green-200" : "bg-destructive/5 border-destructive/20"
-        }`}>
-          <span className="text-sm font-bold text-foreground">Tilpasset pris</span>
+          {item.details?.stepDetails?.map((sd: any, i: number) => (
+            <div key={i} className="flex justify-between text-xs text-muted-foreground mt-0.5 pl-0.5">
+              <span>{sd.label}: {sd.value} {sd.unit} × {sd.price_per_unit} kr/{sd.unit}</span>
+              <span>{sd.subtotal} kr</span>
+            </div>
+          ))}
+        </div>
+      ))}
+      <div className="px-4 py-2 flex justify-between bg-muted/30 border-t border-border">
+        <span className="text-sm font-bold text-foreground">Tilpasset pris</span>
+        <div className="text-right">
           <span className="text-sm font-bold text-foreground">{order.adjusted_amount} kr</span>
+          {order.adjusted_amount !== order.total_amount && (
+            <span className="ml-2 text-xs text-muted-foreground line-through">{order.total_amount} kr</span>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-/* ─── Main AftaleTab ─── */
+/* ─── Linked subscription info ─── */
+const LinkedSubscriptionInfo = ({ orderId, subscriptions }: { orderId: string; subscriptions: any[] }) => {
+  const linked = subscriptions.filter(s => s.order_id === orderId && s.status !== "cancelled");
+  if (linked.length === 0) return null;
+
+  return (
+    <div className="space-y-2">
+      {linked.map(sub => {
+        const nextDate = sub.next_service_date ? new Date(sub.next_service_date) : null;
+        const daysUntil = nextDate ? Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+        const profile = (sub as any).profiles;
+
+        return (
+          <div key={sub.id} className="rounded-xl border border-accent/20 bg-accent/5 overflow-hidden">
+            <div className="px-4 py-2.5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CalendarClock className="h-4 w-4 text-accent" />
+                <div>
+                  <span className="text-sm font-semibold text-foreground">{sub.service_name}</span>
+                  <span className="ml-2 text-xs text-accent">{INTERVAL_LABELS[sub.interval] || sub.interval}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {sub.status === "paused" && (
+                  <Badge variant="secondary" className="text-[11px]">
+                    <Pause className="h-3 w-3 mr-1" /> På pause
+                  </Badge>
+                )}
+                <span className="text-sm font-bold text-foreground">{sub.total_price} kr</span>
+              </div>
+            </div>
+            {nextDate && sub.status === "active" && (
+              <div className="border-t border-accent/10 px-4 py-2 flex items-center justify-between bg-accent/[0.03]">
+                <span className="text-xs text-muted-foreground">Næste service:</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-foreground">
+                    {nextDate.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" })}
+                  </span>
+                  {daysUntil !== null && (
+                    <span className={`text-[11px] font-bold ${
+                      daysUntil <= 2 ? "text-destructive" : daysUntil <= 7 ? "text-amber-600" : "text-accent"
+                    }`}>
+                      {daysUntil <= 0 ? "I dag!" : `om ${daysUntil} dag${daysUntil !== 1 ? "e" : ""}`}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════ */
+/*  Main AftaleTab — unified view                     */
+/* ═══════════════════════════════════════════════════ */
 const AftaleTab = ({ businessId }: { businessId: string }) => {
   const { data: orders, isLoading } = useOrders(businessId);
   const { data: services } = useServices(businessId);
   const { data: subscriptions } = useBusinessSubscriptions(businessId);
   const qc = useQueryClient();
-  const [activeView, setActiveView] = useState<"orders" | "subscriptions">("orders");
   const [filter, setFilter] = useState<string>("all");
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
@@ -493,9 +578,36 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
     return acc;
   }, {});
 
-  const filteredOrders = filter === "all" ? orders : orders?.filter((o) => o.status === filter);
+  const allSubs = subscriptions || [];
+
+  // Determine if an order has recurring services
+  const orderHasRecurring = (order: any) => {
+    const items = order.order_items || [];
+    return items.some((item: any) => item.details?.interval && item.details.interval !== "engangskøb");
+  };
+
+  // Count by status
   const counts: Record<string, number> = { all: orders?.length || 0 };
   orders?.forEach(o => { counts[o.status] = (counts[o.status] || 0) + 1; });
+
+  // Smart filtering: "action_needed" = pending orders the business needs to act on
+  const actionNeeded = orders?.filter(o => {
+    if (o.status !== "pending") return false;
+    // Not yet responded
+    if (!o.business_response) return true;
+    // Customer rejected our proposal → we need to re-respond
+    if (o.business_response === "adjusted" && o.customer_response === "rejected") return true;
+    return false;
+  }) || [];
+
+  const waitingForCustomer = orders?.filter(o =>
+    o.status === "pending" && o.business_response === "adjusted" && !o.customer_response
+  ) || [];
+
+  const filteredOrders = filter === "all" ? orders
+    : filter === "action_needed" ? actionNeeded
+    : filter === "waiting" ? waitingForCustomer
+    : orders?.filter(o => o.status === filter);
 
   const initAdjustedItems = (order: any) => {
     const items = (order.order_items || []).map((item: any) =>
@@ -550,11 +662,16 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
   const getAdjustedTotal = (orderId: string) =>
     (adjustedItems[orderId] || []).reduce((sum, item) => sum + item.total_price, 0);
 
-  const handleStatusChange = async (orderId: string, status: string) => {
-    const { error } = await supabase.from("orders").update({ status: status as any }).eq("id", orderId);
+  const handleProgressStatus = async (orderId: string, newStatus: string) => {
+    const { error } = await supabase.from("orders").update({
+      status: newStatus as any,
+      // Clear customer_response when progressing so status is clean
+      ...(newStatus !== "pending" ? { customer_response: null } : {}),
+    }).eq("id", orderId);
     if (error) { toast.error(error.message); return; }
-    toast.success(`Status opdateret til "${STATUS_CONFIG[status]?.label}"`);
+    toast.success(`Status ændret til "${STATUS_CONFIG[newStatus]?.label}"`);
     qc.invalidateQueries({ queryKey: ["orders"] });
+    qc.invalidateQueries({ queryKey: ["my-orders"] });
   };
 
   const handleResponse = async (orderId: string) => {
@@ -567,65 +684,55 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
         business_message: responseMessage || null,
         adjusted_amount: adjustedTotal,
         adjusted_details: adjustedData ? { items: adjustedData } as any : null,
+        // Direct accept → confirmed. Reject → cancelled. Adjust → stays pending (awaits customer)
         status: responseType === "accepted" ? "confirmed" as const
           : responseType === "rejected" ? "cancelled" as const
           : "pending" as const,
+        // Reset customer_response when sending a new proposal
+        customer_response: responseType === "adjusted" ? null : undefined as any,
       }).eq("id", orderId);
       if (error) throw error;
 
       toast.success(
         responseType === "accepted" ? "Aftale godkendt!"
         : responseType === "rejected" ? "Aftale afvist"
-        : "Tilpasningsforslag sendt"
+        : "Tilpasningsforslag sendt til kunden"
       );
       setRespondingTo(null);
       setResponseMessage("");
       setAdjustedItems((prev) => { const n = { ...prev }; delete n[orderId]; return n; });
       qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["my-orders"] });
     } catch (e: any) {
       toast.error(e.message);
     }
   };
 
-  const pendingCount = counts["pending"] || 0;
-
-  // Active subscriptions with upcoming dates
-  const activeSubscriptions = (subscriptions || []).filter(s => s.status === "active");
-  const upcomingSubs = activeSubscriptions
-    .filter(s => s.next_service_date)
+  // Upcoming service dates from subscriptions
+  const upcomingSubs = allSubs
+    .filter(s => s.status === "active" && s.next_service_date)
     .sort((a, b) => new Date(a.next_service_date!).getTime() - new Date(b.next_service_date!).getTime());
 
   return (
     <div className="space-y-5">
-      {/* Header with view toggle */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-base font-semibold text-foreground">Aftaler & Abonnementer</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            {orders?.length || 0} bestillinger · {activeSubscriptions.length} aktive abonnementer
-          </p>
-        </div>
-        <div className="flex rounded-lg border border-border overflow-hidden">
-          <button onClick={() => setActiveView("orders")}
-            className={`px-3 py-1.5 text-xs font-medium transition-colors ${activeView === "orders" ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}>
-            Bestillinger
-          </button>
-          <button onClick={() => setActiveView("subscriptions")}
-            className={`px-3 py-1.5 text-xs font-medium transition-colors ${activeView === "subscriptions" ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}>
-            Abonnementer {activeSubscriptions.length > 0 && `(${activeSubscriptions.length})`}
-          </button>
-        </div>
+      {/* Header */}
+      <div>
+        <h2 className="text-base font-semibold text-foreground">Aftaler</h2>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          {orders?.length || 0} aftaler i alt
+          {upcomingSubs.length > 0 && ` · ${upcomingSubs.length} kommende services`}
+        </p>
       </div>
 
       {/* Upcoming services alert */}
-      {activeView === "orders" && upcomingSubs.length > 0 && (
+      {upcomingSubs.length > 0 && (
         <div className="rounded-xl border border-accent/20 bg-accent/5 p-4">
           <div className="flex items-center gap-2 mb-2">
             <CalendarClock className="h-4 w-4 text-accent" />
             <span className="text-sm font-semibold text-foreground">Kommende services</span>
           </div>
           <div className="space-y-1.5">
-            {upcomingSubs.slice(0, 3).map(sub => {
+            {upcomingSubs.slice(0, 4).map(sub => {
               const nextDate = new Date(sub.next_service_date!);
               const daysUntil = Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
               const profile = (sub as any).profiles;
@@ -634,7 +741,7 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                   <div className="flex items-center gap-2">
                     <span className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold ${
                       daysUntil <= 2 ? "bg-destructive/10 text-destructive" : daysUntil <= 7 ? "bg-amber-500/10 text-amber-700" : "bg-accent/10 text-accent"
-                    }`}>{daysUntil}d</span>
+                    }`}>{daysUntil <= 0 ? "!" : `${daysUntil}d`}</span>
                     <span className="font-medium text-foreground">{sub.service_name}</span>
                     <span className="text-muted-foreground">— {profile?.display_name || "Kunde"}</span>
                   </div>
@@ -644,37 +751,38 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                 </div>
               );
             })}
-            {upcomingSubs.length > 3 && (
-              <button onClick={() => setActiveView("subscriptions")} className="text-xs text-accent hover:underline mt-1">
-                Se alle {upcomingSubs.length} abonnementer →
-              </button>
-            )}
           </div>
         </div>
       )}
 
-      {activeView === "subscriptions" ? (
-        /* Subscriptions view */
-        <SubscriptionsView subscriptions={subscriptions || []} />
-      ) : (
-        /* Orders view */
-        <>
-
-      {pendingCount > 0 && (
+      {/* Action needed alert */}
+      {actionNeeded.length > 0 && (
         <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100">
             <Clock className="h-4 w-4 text-amber-600" />
           </div>
-          <div>
-            <p className="text-sm font-semibold text-amber-900">{pendingCount} {pendingCount === 1 ? "aftale" : "aftaler"} afventer dit svar</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-amber-900">{actionNeeded.length} {actionNeeded.length === 1 ? "aftale kræver" : "aftaler kræver"} din handling</p>
             <p className="text-xs text-amber-700">Godkend, tilpas eller afvis for at give kunden besked</p>
           </div>
+          <Button size="sm" variant="outline" onClick={() => setFilter("action_needed")}
+            className="shrink-0 rounded-xl text-xs border-amber-300 text-amber-800 hover:bg-amber-100">
+            Vis dem
+          </Button>
         </div>
       )}
 
       {/* Filter tabs */}
       <div className="flex gap-0 border-b border-border overflow-x-auto">
-        {[{ key: "all", label: "Alle" }, ...Object.entries(STATUS_CONFIG).map(([k, v]) => ({ key: k, label: v.label }))].map(({ key, label }) => (
+        {[
+          { key: "all", label: "Alle" },
+          ...(actionNeeded.length > 0 ? [{ key: "action_needed", label: `Kræver handling (${actionNeeded.length})` }] : []),
+          ...(waitingForCustomer.length > 0 ? [{ key: "waiting", label: `Afventer kunde (${waitingForCustomer.length})` }] : []),
+          { key: "confirmed", label: "Aftalte" },
+          { key: "in_progress", label: "I gang" },
+          { key: "completed", label: "Udførte" },
+          { key: "cancelled", label: "Annullerede" },
+        ].map(({ key, label }) => (
           <button key={key} onClick={() => setFilter(key)}
             className={`relative px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
               filter === key
@@ -682,10 +790,10 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                 : "text-muted-foreground hover:text-foreground"
             }`}>
             {label}
-            {(counts[key] || 0) > 0 && (
+            {key !== "action_needed" && key !== "waiting" && (counts[key] || 0) > 0 && (
               <span className={`ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-semibold ${
                 filter === key ? "bg-foreground/10" : "bg-muted"
-              }`}>{counts[key] || 0}</span>
+              }`}>{counts[key]}</span>
             )}
           </button>
         ))}
@@ -698,21 +806,18 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
             const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
             const isExpanded = expandedOrder === order.id;
             const isResponding = respondingTo === order.id;
-            const resp = order.business_response;
-            const respCfg = resp ? RESPONSE_CONFIG[resp] : null;
-            const canRespond = order.status === "pending";
-            const statusOptions = getNextStatuses(order.status);
+            const actions = getActions(order);
             const originalTotal = order.total_amount;
-            const currentTotal = order.adjusted_amount || originalTotal;
-            const hasAdjustment = order.adjusted_amount && order.adjusted_amount !== originalTotal;
+            const currentTotal = order.adjusted_amount && order.customer_response === "accepted" ? order.adjusted_amount : originalTotal;
+            const hasRecurring = orderHasRecurring(order);
             const date = new Date(order.created_at);
             const itemCount = (order as any).order_items?.length || 0;
 
             return (
               <Card key={order.id} className={`rounded-xl shadow-sm overflow-hidden transition-all ${
-                canRespond ? "border-amber-200 bg-amber-50/20" : "border-border"
+                actions.canRespond ? "border-amber-200 bg-amber-50/20" : "border-border"
               }`}>
-                {/* Order header — clickable */}
+                {/* Order header */}
                 <button onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
                   className="w-full text-left px-4 py-3.5 hover:bg-muted/20 transition-colors">
                   <div className="flex items-center justify-between gap-3">
@@ -720,6 +825,11 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                       <div className="flex items-center gap-2">
                         <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                         <span className="text-sm font-semibold text-foreground truncate">{order.customer_name}</span>
+                        {hasRecurring && (
+                          <Badge variant="secondary" className="text-[10px] gap-1 shrink-0">
+                            <RefreshCw className="h-2.5 w-2.5" /> Gentages
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                         <span>{date.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}</span>
@@ -731,16 +841,8 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                         <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
                         {cfg.label}
                       </span>
-                      {respCfg && !canRespond && (
-                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${respCfg.color}`}>
-                          {respCfg.label}
-                        </span>
-                      )}
                       <div className="text-right ml-1">
                         <span className="text-sm font-bold text-foreground">{currentTotal} kr</span>
-                        {hasAdjustment && (
-                          <span className="block text-[11px] text-muted-foreground line-through">{originalTotal} kr</span>
-                        )}
                       </div>
                       {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
                     </div>
@@ -765,6 +867,9 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                     {/* Order items summary */}
                     <CustomerOrderSummary order={order} />
 
+                    {/* Linked subscriptions (recurring service schedule) */}
+                    <LinkedSubscriptionInfo orderId={order.id} subscriptions={allSubs} />
+
                     {/* Customer note */}
                     {order.notes && (
                       <div className="flex gap-2 rounded-xl bg-card border border-border px-3.5 py-2.5">
@@ -773,10 +878,13 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                       </div>
                     )}
 
-                    {/* Business response (if already responded) */}
+                    {/* Proposal status banner */}
+                    {!isResponding && <ProposalStatusBanner order={order} />}
+
+                    {/* Business message (if already sent) */}
                     {order.business_message && !isResponding && (
-                      <div className="rounded-xl bg-accent/5 border border-accent/20 px-4 py-3">
-                        <p className="text-xs font-semibold text-accent mb-1">Din besked:</p>
+                      <div className="rounded-xl bg-secondary/30 border border-border px-4 py-3">
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">Din besked til kunden:</p>
                         <p className="text-sm text-foreground">{order.business_message}</p>
                       </div>
                     )}
@@ -784,30 +892,55 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                     {/* Previous adjustment display */}
                     {!isResponding && <AdjustmentDisplay order={order} />}
 
-                    {/* Action buttons for pending orders */}
-                    {canRespond && !isResponding && (
+                    {/* Action buttons */}
+                    {!isResponding && (
                       <div className="flex flex-wrap gap-2 pt-1">
-                        <Button size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("accepted"); }}
-                          className="gap-1.5 rounded-xl text-xs bg-green-600 text-white hover:bg-green-700">
-                          <Check className="h-3.5 w-3.5" /> Godkend aftale
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={(e) => {
-                          e.stopPropagation(); initAdjustedItems(order);
-                          setRespondingTo(order.id); setResponseType("adjusted");
-                        }} className="gap-1.5 rounded-xl text-xs">
-                          <Pencil className="h-3.5 w-3.5" /> Tilpas aftale
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("rejected"); }}
-                          className="gap-1.5 rounded-xl text-xs text-destructive hover:text-destructive hover:bg-destructive/5">
-                          <X className="h-3.5 w-3.5" /> Afvis
-                        </Button>
+                        {/* Respond buttons for pending orders needing action */}
+                        {actions.canRespond && (
+                          <>
+                            <Button size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("accepted"); }}
+                              className="gap-1.5 rounded-xl text-xs bg-green-600 text-white hover:bg-green-700">
+                              <Check className="h-3.5 w-3.5" /> Godkend aftale
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={(e) => {
+                              e.stopPropagation(); initAdjustedItems(order);
+                              setRespondingTo(order.id); setResponseType("adjusted");
+                            }} className="gap-1.5 rounded-xl text-xs">
+                              <Pencil className="h-3.5 w-3.5" /> Tilpas aftale
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("rejected"); }}
+                              className="gap-1.5 rounded-xl text-xs text-destructive hover:text-destructive hover:bg-destructive/5">
+                              <X className="h-3.5 w-3.5" /> Afvis
+                            </Button>
+                          </>
+                        )}
+
+                        {/* Progress button for confirmed/in_progress */}
+                        {actions.canProgress && actions.nextStatus && (
+                          <Button size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
+                            className={`gap-1.5 rounded-xl text-xs ${
+                              actions.nextStatus === "completed"
+                                ? "bg-green-600 text-white hover:bg-green-700"
+                                : "bg-foreground text-background hover:bg-foreground/90"
+                            }`}>
+                            {actions.nextStatus === "in_progress" && <><Play className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                            {actions.nextStatus === "completed" && <><CheckCircle2 className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                          </Button>
+                        )}
+
+                        {/* Cancel is always available for non-terminal states */}
+                        {(order.status === "confirmed" || order.status === "in_progress") && (
+                          <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, "cancelled"); }}
+                            className="gap-1.5 rounded-xl text-xs text-destructive hover:text-destructive hover:bg-destructive/5 ml-auto">
+                            <XCircle className="h-3.5 w-3.5" /> Annuller
+                          </Button>
+                        )}
                       </div>
                     )}
 
                     {/* Response form */}
                     {isResponding && (
                       <div className="rounded-xl border-2 border-foreground/10 bg-card p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
-                        {/* Response type selector */}
                         <div className="flex gap-2">
                           {(["accepted", "adjusted", "rejected"] as const).map((type) => (
                             <button key={type} onClick={() => {
@@ -828,7 +961,6 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                           ))}
                         </div>
 
-                        {/* Adjustment editor */}
                         {responseType === "adjusted" && adjustedItems[order.id] && (
                           <div className="space-y-3">
                             <AdjustmentEditor
@@ -838,8 +970,6 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                               onUpdateInterval={updateAdjustedInterval}
                               onUpdateFixedPrice={updateAdjustedFixedPrice}
                             />
-
-                            {/* Price comparison */}
                             <div className="flex items-center justify-between rounded-xl bg-muted/50 px-4 py-3">
                               <div>
                                 <span className="text-xs text-muted-foreground">Kundens pris</span>
@@ -856,7 +986,6 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                           </div>
                         )}
 
-                        {/* Message */}
                         <div>
                           <label className="mb-1 block text-xs font-medium text-muted-foreground">
                             Besked til kunden {responseType === "accepted" ? "(valgfrit)" : ""}
@@ -870,7 +999,6 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                             rows={3} className="text-sm" />
                         </div>
 
-                        {/* Submit buttons */}
                         <div className="flex gap-2">
                           <Button size="sm" onClick={() => handleResponse(order.id)}
                             className={`rounded-xl text-xs ${
@@ -880,26 +1008,11 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                             }`}>
                             {responseType === "accepted" ? "Bekræft godkendelse"
                               : responseType === "rejected" ? "Bekræft afvisning"
-                              : `Send tilpasning – ${roundPrice(getAdjustedTotal(order.id))} kr`}
+                              : `Send forslag – ${roundPrice(getAdjustedTotal(order.id))} kr`}
                           </Button>
                           <Button variant="ghost" size="sm" onClick={() => { setRespondingTo(null); setResponseMessage(""); }}
                             className="rounded-xl text-xs">Annuller</Button>
                         </div>
-                      </div>
-                    )}
-
-                    {/* Status changer for confirmed+ orders */}
-                    {statusOptions.length > 1 && !isResponding && (
-                      <div className="pt-1" onClick={(e) => e.stopPropagation()}>
-                        <label className="mb-1 block text-xs font-medium text-muted-foreground">Opdater status</label>
-                        <Select value={order.status} onValueChange={(s) => handleStatusChange(order.id, s)}>
-                          <SelectTrigger className="h-8 text-sm w-48"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {statusOptions.map((s) => (
-                              <SelectItem key={s} value={s}>{STATUS_CONFIG[s]?.label || s}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
                       </div>
                     )}
                   </div>
@@ -915,101 +1028,9 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
               <ShoppingCart className="h-6 w-6 text-muted-foreground/40" />
             </div>
             <p className="text-sm font-medium text-foreground">
-              {filter === "all" ? "Ingen aftaler endnu" : `Ingen aftaler med status "${STATUS_CONFIG[filter]?.label}"`}
+              {filter === "all" ? "Ingen aftaler endnu" : "Ingen aftaler med dette filter"}
             </p>
             <p className="mt-0.5 text-sm text-muted-foreground">Aftaler vises her når kunder bestiller.</p>
-          </CardContent>
-        </Card>
-      )}
-      </>
-      )}
-    </div>
-  );
-};
-
-/* ─── Subscriptions View ─── */
-const SubscriptionsView = ({ subscriptions }: { subscriptions: any[] }) => {
-  const active = subscriptions.filter(s => s.status === "active");
-  const paused = subscriptions.filter(s => s.status === "paused");
-  const cancelled = subscriptions.filter(s => s.status === "cancelled");
-  const [viewFilter, setViewFilter] = useState<"active" | "paused" | "cancelled">("active");
-
-  const filtered = viewFilter === "active" ? active : viewFilter === "paused" ? paused : cancelled;
-
-  const INTERVAL_MAP: Record<string, string> = {
-    ugentlig: "Ugentlig", hver_14_dag: "Hver 14. dag", månedlig: "Månedlig", kvartalsvis: "Kvartalsvis", engangskøb: "Engangskøb",
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex gap-2 border-b border-border">
-        {([["active", "Aktive", active.length], ["paused", "Pauserede", paused.length], ["cancelled", "Annullerede", cancelled.length]] as const).map(([key, label, count]) => (
-          <button key={key} onClick={() => setViewFilter(key)}
-            className={`relative px-3 py-2.5 text-sm font-medium transition-colors ${viewFilter === key
-              ? "text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-foreground after:rounded-t"
-              : "text-muted-foreground hover:text-foreground"}`}>
-            {label}
-            {count > 0 && <span className="ml-1.5 text-xs text-muted-foreground">({count})</span>}
-          </button>
-        ))}
-      </div>
-
-      {filtered.length > 0 ? (
-        <div className="space-y-2.5">
-          {filtered.map(sub => {
-            const profile = (sub as any).profiles;
-            const nextDate = sub.next_service_date ? new Date(sub.next_service_date) : null;
-            const daysUntil = nextDate ? Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
-
-            return (
-              <Card key={sub.id} className="rounded-xl border-border shadow-sm">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-foreground">{sub.service_name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {profile?.display_name || "Ukendt kunde"}
-                        {profile?.phone && <span className="ml-2">· {profile.phone}</span>}
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className="text-sm font-bold text-foreground">{sub.total_price} kr</span>
-                      <span className="block text-[11px] text-muted-foreground">{INTERVAL_MAP[sub.interval] || sub.interval}</span>
-                    </div>
-                  </div>
-
-                  {nextDate && (
-                    <div className="mt-3 flex items-center gap-2 rounded-lg bg-secondary/40 px-3 py-2">
-                      <CalendarClock className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">Næste service:</span>
-                      <span className="text-xs font-semibold text-foreground">
-                        {nextDate.toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long" })}
-                      </span>
-                      {daysUntil !== null && (
-                        <span className={`ml-auto text-[11px] font-bold ${
-                          daysUntil <= 2 ? "text-destructive" : daysUntil <= 7 ? "text-amber-600" : "text-accent"
-                        }`}>
-                          {daysUntil <= 0 ? "I dag!" : `om ${daysUntil} dag${daysUntil !== 1 ? "e" : ""}`}
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="mt-2 text-[11px] text-muted-foreground">
-                    Oprettet {new Date(sub.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
-                    {sub.paused_at && ` · Pauseret ${new Date(sub.paused_at).toLocaleDateString("da-DK")}`}
-                    {sub.cancelled_at && ` · Annulleret ${new Date(sub.cancelled_at).toLocaleDateString("da-DK")}`}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      ) : (
-        <Card className="rounded-xl border-dashed border-border">
-          <CardContent className="flex flex-col items-center justify-center py-10">
-            <CalendarClock className="h-8 w-8 text-muted-foreground/30 mb-2" />
-            <p className="text-sm font-medium text-foreground">Ingen {viewFilter === "active" ? "aktive" : viewFilter === "paused" ? "pauserede" : "annullerede"} abonnementer</p>
           </CardContent>
         </Card>
       )}
