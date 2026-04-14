@@ -975,12 +975,13 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
 const OrdersTab = ({ businessId }: { businessId: string }) => {
   const { data: orders, isLoading } = useOrders(businessId);
   const updateStatus = useUpdateOrderStatus();
+  const qc = useQueryClient();
   const [filter, setFilter] = useState<string>("all");
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const [responseType, setResponseType] = useState<"accepted" | "rejected" | "adjusted">("accepted");
   const [responseMessage, setResponseMessage] = useState("");
-  const [adjustedAmount, setAdjustedAmount] = useState("");
+  const [adjustedItems, setAdjustedItems] = useState<Record<string, { service_name: string; unit_price: number; quantity: number; total_price: number; details: any }[]>>({});
 
   const statusLabels: Record<string, string> = {
     pending: "Afventer", confirmed: "Bekræftet", in_progress: "I gang",
@@ -1005,13 +1006,66 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
   const counts: Record<string, number> = { all: orders?.length || 0 };
   orders?.forEach(o => { counts[o.status] = (counts[o.status] || 0) + 1; });
 
-  const qc = useQueryClient();
+  const initAdjustedItems = (order: any) => {
+    const items = (order.order_items || []).map((item: any) => ({
+      service_name: item.service_name,
+      unit_price: item.unit_price,
+      quantity: item.quantity,
+      total_price: item.total_price,
+      details: item.details ? { ...item.details, stepDetails: item.details.stepDetails?.map((sd: any) => ({ ...sd })) } : {},
+    }));
+    setAdjustedItems((prev) => ({ ...prev, [order.id]: items }));
+  };
+
+  const updateAdjustedStep = (orderId: string, itemIdx: number, stepIdx: number, field: string, value: number) => {
+    setAdjustedItems((prev) => {
+      const items = [...(prev[orderId] || [])];
+      const item = { ...items[itemIdx] };
+      const details = { ...item.details };
+      const steps = [...(details.stepDetails || [])];
+      const step = { ...steps[stepIdx] };
+      if (field === "value") {
+        step.value = value;
+        step.subtotal = Math.round(value * step.price_per_unit * 100) / 100;
+      } else if (field === "price_per_unit") {
+        step.price_per_unit = value;
+        step.subtotal = Math.round(step.value * value * 100) / 100;
+      }
+      steps[stepIdx] = step;
+      details.stepDetails = steps;
+      item.details = details;
+      item.total_price = steps.reduce((sum: number, s: any) => sum + (s.subtotal || 0), 0);
+      item.unit_price = item.total_price;
+      items[itemIdx] = item;
+      return { ...prev, [orderId]: items };
+    });
+  };
+
+  const updateAdjustedFixedPrice = (orderId: string, itemIdx: number, newPrice: number) => {
+    setAdjustedItems((prev) => {
+      const items = [...(prev[orderId] || [])];
+      const item = { ...items[itemIdx] };
+      item.total_price = newPrice;
+      item.unit_price = newPrice;
+      items[itemIdx] = item;
+      return { ...prev, [orderId]: items };
+    });
+  };
+
+  const getAdjustedTotal = (orderId: string) => {
+    return (adjustedItems[orderId] || []).reduce((sum, item) => sum + item.total_price, 0);
+  };
+
   const handleResponse = async (orderId: string) => {
     try {
+      const adjustedData = responseType === "adjusted" ? adjustedItems[orderId] : null;
+      const adjustedTotal = adjustedData ? adjustedData.reduce((sum, i) => sum + i.total_price, 0) : null;
+
       const { error } = await supabase.from("orders").update({
         business_response: responseType,
         business_message: responseMessage || null,
-        adjusted_amount: responseType === "adjusted" && adjustedAmount ? parseFloat(adjustedAmount) : null,
+        adjusted_amount: adjustedTotal,
+        adjusted_details: adjustedData ? { items: adjustedData } as any : null,
         status: responseType === "accepted" ? "confirmed" as const : responseType === "rejected" ? "cancelled" as const : "pending" as const,
       }).eq("id", orderId);
       if (error) throw error;
@@ -1023,7 +1077,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
       );
       setRespondingTo(null);
       setResponseMessage("");
-      setAdjustedAmount("");
+      setAdjustedItems((prev) => { const n = { ...prev }; delete n[orderId]; return n; });
       qc.invalidateQueries({ queryKey: ["orders"] });
     } catch (e: any) {
       toast.error(e.message);
@@ -1066,7 +1120,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
             const cfg = statusConfig[order.status] || statusConfig.pending;
             const isExpanded = expandedOrder === order.id;
             const isResponding = respondingTo === order.id;
-            const resp = (order as any).business_response;
+            const resp = order.business_response;
             const respCfg = resp ? responseLabels[resp] : null;
 
             return (
@@ -1089,7 +1143,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                         </span>
                       )}
                       <span className="text-sm font-semibold text-foreground whitespace-nowrap">
-                        {(order as any).adjusted_amount || order.total_amount} kr
+                        {order.adjusted_amount || order.total_amount} kr
                       </span>
                     </div>
                   </div>
@@ -1134,30 +1188,59 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                             )}
                           </div>
                         ))}
+                        <div className="border-t border-border px-3.5 py-2 flex justify-between text-sm font-bold text-foreground bg-muted/30">
+                          <span>Kundens pris i alt</span>
+                          <span>{order.total_amount} kr</span>
+                        </div>
                       </div>
                     )}
 
                     {order.notes && <p className="text-sm italic text-foreground/80 bg-card rounded-lg px-3 py-2 border border-border">"{order.notes}"</p>}
 
                     {/* Business response display */}
-                    {(order as any).business_message && (
+                    {order.business_message && !isResponding && (
                       <div className="rounded-xl bg-accent/5 border border-accent/20 px-3.5 py-3">
                         <p className="text-xs font-semibold text-accent mb-1">Din besked til kunden:</p>
-                        <p className="text-sm text-foreground">{(order as any).business_message}</p>
-                        {(order as any).adjusted_amount && (
-                          <p className="mt-1 text-sm font-semibold text-foreground">Tilpasset pris: {(order as any).adjusted_amount} kr</p>
+                        <p className="text-sm text-foreground">{order.business_message}</p>
+                        {order.adjusted_amount && (
+                          <p className="mt-1 text-sm font-semibold text-foreground">Tilpasset pris: {order.adjusted_amount} kr</p>
                         )}
                       </div>
                     )}
 
-                    {/* Response actions — show if no response yet, or allow changing */}
+                    {/* Adjusted details display */}
+                    {resp === "adjusted" && order.adjusted_details && !isResponding && (
+                      <div className="rounded-xl bg-amber-50/50 border border-amber-200 overflow-hidden">
+                        <div className="px-3.5 py-2 bg-amber-100/50 text-xs font-semibold text-amber-800">Tilpasset prisforslag</div>
+                        {((order.adjusted_details as any)?.items || []).map((item: any, idx: number) => (
+                          <div key={idx} className="border-t border-amber-200/60 px-3.5 py-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="font-medium text-foreground">{item.service_name}</span>
+                              <span className="font-semibold text-foreground">{item.total_price} kr</span>
+                            </div>
+                            {item.details?.stepDetails?.map((sd: any, i: number) => (
+                              <div key={i} className="flex justify-between text-xs text-muted-foreground pl-2 mt-0.5">
+                                <span>{sd.label}: {sd.value} {sd.unit} × {sd.price_per_unit} kr/{sd.unit}</span>
+                                <span>{sd.subtotal} kr</span>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                        <div className="border-t border-amber-200 px-3.5 py-2 flex justify-between text-sm font-bold text-foreground bg-amber-100/30">
+                          <span>Tilpasset total</span>
+                          <span>{order.adjusted_amount} kr</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Response actions */}
                     {order.status !== "completed" && order.status !== "cancelled" && !isResponding && (
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <Button size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("accepted"); }}
                           className="gap-1.5 rounded-xl text-xs bg-green-600 text-white hover:bg-green-700">
                           ✓ Godkend aftale
                         </Button>
-                        <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("adjusted"); }}
+                        <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); initAdjustedItems(order); setRespondingTo(order.id); setResponseType("adjusted"); }}
                           className="gap-1.5 rounded-xl text-xs">
                           ✎ Tilpas aftale
                         </Button>
@@ -1170,7 +1253,7 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
 
                     {/* Response form */}
                     {isResponding && (
-                      <div className="rounded-xl border border-accent/20 bg-accent/5 p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
+                      <div className="rounded-xl border border-border bg-card p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
                         <h4 className="text-sm font-semibold text-foreground">
                           {responseType === "accepted" ? "Godkend aftale" : responseType === "rejected" ? "Afvis aftale" : "Tilpas aftale"}
                         </h4>
@@ -1178,22 +1261,67 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                         {/* Response type selector */}
                         <div className="flex gap-2">
                           {(["accepted", "adjusted", "rejected"] as const).map((type) => (
-                            <button key={type} onClick={() => setResponseType(type)}
+                            <button key={type} onClick={() => {
+                              setResponseType(type);
+                              if (type === "adjusted" && !adjustedItems[order.id]) initAdjustedItems(order);
+                            }}
                               className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
                                 responseType === type
-                                  ? "border-foreground bg-foreground text-background"
+                                  ? type === "accepted" ? "border-green-600 bg-green-600 text-white"
+                                  : type === "rejected" ? "border-destructive bg-destructive text-destructive-foreground"
+                                  : "border-foreground bg-foreground text-background"
                                   : "border-border bg-card text-muted-foreground hover:border-foreground/30"
                               }`}>
-                              {type === "accepted" ? "Godkend" : type === "adjusted" ? "Tilpas" : "Afvis"}
+                              {type === "accepted" ? "✓ Godkend" : type === "adjusted" ? "✎ Tilpas" : "✕ Afvis"}
                             </button>
                           ))}
                         </div>
 
-                        {responseType === "adjusted" && (
-                          <div>
-                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Tilpasset pris (kr)</label>
-                            <Input type="number" placeholder={order.total_amount.toString()} value={adjustedAmount}
-                              onChange={(e) => setAdjustedAmount(e.target.value)} className="h-9 text-sm" />
+                        {/* Line-item adjustment editor */}
+                        {responseType === "adjusted" && adjustedItems[order.id] && (
+                          <div className="space-y-3">
+                            <p className="text-xs text-muted-foreground">Rediger priserne eller mængderne herunder. Kunden vil se dine ændringer.</p>
+                            {adjustedItems[order.id].map((item, itemIdx) => (
+                              <div key={itemIdx} className="rounded-xl border border-border bg-muted/20 overflow-hidden">
+                                <div className="px-3.5 py-2 bg-muted/40 flex justify-between items-center">
+                                  <span className="text-sm font-semibold text-foreground">{item.service_name}</span>
+                                  <span className="text-sm font-bold text-foreground">{Math.round(item.total_price)} kr</span>
+                                </div>
+                                {item.details?.stepDetails && item.details.stepDetails.length > 0 ? (
+                                  <div className="divide-y divide-border">
+                                    {item.details.stepDetails.map((sd: any, stepIdx: number) => (
+                                      <div key={stepIdx} className="px-3.5 py-2.5 grid grid-cols-[1fr_80px_80px_70px] gap-2 items-center">
+                                        <span className="text-sm text-foreground">{sd.label}</span>
+                                        <div>
+                                          <label className="text-[10px] text-muted-foreground block mb-0.5">Antal ({sd.unit})</label>
+                                          <Input type="number" value={sd.value} className="h-8 text-sm"
+                                            onChange={(e) => updateAdjustedStep(order.id, itemIdx, stepIdx, "value", parseFloat(e.target.value) || 0)} />
+                                        </div>
+                                        <div>
+                                          <label className="text-[10px] text-muted-foreground block mb-0.5">Pris/{sd.unit}</label>
+                                          <Input type="number" value={sd.price_per_unit} className="h-8 text-sm"
+                                            onChange={(e) => updateAdjustedStep(order.id, itemIdx, stepIdx, "price_per_unit", parseFloat(e.target.value) || 0)} />
+                                        </div>
+                                        <div className="text-right">
+                                          <label className="text-[10px] text-muted-foreground block mb-0.5">Subtotal</label>
+                                          <span className="text-sm font-semibold text-foreground">{Math.round(sd.subtotal)} kr</span>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="px-3.5 py-2.5">
+                                    <label className="text-xs text-muted-foreground block mb-1">Tilpasset pris (kr)</label>
+                                    <Input type="number" value={item.total_price} className="h-8 text-sm w-32"
+                                      onChange={(e) => updateAdjustedFixedPrice(order.id, itemIdx, parseFloat(e.target.value) || 0)} />
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                            <div className="flex justify-between items-center px-1 pt-1">
+                              <span className="text-sm text-muted-foreground">Oprindelig pris: <span className="line-through">{order.total_amount} kr</span></span>
+                              <span className="text-base font-bold text-foreground">Ny pris: {Math.round(getAdjustedTotal(order.id))} kr</span>
+                            </div>
                           </div>
                         )}
 
@@ -1219,9 +1347,9 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                             }`}>
                             {responseType === "accepted" ? "Bekræft godkendelse" :
                              responseType === "rejected" ? "Bekræft afvisning" :
-                             "Send tilpasningsforslag"}
+                             `Send tilpasning – ${Math.round(getAdjustedTotal(order.id))} kr`}
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => { setRespondingTo(null); setResponseMessage(""); setAdjustedAmount(""); }}
+                          <Button variant="ghost" size="sm" onClick={() => { setRespondingTo(null); setResponseMessage(""); }}
                             className="rounded-xl text-xs">
                             Annuller
                           </Button>
@@ -1229,8 +1357,8 @@ const OrdersTab = ({ businessId }: { businessId: string }) => {
                       </div>
                     )}
 
-                    {/* Status change for non-pending */}
-                    {resp && order.status !== "cancelled" && (
+                    {/* Status change for responded orders */}
+                    {resp && order.status !== "cancelled" && !isResponding && (
                       <div onClick={(e) => e.stopPropagation()}>
                         <label className="mb-1 block text-xs font-medium text-muted-foreground">Opdater status</label>
                         <Select value={order.status} onValueChange={(s) => updateStatus.mutate({ id: order.id, status: s })}>
