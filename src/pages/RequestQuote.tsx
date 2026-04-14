@@ -118,6 +118,7 @@ const RequestQuote = () => {
 
   const handleSelectBusiness = (match: MatchedBusiness) => {
     setSelectedBusiness(match);
+    setShowAllServices(false);
     setCartBusiness(match.business.id, match.business.name);
   };
 
