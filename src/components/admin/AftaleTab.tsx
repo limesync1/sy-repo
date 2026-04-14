@@ -567,7 +567,7 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
       )}
 
       {/* Filter tabs */}
-      <div className="flex gap-0 border-b border-[#e1e3e5] overflow-x-auto">
+      <div className="flex gap-0 border-b border-border overflow-x-auto">
         {[{ key: "all", label: "Alle" }, ...Object.entries(STATUS_CONFIG).map(([k, v]) => ({ key: k, label: v.label }))].map(({ key, label }) => (
           <button key={key} onClick={() => setFilter(key)}
             className={`relative px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
@@ -604,7 +604,7 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
 
             return (
               <Card key={order.id} className={`rounded-xl shadow-sm overflow-hidden transition-all ${
-                canRespond ? "border-amber-200 bg-amber-50/20" : "border-[#e1e3e5]"
+                canRespond ? "border-amber-200 bg-amber-50/20" : "border-border"
               }`}>
                 {/* Order header — clickable */}
                 <button onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
@@ -803,7 +803,7 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
           })}
         </div>
       ) : (
-        <Card className="rounded-xl border-dashed border-[#e1e3e5]">
+        <Card className="rounded-xl border-dashed border-border">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <div className="mb-3 rounded-xl bg-muted p-2.5">
               <ShoppingCart className="h-6 w-6 text-muted-foreground/40" />

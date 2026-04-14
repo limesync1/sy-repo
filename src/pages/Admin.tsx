@@ -169,14 +169,14 @@ const AdminDashboard = () => {
   const currentNav = NAV_ITEMS.find(n => n.value === activeTab);
 
   return (
-    <div className="flex min-h-screen bg-[#f6f6f7]">
+    <div className="flex min-h-screen bg-secondary/50">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[240px] flex-col bg-[hsl(222,47%,11%)] transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[240px] flex-col bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         {/* Sidebar header */}
         <div className="flex h-14 shrink-0 items-center justify-between px-3">
           <Link to="/" className="flex items-center gap-2">
@@ -247,8 +247,8 @@ const AdminDashboard = () => {
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-[#e1e3e5] bg-white px-5 sm:px-6">
-          <button onClick={() => setSidebarOpen(true)} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card px-5 sm:px-6">
+          <button onClick={() => setSidebarOpen(true)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors lg:hidden">
             <Menu className="h-5 w-5" />
           </button>
           <h1 className="text-lg font-semibold text-foreground">{currentNav?.label}</h1>
@@ -350,7 +350,7 @@ const CreateBusinessForm = () => {
                   className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-3 text-center transition-all ${
                     selectedCategories.includes(c)
                       ? "border-foreground bg-foreground/5 shadow-sm"
-                      : "border-border bg-white hover:border-foreground/30"
+                      : "border-border bg-card hover:border-foreground/30"
                   }`}>
                   <span className="text-xl">{CATEGORY_ICONS[c] || "📋"}</span>
                   <span className="text-xs font-medium text-foreground">{c}</span>
@@ -388,7 +388,7 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
       </div>
 
       {showForm && (
-        <Card className="rounded-xl shadow-sm border-[#e1e3e5]">
+        <Card className="rounded-xl shadow-sm border-border">
           <CardContent className="p-4">
             <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />
           </CardContent>
@@ -400,7 +400,7 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
           <ServiceRow key={s.id} service={s} onDelete={() => deleteService.mutate(s.id)} />
         ))}
         {(!services || services.length === 0) && !showForm && (
-          <Card className="rounded-xl border-dashed border-[#e1e3e5]">
+          <Card className="rounded-xl border-dashed border-border">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <div className="mb-3 rounded-xl bg-muted p-2.5">
                 <Wrench className="h-6 w-6 text-muted-foreground/40" />
@@ -423,7 +423,7 @@ const ServiceRow = ({ service, onDelete }: { service: any; onDelete: () => void 
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
 
   return (
-    <Card className="rounded-xl shadow-sm border-[#e1e3e5] overflow-hidden">
+    <Card className="rounded-xl shadow-sm border-border overflow-hidden">
       <CardContent className="flex items-center justify-between p-3.5">
         <div className="min-w-0 flex-1">
           <h3 className="text-sm font-semibold text-foreground">{service.name}</h3>
@@ -442,7 +442,7 @@ const ServiceRow = ({ service, onDelete }: { service: any; onDelete: () => void 
         </div>
       </CardContent>
       {editing && (
-        <div className="border-t border-[#e1e3e5] p-4">
+        <div className="border-t border-border p-4">
           <ServiceForm businessId={service.business_id} existingService={service} onClose={() => setEditing(false)} />
         </div>
       )}
@@ -675,7 +675,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                     className={`flex flex-col items-center gap-2 rounded-xl border-2 px-3 py-4 text-center transition-all hover:shadow-sm ${
                       serviceCategory === c
                         ? "border-foreground bg-foreground/5 shadow-sm"
-                        : "border-border bg-white hover:border-foreground/30"
+                        : "border-border bg-card hover:border-foreground/30"
                     }`}
                   >
                     <span className="text-2xl">{CATEGORY_ICONS[c] || "📋"}</span>
@@ -690,7 +690,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
             </>
           ) : (
             <div className="space-y-2">
-              <Input placeholder="Fx Vinduespolering" value={serviceCategory} onChange={(e) => setServiceCategory(e.target.value)} className="bg-white" />
+              <Input placeholder="Fx Vinduespolering" value={serviceCategory} onChange={(e) => setServiceCategory(e.target.value)} className="bg-card" />
               <button type="button" onClick={() => { setCustomCategory(false); setServiceCategory(""); }}
                 className="text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors">
                 ← Vælg fra listen
@@ -713,7 +713,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                         className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
                           subcategory === s
                             ? "border-foreground bg-foreground text-background"
-                            : "border-border bg-white text-foreground hover:border-foreground/40"
+                            : "border-border bg-card text-foreground hover:border-foreground/40"
                         }`}
                       >{s}</button>
                     ))}
@@ -725,7 +725,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                 </>
               ) : (
                 <div className="space-y-2">
-                  <Input placeholder="Fx Erhvervsrengøring" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} className="bg-white" />
+                  <Input placeholder="Fx Erhvervsrengøring" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} className="bg-card" />
                   <button type="button" onClick={() => { setCustomSubcategory(false); setSubcategory(""); }}
                     className="text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors">
                     ← Vælg fra listen
@@ -738,7 +738,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
           {serviceCategory && subcategoryOptions.length === 0 && !customCategory && (
             <div className="space-y-2 pt-4 border-t border-border">
               <label className="text-sm font-medium text-muted-foreground">Underkategori (valgfrit)</label>
-              <Input placeholder="Fx Erhvervsrengøring" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} className="bg-white" />
+              <Input placeholder="Fx Erhvervsrengøring" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} className="bg-card" />
             </div>
           )}
         </div>
@@ -759,14 +759,14 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                 <span className="text-sm text-muted-foreground mr-1">Forslag:</span>
                 {productSuggestions.map((s) => (
                   <button key={s} type="button" onClick={() => setName(s)}
-                    className="rounded-full border border-border bg-white px-3 py-1.5 text-sm text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-colors">{s}</button>
+                    className="rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-colors">{s}</button>
                 ))}
               </div>
             )}
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">Beskrivelse</label>
-            <Textarea placeholder="Hvad inkluderer denne service? Hvad kan kunden forvente?" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-white" rows={3} />
+            <Textarea placeholder="Hvad inkluderer denne service? Hvad kan kunden forvente?" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-card" rows={3} />
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">Billede (valgfrit)</label>
@@ -792,7 +792,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                 className={`rounded-xl border-2 p-5 text-left transition-all ${
                   pricingType === opt.value
                     ? "border-foreground bg-foreground/5 shadow-sm"
-                    : "border-border bg-white hover:border-foreground/30 hover:shadow-sm"
+                    : "border-border bg-card hover:border-foreground/30 hover:shadow-sm"
                 }`}>
                 <span className="text-2xl">{opt.icon}</span>
                 <span className="mt-2 block text-sm font-semibold text-foreground">{opt.label}</span>
@@ -829,7 +829,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
           </div>
 
           {availableTemplates.length > 0 && steps.length === 0 && (
-            <div className="rounded-xl border border-border bg-white p-5 space-y-3">
+            <div className="rounded-xl border border-border bg-card p-5 space-y-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-amber-500" />
                 <span className="text-sm font-semibold text-foreground">Kom hurtigt i gang med en skabelon</span>
@@ -855,7 +855,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
             </div>
 
             {steps.map((step, i) => (
-              <Card key={i} className="rounded-xl shadow-sm border-[#e1e3e5]">
+              <Card key={i} className="rounded-xl shadow-sm border-border">
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -869,7 +869,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="mb-1 block text-sm text-muted-foreground">Navn</label>
-                      <Input placeholder="Fx Støvsugning" value={step.label} onChange={(e) => updateStep(i, "label", e.target.value)} className="bg-white" />
+                      <Input placeholder="Fx Støvsugning" value={step.label} onChange={(e) => updateStep(i, "label", e.target.value)} className="bg-card" />
                     </div>
                     <div>
                       <label className="mb-1 block text-sm text-muted-foreground">Enhed</label>
@@ -879,7 +879,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                             className={`rounded-full border px-3 py-1.5 text-sm transition-all ${
                               step.unit === u
                                 ? "border-foreground bg-foreground text-background"
-                                : "border-border bg-white text-muted-foreground hover:border-foreground/40"
+                                : "border-border bg-card text-muted-foreground hover:border-foreground/40"
                             }`}>{u}</button>
                         ))}
                       </div>
@@ -903,7 +903,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
             ))}
 
             {steps.length === 0 && (
-              <div className="py-10 text-center rounded-xl border border-dashed border-border bg-white">
+              <div className="py-10 text-center rounded-xl border border-dashed border-border bg-card">
                 <Calculator className="mx-auto h-8 w-8 text-muted-foreground/30" />
                 <p className="mt-3 text-sm text-muted-foreground">
                   {availableTemplates.length > 0 ? "Vælg en skabelon ovenfor eller tilføj trin manuelt." : "Tilføj trin for at oprette din prisberegner."}
@@ -929,7 +929,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                 className={`rounded-xl border-2 px-4 py-3 text-center transition-all ${
                   intervalOptions.includes(iv.value)
                     ? "border-foreground bg-foreground/5 shadow-sm"
-                    : "border-border bg-white hover:border-foreground/30"
+                    : "border-border bg-card hover:border-foreground/30"
                 }`}>
                 <span className="text-sm font-medium text-foreground">{iv.label}</span>
               </button>
@@ -1021,7 +1021,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         <p className="mt-0.5 text-sm text-muted-foreground">Administrer din virksomheds profil og oplysninger.</p>
       </div>
 
-      <Card className="rounded-xl shadow-sm border-[#e1e3e5]">
+      <Card className="rounded-xl shadow-sm border-border">
         <CardContent className="p-4 space-y-4">
           <h3 className="text-sm font-semibold text-foreground">Generelt</h3>
           <div className="space-y-3">
@@ -1041,7 +1041,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                     className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-all ${
                       selectedCategories.includes(c)
                         ? "border-foreground bg-foreground text-background"
-                        : "border-border bg-white text-foreground hover:border-foreground/40"
+                        : "border-border bg-card text-foreground hover:border-foreground/40"
                     }`}>{c}</button>
                 ))}
               </div>
@@ -1050,7 +1050,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </CardContent>
       </Card>
 
-      <Card className="rounded-xl shadow-sm border-[#e1e3e5]">
+      <Card className="rounded-xl shadow-sm border-border">
         <CardContent className="p-4 space-y-4">
           <h3 className="text-sm font-semibold text-foreground">Kontaktoplysninger</h3>
           <div className="space-y-3">
@@ -1082,7 +1082,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </CardContent>
       </Card>
 
-      <Card className="rounded-xl shadow-sm border-[#e1e3e5]">
+      <Card className="rounded-xl shadow-sm border-border">
         <CardContent className="p-4 space-y-4">
           <h3 className="text-sm font-semibold text-foreground">Billeder</h3>
           <div className="flex flex-wrap gap-4">
@@ -1092,7 +1092,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </CardContent>
       </Card>
 
-      <Card className="rounded-xl shadow-sm border-[#e1e3e5]">
+      <Card className="rounded-xl shadow-sm border-border">
         <CardContent className="p-4 space-y-4">
           <h3 className="text-sm font-semibold text-foreground">Åbningstider</h3>
           <div className="space-y-2">
