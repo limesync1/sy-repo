@@ -64,6 +64,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
         if (user && businessId !== "unknown") {
           for (const item of group.items) {
             if (item.interval && item.interval !== "engangskøb") {
+              const nextDate = calculateNextServiceDate(item.interval);
               await createSubscription.mutateAsync({
                 customer_id: user.id,
                 business_id: businessId,
@@ -72,6 +73,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 interval: item.interval,
                 total_price: item.total,
                 order_id: orderResult.id,
+                next_service_date: nextDate,
                 details: {
                   description: item.details,
                   stepDetails: item.stepDetails,
