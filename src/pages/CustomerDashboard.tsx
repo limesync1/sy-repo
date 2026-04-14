@@ -168,19 +168,11 @@ const OrdersView = () => {
 
   const handleCustomerResponse = async (orderId: string, response: "accepted" | "rejected", order: any) => {
     try {
-      const updates: Record<string, any> = {
+      const { error } = await supabase.from("orders").update({
         customer_response: response,
-      };
-      if (response === "accepted") {
-        // Accept the adjusted price → confirm the order
-        updates.status = "confirmed";
-        updates.total_amount = order.adjusted_amount || order.total_amount;
-      } else {
-        // Reject → set back to pending so business can re-propose or cancel
-        updates.status = "pending";
-      }
-
-      const { error } = await supabase.from("orders").update(updates).eq("id", orderId);
+        status: response === "accepted" ? ("confirmed" as const) : ("pending" as const),
+        total_amount: response === "accepted" ? (order.adjusted_amount || order.total_amount) : order.total_amount,
+      }).eq("id", orderId);
       if (error) throw error;
 
       toast.success(response === "accepted" ? "Du har godkendt forslaget!" : "Du har afvist forslaget. Virksomheden vil modtage besked.");
