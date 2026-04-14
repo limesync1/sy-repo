@@ -654,7 +654,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
               }`}>{s.label}</span>
             </button>
             {i < FORM_STEPS.length - 1 && (
-              <div className={`mx-3 h-0.5 flex-1 rounded-full transition-colors ${s.num < currentStep ? "bg-green-300" : "bg-border"}`} />
+              <div className={`mx-3 h-0.5 flex-1 rounded-full transition-colors ${s.num <= currentStep && i < FORM_STEPS.length - 1 && FORM_STEPS[i + 1].num <= currentStep ? "bg-green-300" : s.num < currentStep ? "bg-green-300" : "bg-border"}`} />
             )}
           </div>
         ))}
