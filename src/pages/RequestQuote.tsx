@@ -58,6 +58,7 @@ interface MatchedBusiness {
     slug: string;
     description: string | null;
     city: string | null;
+    categories?: string[];
     is_verified: boolean;
     logo_url: string | null;
     cover_image_url: string | null;
