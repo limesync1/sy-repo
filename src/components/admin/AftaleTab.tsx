@@ -947,6 +947,14 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                           </Button>
                         )}
 
+                        {/* Schedule next cycle for recurring completed orders */}
+                        {actions.canScheduleNext && (
+                          <Button size="sm" onClick={(e) => { e.stopPropagation(); handleScheduleNext(order.id); }}
+                            className="gap-1.5 rounded-xl text-xs bg-accent text-accent-foreground hover:bg-accent/90">
+                            <RefreshCw className="h-3.5 w-3.5" /> Plan næste service
+                          </Button>
+                        )}
+
                         {/* Cancel is always available for non-terminal states */}
                         {(order.status === "confirmed" || order.status === "in_progress") && (
                           <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, "cancelled"); }}
