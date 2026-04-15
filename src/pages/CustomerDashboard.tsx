@@ -20,6 +20,7 @@ import {
   CalendarClock, ArrowLeft, ExternalLink, ShieldCheck, Settings,
   Store, ChevronRight, Sparkles, ShoppingCart, Check, X,
   Clock, AlertTriangle, CheckCircle2, MessageSquare, FileText,
+  Bell, Mail, Shield, KeyRound,
 } from "lucide-react";
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
