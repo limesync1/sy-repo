@@ -20,6 +20,7 @@ import {
   CalendarClock, ArrowLeft, ExternalLink, ShieldCheck, Settings,
   Store, ChevronRight, Sparkles, ShoppingCart, Check, X,
   Clock, AlertTriangle, CheckCircle2, MessageSquare, FileText,
+  Bell, Mail, Shield, KeyRound,
 } from "lucide-react";
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -666,64 +667,205 @@ const ReviewForm = ({ businessId, subscriptionId, onDone }: { businessId: string
 };
 
 /* ════════════════════════════════════════════════ */
-/*  Profile View                                    */
+/*  Profile & Settings View                         */
 /* ════════════════════════════════════════════════ */
 const ProfileView = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { data: profile, isLoading } = useMyProfile();
   const updateProfile = useUpdateProfile();
   const [displayName, setDisplayName] = useState("");
   const [phone, setPhone] = useState("");
   const [initialized, setInitialized] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<"profile" | "notifications" | "account">("profile");
+  const [notifSettings, setNotifSettings] = useState<Record<string, boolean>>({
+    email_order_status: true,
+    email_proposal: true,
+    email_subscription: true,
+    email_upcoming_service: false,
+    email_marketing: false,
+  });
 
   if (isLoading) return <div className="h-40 animate-pulse rounded-2xl bg-secondary/50" />;
 
   if (profile && !initialized) {
     setDisplayName(profile.display_name || "");
     setPhone(profile.phone || "");
+    const saved = (profile as any).notification_settings as Record<string, boolean> | null;
+    if (saved && typeof saved === "object") {
+      setNotifSettings(prev => ({ ...prev, ...saved }));
+    }
     setInitialized(true);
   }
 
   const handleSave = () => {
     if (!user) return;
     updateProfile.mutate({
-      userId: user.id, display_name: displayName.trim() || null, phone: phone.trim() || null,
-    }, {
-      onSuccess: () => toast.success("Profil opdateret!"),
+      userId: user.id,
+      display_name: displayName.trim() || null,
+      phone: phone.trim() || null,
+      notification_settings: notifSettings,
+    } as any, {
+      onSuccess: () => toast.success("Indstillinger gemt!"),
       onError: (e) => toast.error(e.message),
     });
   };
 
+  const settingsTabs = [
+    { key: "profile" as const, label: "Profil", icon: User },
+    { key: "notifications" as const, label: "Notifikationer", icon: Bell },
+    { key: "account" as const, label: "Konto", icon: Shield },
+  ];
+
+  const NOTIF_OPTIONS = [
+    { key: "email_order_status", label: "Ordrestatus", desc: "Få besked når din ordre ændrer status (godkendt, i gang, udført)", icon: ShoppingCart },
+    { key: "email_proposal", label: "Forslag fra virksomheder", desc: "Få besked når en virksomhed sender et tilpasset prisforslag", icon: MessageSquare },
+    { key: "email_subscription", label: "Abonnementsændringer", desc: "Bekræftelse når du ændrer, pauser eller opsiger et abonnement", icon: Package },
+    { key: "email_upcoming_service", label: "Kommende services", desc: "Påmindelse inden en planlagt service skal udføres", icon: CalendarClock },
+    { key: "email_marketing", label: "Nyheder & tilbud", desc: "Hold dig opdateret med nyheder, tips og tilbud fra Serviceydere", icon: Mail },
+  ];
+
   return (
-    <div className="max-w-lg space-y-6">
-      <Card className="rounded-2xl border-border shadow-sm">
-        <CardContent className="p-6 space-y-5">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10">
-              <User className="h-7 w-7 text-accent" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground">{displayName || user?.email?.split("@")[0] || "Bruger"}</h3>
-              <p className="text-sm text-muted-foreground">{user?.email}</p>
-            </div>
-          </div>
-          <Separator />
-          <div className="space-y-4">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Visningsnavn</label>
-              <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Dit navn" className="bg-card" />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Telefon</label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="12 34 56 78" className="bg-card" type="tel" />
-            </div>
-          </div>
-          <Button onClick={handleSave} disabled={updateProfile.isPending}
-            className="w-full rounded-xl bg-foreground text-background hover:bg-foreground/90">
-            {updateProfile.isPending ? "Gemmer..." : "Gem ændringer"}
-          </Button>
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      {/* Settings tabs */}
+      <div className="flex gap-2 border-b border-border overflow-x-auto">
+        {settingsTabs.map(({ key, label, icon: Icon }) => (
+          <button key={key} onClick={() => setSettingsTab(key)}
+            className={`flex items-center gap-2 px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
+              settingsTab === key
+                ? "text-foreground border-b-2 border-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}>
+            <Icon className="h-4 w-4" />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Profile tab */}
+      {settingsTab === "profile" && (
+        <div className="max-w-lg space-y-6">
+          <Card className="rounded-2xl border-border shadow-sm">
+            <CardContent className="p-6 space-y-5">
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10">
+                  <User className="h-7 w-7 text-accent" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">{displayName || user?.email?.split("@")[0] || "Bruger"}</h3>
+                  <p className="text-sm text-muted-foreground">{user?.email}</p>
+                </div>
+              </div>
+              <Separator />
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Visningsnavn</label>
+                  <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Dit navn" className="bg-card" />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Telefon</label>
+                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="12 34 56 78" className="bg-card" type="tel" />
+                </div>
+              </div>
+              <Button onClick={handleSave} disabled={updateProfile.isPending}
+                className="w-full rounded-xl bg-foreground text-background hover:bg-foreground/90">
+                {updateProfile.isPending ? "Gemmer..." : "Gem ændringer"}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Notifications tab */}
+      {settingsTab === "notifications" && (
+        <div className="max-w-lg space-y-6">
+          <Card className="rounded-2xl border-border shadow-sm">
+            <CardContent className="p-6 space-y-5">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  Email-notifikationer
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">Vælg hvilke emails du vil modtage fra Serviceydere.</p>
+              </div>
+              <div className="space-y-3">
+                {NOTIF_OPTIONS.map(({ key, label, desc, icon: Icon }) => (
+                  <div key={key} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-card p-3.5">
+                    <div className="flex gap-3">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary mt-0.5">
+                        <Icon className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{label}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setNotifSettings(prev => ({ ...prev, [key]: !prev[key] }))}
+                      className={`relative mt-1 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${
+                        notifSettings[key] ? "bg-accent" : "bg-border"
+                      }`}>
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm transition-transform mt-0.5 ${
+                        notifSettings[key] ? "translate-x-4 ml-0.5" : "translate-x-0.5"
+                      }`} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <Button onClick={handleSave} disabled={updateProfile.isPending}
+                className="w-full rounded-xl bg-foreground text-background hover:bg-foreground/90">
+                {updateProfile.isPending ? "Gemmer..." : "Gem notifikationsindstillinger"}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Account tab */}
+      {settingsTab === "account" && (
+        <div className="max-w-lg space-y-6">
+          <Card className="rounded-2xl border-border shadow-sm">
+            <CardContent className="p-6 space-y-5">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <KeyRound className="h-4 w-4 text-muted-foreground" />
+                  Kontooplysninger
+                </h3>
+              </div>
+              <div className="space-y-4">
+                <div className="rounded-xl border border-border bg-card p-4 space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
+                  <p className="text-sm font-medium text-foreground">{user?.email}</p>
+                  <p className="text-xs text-muted-foreground">Din email bruges til login og kommunikation.</p>
+                </div>
+                <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Adgangskode</label>
+                  <p className="text-xs text-muted-foreground">Du kan nulstille din adgangskode via email.</p>
+                  <Button variant="outline" size="sm" className="rounded-xl text-xs"
+                    onClick={async () => {
+                      if (!user?.email) return;
+                      const { error } = await supabase.auth.resetPasswordForEmail(user.email);
+                      if (error) toast.error(error.message);
+                      else toast.success("Vi har sendt dig en email til at nulstille din adgangskode.");
+                    }}>
+                    <KeyRound className="h-3.5 w-3.5 mr-1.5" /> Nulstil adgangskode
+                  </Button>
+                </div>
+              </div>
+              <Separator />
+              <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 space-y-3">
+                <h4 className="text-sm font-semibold text-destructive">Farezone</h4>
+                <p className="text-xs text-muted-foreground">
+                  Når du logger ud, kan du altid logge ind igen med din email og adgangskode.
+                </p>
+                <Button variant="outline" size="sm" onClick={signOut}
+                  className="rounded-xl text-xs text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30">
+                  <LogOut className="h-3.5 w-3.5 mr-1.5" /> Log ud
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
