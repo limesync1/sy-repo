@@ -195,37 +195,43 @@ const PRICING_LABELS: Record<string, string> = {
 };
 
 /* ─── What can the business DO at each stage? ─── */
-const getActions = (order: any): { canRespond: boolean; canProgress: boolean; nextStatus: string | null; nextLabel: string | null } => {
+const getActions = (order: any): { canRespond: boolean; canProgress: boolean; canScheduleNext: boolean; nextStatus: string | null; nextLabel: string | null } => {
   const status = order.status;
   const bizResp = order.business_response;
   const custResp = order.customer_response;
+  const isRecurring = (order.order_items || []).some((item: any) => item.details?.interval && item.details.interval !== "engangskøb");
 
   // Pending + no business response → business must respond (accept/adjust/reject)
   if (status === "pending" && !bizResp) {
-    return { canRespond: true, canProgress: false, nextStatus: null, nextLabel: null };
+    return { canRespond: true, canProgress: false, canScheduleNext: false, nextStatus: null, nextLabel: null };
   }
 
   // Pending + business adjusted + awaiting customer → can't do anything, waiting
   if (status === "pending" && bizResp === "adjusted" && !custResp) {
-    return { canRespond: false, canProgress: false, nextStatus: null, nextLabel: null };
+    return { canRespond: false, canProgress: false, canScheduleNext: false, nextStatus: null, nextLabel: null };
   }
 
   // Pending + customer rejected → business can re-respond
   if (status === "pending" && custResp === "rejected") {
-    return { canRespond: true, canProgress: false, nextStatus: null, nextLabel: null };
+    return { canRespond: true, canProgress: false, canScheduleNext: false, nextStatus: null, nextLabel: null };
   }
 
   // Confirmed → can start work
   if (status === "confirmed") {
-    return { canRespond: false, canProgress: true, nextStatus: "in_progress", nextLabel: "Marker som i gang" };
+    return { canRespond: false, canProgress: true, canScheduleNext: false, nextStatus: "in_progress", nextLabel: "Marker som i gang" };
   }
 
   // In progress → can complete
   if (status === "in_progress") {
-    return { canRespond: false, canProgress: true, nextStatus: "completed", nextLabel: "Marker som udført" };
+    return { canRespond: false, canProgress: true, canScheduleNext: false, nextStatus: "completed", nextLabel: "Marker som udført" };
   }
 
-  return { canRespond: false, canProgress: false, nextStatus: null, nextLabel: null };
+  // Completed + recurring → can schedule next cycle
+  if (status === "completed" && isRecurring) {
+    return { canRespond: false, canProgress: false, canScheduleNext: true, nextStatus: null, nextLabel: null };
+  }
+
+  return { canRespond: false, canProgress: false, canScheduleNext: false, nextStatus: null, nextLabel: null };
 };
 
 /* ─── Stepper Input ─── */
