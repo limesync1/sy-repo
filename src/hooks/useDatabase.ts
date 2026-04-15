@@ -356,7 +356,7 @@ export const useBusinessSubscriptions = (businessId: string | undefined) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("subscriptions")
-        .select("*, profiles(display_name, phone)")
+        .select("*")
         .eq("business_id", businessId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
