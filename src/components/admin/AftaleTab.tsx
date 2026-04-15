@@ -672,23 +672,53 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
   const getAdjustedTotal = (orderId: string) =>
     (adjustedItems[orderId] || []).reduce((sum, item) => sum + item.total_price, 0);
 
-  const handleProgressStatus = async (orderId: string, newStatus: string) => {
-    const { error } = await supabase.from("orders").update({
-      status: newStatus as any,
-    }).eq("id", orderId);
-    if (error) { toast.error(error.message); return; }
-    toast.success(`Status ændret til "${STATUS_CONFIG[newStatus as keyof typeof STATUS_CONFIG]?.label}"`);
-    qc.invalidateQueries({ queryKey: ["orders"] });
-    qc.invalidateQueries({ queryKey: ["my-orders"] });
+  // Calculate next service date based on interval
+  const calcNextServiceDate = (interval: string, fromDate = new Date()): string => {
+    const d = new Date(fromDate);
+    switch (interval) {
+      case "ugentlig": d.setDate(d.getDate() + 7); break;
+      case "hver_14_dag": d.setDate(d.getDate() + 14); break;
+      case "månedlig": d.setMonth(d.getMonth() + 1); break;
+      case "kvartalsvis": d.setMonth(d.getMonth() + 3); break;
+      default: return "";
+    }
+    return d.toISOString();
   };
 
-  // For recurring orders: reset to confirmed so the cycle continues
-  const handleScheduleNext = async (orderId: string) => {
-    const { error } = await supabase.from("orders").update({
-      status: "confirmed" as any,
-    }).eq("id", orderId);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Næste service planlagt — aftalen er klar igen");
+  const getOrderInterval = (order: any): string => {
+    // Check adjusted details first, then original items
+    const adjItems = (order.adjusted_details as any)?.items;
+    const items = adjItems || order.order_items || [];
+    for (const item of items) {
+      const iv = item.details?.interval;
+      if (iv && iv !== "engangskøb") return iv;
+    }
+    return "engangskøb";
+  };
+
+  const handleProgressStatus = async (orderId: string, newStatus: string) => {
+    const order = orders?.find(o => o.id === orderId);
+    const isRecurring = order ? orderHasRecurring(order) : false;
+    const interval = order ? getOrderInterval(order) : "engangskøb";
+
+    // For recurring orders: completing = auto-cycle to confirmed
+    if (newStatus === "completed" && isRecurring && interval !== "engangskøb") {
+      const nextDate = calcNextServiceDate(interval);
+      const currentCycles = (order as any)?.completed_cycles || 0;
+      const { error } = await supabase.from("orders").update({
+        status: "confirmed" as any,
+        completed_cycles: currentCycles + 1,
+        ...(nextDate ? { next_service_date: nextDate } : {}),
+      }).eq("id", orderId);
+      if (error) { toast.error(error.message); return; }
+      toast.success(`Service #${currentCycles + 1} udført — næste planlagt ${nextDate ? new Date(nextDate).toLocaleDateString("da-DK", { day: "numeric", month: "long" }) : ""}`);
+    } else {
+      const { error } = await supabase.from("orders").update({
+        status: newStatus as any,
+      }).eq("id", orderId);
+      if (error) { toast.error(error.message); return; }
+      toast.success(`Status ændret til "${STATUS_CONFIG[newStatus as keyof typeof STATUS_CONFIG]?.label}"`);
+    }
     qc.invalidateQueries({ queryKey: ["orders"] });
     qc.invalidateQueries({ queryKey: ["my-orders"] });
   };
