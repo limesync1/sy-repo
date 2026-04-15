@@ -967,12 +967,15 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                         {actions.canProgress && actions.nextStatus && (
                           <Button size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
                             className={`gap-1.5 rounded-xl text-xs ${
-                              actions.nextStatus === "completed"
+                              actions.nextStatus === "completed" && hasRecurring
+                                ? "bg-accent text-accent-foreground hover:bg-accent/90"
+                                : actions.nextStatus === "completed"
                                 ? "bg-green-600 text-white hover:bg-green-700"
                                 : "bg-foreground text-background hover:bg-foreground/90"
                             }`}>
                             {actions.nextStatus === "in_progress" && <><Play className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
-                            {actions.nextStatus === "completed" && <><CheckCircle2 className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                            {actions.nextStatus === "completed" && hasRecurring && <><RefreshCw className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                            {actions.nextStatus === "completed" && !hasRecurring && <><CheckCircle2 className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
                           </Button>
                         )}
 
