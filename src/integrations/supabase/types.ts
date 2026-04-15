@@ -188,6 +188,7 @@ export type Database = {
           business_id: string | null
           business_message: string | null
           business_response: string | null
+          completed_cycles: number
           created_at: string
           customer_email: string
           customer_id: string | null
@@ -195,6 +196,7 @@ export type Database = {
           customer_phone: string | null
           customer_response: string | null
           id: string
+          next_service_date: string | null
           notes: string | null
           status: Database["public"]["Enums"]["order_status"]
           total_amount: number
@@ -206,6 +208,7 @@ export type Database = {
           business_id?: string | null
           business_message?: string | null
           business_response?: string | null
+          completed_cycles?: number
           created_at?: string
           customer_email: string
           customer_id?: string | null
@@ -213,6 +216,7 @@ export type Database = {
           customer_phone?: string | null
           customer_response?: string | null
           id?: string
+          next_service_date?: string | null
           notes?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
@@ -224,6 +228,7 @@ export type Database = {
           business_id?: string | null
           business_message?: string | null
           business_response?: string | null
+          completed_cycles?: number
           created_at?: string
           customer_email?: string
           customer_id?: string | null
@@ -231,6 +236,7 @@ export type Database = {
           customer_phone?: string | null
           customer_response?: string | null
           id?: string
+          next_service_date?: string | null
           notes?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
