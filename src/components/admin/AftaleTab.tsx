@@ -195,43 +195,29 @@ const PRICING_LABELS: Record<string, string> = {
 };
 
 /* ─── What can the business DO at each stage? ─── */
-const getActions = (order: any): { canRespond: boolean; canProgress: boolean; canScheduleNext: boolean; nextStatus: string | null; nextLabel: string | null } => {
+const getActions = (order: any): { canRespond: boolean; canProgress: boolean; nextStatus: string | null; nextLabel: string | null } => {
   const status = order.status;
   const bizResp = order.business_response;
   const custResp = order.customer_response;
-  const isRecurring = (order.order_items || []).some((item: any) => item.details?.interval && item.details.interval !== "engangskøb");
 
-  // Pending + no business response → business must respond (accept/adjust/reject)
   if (status === "pending" && !bizResp) {
-    return { canRespond: true, canProgress: false, canScheduleNext: false, nextStatus: null, nextLabel: null };
+    return { canRespond: true, canProgress: false, nextStatus: null, nextLabel: null };
   }
-
-  // Pending + business adjusted + awaiting customer → can't do anything, waiting
   if (status === "pending" && bizResp === "adjusted" && !custResp) {
-    return { canRespond: false, canProgress: false, canScheduleNext: false, nextStatus: null, nextLabel: null };
+    return { canRespond: false, canProgress: false, nextStatus: null, nextLabel: null };
   }
-
-  // Pending + customer rejected → business can re-respond
   if (status === "pending" && custResp === "rejected") {
-    return { canRespond: true, canProgress: false, canScheduleNext: false, nextStatus: null, nextLabel: null };
+    return { canRespond: true, canProgress: false, nextStatus: null, nextLabel: null };
   }
-
-  // Confirmed → can start work
   if (status === "confirmed") {
-    return { canRespond: false, canProgress: true, canScheduleNext: false, nextStatus: "in_progress", nextLabel: "Marker som i gang" };
+    return { canRespond: false, canProgress: true, nextStatus: "in_progress", nextLabel: "Marker som i gang" };
   }
-
-  // In progress → can complete
   if (status === "in_progress") {
-    return { canRespond: false, canProgress: true, canScheduleNext: false, nextStatus: "completed", nextLabel: "Marker som udført" };
+    // For recurring: the button says "Udført & plan næste"
+    const isRecurring = (order.order_items || []).some((item: any) => item.details?.interval && item.details.interval !== "engangskøb");
+    return { canRespond: false, canProgress: true, nextStatus: "completed", nextLabel: isRecurring ? "Udført — plan næste" : "Marker som udført" };
   }
-
-  // Completed + recurring → can schedule next cycle
-  if (status === "completed" && isRecurring) {
-    return { canRespond: false, canProgress: false, canScheduleNext: true, nextStatus: null, nextLabel: null };
-  }
-
-  return { canRespond: false, canProgress: false, canScheduleNext: false, nextStatus: null, nextLabel: null };
+  return { canRespond: false, canProgress: false, nextStatus: null, nextLabel: null };
 };
 
 /* ─── Stepper Input ─── */
@@ -672,23 +658,53 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
   const getAdjustedTotal = (orderId: string) =>
     (adjustedItems[orderId] || []).reduce((sum, item) => sum + item.total_price, 0);
 
-  const handleProgressStatus = async (orderId: string, newStatus: string) => {
-    const { error } = await supabase.from("orders").update({
-      status: newStatus as any,
-    }).eq("id", orderId);
-    if (error) { toast.error(error.message); return; }
-    toast.success(`Status ændret til "${STATUS_CONFIG[newStatus as keyof typeof STATUS_CONFIG]?.label}"`);
-    qc.invalidateQueries({ queryKey: ["orders"] });
-    qc.invalidateQueries({ queryKey: ["my-orders"] });
+  // Calculate next service date based on interval
+  const calcNextServiceDate = (interval: string, fromDate = new Date()): string => {
+    const d = new Date(fromDate);
+    switch (interval) {
+      case "ugentlig": d.setDate(d.getDate() + 7); break;
+      case "hver_14_dag": d.setDate(d.getDate() + 14); break;
+      case "månedlig": d.setMonth(d.getMonth() + 1); break;
+      case "kvartalsvis": d.setMonth(d.getMonth() + 3); break;
+      default: return "";
+    }
+    return d.toISOString();
   };
 
-  // For recurring orders: reset to confirmed so the cycle continues
-  const handleScheduleNext = async (orderId: string) => {
-    const { error } = await supabase.from("orders").update({
-      status: "confirmed" as any,
-    }).eq("id", orderId);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Næste service planlagt — aftalen er klar igen");
+  const getOrderInterval = (order: any): string => {
+    // Check adjusted details first, then original items
+    const adjItems = (order.adjusted_details as any)?.items;
+    const items = adjItems || order.order_items || [];
+    for (const item of items) {
+      const iv = item.details?.interval;
+      if (iv && iv !== "engangskøb") return iv;
+    }
+    return "engangskøb";
+  };
+
+  const handleProgressStatus = async (orderId: string, newStatus: string) => {
+    const order = orders?.find(o => o.id === orderId);
+    const isRecurring = order ? orderHasRecurring(order) : false;
+    const interval = order ? getOrderInterval(order) : "engangskøb";
+
+    // For recurring orders: completing = auto-cycle to confirmed
+    if (newStatus === "completed" && isRecurring && interval !== "engangskøb") {
+      const nextDate = calcNextServiceDate(interval);
+      const currentCycles = (order as any)?.completed_cycles || 0;
+      const { error } = await supabase.from("orders").update({
+        status: "confirmed" as any,
+        completed_cycles: currentCycles + 1,
+        ...(nextDate ? { next_service_date: nextDate } : {}),
+      }).eq("id", orderId);
+      if (error) { toast.error(error.message); return; }
+      toast.success(`Service #${currentCycles + 1} udført — næste planlagt ${nextDate ? new Date(nextDate).toLocaleDateString("da-DK", { day: "numeric", month: "long" }) : ""}`);
+    } else {
+      const { error } = await supabase.from("orders").update({
+        status: newStatus as any,
+      }).eq("id", orderId);
+      if (error) { toast.error(error.message); return; }
+      toast.success(`Status ændret til "${STATUS_CONFIG[newStatus as keyof typeof STATUS_CONFIG]?.label}"`);
+    }
     qc.invalidateQueries({ queryKey: ["orders"] });
     qc.invalidateQueries({ queryKey: ["my-orders"] });
   };
@@ -831,6 +847,10 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
             const hasRecurring = orderHasRecurring(order);
             const date = new Date(order.created_at);
             const itemCount = (order as any).order_items?.length || 0;
+            const cycles = (order as any).completed_cycles || 0;
+            const nextDate = (order as any).next_service_date ? new Date((order as any).next_service_date) : null;
+            const interval = getOrderInterval(order);
+            const daysUntilNext = nextDate ? Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
 
             return (
               <Card key={order.id} className={`rounded-xl shadow-sm overflow-hidden transition-all ${
@@ -841,18 +861,27 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                   className="w-full text-left px-4 py-3.5 hover:bg-muted/20 transition-colors">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                         <span className="text-sm font-semibold text-foreground truncate">{order.customer_name}</span>
                         {hasRecurring && (
                           <Badge variant="secondary" className="text-[10px] gap-1 shrink-0">
-                            <RefreshCw className="h-2.5 w-2.5" /> Gentages
+                            <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
+                            {cycles > 0 && <span className="ml-0.5">· #{cycles}</span>}
                           </Badge>
                         )}
                       </div>
                       <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                         <span>{date.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}</span>
                         {itemCount > 0 && <span>· {itemCount} {itemCount === 1 ? "service" : "services"}</span>}
+                        {nextDate && daysUntilNext !== null && (
+                          <span className={`inline-flex items-center gap-1 font-medium ${
+                            daysUntilNext <= 0 ? "text-destructive" : daysUntilNext <= 3 ? "text-amber-600" : "text-accent"
+                          }`}>
+                            <CalendarClock className="h-3 w-3" />
+                            {daysUntilNext <= 0 ? "I dag!" : daysUntilNext === 1 ? "I morgen" : `om ${daysUntilNext} dage`}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -938,20 +967,15 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                         {actions.canProgress && actions.nextStatus && (
                           <Button size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
                             className={`gap-1.5 rounded-xl text-xs ${
-                              actions.nextStatus === "completed"
+                              actions.nextStatus === "completed" && hasRecurring
+                                ? "bg-accent text-accent-foreground hover:bg-accent/90"
+                                : actions.nextStatus === "completed"
                                 ? "bg-green-600 text-white hover:bg-green-700"
                                 : "bg-foreground text-background hover:bg-foreground/90"
                             }`}>
                             {actions.nextStatus === "in_progress" && <><Play className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
-                            {actions.nextStatus === "completed" && <><CheckCircle2 className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
-                          </Button>
-                        )}
-
-                        {/* Schedule next cycle for recurring completed orders */}
-                        {actions.canScheduleNext && (
-                          <Button size="sm" onClick={(e) => { e.stopPropagation(); handleScheduleNext(order.id); }}
-                            className="gap-1.5 rounded-xl text-xs bg-accent text-accent-foreground hover:bg-accent/90">
-                            <RefreshCw className="h-3.5 w-3.5" /> Plan næste service
+                            {actions.nextStatus === "completed" && hasRecurring && <><RefreshCw className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                            {actions.nextStatus === "completed" && !hasRecurring && <><CheckCircle2 className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
                           </Button>
                         )}
 
