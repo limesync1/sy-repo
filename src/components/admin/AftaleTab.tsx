@@ -195,37 +195,43 @@ const PRICING_LABELS: Record<string, string> = {
 };
 
 /* ─── What can the business DO at each stage? ─── */
-const getActions = (order: any): { canRespond: boolean; canProgress: boolean; nextStatus: string | null; nextLabel: string | null } => {
+const getActions = (order: any): { canRespond: boolean; canProgress: boolean; canScheduleNext: boolean; nextStatus: string | null; nextLabel: string | null } => {
   const status = order.status;
   const bizResp = order.business_response;
   const custResp = order.customer_response;
+  const isRecurring = (order.order_items || []).some((item: any) => item.details?.interval && item.details.interval !== "engangskøb");
 
   // Pending + no business response → business must respond (accept/adjust/reject)
   if (status === "pending" && !bizResp) {
-    return { canRespond: true, canProgress: false, nextStatus: null, nextLabel: null };
+    return { canRespond: true, canProgress: false, canScheduleNext: false, nextStatus: null, nextLabel: null };
   }
 
   // Pending + business adjusted + awaiting customer → can't do anything, waiting
   if (status === "pending" && bizResp === "adjusted" && !custResp) {
-    return { canRespond: false, canProgress: false, nextStatus: null, nextLabel: null };
+    return { canRespond: false, canProgress: false, canScheduleNext: false, nextStatus: null, nextLabel: null };
   }
 
   // Pending + customer rejected → business can re-respond
   if (status === "pending" && custResp === "rejected") {
-    return { canRespond: true, canProgress: false, nextStatus: null, nextLabel: null };
+    return { canRespond: true, canProgress: false, canScheduleNext: false, nextStatus: null, nextLabel: null };
   }
 
   // Confirmed → can start work
   if (status === "confirmed") {
-    return { canRespond: false, canProgress: true, nextStatus: "in_progress", nextLabel: "Marker som i gang" };
+    return { canRespond: false, canProgress: true, canScheduleNext: false, nextStatus: "in_progress", nextLabel: "Marker som i gang" };
   }
 
   // In progress → can complete
   if (status === "in_progress") {
-    return { canRespond: false, canProgress: true, nextStatus: "completed", nextLabel: "Marker som udført" };
+    return { canRespond: false, canProgress: true, canScheduleNext: false, nextStatus: "completed", nextLabel: "Marker som udført" };
   }
 
-  return { canRespond: false, canProgress: false, nextStatus: null, nextLabel: null };
+  // Completed + recurring → can schedule next cycle
+  if (status === "completed" && isRecurring) {
+    return { canRespond: false, canProgress: false, canScheduleNext: true, nextStatus: null, nextLabel: null };
+  }
+
+  return { canRespond: false, canProgress: false, canScheduleNext: false, nextStatus: null, nextLabel: null };
 };
 
 /* ─── Stepper Input ─── */
@@ -669,11 +675,20 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
   const handleProgressStatus = async (orderId: string, newStatus: string) => {
     const { error } = await supabase.from("orders").update({
       status: newStatus as any,
-      // Clear customer_response when progressing so status is clean
-      ...(newStatus !== "pending" ? { customer_response: null } : {}),
     }).eq("id", orderId);
     if (error) { toast.error(error.message); return; }
-    toast.success(`Status ændret til "${STATUS_CONFIG[newStatus]?.label}"`);
+    toast.success(`Status ændret til "${STATUS_CONFIG[newStatus as keyof typeof STATUS_CONFIG]?.label}"`);
+    qc.invalidateQueries({ queryKey: ["orders"] });
+    qc.invalidateQueries({ queryKey: ["my-orders"] });
+  };
+
+  // For recurring orders: reset to confirmed so the cycle continues
+  const handleScheduleNext = async (orderId: string) => {
+    const { error } = await supabase.from("orders").update({
+      status: "confirmed" as any,
+    }).eq("id", orderId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Næste service planlagt — aftalen er klar igen");
     qc.invalidateQueries({ queryKey: ["orders"] });
     qc.invalidateQueries({ queryKey: ["my-orders"] });
   };
@@ -929,6 +944,14 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                             }`}>
                             {actions.nextStatus === "in_progress" && <><Play className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
                             {actions.nextStatus === "completed" && <><CheckCircle2 className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                          </Button>
+                        )}
+
+                        {/* Schedule next cycle for recurring completed orders */}
+                        {actions.canScheduleNext && (
+                          <Button size="sm" onClick={(e) => { e.stopPropagation(); handleScheduleNext(order.id); }}
+                            className="gap-1.5 rounded-xl text-xs bg-accent text-accent-foreground hover:bg-accent/90">
+                            <RefreshCw className="h-3.5 w-3.5" /> Plan næste service
                           </Button>
                         )}
 
