@@ -847,6 +847,10 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
             const hasRecurring = orderHasRecurring(order);
             const date = new Date(order.created_at);
             const itemCount = (order as any).order_items?.length || 0;
+            const cycles = (order as any).completed_cycles || 0;
+            const nextDate = (order as any).next_service_date ? new Date((order as any).next_service_date) : null;
+            const interval = getOrderInterval(order);
+            const daysUntilNext = nextDate ? Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
 
             return (
               <Card key={order.id} className={`rounded-xl shadow-sm overflow-hidden transition-all ${
@@ -857,18 +861,27 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
                   className="w-full text-left px-4 py-3.5 hover:bg-muted/20 transition-colors">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                         <span className="text-sm font-semibold text-foreground truncate">{order.customer_name}</span>
                         {hasRecurring && (
                           <Badge variant="secondary" className="text-[10px] gap-1 shrink-0">
-                            <RefreshCw className="h-2.5 w-2.5" /> Gentages
+                            <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
+                            {cycles > 0 && <span className="ml-0.5">· #{cycles}</span>}
                           </Badge>
                         )}
                       </div>
                       <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                         <span>{date.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}</span>
                         {itemCount > 0 && <span>· {itemCount} {itemCount === 1 ? "service" : "services"}</span>}
+                        {nextDate && daysUntilNext !== null && (
+                          <span className={`inline-flex items-center gap-1 font-medium ${
+                            daysUntilNext <= 0 ? "text-destructive" : daysUntilNext <= 3 ? "text-amber-600" : "text-accent"
+                          }`}>
+                            <CalendarClock className="h-3 w-3" />
+                            {daysUntilNext <= 0 ? "I dag!" : daysUntilNext === 1 ? "I morgen" : `om ${daysUntilNext} dage`}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
