@@ -669,11 +669,20 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
   const handleProgressStatus = async (orderId: string, newStatus: string) => {
     const { error } = await supabase.from("orders").update({
       status: newStatus as any,
-      // Clear customer_response when progressing so status is clean
-      ...(newStatus !== "pending" ? { customer_response: null } : {}),
     }).eq("id", orderId);
     if (error) { toast.error(error.message); return; }
-    toast.success(`Status ændret til "${STATUS_CONFIG[newStatus]?.label}"`);
+    toast.success(`Status ændret til "${STATUS_CONFIG[newStatus as keyof typeof STATUS_CONFIG]?.label}"`);
+    qc.invalidateQueries({ queryKey: ["orders"] });
+    qc.invalidateQueries({ queryKey: ["my-orders"] });
+  };
+
+  // For recurring orders: reset to confirmed so the cycle continues
+  const handleScheduleNext = async (orderId: string) => {
+    const { error } = await supabase.from("orders").update({
+      status: "confirmed" as any,
+    }).eq("id", orderId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Næste service planlagt — aftalen er klar igen");
     qc.invalidateQueries({ queryKey: ["orders"] });
     qc.invalidateQueries({ queryKey: ["my-orders"] });
   };
