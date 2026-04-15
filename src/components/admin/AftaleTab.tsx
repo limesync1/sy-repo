@@ -418,8 +418,12 @@ const AdjustmentEditor = ({
 const ProposalStatusBanner = ({ order }: { order: any }) => {
   const bizResp = order.business_response;
   const custResp = order.customer_response;
+  const status = order.status;
 
-  if (bizResp === "adjusted" && !custResp) {
+  // Don't show proposal banners for orders that have already progressed past pending
+  if (status === "in_progress" || status === "completed" || status === "cancelled") return null;
+
+  if (bizResp === "adjusted" && !custResp && status === "pending") {
     return (
       <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
         <Clock className="h-4 w-4 text-amber-600 shrink-0 animate-pulse" />
