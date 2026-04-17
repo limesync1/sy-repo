@@ -29,21 +29,101 @@ export const useBusinessBySlug = (slug: string) => {
   });
 };
 
-// Fetch all active businesses (public)
-export const useAllBusinesses = (category?: string, search?: string) => {
+// Fetch all active businesses with rich filtering, search and sorting (public)
+export type SortOption = "relevance" | "newest" | "rating" | "name";
+
+export const useAllBusinesses = (
+  category?: string,
+  search?: string,
+  sort: SortOption = "relevance",
+) => {
   return useQuery({
-    queryKey: ["businesses", category, search],
+    queryKey: ["businesses", category, search, sort],
     queryFn: async () => {
+      // Pull businesses with their services + reviews in one go so we can:
+      //  - search across name/description/city/zip/address/categories AND service names
+      //  - rank by rating / relevance client-side
       let query = supabase
         .from("businesses")
-        .select("*")
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
+        .select("*, services(name, subcategory, service_category), reviews(rating)")
+        .eq("is_active", true);
+
       if (category) query = query.contains("categories", [category]);
-      if (search) query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      let rows = (data || []) as any[];
+
+      // Multi-token search across many fields, including service names
+      const tokens = (search || "")
+        .toLowerCase()
+        .split(/\s+/)
+        .map((t) => t.trim())
+        .filter(Boolean);
+
+      if (tokens.length > 0) {
+        rows = rows
+          .map((b) => {
+            const haystackParts = [
+              b.name,
+              b.description,
+              b.city,
+              b.zip_code,
+              b.address,
+              ...(Array.isArray(b.categories) ? b.categories : []),
+              b.category,
+              ...((b.services || []).flatMap((s: any) => [s.name, s.subcategory, s.service_category])),
+            ]
+              .filter(Boolean)
+              .map((s: string) => String(s).toLowerCase());
+            const haystack = haystackParts.join(" \u0001 ");
+
+            // Every token must match somewhere (AND semantics)
+            const allMatch = tokens.every((t) => haystack.includes(t));
+            if (!allMatch) return null;
+
+            // Score: name match > city match > description/services
+            let score = 0;
+            for (const t of tokens) {
+              if (b.name?.toLowerCase().includes(t)) score += 10;
+              if (b.city?.toLowerCase().includes(t)) score += 6;
+              if (b.zip_code?.toLowerCase?.().includes(t)) score += 6;
+              if ((b.categories || []).some((c: string) => c.toLowerCase().includes(t))) score += 5;
+              if ((b.services || []).some((s: any) => s.name?.toLowerCase().includes(t))) score += 4;
+              if (b.description?.toLowerCase().includes(t)) score += 1;
+            }
+            return { ...b, _score: score };
+          })
+          .filter(Boolean) as any[];
+      }
+
+      // Compute aggregated rating once
+      rows = rows.map((b) => {
+        const reviews = b.reviews || [];
+        const avg = reviews.length
+          ? reviews.reduce((a: number, r: any) => a + r.rating, 0) / reviews.length
+          : 0;
+        return { ...b, _avgRating: avg, _reviewCount: reviews.length };
+      });
+
+      // Sorting
+      if (sort === "rating") {
+        rows.sort((a, b) => b._avgRating - a._avgRating || b._reviewCount - a._reviewCount);
+      } else if (sort === "newest") {
+        rows.sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
+      } else if (sort === "name") {
+        rows.sort((a, b) => a.name.localeCompare(b.name, "da"));
+      } else {
+        // relevance: verified first, then score (if searching), then rating, then newest
+        rows.sort((a, b) => {
+          if (!!b.is_verified !== !!a.is_verified) return b.is_verified ? 1 : -1;
+          if ((b._score || 0) !== (a._score || 0)) return (b._score || 0) - (a._score || 0);
+          if (b._avgRating !== a._avgRating) return b._avgRating - a._avgRating;
+          return +new Date(b.created_at) - +new Date(a.created_at);
+        });
+      }
+
+      return rows;
     },
   });
 };
