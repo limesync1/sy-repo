@@ -93,63 +93,65 @@ const DynamicBusinessContent = () => {
         openingHours={business.opening_hours as Record<string, string> | undefined}
       />
 
-      {/* ── Sticky Nav (dark, matches landing) ── */}
-      <nav className="sticky top-0 z-50 border-b border-background/10 bg-foreground/95 backdrop-blur supports-[backdrop-filter]:bg-foreground/85" aria-label="Virksomhedsnavigation">
+      {/* ── Sticky Nav (light, matches landing) ── */}
+      <nav className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md" aria-label="Virksomhedsnavigation">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="text-background/60 transition-colors hover:text-background" aria-label="Tilbage til forsiden">
-              <ArrowLeft className="h-5 w-5" />
+          <div className="flex items-center gap-3 min-w-0">
+            <Link to="/" aria-label="Tilbage til Serviceydere">
+              <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-8 md:h-9" />
             </Link>
-            <Link to="/"><img src="/serviceydere-logo.png" alt="Serviceydere" className="h-7" /></Link>
-            <Separator orientation="vertical" className="mx-1 h-5 hidden bg-background/20 sm:block" />
-            <span className="hidden text-sm font-medium text-background sm:inline">{business.name}</span>
+            <Separator orientation="vertical" className="mx-1 h-5 hidden sm:block" />
+            <span className="hidden truncate text-sm font-semibold text-foreground sm:inline">{business.name}</span>
           </div>
-          <CartSheet businessId={business.id} />
+          <div className="flex items-center gap-2">
+            <Link to="/search" className="hidden md:inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+              <ArrowLeft className="h-3.5 w-3.5" /> Tilbage til søgning
+            </Link>
+            <CartSheet businessId={business.id} />
+          </div>
         </div>
       </nav>
 
-      {/* ── Hero (dark, editorial — matches landing) ── */}
-      <header className="relative overflow-hidden bg-foreground">
-        {/* Cover as soft background */}
-        {hasCover && (
-          <div className="absolute inset-0">
-            <img
-              src={business.cover_image_url!}
-              alt=""
-              className="h-full w-full object-cover opacity-30"
-              loading="eager"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/70 to-foreground/40" />
-          </div>
-        )}
+      {/* ── Hero (light) ── */}
+      <header className="relative overflow-hidden border-b border-border bg-background">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-10 md:pt-12 md:pb-14">
+          {/* Cover image — full width, contained */}
+          {hasCover && (
+            <div className="mb-8 overflow-hidden rounded-3xl">
+              <div className="relative aspect-[21/8] w-full bg-secondary md:aspect-[21/7]">
+                <img
+                  src={business.cover_image_url!}
+                  alt={`${business.name} cover`}
+                  className="h-full w-full object-cover"
+                  loading="eager"
+                />
+              </div>
+            </div>
+          )}
 
-        {/* Soft accent blobs */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-32 top-10 h-[320px] w-[320px] rounded-full bg-accent/[0.06] blur-3xl" />
-          <div className="absolute -right-32 -top-10 h-[360px] w-[360px] rounded-full bg-accent/[0.04] blur-3xl" />
-        </div>
-
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
-          <div className="flex flex-col items-start gap-6 md:flex-row md:items-end md:gap-8">
+          <div className="flex flex-col items-start gap-5 md:flex-row md:items-end md:gap-7">
             {business.logo_url && (
-              <div className="shrink-0 overflow-hidden rounded-2xl border border-background/10 bg-background shadow-2xl h-20 w-20 md:h-28 md:w-28">
-                <img src={business.logo_url} alt={`${business.name} logo`} className="h-full w-full rounded-2xl object-contain p-1" loading="eager" />
+              <div className="shrink-0 overflow-hidden rounded-2xl border border-border bg-card shadow-md flex items-center justify-center h-20 w-20 md:h-24 md:w-24">
+                <img src={business.logo_url} alt={`${business.name} logo`} className="h-full w-full object-contain p-2" loading="eager" />
               </div>
             )}
 
-            <div className="min-w-0 flex-1 animate-fade-in">
-              {/* Category eyebrow */}
+            <div className="min-w-0 flex-1">
               {(business.categories?.[0] || business.category) && (
-                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-                  {business.categories?.[0] || business.category}
-                </p>
+                <div className="mb-2 flex flex-wrap gap-1.5">
+                  {(business.categories?.length ? business.categories : [business.category]).filter(Boolean).slice(0, 3).map((c) => (
+                    <span key={c} className="inline-flex items-center rounded-md bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">
+                      {c}
+                    </span>
+                  ))}
+                </div>
               )}
 
-              <h1 className="text-4xl font-extrabold leading-[0.95] tracking-tight text-background md:text-5xl lg:text-6xl">
+              <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-foreground md:text-4xl lg:text-5xl">
                 {business.name}
               </h1>
 
-              <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-background/70">
+              <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
                 {business.city && (
                   <span className="flex items-center gap-1.5">
                     <MapPin className="h-3.5 w-3.5" />{business.city}
@@ -157,35 +159,40 @@ const DynamicBusinessContent = () => {
                 )}
                 {avgRating && (
                   <span className="flex items-center gap-1.5">
-                    <Star className="h-3.5 w-3.5 fill-accent text-accent" />
-                    <span className="font-semibold text-background">{avgRating}</span>
-                    <span className="text-background/50">({reviewCount})</span>
+                    <Star className="h-3.5 w-3.5 fill-foreground text-foreground" />
+                    <span className="font-semibold text-foreground">{avgRating}</span>
+                    <span className="text-muted-foreground">({reviewCount} {reviewCount === 1 ? "anmeldelse" : "anmeldelser"})</span>
                   </span>
                 )}
                 {business.is_verified && (
-                  <Badge variant="outline" className="border-accent/40 bg-accent/15 text-accent text-xs gap-1 px-2 py-0.5">
+                  <Badge variant="outline" className="border-accent/40 bg-accent/10 text-accent text-xs gap-1 px-2 py-0.5">
                     <ShieldCheck className="h-3 w-3" /> Verificeret
                   </Badge>
+                )}
+                {!avgRating && (
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    <Sparkles className="h-3.5 w-3.5 text-accent" /> Ny på platformen
+                  </span>
                 )}
               </div>
 
               {services && services.length > 0 && (
-                <div className="mt-6 flex flex-wrap gap-2">
+                <div className="mt-5 flex flex-wrap gap-2">
                   <Button
                     onClick={scrollToServices}
                     size="lg"
-                    className="h-12 gap-1.5 rounded-xl bg-accent px-6 text-base font-semibold text-accent-foreground shadow-lg shadow-accent/20 hover:bg-accent/90"
+                    className="h-12 gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/20 hover:bg-accent/90"
                   >
-                    Se services <ArrowDown className="h-4 w-4" />
+                    Bestil nu <ArrowDown className="h-4 w-4" />
                   </Button>
                   {business.phone && (
                     <a href={`tel:${business.phone}`}>
                       <Button
                         size="lg"
                         variant="outline"
-                        className="h-12 gap-1.5 rounded-xl border-background/15 bg-background/5 px-6 text-base font-medium text-background backdrop-blur hover:bg-background/10 hover:text-background"
+                        className="h-12 gap-2 rounded-full border-border bg-card px-5 text-sm font-medium text-foreground hover:bg-secondary"
                       >
-                        <Phone className="h-4 w-4" /> Ring nu
+                        <Phone className="h-4 w-4" /> {business.phone}
                       </Button>
                     </a>
                   )}
@@ -196,45 +203,6 @@ const DynamicBusinessContent = () => {
         </div>
       </header>
 
-      {/* ── Compact Stats Bar ── */}
-      {(serviceCount > 0 || reviewCount > 0 || business.is_verified || categories.length > 0) && (
-        <div className="border-b border-border bg-secondary/30">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-wrap items-center gap-x-8 gap-y-3 py-4 text-sm">
-              {serviceCount > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="text-base font-bold tracking-tight text-foreground">{serviceCount}</span>
-                  <span className="text-muted-foreground">{serviceCount === 1 ? "service" : "services"}</span>
-                </div>
-              )}
-              {reviewCount > 0 ? (
-                <div className="flex items-center gap-1.5">
-                  <Star className="h-4 w-4 fill-accent text-accent" />
-                  <span className="font-bold text-foreground">{avgRating}</span>
-                  <span className="text-muted-foreground">({reviewCount} {reviewCount === 1 ? "anmeldelse" : "anmeldelser"})</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5 text-muted-foreground">
-                  <Sparkles className="h-4 w-4 text-accent" />
-                  <span>Ny på platformen</span>
-                </div>
-              )}
-              {business.is_verified && (
-                <div className="flex items-center gap-1.5">
-                  <Award className="h-4 w-4 text-accent" />
-                  <span className="font-medium text-foreground">Verificeret</span>
-                </div>
-              )}
-              {categories.length > 0 && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <span className="text-foreground font-medium">{categories.length}</span>
-                  <span>{categories.length === 1 ? "kategori" : "kategorier"}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── Body ── */}
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
