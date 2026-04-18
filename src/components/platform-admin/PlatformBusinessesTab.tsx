@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, CheckCircle2, XCircle, ExternalLink, Trash2, ShieldCheck, MapPin, Mail } from "lucide-react";
+import { Search, CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
@@ -95,24 +95,31 @@ const PlatformBusinessesTab = () => {
               const s = stats?.get(b.id);
               return (
                 <div key={b.id} className="flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-secondary/30">
-                  {b.logo_url ? (
-                    <img src={b.logo_url} alt="" className="h-10 w-10 rounded object-contain bg-secondary p-0.5" />
-                  ) : (
-                    <div className="h-10 w-10 rounded bg-secondary flex items-center justify-center text-sm font-bold text-foreground">
-                      {b.name.charAt(0)}
-                    </div>
-                  )}
+                  <div className="relative shrink-0">
+                    {b.logo_url ? (
+                      <img src={b.logo_url} alt="" className="h-10 w-10 rounded object-contain bg-secondary p-0.5" />
+                    ) : (
+                      <div className="h-10 w-10 rounded bg-secondary flex items-center justify-center text-sm font-bold text-foreground">
+                        {b.name.charAt(0)}
+                      </div>
+                    )}
+                    {b.is_verified && (
+                      <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-accent-foreground ring-2 ring-background shadow-sm">
+                        <BadgeCheck className="h-3 w-3" strokeWidth={3} />
+                      </span>
+                    )}
+                  </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <p className="truncate text-sm font-semibold text-foreground">{b.name}</p>
                       {b.is_verified && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent ring-1 ring-inset ring-accent/20">
-                          <ShieldCheck className="h-3 w-3" strokeWidth={2.5} />
+                        <span className="inline-flex items-center gap-1 rounded-md bg-accent/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent ring-1 ring-inset ring-accent/20">
+                          <BadgeCheck className="h-2.5 w-2.5" strokeWidth={3} />
                           Verificeret
                         </span>
                       )}
                       {!b.is_active && (
-                        <span className="inline-flex items-center rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-medium text-destructive ring-1 ring-inset ring-destructive/20">
+                        <span className="inline-flex items-center rounded-md bg-destructive/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-destructive ring-1 ring-inset ring-destructive/20">
                           Inaktiv
                         </span>
                       )}
