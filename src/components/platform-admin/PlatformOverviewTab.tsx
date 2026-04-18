@@ -15,10 +15,6 @@ const usePlatformStats = () =>
   useQuery({
     queryKey: ["platform-stats"],
     queryFn: async () => {
-      const since = new Date();
-      since.setDate(since.getDate() - 90);
-      const sinceIso = since.toISOString();
-
       const [b, p, o, r] = await Promise.all([
         supabase.from("businesses").select("id, created_at, is_active, category, city"),
         supabase.from("profiles").select("id, created_at"),
