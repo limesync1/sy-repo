@@ -25,27 +25,21 @@ const benefits = [
 
 const WhyUs = () => {
   return (
-    <section className="bg-background py-20 md:py-28">
+    <section className="bg-background py-16 md:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-12 max-w-2xl">
-          <h2 className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
+        <div className="mb-10">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
             Hvorfor Serviceydere?
           </h2>
-          <p className="mt-2 text-base text-muted-foreground">
-            Bygget til danske kunder – med fokus på tryghed, kvalitet og enkelhed.
-          </p>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-8 md:grid-cols-2 md:gap-10 lg:grid-cols-4">
           {benefits.map((b) => (
-            <div
-              key={b.title}
-              className="rounded-2xl border border-border bg-card p-7 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
-            >
-              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 text-accent">
-                <b.icon className="h-5 w-5" />
+            <div key={b.title} className="flex flex-col gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
+                <b.icon className="h-5 w-5 text-foreground" />
               </div>
-              <h3 className="mb-2 text-lg font-bold text-foreground">{b.title}</h3>
+              <h3 className="text-lg font-semibold text-foreground">{b.title}</h3>
               <p className="text-sm leading-relaxed text-muted-foreground">{b.description}</p>
             </div>
           ))}

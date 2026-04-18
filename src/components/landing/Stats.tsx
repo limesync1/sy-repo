@@ -28,20 +28,20 @@ const Stats = () => {
   const fmt = (n: number) => new Intl.NumberFormat("da-DK").format(n);
 
   const stats = [
-    { value: data ? `${fmt(data.businesses)}` : "—", label: "Verificerede virksomheder" },
-    { value: data && data.reviews > 0 ? fmt(data.reviews) : "Nye", label: data && data.reviews > 0 ? "Anmeldelser" : "Anmeldelser kommer" },
+    { value: data ? fmt(data.businesses) : "—", label: "Verificerede virksomheder" },
+    { value: data && data.reviews > 0 ? fmt(data.reviews) : "Nye", label: "Anmeldelser" },
     { value: data?.avg ?? "—", label: "Gennemsnitlig rating" },
-    { value: data ? `${fmt(data.cities)}` : "—", label: data && data.cities === 1 ? "By dækket" : "Byer dækket" },
+    { value: data ? fmt(data.cities) : "—", label: data?.cities === 1 ? "By dækket" : "Byer dækket" },
   ];
 
   return (
-    <section className="bg-background py-12 md:py-16">
+    <section className="bg-background pb-12 pt-4 md:pb-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+        <div className="grid grid-cols-2 gap-6 border-y border-border py-8 md:grid-cols-4 md:gap-4">
           {stats.map((s) => (
-            <div key={s.label} className="rounded-2xl border border-border bg-card p-5 text-center shadow-sm transition-shadow hover:shadow-md md:p-7">
-              <div className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">{s.value}</div>
-              <div className="mt-1 text-xs font-medium text-muted-foreground md:text-sm">{s.label}</div>
+            <div key={s.label} className="text-center md:text-left">
+              <div className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">{s.value}</div>
+              <div className="mt-0.5 text-xs text-muted-foreground md:text-sm">{s.label}</div>
             </div>
           ))}
         </div>

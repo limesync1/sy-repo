@@ -1,145 +1,129 @@
-import { Search, Menu, X, Sparkles, Wrench, Truck, TreePine, Paintbrush, Droplets } from "lucide-react";
+import { Search, Menu, X, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
-const suggestions = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS"];
-
-const heroCategories = [
-  { icon: Sparkles, label: "Rengøring" },
-  { icon: Wrench, label: "Håndværker" },
-  { icon: Truck, label: "Flytning" },
-  { icon: TreePine, label: "Have" },
-  { icon: Paintbrush, label: "Maler" },
-  { icon: Droplets, label: "VVS" },
-];
+import heroImage from "@/assets/hero-home.jpg";
 
 const HeroSection = () => {
-  const [query, setQuery] = useState("");
+  const [what, setWhat] = useState("");
+  const [where, setWhere] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleSearch = () => {
-    if (query.trim()) navigate(`/search?q=${encodeURIComponent(query.trim())}`);
-    else navigate("/search");
+    const params = new URLSearchParams();
+    if (what.trim()) params.set("q", what.trim());
+    if (where.trim()) params.set("city", where.trim());
+    navigate(`/search${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
   return (
-    <section className="relative bg-background">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Nav */}
-        <nav className="flex items-center justify-between py-5">
-          <div className="flex items-center gap-8">
+    <header className="relative">
+      {/* Top nav — sits above hero, transparent */}
+      <nav className="absolute inset-x-0 top-0 z-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-5">
             <Link to="/" className="flex items-center">
-              <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-9 md:h-10" />
+              <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-9 md:h-10 brightness-0 invert" />
             </Link>
-            <div className="hidden items-center gap-6 md:flex">
-              <Link to="/search" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Find services</Link>
-              <Link to="/quote" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Få tilbud</Link>
-              <Link to="/search?category=Rengøring" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Kategorier</Link>
+            <div className="hidden items-center gap-1 rounded-full border border-white/30 bg-white/10 px-2 py-1 backdrop-blur-md md:flex">
+              <Link to="/search" className="rounded-full px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/20">Find services</Link>
+              <Link to="/quote" className="rounded-full px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/20">Få tilbud</Link>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="hidden h-10 w-10 items-center justify-center rounded-full text-white transition-colors hover:bg-white/15 md:inline-flex" aria-label="Sprog">
+                <Globe className="h-4 w-4" />
+              </button>
+              <Link to="/auth" className="hidden sm:inline-block">
+                <button className="flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1.5 backdrop-blur-md transition-colors hover:bg-white/20">
+                  <Menu className="h-4 w-4 text-white" />
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-foreground">
+                    <span className="text-xs font-semibold">U</span>
+                  </div>
+                </button>
+              </Link>
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-colors hover:bg-white/20 md:hidden"
+                aria-label="Menu"
+              >
+                {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Link to="/auth" className="hidden sm:inline-block">
-              <Button size="sm" variant="ghost" className="font-semibold">Log ind</Button>
-            </Link>
-            <Link to="/auth" className="hidden sm:inline-block">
-              <Button size="sm" className="bg-accent font-semibold text-accent-foreground hover:bg-accent/90">Bliv vært</Button>
-            </Link>
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary md:hidden"
-              aria-label="Menu"
-            >
-              {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-          </div>
-        </nav>
 
-        {menuOpen && (
-          <div className="mb-6 rounded-2xl border border-border bg-card p-4 shadow-sm md:hidden">
-            <div className="flex flex-col gap-1">
-              <Link to="/search" className="rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Find services</Link>
-              <Link to="/quote" className="rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Få tilbud</Link>
-              <Link to="/search?category=Rengøring" className="rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Kategorier</Link>
-              <Link to="/auth" className="rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Log ind</Link>
+          {menuOpen && (
+            <div className="rounded-2xl border border-border bg-card p-3 shadow-lg md:hidden">
+              <Link to="/search" className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Find services</Link>
+              <Link to="/quote" className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Få tilbud</Link>
+              <Link to="/auth" className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Log ind</Link>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+      </nav>
 
-        {/* Hero */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-secondary via-background to-accent/10 px-6 py-16 md:px-14 md:py-24">
-          {/* Soft decorative blobs */}
-          <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-accent/10 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-24 -left-10 h-80 w-80 rounded-full bg-accent/5 blur-3xl" />
+      {/* Hero with full bleed image */}
+      <div className="relative h-[640px] w-full overflow-hidden md:h-[720px]">
+        <img
+          src={heroImage}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+          width={1920}
+          height={1280}
+        />
+        {/* Gradient overlay for legibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-foreground/50 via-foreground/20 to-foreground/40" />
 
-          <div className="relative mx-auto max-w-3xl text-center">
-            <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground shadow-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-              Danmarks nye serviceplatform
-            </span>
-            <h1 className="mb-5 text-4xl font-extrabold leading-[1.05] tracking-tight text-foreground md:text-6xl">
-              Find den rette service
-              <br />
-              <span className="text-accent">til dit hjem.</span>
+        <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-center px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl pt-16">
+            <h1 className="mb-4 text-4xl font-extrabold leading-[1.05] tracking-tight text-white drop-shadow-sm md:text-6xl lg:text-7xl">
+              Find serviceydere du kan stole på
             </h1>
-            <p className="mx-auto mb-8 max-w-xl text-base text-muted-foreground md:text-lg">
+            <p className="mb-10 max-w-xl text-base text-white/90 md:text-lg">
               Sammenlign priser, læs ægte anmeldelser og book Danmarks bedste serviceydere på få minutter.
             </p>
+          </div>
 
-            {/* Pill search */}
-            <div className="mx-auto flex max-w-2xl flex-col gap-2 rounded-2xl border border-border bg-card p-2 shadow-lg shadow-foreground/5 sm:flex-row sm:rounded-full">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Hvad har du brug for?"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+          {/* Multi-field search bar — Airbnb style */}
+          <div className="w-full max-w-3xl">
+            <div className="flex flex-col items-stretch overflow-hidden rounded-3xl border border-border bg-card shadow-2xl md:h-16 md:flex-row md:items-center md:rounded-full">
+              <div className="flex flex-1 flex-col px-6 py-3 md:py-0">
+                <label className="text-[11px] font-bold uppercase tracking-wide text-foreground">Hvad</label>
+                <input
+                  type="text"
+                  placeholder="Fx rengøring, maler, VVS"
+                  value={what}
+                  onChange={(e) => setWhat(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  className="h-12 border-0 bg-transparent pl-11 text-base shadow-none focus-visible:ring-0"
+                  className="bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
                 />
               </div>
-              <Button
-                size="lg"
-                onClick={handleSearch}
-                className="h-12 rounded-xl bg-accent px-8 text-base font-semibold text-accent-foreground hover:bg-accent/90 sm:rounded-full"
-              >
-                Søg
-              </Button>
-            </div>
-
-            <div className="mt-5 flex flex-wrap justify-center gap-2">
-              {suggestions.map((s) => (
-                <Link
-                  key={s}
-                  to={`/search?category=${encodeURIComponent(s)}`}
-                  className="rounded-full border border-border bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur transition-colors hover:border-accent/40 hover:text-foreground"
+              <div className="h-px w-full bg-border md:h-8 md:w-px" />
+              <div className="flex flex-1 flex-col px-6 py-3 md:py-0">
+                <label className="text-[11px] font-bold uppercase tracking-wide text-foreground">Hvor</label>
+                <input
+                  type="text"
+                  placeholder="By eller postnummer"
+                  value={where}
+                  onChange={(e) => setWhere(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  className="bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                />
+              </div>
+              <div className="px-3 py-3 md:py-0">
+                <Button
+                  onClick={handleSearch}
+                  className="h-12 w-full gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground hover:bg-accent/90 md:w-auto md:px-8"
                 >
-                  {s}
-                </Link>
-              ))}
+                  <Search className="h-4 w-4" />
+                  Søg
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Quick category chips below hero */}
-        <div className="mt-8 grid grid-cols-3 gap-3 md:grid-cols-6">
-          {heroCategories.map((cat) => (
-            <Link
-              key={cat.label}
-              to={`/search?category=${encodeURIComponent(cat.label)}`}
-              className="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-md"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary text-foreground transition-colors group-hover:bg-accent/10 group-hover:text-accent">
-                <cat.icon className="h-5 w-5" />
-              </div>
-              <span className="text-xs font-semibold text-foreground">{cat.label}</span>
-            </Link>
-          ))}
-        </div>
       </div>
-    </section>
+    </header>
   );
 };
 
