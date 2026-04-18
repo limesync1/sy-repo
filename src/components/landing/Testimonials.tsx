@@ -34,7 +34,6 @@ const Testimonials = () => {
   const totalPages = Math.max(1, Math.ceil((reviews?.length ?? 0) / perPage));
   const visible = reviews?.slice(page * perPage, page * perPage + perPage) ?? [];
 
-  // Auto-rotate
   useEffect(() => {
     if (!reviews || reviews.length <= perPage) return;
     const id = setInterval(() => setPage((p) => (p + 1) % totalPages), 7000);
@@ -44,29 +43,28 @@ const Testimonials = () => {
   if (!reviews || reviews.length === 0) return null;
 
   return (
-    <section className="border-t border-border bg-secondary/40 py-24 md:py-32">
+    <section className="bg-secondary/50 py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-14 flex flex-wrap items-end justify-between gap-6">
+        <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-accent">Anmeldelser</p>
-            <h2 className="text-4xl font-extrabold leading-[0.95] tracking-tight text-foreground md:text-6xl">
-              Hvad kunderne<br />
-              <span className="text-muted-foreground">siger.</span>
+            <h2 className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
+              Hvad kunderne siger
             </h2>
+            <p className="mt-2 text-base text-muted-foreground">Ægte anmeldelser fra rigtige kunder.</p>
           </div>
 
           {reviews.length > perPage && (
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setPage((p) => (p - 1 + totalPages) % totalPages)}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card transition-colors hover:border-foreground/30 hover:bg-background"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card transition-colors hover:border-accent/40 hover:text-accent"
                 aria-label="Forrige"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setPage((p) => (p + 1) % totalPages)}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card transition-colors hover:border-foreground/30 hover:bg-background"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card transition-colors hover:border-accent/40 hover:text-accent"
                 aria-label="Næste"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -75,14 +73,14 @@ const Testimonials = () => {
           )}
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-3">
           {visible.map((r, i) => (
             <article
               key={r.id}
-              className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-7 transition-all duration-300 hover:-translate-y-1 hover:border-foreground/20 hover:shadow-xl"
+              className="flex flex-col rounded-2xl border border-border bg-card p-7 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
               style={{ animation: `fade-in 0.5s ease-out ${i * 100}ms both` }}
             >
-              <Quote className="mb-4 h-7 w-7 text-accent/40" />
+              <Quote className="mb-4 h-7 w-7 text-accent/50" />
               <div className="mb-4 flex items-center gap-1">
                 {Array.from({ length: 5 }).map((_, idx) => (
                   <Star
@@ -115,7 +113,7 @@ const Testimonials = () => {
               <button
                 key={i}
                 onClick={() => setPage(i)}
-                className={`h-1.5 rounded-full transition-all ${i === page ? "w-8 bg-foreground" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"}`}
+                className={`h-1.5 rounded-full transition-all ${i === page ? "w-8 bg-accent" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"}`}
                 aria-label={`Side ${i + 1}`}
               />
             ))}
