@@ -26,7 +26,11 @@ import {
   Building2,
   Hammer,
   X,
+  Navigation,
+  Map as MapIcon,
+  List,
 } from "lucide-react";
+import ResultsMap from "@/components/search/ResultsMap";
 
 const CATEGORIES = [
   { label: "Rengøring", icon: Sparkles },
@@ -110,11 +114,15 @@ const BusinessCard = ({ biz }: { biz: any }) => {
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="h-3.5 w-3.5" />
             <span>{biz.zip_code ? `${biz.zip_code} ` : ""}{biz.city}</span>
-            {typeof biz._distanceKm === "number" && (
-              <span className="ml-1 text-xs text-muted-foreground/80">
-                · {biz._distanceKm < 1 ? "<1" : Math.round(biz._distanceKm)} km
-              </span>
-            )}
+          </div>
+        )}
+
+        {typeof biz._distanceKm === "number" && (
+          <div className="mt-0.5">
+            <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">
+              <Navigation className="h-3 w-3" />
+              {biz._distanceKm < 1 ? "<1 km væk" : `${Math.round(biz._distanceKm)} km væk`}
+            </span>
           </div>
         )}
       </div>
