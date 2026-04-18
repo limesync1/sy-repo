@@ -345,7 +345,7 @@ const SearchPage = () => {
 
             <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
             <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
-              <SelectTrigger className="h-9 w-[170px] rounded-full text-sm">
+              <SelectTrigger className="h-9 w-[140px] sm:w-[170px] rounded-full text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
