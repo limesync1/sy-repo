@@ -78,7 +78,6 @@ const PlatformUsersTab = () => {
           <div className="divide-y divide-border">
             {filtered.map((u) => {
               const isAdmin = u.roles.includes("admin");
-              const isOwner = u.roles.includes("business_owner");
               return (
                 <div key={u.user_id} className="flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-secondary/30">
                   <div className="h-9 w-9 shrink-0 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold text-foreground">

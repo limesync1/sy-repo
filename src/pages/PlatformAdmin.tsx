@@ -95,6 +95,7 @@ const PlatformAdmin = () => {
           {tab === "businesses" && <PlatformBusinessesTab />}
           {tab === "users" && <PlatformUsersTab />}
           {tab === "orders" && <PlatformOrdersTab />}
+          {tab === "subscriptions" && <PlatformSubscriptionsTab />}
           {tab === "reviews" && <PlatformReviewsTab />}
         </main>
       </div>
