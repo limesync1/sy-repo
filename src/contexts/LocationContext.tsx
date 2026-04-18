@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
+import { DEFAULT_RADIUS_KM } from "@/lib/dk-postcodes";
 
 export interface UserLocation {
   city: string | null;
@@ -17,9 +18,14 @@ interface LocationContextValue {
   setManualZip: (zip: string, city?: string | null) => void;
   /** Clear all location data. */
   clear: () => void;
+  /** Search radius in km — null means "Hele DK" (no radius filter). */
+  radiusKm: number | null;
+  /** Update the search radius (persisted across reloads). */
+  setRadiusKm: (km: number | null) => void;
 }
 
 const STORAGE_KEY = "sy.userLocation.v1";
+const RADIUS_STORAGE_KEY = "sy.userRadius.v1";
 const DK_ZIP_RE = /^\d{4}$/;
 
 // Tiny, common DK zip → city map for nicer UX when user types a postcode.
@@ -63,6 +69,26 @@ const writeStored = (loc: UserLocation | null) => {
   }
 };
 
+const readStoredRadius = (): number | null | undefined => {
+  try {
+    const raw = localStorage.getItem(RADIUS_STORAGE_KEY);
+    if (raw === null) return undefined;
+    if (raw === "null") return null;
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const writeStoredRadius = (km: number | null) => {
+  try {
+    localStorage.setItem(RADIUS_STORAGE_KEY, km === null ? "null" : String(km));
+  } catch {
+    // ignore
+  }
+};
+
 export const LocationProvider = ({ children }: { children: ReactNode }) => {
   const stored = readStored();
   // Hydrate from storage so we don't flash the loader; but if stored entry is empty
@@ -70,6 +96,15 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   const [location, setLocation] = useState<UserLocation>(
     stored || { city: null, zip: null, region: null, source: null }
   );
+  const storedRadius = readStoredRadius();
+  const [radiusKm, setRadiusKmState] = useState<number | null>(
+    storedRadius === undefined ? DEFAULT_RADIUS_KM : storedRadius,
+  );
+
+  const setRadiusKm = useCallback((km: number | null) => {
+    setRadiusKmState(km);
+    writeStoredRadius(km);
+  }, []);
   // We re-run IP detection whenever we don't yet have a confirmed city/zip,
   // regardless of source — this lets us recover from earlier failed lookups.
   const needsDetection = !stored || (!stored.city && !stored.zip);
@@ -185,7 +220,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <LocationContext.Provider value={{ location, detecting, detected, setManualZip, clear }}>
+    <LocationContext.Provider value={{ location, detecting, detected, setManualZip, clear, radiusKm, setRadiusKm }}>
       {children}
     </LocationContext.Provider>
   );
