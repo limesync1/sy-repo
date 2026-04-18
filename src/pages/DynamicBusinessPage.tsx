@@ -134,8 +134,8 @@ const DynamicBusinessContent = () => {
             </div>
           </div>
 
-          {/* Identity row — logo overlaps cover */}
-          <div className="relative -mt-12 md:-mt-16 flex flex-col gap-4 md:flex-row md:items-end md:gap-6">
+          {/* Logo overlaps cover */}
+          <div className="relative -mt-12 md:-mt-14 mb-4 md:mb-5 flex items-end">
             <div className="relative shrink-0">
               <div className="overflow-hidden rounded-2xl border-4 border-background bg-card shadow-xl flex items-center justify-center h-24 w-24 md:h-28 md:w-28">
                 {business.logo_url ? (
@@ -152,10 +152,13 @@ const DynamicBusinessContent = () => {
                 </span>
               )}
             </div>
+          </div>
 
-            <div className="min-w-0 flex-1 md:pb-2">
+          {/* Identity row — clean, below cover */}
+          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-6 pb-8 md:pb-10">
+            <div className="min-w-0 flex-1">
               {(business.categories?.[0] || business.category) && (
-                <div className="mb-2 flex flex-wrap gap-1.5">
+                <div className="mb-2.5 flex flex-wrap gap-1.5">
                   {(business.categories?.length ? business.categories : [business.category]).filter(Boolean).slice(0, 3).map((c) => (
                     <span key={c} className="inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-[11px] font-semibold text-foreground/70">
                       {c}
@@ -164,12 +167,12 @@ const DynamicBusinessContent = () => {
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-foreground md:text-4xl lg:text-[2.75rem]">
                   {business.name}
                 </h1>
                 {business.is_verified && (
-                  <span className="hidden md:inline-flex items-center gap-1 rounded-full bg-accent/10 px-2.5 py-1 text-xs font-semibold text-accent ring-1 ring-inset ring-accent/20">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2.5 py-1 text-xs font-semibold text-accent ring-1 ring-inset ring-accent/20">
                     <BadgeCheck className="h-3.5 w-3.5" strokeWidth={2.75} />
                     Verificeret
                   </span>
@@ -206,7 +209,7 @@ const DynamicBusinessContent = () => {
             </div>
 
             {services && services.length > 0 && (
-              <div className="flex flex-wrap gap-2 md:pb-2">
+              <div className="flex flex-wrap gap-2 shrink-0">
                 <Button
                   onClick={scrollToServices}
                   size="lg"
@@ -229,7 +232,6 @@ const DynamicBusinessContent = () => {
             )}
           </div>
 
-          <div className="h-8 md:h-10" />
         </div>
       </header>
 
