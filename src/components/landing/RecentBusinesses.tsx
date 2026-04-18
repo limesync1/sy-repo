@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { Star, ShieldCheck, Heart } from "lucide-react";
+import { Star, ShieldCheck, Heart, MapPin, Building2 } from "lucide-react";
 import { useState } from "react";
 import HorizontalScroller from "./HorizontalScroller";
 
@@ -21,14 +21,17 @@ type Biz = {
 
 const BusinessCard = ({ biz }: { biz: Biz }) => {
   const [liked, setLiked] = useState(false);
-  const cat = biz.categories?.[0] ?? biz.category;
+  const cats = biz.categories?.length ? biz.categories : (biz.category ? [biz.category] : []);
+  const primaryCat = cats[0];
+  const extraCats = cats.length - 1;
 
   return (
     <Link
       to={`/b/${biz.slug}`}
       className="group flex w-[280px] shrink-0 flex-col gap-3 sm:w-[300px]"
     >
-      <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-secondary">
+      {/* Cover */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-secondary">
         {biz.cover_image_url ? (
           <img
             src={biz.cover_image_url}
@@ -38,11 +41,7 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
-            {biz.logo_url ? (
-              <img src={biz.logo_url} alt="" className="h-20 w-20 object-contain opacity-80" />
-            ) : (
-              <span className="text-5xl font-bold text-muted-foreground/20">{biz.name.charAt(0)}</span>
-            )}
+            <Building2 className="h-14 w-14 text-muted-foreground/30" />
           </div>
         )}
 
@@ -63,15 +62,16 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
           </div>
         )}
 
-        {/* Logo chip bottom-left */}
-        {biz.logo_url && biz.cover_image_url && (
-          <div className="absolute bottom-3 left-3 h-12 w-12 overflow-hidden rounded-xl border-2 border-card bg-card shadow-md">
-            <img src={biz.logo_url} alt="" className="h-full w-full object-cover" />
+        {/* Logo chip bottom-left — properly contained */}
+        {biz.logo_url && (
+          <div className="absolute -bottom-5 left-4 h-14 w-14 overflow-hidden rounded-xl border-2 border-card bg-card shadow-md flex items-center justify-center">
+            <img src={biz.logo_url} alt="" className="h-full w-full object-contain p-1.5" />
           </div>
         )}
       </div>
 
-      <div className="flex flex-col gap-0.5 px-1">
+      {/* Body */}
+      <div className={`flex flex-col gap-1 px-1 ${biz.logo_url ? "pt-4" : ""}`}>
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-[15px] font-semibold tracking-tight text-foreground line-clamp-1">{biz.name}</h3>
           {biz._reviewCount && biz._reviewCount > 0 ? (
@@ -80,11 +80,29 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
               <span className="font-medium text-foreground">{biz._avgRating!.toFixed(1)}</span>
             </div>
           ) : (
-            <span className="text-xs text-muted-foreground">Ny</span>
+            <span className="shrink-0 text-xs font-medium text-muted-foreground">Ny</span>
           )}
         </div>
-        {cat && <div className="text-sm text-muted-foreground">{cat}</div>}
-        {biz.city && <div className="text-sm text-muted-foreground">{biz.city}</div>}
+
+        {/* Categories — labelled, with chip styling */}
+        {primaryCat && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="inline-flex items-center rounded-md bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">
+              {primaryCat}
+            </span>
+            {extraCats > 0 && (
+              <span className="text-[11px] font-medium text-muted-foreground">+{extraCats} mere</span>
+            )}
+          </div>
+        )}
+
+        {/* Location with explicit icon */}
+        {biz.city && (
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <MapPin className="h-3.5 w-3.5" />
+            <span>{biz.city}</span>
+          </div>
+        )}
       </div>
     </Link>
   );
@@ -132,9 +150,12 @@ const RecentBusinesses = () => {
     <section className="bg-background py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-end justify-between">
-          <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-            Populært på platformen
-          </h2>
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+              Populære virksomheder
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">Verificerede serviceydere — klar til opgaven</p>
+          </div>
           <Link to="/search" className="text-sm font-semibold text-foreground underline-offset-4 hover:underline">
             Vis alle
           </Link>

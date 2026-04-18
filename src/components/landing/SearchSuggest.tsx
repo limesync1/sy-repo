@@ -1,0 +1,237 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Search, MapPin, Sparkles, Wrench, Truck, TreePine, Paintbrush, Droplets, Zap, ShieldCheck, Hammer, Building2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const CATEGORIES = [
+  { label: "Rengøring", icon: Sparkles },
+  { label: "Håndværker", icon: Wrench },
+  { label: "Flyttehjælp", icon: Truck },
+  { label: "Haveservice", icon: TreePine },
+  { label: "Maler", icon: Paintbrush },
+  { label: "VVS", icon: Droplets },
+  { label: "Elektriker", icon: Zap },
+  { label: "Sikkerhed", icon: ShieldCheck },
+  { label: "Tømrer", icon: Hammer },
+];
+
+type Suggestion =
+  | { type: "category"; label: string; icon: any }
+  | { type: "business"; label: string; slug: string; city: string | null; logo: string | null }
+  | { type: "city"; label: string };
+
+interface Props {
+  variant?: "hero" | "page";
+  defaultQuery?: string;
+}
+
+const SearchSuggest = ({ variant = "hero", defaultQuery = "" }: Props) => {
+  const [q, setQ] = useState(defaultQuery);
+  const [open, setOpen] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const navigate = useNavigate();
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  // Fetch a small index of businesses + cities (cached 5 min)
+  const { data: index } = useQuery({
+    queryKey: ["search-index"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("businesses")
+        .select("name, slug, city, logo_url, categories, category")
+        .eq("is_active", true)
+        .limit(200);
+      const businesses = (data || []).map((b) => ({
+        name: b.name,
+        slug: b.slug,
+        city: b.city,
+        logo: b.logo_url,
+        cats: (b.categories?.length ? b.categories : (b.category ? [b.category] : [])) as string[],
+      }));
+      const cities = Array.from(new Set(businesses.map((b) => b.city).filter(Boolean))) as string[];
+      return { businesses, cities };
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const suggestions = useMemo<Suggestion[]>(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) {
+      // Empty — show top categories
+      return CATEGORIES.slice(0, 6).map((c) => ({ type: "category" as const, label: c.label, icon: c.icon }));
+    }
+    const results: Suggestion[] = [];
+
+    // Category matches
+    CATEGORIES.filter((c) => c.label.toLowerCase().includes(term))
+      .slice(0, 3)
+      .forEach((c) => results.push({ type: "category", label: c.label, icon: c.icon }));
+
+    // City matches
+    (index?.cities || [])
+      .filter((c) => c.toLowerCase().includes(term))
+      .slice(0, 3)
+      .forEach((c) => results.push({ type: "city", label: c }));
+
+    // Business matches
+    (index?.businesses || [])
+      .filter((b) =>
+        b.name.toLowerCase().includes(term) ||
+        b.cats.some((c) => c.toLowerCase().includes(term))
+      )
+      .slice(0, 5)
+      .forEach((b) => results.push({ type: "business", label: b.name, slug: b.slug, city: b.city, logo: b.logo }));
+
+    return results;
+  }, [q, index]);
+
+  // Click outside to close
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const submit = (custom?: string) => {
+    const term = (custom ?? q).trim();
+    const params = new URLSearchParams();
+    if (term) params.set("q", term);
+    navigate(`/search${params.toString() ? `?${params}` : ""}`);
+    setOpen(false);
+  };
+
+  const pickSuggestion = (s: Suggestion) => {
+    if (s.type === "business") {
+      navigate(`/b/${s.slug}`);
+    } else if (s.type === "category") {
+      navigate(`/search?category=${encodeURIComponent(s.label)}`);
+    } else {
+      navigate(`/search?q=${encodeURIComponent(s.label)}`);
+    }
+    setOpen(false);
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIdx((i) => Math.min(i + 1, suggestions.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIdx((i) => Math.max(i - 1, -1));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (activeIdx >= 0 && suggestions[activeIdx]) pickSuggestion(suggestions[activeIdx]);
+      else submit();
+    } else if (e.key === "Escape") {
+      setOpen(false);
+    }
+  };
+
+  const isHero = variant === "hero";
+
+  return (
+    <div ref={wrapRef} className="relative w-full max-w-2xl">
+      <div
+        className={`flex items-center overflow-hidden rounded-full border bg-card shadow-2xl transition-shadow ${
+          isHero ? "border-border h-14 md:h-16" : "border-border h-13"
+        }`}
+      >
+        <div className="pl-5 pr-3 text-muted-foreground">
+          <Search className="h-5 w-5" />
+        </div>
+        <input
+          type="text"
+          placeholder="Søg efter service, virksomhed eller by…"
+          value={q}
+          onChange={(e) => { setQ(e.target.value); setOpen(true); setActiveIdx(-1); }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={onKeyDown}
+          className="h-full flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground"
+        />
+        <div className="pr-2">
+          <Button
+            onClick={() => submit()}
+            className="h-10 gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-accent-foreground hover:bg-accent/90 md:h-11 md:px-6"
+          >
+            <Search className="h-4 w-4" />
+            <span className="hidden sm:inline">Søg</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* Suggestions dropdown */}
+      {open && suggestions.length > 0 && (
+        <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+          {!q.trim() && (
+            <div className="border-b border-border px-4 pt-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Populære kategorier
+            </div>
+          )}
+          <ul className="max-h-[420px] overflow-y-auto py-1.5">
+            {suggestions.map((s, i) => {
+              const active = activeIdx === i;
+              return (
+                <li key={`${s.type}-${s.label}-${i}`}>
+                  <button
+                    type="button"
+                    onMouseEnter={() => setActiveIdx(i)}
+                    onClick={() => pickSuggestion(s)}
+                    className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
+                      active ? "bg-secondary" : "hover:bg-secondary/60"
+                    }`}
+                  >
+                    {s.type === "category" && (
+                      <>
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                          <s.icon className="h-4 w-4" />
+                        </span>
+                        <span className="flex-1">
+                          <div className="font-semibold text-foreground">{s.label}</div>
+                          <div className="text-xs text-muted-foreground">Kategori</div>
+                        </span>
+                      </>
+                    )}
+                    {s.type === "city" && (
+                      <>
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
+                          <MapPin className="h-4 w-4" />
+                        </span>
+                        <span className="flex-1">
+                          <div className="font-semibold text-foreground">{s.label}</div>
+                          <div className="text-xs text-muted-foreground">By</div>
+                        </span>
+                      </>
+                    )}
+                    {s.type === "business" && (
+                      <>
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card">
+                          {s.logo ? (
+                            <img src={s.logo} alt="" className="h-full w-full object-contain p-0.5" />
+                          ) : (
+                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </span>
+                        <span className="flex-1 min-w-0">
+                          <div className="truncate font-semibold text-foreground">{s.label}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Virksomhed{s.city ? ` · ${s.city}` : ""}
+                          </div>
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default SearchSuggest;

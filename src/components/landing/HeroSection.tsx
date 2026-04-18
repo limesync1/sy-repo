@@ -1,50 +1,50 @@
-import { Search, Menu, X, Globe } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Menu, X, ShieldCheck, Sparkles } from "lucide-react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-home.jpg";
+import SearchSuggest from "./SearchSuggest";
 
 const HeroSection = () => {
-  const [what, setWhat] = useState("");
-  const [where, setWhere] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
-  const navigate = useNavigate();
-
-  const handleSearch = () => {
-    const params = new URLSearchParams();
-    if (what.trim()) params.set("q", what.trim());
-    if (where.trim()) params.set("city", where.trim());
-    navigate(`/search${params.toString() ? `?${params.toString()}` : ""}`);
-  };
 
   return (
-    <header className="relative">
-      {/* Top nav — sits above hero, transparent */}
-      <nav className="absolute inset-x-0 top-0 z-20">
+    <header className="relative bg-background">
+      {/* Top nav */}
+      <nav className="border-b border-border bg-background/90 backdrop-blur-md sticky top-0 z-30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-5">
-            <Link to="/" className="flex items-center">
-              <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-9 md:h-10 brightness-0 invert" />
+          <div className="flex items-center justify-between py-3.5">
+            <Link to="/" className="flex items-center" aria-label="Serviceydere forside">
+              <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-9 md:h-10" />
             </Link>
-            <div className="hidden items-center gap-1 rounded-full border border-white/30 bg-white/10 px-2 py-1 backdrop-blur-md md:flex">
-              <Link to="/search" className="rounded-full px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/20">Find services</Link>
-              <Link to="/quote" className="rounded-full px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/20">Få tilbud</Link>
+
+            {/* Center nav links */}
+            <div className="hidden md:flex items-center gap-1">
+              <Link to="/search" className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground">
+                Find services
+              </Link>
+              <Link to="/quote" className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground">
+                Få tilbud
+              </Link>
+              <Link to="/auth?role=business" className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground">
+                Bliv udbyder
+              </Link>
             </div>
+
+            {/* Right side */}
             <div className="flex items-center gap-2">
-              <button className="hidden h-10 w-10 items-center justify-center rounded-full text-white transition-colors hover:bg-white/15 md:inline-flex" aria-label="Sprog">
-                <Globe className="h-4 w-4" />
-              </button>
               <Link to="/auth" className="hidden sm:inline-block">
-                <button className="flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1.5 backdrop-blur-md transition-colors hover:bg-white/20">
-                  <Menu className="h-4 w-4 text-white" />
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-foreground">
-                    <span className="text-xs font-semibold">U</span>
-                  </div>
+                <button className="rounded-full px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary">
+                  Log ind
+                </button>
+              </Link>
+              <Link to="/auth?signup=1" className="hidden sm:inline-block">
+                <button className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-foreground/90">
+                  Opret konto
                 </button>
               </Link>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-colors hover:bg-white/20 md:hidden"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary md:hidden"
                 aria-label="Menu"
               >
                 {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -53,71 +53,78 @@ const HeroSection = () => {
           </div>
 
           {menuOpen && (
-            <div className="rounded-2xl border border-border bg-card p-3 shadow-lg md:hidden">
+            <div className="mb-3 rounded-2xl border border-border bg-card p-2 shadow-lg md:hidden">
               <Link to="/search" className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Find services</Link>
               <Link to="/quote" className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Få tilbud</Link>
+              <Link to="/auth?role=business" className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Bliv udbyder</Link>
+              <div className="my-1 h-px bg-border" />
               <Link to="/auth" className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Log ind</Link>
+              <Link to="/auth?signup=1" className="block rounded-lg px-3 py-2 text-sm font-semibold text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Opret konto</Link>
             </div>
           )}
         </div>
       </nav>
 
-      {/* Hero with full bleed image */}
-      <div className="relative h-[640px] w-full overflow-hidden md:h-[720px]">
-        <img
-          src={heroImage}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-          width={1920}
-          height={1280}
-        />
-        {/* Gradient overlay for legibility */}
-        <div className="absolute inset-0 bg-gradient-to-b from-foreground/50 via-foreground/20 to-foreground/40" />
-
-        <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-center px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl pt-16">
-            <h1 className="mb-4 text-4xl font-extrabold leading-[1.05] tracking-tight text-white drop-shadow-sm md:text-6xl lg:text-7xl">
-              Find serviceydere du kan stole på
+      {/* Hero — split layout: text left, image right */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 pb-12 md:pt-16 md:pb-20">
+        <div className="grid items-center gap-10 md:grid-cols-2 md:gap-12 lg:gap-16">
+          {/* Left: copy + search */}
+          <div>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
+              <Sparkles className="h-3 w-3" />
+              Danmarks samlede platform for serviceydere
+            </span>
+            <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-6xl">
+              Find den rette <span className="text-accent">serviceyder</span> til opgaven.
             </h1>
-            <p className="mb-10 max-w-xl text-base text-white/90 md:text-lg">
-              Sammenlign priser, læs ægte anmeldelser og book Danmarks bedste serviceydere på få minutter.
+            <p className="mt-5 max-w-xl text-base text-muted-foreground md:text-lg">
+              Sammenlign verificerede virksomheder, læs ægte anmeldelser og book direkte — eller få op til 3 skræddersyede tilbud på få sekunder.
             </p>
+
+            <div className="mt-7">
+              <SearchSuggest variant="hero" />
+            </div>
+
+            {/* Trust strip */}
+            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="h-4 w-4 text-accent" />
+                Verificerede udbydere
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Sparkles className="h-4 w-4 text-accent" />
+                AI-matchede tilbud
+              </span>
+              <span>Gratis & uforpligtende</span>
+            </div>
           </div>
 
-          {/* Multi-field search bar — Airbnb style */}
-          <div className="w-full max-w-3xl">
-            <div className="flex flex-col items-stretch overflow-hidden rounded-3xl border border-border bg-card shadow-2xl md:h-16 md:flex-row md:items-center md:rounded-full">
-              <div className="flex flex-1 flex-col px-6 py-3 md:py-0">
-                <label className="text-[11px] font-bold uppercase tracking-wide text-foreground">Hvad</label>
-                <input
-                  type="text"
-                  placeholder="Fx rengøring, maler, VVS"
-                  value={what}
-                  onChange={(e) => setWhat(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  className="bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-                />
+          {/* Right: hero image */}
+          <div className="relative">
+            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl bg-secondary shadow-xl md:aspect-[3/4]">
+              <img
+                src={heroImage}
+                alt="Tilfreds dansk serviceyder klar til opgaven"
+                className="h-full w-full object-cover"
+                width={1920}
+                height={1280}
+                loading="eager"
+              />
+              {/* Floating stat card */}
+              <div className="absolute -bottom-5 -left-5 hidden rounded-2xl border border-border bg-card p-4 shadow-xl md:block">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-medium text-muted-foreground">Tilbud på</div>
+                    <div className="text-base font-bold text-foreground">3-10 sekunder</div>
+                  </div>
+                </div>
               </div>
-              <div className="h-px w-full bg-border md:h-8 md:w-px" />
-              <div className="flex flex-1 flex-col px-6 py-3 md:py-0">
-                <label className="text-[11px] font-bold uppercase tracking-wide text-foreground">Hvor</label>
-                <input
-                  type="text"
-                  placeholder="By eller postnummer"
-                  value={where}
-                  onChange={(e) => setWhere(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  className="bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-                />
-              </div>
-              <div className="px-3 py-3 md:py-0">
-                <Button
-                  onClick={handleSearch}
-                  className="h-12 w-full gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground hover:bg-accent/90 md:w-auto md:px-8"
-                >
-                  <Search className="h-4 w-4" />
-                  Søg
-                </Button>
+              <div className="absolute -top-4 -right-4 hidden rounded-2xl border border-border bg-card px-4 py-3 shadow-xl md:block">
+                <div className="text-xs font-medium text-muted-foreground">Verificerede</div>
+                <div className="text-base font-bold text-foreground">2.400+ virksomheder</div>
               </div>
             </div>
           </div>

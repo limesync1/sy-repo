@@ -40,7 +40,7 @@ const Footer = () => {
         </div>
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 text-xs text-muted-foreground md:flex-row">
           <div>© {new Date().getFullYear()} Serviceydere · Danmark</div>
-          <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-6 opacity-60" />
+          <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-6 opacity-70" />
         </div>
       </div>
     </footer>
