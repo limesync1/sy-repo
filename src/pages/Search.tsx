@@ -191,7 +191,7 @@ const SearchPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Dark hero banner — matches landing page */}
+      {/* Dark hero — compact, editorial, matches landing */}
       <section className="relative overflow-hidden bg-foreground">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -left-32 top-10 h-[320px] w-[320px] rounded-full bg-accent/[0.06] blur-3xl" />
@@ -200,13 +200,12 @@ const SearchPage = () => {
 
         <nav className="relative">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-3">
-              <Link to="/" className="flex items-center gap-2 text-background/70 transition-colors hover:text-background">
-                <ArrowLeft className="h-5 w-5" />
-                <span className="hidden text-sm font-medium sm:inline">Tilbage</span>
-              </Link>
-              <Link to="/" className="ml-3">
+            <div className="flex items-center gap-6">
+              <Link to="/">
                 <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-9" />
+              </Link>
+              <Link to="/" className="hidden items-center gap-1.5 text-sm font-medium text-background/60 transition-colors hover:text-background sm:inline-flex">
+                <ArrowLeft className="h-4 w-4" /> Tilbage
               </Link>
             </div>
             <Link to="/auth">
@@ -217,21 +216,27 @@ const SearchPage = () => {
           </div>
         </nav>
 
-        <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-6 text-center sm:px-6 lg:px-8 md:pb-16 md:pt-10">
-          <h1 className="mb-3 text-4xl font-extrabold leading-[1.05] tracking-tight text-background md:text-5xl">
-            Find <span className="text-accent">serviceydere</span>
-          </h1>
-          <p className="mb-8 text-base text-background/60 md:text-lg">
-            Søg på navn, kategori, by eller postnummer
-          </p>
+        <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-4 sm:px-6 lg:px-8 md:pb-14 md:pt-6">
+          <div className="grid items-end gap-6 md:grid-cols-[1fr_auto] md:gap-10">
+            <div>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-accent">Søg services</p>
+              <h1 className="text-3xl font-extrabold leading-[0.95] tracking-tight text-background md:text-5xl">
+                Find den rette<br />
+                <span className="text-background/60">til opgaven.</span>
+              </h1>
+            </div>
+            <p className="max-w-xs text-sm text-background/60 md:text-right">
+              Søg på navn, kategori, by eller postnummer.
+            </p>
+          </div>
 
-          <div className="relative mx-auto max-w-2xl">
+          <div className="relative mt-8 max-w-2xl">
             <SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="F.eks. 'rengøring københavn' eller 'vvs 8000'"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className="h-14 rounded-2xl border-background/10 bg-background pl-12 pr-12 text-base text-foreground shadow-2xl placeholder:text-muted-foreground focus-visible:ring-accent"
+              className="h-13 rounded-xl border-background/10 bg-background pl-12 pr-12 text-base text-foreground shadow-2xl placeholder:text-muted-foreground focus-visible:ring-accent"
               autoFocus
             />
             {inputValue && (
@@ -261,9 +266,9 @@ const SearchPage = () => {
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 md:py-12">
         {/* Category filters */}
-        <div className="mb-8 flex flex-wrap justify-center gap-2">
+        <div className="mb-8 flex flex-wrap gap-2">
           {CATEGORIES.map((cat) => {
             const Icon = cat.icon;
             const active = selectedCategory === cat.label;
@@ -317,26 +322,21 @@ const SearchPage = () => {
           </div>
         </div>
 
-        {/* Results */}
+        {/* Results — vertical card grid (3 cols) for cleaner look */}
         {isLoading ? (
-          <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex h-44 animate-pulse overflow-hidden rounded-2xl border border-border bg-card">
-                <div className="h-full w-48 shrink-0 bg-muted" />
-                <div className="flex-1 space-y-3 p-5">
-                  <div className="h-5 w-2/3 rounded bg-muted" />
-                  <div className="h-3 w-full rounded bg-muted" />
-                  <div className="h-3 w-4/5 rounded bg-muted" />
-                  <div className="flex gap-2 pt-2">
-                    <div className="h-5 w-20 rounded-full bg-muted" />
-                    <div className="h-5 w-16 rounded-full bg-muted" />
-                  </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="animate-pulse overflow-hidden rounded-2xl border border-border bg-card">
+                <div className="aspect-[4/3] w-full bg-muted" />
+                <div className="space-y-3 p-4">
+                  <div className="h-4 w-2/3 rounded bg-muted" />
+                  <div className="h-3 w-1/2 rounded bg-muted" />
                 </div>
               </div>
             ))}
           </div>
         ) : businesses && businesses.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {businesses.map((biz: any, i: number) => (
               <div key={biz.id} style={{ animation: `fade-in 0.4s ease-out ${Math.min(i, 8) * 50}ms both` }}>
                 <BusinessCard biz={biz} tokens={tokens} />
