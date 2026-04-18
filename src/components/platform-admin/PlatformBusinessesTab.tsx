@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, CheckCircle2, XCircle, ExternalLink, Trash2, ShieldCheck } from "lucide-react";
+import { Search, CheckCircle2, XCircle, ExternalLink, Trash2, ShieldCheck, MapPin, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+
+const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
 
 const PlatformBusinessesTab = () => {
   const qc = useQueryClient();
@@ -22,6 +24,17 @@ const PlatformBusinessesTab = () => {
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
+    },
+  });
+
+  const { data: stats } = useQuery({
+    queryKey: ["admin-business-stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("admin_business_stats");
+      if (error) throw error;
+      const map = new Map<string, any>();
+      (data || []).forEach((s: any) => map.set(s.business_id, s));
+      return map;
     },
   });
 
@@ -44,27 +57,30 @@ const PlatformBusinessesTab = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-businesses"] });
+      qc.invalidateQueries({ queryKey: ["admin-business-stats"] });
       toast.success("Slettet");
     },
     onError: (e: any) => toast.error(e.message),
   });
 
-  const filtered = (businesses || []).filter((b) => {
-    if (!q.trim()) return true;
-    const s = q.toLowerCase();
-    return (
-      b.name?.toLowerCase().includes(s) ||
-      b.city?.toLowerCase().includes(s) ||
-      b.email?.toLowerCase().includes(s) ||
-      b.category?.toLowerCase().includes(s)
-    );
-  });
+  const filtered = useMemo(() => {
+    return (businesses || []).filter((b) => {
+      if (!q.trim()) return true;
+      const s = q.toLowerCase();
+      return (
+        b.name?.toLowerCase().includes(s) ||
+        b.city?.toLowerCase().includes(s) ||
+        b.email?.toLowerCase().includes(s) ||
+        b.category?.toLowerCase().includes(s)
+      );
+    });
+  }, [businesses, q]);
 
   return (
     <div className="space-y-4">
       <div className="relative max-w-md">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Søg navn, by, kategori..." className="pl-9" />
+        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Søg navn, by, kategori, email..." className="pl-9" />
       </div>
 
       {isLoading ? (
@@ -76,47 +92,58 @@ const PlatformBusinessesTab = () => {
       ) : (
         <Card className="rounded-xl border-border shadow-sm overflow-hidden">
           <div className="divide-y divide-border">
-            {filtered.map((b) => (
-              <div key={b.id} className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/30">
-                {b.logo_url ? (
-                  <img src={b.logo_url} alt="" className="h-9 w-9 rounded object-contain bg-secondary p-0.5" />
-                ) : (
-                  <div className="h-9 w-9 rounded bg-secondary flex items-center justify-center text-xs font-bold text-foreground">
-                    {b.name.charAt(0)}
+            {filtered.map((b) => {
+              const s = stats?.get(b.id);
+              return (
+                <div key={b.id} className="flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-secondary/30">
+                  {b.logo_url ? (
+                    <img src={b.logo_url} alt="" className="h-10 w-10 rounded object-contain bg-secondary p-0.5" />
+                  ) : (
+                    <div className="h-10 w-10 rounded bg-secondary flex items-center justify-center text-sm font-bold text-foreground">
+                      {b.name.charAt(0)}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="truncate text-sm font-semibold text-foreground">{b.name}</p>
+                      {b.is_verified && <Badge variant="secondary" className="h-5 px-1.5 text-[10px] gap-1"><ShieldCheck className="h-3 w-3" />Verificeret</Badge>}
+                      {!b.is_active && <Badge variant="outline" className="h-5 px-1.5 text-[10px] text-red-600 border-red-200">Inaktiv</Badge>}
+                    </div>
+                    <p className="truncate text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
+                      {b.category && <span>{b.category}</span>}
+                      {b.city && <span className="flex items-center gap-0.5"><MapPin className="h-3 w-3" />{b.city}</span>}
+                      {(s?.owner_email || b.email) && <span className="flex items-center gap-0.5"><Mail className="h-3 w-3" />{s?.owner_email || b.email}</span>}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground/80">
+                      Oprettet {new Date(b.created_at).toLocaleDateString("da-DK")} ·
+                      {s ? ` ${Number(s.orders_count)} ordrer · ${fmtKr(Number(s.total_revenue || 0))}` : " Indlæser stats..."}
+                      {s && Number(s.pending_count) > 0 && <span className="text-amber-700"> · {Number(s.pending_count)} afventer</span>}
+                    </p>
                   </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate text-sm font-semibold text-foreground">{b.name}</p>
-                    {b.is_verified && <Badge variant="secondary" className="h-5 px-1.5 text-[10px] gap-1"><ShieldCheck className="h-3 w-3" />Verificeret</Badge>}
-                    {!b.is_active && <Badge variant="outline" className="h-5 px-1.5 text-[10px] text-red-600 border-red-200">Inaktiv</Badge>}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Button size="sm" variant="outline" className="h-8 gap-1.5"
+                      onClick={() => updateBiz.mutate({ id: b.id, patch: { is_verified: !b.is_verified } })}>
+                      {b.is_verified ? <XCircle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                      <span className="hidden sm:inline">{b.is_verified ? "Fjern verif." : "Verificér"}</span>
+                    </Button>
+                    <Button size="sm" variant="outline" className="h-8"
+                      onClick={() => updateBiz.mutate({ id: b.id, patch: { is_active: !b.is_active } })}>
+                      {b.is_active ? "Deaktivér" : "Aktivér"}
+                    </Button>
+                    <Link to={`/b/${b.slug}`} target="_blank" rel="noopener noreferrer">
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0" aria-label="Åbn side"><ExternalLink className="h-3.5 w-3.5" /></Button>
+                    </Link>
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      aria-label="Slet"
+                      onClick={() => {
+                        if (confirm(`Slet virksomhed "${b.name}"? Dette sletter også alle services. Kan ikke fortrydes.`)) deleteBiz.mutate(b.id);
+                      }}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {[b.category, b.city, b.email].filter(Boolean).join(" · ") || "—"}
-                  </p>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Button size="sm" variant="outline" className="h-8 gap-1.5"
-                    onClick={() => updateBiz.mutate({ id: b.id, patch: { is_verified: !b.is_verified } })}>
-                    {b.is_verified ? <XCircle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-                    <span className="hidden sm:inline">{b.is_verified ? "Fjern verif." : "Verificér"}</span>
-                  </Button>
-                  <Button size="sm" variant="outline" className="h-8 gap-1.5"
-                    onClick={() => updateBiz.mutate({ id: b.id, patch: { is_active: !b.is_active } })}>
-                    {b.is_active ? "Deaktivér" : "Aktivér"}
-                  </Button>
-                  <Link to={`/b/${b.slug}`} target="_blank">
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0"><ExternalLink className="h-3.5 w-3.5" /></Button>
-                  </Link>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    onClick={() => {
-                      if (confirm(`Slet virksomhed "${b.name}"? Dette kan ikke fortrydes.`)) deleteBiz.mutate(b.id);
-                    }}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
       )}
