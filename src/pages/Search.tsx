@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SearchSuggest from "@/components/landing/SearchSuggest";
 import FavoriteButton from "@/components/business/FavoriteButton";
+import SEO from "@/components/SEO";
 import {
   Search as SearchIcon,
   MapPin,
@@ -153,8 +154,23 @@ const SearchPage = () => {
 
   const hasFilters = !!selectedCategory || !!debouncedQuery || sort !== "relevance";
 
+  const seoTitle = selectedCategory
+    ? `${selectedCategory} – Find verificerede serviceydere`
+    : debouncedQuery
+    ? `Søgning: ${debouncedQuery} – Serviceydere`
+    : "Find serviceydere i Danmark – Søg og sammenlign";
+  const seoDesc = selectedCategory
+    ? `Find verificerede serviceydere inden for ${selectedCategory} i hele Danmark. Sammenlign priser, læs anmeldelser og book online på Serviceydere.`
+    : "Søg blandt verificerede serviceydere i hele Danmark. Sammenlign priser, læs anmeldelser og book online — rengøring, håndværker, flyttehjælp og meget mere.";
+
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={seoTitle}
+        description={seoDesc}
+        canonicalPath="/search"
+        keywords={`serviceydere, ${selectedCategory || "find services"}, danmark, sammenlign, book online`}
+      />
       {/* Header — matches landing */}
       <nav className="border-b border-border bg-background/90 backdrop-blur-md sticky top-0 z-40">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
