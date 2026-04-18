@@ -16,6 +16,7 @@ import DynamicServiceCard from "@/components/business/DynamicServiceCard";
 import CartSheet from "@/components/business/CartSheet";
 import SEO from "@/components/SEO";
 import LocationChip from "@/components/LocationChip";
+import RadiusPicker from "@/components/RadiusPicker";
 import { useUserLocation } from "@/contexts/LocationContext";
 
 const CATEGORIES: { label: string; icon: typeof Sparkles }[] = [
