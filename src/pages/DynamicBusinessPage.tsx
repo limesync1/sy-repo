@@ -135,7 +135,7 @@ const DynamicBusinessContent = () => {
           </div>
 
           {/* Identity row — logo overlaps cover */}
-          <div className="relative -mt-12 md:-mt-14 flex flex-col gap-4 px-1 md:flex-row md:items-end md:gap-6">
+          <div className="relative -mt-12 md:-mt-16 flex flex-col gap-4 md:flex-row md:items-end md:gap-6">
             <div className="relative shrink-0">
               <div className="overflow-hidden rounded-2xl border-4 border-background bg-card shadow-xl flex items-center justify-center h-24 w-24 md:h-28 md:w-28">
                 {business.logo_url ? (
