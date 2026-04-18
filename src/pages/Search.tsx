@@ -26,7 +26,11 @@ import {
   Building2,
   Hammer,
   X,
+  Navigation,
+  Map as MapIcon,
+  List,
 } from "lucide-react";
+import ResultsMap from "@/components/search/ResultsMap";
 
 const CATEGORIES = [
   { label: "Rengøring", icon: Sparkles },
@@ -110,11 +114,15 @@ const BusinessCard = ({ biz }: { biz: any }) => {
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="h-3.5 w-3.5" />
             <span>{biz.zip_code ? `${biz.zip_code} ` : ""}{biz.city}</span>
-            {typeof biz._distanceKm === "number" && (
-              <span className="ml-1 text-xs text-muted-foreground/80">
-                · {biz._distanceKm < 1 ? "<1" : Math.round(biz._distanceKm)} km
-              </span>
-            )}
+          </div>
+        )}
+
+        {typeof biz._distanceKm === "number" && (
+          <div className="mt-0.5">
+            <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">
+              <Navigation className="h-3 w-3" />
+              {biz._distanceKm < 1 ? "<1 km væk" : `${Math.round(biz._distanceKm)} km væk`}
+            </span>
           </div>
         )}
       </div>
@@ -131,6 +139,7 @@ const SearchPage = () => {
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [sort, setSort] = useState<SortOption>(initialSort);
+  const [view, setView] = useState<"grid" | "map">("grid");
 
   useEffect(() => {
     setDebouncedQuery(searchParams.get("q") || "");
@@ -194,10 +203,21 @@ const SearchPage = () => {
       if (within.length > 0) scored = within;
     }
 
+    // Distance sort — closest first; rows without a known distance go last.
+    if (sort === "distance") {
+      return [...scored].sort((a, b) => {
+        const da = a._distanceKm ?? Infinity;
+        const db = b._distanceKm ?? Infinity;
+        return da - db;
+      });
+    }
+
     // Only re-rank when sort is "relevance" — respect user's explicit sort otherwise.
     if (sort !== "relevance") return scored;
     return [...scored].sort((a, b) => (b._locScore || 0) - (a._locScore || 0));
   }, [businesses, location, radiusKm, sort]);
+
+  const userPoint = useMemo(() => lookupDkZip(location.zip), [location.zip]);
 
   const handleCategoryClick = (cat: string) =>
     setSelectedCategory(selectedCategory === cat ? "" : cat);
@@ -317,6 +337,32 @@ const SearchPage = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* View toggle: list / map */}
+            <div className="hidden sm:inline-flex rounded-full border border-border bg-card p-0.5 text-sm">
+              <button
+                type="button"
+                onClick={() => setView("grid")}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-medium transition-colors ${
+                  view === "grid" ? "bg-foreground text-background" : "text-foreground/70 hover:text-foreground"
+                }`}
+                aria-pressed={view === "grid"}
+              >
+                <List className="h-3.5 w-3.5" />
+                Liste
+              </button>
+              <button
+                type="button"
+                onClick={() => setView("map")}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-medium transition-colors ${
+                  view === "map" ? "bg-foreground text-background" : "text-foreground/70 hover:text-foreground"
+                }`}
+                aria-pressed={view === "map"}
+              >
+                <MapIcon className="h-3.5 w-3.5" />
+                Kort
+              </button>
+            </div>
+
             <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
             <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
               <SelectTrigger className="h-9 w-[170px] rounded-full text-sm">
@@ -324,6 +370,9 @@ const SearchPage = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="relevance">Relevans</SelectItem>
+                <SelectItem value="distance" disabled={!userPoint}>
+                  Afstand (nærmest)
+                </SelectItem>
                 <SelectItem value="rating">Bedst bedømte</SelectItem>
                 <SelectItem value="newest">Nyeste</SelectItem>
                 <SelectItem value="name">Navn (A–Å)</SelectItem>
@@ -332,7 +381,7 @@ const SearchPage = () => {
           </div>
         </div>
 
-        {/* Results grid */}
+        {/* Results — list or map */}
         {isLoading ? (
           <div className="grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -346,13 +395,17 @@ const SearchPage = () => {
             ))}
           </div>
         ) : rankedBusinesses && rankedBusinesses.length > 0 ? (
-          <div className="grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {rankedBusinesses.map((biz: any, i: number) => (
-              <div key={biz.id} style={{ animation: `fade-in 0.4s ease-out ${Math.min(i, 8) * 50}ms both` }}>
-                <BusinessCard biz={biz} />
-              </div>
-            ))}
-          </div>
+          view === "map" ? (
+            <ResultsMap businesses={rankedBusinesses} userPoint={userPoint} radiusKm={radiusKm} />
+          ) : (
+            <div className="grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {rankedBusinesses.map((biz: any, i: number) => (
+                <div key={biz.id} style={{ animation: `fade-in 0.4s ease-out ${Math.min(i, 8) * 50}ms both` }}>
+                  <BusinessCard biz={biz} />
+                </div>
+              ))}
+            </div>
+          )
         ) : (
           <div className="rounded-2xl border border-dashed border-border bg-card/50 py-16 text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">

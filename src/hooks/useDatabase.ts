@@ -30,7 +30,7 @@ export const useBusinessBySlug = (slug: string) => {
 };
 
 // Fetch all active businesses with rich filtering, search and sorting (public)
-export type SortOption = "relevance" | "newest" | "rating" | "name";
+export type SortOption = "relevance" | "newest" | "rating" | "name" | "distance";
 
 export const useAllBusinesses = (
   category?: string,
