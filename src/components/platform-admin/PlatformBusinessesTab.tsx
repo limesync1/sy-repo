@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, CheckCircle2, XCircle, ExternalLink, Trash2, ShieldCheck, MapPin, Mail } from "lucide-react";
+import { Search, CheckCircle2, XCircle, ExternalLink, Trash2, ShieldCheck, MapPin, Mail, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
