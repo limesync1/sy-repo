@@ -76,62 +76,88 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   const [detecting, setDetecting] = useState<boolean>(needsDetection);
   const [detected, setDetected] = useState<boolean>(!needsDetection);
 
-  // Auto-detect via IP geolocation if we don't have a real location yet.
-  // Manual entries (source: "manual") are preserved and never overwritten.
+  // Auto-detect location. Strategy (silent, no permission prompts blocking UX):
+  //   1) Reverse-geocode by IP via BigDataCloud (no key, finds small towns + zip).
+  //   2) Fallback: ipwho.is then ipapi.co (city-level only).
+  // Manual entries are preserved.
   useEffect(() => {
     if (location.source === "manual") {
       setDetecting(false);
       setDetected(true);
       return;
     }
-    if (location.city || location.zip) {
+    if (location.city && location.zip) {
       setDetecting(false);
       setDetected(true);
       return;
     }
 
     let cancelled = false;
-    const ctrl = new AbortController();
-    const timeout = setTimeout(() => ctrl.abort(), 4000);
+
+    const fetchJSON = async (url: string, ms = 4000): Promise<any | null> => {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), ms);
+      try {
+        const r = await fetch(url, { signal: ctrl.signal });
+        if (!r.ok) return null;
+        return await r.json();
+      } catch {
+        return null;
+      } finally {
+        clearTimeout(t);
+      }
+    };
+
+    const apply = (city: string | null, zip: string | null, region: string | null) => {
+      if (cancelled) return false;
+      if (!city && !zip) return false;
+      const next: UserLocation = { city, zip, region, source: "ip" };
+      setLocation(next);
+      writeStored(next);
+      return true;
+    };
 
     (async () => {
       try {
-        const res = await fetch("https://ipapi.co/json/", { signal: ctrl.signal });
-        if (!res.ok) throw new Error("ip lookup failed");
-        const data = await res.json();
-        const city: string | null = data?.city || null;
-        const zip: string | null = data?.postal || null;
-        const region: string | null = data?.region || null;
-        const country: string | null = data?.country_code || null;
-
-        if (cancelled) return;
-
-        // Accept any city/zip we get back. Prefer DK, but use whatever we have.
-        if (city || zip) {
-          const next: UserLocation = {
-            city,
-            zip,
-            region,
-            source: "ip",
-          };
-          setLocation(next);
-          writeStored(next);
+        // 1) BigDataCloud client-side IP geocode (no API key, gives city + postcode + locality)
+        const bdc = await fetchJSON(
+          "https://api-bdc.net/data/client-ip?localityLanguage=da"
+        );
+        if (bdc) {
+          // Prefer the most specific locality (small town/village) over the broader city.
+          const city =
+            bdc?.location?.localityInfo?.administrative?.find?.(
+              (a: any) => a?.adminLevel === 8 || a?.adminLevel === 7
+            )?.name ||
+            bdc?.location?.city ||
+            bdc?.location?.locality ||
+            null;
+          const zip = bdc?.location?.postcode || null;
+          const region = bdc?.location?.principalSubdivision || null;
+          if (apply(city, zip, region)) return;
         }
-      } catch {
-        // Silent — UI will fall back to manual zip entry
+
+        // 2) ipwho.is fallback
+        const who = await fetchJSON("https://ipwho.is/?fields=city,postal,region,success");
+        if (who?.success !== false) {
+          if (apply(who?.city || null, who?.postal || null, who?.region || null)) return;
+        }
+
+        // 3) ipapi.co fallback
+        const ipa = await fetchJSON("https://ipapi.co/json/");
+        if (ipa) {
+          apply(ipa?.city || null, ipa?.postal || null, ipa?.region || null);
+        }
       } finally {
         if (!cancelled) {
           setDetecting(false);
           setDetected(true);
         }
-        clearTimeout(timeout);
       }
     })();
 
     return () => {
       cancelled = true;
-      ctrl.abort();
-      clearTimeout(timeout);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
