@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState, useMemo } from "react";
 import {
   ArrowLeft, Star, Mail, Phone, MapPin, Clock, CheckCircle,
-  ShieldCheck, ArrowDown, Globe, Sparkles, Users, Award,
+  ShieldCheck, ArrowDown, Sparkles, BadgeCheck,
 } from "lucide-react";
 
 /* ───── Main Content ───── */
