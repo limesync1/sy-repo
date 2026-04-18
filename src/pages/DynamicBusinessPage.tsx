@@ -97,14 +97,14 @@ const DynamicBusinessContent = () => {
       <nav className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md" aria-label="Virksomhedsnavigation">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 min-w-0">
-            <Link to="/" aria-label="Tilbage til Serviceydere">
+            <Link to="/" aria-label="Tilbage til Serviceydere" className="transition-opacity hover:opacity-80">
               <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-8 md:h-9" />
             </Link>
             <Separator orientation="vertical" className="mx-1 h-5 hidden sm:block" />
             <span className="hidden truncate text-sm font-semibold text-foreground sm:inline">{business.name}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/search" className="hidden md:inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+            <Link to="/search" className="hidden md:inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:bg-secondary/70">
               <ArrowLeft className="h-3.5 w-3.5" /> Tilbage til søgning
             </Link>
             <CartSheet businessId={business.id} />
