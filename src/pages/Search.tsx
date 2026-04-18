@@ -31,6 +31,7 @@ import {
   List,
 } from "lucide-react";
 import ResultsMap from "@/components/search/ResultsMap";
+import SiteNav from "@/components/SiteNav";
 
 const CATEGORIES = [
   { label: "Rengøring", icon: Sparkles },
@@ -249,28 +250,7 @@ const SearchPage = () => {
         keywords={`serviceydere, ${selectedCategory || "find services"}, danmark, sammenlign, book online`}
       />
       {/* Header — matches landing */}
-      <nav className="border-b border-border bg-background/90 backdrop-blur-md sticky top-0 z-40">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-3.5">
-            <Link to="/" className="flex items-center" aria-label="Serviceydere">
-              <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-9 md:h-10" />
-            </Link>
-            <div className="hidden md:flex items-center gap-1">
-              <Link to="/search" className="rounded-full bg-secondary px-4 py-2 text-sm font-medium text-foreground">Find services</Link>
-              <Link to="/quote" className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground">Få tilbud</Link>
-              <Link to="/auth?role=business" className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground">Bliv udbyder</Link>
-            </div>
-            <div className="flex items-center gap-2">
-              <Link to="/auth">
-                <button className="rounded-full px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary active:bg-secondary/70">Log ind</button>
-              </Link>
-              <Link to="/auth?signup=1" className="hidden sm:inline-block">
-                <button className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80">Opret konto</button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <SiteNav active="search" />
 
       {/* Search hero — full-width search */}
       <section className="border-b border-border bg-secondary/30 py-10 md:py-12">
