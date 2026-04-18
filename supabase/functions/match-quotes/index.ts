@@ -10,12 +10,14 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { category, description } = await req.json();
+    const { category, description, location } = await req.json();
     if (!category || !description) {
       return new Response(JSON.stringify({ error: "category and description required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const userCity: string | null = location?.city || null;
+    const userZip: string | null = location?.zip || null;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -126,6 +128,7 @@ Kun inkluder services der er relevante for kundens behov. Udfyld KUN trin der ma
             role: "user",
             content: `Kundens behov:
 Kategori: ${category}
+${userCity || userZip ? `Kundens lokation: ${userZip || ""} ${userCity || ""} (PRIORITÉR udbydere i samme by/postnummer-område når det giver mening — men kvalitet og services må stadig veje tungest)` : ""}
 Beskrivelse: ${description}
 
 Tilgængelige virksomheder:

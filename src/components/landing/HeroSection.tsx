@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-home.jpg";
 import SearchSuggest from "./SearchSuggest";
+import LocationChip from "@/components/LocationChip";
 
 const HeroSection = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -83,6 +84,10 @@ const HeroSection = () => {
 
             <div className="mt-8">
               <SearchSuggest variant="hero" />
+              <div className="mt-3 flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Søger nær:</span>
+                <LocationChip />
+              </div>
             </div>
 
             {/* Trust strip */}

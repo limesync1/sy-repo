@@ -15,6 +15,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
 import CartSheet from "@/components/business/CartSheet";
 import SEO from "@/components/SEO";
+import LocationChip from "@/components/LocationChip";
+import { useUserLocation } from "@/contexts/LocationContext";
 
 const CATEGORIES: { label: string; icon: typeof Sparkles }[] = [
   { label: "Rengøring", icon: Sparkles },
@@ -102,6 +104,7 @@ const RequestQuote = () => {
   const [showAllServices, setShowAllServices] = useState(false);
   const { count } = useCart();
   const { user } = useAuth();
+  const { location } = useUserLocation();
 
   const handleFind = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,7 +120,13 @@ const RequestQuote = () => {
 
     try {
       const { data, error: fnError } = await supabase.functions.invoke("match-quotes", {
-        body: { category, description: description.trim() },
+        body: {
+          category,
+          description: description.trim(),
+          location: (location.city || location.zip)
+            ? { city: location.city, zip: location.zip }
+            : undefined,
+        },
       });
 
       if (fnError) throw fnError;
@@ -235,6 +244,13 @@ const RequestQuote = () => {
 
           {/* Form card */}
           <form onSubmit={handleFind} className="mt-10 rounded-3xl border border-border bg-card p-6 shadow-xl md:p-8">
+            {/* Location strip */}
+            <div className="mb-6 flex flex-wrap items-center gap-2 rounded-2xl bg-secondary/50 px-3 py-2">
+              <span className="text-xs font-medium text-muted-foreground">Din lokation:</span>
+              <LocationChip />
+              <span className="ml-auto text-[11px] text-muted-foreground">Vi prioriterer udbydere tæt på dig</span>
+            </div>
+
             {/* Step 1: Category */}
             <div>
               <div className="mb-3 flex items-center gap-2">

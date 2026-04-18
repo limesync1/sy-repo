@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { useAllBusinesses, type SortOption } from "@/hooks/useDatabase";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SearchSuggest from "@/components/landing/SearchSuggest";
 import FavoriteButton from "@/components/business/FavoriteButton";
+import LocationChip from "@/components/LocationChip";
+import { useUserLocation } from "@/contexts/LocationContext";
 import SEO from "@/components/SEO";
 import {
   Search as SearchIcon,
@@ -142,6 +144,29 @@ const SearchPage = () => {
     sort,
   );
 
+  const { location } = useUserLocation();
+
+  // Apply location-based ranking: boost businesses in the user's city/zip area.
+  const rankedBusinesses = useMemo(() => {
+    if (!businesses) return businesses;
+    if (!location.city && !location.zip) return businesses;
+    const cityLower = location.city?.toLowerCase() || "";
+    const zipPrefix = location.zip ? location.zip.slice(0, 2) : "";
+
+    const scored = businesses.map((b: any) => {
+      let locScore = 0;
+      const bCity = (b.city || "").toLowerCase();
+      const bZip = (b.zip_code || "").toString();
+      if (cityLower && bCity && bCity.includes(cityLower)) locScore += 20;
+      if (zipPrefix && bZip.startsWith(zipPrefix)) locScore += 10;
+      return { ...b, _locScore: locScore };
+    });
+
+    // Only re-rank when sort is "relevance" — respect user's explicit sort otherwise.
+    if (sort !== "relevance") return scored;
+    return [...scored].sort((a, b) => (b._locScore || 0) - (a._locScore || 0));
+  }, [businesses, location, sort]);
+
   const handleCategoryClick = (cat: string) =>
     setSelectedCategory(selectedCategory === cat ? "" : cat);
 
@@ -204,6 +229,10 @@ const SearchPage = () => {
           <p className="mb-6 text-sm text-muted-foreground md:text-base">Søg på service, virksomhed eller by — vi har 2.400+ udbydere på platformen.</p>
           <div className="mx-auto flex justify-center">
             <SearchSuggest variant="hero" defaultQuery={debouncedQuery} />
+          </div>
+          <div className="mt-3 flex items-center justify-center gap-2">
+            <span className="text-xs text-muted-foreground">Viser nær:</span>
+            <LocationChip />
           </div>
         </div>
       </section>
@@ -283,9 +312,9 @@ const SearchPage = () => {
               </div>
             ))}
           </div>
-        ) : businesses && businesses.length > 0 ? (
+        ) : rankedBusinesses && rankedBusinesses.length > 0 ? (
           <div className="grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {businesses.map((biz: any, i: number) => (
+            {rankedBusinesses.map((biz: any, i: number) => (
               <div key={biz.id} style={{ animation: `fade-in 0.4s ease-out ${Math.min(i, 8) * 50}ms both` }}>
                 <BusinessCard biz={biz} />
               </div>

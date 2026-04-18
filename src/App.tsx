@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
+import { LocationProvider } from "@/contexts/LocationContext";
 import Index from "./pages/Index";
 import BusinessPage from "./pages/BusinessPage";
 import DynamicBusinessPage from "./pages/DynamicBusinessPage";
@@ -21,8 +22,9 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <CartProvider>
-        <TooltipProvider>
+      <LocationProvider>
+        <CartProvider>
+          <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -38,9 +40,10 @@ const App = () => (
               <Route path="/b/:slug" element={<DynamicBusinessPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </CartProvider>
+            </BrowserRouter>
+          </TooltipProvider>
+        </CartProvider>
+      </LocationProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
