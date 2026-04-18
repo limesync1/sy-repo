@@ -15,6 +15,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
 import CartSheet from "@/components/business/CartSheet";
 import SEO from "@/components/SEO";
+import LocationChip from "@/components/LocationChip";
+import { useUserLocation } from "@/contexts/LocationContext";
 
 const CATEGORIES: { label: string; icon: typeof Sparkles }[] = [
   { label: "Rengøring", icon: Sparkles },
@@ -102,6 +104,7 @@ const RequestQuote = () => {
   const [showAllServices, setShowAllServices] = useState(false);
   const { count } = useCart();
   const { user } = useAuth();
+  const { location } = useUserLocation();
 
   const handleFind = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,7 +120,13 @@ const RequestQuote = () => {
 
     try {
       const { data, error: fnError } = await supabase.functions.invoke("match-quotes", {
-        body: { category, description: description.trim() },
+        body: {
+          category,
+          description: description.trim(),
+          location: (location.city || location.zip)
+            ? { city: location.city, zip: location.zip }
+            : undefined,
+        },
       });
 
       if (fnError) throw fnError;
