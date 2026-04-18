@@ -4,6 +4,7 @@ import {
   useMySubscriptions, useUpdateSubscription, useMyProfile, useUpdateProfile,
   useCreateReview, useMyOrders,
 } from "@/hooks/useDatabase";
+import { useMyFavorites, useToggleFavorite } from "@/hooks/useFavorites";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ import {
   CalendarClock, ArrowLeft, ExternalLink, ShieldCheck, Settings,
   Store, ChevronRight, Sparkles, ShoppingCart, Check, X,
   Clock, AlertTriangle, CheckCircle2, MessageSquare, FileText,
-  Bell, Mail, Shield, KeyRound,
+  Bell, Mail, Shield, KeyRound, Heart, Building2, MapPin, Trash2,
 } from "lucide-react";
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -39,7 +40,7 @@ const ORDER_STATUS: Record<string, { label: string; color: string; icon: typeof 
 
 const CustomerDashboard = () => {
   const { user, loading, signOut } = useAuth();
-  const [tab, setTab] = useState<"orders" | "subscriptions" | "profile">("orders");
+  const [tab, setTab] = useState<"orders" | "subscriptions" | "favorites" | "profile">("orders");
 
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-background">
@@ -54,6 +55,7 @@ const CustomerDashboard = () => {
   const tabs = [
     { key: "orders" as const, label: "Bestillinger", icon: ShoppingCart },
     { key: "subscriptions" as const, label: "Abonnementer", icon: Package },
+    { key: "favorites" as const, label: "Favoritter", icon: Heart },
     { key: "profile" as const, label: "Min profil", icon: Settings },
   ];
 
@@ -100,7 +102,7 @@ const CustomerDashboard = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-8 sm:flex sm:gap-2">
+        <div className="grid grid-cols-4 gap-2 mb-8 sm:flex sm:gap-2">
           {tabs.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -120,9 +122,107 @@ const CustomerDashboard = () => {
         <div className="pb-12">
           {tab === "orders" && <OrdersView />}
           {tab === "subscriptions" && <SubscriptionsView />}
+          {tab === "favorites" && <FavoritesView />}
           {tab === "profile" && <ProfileView />}
         </div>
       </div>
+    </div>
+  );
+};
+
+/* ════════════════════════════════════════════════ */
+/*  Favorites View                                  */
+/* ════════════════════════════════════════════════ */
+const FavoritesView = () => {
+  const { data: favorites, isLoading } = useMyFavorites();
+  const toggle = useToggleFavorite();
+
+  if (isLoading) return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {[1, 2, 3].map((i) => <div key={i} className="h-64 animate-pulse rounded-2xl bg-secondary/50" />)}
+    </div>
+  );
+
+  if (!favorites || favorites.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border py-16 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary mb-4">
+          <Heart className="h-8 w-8 text-muted-foreground/40" />
+        </div>
+        <h3 className="text-lg font-semibold text-foreground">Ingen favoritter endnu</h3>
+        <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+          Klik på hjertet på en virksomhed for at gemme den her.
+        </p>
+        <div className="mt-5">
+          <Link to="/search">
+            <Button variant="outline" className="gap-2 rounded-xl"><Store className="h-4 w-4" /> Find virksomheder</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {favorites.map((fav: any) => {
+        const biz = fav.businesses;
+        if (!biz) return null;
+        const cats: string[] = Array.isArray(biz.categories) && biz.categories.length > 0
+          ? biz.categories
+          : biz.category ? [biz.category] : [];
+        const primaryCat = cats[0];
+
+        return (
+          <Link key={fav.id} to={`/b/${biz.slug}`} className="group flex flex-col gap-3">
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-secondary">
+              {biz.cover_image_url ? (
+                <img src={biz.cover_image_url} alt={biz.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
+                  <Building2 className="h-14 w-14 text-muted-foreground/30" />
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle.mutate({ businessId: biz.id, isFavorited: true }); }}
+                disabled={toggle.isPending}
+                className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1.5 text-xs font-semibold text-foreground shadow-sm backdrop-blur transition hover:bg-card active:scale-95"
+                aria-label="Fjern fra favoritter"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> Fjern
+              </button>
+
+              {biz.is_verified && (
+                <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur">
+                  <ShieldCheck className="h-3 w-3 text-accent" /> Verificeret
+                </div>
+              )}
+
+              {biz.logo_url && (
+                <div className="absolute -bottom-5 left-4 h-14 w-14 overflow-hidden rounded-xl border-2 border-card bg-card shadow-md flex items-center justify-center">
+                  <img src={biz.logo_url} alt="" className="h-full w-full object-contain p-1.5" />
+                </div>
+              )}
+            </div>
+
+            <div className={`flex flex-col gap-1 px-1 ${biz.logo_url ? "pt-4" : ""}`}>
+              <h3 className="text-[15px] font-semibold tracking-tight text-foreground line-clamp-1">{biz.name}</h3>
+              {primaryCat && (
+                <span className="inline-flex w-fit items-center rounded-md bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">
+                  {primaryCat}
+                </span>
+              )}
+              {biz.city && (
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <MapPin className="h-3.5 w-3.5" />
+                  <span>{biz.city}</span>
+                </div>
+              )}
+            </div>
+          </Link>
+        );
+      })}
     </div>
   );
 };

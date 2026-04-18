@@ -1,5 +1,4 @@
 import HeroSection from "@/components/landing/HeroSection";
-import Stats from "@/components/landing/Stats";
 import HowItWorks from "@/components/landing/HowItWorks";
 import Categories from "@/components/landing/Categories";
 import RecentBusinesses from "@/components/landing/RecentBusinesses";
@@ -13,12 +12,11 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <HeroSection />
       <Categories />
+      <GetQuotes />
       <RecentBusinesses />
       <HowItWorks />
       <Testimonials />
-      <Stats />
       <WhyUs />
-      <GetQuotes />
       <Footer />
     </div>
   );

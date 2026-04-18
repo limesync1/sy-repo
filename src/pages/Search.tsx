@@ -4,6 +4,7 @@ import { useAllBusinesses, type SortOption } from "@/hooks/useDatabase";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SearchSuggest from "@/components/landing/SearchSuggest";
+import FavoriteButton from "@/components/business/FavoriteButton";
 import {
   Search as SearchIcon,
   MapPin,
@@ -17,7 +18,6 @@ import {
   Paintbrush,
   Droplets,
   Zap,
-  Heart,
   Building2,
   Hammer,
   X,
@@ -36,7 +36,6 @@ const CATEGORIES = [
 ];
 
 const BusinessCard = ({ biz }: { biz: any }) => {
-  const [liked, setLiked] = useState(false);
   const cats: string[] = Array.isArray(biz.categories) && biz.categories.length > 0
     ? biz.categories
     : biz.category ? [biz.category] : [];
@@ -61,13 +60,7 @@ const BusinessCard = ({ biz }: { biz: any }) => {
           </div>
         )}
 
-        <button
-          onClick={(e) => { e.preventDefault(); setLiked(!liked); }}
-          className="absolute right-3 top-3 transition-transform hover:scale-110 active:scale-95"
-          aria-label="Gem"
-        >
-          <Heart className={`h-7 w-7 stroke-[2] drop-shadow-md ${liked ? "fill-accent text-accent" : "fill-foreground/30 text-white"}`} />
-        </button>
+        <FavoriteButton businessId={biz.id} />
 
         {biz.is_verified && (
           <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur">
