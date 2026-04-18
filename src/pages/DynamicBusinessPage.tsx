@@ -375,11 +375,22 @@ const DynamicBusinessContent = () => {
 
           {/* ── Sidebar ── */}
           <aside className="space-y-5 lg:sticky lg:top-20 lg:self-start">
-            {/* Contact Card */}
-            <Card className="border-border overflow-hidden">
-              <div className="bg-foreground px-5 py-4">
-                <h3 className="font-bold text-background">Kontakt {business.name}</h3>
-                <p className="text-sm text-background/60">Har du spørgsmål? Kontakt os direkte.</p>
+            {/* Bestil/Contact Card — primary CTA */}
+            <Card className="border-2 border-accent/20 overflow-hidden shadow-lg">
+              <div className="bg-gradient-to-br from-accent/10 to-accent/5 px-5 py-4 border-b border-accent/15">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-accent" />
+                  <h3 className="font-bold text-foreground">Klar til at bestille?</h3>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">Vælg en service nedenfor eller kontakt {business.name} direkte.</p>
+                {services && services.length > 0 && (
+                  <Button
+                    onClick={scrollToServices}
+                    className="mt-3 w-full gap-2 rounded-xl bg-accent text-sm font-semibold text-accent-foreground hover:bg-accent/90"
+                  >
+                    Se {serviceCount} service{serviceCount === 1 ? "" : "s"} <ArrowDown className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
               <CardContent className="p-4 space-y-2">
                 {business.phone && (
@@ -468,9 +479,9 @@ const DynamicBusinessContent = () => {
         </div>
       </main>
 
-      <footer className="border-t border-border bg-foreground py-8">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center text-sm text-background/60">
-          <p>© {new Date().getFullYear()} {business.name} · Drevet af <Link to="/" className="font-medium text-background hover:underline">Serviceydere</Link></p>
+      <footer className="border-t border-border bg-secondary/40 py-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center text-sm text-muted-foreground">
+          <p>© {new Date().getFullYear()} {business.name} · Drevet af <Link to="/" className="font-medium text-foreground hover:underline">Serviceydere</Link></p>
         </div>
       </footer>
     </div>
