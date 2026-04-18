@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { Sparkles, Zap, ShieldCheck, ArrowRight, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -6,35 +6,82 @@ const GetQuotes = () => {
   return (
     <section className="bg-background py-16 md:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="rounded-3xl bg-secondary px-8 py-12 md:px-16 md:py-16">
-          <div className="grid items-center gap-8 md:grid-cols-[1.3fr_0.7fr]">
+        <div className="overflow-hidden rounded-3xl bg-foreground px-8 py-12 md:px-16 md:py-16">
+          <div className="grid items-center gap-10 md:grid-cols-[1.2fr_0.8fr]">
+            {/* Left */}
             <div>
-              <h2 className="mb-3 text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-                Beskriv opgaven – vi finder folkene.
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent">
+                <Sparkles className="h-3 w-3" />
+                AI-drevet matching
+              </span>
+              <h2 className="mt-4 text-3xl font-bold tracking-tight text-background md:text-4xl">
+                Beskriv opgaven – vores AI finder folkene.
               </h2>
-              <p className="mb-6 max-w-md text-base text-muted-foreground">
-                Modtag op til 3 skræddersyede tilbud fra verificerede serviceydere. Helt gratis & uforpligtende.
+              <p className="mt-4 max-w-md text-base text-background/70">
+                Fortæl kort hvad du har brug for. Vores AI matcher med op til 3 verificerede serviceydere på <span className="font-semibold text-background">3-10 sekunder</span> — helt gratis & uforpligtende.
               </p>
-              <Link to="/quote">
-                <Button size="lg" className="h-12 gap-2 rounded-full bg-accent px-7 text-sm font-semibold text-accent-foreground hover:bg-accent/90">
-                  Få tilbud nu
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link to="/quote">
+                  <Button size="lg" className="h-12 gap-2 rounded-full bg-accent px-7 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/20 hover:bg-accent/90">
+                    Prøv det gratis
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link to="/search">
+                  <Button size="lg" variant="outline" className="h-12 gap-2 rounded-full border-background/20 bg-transparent px-6 text-sm font-medium text-background hover:bg-background/10 hover:text-background">
+                    Browse virksomheder
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <div className="hidden md:flex md:justify-end">
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { v: "3", l: "tilbud" },
-                  { v: "24t", l: "responstid" },
-                  { v: "0 kr", l: "gebyr" },
-                  { v: "100%", l: "verificeret" },
-                ].map((s) => (
-                  <div key={s.l} className="rounded-2xl bg-card p-4 text-center shadow-sm">
-                    <div className="text-xl font-bold text-foreground">{s.v}</div>
-                    <div className="text-xs text-muted-foreground">{s.l}</div>
+
+            {/* Right — fake AI matching demo */}
+            <div className="relative">
+              <div className="rounded-2xl bg-background p-5 shadow-2xl">
+                <div className="mb-3 flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                    <Sparkles className="h-4 w-4" />
                   </div>
-                ))}
+                  <div className="flex-1">
+                    <div className="text-xs font-semibold text-foreground">AI matcher</div>
+                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <Clock className="h-3 w-3" /> Tilbud klar på 3-10 sek.
+                    </div>
+                  </div>
+                  <span className="flex h-2 w-2 animate-pulse rounded-full bg-accent" />
+                </div>
+
+                <div className="space-y-2">
+                  {[
+                    { name: "Ready2Clean", price: "1.450 kr", rating: "4.9", verified: true },
+                    { name: "Nordic Service", price: "1.620 kr", rating: "4.8", verified: true },
+                    { name: "Pro Helpers", price: "1.380 kr", rating: "4.7", verified: false },
+                  ].map((m, i) => (
+                    <div
+                      key={m.name}
+                      className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+                      style={{ animation: `fade-in 0.4s ease-out ${i * 120}ms both` }}
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-xs font-bold text-foreground">
+                        {m.name.charAt(0)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="truncate text-sm font-semibold text-foreground">{m.name}</span>
+                          {m.verified && <ShieldCheck className="h-3 w-3 shrink-0 text-accent" />}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground">★ {m.rating} · Bedste match</div>
+                      </div>
+                      <div className="text-sm font-bold text-foreground">{m.price}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-secondary py-2 text-xs font-medium text-muted-foreground">
+                  <Zap className="h-3 w-3 text-accent" />
+                  3 tilbud genereret på 4,2 sek.
+                </div>
               </div>
             </div>
           </div>
