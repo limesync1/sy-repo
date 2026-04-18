@@ -164,61 +164,67 @@ const RequestQuote = () => {
   });
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background">
-      {/* Animated gradient orbs */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="animate-magic-bg-1 absolute -left-[15%] -top-[20%] h-[600px] w-[600px] rounded-full bg-[hsl(184,90%,80%)] opacity-40 blur-[140px]" />
-        <div className="animate-magic-bg-2 absolute -right-[10%] top-[10%] h-[500px] w-[500px] rounded-full bg-[hsl(184,70%,85%)] opacity-30 blur-[130px]" />
-        <div className="animate-magic-bg-3 absolute -bottom-[15%] left-[20%] h-[550px] w-[550px] rounded-full bg-[hsl(190,80%,82%)] opacity-25 blur-[140px]" />
-      </div>
-
-      {/* Nav */}
-      <nav className="relative z-50 border-b border-border/50 bg-background/80 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="text-muted-foreground transition-colors hover:text-foreground">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <Link to="/">
-              <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-8" />
-            </Link>
-          </div>
-          <div className="flex items-center gap-2">
-            {count > 0 && <CartSheet />}
-            {user ? (
-              <Link to="/dashboard">
-                <Button size="sm" variant="outline">Mit panel</Button>
-              </Link>
-            ) : (
-              <Link to="/auth">
-                <Button size="sm" variant="outline">Log ind</Button>
-              </Link>
-            )}
-          </div>
+    <div className="min-h-screen bg-background">
+      {/* Dark hero — matches landing */}
+      <section className="relative overflow-hidden bg-foreground">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-32 top-10 h-[320px] w-[320px] rounded-full bg-accent/[0.06] blur-3xl" />
+          <div className="absolute -right-32 -top-10 h-[360px] w-[360px] rounded-full bg-accent/[0.04] blur-3xl" />
         </div>
-      </nav>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 md:py-20">
-        <div className="mx-auto max-w-4xl">
+        {/* Nav */}
+        <nav className="relative z-50">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 py-5">
+            <div className="flex items-center gap-6">
+              <Link to="/">
+                <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-9" />
+              </Link>
+              <Link to="/" className="hidden items-center gap-1.5 text-sm font-medium text-background/60 transition-colors hover:text-background sm:inline-flex">
+                <ArrowLeft className="h-4 w-4" /> Tilbage
+              </Link>
+            </div>
+            <div className="flex items-center gap-2">
+              {count > 0 && <CartSheet />}
+              {user ? (
+                <Link to="/dashboard">
+                  <Button size="sm" className="bg-background text-foreground font-semibold hover:bg-background/90">Mit panel</Button>
+                </Link>
+              ) : (
+                <Link to="/auth">
+                  <Button size="sm" className="bg-background text-foreground font-semibold hover:bg-background/90">Log ind</Button>
+                </Link>
+              )}
+            </div>
+          </div>
+        </nav>
+
+        {/* Hero text — only shown on initial step */}
+        {!matches && !isLoading && !selectedBusiness && (
+          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-12 pt-4 md:pb-16 md:pt-6">
+            <div className="grid items-end gap-6 md:grid-cols-[1fr_auto] md:gap-10">
+              <div>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-accent">Indhent tilbud</p>
+                <h1 className="text-3xl font-extrabold leading-[0.95] tracking-tight text-background md:text-5xl">
+                  Beskriv opgaven –<br />
+                  <span className="text-background/60">vi finder folkene.</span>
+                </h1>
+              </div>
+              <p className="max-w-xs text-sm text-background/60 md:text-right">
+                Vores AI matcher dig med op til 3 verificerede serviceydere på under 2 minutter.
+              </p>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+        <div className="mx-auto max-w-3xl">
 
           {/* ─── STEP 1: Search form ─── */}
           {!matches && !isLoading && !selectedBusiness && (
             <>
-              <div className="mb-10 text-center animate-fade-in">
-                <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-4 py-1.5 text-sm font-medium text-accent">
-                  <Sparkles className="h-4 w-4" />
-                  AI-drevet matching
-                </div>
-                <h1 className="mb-3 text-3xl font-bold tracking-tight text-foreground md:text-4xl lg:text-5xl">
-                  Find dine 3 bedste tilbud
-                </h1>
-                <p className="mx-auto max-w-md text-base text-muted-foreground md:text-lg">
-                  Beskriv dit behov — vores AI matcher dig med de bedste serviceydere.
-                </p>
-              </div>
-
-              <div className="mx-auto max-w-md animate-fade-in" style={{ animationDelay: '0.15s' }}>
-                <div className="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-xl shadow-accent/[0.03] backdrop-blur-sm md:p-8">
+              <div className="mx-auto max-w-xl animate-fade-in">
+                <div className="rounded-2xl border border-border bg-card p-6 shadow-xl md:p-8">
                   <form onSubmit={handleFind} className="space-y-5">
                     <div>
                       <label className="mb-1.5 block text-sm font-medium text-foreground">Kategori</label>
@@ -244,7 +250,7 @@ const RequestQuote = () => {
                     </div>
                     <Button
                       type="submit"
-                      className="w-full h-12 rounded-xl bg-accent text-accent-foreground text-base font-semibold shadow-[0_4px_20px_hsl(184_90%_42%/0.2)] transition-all hover:shadow-[0_4px_28px_hsl(184_90%_42%/0.35)] hover:brightness-105"
+                      className="h-12 w-full rounded-xl bg-accent text-base font-semibold text-accent-foreground shadow-lg shadow-accent/20 hover:bg-accent/90"
                     >
                       <span className="flex items-center gap-2">
                         <Sparkles className="h-5 w-5" />
