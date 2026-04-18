@@ -6,17 +6,39 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search as SearchIcon, ArrowLeft, MapPin, X, Star, Phone, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import {
+  Search as SearchIcon,
+  ArrowLeft,
+  MapPin,
+  X,
+  Star,
+  Phone,
+  ShieldCheck,
+  SlidersHorizontal,
+  Sparkles,
+  Wrench,
+  Truck,
+  TreePine,
+  Paintbrush,
+  Droplets,
+  Zap,
+  ShieldCheck as Shield,
+} from "lucide-react";
 
 const CATEGORIES = [
-  "Rengøring", "Håndværker", "Flyttehjælp", "Haveservice",
-  "Maler", "VVS", "Elektriker", "Sikkerhed",
+  { label: "Rengøring", icon: Sparkles },
+  { label: "Håndværker", icon: Wrench },
+  { label: "Flyttehjælp", icon: Truck },
+  { label: "Haveservice", icon: TreePine },
+  { label: "Maler", icon: Paintbrush },
+  { label: "VVS", icon: Droplets },
+  { label: "Elektriker", icon: Zap },
+  { label: "Sikkerhed", icon: Shield },
 ];
 
-const CATEGORY_ICONS: Record<string, string> = {
-  "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
-  "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
-};
+const ICON_BY_LABEL: Record<string, React.ComponentType<{ className?: string }>> = Object.fromEntries(
+  CATEGORIES.map((c) => [c.label, c.icon])
+);
 
 /* ── Highlight matching text ── */
 const highlight = (text: string, tokens: string[]) => {
@@ -39,11 +61,11 @@ const BusinessCard = ({ biz, tokens }: { biz: any; tokens: string[] }) => {
 
   return (
     <Link to={`/b/${biz.slug}`} className="group block">
-      <Card className="h-full overflow-hidden rounded-xl border-border transition-all group-hover:border-foreground/20 group-hover:shadow-lg">
+      <Card className="h-full overflow-hidden rounded-2xl border-border transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-foreground/20 group-hover:shadow-xl">
         <div className="flex flex-col sm:flex-row">
           <div className="relative h-44 w-full shrink-0 overflow-hidden bg-secondary sm:h-auto sm:w-48 md:w-56">
             {biz.cover_image_url ? (
-              <img src={biz.cover_image_url} alt={biz.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+              <img src={biz.cover_image_url} alt={biz.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
             ) : (
               <div className="flex h-full min-h-[120px] w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
                 {biz.logo_url ? (
@@ -54,21 +76,21 @@ const BusinessCard = ({ biz, tokens }: { biz: any; tokens: string[] }) => {
               </div>
             )}
             {biz.is_verified && (
-              <Badge className="absolute right-3 top-3 gap-1 border-none bg-background/80 text-foreground backdrop-blur-sm">
+              <Badge className="absolute right-3 top-3 gap-1 border-none bg-background/90 text-foreground backdrop-blur-sm">
                 <ShieldCheck className="h-3 w-3 text-accent" /> Verificeret
               </Badge>
             )}
           </div>
 
-          <CardContent className="flex flex-1 flex-col justify-center p-4 sm:p-5">
+          <CardContent className="flex flex-1 flex-col justify-center p-5">
             <div className="mb-1.5 flex items-start justify-between gap-2">
               <div className="flex items-center gap-3">
                 {biz.logo_url && (
-                  <div className="hidden h-10 w-10 shrink-0 rounded-lg border border-border bg-background sm:flex items-center justify-center">
+                  <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-background sm:flex">
                     <img src={biz.logo_url} alt="" className="h-8 w-8 rounded object-contain" />
                   </div>
                 )}
-                <h3 className="text-base font-bold text-foreground md:text-lg">{highlight(biz.name, tokens)}</h3>
+                <h3 className="text-base font-bold tracking-tight text-foreground md:text-lg">{highlight(biz.name, tokens)}</h3>
               </div>
               {reviewCount > 0 && (
                 <div className="flex shrink-0 items-center gap-1 text-sm">
@@ -101,12 +123,15 @@ const BusinessCard = ({ biz, tokens }: { biz: any; tokens: string[] }) => {
 
             {categories.length > 0 && (
               <div className="mt-2.5 flex flex-wrap gap-1.5">
-                {categories.map((cat) => (
-                  <span key={cat} className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/50 px-2.5 py-0.5 text-[11px] font-medium text-foreground">
-                    <span>{CATEGORY_ICONS[cat] || "📋"}</span>
-                    {cat}
-                  </span>
-                ))}
+                {categories.map((cat) => {
+                  const Icon = ICON_BY_LABEL[cat];
+                  return (
+                    <span key={cat} className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/50 px-2.5 py-0.5 text-[11px] font-medium text-foreground">
+                      {Icon && <Icon className="h-3 w-3" />}
+                      {cat}
+                    </span>
+                  );
+                })}
               </div>
             )}
           </CardContent>
@@ -166,74 +191,107 @@ const SearchPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="text-muted-foreground hover:text-foreground">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <Link to="/">
-              <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-8" />
+      {/* Dark hero banner — matches landing page */}
+      <section className="relative overflow-hidden bg-foreground">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-32 top-10 h-[320px] w-[320px] rounded-full bg-accent/[0.06] blur-3xl" />
+          <div className="absolute -right-32 -top-10 h-[360px] w-[360px] rounded-full bg-accent/[0.04] blur-3xl" />
+        </div>
+
+        <nav className="relative">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 md:px-8">
+            <div className="flex items-center gap-3">
+              <Link to="/" className="flex items-center gap-2 text-background/70 transition-colors hover:text-background">
+                <ArrowLeft className="h-5 w-5" />
+                <span className="hidden text-sm font-medium sm:inline">Tilbage</span>
+              </Link>
+              <Link to="/" className="ml-3">
+                <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-9" />
+              </Link>
+            </div>
+            <Link to="/auth">
+              <Button size="sm" className="bg-background text-foreground font-semibold hover:bg-background/90">
+                Log ind
+              </Button>
             </Link>
           </div>
-          <Link to="/auth">
-            <Button variant="outline" size="sm">Log ind</Button>
-          </Link>
-        </div>
-      </nav>
+        </nav>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
-        {/* Search bar */}
-        <div className="mx-auto mb-5 max-w-2xl">
-          <div className="relative">
-            <SearchIcon className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+        <div className="relative mx-auto max-w-4xl px-4 pb-12 pt-6 text-center md:pb-16 md:pt-10 md:px-8">
+          <h1 className="mb-3 text-4xl font-extrabold leading-[1.05] tracking-tight text-background md:text-5xl">
+            Find <span className="text-accent">serviceydere</span>
+          </h1>
+          <p className="mb-8 text-base text-background/60 md:text-lg">
+            Søg på navn, kategori, by eller postnummer
+          </p>
+
+          <div className="relative mx-auto max-w-2xl">
+            <SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Søg på navn, service, by eller postnummer…"
+              placeholder="F.eks. 'rengøring københavn' eller 'vvs 8000'"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className="h-13 rounded-xl border-border bg-card pl-11 pr-10 text-base shadow-sm focus-visible:ring-accent"
+              className="h-14 rounded-2xl border-background/10 bg-background pl-12 pr-12 text-base text-foreground shadow-2xl placeholder:text-muted-foreground focus-visible:ring-accent"
               autoFocus
             />
             {inputValue && (
               <button
                 onClick={() => { setInputValue(""); setDebouncedQuery(""); }}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                 aria-label="Ryd søgning"
               >
                 <X className="h-4 w-4" />
               </button>
             )}
           </div>
-          <p className="mt-2 text-center text-xs text-muted-foreground">
-            Tip: prøv "rengøring københavn" eller "vvs 8000"
-          </p>
         </div>
 
+        {/* Marquee */}
+        <div className="border-t border-background/10 bg-foreground py-3.5">
+          <div className="flex overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_10%,#000_90%,transparent)]">
+            <div className="flex shrink-0 animate-marquee items-center gap-12 pr-12">
+              {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((c, i) => (
+                <div key={i} className="flex items-center gap-3 whitespace-nowrap text-sm font-medium text-background/40">
+                  <span className="h-1.5 w-1.5 rounded-full bg-accent/60" />
+                  {c.label}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-7xl px-4 py-10 md:px-8">
         {/* Category filters */}
-        <div className="mb-5 flex flex-wrap justify-center gap-2">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => handleCategoryClick(cat)}
-              className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-all ${
-                selectedCategory === cat
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"
-              }`}
-            >
-              <span>{CATEGORY_ICONS[cat]}</span>
-              {cat}
-            </button>
-          ))}
+        <div className="mb-8 flex flex-wrap justify-center gap-2">
+          {CATEGORIES.map((cat) => {
+            const Icon = cat.icon;
+            const active = selectedCategory === cat.label;
+            return (
+              <button
+                key={cat.label}
+                onClick={() => handleCategoryClick(cat.label)}
+                className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                  active
+                    ? "border-foreground bg-foreground text-background shadow-md"
+                    : "border-border bg-card text-muted-foreground hover:-translate-y-0.5 hover:border-foreground/30 hover:text-foreground"
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {cat.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Result count + sort */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
             {!isLoading && (
               <span>
-                <span className="font-semibold text-foreground">{businesses?.length || 0}</span>{" "}
+                <span className="text-lg font-extrabold tracking-tight text-foreground">{businesses?.length || 0}</span>{" "}
                 resultat{businesses?.length !== 1 ? "er" : ""}
+                {selectedCategory && <> i <span className="font-semibold text-foreground">{selectedCategory}</span></>}
               </span>
             )}
             {hasFilters && (
@@ -246,7 +304,7 @@ const SearchPage = () => {
           <div className="flex items-center gap-2">
             <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
             <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
-              <SelectTrigger className="h-9 w-[170px] text-sm">
+              <SelectTrigger className="h-9 w-[170px] rounded-full text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -263,7 +321,7 @@ const SearchPage = () => {
         {isLoading ? (
           <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex h-44 animate-pulse overflow-hidden rounded-xl border border-border bg-card">
+              <div key={i} className="flex h-44 animate-pulse overflow-hidden rounded-2xl border border-border bg-card">
                 <div className="h-full w-48 shrink-0 bg-muted" />
                 <div className="flex-1 space-y-3 p-5">
                   <div className="h-5 w-2/3 rounded bg-muted" />
@@ -279,19 +337,23 @@ const SearchPage = () => {
           </div>
         ) : businesses && businesses.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
-            {businesses.map((biz: any) => (
-              <BusinessCard key={biz.id} biz={biz} tokens={tokens} />
+            {businesses.map((biz: any, i: number) => (
+              <div key={biz.id} style={{ animation: `fade-in 0.4s ease-out ${Math.min(i, 8) * 50}ms both` }}>
+                <BusinessCard biz={biz} tokens={tokens} />
+              </div>
             ))}
           </div>
         ) : (
-          <div className="py-16 text-center">
-            <SearchIcon className="mx-auto mb-4 h-12 w-12 text-muted-foreground/30" />
-            <p className="text-lg font-medium text-foreground">Ingen virksomheder fundet</p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {hasFilters ? "Prøv en anden søgning eller kategori" : "Der er endnu ingen registrerede virksomheder"}
+          <div className="rounded-2xl border border-dashed border-border bg-card/50 py-16 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
+              <SearchIcon className="h-7 w-7 text-muted-foreground/40" />
+            </div>
+            <p className="text-lg font-bold tracking-tight text-foreground">Ingen virksomheder fundet</p>
+            <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+              {hasFilters ? "Prøv en anden søgning eller fjern et filter for at se flere resultater." : "Der er endnu ingen registrerede virksomheder i denne kategori."}
             </p>
             {hasFilters && (
-              <Button variant="outline" className="mt-4" onClick={clearFilters}>
+              <Button variant="outline" className="mt-5 rounded-full" onClick={clearFilters}>
                 Ryd filtre
               </Button>
             )}
