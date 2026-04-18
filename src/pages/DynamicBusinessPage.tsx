@@ -386,7 +386,7 @@ const DynamicBusinessContent = () => {
                 {services && services.length > 0 && (
                   <Button
                     onClick={scrollToServices}
-                    className="mt-3 w-full gap-2 rounded-xl bg-accent text-sm font-semibold text-accent-foreground hover:bg-accent/90"
+                    className="mt-3 h-11 w-full gap-2 rounded-xl bg-accent text-sm font-semibold text-accent-foreground shadow-md shadow-accent/20 transition-all hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/30 active:scale-[0.98]"
                   >
                     Se {serviceCount} service{serviceCount === 1 ? "" : "s"} <ArrowDown className="h-4 w-4" />
                   </Button>

@@ -45,24 +45,24 @@ const StepperInput = ({
   const isLargeRange = (max - min) > 20;
 
   return (
-    <div className="flex items-center gap-0">
+    <div className="inline-flex items-center gap-0">
       <button type="button" onClick={dec} disabled={value <= min}
-        className="flex h-9 w-9 items-center justify-center rounded-l-lg border border-border bg-secondary text-foreground transition-colors hover:bg-secondary/80 disabled:opacity-30">
+        className="flex h-9 w-9 items-center justify-center rounded-l-lg border border-r-0 border-border bg-card text-foreground transition-colors hover:bg-secondary active:bg-secondary/70 disabled:opacity-30 disabled:hover:bg-card">
         <Minus className="h-3.5 w-3.5" />
       </button>
       {isLargeRange ? (
         <input type="number" value={value}
           onChange={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) onChange(Math.max(min, Math.min(max, v))); }}
           min={min} max={max} step={step}
-          className="flex h-9 w-[5rem] items-center border-y border-border bg-card px-2 text-center text-sm font-semibold text-foreground outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          className="flex h-9 w-[5rem] items-center border-y border-border bg-card px-2 text-center text-sm font-semibold text-foreground outline-none focus:bg-background [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         />
       ) : (
-        <div className="flex h-9 min-w-[4rem] items-center justify-center border-y border-border bg-card px-2 text-sm font-semibold text-foreground">
+        <div className="flex h-9 min-w-[3rem] items-center justify-center border-y border-border bg-card px-2 text-sm font-semibold text-foreground">
           {value}
         </div>
       )}
       <button type="button" onClick={inc} disabled={value >= max}
-        className="flex h-9 w-9 items-center justify-center rounded-r-lg border border-border bg-secondary text-foreground transition-colors hover:bg-secondary/80 disabled:opacity-30">
+        className="flex h-9 w-9 items-center justify-center rounded-r-lg border border-l-0 border-border bg-card text-foreground transition-colors hover:bg-secondary active:bg-secondary/70 disabled:opacity-30 disabled:hover:bg-card">
         <Plus className="h-3.5 w-3.5" />
       </button>
       <span className="ml-2 text-xs text-muted-foreground">{unit}</span>
@@ -296,10 +296,10 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
         <Button
           onClick={handleAdd}
           disabled={justAdded}
-          className={`w-full gap-2 transition-all ${
+          className={`h-11 w-full gap-2 rounded-xl text-sm font-semibold transition-all ${
             justAdded
               ? "bg-accent/80 text-accent-foreground"
-              : "bg-accent text-accent-foreground hover:bg-accent/90 hover:shadow-md"
+              : "bg-accent text-accent-foreground shadow-md shadow-accent/20 hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/30 active:scale-[0.98]"
           }`}
         >
           {justAdded ? (
