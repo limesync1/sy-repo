@@ -14,6 +14,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
 import CartSheet from "@/components/business/CartSheet";
+import SEO from "@/components/SEO";
 
 const CATEGORIES: { label: string; icon: typeof Sparkles }[] = [
   { label: "Rengøring", icon: Sparkles },
