@@ -6,11 +6,11 @@ import BusinessSEO from "@/components/business/BusinessSEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
+
 import { useState, useMemo } from "react";
 import {
   ArrowLeft, Star, Mail, Phone, MapPin, Clock, CheckCircle,
-  ShieldCheck, ArrowDown, Globe, Sparkles, Users, Award,
+  ShieldCheck, ArrowDown, Sparkles, BadgeCheck,
 } from "lucide-react";
 
 /* ───── Main Content ───── */
@@ -114,94 +114,124 @@ const DynamicBusinessContent = () => {
         </div>
       </nav>
 
-      {/* ── Hero (light) ── */}
-      <header className="relative overflow-hidden border-b border-border bg-background">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-10 md:pt-12 md:pb-14">
-          {/* Cover image — full width, contained */}
-          {hasCover && (
-            <div className="mb-8 overflow-hidden rounded-3xl">
-              <div className="relative aspect-[21/8] w-full bg-secondary md:aspect-[21/7]">
-                <img
-                  src={business.cover_image_url!}
-                  alt={`${business.name} cover`}
-                  className="h-full w-full object-cover"
-                  loading="eager"
-                />
-              </div>
+      {/* ── Hero ── */}
+      <header className="relative border-b border-border bg-background">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4 md:pt-6">
+          {/* Cover image with gradient */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-secondary via-secondary/60 to-accent/10">
+            <div className={`relative w-full ${hasCover ? "aspect-[21/8] md:aspect-[21/7]" : "h-32 md:h-40"}`}>
+              {hasCover && (
+                <>
+                  <img
+                    src={business.cover_image_url!}
+                    alt={`${business.name} cover`}
+                    className="h-full w-full object-cover"
+                    loading="eager"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent" />
+                </>
+              )}
             </div>
-          )}
+          </div>
 
-          <div className="flex flex-col items-start gap-5 md:flex-row md:items-end md:gap-7">
-            {business.logo_url && (
-              <div className="shrink-0 overflow-hidden rounded-2xl border border-border bg-card shadow-md flex items-center justify-center h-20 w-20 md:h-24 md:w-24">
-                <img src={business.logo_url} alt={`${business.name} logo`} className="h-full w-full object-contain p-2" loading="eager" />
+          {/* Logo overlaps cover */}
+          <div className="relative -mt-12 md:-mt-14 mb-4 md:mb-5 flex items-end">
+            <div className="relative shrink-0">
+              <div className="overflow-hidden rounded-2xl border-4 border-background bg-card shadow-xl flex items-center justify-center h-24 w-24 md:h-28 md:w-28">
+                {business.logo_url ? (
+                  <img src={business.logo_url} alt={`${business.name} logo`} className="h-full w-full object-contain p-2" loading="eager" />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-accent/20 to-accent/5 text-3xl font-extrabold text-accent">
+                    {business.name.charAt(0)}
+                  </div>
+                )}
               </div>
-            )}
+              {business.is_verified && (
+                <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-accent text-accent-foreground ring-4 ring-background shadow-md" title="Verificeret virksomhed">
+                  <BadgeCheck className="h-4 w-4" strokeWidth={3} />
+                </span>
+              )}
+            </div>
+          </div>
 
+          {/* Identity row — clean, below cover */}
+          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-6 pb-8 md:pb-10">
             <div className="min-w-0 flex-1">
               {(business.categories?.[0] || business.category) && (
-                <div className="mb-2 flex flex-wrap gap-1.5">
+                <div className="mb-2.5 flex flex-wrap gap-1.5">
                   {(business.categories?.length ? business.categories : [business.category]).filter(Boolean).slice(0, 3).map((c) => (
-                    <span key={c} className="inline-flex items-center rounded-md bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">
+                    <span key={c} className="inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-[11px] font-semibold text-foreground/70">
                       {c}
                     </span>
                   ))}
                 </div>
               )}
 
-              <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-foreground md:text-4xl lg:text-5xl">
-                {business.name}
-              </h1>
-
-              <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
-                {business.city && (
-                  <span className="flex items-center gap-1.5">
-                    <MapPin className="h-3.5 w-3.5" />{business.city}
-                  </span>
-                )}
-                {avgRating && (
-                  <span className="flex items-center gap-1.5">
-                    <Star className="h-3.5 w-3.5 fill-foreground text-foreground" />
-                    <span className="font-semibold text-foreground">{avgRating}</span>
-                    <span className="text-muted-foreground">({reviewCount} {reviewCount === 1 ? "anmeldelse" : "anmeldelser"})</span>
-                  </span>
-                )}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-foreground md:text-4xl lg:text-[2.75rem]">
+                  {business.name}
+                </h1>
                 {business.is_verified && (
-                  <Badge variant="outline" className="border-accent/40 bg-accent/10 text-accent text-xs gap-1 px-2 py-0.5">
-                    <ShieldCheck className="h-3 w-3" /> Verificeret
-                  </Badge>
-                )}
-                {!avgRating && (
-                  <span className="flex items-center gap-1.5 text-muted-foreground">
-                    <Sparkles className="h-3.5 w-3.5 text-accent" /> Ny på platformen
+                  <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2.5 py-1 text-xs font-semibold text-accent ring-1 ring-inset ring-accent/20">
+                    <BadgeCheck className="h-3.5 w-3.5" strokeWidth={2.75} />
+                    Verificeret
                   </span>
                 )}
               </div>
 
-              {services && services.length > 0 && (
-                <div className="mt-5 flex flex-wrap gap-2">
-                  <Button
-                    onClick={scrollToServices}
-                    size="lg"
-                    className="h-12 gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/20 transition-all hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/30 active:scale-[0.98]"
-                  >
-                    Bestil nu <ArrowDown className="h-4 w-4" />
-                  </Button>
-                  {business.phone && (
-                    <a href={`tel:${business.phone}`}>
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        className="h-12 gap-2 rounded-full border-border bg-card px-5 text-sm font-medium text-foreground transition-all hover:border-foreground/40 hover:bg-secondary hover:text-foreground active:scale-[0.98]"
-                      >
-                        <Phone className="h-4 w-4" /> Ring nu
-                      </Button>
-                    </a>
-                  )}
-                </div>
-              )}
+              <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
+                {avgRating ? (
+                  <span className="flex items-center gap-1">
+                    <Star className="h-4 w-4 fill-foreground text-foreground" />
+                    <span className="font-semibold text-foreground">{avgRating}</span>
+                    <span>· {reviewCount} {reviewCount === 1 ? "anmeldelse" : "anmeldelser"}</span>
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 text-accent" /> Ny på platformen
+                  </span>
+                )}
+                {business.city && (
+                  <>
+                    <span className="text-border">·</span>
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5" />{business.city}
+                    </span>
+                  </>
+                )}
+                {serviceCount > 0 && (
+                  <>
+                    <span className="text-border">·</span>
+                    <span>{serviceCount} {serviceCount === 1 ? "service" : "services"}</span>
+                  </>
+                )}
+              </div>
             </div>
+
+            {services && services.length > 0 && (
+              <div className="flex flex-wrap gap-2 shrink-0">
+                <Button
+                  onClick={scrollToServices}
+                  size="lg"
+                  className="h-12 gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/20 transition-all hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/30 active:scale-[0.98]"
+                >
+                  Bestil nu <ArrowDown className="h-4 w-4" />
+                </Button>
+                {business.phone && (
+                  <a href={`tel:${business.phone}`}>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="h-12 gap-2 rounded-full border-border bg-card px-5 text-sm font-medium text-foreground transition-all hover:border-foreground/40 hover:bg-secondary"
+                    >
+                      <Phone className="h-4 w-4" /> Ring
+                    </Button>
+                  </a>
+                )}
+              </div>
+            )}
           </div>
+
         </div>
       </header>
 
