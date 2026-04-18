@@ -13,6 +13,7 @@ import Admin from "./pages/Admin";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import Search from "./pages/Search";
 import RequestQuote from "./pages/RequestQuote";
+import Unsubscribe from "./pages/Unsubscribe";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="/demo" element={<BusinessPage />} />
               <Route path="/search" element={<Search />} />
               <Route path="/quote" element={<RequestQuote />} />
+              <Route path="/unsubscribe" element={<Unsubscribe />} />
               <Route path="/b/:slug" element={<DynamicBusinessPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
