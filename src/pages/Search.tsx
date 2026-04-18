@@ -139,6 +139,7 @@ const SearchPage = () => {
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [sort, setSort] = useState<SortOption>(initialSort);
+  const [view, setView] = useState<"grid" | "map">("grid");
 
   useEffect(() => {
     setDebouncedQuery(searchParams.get("q") || "");
@@ -202,10 +203,21 @@ const SearchPage = () => {
       if (within.length > 0) scored = within;
     }
 
+    // Distance sort — closest first; rows without a known distance go last.
+    if (sort === "distance") {
+      return [...scored].sort((a, b) => {
+        const da = a._distanceKm ?? Infinity;
+        const db = b._distanceKm ?? Infinity;
+        return da - db;
+      });
+    }
+
     // Only re-rank when sort is "relevance" — respect user's explicit sort otherwise.
     if (sort !== "relevance") return scored;
     return [...scored].sort((a, b) => (b._locScore || 0) - (a._locScore || 0));
   }, [businesses, location, radiusKm, sort]);
+
+  const userPoint = useMemo(() => lookupDkZip(location.zip), [location.zip]);
 
   const handleCategoryClick = (cat: string) =>
     setSelectedCategory(selectedCategory === cat ? "" : cat);
