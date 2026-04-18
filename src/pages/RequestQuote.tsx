@@ -17,6 +17,7 @@ import CartSheet from "@/components/business/CartSheet";
 import SEO from "@/components/SEO";
 import LocationChip from "@/components/LocationChip";
 import RadiusPicker from "@/components/RadiusPicker";
+import SiteNav from "@/components/SiteNav";
 import { useUserLocation } from "@/contexts/LocationContext";
 
 const CATEGORIES: { label: string; icon: typeof Sparkles }[] = [
@@ -200,31 +201,20 @@ const RequestQuote = () => {
         canonicalPath="/quote"
         keywords={`få tilbud, ${category || "serviceydere"}, AI matchning, gratis tilbud, danmark, sammenlign serviceydere`}
       />
-      {/* Sticky light nav — matches landing */}
-      <nav className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 py-3.5">
-          <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center" aria-label="Serviceydere forside">
-              <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-9 md:h-10" />
-            </Link>
-            <Link to="/" className="hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:inline-flex">
-              <ArrowLeft className="h-4 w-4" /> Forside
-            </Link>
-          </div>
-          <div className="flex items-center gap-2">
+      {/* Sticky light nav — shared site nav with working mobile menu */}
+      <SiteNav
+        active="quote"
+        right={
+          <>
             {count > 0 && <CartSheet />}
-            {user ? (
-              <Link to="/dashboard">
+            {user && (
+              <Link to="/dashboard" className="hidden sm:inline-block">
                 <Button size="sm" className="rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90">Mit panel</Button>
               </Link>
-            ) : (
-              <Link to="/auth">
-                <Button size="sm" className="rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90">Log ind</Button>
-              </Link>
             )}
-          </div>
-        </div>
-      </nav>
+          </>
+        }
+      />
 
       {/* ─── STEP 1: Hero + form ─── */}
       {!matches && !isLoading && !selectedBusiness && (

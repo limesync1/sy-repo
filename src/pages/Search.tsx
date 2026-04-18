@@ -31,6 +31,7 @@ import {
   List,
 } from "lucide-react";
 import ResultsMap from "@/components/search/ResultsMap";
+import SiteNav from "@/components/SiteNav";
 
 const CATEGORIES = [
   { label: "Rengøring", icon: Sparkles },
@@ -249,36 +250,15 @@ const SearchPage = () => {
         keywords={`serviceydere, ${selectedCategory || "find services"}, danmark, sammenlign, book online`}
       />
       {/* Header — matches landing */}
-      <nav className="border-b border-border bg-background/90 backdrop-blur-md sticky top-0 z-40">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-3.5">
-            <Link to="/" className="flex items-center" aria-label="Serviceydere">
-              <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-9 md:h-10" />
-            </Link>
-            <div className="hidden md:flex items-center gap-1">
-              <Link to="/search" className="rounded-full bg-secondary px-4 py-2 text-sm font-medium text-foreground">Find services</Link>
-              <Link to="/quote" className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground">Få tilbud</Link>
-              <Link to="/auth?role=business" className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground">Bliv udbyder</Link>
-            </div>
-            <div className="flex items-center gap-2">
-              <Link to="/auth">
-                <button className="rounded-full px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary active:bg-secondary/70">Log ind</button>
-              </Link>
-              <Link to="/auth?signup=1" className="hidden sm:inline-block">
-                <button className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80">Opret konto</button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <SiteNav active="search" />
 
       {/* Search hero — full-width search */}
-      <section className="border-b border-border bg-secondary/30 py-10 md:py-12">
+      <section className="border-b border-border bg-secondary/30 py-8 md:py-12">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="mb-2 text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+          <h1 className="mb-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
             Find verificerede serviceydere
           </h1>
-          <p className="mb-6 text-sm text-muted-foreground md:text-base">Søg på service, virksomhed eller by — vi har 2.400+ udbydere på platformen.</p>
+          <p className="mb-5 text-sm text-muted-foreground md:text-base">Søg på service, virksomhed eller by — vi har 2.400+ udbydere på platformen.</p>
           <div className="mx-auto flex justify-center">
             <SearchSuggest variant="hero" defaultQuery={debouncedQuery} />
           </div>
@@ -291,7 +271,7 @@ const SearchPage = () => {
       </section>
 
       {/* Sticky filter bar */}
-      <div className="sticky top-[65px] z-20 border-b border-border bg-background/95 backdrop-blur-md">
+      <div className="sticky top-14 sm:top-[65px] z-20 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 overflow-x-auto py-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {CATEGORIES.map((cat) => {
@@ -338,7 +318,7 @@ const SearchPage = () => {
 
           <div className="flex items-center gap-2">
             {/* View toggle: list / map */}
-            <div className="hidden sm:inline-flex rounded-full border border-border bg-card p-0.5 text-sm">
+            <div className="inline-flex rounded-full border border-border bg-card p-0.5 text-sm">
               <button
                 type="button"
                 onClick={() => setView("grid")}
@@ -365,7 +345,7 @@ const SearchPage = () => {
 
             <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
             <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
-              <SelectTrigger className="h-9 w-[170px] rounded-full text-sm">
+              <SelectTrigger className="h-9 w-[140px] sm:w-[170px] rounded-full text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
