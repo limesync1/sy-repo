@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Building2, Users, ShoppingCart, DollarSign, TrendingUp, MapPin, Tag, Star,
-  ArrowUp, ArrowDown, Minus, Repeat,
+  ArrowUp, ArrowDown, Minus,
 } from "lucide-react";
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line,
@@ -84,7 +84,7 @@ const KpiCard = ({
 
 const PlatformOverviewTab = () => {
   const { data, isLoading } = usePlatformData();
-  const { from, to, prevFrom, prevTo, inRange, inPrevRange, rangeLabel } = useAdminFilters();
+  const { from, to, inRange, inPrevRange, rangeLabel } = useAdminFilters();
 
   if (isLoading || !data) {
     return (

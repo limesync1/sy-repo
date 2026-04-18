@@ -88,7 +88,9 @@ const PlatformBusinessesTab = () => {
   const someSelected = selected.size > 0;
   const toggleAll = () => allSelected ? setSelected(new Set()) : setSelected(new Set(filtered.map((b) => b.id)));
   const toggleOne = (id: string, c: boolean) => {
-    const n = new Set(selected); c ? n.add(id) : n.delete(id); setSelected(n);
+    const n = new Set(selected);
+    if (c) n.add(id); else n.delete(id);
+    setSelected(n);
   };
 
   const handleExport = () => {
