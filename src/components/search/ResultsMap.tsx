@@ -124,7 +124,6 @@ const ResultsMap = ({ businesses, userPoint, radiusKm }: Props) => {
         zoom={9}
         className="h-[60vh] min-h-[320px] w-full sm:h-[480px]"
         scrollWheelZoom={false}
-        tap={true}
       >
         <InvalidateOnMount />
         <TileLayer
