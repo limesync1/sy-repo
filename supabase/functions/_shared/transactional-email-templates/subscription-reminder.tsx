@@ -93,7 +93,7 @@ const SubscriptionReminderEmail = ({
       <Body style={main}>
         <Container style={wrapper}>
           <Section style={headerBar}>
-            <Img src={LOGO_URL} alt={SITE_NAME} height="28" />
+            <Img src={LOGO_URL} alt={SITE_NAME} height="36" style={{ display: 'block' }} />
           </Section>
 
           <Container style={container}>
