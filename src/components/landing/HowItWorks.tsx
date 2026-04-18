@@ -1,4 +1,4 @@
-import { Search, BarChart3, CalendarCheck, ArrowRight } from "lucide-react";
+import { Search, BarChart3, CalendarCheck } from "lucide-react";
 
 const steps = [
   {
@@ -11,12 +11,12 @@ const steps = [
     icon: BarChart3,
     title: "Sammenlign",
     description: "Se priser, ægte anmeldelser og beregn pris direkte i appen.",
-    detail: "Ingen skjulte gebyrer. Du ser alt før booking.",
+    detail: "Ingen skjulte gebyrer – du ser alt før booking.",
   },
   {
     icon: CalendarCheck,
     title: "Book",
-    description: "Vælg den bedste og bestil med ét klik – med betaling efter levering.",
+    description: "Vælg den bedste og bestil med ét klik – betal efter levering.",
     detail: "Du får bekræftelse på mail med det samme.",
   },
 ];
@@ -39,30 +39,31 @@ const HowItWorks = () => {
           </p>
         </div>
 
-        {/* Steps with connecting line */}
-        <div className="relative mx-auto max-w-6xl">
-          <div className="absolute left-0 right-0 top-[88px] hidden h-px bg-gradient-to-r from-transparent via-border to-transparent md:block" />
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
-            {steps.map((step, i) => (
-              <div key={step.title} className="group relative">
-                {/* Big number */}
-                <div className="mb-6 flex items-center gap-4">
-                  <div className="relative flex h-[88px] w-[88px] items-center justify-center rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:border-foreground/20 group-hover:shadow-lg">
-                    <step.icon className="h-8 w-8 text-foreground" />
-                    <span className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">
-                      {i + 1}
-                    </span>
-                  </div>
-                  {i < steps.length - 1 && (
-                    <ArrowRight className="hidden h-5 w-5 text-muted-foreground/40 md:block" />
-                  )}
+        {/* Steps */}
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-3">
+          {steps.map((step, i) => (
+            <div
+              key={step.title}
+              className="group relative bg-card p-8 transition-colors hover:bg-secondary/40 md:p-10"
+            >
+              {/* Big step number */}
+              <div className="mb-8 flex items-baseline justify-between">
+                <span className="text-6xl font-extrabold leading-none tracking-tight text-muted-foreground/20 transition-colors group-hover:text-accent/40 md:text-7xl">
+                  0{i + 1}
+                </span>
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-background transition-all group-hover:border-foreground/20">
+                  <step.icon className="h-5 w-5 text-foreground" />
                 </div>
-                <h3 className="mb-2 text-2xl font-bold tracking-tight text-foreground">{step.title}</h3>
-                <p className="mb-3 text-base text-muted-foreground">{step.description}</p>
-                <p className="text-sm font-medium text-foreground/70">{step.detail}</p>
               </div>
-            ))}
-          </div>
+
+              <h3 className="mb-3 text-2xl font-bold tracking-tight text-foreground">{step.title}</h3>
+              <p className="mb-3 text-base text-muted-foreground">{step.description}</p>
+              <p className="text-sm font-medium text-foreground/70">{step.detail}</p>
+
+              {/* Bottom accent line */}
+              <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-accent transition-all duration-500 group-hover:w-full" />
+            </div>
+          ))}
         </div>
       </div>
     </section>

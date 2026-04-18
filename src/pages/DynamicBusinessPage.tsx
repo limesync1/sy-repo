@@ -93,40 +93,63 @@ const DynamicBusinessContent = () => {
         openingHours={business.opening_hours as Record<string, string> | undefined}
       />
 
-      {/* ── Sticky Nav ── */}
-      <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80" aria-label="Virksomhedsnavigation">
+      {/* ── Sticky Nav (dark, matches landing) ── */}
+      <nav className="sticky top-0 z-50 border-b border-background/10 bg-foreground/95 backdrop-blur supports-[backdrop-filter]:bg-foreground/85" aria-label="Virksomhedsnavigation">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8">
           <div className="flex items-center gap-3">
-            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Tilbage til forsiden">
+            <Link to="/" className="text-background/60 transition-colors hover:text-background" aria-label="Tilbage til forsiden">
               <ArrowLeft className="h-5 w-5" />
             </Link>
-            <Link to="/"><img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-7" /></Link>
-            <Separator orientation="vertical" className="mx-1 h-5 hidden sm:block" />
-            <span className="hidden text-sm font-medium text-foreground sm:inline">{business.name}</span>
+            <Link to="/"><img src="/serviceydere-logo.png" alt="Serviceydere" className="h-7" /></Link>
+            <Separator orientation="vertical" className="mx-1 h-5 hidden bg-background/20 sm:block" />
+            <span className="hidden text-sm font-medium text-background sm:inline">{business.name}</span>
           </div>
           <CartSheet businessId={business.id} />
         </div>
       </nav>
 
-      {/* ── Hero / Cover ── */}
-      <header className={`relative overflow-hidden ${hasCover ? "h-64 md:h-80 lg:h-[26rem]" : "h-48 md:h-60"}`}>
-        {hasCover ? (
-          <img src={business.cover_image_url!} alt={`${business.name} coverbillede`} className="absolute inset-0 h-full w-full object-cover" loading="eager" />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-foreground via-foreground/95 to-foreground/85" />
+      {/* ── Hero (dark, editorial — matches landing) ── */}
+      <header className="relative overflow-hidden bg-foreground">
+        {/* Cover as soft background */}
+        {hasCover && (
+          <div className="absolute inset-0">
+            <img
+              src={business.cover_image_url!}
+              alt=""
+              className="h-full w-full object-cover opacity-30"
+              loading="eager"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/70 to-foreground/40" />
+          </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/30 to-transparent" />
 
-        <div className="absolute inset-x-0 bottom-0 mx-auto max-w-7xl px-4 pb-7 md:px-8">
-          <div className="flex items-end gap-5">
+        {/* Soft accent blobs */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-32 top-10 h-[320px] w-[320px] rounded-full bg-accent/[0.06] blur-3xl" />
+          <div className="absolute -right-32 -top-10 h-[360px] w-[360px] rounded-full bg-accent/[0.04] blur-3xl" />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-16 lg:py-20">
+          <div className="flex flex-col items-start gap-6 md:flex-row md:items-end md:gap-8">
             {business.logo_url && (
-              <div className="shrink-0 rounded-2xl border-4 border-background bg-background shadow-2xl h-22 w-22 md:h-28 md:w-28 lg:h-32 lg:w-32 overflow-hidden">
-                <img src={business.logo_url} alt={`${business.name} logo`} className="h-full w-full rounded-xl object-contain p-1" loading="eager" />
+              <div className="shrink-0 overflow-hidden rounded-2xl border border-background/10 bg-background shadow-2xl h-20 w-20 md:h-28 md:w-28">
+                <img src={business.logo_url} alt={`${business.name} logo`} className="h-full w-full rounded-2xl object-contain p-1" loading="eager" />
               </div>
             )}
-            <div className="min-w-0 pb-1 flex-1">
-              <h1 className="text-2xl font-extrabold text-background drop-shadow-lg md:text-4xl lg:text-5xl">{business.name}</h1>
-              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-background/80">
+
+            <div className="min-w-0 flex-1 animate-fade-in">
+              {/* Category eyebrow */}
+              {(business.categories?.[0] || business.category) && (
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+                  {business.categories?.[0] || business.category}
+                </p>
+              )}
+
+              <h1 className="text-4xl font-extrabold leading-[0.95] tracking-tight text-background md:text-5xl lg:text-6xl">
+                {business.name}
+              </h1>
+
+              <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-background/70">
                 {business.city && (
                   <span className="flex items-center gap-1.5">
                     <MapPin className="h-3.5 w-3.5" />{business.city}
@@ -135,71 +158,87 @@ const DynamicBusinessContent = () => {
                 {avgRating && (
                   <span className="flex items-center gap-1.5">
                     <Star className="h-3.5 w-3.5 fill-accent text-accent" />
-                    {avgRating} <span className="text-background/60">({reviewCount})</span>
+                    <span className="font-semibold text-background">{avgRating}</span>
+                    <span className="text-background/50">({reviewCount})</span>
                   </span>
                 )}
                 {business.is_verified && (
-                  <Badge variant="outline" className="border-accent/50 bg-accent/20 text-accent text-xs gap-1 px-2 py-0.5">
+                  <Badge variant="outline" className="border-accent/40 bg-accent/15 text-accent text-xs gap-1 px-2 py-0.5">
                     <ShieldCheck className="h-3 w-3" /> Verificeret
                   </Badge>
                 )}
               </div>
+
               {services && services.length > 0 && (
-                <Button
-                  onClick={scrollToServices}
-                  size="sm"
-                  className="mt-4 gap-1.5 bg-background/95 text-foreground hover:bg-background shadow-lg backdrop-blur-sm"
-                >
-                  Se services <ArrowDown className="h-3.5 w-3.5" />
-                </Button>
+                <div className="mt-6 flex flex-wrap gap-2">
+                  <Button
+                    onClick={scrollToServices}
+                    size="lg"
+                    className="h-12 gap-1.5 rounded-xl bg-accent px-6 text-base font-semibold text-accent-foreground shadow-lg shadow-accent/20 hover:bg-accent/90"
+                  >
+                    Se services <ArrowDown className="h-4 w-4" />
+                  </Button>
+                  {business.phone && (
+                    <a href={`tel:${business.phone}`}>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="h-12 gap-1.5 rounded-xl border-background/15 bg-background/5 px-6 text-base font-medium text-background backdrop-blur hover:bg-background/10 hover:text-background"
+                      >
+                        <Phone className="h-4 w-4" /> Ring nu
+                      </Button>
+                    </a>
+                  )}
+                </div>
               )}
             </div>
           </div>
         </div>
       </header>
 
-      {/* ── Quick Stats Bar ── */}
-      {(serviceCount > 0 || reviewCount > 0 || business.is_verified) && (
-        <div className="border-b border-border bg-secondary/30">
-          <div className="mx-auto flex max-w-7xl items-center gap-6 overflow-x-auto px-4 py-3 md:px-8 scrollbar-hide">
-            {serviceCount > 0 && (
-              <div className="flex items-center gap-2 text-sm whitespace-nowrap">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
-                  <Sparkles className="h-4 w-4 text-accent" />
+      {/* ── Stats Bento Bar (matches landing Stats) ── */}
+      {(serviceCount > 0 || reviewCount > 0 || business.is_verified || categories.length > 0) && (
+        <div className="border-b border-border bg-background">
+          <div className="container mx-auto px-4">
+            <div className="grid divide-y divide-border md:grid-cols-4 md:divide-x md:divide-y-0">
+              {serviceCount > 0 && (
+                <div className="group relative overflow-hidden px-6 py-6 transition-colors hover:bg-secondary/40 md:py-8">
+                  <div className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">{serviceCount}</div>
+                  <div className="mt-1 text-sm font-semibold text-foreground">{serviceCount === 1 ? "Service" : "Services"}</div>
+                  <div className="text-xs text-muted-foreground">at vælge mellem</div>
+                  <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-accent transition-all duration-500 group-hover:w-full" />
                 </div>
-                <div>
-                  <span className="font-semibold text-foreground">{serviceCount}</span>
-                  <span className="ml-1 text-muted-foreground">{serviceCount === 1 ? "service" : "services"}</span>
+              )}
+              {reviewCount > 0 ? (
+                <div className="group relative overflow-hidden px-6 py-6 transition-colors hover:bg-secondary/40 md:py-8">
+                  <div className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">{avgRating}</div>
+                  <div className="mt-1 text-sm font-semibold text-foreground">Rating</div>
+                  <div className="text-xs text-muted-foreground">{reviewCount} {reviewCount === 1 ? "anmeldelse" : "anmeldelser"}</div>
+                  <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-accent transition-all duration-500 group-hover:w-full" />
                 </div>
+              ) : (
+                <div className="group relative overflow-hidden px-6 py-6 transition-colors hover:bg-secondary/40 md:py-8">
+                  <div className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">Ny</div>
+                  <div className="mt-1 text-sm font-semibold text-foreground">På platformen</div>
+                  <div className="text-xs text-muted-foreground">ingen anmeldelser endnu</div>
+                  <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-accent transition-all duration-500 group-hover:w-full" />
+                </div>
+              )}
+              <div className="group relative overflow-hidden px-6 py-6 transition-colors hover:bg-secondary/40 md:py-8">
+                <div className="flex items-center gap-2 text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
+                  {business.is_verified ? <Award className="h-7 w-7 text-accent" /> : <Sparkles className="h-7 w-7 text-muted-foreground" />}
+                </div>
+                <div className="mt-1 text-sm font-semibold text-foreground">{business.is_verified ? "Verificeret" : "Aktiv"}</div>
+                <div className="text-xs text-muted-foreground">{business.is_verified ? "godkendt af os" : "klar til opgaver"}</div>
+                <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-accent transition-all duration-500 group-hover:w-full" />
               </div>
-            )}
-            {reviewCount > 0 && (
-              <div className="flex items-center gap-2 text-sm whitespace-nowrap">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
-                  <Users className="h-4 w-4 text-accent" />
-                </div>
-                <div>
-                  <span className="font-semibold text-foreground">{reviewCount}</span>
-                  <span className="ml-1 text-muted-foreground">{reviewCount === 1 ? "anmeldelse" : "anmeldelser"}</span>
-                </div>
+              <div className="group relative overflow-hidden px-6 py-6 transition-colors hover:bg-secondary/40 md:py-8">
+                <div className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">{categories.length || 1}</div>
+                <div className="mt-1 text-sm font-semibold text-foreground">{categories.length === 1 ? "Kategori" : "Kategorier"}</div>
+                <div className="text-xs text-muted-foreground">af services</div>
+                <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-accent transition-all duration-500 group-hover:w-full" />
               </div>
-            )}
-            {business.is_verified && (
-              <div className="flex items-center gap-2 text-sm whitespace-nowrap">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
-                  <Award className="h-4 w-4 text-accent" />
-                </div>
-                <span className="font-medium text-foreground">Verificeret partner</span>
-              </div>
-            )}
-            {categories.length > 1 && (
-              <div className="flex items-center gap-2 text-sm whitespace-nowrap">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
-                  <Globe className="h-4 w-4 text-accent" />
-                </div>
-                <span className="font-medium text-foreground">{categories.length} kategorier</span>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       )}
