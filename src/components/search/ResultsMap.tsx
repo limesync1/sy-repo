@@ -1,10 +1,28 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Link } from "react-router-dom";
 import { Star } from "lucide-react";
 import { lookupDkZip } from "@/lib/dk-postcodes";
+
+// Force Leaflet to recompute its size once it mounts inside a flex/grid parent —
+// otherwise the tile layer can render blank or only the top-left tile on mobile.
+const InvalidateOnMount = () => {
+  const map = useMap();
+  useEffect(() => {
+    const t = setTimeout(() => map.invalidateSize(), 100);
+    const onResize = () => map.invalidateSize();
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+    };
+  }, [map]);
+  return null;
+};
 
 interface Props {
   businesses: any[];
@@ -84,14 +102,30 @@ const ResultsMap = ({ businesses, userPoint, radiusKm }: Props) => {
     ? [markers[0]._point.lat, markers[0]._point.lng]
     : [56.0, 11.5];
 
+  // Show an empty-state when there are no plottable markers — Leaflet would just
+  // render a blank map of Denmark which is confusing.
+  if (markers.length === 0 && !userPoint) {
+    return (
+      <div className="flex h-[300px] items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 text-center sm:h-[420px]">
+        <div className="px-6">
+          <p className="text-sm font-semibold text-foreground">Kortet kan ikke vises</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Ingen af resultaterne har et postnummer vi kan placere på kortet.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-hidden rounded-2xl border border-border shadow-sm">
       <MapContainer
         center={center}
         zoom={9}
-        style={{ height: "380px", width: "100%" }}
+        className="h-[60vh] min-h-[320px] w-full sm:h-[480px]"
         scrollWheelZoom={false}
       >
+        <InvalidateOnMount />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
