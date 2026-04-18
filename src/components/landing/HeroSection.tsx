@@ -101,7 +101,7 @@ const HeroSection = () => {
 
           {/* Right: hero image */}
           <div className="relative">
-            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl bg-secondary shadow-xl">
+            <div className="relative aspect-[5/4] w-full overflow-hidden rounded-3xl bg-secondary shadow-xl md:aspect-[4/3] lg:aspect-[5/4] lg:max-h-[480px]">
               <img
                 src={heroImage}
                 alt="Tilfreds dansk serviceyder klar til opgaven"
