@@ -271,7 +271,7 @@ const SearchPage = () => {
       </section>
 
       {/* Sticky filter bar */}
-      <div className="sticky top-[65px] z-20 border-b border-border bg-background/95 backdrop-blur-md">
+      <div className="sticky top-14 sm:top-[65px] z-20 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 overflow-x-auto py-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {CATEGORIES.map((cat) => {
@@ -318,7 +318,7 @@ const SearchPage = () => {
 
           <div className="flex items-center gap-2">
             {/* View toggle: list / map */}
-            <div className="hidden sm:inline-flex rounded-full border border-border bg-card p-0.5 text-sm">
+            <div className="inline-flex rounded-full border border-border bg-card p-0.5 text-sm">
               <button
                 type="button"
                 onClick={() => setView("grid")}
