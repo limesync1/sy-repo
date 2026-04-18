@@ -268,7 +268,7 @@ const RequestQuote = () => {
             <div className="mt-12 flex flex-col items-center gap-6 text-center animate-fade-in">
               <div className="relative">
                 <div className="absolute inset-0 animate-ping rounded-full bg-accent/15" />
-                <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-accent/20 bg-accent/5 shadow-[0_0_40px_hsl(184_90%_42%/0.15)]">
+                <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-accent/20 bg-accent/5 shadow-lg shadow-accent/20">
                   <Loader2 className="h-8 w-8 animate-spin text-accent" />
                 </div>
               </div>
