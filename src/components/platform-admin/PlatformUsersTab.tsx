@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, ShieldCheck, ShieldOff, Mail } from "lucide-react";
+import { Search, ShieldCheck, ShieldOff, Mail, Download } from "lucide-react";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { exportCsv } from "./lib/csv";
 
 interface AdminUser {
   user_id: string;
@@ -28,6 +30,7 @@ const roleColor = (role: string) =>
 const PlatformUsersTab = () => {
   const qc = useQueryClient();
   const [q, setQ] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "business_owner" | "user">("all");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["admin-users-rich"],
@@ -43,30 +46,58 @@ const PlatformUsersTab = () => {
       const { error } = await supabase.rpc("admin_set_user_role", { _user_id: userId, _role: role, _grant: grant });
       if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["admin-users-rich"] });
-      toast.success("Rolle opdateret");
-    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-users-rich"] }); toast.success("Rolle opdateret"); },
     onError: (e: any) => toast.error(e.message),
   });
 
-  const filtered = (data || []).filter((u) => {
-    if (!q.trim()) return true;
-    const s = q.toLowerCase();
-    return u.display_name?.toLowerCase().includes(s) ||
-           u.email?.toLowerCase().includes(s) ||
-           u.phone?.toLowerCase().includes(s);
-  });
+  const filtered = useMemo(() => {
+    return (data || []).filter((u) => {
+      if (roleFilter !== "all") {
+        if (roleFilter === "user") { if (u.roles.length > 0) return false; }
+        else if (!u.roles.includes(roleFilter)) return false;
+      }
+      if (!q.trim()) return true;
+      const s = q.toLowerCase();
+      return u.display_name?.toLowerCase().includes(s) || u.email?.toLowerCase().includes(s) || u.phone?.toLowerCase().includes(s);
+    });
+  }, [data, q, roleFilter]);
+
+  const handleExport = () => {
+    exportCsv("brugere", filtered.map((u) => ({
+      navn: u.display_name || "", email: u.email || "", telefon: u.phone || "",
+      roller: u.roles.join(", ") || "user",
+      tilmeldt: new Date(u.auth_created_at).toLocaleDateString("da-DK"),
+      sidst_logget_ind: u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString("da-DK") : "",
+      ordrer: u.orders_count, virksomheder: u.businesses_count,
+    })));
+  };
 
   return (
     <div className="space-y-4">
-      <div className="relative max-w-md">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Søg navn, email, telefon..." className="pl-9" />
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[240px] max-w-md">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Søg navn, email, telefon..." className="pl-9" />
+        </div>
+        <Select value={roleFilter} onValueChange={(v: any) => setRoleFilter(v)}>
+          <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Alle roller</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="business_owner">Virksomhedsejer</SelectItem>
+            <SelectItem value="user">Kunde</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
+          <Download className="h-3.5 w-3.5" /> CSV
+        </Button>
+        <div className="ml-auto text-xs text-muted-foreground">{filtered.length} brugere</div>
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Indlæser brugere...</p>
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-16 rounded-lg bg-secondary/40 animate-pulse" />)}
+        </div>
       ) : error ? (
         <p className="text-sm text-red-600">Fejl: {(error as Error).message}</p>
       ) : filtered.length === 0 ? (
@@ -105,6 +136,11 @@ const PlatformUsersTab = () => {
                     </p>
                   </div>
                   <div className="flex gap-1.5">
+                    {u.email && (
+                      <a href={`mailto:${u.email}`} className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground" title="Email">
+                        <Mail className="h-3.5 w-3.5" />
+                      </a>
+                    )}
                     <Button size="sm" variant="outline" className="h-8 gap-1.5"
                       onClick={() => setRole.mutate({ userId: u.user_id, role: "admin", grant: !isAdmin })}>
                       {isAdmin ? <ShieldOff className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
