@@ -17,12 +17,13 @@ const categories = [
 
 const Categories = () => {
   return (
-    <section className="bg-background pt-12 md:pt-16">
+    <section className="bg-background pt-8 md:pt-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-6">
+        <div className="mb-6 max-w-2xl">
           <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
             Udforsk kategorier
           </h2>
+          <p className="mt-1 text-sm text-muted-foreground">Klik en kategori for at finde udbydere i dit område.</p>
         </div>
 
         <HorizontalScroller>
