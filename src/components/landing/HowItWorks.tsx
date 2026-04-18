@@ -24,7 +24,7 @@ const steps = [
 const HowItWorks = () => {
   return (
     <section className="relative py-24 md:py-32">
-      <div className="container mx-auto px-4">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Editorial header */}
         <div className="mb-16 grid items-end gap-6 md:grid-cols-[1fr_auto] md:gap-12">
           <div>
@@ -40,7 +40,7 @@ const HowItWorks = () => {
         </div>
 
         {/* Steps */}
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-3">
           {steps.map((step, i) => (
             <div
               key={step.title}

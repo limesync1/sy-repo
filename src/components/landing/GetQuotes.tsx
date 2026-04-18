@@ -19,8 +19,8 @@ const GetQuotes = () => {
       {/* Grid overlay */}
       <div className="pointer-events-none absolute inset-0 opacity-[0.04] [background-image:linear-gradient(hsl(0_0%_100%)_1px,transparent_1px),linear-gradient(90deg,hsl(0_0%_100%)_1px,transparent_1px)] [background-size:48px_48px]" />
 
-      <div className="container relative mx-auto px-4">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-background/15 bg-background/5 px-3 py-1.5 backdrop-blur">
               <MessageSquarePlus className="h-3.5 w-3.5 text-accent" />

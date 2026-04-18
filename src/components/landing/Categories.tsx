@@ -21,7 +21,7 @@ const sizeClasses: Record<string, string> = {
 const Categories = () => {
   return (
     <section className="relative border-t border-border bg-secondary/40 py-24 md:py-32">
-      <div className="container mx-auto px-4">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-16 flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-accent">Udforsk</p>
@@ -37,7 +37,7 @@ const Categories = () => {
         </div>
 
         {/* Bento grid */}
-        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-3 md:grid-cols-4 md:auto-rows-[180px]">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:auto-rows-[180px]">
           {categories.map((cat) => (
             <Link
               key={cat.label}

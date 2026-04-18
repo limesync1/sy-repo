@@ -58,7 +58,7 @@ const RecentBusinesses = () => {
 
   return (
     <section className="border-t border-border bg-background py-24 md:py-32">
-      <div className="container mx-auto px-4">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-14 flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-accent">Nye på platformen</p>
@@ -73,7 +73,7 @@ const RecentBusinesses = () => {
           </Link>
         </div>
 
-        <div className="mx-auto grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {businesses.map((biz, i) => {
             const cat = biz.categories?.[0] ?? biz.category;
             return (

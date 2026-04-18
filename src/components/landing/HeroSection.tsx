@@ -41,7 +41,7 @@ const HeroSection = () => {
         <div className="absolute -right-32 top-40 h-[480px] w-[480px] rounded-full bg-accent/[0.04] blur-3xl" />
       </div>
 
-      <div className="container relative mx-auto px-4 pt-6 pb-16 md:pt-8 md:pb-24">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-16 md:pt-8 md:pb-24">
         <nav className="mb-12 flex items-center justify-between md:mb-16">
           <div className="flex items-center gap-8">
             <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-9 md:h-11" />
