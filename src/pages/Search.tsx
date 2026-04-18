@@ -146,28 +146,53 @@ const SearchPage = () => {
     sort,
   );
 
-  const { location } = useUserLocation();
+  const { location, radiusKm } = useUserLocation();
 
-  // Apply location-based ranking: boost businesses in the user's city/zip area.
+  // Apply location-based ranking + radius filtering.
+  // 1) When a radius is set AND the user has a known zip, drop businesses outside the radius.
+  // 2) Boost in-city/zip results when sort is "relevance".
+  // Falls back gracefully if a business has no zip (kept, but ranked lower).
   const rankedBusinesses = useMemo(() => {
     if (!businesses) return businesses;
-    if (!location.city && !location.zip) return businesses;
+
+    const userPoint = lookupDkZip(location.zip);
     const cityLower = location.city?.toLowerCase() || "";
     const zipPrefix = location.zip ? location.zip.slice(0, 2) : "";
 
-    const scored = businesses.map((b: any) => {
+    let scored = businesses.map((b: any) => {
+      // Distance — only meaningful when both points resolve.
+      let distanceKm: number | null = null;
+      if (userPoint) {
+        const bizPoint = lookupDkZip(b.zip_code);
+        if (bizPoint) distanceKm = haversineKm(userPoint, bizPoint);
+      } else if (location.zip) {
+        distanceKm = distanceBetweenZipsKm(location.zip, b.zip_code);
+      }
+
       let locScore = 0;
       const bCity = (b.city || "").toLowerCase();
       const bZip = (b.zip_code || "").toString();
       if (cityLower && bCity && bCity.includes(cityLower)) locScore += 20;
       if (zipPrefix && bZip.startsWith(zipPrefix)) locScore += 10;
-      return { ...b, _locScore: locScore };
+      // Closer = higher score (max +25 boost at 0 km, decays linearly to 0 at 100 km).
+      if (distanceKm !== null) {
+        locScore += Math.max(0, 25 - distanceKm / 4);
+      }
+      return { ...b, _locScore: locScore, _distanceKm: distanceKm };
     });
+
+    // Radius filter — only when user has a resolvable location AND a radius is chosen.
+    if (radiusKm !== null && userPoint) {
+      const within = scored.filter((b: any) => b._distanceKm !== null && b._distanceKm <= radiusKm);
+      // If we'd otherwise show 0 results, keep all so the user isn't left with nothing,
+      // and rely on ranking + the radius pill to communicate the filter.
+      if (within.length > 0) scored = within;
+    }
 
     // Only re-rank when sort is "relevance" — respect user's explicit sort otherwise.
     if (sort !== "relevance") return scored;
     return [...scored].sort((a, b) => (b._locScore || 0) - (a._locScore || 0));
-  }, [businesses, location, sort]);
+  }, [businesses, location, radiusKm, sort]);
 
   const handleCategoryClick = (cat: string) =>
     setSelectedCategory(selectedCategory === cat ? "" : cat);
