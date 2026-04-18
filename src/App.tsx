@@ -11,6 +11,7 @@ import BusinessPage from "./pages/BusinessPage";
 import DynamicBusinessPage from "./pages/DynamicBusinessPage";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import PlatformAdmin from "./pages/PlatformAdmin";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import Search from "./pages/Search";
 import RequestQuote from "./pages/RequestQuote";
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/platform-admin" element={<PlatformAdmin />} />
               <Route path="/dashboard" element={<CustomerDashboard />} />
               <Route path="/demo" element={<BusinessPage />} />
               <Route path="/search" element={<Search />} />
