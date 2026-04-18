@@ -95,7 +95,7 @@ const DynamicBusinessContent = () => {
 
       {/* ── Sticky Nav (dark, matches landing) ── */}
       <nav className="sticky top-0 z-50 border-b border-background/10 bg-foreground/95 backdrop-blur supports-[backdrop-filter]:bg-foreground/85" aria-label="Virksomhedsnavigation">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <Link to="/" className="text-background/60 transition-colors hover:text-background" aria-label="Tilbage til forsiden">
               <ArrowLeft className="h-5 w-5" />
@@ -129,7 +129,7 @@ const DynamicBusinessContent = () => {
           <div className="absolute -right-32 -top-10 h-[360px] w-[360px] rounded-full bg-accent/[0.04] blur-3xl" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-16 lg:py-20">
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
           <div className="flex flex-col items-start gap-6 md:flex-row md:items-end md:gap-8">
             {business.logo_url && (
               <div className="shrink-0 overflow-hidden rounded-2xl border border-background/10 bg-background shadow-2xl h-20 w-20 md:h-28 md:w-28">
@@ -199,7 +199,7 @@ const DynamicBusinessContent = () => {
       {/* ── Stats Bento Bar (matches landing Stats) ── */}
       {(serviceCount > 0 || reviewCount > 0 || business.is_verified || categories.length > 0) && (
         <div className="border-b border-border bg-background">
-          <div className="container mx-auto px-4">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid divide-y divide-border md:grid-cols-4 md:divide-x md:divide-y-0">
               {serviceCount > 0 && (
                 <div className="group relative overflow-hidden px-6 py-6 transition-colors hover:bg-secondary/40 md:py-8">
@@ -244,7 +244,7 @@ const DynamicBusinessContent = () => {
       )}
 
       {/* ── Body ── */}
-      <main className="mx-auto max-w-7xl px-4 md:px-8">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-8 py-8 md:gap-10 md:py-12 lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_380px]">
 
           {/* ── Main Column ── */}
@@ -508,7 +508,7 @@ const DynamicBusinessContent = () => {
       </main>
 
       <footer className="border-t border-border bg-foreground py-8">
-        <div className="mx-auto max-w-7xl px-4 text-center text-sm text-background/60 md:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center text-sm text-background/60">
           <p>© {new Date().getFullYear()} {business.name} · Drevet af <Link to="/" className="font-medium text-background hover:underline">Serviceydere</Link></p>
         </div>
       </footer>

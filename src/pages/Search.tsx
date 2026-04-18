@@ -199,7 +199,7 @@ const SearchPage = () => {
         </div>
 
         <nav className="relative">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 md:px-8">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3">
               <Link to="/" className="flex items-center gap-2 text-background/70 transition-colors hover:text-background">
                 <ArrowLeft className="h-5 w-5" />
@@ -217,7 +217,7 @@ const SearchPage = () => {
           </div>
         </nav>
 
-        <div className="relative mx-auto max-w-4xl px-4 pb-12 pt-6 text-center md:pb-16 md:pt-10 md:px-8">
+        <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-6 text-center sm:px-6 lg:px-8 md:pb-16 md:pt-10">
           <h1 className="mb-3 text-4xl font-extrabold leading-[1.05] tracking-tight text-background md:text-5xl">
             Find <span className="text-accent">serviceydere</span>
           </h1>
@@ -261,7 +261,7 @@ const SearchPage = () => {
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-4 py-10 md:px-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
         {/* Category filters */}
         <div className="mb-8 flex flex-wrap justify-center gap-2">
           {CATEGORIES.map((cat) => {
