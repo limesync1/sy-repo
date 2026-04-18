@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Navigate, Link, useSearchParams } from "react-router-dom";
 import { Building2, User, ArrowLeft, ShieldCheck, Star, Sparkles, CheckCircle } from "lucide-react";
+import SEO from "@/components/SEO";
 
 const Auth = () => {
   const { user, loading, signIn, signUp } = useAuth();
@@ -49,6 +50,12 @@ const Auth = () => {
 
   return (
     <div className="flex min-h-screen">
+      <SEO
+        title={isSignUp ? "Opret konto – Serviceydere" : "Log ind – Serviceydere"}
+        description={isSignUp ? "Opret en konto på Serviceydere og kom i gang med at finde de bedste serviceydere i Danmark." : "Log ind på din Serviceydere-konto for at administrere bestillinger, abonnementer og favoritter."}
+        canonicalPath="/auth"
+        noIndex
+      />
       {/* ── Left: Branding panel ── */}
       <div className="hidden lg:flex lg:w-[45%] xl:w-[42%] flex-col justify-between bg-[hsl(222,47%,11%)] px-10 py-8 relative overflow-hidden">
         {/* Decorative blobs */}

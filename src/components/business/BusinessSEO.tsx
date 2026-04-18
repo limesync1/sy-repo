@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import SEO from "@/components/SEO";
 
 interface BusinessSEOProps {
   name: string;
@@ -14,70 +14,132 @@ interface BusinessSEOProps {
   reviewCount?: number;
   slug: string;
   openingHours?: Record<string, string>;
+  categories?: string[];
+  services?: { name: string; description?: string | null; base_price?: number | null }[];
 }
+
+const DAY_MAP: Record<string, string> = {
+  monday: "Mo", mandag: "Mo",
+  tuesday: "Tu", tirsdag: "Tu",
+  wednesday: "We", onsdag: "We",
+  thursday: "Th", torsdag: "Th",
+  friday: "Fr", fredag: "Fr",
+  saturday: "Sa", lørdag: "Sa",
+  sunday: "Su", søndag: "Su",
+};
+
+const formatHours = (hours?: Record<string, string>): string[] | undefined => {
+  if (!hours) return undefined;
+  const out: string[] = [];
+  Object.entries(hours).forEach(([day, val]) => {
+    const code = DAY_MAP[day.toLowerCase()];
+    if (code && val && /\d/.test(val)) {
+      // Try "08:00 - 17:00" / "08-17"
+      const m = val.match(/(\d{1,2})[:.]?(\d{0,2})\s*[-–]\s*(\d{1,2})[:.]?(\d{0,2})/);
+      if (m) {
+        const op = `${m[1].padStart(2, "0")}:${(m[2] || "00").padStart(2, "0")}`;
+        const cl = `${m[3].padStart(2, "0")}:${(m[4] || "00").padStart(2, "0")}`;
+        out.push(`${code} ${op}-${cl}`);
+      }
+    }
+  });
+  return out.length ? out : undefined;
+};
 
 const BusinessSEO = ({
   name, description, city, address, zipCode, phone, email,
   logoUrl, coverImageUrl, avgRating, reviewCount, slug, openingHours,
+  categories, services,
 }: BusinessSEOProps) => {
-  useEffect(() => {
-    // Dynamic title & meta
-    const prevTitle = document.title;
-    const metaDesc = document.querySelector('meta[name="description"]');
-    const prevDesc = metaDesc?.getAttribute("content") || "";
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://serviceydere.dk";
+  const businessUrl = `${origin}/b/${slug}`;
 
-    const title = `${name}${city ? ` i ${city}` : ""} | Serviceydere`;
-    const desc = description
-      ? `${description.slice(0, 140)}${description.length > 140 ? "…" : ""}`
-      : `Find og book services hos ${name}${city ? ` i ${city}` : ""} på Serviceydere.`;
+  const title = `${name}${city ? ` i ${city}` : ""} – Book online`;
+  const desc = description
+    ? description.replace(/\s+/g, " ").slice(0, 155).trim()
+    : `Book ${name}${city ? ` i ${city}` : ""} online${categories?.length ? ` – ${categories.slice(0, 2).join(", ")}` : ""}. Se priser, anmeldelser og åbningstider på Serviceydere.`;
 
-    document.title = title;
-    if (metaDesc) metaDesc.setAttribute("content", desc);
-
-    // JSON-LD structured data
-    const jsonLd: Record<string, unknown> = {
-      "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      name,
-      url: `${window.location.origin}/b/${slug}`,
+  const localBusinessLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "@id": businessUrl,
+    name,
+    url: businessUrl,
+  };
+  if (description) localBusinessLd.description = description;
+  if (address || city || zipCode) {
+    localBusinessLd.address = {
+      "@type": "PostalAddress",
+      ...(address && { streetAddress: address }),
+      ...(zipCode && { postalCode: zipCode }),
+      ...(city && { addressLocality: city }),
+      addressCountry: "DK",
     };
-    if (description) jsonLd.description = description;
-    if (address) {
-      jsonLd.address = {
-        "@type": "PostalAddress",
-        streetAddress: address,
-        ...(zipCode && { postalCode: zipCode }),
-        ...(city && { addressLocality: city }),
-        addressCountry: "DK",
-      };
-    }
-    if (phone) jsonLd.telephone = phone;
-    if (email) jsonLd.email = email;
-    if (logoUrl) jsonLd.logo = logoUrl;
-    if (coverImageUrl) jsonLd.image = coverImageUrl;
-    if (avgRating && reviewCount) {
-      jsonLd.aggregateRating = {
-        "@type": "AggregateRating",
-        ratingValue: avgRating,
-        reviewCount,
-        bestRating: "5",
-        worstRating: "1",
-      };
-    }
-
-    const script = document.createElement("script");
-    script.type = "application/ld+json";
-    script.textContent = JSON.stringify(jsonLd);
-    document.head.appendChild(script);
-
-    return () => {
-      document.title = prevTitle;
-      if (metaDesc) metaDesc.setAttribute("content", prevDesc);
-      script.remove();
+  }
+  if (phone) localBusinessLd.telephone = phone;
+  if (email) localBusinessLd.email = email;
+  if (logoUrl) localBusinessLd.logo = logoUrl;
+  if (coverImageUrl || logoUrl) localBusinessLd.image = coverImageUrl || logoUrl;
+  if (avgRating && reviewCount) {
+    localBusinessLd.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: avgRating,
+      reviewCount,
+      bestRating: "5",
+      worstRating: "1",
     };
-  }, [name, description, city, address, zipCode, phone, email, logoUrl, coverImageUrl, avgRating, reviewCount, slug]);
+  }
+  const hours = formatHours(openingHours);
+  if (hours) localBusinessLd.openingHours = hours;
+  if (categories?.length) localBusinessLd.keywords = categories.join(", ");
 
-  return null;
+  const breadcrumbsLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Forside", item: origin + "/" },
+      { "@type": "ListItem", position: 2, name: "Find services", item: origin + "/search" },
+      ...(categories?.[0]
+        ? [{ "@type": "ListItem", position: 3, name: categories[0], item: `${origin}/search?category=${encodeURIComponent(categories[0])}` }]
+        : []),
+      { "@type": "ListItem", position: categories?.[0] ? 4 : 3, name, item: businessUrl },
+    ],
+  };
+
+  const ldArr: Record<string, unknown>[] = [localBusinessLd, breadcrumbsLd];
+
+  if (services?.length) {
+    services.slice(0, 10).forEach((s) => {
+      const offer: Record<string, unknown> = {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        name: s.name,
+        provider: { "@type": "LocalBusiness", name, url: businessUrl },
+      };
+      if (s.description) offer.description = s.description;
+      if (s.base_price) {
+        offer.offers = {
+          "@type": "Offer",
+          price: String(s.base_price),
+          priceCurrency: "DKK",
+          availability: "https://schema.org/InStock",
+        };
+      }
+      ldArr.push(offer);
+    });
+  }
+
+  return (
+    <SEO
+      title={title}
+      description={desc}
+      canonicalPath={`/b/${slug}`}
+      image={coverImageUrl || logoUrl || undefined}
+      ogType="profile"
+      keywords={[name, ...(categories || []), city, "book online", "serviceydere"].filter(Boolean).join(", ")}
+      jsonLd={ldArr}
+    />
+  );
 };
 
 export default BusinessSEO;

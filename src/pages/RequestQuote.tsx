@@ -14,6 +14,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
 import CartSheet from "@/components/business/CartSheet";
+import SEO from "@/components/SEO";
 
 const CATEGORIES: { label: string; icon: typeof Sparkles }[] = [
   { label: "Rengøring", icon: Sparkles },
@@ -180,6 +181,14 @@ const RequestQuote = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={category ? `Få tilbud på ${category} – AI-matchning` : "Få op til 3 gratis tilbud – AI-matchning"}
+        description={category
+          ? `Beskriv din opgave og få op til 3 skræddersyede tilbud på ${category} fra verificerede serviceydere. Helt gratis og uforpligtende.`
+          : "Beskriv din opgave og få op til 3 skræddersyede tilbud fra verificerede serviceydere i Danmark. Helt gratis og uforpligtende — klar på 3-10 sekunder."}
+        canonicalPath="/quote"
+        keywords={`få tilbud, ${category || "serviceydere"}, AI matchning, gratis tilbud, danmark, sammenlign serviceydere`}
+      />
       {/* Sticky light nav — matches landing */}
       <nav className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 py-3.5">

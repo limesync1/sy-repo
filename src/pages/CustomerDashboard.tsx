@@ -23,6 +23,7 @@ import {
   Clock, AlertTriangle, CheckCircle2, MessageSquare, FileText,
   Bell, Mail, Shield, KeyRound, Heart, Building2, MapPin, Trash2,
 } from "lucide-react";
+import SEO from "@/components/SEO";
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   active: { label: "Aktiv", variant: "default" },
@@ -61,6 +62,12 @@ const CustomerDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Mit kundepanel – Serviceydere"
+        description="Administrer dine bestillinger, abonnementer og favoritter på Serviceydere."
+        canonicalPath="/dashboard"
+        noIndex
+      />
       <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
