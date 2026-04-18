@@ -50,7 +50,7 @@ const highlight = (text: string, tokens: string[]) => {
   );
 };
 
-/* ── Business Card ── */
+/* ── Business Card (vertical, matches RecentBusinesses on landing) ── */
 const BusinessCard = ({ biz, tokens }: { biz: any; tokens: string[] }) => {
   const avgRating = biz._avgRating || 0;
   const reviewCount = biz._reviewCount || 0;
@@ -60,83 +60,66 @@ const BusinessCard = ({ biz, tokens }: { biz: any; tokens: string[] }) => {
     : biz.category ? [biz.category] : [];
 
   return (
-    <Link to={`/b/${biz.slug}`} className="group block">
-      <Card className="h-full overflow-hidden rounded-2xl border-border transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-foreground/20 group-hover:shadow-xl">
-        <div className="flex flex-col sm:flex-row">
-          <div className="relative h-44 w-full shrink-0 overflow-hidden bg-secondary sm:h-auto sm:w-48 md:w-56">
-            {biz.cover_image_url ? (
-              <img src={biz.cover_image_url} alt={biz.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+    <Link
+      to={`/b/${biz.slug}`}
+      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-foreground/20 hover:shadow-xl"
+    >
+      {/* Cover */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-secondary">
+        {biz.cover_image_url ? (
+          <img
+            src={biz.cover_image_url}
+            alt={biz.name}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
+            {biz.logo_url ? (
+              <img src={biz.logo_url} alt="" className="h-16 w-16 object-contain opacity-60" />
             ) : (
-              <div className="flex h-full min-h-[120px] w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
-                {biz.logo_url ? (
-                  <img src={biz.logo_url} alt={biz.name} className="h-14 w-14 rounded-xl object-contain opacity-50" />
-                ) : (
-                  <span className="text-3xl font-bold text-muted-foreground/20">{biz.name.charAt(0)}</span>
-                )}
-              </div>
-            )}
-            {biz.is_verified && (
-              <Badge className="absolute right-3 top-3 gap-1 border-none bg-background/90 text-foreground backdrop-blur-sm">
-                <ShieldCheck className="h-3 w-3 text-accent" /> Verificeret
-              </Badge>
+              <span className="text-4xl font-bold text-muted-foreground/20">{biz.name.charAt(0)}</span>
             )}
           </div>
+        )}
+        {biz.is_verified && (
+          <Badge className="absolute right-3 top-3 gap-1 border-none bg-background/90 text-foreground backdrop-blur-sm">
+            <ShieldCheck className="h-3 w-3 text-accent" /> Verificeret
+          </Badge>
+        )}
+      </div>
 
-          <CardContent className="flex flex-1 flex-col justify-center p-5">
-            <div className="mb-1.5 flex items-start justify-between gap-2">
-              <div className="flex items-center gap-3">
-                {biz.logo_url && (
-                  <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-background sm:flex">
-                    <img src={biz.logo_url} alt="" className="h-8 w-8 rounded object-contain" />
-                  </div>
-                )}
-                <h3 className="text-base font-bold tracking-tight text-foreground md:text-lg">{highlight(biz.name, tokens)}</h3>
-              </div>
-              {reviewCount > 0 && (
-                <div className="flex shrink-0 items-center gap-1 text-sm">
-                  <Star className="h-3.5 w-3.5 fill-accent text-accent" />
-                  <span className="font-semibold text-foreground">{avgRating.toFixed(1)}</span>
-                  <span className="text-xs text-muted-foreground">({reviewCount})</span>
-                </div>
-              )}
+      {/* Body */}
+      <div className="flex flex-1 flex-col gap-2 p-4">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="text-base font-bold tracking-tight text-foreground line-clamp-1">
+            {highlight(biz.name, tokens)}
+          </h3>
+          {reviewCount > 0 && (
+            <div className="flex shrink-0 items-center gap-0.5 text-xs">
+              <Star className="h-3 w-3 fill-accent text-accent" />
+              <span className="font-semibold text-foreground">{avgRating.toFixed(1)}</span>
+              <span className="text-muted-foreground">({reviewCount})</span>
             </div>
-
-            {biz.description && (
-              <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                {highlight(biz.description, tokens)}
-              </p>
-            )}
-
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-              {biz.city && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  {biz.zip_code ? `${biz.zip_code} ` : ""}{highlight(biz.city, tokens)}
-                </span>
-              )}
-              {biz.phone && (
-                <span className="flex items-center gap-1">
-                  <Phone className="h-3 w-3" /> {biz.phone}
-                </span>
-              )}
-            </div>
-
-            {categories.length > 0 && (
-              <div className="mt-2.5 flex flex-wrap gap-1.5">
-                {categories.map((cat) => {
-                  const Icon = ICON_BY_LABEL[cat];
-                  return (
-                    <span key={cat} className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/50 px-2.5 py-0.5 text-[11px] font-medium text-foreground">
-                      {Icon && <Icon className="h-3 w-3" />}
-                      {cat}
-                    </span>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
+          )}
         </div>
-      </Card>
+
+        {biz.description && (
+          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+            {highlight(biz.description, tokens)}
+          </p>
+        )}
+
+        <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-xs text-muted-foreground">
+          {biz.city && (
+            <span className="flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              {biz.zip_code ? `${biz.zip_code} ` : ""}{highlight(biz.city, tokens)}
+            </span>
+          )}
+          {categories[0] && <span className="truncate">{categories[0]}</span>}
+        </div>
+      </div>
     </Link>
   );
 };
