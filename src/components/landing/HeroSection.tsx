@@ -66,15 +66,15 @@ const HeroSection = () => {
       </nav>
 
       {/* Hero — split layout: text left, image right */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 pb-12 md:pt-16 md:pb-20">
-        <div className="grid items-center gap-10 md:grid-cols-2 md:gap-12 lg:gap-16">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 pb-12 md:pt-14 md:pb-20">
+        <div className="grid items-center gap-10 md:grid-cols-[1.15fr_0.85fr] md:gap-10 lg:gap-14">
           {/* Left: copy + search */}
-          <div>
+          <div className="min-w-0">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
               <Sparkles className="h-3 w-3" />
               Danmarks samlede platform for serviceydere
             </span>
-            <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-6xl">
+            <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-[3.5rem]">
               Find den rette <span className="text-accent">serviceyder</span> til opgaven.
             </h1>
             <p className="mt-5 max-w-xl text-base text-muted-foreground md:text-lg">
@@ -99,9 +99,9 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right: hero image */}
-          <div className="relative">
-            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl bg-secondary shadow-xl md:aspect-[3/4]">
+          {/* Right: hero image with proper padding for floating cards */}
+          <div className="relative px-4 pt-4 md:px-6 md:pt-6">
+            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl bg-secondary shadow-xl">
               <img
                 src={heroImage}
                 alt="Tilfreds dansk serviceyder klar til opgaven"
@@ -110,22 +110,22 @@ const HeroSection = () => {
                 height={1280}
                 loading="eager"
               />
-              {/* Floating stat card */}
-              <div className="absolute -bottom-5 -left-5 hidden rounded-2xl border border-border bg-card p-4 shadow-xl md:block">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent">
-                    <Sparkles className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-medium text-muted-foreground">Tilbud på</div>
-                    <div className="text-base font-bold text-foreground">3-10 sekunder</div>
-                  </div>
+            </div>
+            {/* Floating stat cards — positioned relative to wrapper, not image */}
+            <div className="absolute bottom-2 left-0 hidden rounded-2xl border border-border bg-card p-4 shadow-xl md:block">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground">Tilbud på</div>
+                  <div className="text-base font-bold text-foreground">3-10 sekunder</div>
                 </div>
               </div>
-              <div className="absolute -top-4 -right-4 hidden rounded-2xl border border-border bg-card px-4 py-3 shadow-xl md:block">
-                <div className="text-xs font-medium text-muted-foreground">Verificerede</div>
-                <div className="text-base font-bold text-foreground">2.400+ virksomheder</div>
-              </div>
+            </div>
+            <div className="absolute top-0 right-0 hidden rounded-2xl border border-border bg-card px-4 py-3 shadow-xl md:block">
+              <div className="text-xs font-medium text-muted-foreground">Verificerede</div>
+              <div className="text-base font-bold text-foreground">2.400+ virksomheder</div>
             </div>
           </div>
         </div>
