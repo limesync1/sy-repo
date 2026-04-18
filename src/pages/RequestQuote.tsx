@@ -174,7 +174,7 @@ const RequestQuote = () => {
 
       {/* Nav */}
       <nav className="relative z-50 border-b border-border/50 bg-background/80 backdrop-blur-sm">
-        <div className="container mx-auto flex items-center justify-between px-4 py-3">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center gap-3">
             <Link to="/" className="text-muted-foreground transition-colors hover:text-foreground">
               <ArrowLeft className="h-5 w-5" />
@@ -198,7 +198,7 @@ const RequestQuote = () => {
         </div>
       </nav>
 
-      <div className="relative z-10 container mx-auto px-4 py-12 md:py-20">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 md:py-20">
         <div className="mx-auto max-w-4xl">
 
           {/* ─── STEP 1: Search form ─── */}
