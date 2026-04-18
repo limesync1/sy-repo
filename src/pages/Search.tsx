@@ -3,7 +3,6 @@ import { useSearchParams, Link } from "react-router-dom";
 import { useAllBusinesses, type SortOption } from "@/hooks/useDatabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -12,7 +11,6 @@ import {
   MapPin,
   X,
   Star,
-  Phone,
   ShieldCheck,
   SlidersHorizontal,
   Sparkles,
@@ -50,7 +48,7 @@ const highlight = (text: string, tokens: string[]) => {
   );
 };
 
-/* ── Business Card ── */
+/* ── Business Card (vertical, matches RecentBusinesses on landing) ── */
 const BusinessCard = ({ biz, tokens }: { biz: any; tokens: string[] }) => {
   const avgRating = biz._avgRating || 0;
   const reviewCount = biz._reviewCount || 0;
@@ -60,83 +58,66 @@ const BusinessCard = ({ biz, tokens }: { biz: any; tokens: string[] }) => {
     : biz.category ? [biz.category] : [];
 
   return (
-    <Link to={`/b/${biz.slug}`} className="group block">
-      <Card className="h-full overflow-hidden rounded-2xl border-border transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-foreground/20 group-hover:shadow-xl">
-        <div className="flex flex-col sm:flex-row">
-          <div className="relative h-44 w-full shrink-0 overflow-hidden bg-secondary sm:h-auto sm:w-48 md:w-56">
-            {biz.cover_image_url ? (
-              <img src={biz.cover_image_url} alt={biz.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+    <Link
+      to={`/b/${biz.slug}`}
+      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-foreground/20 hover:shadow-xl"
+    >
+      {/* Cover */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-secondary">
+        {biz.cover_image_url ? (
+          <img
+            src={biz.cover_image_url}
+            alt={biz.name}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
+            {biz.logo_url ? (
+              <img src={biz.logo_url} alt="" className="h-16 w-16 object-contain opacity-60" />
             ) : (
-              <div className="flex h-full min-h-[120px] w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
-                {biz.logo_url ? (
-                  <img src={biz.logo_url} alt={biz.name} className="h-14 w-14 rounded-xl object-contain opacity-50" />
-                ) : (
-                  <span className="text-3xl font-bold text-muted-foreground/20">{biz.name.charAt(0)}</span>
-                )}
-              </div>
-            )}
-            {biz.is_verified && (
-              <Badge className="absolute right-3 top-3 gap-1 border-none bg-background/90 text-foreground backdrop-blur-sm">
-                <ShieldCheck className="h-3 w-3 text-accent" /> Verificeret
-              </Badge>
+              <span className="text-4xl font-bold text-muted-foreground/20">{biz.name.charAt(0)}</span>
             )}
           </div>
+        )}
+        {biz.is_verified && (
+          <Badge className="absolute right-3 top-3 gap-1 border-none bg-background/90 text-foreground backdrop-blur-sm">
+            <ShieldCheck className="h-3 w-3 text-accent" /> Verificeret
+          </Badge>
+        )}
+      </div>
 
-          <CardContent className="flex flex-1 flex-col justify-center p-5">
-            <div className="mb-1.5 flex items-start justify-between gap-2">
-              <div className="flex items-center gap-3">
-                {biz.logo_url && (
-                  <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-background sm:flex">
-                    <img src={biz.logo_url} alt="" className="h-8 w-8 rounded object-contain" />
-                  </div>
-                )}
-                <h3 className="text-base font-bold tracking-tight text-foreground md:text-lg">{highlight(biz.name, tokens)}</h3>
-              </div>
-              {reviewCount > 0 && (
-                <div className="flex shrink-0 items-center gap-1 text-sm">
-                  <Star className="h-3.5 w-3.5 fill-accent text-accent" />
-                  <span className="font-semibold text-foreground">{avgRating.toFixed(1)}</span>
-                  <span className="text-xs text-muted-foreground">({reviewCount})</span>
-                </div>
-              )}
+      {/* Body */}
+      <div className="flex flex-1 flex-col gap-2 p-4">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="text-base font-bold tracking-tight text-foreground line-clamp-1">
+            {highlight(biz.name, tokens)}
+          </h3>
+          {reviewCount > 0 && (
+            <div className="flex shrink-0 items-center gap-0.5 text-xs">
+              <Star className="h-3 w-3 fill-accent text-accent" />
+              <span className="font-semibold text-foreground">{avgRating.toFixed(1)}</span>
+              <span className="text-muted-foreground">({reviewCount})</span>
             </div>
-
-            {biz.description && (
-              <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                {highlight(biz.description, tokens)}
-              </p>
-            )}
-
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-              {biz.city && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  {biz.zip_code ? `${biz.zip_code} ` : ""}{highlight(biz.city, tokens)}
-                </span>
-              )}
-              {biz.phone && (
-                <span className="flex items-center gap-1">
-                  <Phone className="h-3 w-3" /> {biz.phone}
-                </span>
-              )}
-            </div>
-
-            {categories.length > 0 && (
-              <div className="mt-2.5 flex flex-wrap gap-1.5">
-                {categories.map((cat) => {
-                  const Icon = ICON_BY_LABEL[cat];
-                  return (
-                    <span key={cat} className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/50 px-2.5 py-0.5 text-[11px] font-medium text-foreground">
-                      {Icon && <Icon className="h-3 w-3" />}
-                      {cat}
-                    </span>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
+          )}
         </div>
-      </Card>
+
+        {biz.description && (
+          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+            {highlight(biz.description, tokens)}
+          </p>
+        )}
+
+        <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-xs text-muted-foreground">
+          {biz.city && (
+            <span className="flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              {biz.zip_code ? `${biz.zip_code} ` : ""}{highlight(biz.city, tokens)}
+            </span>
+          )}
+          {categories[0] && <span className="truncate">{categories[0]}</span>}
+        </div>
+      </div>
     </Link>
   );
 };
@@ -191,7 +172,7 @@ const SearchPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Dark hero banner — matches landing page */}
+      {/* Dark hero — compact, editorial, matches landing */}
       <section className="relative overflow-hidden bg-foreground">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -left-32 top-10 h-[320px] w-[320px] rounded-full bg-accent/[0.06] blur-3xl" />
@@ -200,13 +181,12 @@ const SearchPage = () => {
 
         <nav className="relative">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-3">
-              <Link to="/" className="flex items-center gap-2 text-background/70 transition-colors hover:text-background">
-                <ArrowLeft className="h-5 w-5" />
-                <span className="hidden text-sm font-medium sm:inline">Tilbage</span>
-              </Link>
-              <Link to="/" className="ml-3">
+            <div className="flex items-center gap-6">
+              <Link to="/">
                 <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-9" />
+              </Link>
+              <Link to="/" className="hidden items-center gap-1.5 text-sm font-medium text-background/60 transition-colors hover:text-background sm:inline-flex">
+                <ArrowLeft className="h-4 w-4" /> Tilbage
               </Link>
             </div>
             <Link to="/auth">
@@ -217,21 +197,27 @@ const SearchPage = () => {
           </div>
         </nav>
 
-        <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-6 text-center sm:px-6 lg:px-8 md:pb-16 md:pt-10">
-          <h1 className="mb-3 text-4xl font-extrabold leading-[1.05] tracking-tight text-background md:text-5xl">
-            Find <span className="text-accent">serviceydere</span>
-          </h1>
-          <p className="mb-8 text-base text-background/60 md:text-lg">
-            Søg på navn, kategori, by eller postnummer
-          </p>
+        <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-4 sm:px-6 lg:px-8 md:pb-14 md:pt-6">
+          <div className="grid items-end gap-6 md:grid-cols-[1fr_auto] md:gap-10">
+            <div>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-accent">Søg services</p>
+              <h1 className="text-3xl font-extrabold leading-[0.95] tracking-tight text-background md:text-5xl">
+                Find den rette<br />
+                <span className="text-background/60">til opgaven.</span>
+              </h1>
+            </div>
+            <p className="max-w-xs text-sm text-background/60 md:text-right">
+              Søg på navn, kategori, by eller postnummer.
+            </p>
+          </div>
 
-          <div className="relative mx-auto max-w-2xl">
+          <div className="relative mt-8 max-w-2xl">
             <SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="F.eks. 'rengøring københavn' eller 'vvs 8000'"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className="h-14 rounded-2xl border-background/10 bg-background pl-12 pr-12 text-base text-foreground shadow-2xl placeholder:text-muted-foreground focus-visible:ring-accent"
+              className="h-13 rounded-xl border-background/10 bg-background pl-12 pr-12 text-base text-foreground shadow-2xl placeholder:text-muted-foreground focus-visible:ring-accent"
               autoFocus
             />
             {inputValue && (
@@ -261,9 +247,9 @@ const SearchPage = () => {
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 md:py-12">
         {/* Category filters */}
-        <div className="mb-8 flex flex-wrap justify-center gap-2">
+        <div className="mb-8 flex flex-wrap gap-2">
           {CATEGORIES.map((cat) => {
             const Icon = cat.icon;
             const active = selectedCategory === cat.label;
@@ -317,26 +303,21 @@ const SearchPage = () => {
           </div>
         </div>
 
-        {/* Results */}
+        {/* Results — vertical card grid (3 cols) for cleaner look */}
         {isLoading ? (
-          <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex h-44 animate-pulse overflow-hidden rounded-2xl border border-border bg-card">
-                <div className="h-full w-48 shrink-0 bg-muted" />
-                <div className="flex-1 space-y-3 p-5">
-                  <div className="h-5 w-2/3 rounded bg-muted" />
-                  <div className="h-3 w-full rounded bg-muted" />
-                  <div className="h-3 w-4/5 rounded bg-muted" />
-                  <div className="flex gap-2 pt-2">
-                    <div className="h-5 w-20 rounded-full bg-muted" />
-                    <div className="h-5 w-16 rounded-full bg-muted" />
-                  </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="animate-pulse overflow-hidden rounded-2xl border border-border bg-card">
+                <div className="aspect-[4/3] w-full bg-muted" />
+                <div className="space-y-3 p-4">
+                  <div className="h-4 w-2/3 rounded bg-muted" />
+                  <div className="h-3 w-1/2 rounded bg-muted" />
                 </div>
               </div>
             ))}
           </div>
         ) : businesses && businesses.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {businesses.map((biz: any, i: number) => (
               <div key={biz.id} style={{ animation: `fade-in 0.4s ease-out ${Math.min(i, 8) * 50}ms both` }}>
                 <BusinessCard biz={biz} tokens={tokens} />

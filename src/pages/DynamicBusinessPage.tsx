@@ -196,48 +196,41 @@ const DynamicBusinessContent = () => {
         </div>
       </header>
 
-      {/* ── Stats Bento Bar (matches landing Stats) ── */}
+      {/* ── Compact Stats Bar ── */}
       {(serviceCount > 0 || reviewCount > 0 || business.is_verified || categories.length > 0) && (
-        <div className="border-b border-border bg-background">
+        <div className="border-b border-border bg-secondary/30">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid divide-y divide-border md:grid-cols-4 md:divide-x md:divide-y-0">
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-3 py-4 text-sm">
               {serviceCount > 0 && (
-                <div className="group relative overflow-hidden px-6 py-6 transition-colors hover:bg-secondary/40 md:py-8">
-                  <div className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">{serviceCount}</div>
-                  <div className="mt-1 text-sm font-semibold text-foreground">{serviceCount === 1 ? "Service" : "Services"}</div>
-                  <div className="text-xs text-muted-foreground">at vælge mellem</div>
-                  <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-accent transition-all duration-500 group-hover:w-full" />
+                <div className="flex items-center gap-2">
+                  <span className="text-base font-bold tracking-tight text-foreground">{serviceCount}</span>
+                  <span className="text-muted-foreground">{serviceCount === 1 ? "service" : "services"}</span>
                 </div>
               )}
               {reviewCount > 0 ? (
-                <div className="group relative overflow-hidden px-6 py-6 transition-colors hover:bg-secondary/40 md:py-8">
-                  <div className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">{avgRating}</div>
-                  <div className="mt-1 text-sm font-semibold text-foreground">Rating</div>
-                  <div className="text-xs text-muted-foreground">{reviewCount} {reviewCount === 1 ? "anmeldelse" : "anmeldelser"}</div>
-                  <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-accent transition-all duration-500 group-hover:w-full" />
+                <div className="flex items-center gap-1.5">
+                  <Star className="h-4 w-4 fill-accent text-accent" />
+                  <span className="font-bold text-foreground">{avgRating}</span>
+                  <span className="text-muted-foreground">({reviewCount} {reviewCount === 1 ? "anmeldelse" : "anmeldelser"})</span>
                 </div>
               ) : (
-                <div className="group relative overflow-hidden px-6 py-6 transition-colors hover:bg-secondary/40 md:py-8">
-                  <div className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">Ny</div>
-                  <div className="mt-1 text-sm font-semibold text-foreground">På platformen</div>
-                  <div className="text-xs text-muted-foreground">ingen anmeldelser endnu</div>
-                  <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-accent transition-all duration-500 group-hover:w-full" />
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Sparkles className="h-4 w-4 text-accent" />
+                  <span>Ny på platformen</span>
                 </div>
               )}
-              <div className="group relative overflow-hidden px-6 py-6 transition-colors hover:bg-secondary/40 md:py-8">
-                <div className="flex items-center gap-2 text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
-                  {business.is_verified ? <Award className="h-7 w-7 text-accent" /> : <Sparkles className="h-7 w-7 text-muted-foreground" />}
+              {business.is_verified && (
+                <div className="flex items-center gap-1.5">
+                  <Award className="h-4 w-4 text-accent" />
+                  <span className="font-medium text-foreground">Verificeret</span>
                 </div>
-                <div className="mt-1 text-sm font-semibold text-foreground">{business.is_verified ? "Verificeret" : "Aktiv"}</div>
-                <div className="text-xs text-muted-foreground">{business.is_verified ? "godkendt af os" : "klar til opgaver"}</div>
-                <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-accent transition-all duration-500 group-hover:w-full" />
-              </div>
-              <div className="group relative overflow-hidden px-6 py-6 transition-colors hover:bg-secondary/40 md:py-8">
-                <div className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">{categories.length || 1}</div>
-                <div className="mt-1 text-sm font-semibold text-foreground">{categories.length === 1 ? "Kategori" : "Kategorier"}</div>
-                <div className="text-xs text-muted-foreground">af services</div>
-                <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-accent transition-all duration-500 group-hover:w-full" />
-              </div>
+              )}
+              {categories.length > 0 && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="text-foreground font-medium">{categories.length}</span>
+                  <span>{categories.length === 1 ? "kategori" : "kategorier"}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
