@@ -253,12 +253,12 @@ const SearchPage = () => {
       <SiteNav active="search" />
 
       {/* Search hero — full-width search */}
-      <section className="border-b border-border bg-secondary/30 py-10 md:py-12">
+      <section className="border-b border-border bg-secondary/30 py-8 md:py-12">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="mb-2 text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+          <h1 className="mb-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
             Find verificerede serviceydere
           </h1>
-          <p className="mb-6 text-sm text-muted-foreground md:text-base">Søg på service, virksomhed eller by — vi har 2.400+ udbydere på platformen.</p>
+          <p className="mb-5 text-sm text-muted-foreground md:text-base">Søg på service, virksomhed eller by — vi har 2.400+ udbydere på platformen.</p>
           <div className="mx-auto flex justify-center">
             <SearchSuggest variant="hero" defaultQuery={debouncedQuery} />
           </div>
