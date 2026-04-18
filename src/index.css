@@ -23,9 +23,10 @@
     --muted: 0 0% 97%;
     --muted-foreground: 0 0% 45%;
 
-    /* Airbnb coral #FF385C */
-    --accent: 351 100% 61%;
+    /* Serviceydere brand teal */
+    --accent: 184 90% 32%;
     --accent-foreground: 0 0% 100%;
+    --accent-soft: 184 70% 95%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
@@ -38,7 +39,7 @@
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 0 0% 13%;
-    --sidebar-primary: 351 100% 61%;
+    --sidebar-primary: 184 90% 32%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 97%;
     --sidebar-accent-foreground: 0 0% 13%;
