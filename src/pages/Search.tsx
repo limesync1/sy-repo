@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { useAllBusinesses, type SortOption } from "@/hooks/useDatabase";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import {
   Heart,
   Building2,
   Hammer,
+  X,
 } from "lucide-react";
 
 const CATEGORIES = [
@@ -34,7 +35,6 @@ const CATEGORIES = [
   { label: "Sikkerhed", icon: ShieldCheck },
 ];
 
-/* Business card — same look as landing */
 const BusinessCard = ({ biz }: { biz: any }) => {
   const [liked, setLiked] = useState(false);
   const cats: string[] = Array.isArray(biz.categories) && biz.categories.length > 0
@@ -63,7 +63,7 @@ const BusinessCard = ({ biz }: { biz: any }) => {
 
         <button
           onClick={(e) => { e.preventDefault(); setLiked(!liked); }}
-          className="absolute right-3 top-3 transition-transform hover:scale-110"
+          className="absolute right-3 top-3 transition-transform hover:scale-110 active:scale-95"
           aria-label="Gem"
         >
           <Heart className={`h-7 w-7 stroke-[2] drop-shadow-md ${liked ? "fill-accent text-accent" : "fill-foreground/30 text-white"}`} />
@@ -85,7 +85,7 @@ const BusinessCard = ({ biz }: { biz: any }) => {
 
       <div className={`flex flex-col gap-1 px-1 ${biz.logo_url ? "pt-4" : ""}`}>
         <div className="flex items-start justify-between gap-2">
-          <h3 className="text-[15px] font-semibold tracking-tight text-foreground line-clamp-1">{biz.name}</h3>
+          <h3 className="text-[15px] font-semibold tracking-tight text-foreground line-clamp-1 group-hover:text-accent transition-colors">{biz.name}</h3>
           {cnt > 0 ? (
             <div className="flex shrink-0 items-center gap-1 text-sm">
               <Star className="h-3.5 w-3.5 fill-foreground text-foreground" />
@@ -129,7 +129,6 @@ const SearchPage = () => {
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [sort, setSort] = useState<SortOption>(initialSort);
 
-  // Sync URL params -> state when they change externally (e.g. from suggestions)
   useEffect(() => {
     setDebouncedQuery(searchParams.get("q") || "");
     setSelectedCategory(searchParams.get("category") || "");
@@ -164,7 +163,7 @@ const SearchPage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header — matches landing */}
-      <nav className="border-b border-border bg-background/90 backdrop-blur-md sticky top-0 z-30">
+      <nav className="border-b border-border bg-background/90 backdrop-blur-md sticky top-0 z-40">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-3.5">
             <Link to="/" className="flex items-center" aria-label="Serviceydere">
@@ -177,52 +176,59 @@ const SearchPage = () => {
             </div>
             <div className="flex items-center gap-2">
               <Link to="/auth">
-                <button className="rounded-full px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary">Log ind</button>
+                <button className="rounded-full px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary active:bg-secondary/70">Log ind</button>
               </Link>
               <Link to="/auth?signup=1" className="hidden sm:inline-block">
-                <button className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-foreground/90">Opret konto</button>
+                <button className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80">Opret konto</button>
               </Link>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Compact search hero */}
-      <section className="border-b border-border bg-secondary/40 py-8 md:py-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h1 className="mb-1 text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+      {/* Search hero — full-width search */}
+      <section className="border-b border-border bg-secondary/30 py-10 md:py-12">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="mb-2 text-3xl font-bold tracking-tight text-foreground md:text-4xl">
             Find verificerede serviceydere
           </h1>
-          <p className="mb-5 text-sm text-muted-foreground">Søg på service, virksomhed eller by.</p>
-          <SearchSuggest variant="page" defaultQuery={debouncedQuery} />
+          <p className="mb-6 text-sm text-muted-foreground md:text-base">Søg på service, virksomhed eller by — vi har 2.400+ udbydere på platformen.</p>
+          <div className="mx-auto flex justify-center">
+            <SearchSuggest variant="hero" defaultQuery={debouncedQuery} />
+          </div>
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 md:py-10">
-        {/* Category chips */}
-        <div className="mb-6 flex flex-wrap gap-2">
-          {CATEGORIES.map((cat) => {
-            const Icon = cat.icon;
-            const active = selectedCategory === cat.label;
-            return (
-              <button
-                key={cat.label}
-                onClick={() => handleCategoryClick(cat.label)}
-                className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all ${
-                  active
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border bg-card text-foreground hover:border-foreground/40"
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                {cat.label}
-              </button>
-            );
-          })}
+      {/* Sticky filter bar */}
+      <div className="sticky top-[65px] z-20 border-b border-border bg-background/95 backdrop-blur-md">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-2 overflow-x-auto py-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            {CATEGORIES.map((cat) => {
+              const Icon = cat.icon;
+              const active = selectedCategory === cat.label;
+              return (
+                <button
+                  key={cat.label}
+                  onClick={() => handleCategoryClick(cat.label)}
+                  className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all ${
+                    active
+                      ? "border-foreground bg-foreground text-background hover:bg-foreground/90"
+                      : "border-border bg-card text-foreground hover:border-foreground/40 hover:bg-secondary active:bg-secondary/70"
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {cat.label}
+                  {active && <X className="h-3 w-3 ml-0.5 opacity-70" />}
+                </button>
+              );
+            })}
+          </div>
         </div>
+      </div>
 
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 md:py-10">
         {/* Results header */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             {!isLoading && (
               <span>
@@ -269,7 +275,7 @@ const SearchPage = () => {
             ))}
           </div>
         ) : businesses && businesses.length > 0 ? (
-          <div className="grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {businesses.map((biz: any, i: number) => (
               <div key={biz.id} style={{ animation: `fade-in 0.4s ease-out ${Math.min(i, 8) * 50}ms both` }}>
                 <BusinessCard biz={biz} />

@@ -97,14 +97,14 @@ const DynamicBusinessContent = () => {
       <nav className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md" aria-label="Virksomhedsnavigation">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 min-w-0">
-            <Link to="/" aria-label="Tilbage til Serviceydere">
+            <Link to="/" aria-label="Tilbage til Serviceydere" className="transition-opacity hover:opacity-80">
               <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-8 md:h-9" />
             </Link>
             <Separator orientation="vertical" className="mx-1 h-5 hidden sm:block" />
             <span className="hidden truncate text-sm font-semibold text-foreground sm:inline">{business.name}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/search" className="hidden md:inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+            <Link to="/search" className="hidden md:inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:bg-secondary/70">
               <ArrowLeft className="h-3.5 w-3.5" /> Tilbage til søgning
             </Link>
             <CartSheet businessId={business.id} />
@@ -181,7 +181,7 @@ const DynamicBusinessContent = () => {
                   <Button
                     onClick={scrollToServices}
                     size="lg"
-                    className="h-12 gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/20 hover:bg-accent/90"
+                    className="h-12 gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/20 transition-all hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/30 active:scale-[0.98]"
                   >
                     Bestil nu <ArrowDown className="h-4 w-4" />
                   </Button>
@@ -190,9 +190,9 @@ const DynamicBusinessContent = () => {
                       <Button
                         size="lg"
                         variant="outline"
-                        className="h-12 gap-2 rounded-full border-border bg-card px-5 text-sm font-medium text-foreground hover:bg-secondary"
+                        className="h-12 gap-2 rounded-full border-border bg-card px-5 text-sm font-medium text-foreground transition-all hover:border-foreground/40 hover:bg-secondary hover:text-foreground active:scale-[0.98]"
                       >
-                        <Phone className="h-4 w-4" /> {business.phone}
+                        <Phone className="h-4 w-4" /> Ring nu
                       </Button>
                     </a>
                   )}
@@ -386,7 +386,7 @@ const DynamicBusinessContent = () => {
                 {services && services.length > 0 && (
                   <Button
                     onClick={scrollToServices}
-                    className="mt-3 w-full gap-2 rounded-xl bg-accent text-sm font-semibold text-accent-foreground hover:bg-accent/90"
+                    className="mt-3 h-11 w-full gap-2 rounded-xl bg-accent text-sm font-semibold text-accent-foreground shadow-md shadow-accent/20 transition-all hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/30 active:scale-[0.98]"
                   >
                     Se {serviceCount} service{serviceCount === 1 ? "" : "s"} <ArrowDown className="h-4 w-4" />
                   </Button>
@@ -394,18 +394,14 @@ const DynamicBusinessContent = () => {
               </div>
               <CardContent className="p-4 space-y-2">
                 {business.phone && (
-                  <a href={`tel:${business.phone}`} className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary group">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 group-hover:bg-accent/20 transition-colors">
-                      <Phone className="h-4 w-4 text-accent" />
-                    </div>
-                    {business.phone}
+                  <a href={`tel:${business.phone}`} className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium text-foreground transition-all hover:border-foreground/30 hover:bg-secondary active:scale-[0.99]">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span>{business.phone}</span>
                   </a>
                 )}
                 {business.email && (
-                  <a href={`mailto:${business.email}`} className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary group">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 group-hover:bg-accent/20 transition-colors">
-                      <Mail className="h-4 w-4 text-accent" />
-                    </div>
+                  <a href={`mailto:${business.email}`} className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium text-foreground transition-all hover:border-foreground/30 hover:bg-secondary active:scale-[0.99]">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
                     <span className="truncate">{business.email}</span>
                   </a>
                 )}
@@ -414,11 +410,9 @@ const DynamicBusinessContent = () => {
                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${business.address}${business.zip_code ? `, ${business.zip_code}` : ""}${business.city ? ` ${business.city}` : ""}`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground font-medium transition-colors hover:bg-secondary group"
+                    className="flex items-start gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground font-medium transition-all hover:border-foreground/30 hover:bg-secondary active:scale-[0.99]"
                   >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 group-hover:bg-accent/20 transition-colors">
-                      <MapPin className="h-4 w-4 text-accent" />
-                    </div>
+                    <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
                     <span>{business.address}{business.zip_code ? `, ${business.zip_code}` : ""}{business.city ? ` ${business.city}` : ""}</span>
                   </a>
                 )}
