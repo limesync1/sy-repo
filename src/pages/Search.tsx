@@ -3,7 +3,6 @@ import { useSearchParams, Link } from "react-router-dom";
 import { useAllBusinesses, type SortOption } from "@/hooks/useDatabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -12,7 +11,6 @@ import {
   MapPin,
   X,
   Star,
-  Phone,
   ShieldCheck,
   SlidersHorizontal,
   Sparkles,
