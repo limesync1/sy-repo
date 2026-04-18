@@ -4,17 +4,17 @@ import { Link } from "react-router-dom";
 
 const GetQuotes = () => {
   return (
-    <section className="bg-background py-16 md:py-20">
+    <section className="bg-background py-12 md:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-3xl bg-foreground px-8 py-12 md:px-16 md:py-16">
-          <div className="grid items-center gap-10 md:grid-cols-[1.2fr_0.8fr]">
+        <div className="overflow-hidden rounded-3xl bg-foreground px-5 py-8 sm:px-8 sm:py-12 md:px-16 md:py-16">
+          <div className="grid items-center gap-8 md:grid-cols-[1.2fr_0.8fr]">
             {/* Left */}
             <div>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent">
                 <Sparkles className="h-3 w-3" />
                 AI-drevet matching
               </span>
-              <h2 className="mt-4 text-3xl font-bold tracking-tight text-background md:text-4xl">
+              <h2 className="mt-4 text-2xl font-bold tracking-tight text-background sm:text-3xl md:text-4xl">
                 Beskriv opgaven – vores AI finder folkene.
               </h2>
               <p className="mt-4 max-w-md text-base text-background/70">
