@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { Star, ShieldCheck, Heart, MapPin, Building2 } from "lucide-react";
-import { useState } from "react";
+import { Star, ShieldCheck, MapPin, Building2 } from "lucide-react";
 import HorizontalScroller from "./HorizontalScroller";
+import FavoriteButton from "@/components/business/FavoriteButton";
 
 type Biz = {
   id: string;
@@ -20,7 +20,6 @@ type Biz = {
 };
 
 const BusinessCard = ({ biz }: { biz: Biz }) => {
-  const [liked, setLiked] = useState(false);
   const cats = biz.categories?.length ? biz.categories : (biz.category ? [biz.category] : []);
   const primaryCat = cats[0];
   const extraCats = cats.length - 1;
@@ -45,14 +44,8 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
           </div>
         )}
 
-        {/* Heart */}
-        <button
-          onClick={(e) => { e.preventDefault(); setLiked(!liked); }}
-          className="absolute right-3 top-3 transition-transform hover:scale-110"
-          aria-label="Gem"
-        >
-          <Heart className={`h-7 w-7 stroke-[2] drop-shadow-md ${liked ? "fill-accent text-accent" : "fill-foreground/30 text-white"}`} />
-        </button>
+        {/* Favorite (only when logged in) */}
+        <FavoriteButton businessId={biz.id} />
 
         {/* Verified badge */}
         {biz.is_verified && (
