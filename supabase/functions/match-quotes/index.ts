@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.103.0";
+import { lookupDkZip, haversineKm } from "./dk-postcodes.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,7 +11,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { category, description, location } = await req.json();
+    const { category, description, location, radius_km } = await req.json();
     if (!category || !description) {
       return new Response(JSON.stringify({ error: "category and description required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -18,6 +19,10 @@ serve(async (req) => {
     }
     const userCity: string | null = location?.city || null;
     const userZip: string | null = location?.zip || null;
+    // null/undefined => "Hele DK" (no radius filter). Otherwise km.
+    const radiusKm: number | null =
+      typeof radius_km === "number" && radius_km > 0 ? radius_km : null;
+    const userPoint = lookupDkZip(userZip);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -60,6 +65,35 @@ serve(async (req) => {
       }
     }
 
+    // ── Annotate with distance + apply radius filter ──
+    if (userPoint) {
+      allBusinesses = allBusinesses.map((b: any) => {
+        const bizPoint = lookupDkZip(b.zip_code);
+        const distanceKm = bizPoint ? haversineKm(userPoint, bizPoint) : null;
+        return { ...b, _distanceKm: distanceKm };
+      });
+
+      if (radiusKm !== null) {
+        const within = allBusinesses.filter(
+          (b: any) => typeof b._distanceKm === "number" && b._distanceKm <= radiusKm,
+        );
+        // Don't return zero results if everyone is outside the radius — better to
+        // give the AI the closest few so it can still suggest something. We'll
+        // sort by distance and trim.
+        if (within.length >= 2) {
+          allBusinesses = within;
+        } else {
+          allBusinesses = [...allBusinesses]
+            .sort((a: any, b: any) => {
+              const da = typeof a._distanceKm === "number" ? a._distanceKm : Infinity;
+              const db = typeof b._distanceKm === "number" ? b._distanceKm : Infinity;
+              return da - db;
+            })
+            .slice(0, 5);
+        }
+      }
+    }
+
     if (allBusinesses.length === 0) {
       return new Response(JSON.stringify({ matches: [], message: "Ingen virksomheder fundet i denne kategori endnu." }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -74,6 +108,9 @@ serve(async (req) => {
       const cats = Array.isArray(b.categories) && b.categories.length > 0
         ? b.categories.join(", ")
         : b.category || "Ingen";
+      const distanceLabel = typeof b._distanceKm === "number"
+        ? ` | Afstand: ${b._distanceKm < 1 ? "<1" : Math.round(b._distanceKm)} km fra kunden`
+        : "";
       const serviceList = (b.services || []).map((s: any) => {
         let sDesc = `Service[id=${s.id}]: ${s.name} (${s.pricing_type === "fast_pris" ? `${s.base_price} kr` : s.pricing_type === "timepris" ? `${s.base_price} kr/t` : "prisberegner"})`;
         if (s.subcategory) sDesc += ` [${s.subcategory}]`;
@@ -91,11 +128,15 @@ serve(async (req) => {
         }
         return sDesc;
       }).join("\n");
-      return `ID: ${b.id} | Navn: ${b.name} | By: ${b.city || "Ukendt"} | Brancher: ${cats} | Rating: ${avgRating} (${b.reviews?.length || 0} anmeldelser) | Verificeret: ${b.is_verified ? "Ja" : "Nej"}\nServices:\n${serviceList || "Ingen"}\nBeskrivelse: ${b.description || ""}`;
+      return `ID: ${b.id} | Navn: ${b.name} | By: ${b.city || "Ukendt"} | Brancher: ${cats} | Rating: ${avgRating} (${b.reviews?.length || 0} anmeldelser) | Verificeret: ${b.is_verified ? "Ja" : "Nej"}${distanceLabel}\nServices:\n${serviceList || "Ingen"}\nBeskrivelse: ${b.description || ""}`;
     }).join("\n---\n");
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+    const locationContext = userCity || userZip
+      ? `Kundens lokation: ${userZip || ""} ${userCity || ""}${radiusKm !== null ? ` (kun udbydere inden for ${radiusKm} km vises herunder — afstand er angivet pr. udbyder)` : " (ingen radius — hele Danmark)"}. Foretræk udbydere t\u00e6t p\u00e5, men kvalitet og services m\u00e5 stadig veje tungt.`
+      : "";
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -128,7 +169,7 @@ Kun inkluder services der er relevante for kundens behov. Udfyld KUN trin der ma
             role: "user",
             content: `Kundens behov:
 Kategori: ${category}
-${userCity || userZip ? `Kundens lokation: ${userZip || ""} ${userCity || ""} (PRIORITÉR udbydere i samme by/postnummer-område når det giver mening — men kvalitet og services må stadig veje tungest)` : ""}
+${locationContext}
 Beskrivelse: ${description}
 
 Tilgængelige virksomheder:
@@ -223,6 +264,7 @@ ${bizSummaries}`,
         : null;
       return {
         ...m,
+        distance_km: typeof biz._distanceKm === "number" ? biz._distanceKm : null,
         business: {
           id: biz.id,
           name: biz.name,
