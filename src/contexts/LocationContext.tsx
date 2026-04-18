@@ -64,15 +64,32 @@ const writeStored = (loc: UserLocation | null) => {
 };
 
 export const LocationProvider = ({ children }: { children: ReactNode }) => {
-  const [location, setLocation] = useState<UserLocation>(() =>
-    readStored() || { city: null, zip: null, region: null, source: null }
+  const stored = readStored();
+  // Hydrate from storage so we don't flash the loader; but if stored entry is empty
+  // (e.g. earlier failed detection), still re-attempt IP lookup.
+  const [location, setLocation] = useState<UserLocation>(
+    stored || { city: null, zip: null, region: null, source: null }
   );
-  const [detecting, setDetecting] = useState<boolean>(() => !readStored());
-  const [detected, setDetected] = useState<boolean>(() => !!readStored());
+  // We re-run IP detection whenever we don't yet have a confirmed city/zip,
+  // regardless of source — this lets us recover from earlier failed lookups.
+  const needsDetection = !stored || (!stored.city && !stored.zip);
+  const [detecting, setDetecting] = useState<boolean>(needsDetection);
+  const [detected, setDetected] = useState<boolean>(!needsDetection);
 
-  // Auto-detect via IP geolocation once if no stored location.
+  // Auto-detect via IP geolocation if we don't have a real location yet.
+  // Manual entries (source: "manual") are preserved and never overwritten.
   useEffect(() => {
-    if (detected) return;
+    if (location.source === "manual") {
+      setDetecting(false);
+      setDetected(true);
+      return;
+    }
+    if (location.city || location.zip) {
+      setDetecting(false);
+      setDetected(true);
+      return;
+    }
+
     let cancelled = false;
     const ctrl = new AbortController();
     const timeout = setTimeout(() => ctrl.abort(), 4000);
@@ -82,7 +99,6 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
         const res = await fetch("https://ipapi.co/json/", { signal: ctrl.signal });
         if (!res.ok) throw new Error("ip lookup failed");
         const data = await res.json();
-        // Only use if we got a Danish location (or at least a city). Outside DK we leave it null.
         const city: string | null = data?.city || null;
         const zip: string | null = data?.postal || null;
         const region: string | null = data?.region || null;
@@ -90,8 +106,14 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
 
         if (cancelled) return;
 
-        if ((city || zip) && (!country || country === "DK")) {
-          const next: UserLocation = { city, zip, region, source: "ip" };
+        // Accept any city/zip we get back. Prefer DK, but use whatever we have.
+        if (city || zip) {
+          const next: UserLocation = {
+            city,
+            zip,
+            region,
+            source: "ip",
+          };
           setLocation(next);
           writeStored(next);
         }
@@ -111,7 +133,8 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
       ctrl.abort();
       clearTimeout(timeout);
     };
-  }, [detected]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const setManualZip = useCallback((zip: string, city?: string | null) => {
     const trimmed = zip.trim();
