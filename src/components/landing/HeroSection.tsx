@@ -66,8 +66,8 @@ const HeroSection = () => {
       </nav>
 
       {/* Hero — split layout: text left, image right */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-12 pb-16 md:pt-20 md:pb-24">
-        <div className="grid items-center gap-12 md:grid-cols-2 lg:gap-16">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 pb-12 md:pt-16 md:pb-20">
+        <div className="grid items-center gap-10 md:grid-cols-2 lg:gap-14">
           {/* Left: copy + search */}
           <div className="min-w-0 flex flex-col">
             <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
