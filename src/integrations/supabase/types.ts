@@ -81,7 +81,15 @@ export type Database = {
           updated_at?: string
           zip_code?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "businesses_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_overview"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       calculator_steps: {
         Row: {
@@ -365,6 +373,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "businesses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_overview"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -711,13 +726,69 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_overview"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
     }
     Views: {
-      [_ in never]: never
+      admin_users_overview: {
+        Row: {
+          auth_created_at: string | null
+          avatar_url: string | null
+          businesses_count: number | null
+          display_name: string | null
+          email: string | null
+          last_sign_in_at: string | null
+          orders_count: number | null
+          phone: string | null
+          roles: string[] | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      admin_business_stats: {
+        Args: never
+        Returns: {
+          business_id: string
+          completed_revenue: number
+          orders_count: number
+          owner_email: string
+          pending_count: number
+          total_revenue: number
+        }[]
+      }
+      admin_list_users: {
+        Args: never
+        Returns: {
+          auth_created_at: string
+          avatar_url: string
+          businesses_count: number
+          display_name: string
+          email: string
+          last_sign_in_at: string
+          orders_count: number
+          phone: string
+          roles: string[]
+          user_id: string
+        }[]
+      }
+      admin_set_user_role: {
+        Args: {
+          _grant: boolean
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean

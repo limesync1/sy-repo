@@ -4,13 +4,14 @@ import { Navigate, Link } from "react-router-dom";
 import { useState } from "react";
 import {
   LayoutDashboard, Building2, Users, ShoppingCart, Star,
-  LogOut, Menu, X, ShieldCheck,
+  LogOut, Menu, X, ShieldCheck, Repeat,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import PlatformOverviewTab from "@/components/platform-admin/PlatformOverviewTab";
 import PlatformBusinessesTab from "@/components/platform-admin/PlatformBusinessesTab";
 import PlatformUsersTab from "@/components/platform-admin/PlatformUsersTab";
 import PlatformOrdersTab from "@/components/platform-admin/PlatformOrdersTab";
+import PlatformSubscriptionsTab from "@/components/platform-admin/PlatformSubscriptionsTab";
 import PlatformReviewsTab from "@/components/platform-admin/PlatformReviewsTab";
 
 const NAV = [
@@ -18,6 +19,7 @@ const NAV = [
   { value: "businesses", label: "Virksomheder", icon: Building2 },
   { value: "users", label: "Brugere", icon: Users },
   { value: "orders", label: "Ordrer", icon: ShoppingCart },
+  { value: "subscriptions", label: "Abonnementer", icon: Repeat },
   { value: "reviews", label: "Anmeldelser", icon: Star },
 ];
 
@@ -93,6 +95,7 @@ const PlatformAdmin = () => {
           {tab === "businesses" && <PlatformBusinessesTab />}
           {tab === "users" && <PlatformUsersTab />}
           {tab === "orders" && <PlatformOrdersTab />}
+          {tab === "subscriptions" && <PlatformSubscriptionsTab />}
           {tab === "reviews" && <PlatformReviewsTab />}
         </main>
       </div>
