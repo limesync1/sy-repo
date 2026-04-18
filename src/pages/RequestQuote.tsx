@@ -3,8 +3,11 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2, AlertCircle, ShoppingCart, Check, ChevronLeft } from "lucide-react";
+import {
+  ArrowLeft, ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2,
+  AlertCircle, ShoppingCart, Check, ChevronLeft, Clock, ShieldCheck,
+  Zap, Wrench, Truck, TreePine, Paintbrush, Droplets, Lock, Hammer, Building2,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useCart } from "@/contexts/CartContext";
@@ -12,14 +15,28 @@ import { useAuth } from "@/contexts/AuthContext";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
 import CartSheet from "@/components/business/CartSheet";
 
-const CATEGORIES = [
-  "Rengøring", "Håndværker", "Flyttehjælp", "Haveservice",
-  "Maler", "VVS", "Elektriker", "Sikkerhed",
+const CATEGORIES: { label: string; icon: typeof Sparkles }[] = [
+  { label: "Rengøring", icon: Sparkles },
+  { label: "Håndværker", icon: Wrench },
+  { label: "Flyttehjælp", icon: Truck },
+  { label: "Haveservice", icon: TreePine },
+  { label: "Maler", icon: Paintbrush },
+  { label: "VVS", icon: Droplets },
+  { label: "Elektriker", icon: Zap },
+  { label: "Tømrer", icon: Hammer },
+  { label: "Sikkerhed", icon: Lock },
 ];
 
-const CATEGORY_ICONS: Record<string, string> = {
-  "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
-  "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
+const EXAMPLE_PROMPTS: Record<string, string> = {
+  "Rengøring": "Fx: Rengøring af 3-værelses lejlighed på 85 m², hver 14. dag i København NV.",
+  "Håndværker": "Fx: Skifte 2 toiletter og opsætte 4 hylder i badeværelset, Aarhus C.",
+  "Flyttehjælp": "Fx: Flytning fra 2-værelses i Odense til 3-værelses i Vejle, lørdag den 5.",
+  "Haveservice": "Fx: Klipning af 200 m² hæk og slåning af 400 m² græsplæne, hver måned.",
+  "Maler": "Fx: Maling af stue og soveværelse, ca. 50 m² væg, lyse farver, indvendigt.",
+  "VVS": "Fx: Skift af utæt vandhane i køkken og inspektion af afløb i badeværelse.",
+  "Elektriker": "Fx: Installation af 4 LED-lofthængslede lamper og udskiftning af 2 stikkontakter.",
+  "Tømrer": "Fx: Bygge en træterrasse på 25 m² i baghaven med trapper.",
+  "Sikkerhed": "Fx: Montering af 4 udendørs sikkerhedskameraer og alarm til parcelhus.",
 };
 
 interface MatchedService {
@@ -129,10 +146,8 @@ const RequestQuote = () => {
   const handleSelectBusiness = (match: MatchedBusiness) => {
     setSelectedBusiness(match);
     setShowAllServices(false);
-    // No longer need to set cart business - multi-business cart
   };
 
-  // Convert matched service to the shape DynamicServiceCard expects
   const toServiceCardProps = (s: MatchedService) => ({
     id: s.id,
     name: s.name,
@@ -165,410 +180,440 @@ const RequestQuote = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Dark hero — matches landing */}
-      <section className="relative overflow-hidden bg-foreground">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-32 top-10 h-[320px] w-[320px] rounded-full bg-accent/[0.06] blur-3xl" />
-          <div className="absolute -right-32 -top-10 h-[360px] w-[360px] rounded-full bg-accent/[0.04] blur-3xl" />
+      {/* Sticky light nav — matches landing */}
+      <nav className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 py-3.5">
+          <div className="flex items-center gap-4">
+            <Link to="/" className="flex items-center" aria-label="Serviceydere forside">
+              <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-9 md:h-10" />
+            </Link>
+            <Link to="/" className="hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:inline-flex">
+              <ArrowLeft className="h-4 w-4" /> Forside
+            </Link>
+          </div>
+          <div className="flex items-center gap-2">
+            {count > 0 && <CartSheet />}
+            {user ? (
+              <Link to="/dashboard">
+                <Button size="sm" className="rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90">Mit panel</Button>
+              </Link>
+            ) : (
+              <Link to="/auth">
+                <Button size="sm" className="rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90">Log ind</Button>
+              </Link>
+            )}
+          </div>
         </div>
+      </nav>
 
-        {/* Nav */}
-        <nav className="relative z-50">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 py-5">
-            <div className="flex items-center gap-6">
-              <Link to="/">
-                <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-9" />
-              </Link>
-              <Link to="/" className="hidden items-center gap-1.5 text-sm font-medium text-background/60 transition-colors hover:text-background sm:inline-flex">
-                <ArrowLeft className="h-4 w-4" /> Tilbage
-              </Link>
-            </div>
-            <div className="flex items-center gap-2">
-              {count > 0 && <CartSheet />}
-              {user ? (
-                <Link to="/dashboard">
-                  <Button size="sm" className="bg-background text-foreground font-semibold hover:bg-background/90">Mit panel</Button>
-                </Link>
-              ) : (
-                <Link to="/auth">
-                  <Button size="sm" className="bg-background text-foreground font-semibold hover:bg-background/90">Log ind</Button>
-                </Link>
-              )}
-            </div>
+      {/* ─── STEP 1: Hero + form ─── */}
+      {!matches && !isLoading && !selectedBusiness && (
+        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pt-10 pb-16 md:pt-16 md:pb-20">
+          {/* Headline */}
+          <div className="text-center">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
+              <Sparkles className="h-3 w-3" />
+              AI-drevet matching
+            </span>
+            <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-[3.5rem]">
+              Beskriv opgaven – <span className="text-accent">vores AI</span> finder folkene.
+            </h1>
+            <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">
+              Få op til 3 skræddersyede tilbud fra verificerede serviceydere. Helt gratis & uforpligtende —
+              klar på <span className="font-semibold text-foreground">3-10 sekunder</span>.
+            </p>
           </div>
-        </nav>
 
-        {/* Hero text — only shown on initial step */}
-        {!matches && !isLoading && !selectedBusiness && (
-          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-12 pt-4 md:pb-16 md:pt-6">
-            <div className="grid items-end gap-6 md:grid-cols-[1fr_auto] md:gap-10">
-              <div>
-                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-accent">Indhent tilbud</p>
-                <h1 className="text-3xl font-extrabold leading-[0.95] tracking-tight text-background md:text-5xl">
-                  Beskriv opgaven –<br />
-                  <span className="text-background/60">vi finder folkene.</span>
-                </h1>
+          {/* Form card */}
+          <form onSubmit={handleFind} className="mt-10 rounded-3xl border border-border bg-card p-6 shadow-xl md:p-8">
+            {/* Step 1: Category */}
+            <div>
+              <div className="mb-3 flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">1</span>
+                <label className="text-sm font-semibold text-foreground">Vælg kategori</label>
               </div>
-              <p className="max-w-xs text-sm text-background/60 md:text-right">
-                Vores AI matcher dig med op til 3 verificerede serviceydere på under 2 minutter.
-              </p>
-            </div>
-          </div>
-        )}
-      </section>
-
-      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 md:py-14">
-        <div className="mx-auto max-w-3xl">
-
-          {/* ─── STEP 1: Search form ─── */}
-          {!matches && !isLoading && !selectedBusiness && (
-            <>
-              <div className="mx-auto max-w-xl animate-fade-in">
-                <div className="rounded-2xl border border-border bg-card p-6 shadow-xl md:p-8">
-                  <form onSubmit={handleFind} className="space-y-5">
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-foreground">Kategori</label>
-                      <Select value={category} onValueChange={setCategory}>
-                        <SelectTrigger className="h-12 rounded-xl">
-                          <SelectValue placeholder="Hvad har du brug for?" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {CATEGORIES.map((cat) => (
-                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-foreground">Beskriv dit behov</label>
-                      <Textarea
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Fx: Rengøring af 3-værelses lejlighed, 85m², hver 14. dag i København NV."
-                        className="min-h-[120px] rounded-xl"
-                      />
-                    </div>
-                    <Button
-                      type="submit"
-                      className="h-12 w-full rounded-xl bg-accent text-base font-semibold text-accent-foreground shadow-lg shadow-accent/20 hover:bg-accent/90"
-                    >
-                      <span className="flex items-center gap-2">
-                        <Sparkles className="h-5 w-5" />
-                        Find tilbud med AI
-                      </span>
-                    </Button>
-                  </form>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* ─── Loading ─── */}
-          {isLoading && (
-            <div className="mt-12 flex flex-col items-center gap-6 text-center animate-fade-in">
-              <div className="relative">
-                <div className="absolute inset-0 animate-ping rounded-full bg-accent/15" />
-                <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-accent/20 bg-accent/5 shadow-lg shadow-accent/20">
-                  <Loader2 className="h-8 w-8 animate-spin text-accent" />
-                </div>
-              </div>
-              <div>
-                <p className="text-xl font-semibold text-foreground">Analyserer dit behov...</p>
-                <p className="mt-1 text-muted-foreground">Finder de bedste serviceydere i {category}</p>
-              </div>
-              <div className="flex gap-1.5">
-                {[0, 1, 2].map((i) => (
-                  <div key={i} className="h-2 w-2 animate-bounce rounded-full bg-accent/50" style={{ animationDelay: `${i * 0.15}s` }} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ─── Error ─── */}
-          {error && !isLoading && (
-            <div className="mt-8 rounded-2xl border border-border bg-card p-8 text-center animate-fade-in">
-              <AlertCircle className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
-              <p className="mb-4 text-foreground">{error}</p>
-              <Button variant="outline" onClick={handleReset}>Prøv igen</Button>
-            </div>
-          )}
-
-          {/* ─── STEP 2: Pick a business ─── */}
-          {matches && matches.length > 0 && !isLoading && !selectedBusiness && (
-            <div className="space-y-8 animate-fade-in">
-              <div className="text-center">
-                <div className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-4 py-1.5 text-sm font-medium text-accent">
-                  <Sparkles className="h-4 w-4" />
-                  {matches.length} {matches.length === 1 ? "match fundet" : "matches fundet"}
-                </div>
-                <h2 className="mt-4 text-2xl font-bold text-foreground">Vælg en serviceudbyder</h2>
-                <p className="mt-1 text-muted-foreground">Vælg den virksomhed du vil bruge — derefter kan du sammensætte dine services.</p>
-              </div>
-
-              <div className="space-y-4">
-                {matches.map((match, i) => {
-                  const isTop = i === 0;
-                  const activeServices = match.business.services.filter(s => s.is_active !== false);
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-9">
+                {CATEGORIES.map(({ label, icon: Icon }) => {
+                  const active = category === label;
                   return (
                     <button
-                      key={match.business_id}
-                      onClick={() => handleSelectBusiness(match)}
-                      className={`group w-full text-left overflow-hidden rounded-2xl border bg-card/80 backdrop-blur-sm transition-all duration-300 ${
-                        isTop
-                          ? "border-accent/25 shadow-lg shadow-accent/[0.06]"
-                          : "border-border/60 hover:border-accent/15 hover:shadow-md"
+                      key={label}
+                      type="button"
+                      onClick={() => setCategory(label)}
+                      className={`group flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 px-2 py-3 text-center transition-all ${
+                        active
+                          ? "border-foreground bg-foreground text-background shadow-md"
+                          : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"
                       }`}
                     >
-                      {isTop && (
-                        <div className="h-0.5 w-full bg-gradient-to-r from-accent to-[hsl(200,80%,55%)]" />
-                      )}
-
-                      <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-5 sm:p-6">
-                        {/* Rank */}
-                        <div className="flex items-center gap-4 sm:flex-col sm:items-center sm:gap-1">
-                          <span className={`text-3xl font-black ${isTop ? "text-accent" : "text-muted-foreground/30"}`}>
-                            #{i + 1}
-                          </span>
-                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                            isTop ? "bg-accent/10 text-accent" : "bg-secondary text-muted-foreground"
-                          }`}>
-                            {match.match_score}%
-                          </span>
-                        </div>
-
-                        {/* Main content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3">
-                            {match.business.logo_url ? (
-                              <img src={match.business.logo_url} alt="" className="h-11 w-11 shrink-0 rounded-xl border border-border object-contain bg-background p-1" />
-                            ) : (
-                              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-secondary text-lg font-bold text-muted-foreground">
-                                {match.business.name.charAt(0)}
-                              </div>
-                            )}
-                            <div className="min-w-0">
-                              <h3 className="truncate text-lg font-bold text-foreground">{match.business.name}</h3>
-                              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                {match.business.city && (
-                                  <span className="flex items-center gap-1">
-                                    <MapPin className="h-3 w-3" /> {match.business.city}
-                                  </span>
-                                )}
-                                {match.business.avg_rating && (
-                                  <span className="flex items-center gap-1 text-accent">
-                                    <Star className="h-3 w-3 fill-accent" /> {match.business.avg_rating}
-                                    <span className="text-muted-foreground">({match.business.review_count})</span>
-                                  </span>
-                                )}
-                                {match.business.is_verified && (
-                                  <span className="flex items-center gap-1 text-accent">
-                                    <BadgeCheck className="h-3 w-3" /> Verificeret
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="mt-2 flex items-baseline gap-2">
-                            <span className="text-lg font-bold text-foreground">{match.estimated_price}</span>
-                            <span className="text-xs text-muted-foreground">estimeret</span>
-                          </div>
-
-                          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                            {match.reason}
-                          </p>
-
-                          {/* Categories */}
-                          {match.business.categories && match.business.categories.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              {match.business.categories.map((cat) => (
-                                <span key={cat} className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/50 px-2 py-0.5 text-[11px] font-medium text-foreground">
-                                  {CATEGORY_ICONS[cat] || "📋"} {cat}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-
-                          {activeServices.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              {activeServices.slice(0, 5).map((s) => (
-                                <Badge key={s.id} variant="secondary" className="text-xs font-normal">
-                                  {s.name}
-                                  {s.pricing_type === "fast_pris" && s.base_price ? ` · ${s.base_price} kr` : ""}
-                                </Badge>
-                              ))}
-                              {activeServices.length > 5 && (
-                                <Badge variant="secondary" className="text-xs font-normal">+{activeServices.length - 5}</Badge>
-                              )}
-                            </div>
-                          )}
-
-                          <div className="mt-4 flex items-center gap-2 text-sm font-medium text-accent group-hover:underline">
-                            Vælg og tilpas services
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                        </div>
-                      </div>
+                      <Icon className={`h-5 w-5 ${active ? "" : "text-foreground/70"}`} />
+                      <span className="text-[11px] font-medium leading-tight">{label}</span>
                     </button>
                   );
                 })}
               </div>
+            </div>
 
-              <div className="text-center pt-2">
-                <Button variant="outline" onClick={handleReset} className="gap-2">
-                  <Sparkles className="h-4 w-4" />
-                  Søg igen
-                </Button>
+            {/* Step 2: Description */}
+            <div className="mt-7">
+              <div className="mb-3 flex items-center gap-2">
+                <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-colors ${
+                  category ? "bg-foreground text-background" : "bg-secondary text-muted-foreground"
+                }`}>2</span>
+                <label className="text-sm font-semibold text-foreground">Beskriv dit behov</label>
+              </div>
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={category ? EXAMPLE_PROMPTS[category] : "Vælg først en kategori ovenfor — så hjælper vi med en god skabelon."}
+                disabled={!category}
+                className="min-h-[140px] resize-none rounded-2xl border-border text-sm focus-visible:ring-foreground/20 disabled:opacity-60"
+              />
+              <p className="mt-2 text-xs text-muted-foreground">
+                💡 Jo mere konkret du er (m², antal, lokation, frekvens), jo bedre bliver matchet.
+              </p>
+            </div>
+
+            {/* Submit */}
+            <Button
+              type="submit"
+              disabled={!category || !description.trim()}
+              className="mt-7 h-14 w-full gap-2 rounded-2xl bg-foreground text-base font-semibold text-background hover:bg-foreground/90 active:scale-[0.99] disabled:opacity-50"
+            >
+              <Sparkles className="h-5 w-5" />
+              Find tilbud med AI
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+
+            {/* Trust footer in form */}
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-accent" /> 3-10 sek.</span>
+              <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-accent" /> Verificerede udbydere</span>
+              <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-accent" /> Gratis & uforpligtende</span>
+            </div>
+          </form>
+
+          {/* How it works strip */}
+          <div className="mt-12 grid gap-5 sm:grid-cols-3">
+            {[
+              { n: 1, title: "Beskriv opgaven", text: "Vælg kategori og fortæl kort, hvad du har brug for." },
+              { n: 2, title: "AI matcher", text: "Vores AI finder de bedste 3 udbydere på sekunder." },
+              { n: 3, title: "Sammenlign & vælg", text: "Tilpas pris, læs anmeldelser og book direkte." },
+            ].map((s) => (
+              <div key={s.n} className="rounded-2xl border border-border bg-card p-5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/10 text-sm font-bold text-accent">{s.n}</div>
+                <h3 className="mt-3 text-sm font-semibold text-foreground">{s.title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{s.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ─── Loading ─── */}
+      {isLoading && (
+        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-20">
+          <div className="flex flex-col items-center gap-6 text-center animate-fade-in">
+            <div className="relative">
+              <div className="absolute inset-0 animate-ping rounded-full bg-accent/15" />
+              <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-accent/20 bg-accent/5 shadow-lg shadow-accent/20">
+                <Loader2 className="h-8 w-8 animate-spin text-accent" />
               </div>
             </div>
-          )}
+            <div>
+              <p className="text-xl font-semibold text-foreground">AI'en analyserer dit behov...</p>
+              <p className="mt-1 text-muted-foreground">Finder de bedste serviceydere i {category}</p>
+            </div>
+            <div className="flex gap-1.5">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-2 w-2 animate-bounce rounded-full bg-accent/50" style={{ animationDelay: `${i * 0.15}s` }} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
-          {/* ─── STEP 3: Configure services from selected business ─── */}
-          {selectedBusiness && !isLoading && (
-            <div className="space-y-6 animate-fade-in">
-              {/* Back to results */}
-              <Button
-                variant="ghost"
-                onClick={() => setSelectedBusiness(null)}
-                className="gap-2 text-muted-foreground hover:text-foreground"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Tilbage til resultater
-              </Button>
+      {/* ─── Error ─── */}
+      {error && !isLoading && (
+        <section className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-14">
+          <div className="rounded-2xl border border-border bg-card p-8 text-center animate-fade-in">
+            <AlertCircle className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+            <p className="mb-4 text-foreground">{error}</p>
+            <Button variant="outline" onClick={handleReset} className="rounded-full">Prøv igen</Button>
+          </div>
+        </section>
+      )}
 
-              {/* Business header */}
-              <div className="rounded-2xl border border-border/60 bg-card/80 p-5 backdrop-blur-sm">
-                <div className="flex items-center gap-4">
-                  {selectedBusiness.business.logo_url ? (
-                    <img src={selectedBusiness.business.logo_url} alt="" className="h-14 w-14 shrink-0 rounded-xl border border-border object-contain bg-background p-1" />
-                  ) : (
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border bg-secondary text-xl font-bold text-muted-foreground">
-                      {selectedBusiness.business.name.charAt(0)}
+      {/* ─── STEP 2: Pick a business ─── */}
+      {matches && matches.length > 0 && !isLoading && !selectedBusiness && (
+        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 md:py-14 animate-fade-in">
+          <div className="mb-8 text-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-1.5 text-sm font-semibold text-accent">
+              <Sparkles className="h-4 w-4" />
+              {matches.length} {matches.length === 1 ? "match fundet" : "matches fundet"}
+            </div>
+            <h2 className="mt-4 text-2xl font-bold text-foreground md:text-3xl">Vælg en serviceudbyder</h2>
+            <p className="mx-auto mt-1 max-w-xl text-muted-foreground">
+              Vælg den virksomhed du vil bruge — derefter kan du tilpasse og bestille services.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {matches.map((match, i) => {
+              const isTop = i === 0;
+              const activeServices = match.business.services.filter(s => s.is_active !== false);
+              return (
+                <button
+                  key={match.business_id}
+                  onClick={() => handleSelectBusiness(match)}
+                  className={`group block w-full overflow-hidden rounded-2xl border bg-card text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.995] ${
+                    isTop ? "border-accent/30 shadow-md ring-1 ring-accent/10" : "border-border hover:border-foreground/20"
+                  }`}
+                >
+                  {isTop && (
+                    <div className="flex items-center gap-1.5 bg-accent/10 px-5 py-1.5 text-xs font-semibold text-accent">
+                      <Sparkles className="h-3 w-3" /> Bedste match for dig
                     </div>
                   )}
-                  <div>
-                    <h2 className="text-xl font-bold text-foreground">{selectedBusiness.business.name}</h2>
-                    <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                      {selectedBusiness.business.city && (
-                        <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {selectedBusiness.business.city}</span>
+
+                  <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-start sm:gap-5 sm:p-6">
+                    {/* Cover or logo */}
+                    <div className="relative h-24 w-full shrink-0 overflow-hidden rounded-xl bg-secondary sm:h-28 sm:w-28">
+                      {match.business.cover_image_url ? (
+                        <img src={match.business.cover_image_url} alt="" className="h-full w-full object-cover" />
+                      ) : match.business.logo_url ? (
+                        <div className="flex h-full w-full items-center justify-center bg-card p-3">
+                          <img src={match.business.logo_url} alt="" className="h-full w-full object-contain" />
+                        </div>
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center">
+                          <Building2 className="h-10 w-10 text-muted-foreground/40" />
+                        </div>
                       )}
-                      {selectedBusiness.business.avg_rating && (
-                        <span className="flex items-center gap-1 text-accent">
-                          <Star className="h-3.5 w-3.5 fill-accent" /> {selectedBusiness.business.avg_rating}
-                        </span>
+                    </div>
+
+                    {/* Main */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="truncate text-lg font-bold text-foreground">{match.business.name}</h3>
+                            {match.business.is_verified && (
+                              <BadgeCheck className="h-4 w-4 shrink-0 text-accent" />
+                            )}
+                          </div>
+                          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                            {match.business.city && (
+                              <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {match.business.city}</span>
+                            )}
+                            {match.business.avg_rating ? (
+                              <span className="flex items-center gap-1 text-foreground">
+                                <Star className="h-3 w-3 fill-foreground" /> {match.business.avg_rating}
+                                <span className="text-muted-foreground">({match.business.review_count})</span>
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">Ny på platformen</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-foreground">{match.estimated_price}</div>
+                          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Estimeret</div>
+                        </div>
+                      </div>
+
+                      {/* Match reason */}
+                      <div className="mt-3 rounded-xl bg-secondary/60 px-3 py-2.5">
+                        <div className="mb-0.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-accent">
+                          <Sparkles className="h-3 w-3" /> Hvorfor denne — {match.match_score}% match
+                        </div>
+                        <p className="text-sm leading-snug text-foreground">{match.reason}</p>
+                      </div>
+
+                      {/* Service tags */}
+                      {activeServices.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {activeServices.slice(0, 4).map((s) => (
+                            <Badge key={s.id} variant="secondary" className="rounded-full bg-secondary text-xs font-medium text-foreground">
+                              {s.name}
+                            </Badge>
+                          ))}
+                          {activeServices.length > 4 && (
+                            <Badge variant="secondary" className="rounded-full bg-secondary text-xs font-medium text-muted-foreground">
+                              +{activeServices.length - 4} flere
+                            </Badge>
+                          )}
+                        </div>
                       )}
-                      {selectedBusiness.business.is_verified && (
-                        <span className="flex items-center gap-1 text-accent"><BadgeCheck className="h-3.5 w-3.5" /> Verificeret</span>
-                      )}
-                      <Badge variant="secondary" className="text-xs">{selectedBusiness.match_score}% match</Badge>
+
+                      <div className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-foreground group-hover:gap-2 transition-all">
+                        Vælg & tilpas services
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">{selectedBusiness.reason}</p>
                   </div>
-                </div>
-              </div>
+                </button>
+              );
+            })}
+          </div>
 
-              {/* Info banner */}
-              <div className="flex items-start gap-3 rounded-xl border border-accent/20 bg-accent/5 p-4">
-                <ShoppingCart className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
-                <div className="text-sm text-foreground">
-                  <p className="font-medium">Tilpas og tilføj services til din kurv</p>
-                  <p className="mt-0.5 text-muted-foreground">Brug prisberegnerne nedenfor til at specificere dit behov og tilføj de services du ønsker.</p>
-                </div>
-              </div>
+          <div className="mt-8 text-center">
+            <Button variant="outline" onClick={handleReset} className="gap-2 rounded-full">
+              <Sparkles className="h-4 w-4" />
+              Søg igen
+            </Button>
+          </div>
+        </section>
+      )}
 
-              {/* Service cards */}
-              {(() => {
-                const activeServices = selectedBusiness.business.services.filter(s => s.is_active !== false);
-                // Find the matched/prefilled service(s)
-                const prefillIds = (selectedBusiness.service_prefills || []).map(p => p.service_id);
-                const matchedServices = prefillIds.length > 0
-                  ? activeServices.filter(s => prefillIds.includes(s.id))
-                  : activeServices.slice(0, 1); // fallback: show first service
-                const otherServices = activeServices.filter(s => !matchedServices.some(ms => ms.id === s.id));
+      {/* ─── STEP 3: Configure services ─── */}
+      {selectedBusiness && !isLoading && (
+        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 md:py-12 animate-fade-in">
+          <Button
+            variant="ghost"
+            onClick={() => setSelectedBusiness(null)}
+            className="-ml-2 mb-5 gap-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Tilbage til resultater
+          </Button>
 
-                if (activeServices.length === 0) {
-                  return (
-                    <div className="rounded-xl border border-border bg-card p-8 text-center">
-                      <p className="text-muted-foreground">Denne virksomhed har ingen aktive services endnu.</p>
-                      <Link to={`/b/${selectedBusiness.business.slug}`} className="mt-3 inline-block text-sm font-medium text-accent hover:underline">
-                        Besøg virksomhedens side →
-                      </Link>
-                    </div>
-                  );
-                }
-
-                const renderCard = (s: MatchedService) => {
-                  const prefill = selectedBusiness?.service_prefills?.find(p => p.service_id === s.id);
-                  const stepVals: Record<string, number> = {};
-                  prefill?.step_values?.forEach(sv => { stepVals[sv.step_id] = sv.value; });
-                  return (
-                    <DynamicServiceCard
-                      key={s.id}
-                      service={toServiceCardProps(s)}
-                      initialStepValues={Object.keys(stepVals).length > 0 ? stepVals : undefined}
-                      initialHours={prefill?.hours}
-                      businessName={selectedBusiness.business.name}
-                      businessLogoUrl={selectedBusiness.business.logo_url || undefined}
-                    />
-                  );
-                };
-
-                return (
-                  <div className="space-y-6">
-                    {/* Matched service(s) */}
-                    <div>
-                      <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Anbefalet service</h3>
-                      <div className="grid gap-5 sm:grid-cols-2">
-                        {matchedServices.map(renderCard)}
-                      </div>
-                    </div>
-
-                    {/* Other services toggle */}
-                    {otherServices.length > 0 && (
-                      <div>
-                        {!showAllServices ? (
-                          <button
-                            onClick={() => setShowAllServices(true)}
-                            className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/60 bg-secondary/30 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
-                          >
-                            Se {otherServices.length} andre services fra {selectedBusiness.business.name}
-                            <ArrowRight className="h-4 w-4" />
-                          </button>
-                        ) : (
-                          <>
-                            <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Andre services</h3>
-                            <div className="grid gap-5 sm:grid-cols-2">
-                              {otherServices.map(renderCard)}
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-
-              {/* Cart summary bar */}
-              {count > 0 && (
-                <div className="sticky bottom-4 z-20 rounded-2xl border border-accent/20 bg-card/95 p-4 shadow-xl backdrop-blur-sm">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
-                        <Check className="h-5 w-5 text-accent" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{count} {count === 1 ? "service" : "services"} i kurven</p>
-                        <p className="text-xs text-muted-foreground">fra {selectedBusiness.business.name}</p>
-                      </div>
-                    </div>
-                    <CartSheet />
-                  </div>
+          {/* Business header */}
+          <div className="rounded-2xl border border-border bg-card p-5 md:p-6">
+            <div className="flex items-start gap-4">
+              {selectedBusiness.business.logo_url ? (
+                <img src={selectedBusiness.business.logo_url} alt="" className="h-16 w-16 shrink-0 rounded-xl border border-border bg-card object-contain p-1.5" />
+              ) : (
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-border bg-secondary text-xl font-bold text-foreground">
+                  {selectedBusiness.business.name.charAt(0)}
                 </div>
               )}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="truncate text-xl font-bold text-foreground">{selectedBusiness.business.name}</h2>
+                  {selectedBusiness.business.is_verified && <BadgeCheck className="h-5 w-5 shrink-0 text-accent" />}
+                </div>
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                  {selectedBusiness.business.city && (
+                    <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {selectedBusiness.business.city}</span>
+                  )}
+                  {selectedBusiness.business.avg_rating && (
+                    <span className="flex items-center gap-1 text-foreground">
+                      <Star className="h-3.5 w-3.5 fill-foreground" /> {selectedBusiness.business.avg_rating}
+                    </span>
+                  )}
+                  <Badge variant="secondary" className="rounded-full bg-accent/10 text-xs font-semibold text-accent">
+                    {selectedBusiness.match_score}% match
+                  </Badge>
+                </div>
+                <p className="mt-2 text-sm text-foreground/80">{selectedBusiness.reason}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Info banner */}
+          <div className="mt-5 flex items-start gap-3 rounded-2xl border border-accent/20 bg-accent/5 p-4">
+            <ShoppingCart className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+            <div className="text-sm">
+              <p className="font-semibold text-foreground">Tilpas og tilføj services til din kurv</p>
+              <p className="mt-0.5 text-muted-foreground">Brug prisberegnerne til at specificere dit behov, og tilføj de services du ønsker.</p>
+            </div>
+          </div>
+
+          {/* Service cards */}
+          <div className="mt-6">
+            {(() => {
+              const activeServices = selectedBusiness.business.services.filter(s => s.is_active !== false);
+              const prefillIds = (selectedBusiness.service_prefills || []).map(p => p.service_id);
+              const matchedServices = prefillIds.length > 0
+                ? activeServices.filter(s => prefillIds.includes(s.id))
+                : activeServices.slice(0, 1);
+              const otherServices = activeServices.filter(s => !matchedServices.some(ms => ms.id === s.id));
+
+              if (activeServices.length === 0) {
+                return (
+                  <div className="rounded-2xl border border-border bg-card p-8 text-center">
+                    <p className="text-muted-foreground">Denne virksomhed har ingen aktive services endnu.</p>
+                    <Link to={`/b/${selectedBusiness.business.slug}`} className="mt-3 inline-block text-sm font-semibold text-foreground hover:underline">
+                      Besøg virksomhedens side →
+                    </Link>
+                  </div>
+                );
+              }
+
+              const renderCard = (s: MatchedService) => {
+                const prefill = selectedBusiness?.service_prefills?.find(p => p.service_id === s.id);
+                const stepVals: Record<string, number> = {};
+                prefill?.step_values?.forEach(sv => { stepVals[sv.step_id] = sv.value; });
+                return (
+                  <DynamicServiceCard
+                    key={s.id}
+                    service={toServiceCardProps(s)}
+                    initialStepValues={Object.keys(stepVals).length > 0 ? stepVals : undefined}
+                    initialHours={prefill?.hours}
+                    businessName={selectedBusiness.business.name}
+                    businessLogoUrl={selectedBusiness.business.logo_url || undefined}
+                  />
+                );
+              };
+
+              return (
+                <div className="space-y-8">
+                  <div>
+                    <div className="mb-3 flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-accent" />
+                      <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">Anbefalet til dig</h3>
+                    </div>
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      {matchedServices.map(renderCard)}
+                    </div>
+                  </div>
+
+                  {otherServices.length > 0 && (
+                    <div>
+                      {!showAllServices ? (
+                        <button
+                          onClick={() => setShowAllServices(true)}
+                          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 py-3.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary active:scale-[0.99]"
+                        >
+                          Se {otherServices.length} andre services fra {selectedBusiness.business.name}
+                          <ArrowRight className="h-4 w-4" />
+                        </button>
+                      ) : (
+                        <>
+                          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Andre services</h3>
+                          <div className="grid gap-5 sm:grid-cols-2">
+                            {otherServices.map(renderCard)}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Cart sticky bar */}
+          {count > 0 && (
+            <div className="sticky bottom-4 z-20 mt-8 rounded-2xl border border-border bg-card/95 p-4 shadow-xl backdrop-blur-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+                    <Check className="h-5 w-5 text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{count} {count === 1 ? "service" : "services"} i kurven</p>
+                    <p className="text-xs text-muted-foreground">fra {selectedBusiness.business.name}</p>
+                  </div>
+                </div>
+                <CartSheet />
+              </div>
             </div>
           )}
-        </div>
-      </div>
+        </section>
+      )}
     </div>
   );
 };
