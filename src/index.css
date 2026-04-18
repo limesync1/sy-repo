@@ -4,46 +4,46 @@
 
 @layer base {
   :root {
-    /* Warm, airy Airbnb-inspired palette */
-    --background: 30 20% 99%;
-    --foreground: 20 14% 12%;
+    /* Airbnb-inspired neutral palette with coral signal */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 13%;
 
     --card: 0 0% 100%;
-    --card-foreground: 20 14% 12%;
+    --card-foreground: 0 0% 13%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 20 14% 12%;
+    --popover-foreground: 0 0% 13%;
 
-    --primary: 20 14% 12%;
+    --primary: 0 0% 13%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 30 25% 96%;
-    --secondary-foreground: 20 14% 12%;
+    --secondary: 0 0% 97%;
+    --secondary-foreground: 0 0% 13%;
 
-    --muted: 30 20% 95%;
-    --muted-foreground: 20 8% 42%;
+    --muted: 0 0% 97%;
+    --muted-foreground: 0 0% 45%;
 
-    /* Warm coral/rose — Airbnb-like */
-    --accent: 358 75% 59%;
+    /* Airbnb coral #FF385C */
+    --accent: 351 100% 61%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 15% 90%;
-    --input: 30 15% 90%;
-    --ring: 358 75% 59%;
+    --border: 0 0% 87%;
+    --input: 0 0% 87%;
+    --ring: 0 0% 13%;
 
-    --radius: 1rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 30 20% 98%;
-    --sidebar-foreground: 20 8% 30%;
-    --sidebar-primary: 358 75% 59%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 13%;
+    --sidebar-primary: 351 100% 61%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 30 25% 94%;
-    --sidebar-accent-foreground: 20 14% 12%;
-    --sidebar-border: 30 15% 90%;
-    --sidebar-ring: 358 75% 59%;
+    --sidebar-accent: 0 0% 97%;
+    --sidebar-accent-foreground: 0 0% 13%;
+    --sidebar-border: 0 0% 87%;
+    --sidebar-ring: 0 0% 13%;
   }
 
   .dark {
