@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { Star, ShieldCheck, MapPin, ArrowRight } from "lucide-react";
+import { Star, ShieldCheck, Heart } from "lucide-react";
+import { useState } from "react";
+import HorizontalScroller from "./HorizontalScroller";
 
 type Biz = {
   id: string;
@@ -17,6 +19,77 @@ type Biz = {
   _reviewCount?: number;
 };
 
+const BusinessCard = ({ biz }: { biz: Biz }) => {
+  const [liked, setLiked] = useState(false);
+  const cat = biz.categories?.[0] ?? biz.category;
+
+  return (
+    <Link
+      to={`/b/${biz.slug}`}
+      className="group flex w-[280px] shrink-0 flex-col gap-3 sm:w-[300px]"
+    >
+      <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-secondary">
+        {biz.cover_image_url ? (
+          <img
+            src={biz.cover_image_url}
+            alt={biz.name}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
+            {biz.logo_url ? (
+              <img src={biz.logo_url} alt="" className="h-20 w-20 object-contain opacity-80" />
+            ) : (
+              <span className="text-5xl font-bold text-muted-foreground/20">{biz.name.charAt(0)}</span>
+            )}
+          </div>
+        )}
+
+        {/* Heart */}
+        <button
+          onClick={(e) => { e.preventDefault(); setLiked(!liked); }}
+          className="absolute right-3 top-3 transition-transform hover:scale-110"
+          aria-label="Gem"
+        >
+          <Heart className={`h-7 w-7 stroke-[2] drop-shadow-md ${liked ? "fill-accent text-accent" : "fill-foreground/30 text-white"}`} />
+        </button>
+
+        {/* Verified badge */}
+        {biz.is_verified && (
+          <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur">
+            <ShieldCheck className="h-3 w-3 text-accent" />
+            Verificeret
+          </div>
+        )}
+
+        {/* Logo chip bottom-left */}
+        {biz.logo_url && biz.cover_image_url && (
+          <div className="absolute bottom-3 left-3 h-12 w-12 overflow-hidden rounded-xl border-2 border-card bg-card shadow-md">
+            <img src={biz.logo_url} alt="" className="h-full w-full object-cover" />
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-0.5 px-1">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="text-[15px] font-semibold tracking-tight text-foreground line-clamp-1">{biz.name}</h3>
+          {biz._reviewCount && biz._reviewCount > 0 ? (
+            <div className="flex shrink-0 items-center gap-1 text-sm">
+              <Star className="h-3.5 w-3.5 fill-foreground text-foreground" />
+              <span className="font-medium text-foreground">{biz._avgRating!.toFixed(1)}</span>
+            </div>
+          ) : (
+            <span className="text-xs text-muted-foreground">Ny</span>
+          )}
+        </div>
+        {cat && <div className="text-sm text-muted-foreground">{cat}</div>}
+        {biz.city && <div className="text-sm text-muted-foreground">{biz.city}</div>}
+      </div>
+    </Link>
+  );
+};
+
 const RecentBusinesses = () => {
   const { data: businesses } = useQuery({
     queryKey: ["recent-businesses"],
@@ -27,7 +100,7 @@ const RecentBusinesses = () => {
         .eq("is_active", true)
         .order("is_verified", { ascending: false })
         .order("created_at", { ascending: false })
-        .limit(4);
+        .limit(12);
 
       if (!bizList?.length) return [] as Biz[];
 
@@ -56,79 +129,22 @@ const RecentBusinesses = () => {
   if (!businesses || businesses.length === 0) return null;
 
   return (
-    <section className="bg-background py-20 md:py-28">
+    <section className="bg-background py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
-              Nye virksomheder
-            </h2>
-            <p className="mt-2 text-base text-muted-foreground">Friske ansigter på platformen.</p>
-          </div>
-          <Link to="/search" className="group inline-flex items-center gap-1.5 text-sm font-semibold text-accent">
-            Se alle
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+        <div className="mb-6 flex items-end justify-between">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+            Populært på platformen
+          </h2>
+          <Link to="/search" className="text-sm font-semibold text-foreground underline-offset-4 hover:underline">
+            Vis alle
           </Link>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {businesses.map((biz) => {
-            const cat = biz.categories?.[0] ?? biz.category;
-            return (
-              <Link
-                key={biz.id}
-                to={`/b/${biz.slug}`}
-                className="group flex flex-col gap-3"
-              >
-                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-secondary">
-                  {biz.cover_image_url ? (
-                    <img
-                      src={biz.cover_image_url}
-                      alt={biz.name}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
-                      {biz.logo_url ? (
-                        <img src={biz.logo_url} alt="" className="h-16 w-16 object-contain opacity-60" />
-                      ) : (
-                        <span className="text-4xl font-bold text-muted-foreground/30">{biz.name.charAt(0)}</span>
-                      )}
-                    </div>
-                  )}
-                  {biz.is_verified && (
-                    <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-card/95 px-2 py-0.5 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur">
-                      <ShieldCheck className="h-3 w-3 text-accent" />
-                      Verificeret
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-base font-bold tracking-tight text-foreground line-clamp-1">{biz.name}</h3>
-                    {biz._reviewCount && biz._reviewCount > 0 ? (
-                      <div className="flex shrink-0 items-center gap-0.5 text-sm">
-                        <Star className="h-3.5 w-3.5 fill-foreground text-foreground" />
-                        <span className="font-semibold text-foreground">{biz._avgRating!.toFixed(1)}</span>
-                      </div>
-                    ) : null}
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    {biz.city && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {biz.city}
-                      </span>
-                    )}
-                    {cat && <span className="truncate">{cat}</span>}
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+        <HorizontalScroller>
+          {businesses.map((biz) => (
+            <BusinessCard key={biz.id} biz={biz} />
+          ))}
+        </HorizontalScroller>
       </div>
     </section>
   );
