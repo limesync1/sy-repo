@@ -66,23 +66,23 @@ const HeroSection = () => {
         </div>
       </nav>
 
-      {/* Hero — split layout: text left, image right */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 pb-12 md:pt-16 md:pb-20">
-        <div className="grid items-center gap-10 md:grid-cols-2 lg:gap-14">
+      {/* Hero — split layout: text left, image right (image hidden on small screens for tighter fold) */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-10 sm:pt-10 sm:pb-12 md:pt-16 md:pb-20">
+        <div className="grid items-center gap-8 md:grid-cols-2 lg:gap-14">
           {/* Left: copy + search */}
           <div className="min-w-0 flex flex-col">
             <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
               <Sparkles className="h-3 w-3" />
               Danmarks samlede platform for serviceydere
             </span>
-            <h1 className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-[3.5rem]">
+            <h1 className="mt-4 text-[2rem] font-extrabold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-[3.5rem]">
               Find den rette <span className="text-accent">serviceyder</span> til opgaven.
             </h1>
-            <p className="mt-5 max-w-xl text-base text-muted-foreground md:text-lg">
+            <p className="mt-4 max-w-xl text-[15px] text-muted-foreground sm:text-base md:text-lg">
               Sammenlign verificerede virksomheder, læs ægte anmeldelser og book direkte — eller få op til 3 skræddersyede tilbud på få sekunder.
             </p>
 
-            <div className="mt-8">
+            <div className="mt-6 sm:mt-8">
               <SearchSuggest variant="hero" />
               <div className="mt-3 flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">Søger nær:</span>
@@ -91,7 +91,7 @@ const HeroSection = () => {
             </div>
 
             {/* Trust strip */}
-            <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground sm:mt-7 sm:gap-x-6">
               <span className="flex items-center gap-1.5">
                 <ShieldCheck className="h-4 w-4 text-accent" />
                 Verificerede udbydere
@@ -104,8 +104,8 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right: hero image */}
-          <div className="relative">
+          {/* Right: hero image — hidden on phones, shown from sm up */}
+          <div className="relative hidden sm:block">
             <div className="relative aspect-[5/4] w-full overflow-hidden rounded-3xl bg-secondary shadow-xl md:aspect-[4/3] lg:aspect-[5/4] lg:max-h-[480px]">
               <img
                 src={heroImage}

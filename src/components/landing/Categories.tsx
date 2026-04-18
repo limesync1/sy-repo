@@ -31,7 +31,7 @@ const Categories = () => {
             <Link
               key={cat.label}
               to={`/search?category=${encodeURIComponent(cat.label)}`}
-              className="group flex w-[160px] shrink-0 flex-col items-start gap-3 rounded-2xl border border-border bg-card p-4 transition-all hover:border-foreground/30 hover:shadow-md"
+              className="group flex w-[140px] sm:w-[160px] shrink-0 flex-col items-start gap-3 rounded-2xl border border-border bg-card p-4 transition-all hover:border-foreground/30 hover:shadow-md"
             >
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground transition-colors group-hover:bg-foreground group-hover:text-background">
                 <cat.icon className="h-5 w-5" />
