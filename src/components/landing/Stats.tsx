@@ -28,40 +28,20 @@ const Stats = () => {
   const fmt = (n: number) => new Intl.NumberFormat("da-DK").format(n);
 
   const stats = [
-    {
-      value: data ? `${fmt(data.businesses)}` : "—",
-      label: "Verificerede virksomheder",
-      sub: "i hele Danmark",
-    },
-    {
-      value: data && data.reviews > 0 ? fmt(data.reviews) : "Nye",
-      label: data && data.reviews > 0 ? "Anmeldelser" : "Anmeldelser kommer",
-      sub: data && data.reviews > 0 ? "fra rigtige kunder" : "efter første bookings",
-    },
-    {
-      value: data?.avg ?? "—",
-      label: "Gennemsnitlig rating",
-      sub: data?.avg ? "baseret på anmeldelser" : "ingen anmeldelser endnu",
-    },
-    {
-      value: data ? `${fmt(data.cities)}` : "—",
-      label: data && data.cities === 1 ? "By dækket" : "Byer dækket",
-      sub: "og voksende",
-    },
+    { value: data ? `${fmt(data.businesses)}` : "—", label: "Verificerede virksomheder" },
+    { value: data && data.reviews > 0 ? fmt(data.reviews) : "Nye", label: data && data.reviews > 0 ? "Anmeldelser" : "Anmeldelser kommer" },
+    { value: data?.avg ?? "—", label: "Gennemsnitlig rating" },
+    { value: data ? `${fmt(data.cities)}` : "—", label: data && data.cities === 1 ? "By dækket" : "Byer dækket" },
   ];
 
   return (
-    <section className="border-y border-border bg-background">
+    <section className="bg-background py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid divide-y divide-border md:grid-cols-4 md:divide-x md:divide-y-0">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
           {stats.map((s) => (
-            <div key={s.label} className="group relative overflow-hidden px-6 py-8 transition-colors hover:bg-secondary/40 md:py-10">
-              <div className="text-4xl font-extrabold tracking-tight text-foreground md:text-5xl">
-                {s.value}
-              </div>
-              <div className="mt-2 text-sm font-semibold text-foreground">{s.label}</div>
-              <div className="text-xs text-muted-foreground">{s.sub}</div>
-              <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-accent transition-all duration-500 group-hover:w-full" />
+            <div key={s.label} className="rounded-2xl border border-border bg-card p-5 text-center shadow-sm transition-shadow hover:shadow-md md:p-7">
+              <div className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">{s.value}</div>
+              <div className="mt-1 text-xs font-medium text-muted-foreground md:text-sm">{s.label}</div>
             </div>
           ))}
         </div>
