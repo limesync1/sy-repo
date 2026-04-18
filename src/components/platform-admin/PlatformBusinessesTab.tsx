@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Search, CheckCircle2, XCircle, ExternalLink, Trash2, ShieldCheck, MapPin, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -106,8 +105,17 @@ const PlatformBusinessesTab = () => {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="truncate text-sm font-semibold text-foreground">{b.name}</p>
-                      {b.is_verified && <Badge variant="secondary" className="h-5 px-1.5 text-[10px] gap-1"><ShieldCheck className="h-3 w-3" />Verificeret</Badge>}
-                      {!b.is_active && <Badge variant="outline" className="h-5 px-1.5 text-[10px] text-red-600 border-red-200">Inaktiv</Badge>}
+                      {b.is_verified && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent ring-1 ring-inset ring-accent/20">
+                          <ShieldCheck className="h-3 w-3" strokeWidth={2.5} />
+                          Verificeret
+                        </span>
+                      )}
+                      {!b.is_active && (
+                        <span className="inline-flex items-center rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-medium text-destructive ring-1 ring-inset ring-destructive/20">
+                          Inaktiv
+                        </span>
+                      )}
                     </div>
                     <p className="truncate text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
                       {b.category && <span>{b.category}</span>}
