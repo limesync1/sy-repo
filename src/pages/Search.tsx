@@ -110,6 +110,11 @@ const BusinessCard = ({ biz }: { biz: any }) => {
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="h-3.5 w-3.5" />
             <span>{biz.zip_code ? `${biz.zip_code} ` : ""}{biz.city}</span>
+            {typeof biz._distanceKm === "number" && (
+              <span className="ml-1 text-xs text-muted-foreground/80">
+                · {biz._distanceKm < 1 ? "<1" : Math.round(biz._distanceKm)} km
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -257,9 +262,10 @@ const SearchPage = () => {
           <div className="mx-auto flex justify-center">
             <SearchSuggest variant="hero" defaultQuery={debouncedQuery} />
           </div>
-          <div className="mt-3 flex items-center justify-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
             <span className="text-xs text-muted-foreground">Viser nær:</span>
             <LocationChip />
+            <RadiusPicker />
           </div>
         </div>
       </section>
