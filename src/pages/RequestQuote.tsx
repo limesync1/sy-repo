@@ -105,7 +105,7 @@ const RequestQuote = () => {
   const [showAllServices, setShowAllServices] = useState(false);
   const { count } = useCart();
   const { user } = useAuth();
-  const { location } = useUserLocation();
+  const { location, radiusKm } = useUserLocation();
 
   const handleFind = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,6 +127,7 @@ const RequestQuote = () => {
           location: (location.city || location.zip)
             ? { city: location.city, zip: location.zip }
             : undefined,
+          radius_km: radiusKm,
         },
       });
 
@@ -249,7 +250,8 @@ const RequestQuote = () => {
             <div className="mb-6 flex flex-wrap items-center gap-2 rounded-2xl bg-secondary/50 px-3 py-2">
               <span className="text-xs font-medium text-muted-foreground">Din lokation:</span>
               <LocationChip />
-              <span className="ml-auto text-[11px] text-muted-foreground">Vi prioriterer udbydere tæt på dig</span>
+              <RadiusPicker />
+              <span className="ml-auto text-[11px] text-muted-foreground">Vi finder udbydere inden for din valgte radius</span>
             </div>
 
             {/* Step 1: Category */}
