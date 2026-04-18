@@ -52,7 +52,7 @@ const Stats = () => {
 
   return (
     <section className="border-y border-border bg-background">
-      <div className="container mx-auto px-4">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid divide-y divide-border md:grid-cols-4 md:divide-x md:divide-y-0">
           {stats.map((s) => (
             <div key={s.label} className="group relative overflow-hidden px-6 py-8 transition-colors hover:bg-secondary/40 md:py-10">

@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 const Footer = () => {
   return (
     <footer className="border-t border-border bg-foreground">
-      <div className="container mx-auto px-4 py-10">
-        <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+        <div>
           <div className="grid gap-8 md:grid-cols-4">
             <div className="md:col-span-1">
               <img src="/serviceydere-logo.png" alt="Serviceydere" className="mb-3 h-8" />
