@@ -377,17 +377,23 @@ const RequestQuote = () => {
                   )}
 
                   <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-start sm:gap-5 sm:p-6">
-                    {/* Cover or logo */}
+                    {/* Cover with logo overlay */}
                     <div className="relative h-24 w-full shrink-0 overflow-hidden rounded-xl bg-secondary sm:h-28 sm:w-28">
                       {match.business.cover_image_url ? (
                         <img src={match.business.cover_image_url} alt="" className="h-full w-full object-cover" />
-                      ) : match.business.logo_url ? (
-                        <div className="flex h-full w-full items-center justify-center bg-card p-3">
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
+                          <Building2 className="h-10 w-10 text-muted-foreground/40" />
+                        </div>
+                      )}
+                      {match.business.logo_url && match.business.cover_image_url && (
+                        <div className="absolute bottom-1.5 left-1.5 flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-border bg-card p-1 shadow-md">
                           <img src={match.business.logo_url} alt="" className="h-full w-full object-contain" />
                         </div>
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center">
-                          <Building2 className="h-10 w-10 text-muted-foreground/40" />
+                      )}
+                      {match.business.logo_url && !match.business.cover_image_url && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-card p-3">
+                          <img src={match.business.logo_url} alt="" className="h-full w-full object-contain" />
                         </div>
                       )}
                     </div>
@@ -397,6 +403,11 @@ const RequestQuote = () => {
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
+                            {match.business.logo_url && match.business.cover_image_url && (
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-card p-0.5 sm:hidden">
+                                <img src={match.business.logo_url} alt="" className="h-full w-full object-contain" />
+                              </div>
+                            )}
                             <h3 className="truncate text-lg font-bold text-foreground">{match.business.name}</h3>
                             {match.business.is_verified && (
                               <BadgeCheck className="h-4 w-4 shrink-0 text-accent" />
