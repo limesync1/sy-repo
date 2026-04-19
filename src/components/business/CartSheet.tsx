@@ -552,8 +552,13 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                                 mode="single"
                                 selected={selectedDate}
                                 onSelect={(d) => {
-                                  if (d) setPreferredDate(d.toISOString().split("T")[0]);
-                                }}
+                                   if (d) {
+                                     const y = d.getFullYear();
+                                     const m = String(d.getMonth() + 1).padStart(2, "0");
+                                     const day = String(d.getDate()).padStart(2, "0");
+                                     setPreferredDate(`${y}-${m}-${day}`);
+                                   }
+                                 }}
                                 disabled={(date) => date < today}
                                 locale={da}
                                 weekStartsOn={1}
