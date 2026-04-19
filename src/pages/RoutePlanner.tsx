@@ -91,6 +91,7 @@ const Planner = () => {
   const [showMap, setShowMap] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
+  const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
 
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
