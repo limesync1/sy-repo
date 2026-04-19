@@ -14,7 +14,7 @@ import { template as orderConfirmation } from './order-confirmation.tsx'
 import { template as orderStatusUpdate } from './order-status-update.tsx'
 import { template as subscriptionReminder } from './subscription-reminder.tsx'
 import { template as subscriptionUpdate } from './subscription-update.tsx'
-import { template as employeeInvitation } from './employee-invitation.tsx'
+import { template as employeeWelcome } from './employee-invitation.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'welcome': welcome,
@@ -22,5 +22,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'order-status-update': orderStatusUpdate,
   'subscription-reminder': subscriptionReminder,
   'subscription-update': subscriptionUpdate,
-  'employee-invitation': employeeInvitation,
+  'employee-welcome': employeeWelcome,
 }
