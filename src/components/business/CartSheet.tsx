@@ -423,13 +423,13 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
 
             {/* Footer */}
             <div className="shrink-0 border-t border-border bg-card px-5 py-4">
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-sm font-medium text-muted-foreground">Total</span>
-                <span className="text-lg font-bold text-foreground">{total} kr</span>
+              <div className="mb-3 flex items-baseline justify-between">
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total</span>
+                <span className="text-xl font-bold text-foreground">{total} kr</span>
               </div>
-               <Button onClick={() => setCheckout(true)} className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90">
-                 Gå til bestilling
-               </Button>
+              <Button onClick={() => setCheckout(true)} size="lg" className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-semibold shadow-sm hover:shadow-md transition-all">
+                Gå til bestilling →
+              </Button>
             </div>
           </div>
         ) : (
