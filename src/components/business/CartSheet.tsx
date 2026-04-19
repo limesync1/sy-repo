@@ -40,11 +40,17 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [zipCode, setZipCode] = useState("");
+  const [city, setCity] = useState("");
+  const [preferredDate, setPreferredDate] = useState("");
+  const [preferredTimeStart, setPreferredTimeStart] = useState("");
+  const [preferredTimeEnd, setPreferredTimeEnd] = useState("");
   const [orderSuccess, setOrderSuccess] = useState(false);
 
   const handleOrder = async () => {
-    if (!name || !email || !phone) {
-      toast.error("Udfyld venligst alle felter for at sende bestillingen");
+    if (!name || !email || !phone || !address || !zipCode || !city) {
+      toast.error("Udfyld venligst alle felter inkl. adresse for at sende bestillingen");
       return;
     }
 
