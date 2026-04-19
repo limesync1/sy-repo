@@ -618,23 +618,36 @@ export const useOptimizeRoute = () => {
 };
 
 /* ─── Auto-fordel: tildel utildelte stops til medarbejdere uden at skabe overlap.
-   Vælger medarbejder med færrest stops OG hvor stoppets tidsvindue er ledigt.
-   Hvis ingen er ledige, vælges den med færrest stops (fallback) — UI viser så konflikt-badge. ─── */
+   Respekterer required_staff: hvis et stop kræver fx 2 personer, vælges 2 medarbejdere
+   der begge er ledige i tidsvinduet. Skriver direkte til route_stop_assignees. ─── */
 export const useAutoAssignStops = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ routeId, employeeIds }: { routeId: string; employeeIds: string[] }) => {
       if (employeeIds.length === 0) throw new Error("Ingen medarbejdere tilkoblet");
+
       const { data: stops, error } = await supabase
         .from("route_stops")
-        .select("id, assigned_employee_id, latitude, longitude, planned_arrival, duration_minutes")
+        .select("id, latitude, longitude, planned_arrival, duration_minutes, required_staff")
         .eq("route_id", routeId);
       if (error) throw error;
 
-      const unassigned = (stops || []).filter((s) => !s.assigned_employee_id);
-      if (unassigned.length === 0) return { assigned: 0 };
+      const allStops = stops || [];
+      const stopIds = allStops.map((s) => s.id);
 
-      // Helper: minutter siden midnat
+      // Hent eksisterende assignees så vi kun fordeler stops uden tildelinger
+      const { data: existingAssignees } = await supabase
+        .from("route_stop_assignees")
+        .select("stop_id, employee_id")
+        .in("stop_id", stopIds.length ? stopIds : ["00000000-0000-0000-0000-000000000000"]);
+
+      const assigneesByStop = new Map<string, string[]>();
+      (existingAssignees || []).forEach((a: any) => {
+        const arr = assigneesByStop.get(a.stop_id) || [];
+        arr.push(a.employee_id);
+        assigneesByStop.set(a.stop_id, arr);
+      });
+
       const isoMin = (iso: string | null) => {
         if (!iso) return null;
         const d = new Date(iso);
@@ -642,68 +655,85 @@ export const useAutoAssignStops = () => {
         return d.getHours() * 60 + d.getMinutes();
       };
 
-      // Byg busy-intervaller pr. medarbejder
       type Busy = { start: number; end: number };
       const busyByEmp = new Map<string, Busy[]>();
-      for (const eid of employeeIds) busyByEmp.set(eid, []);
-      for (const s of stops || []) {
-        if (!s.assigned_employee_id || !busyByEmp.has(s.assigned_employee_id)) continue;
-        const start = isoMin(s.planned_arrival);
-        if (start == null) continue;
-        busyByEmp.get(s.assigned_employee_id)!.push({
-          start, end: start + Math.max(s.duration_minutes || 30, 15),
-        });
-      }
-
-      // Tæl total stops pr. medarbejder for balance
       const counts = new Map<string, number>();
-      for (const eid of employeeIds) counts.set(eid, 0);
-      for (const s of stops || []) {
-        if (s.assigned_employee_id && counts.has(s.assigned_employee_id)) {
-          counts.set(s.assigned_employee_id, (counts.get(s.assigned_employee_id) || 0) + 1);
+      for (const eid of employeeIds) { busyByEmp.set(eid, []); counts.set(eid, 0); }
+
+      for (const s of allStops) {
+        const start = isoMin(s.planned_arrival);
+        const ids = assigneesByStop.get(s.id) || [];
+        for (const eid of ids) {
+          if (counts.has(eid)) counts.set(eid, (counts.get(eid) || 0) + 1);
+          if (start != null && busyByEmp.has(eid)) {
+            busyByEmp.get(eid)!.push({
+              start, end: start + Math.max(s.duration_minutes || 30, 15),
+            });
+          }
         }
       }
 
-      const assignments: { id: string; assigned_employee_id: string }[] = [];
-      for (const stop of unassigned) {
+      // Stops der mangler tildelinger (eller ikke nok ift. required_staff)
+      const needsAssignment = allStops.filter((s) => {
+        const have = (assigneesByStop.get(s.id) || []).length;
+        const need = Math.max(1, s.required_staff || 1);
+        return have < need;
+      });
+      if (needsAssignment.length === 0) return { assigned: 0 };
+
+      const inserts: { stop_id: string; employee_id: string; is_lead: boolean }[] = [];
+
+      for (const stop of needsAssignment) {
         const start = isoMin(stop.planned_arrival);
         const dur = Math.max(stop.duration_minutes || 30, 15);
         const end = start != null ? start + dur : null;
+        const need = Math.max(1, stop.required_staff || 1);
+        const already = new Set(assigneesByStop.get(stop.id) || []);
+        const slotsLeft = need - already.size;
 
-        // 1. find ledige (uden overlap), foretræk færrest stops
-        let pickedId: string | null = null;
-        let pickedCount = Infinity;
-        if (start != null && end != null) {
-          for (const eid of employeeIds) {
+        // Sortér medarbejdere: ledige først (uden clash), så færrest stops
+        const candidates = employeeIds
+          .filter((eid) => !already.has(eid))
+          .map((eid) => {
             const busy = busyByEmp.get(eid) || [];
-            const clash = busy.some((b) => start < b.end && end > b.start);
-            if (clash) continue;
-            const c = counts.get(eid) ?? 0;
-            if (c < pickedCount) { pickedCount = c; pickedId = eid; }
+            const clash = (start != null && end != null)
+              ? busy.some((b) => start < b.end && end > b.start)
+              : false;
+            return { eid, clash, count: counts.get(eid) ?? 0 };
+          })
+          .sort((a, b) => {
+            if (a.clash !== b.clash) return a.clash ? 1 : -1;
+            return a.count - b.count;
+          });
+
+        const picked = candidates.slice(0, slotsLeft);
+        if (picked.length === 0) continue;
+
+        picked.forEach((p, idx) => {
+          counts.set(p.eid, (counts.get(p.eid) ?? 0) + 1);
+          if (start != null && end != null) {
+            busyByEmp.get(p.eid)!.push({ start, end });
           }
-        }
-        // 2. fallback: færrest stops uanset
-        if (!pickedId) {
-          for (const eid of employeeIds) {
-            const c = counts.get(eid) ?? 0;
-            if (c < pickedCount) { pickedCount = c; pickedId = eid; }
-          }
-          if (!pickedId) pickedId = employeeIds[0];
-        }
-        counts.set(pickedId, (counts.get(pickedId) ?? 0) + 1);
-        if (start != null && end != null) {
-          busyByEmp.get(pickedId)!.push({ start, end });
-        }
-        assignments.push({ id: stop.id, assigned_employee_id: pickedId });
+          inserts.push({
+            stop_id: stop.id,
+            employee_id: p.eid,
+            // Marker første picked som lead hvis stoppet ikke allerede har en lead
+            is_lead: already.size === 0 && idx === 0,
+          });
+        });
       }
 
-      await Promise.all(assignments.map((a) =>
-        supabase.from("route_stops")
-          .update({ assigned_employee_id: a.assigned_employee_id })
-          .eq("id", a.id),
-      ));
+      if (inserts.length === 0) return { assigned: 0 };
 
-      return { assigned: assignments.length };
+      // Insert i batch
+      const { error: insErr } = await supabase
+        .from("route_stop_assignees")
+        .insert(inserts);
+      if (insErr) throw insErr;
+
+      // Tæl unikke stops
+      const stopsTouched = new Set(inserts.map((i) => i.stop_id)).size;
+      return { assigned: stopsTouched, totalAssignments: inserts.length };
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
