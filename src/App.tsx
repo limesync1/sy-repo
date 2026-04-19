@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,9 +16,16 @@ import CustomerDashboard from "./pages/CustomerDashboard";
 import Search from "./pages/Search";
 import RequestQuote from "./pages/RequestQuote";
 import Unsubscribe from "./pages/Unsubscribe";
+import AcceptInvitation from "./pages/AcceptInvitation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+// Helper to preserve query strings on redirect
+const RedirectWithQuery = ({ to }: { to: string }) => {
+  const search = typeof window !== "undefined" ? window.location.search : "";
+  return <Navigate to={to + search} replace />;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -31,15 +38,29 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/platform-admin" element={<PlatformAdmin />} />
-              <Route path="/dashboard" element={<CustomerDashboard />} />
+
+              {/* ── New Danish routes ── */}
+              <Route path="/log-ind" element={<Auth />} />
+              <Route path="/admin" element={<PlatformAdmin />} />
+              <Route path="/virksomhed" element={<Admin />} />
+              <Route path="/min-konto" element={<CustomerDashboard />} />
+              <Route path="/virksomheder" element={<Search />} />
+              <Route path="/tilbud" element={<RequestQuote />} />
+              <Route path="/afmeld" element={<Unsubscribe />} />
+              <Route path="/v/:slug" element={<DynamicBusinessPage />} />
+              <Route path="/medarbejder/accepter" element={<AcceptInvitation />} />
               <Route path="/demo" element={<BusinessPage />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/quote" element={<RequestQuote />} />
-              <Route path="/unsubscribe" element={<Unsubscribe />} />
-              <Route path="/b/:slug" element={<DynamicBusinessPage />} />
+
+              {/* ── Legacy redirects (preserve bookmarks & SEO) ── */}
+              <Route path="/auth" element={<RedirectWithQuery to="/log-ind" />} />
+              <Route path="/platform-admin" element={<RedirectWithQuery to="/admin" />} />
+              {/* Old /admin (business panel) → /virksomhed. The new /admin is platform-admin. */}
+              <Route path="/dashboard" element={<RedirectWithQuery to="/min-konto" />} />
+              <Route path="/search" element={<RedirectWithQuery to="/virksomheder" />} />
+              <Route path="/quote" element={<RedirectWithQuery to="/tilbud" />} />
+              <Route path="/unsubscribe" element={<RedirectWithQuery to="/afmeld" />} />
+              <Route path="/b/:slug" element={<LegacyBusinessRedirect />} />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
             </BrowserRouter>
@@ -49,5 +70,13 @@ const App = () => (
     </AuthProvider>
   </QueryClientProvider>
 );
+
+// Redirect /b/:slug → /v/:slug
+const LegacyBusinessRedirect = () => {
+  const slug = typeof window !== "undefined"
+    ? window.location.pathname.replace(/^\/b\//, "")
+    : "";
+  return <Navigate to={`/v/${slug}${window.location.search}`} replace />;
+};
 
 export default App;
