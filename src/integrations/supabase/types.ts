@@ -281,6 +281,9 @@ export type Database = {
           business_id: string
           created_at: string
           email: string
+          home_address: string | null
+          home_latitude: number | null
+          home_longitude: number | null
           id: string
           is_active: boolean
           name: string
@@ -293,6 +296,9 @@ export type Database = {
           business_id: string
           created_at?: string
           email: string
+          home_address?: string | null
+          home_latitude?: number | null
+          home_longitude?: number | null
           id?: string
           is_active?: boolean
           name: string
@@ -305,6 +311,9 @@ export type Database = {
           business_id?: string
           created_at?: string
           email?: string
+          home_address?: string | null
+          home_latitude?: number | null
+          home_longitude?: number | null
           id?: string
           is_active?: boolean
           name?: string
@@ -405,11 +414,13 @@ export type Database = {
       }
       orders: {
         Row: {
+          address: string | null
           adjusted_amount: number | null
           adjusted_details: Json | null
           business_id: string | null
           business_message: string | null
           business_response: string | null
+          city: string | null
           completed_cycles: number
           created_at: string
           customer_email: string
@@ -418,18 +429,23 @@ export type Database = {
           customer_phone: string | null
           customer_response: string | null
           id: string
+          latitude: number | null
+          longitude: number | null
           next_service_date: string | null
           notes: string | null
           status: Database["public"]["Enums"]["order_status"]
           total_amount: number
           updated_at: string
+          zip_code: string | null
         }
         Insert: {
+          address?: string | null
           adjusted_amount?: number | null
           adjusted_details?: Json | null
           business_id?: string | null
           business_message?: string | null
           business_response?: string | null
+          city?: string | null
           completed_cycles?: number
           created_at?: string
           customer_email: string
@@ -438,18 +454,23 @@ export type Database = {
           customer_phone?: string | null
           customer_response?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           next_service_date?: string | null
           notes?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
           updated_at?: string
+          zip_code?: string | null
         }
         Update: {
+          address?: string | null
           adjusted_amount?: number | null
           adjusted_details?: Json | null
           business_id?: string | null
           business_message?: string | null
           business_response?: string | null
+          city?: string | null
           completed_cycles?: number
           created_at?: string
           customer_email?: string
@@ -458,11 +479,14 @@ export type Database = {
           customer_phone?: string | null
           customer_response?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           next_service_date?: string | null
           notes?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
           updated_at?: string
+          zip_code?: string | null
         }
         Relationships: [
           {
@@ -653,6 +677,8 @@ export type Database = {
           created_at: string
           customer_name: string | null
           customer_phone: string | null
+          distance_to_next_km: number | null
+          duration_minutes: number
           id: string
           latitude: number | null
           longitude: number | null
@@ -660,11 +686,15 @@ export type Database = {
           order_id: string | null
           photo_urls: string[] | null
           planned_arrival: string | null
+          planned_departure: string | null
           route_id: string
           sequence: number
           service_summary: string | null
           status: string
           subscription_id: string | null
+          time_window_end: string | null
+          time_window_start: string | null
+          travel_time_to_next_min: number | null
           updated_at: string
         }
         Insert: {
@@ -673,6 +703,8 @@ export type Database = {
           created_at?: string
           customer_name?: string | null
           customer_phone?: string | null
+          distance_to_next_km?: number | null
+          duration_minutes?: number
           id?: string
           latitude?: number | null
           longitude?: number | null
@@ -680,11 +712,15 @@ export type Database = {
           order_id?: string | null
           photo_urls?: string[] | null
           planned_arrival?: string | null
+          planned_departure?: string | null
           route_id: string
           sequence?: number
           service_summary?: string | null
           status?: string
           subscription_id?: string | null
+          time_window_end?: string | null
+          time_window_start?: string | null
+          travel_time_to_next_min?: number | null
           updated_at?: string
         }
         Update: {
@@ -693,6 +729,8 @@ export type Database = {
           created_at?: string
           customer_name?: string | null
           customer_phone?: string | null
+          distance_to_next_km?: number | null
+          duration_minutes?: number
           id?: string
           latitude?: number | null
           longitude?: number | null
@@ -700,11 +738,15 @@ export type Database = {
           order_id?: string | null
           photo_urls?: string[] | null
           planned_arrival?: string | null
+          planned_departure?: string | null
           route_id?: string
           sequence?: number
           service_summary?: string | null
           status?: string
           subscription_id?: string | null
+          time_window_end?: string | null
+          time_window_start?: string | null
+          travel_time_to_next_min?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -739,9 +781,14 @@ export type Database = {
           id: string
           notes: string | null
           optimized_at: string | null
+          planned_start_time: string | null
           route_date: string
+          start_address: string | null
+          start_latitude: number | null
+          start_longitude: number | null
           status: string
           total_distance_km: number | null
+          total_duration_minutes: number | null
           updated_at: string
         }
         Insert: {
@@ -751,9 +798,14 @@ export type Database = {
           id?: string
           notes?: string | null
           optimized_at?: string | null
+          planned_start_time?: string | null
           route_date: string
+          start_address?: string | null
+          start_latitude?: number | null
+          start_longitude?: number | null
           status?: string
           total_distance_km?: number | null
+          total_duration_minutes?: number | null
           updated_at?: string
         }
         Update: {
@@ -763,9 +815,14 @@ export type Database = {
           id?: string
           notes?: string | null
           optimized_at?: string | null
+          planned_start_time?: string | null
           route_date?: string
+          start_address?: string | null
+          start_latitude?: number | null
+          start_longitude?: number | null
           status?: string
           total_distance_km?: number | null
+          total_duration_minutes?: number | null
           updated_at?: string
         }
         Relationships: [
