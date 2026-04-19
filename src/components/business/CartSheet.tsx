@@ -472,11 +472,12 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 const hasRecurring = items.some(i => i.interval && i.interval !== "engangskøb");
                 const selectedDate = preferredDate ? new Date(preferredDate + "T00:00:00") : undefined;
                 const today = new Date(); today.setHours(0, 0, 0, 0);
-                const TIME_PRESETS = [
-                  { label: "Morgen", start: "08:00", end: "12:00" },
-                  { label: "Eftermiddag", start: "12:00", end: "16:00" },
-                  { label: "Aften", start: "16:00", end: "20:00" },
-                ];
+                 const TIME_PRESETS = [
+                   { label: "Tidlig morgen", start: "05:00", end: "08:00" },
+                   { label: "Morgen", start: "08:00", end: "12:00" },
+                   { label: "Eftermiddag", start: "12:00", end: "16:00" },
+                   { label: "Aften", start: "16:00", end: "20:00" },
+                 ];
                 const activePreset = TIME_PRESETS.find(p => p.start === preferredTimeStart && p.end === preferredTimeEnd);
 
                 return (
@@ -565,7 +566,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                         {/* Time-window quick chips */}
                         <div>
                           <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Foretrukket tidsrum (valgfrit)</label>
-                          <div className="grid grid-cols-3 gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             {TIME_PRESETS.map((p) => {
                               const active = activePreset?.label === p.label;
                               return (
