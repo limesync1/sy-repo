@@ -150,7 +150,7 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
           .order("created_at", { ascending: false }),
         supabase
           .from("subscriptions")
-          .select("id, service_name, interval, status, next_service_date, total_price")
+          .select("id, service_name, interval, status, next_service_date, total_price, preferred_route_id, order_id, customer_id")
           .eq("business_id", businessId)
           .order("created_at", { ascending: false }),
       ]);
@@ -158,6 +158,7 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
       const orderIds = (ordersRes.data || []).map(o => o.id);
       let stops: RouteStopRow[] = [];
       let reviews: ReviewRow[] = [];
+      let preferredRoutes: Record<string, { name: string | null; route_date: string }> = {};
 
       if (orderIds.length > 0) {
         const stopsRes = await supabase
@@ -175,8 +176,37 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
           }));
       }
 
-      // Reviews — filter to this customer if signed-in (via customer_id link)
-      const customer_id = (ordersRes.data || []).find(o => (o as any).customer_id)?.[Symbol.for("customer_id") as any];
+      // Filter subs to this customer
+      const customerIds = new Set((ordersRes.data || []).map((o: any) => o.customer_id).filter(Boolean));
+      const filteredSubs = (subsRes.data || []).filter((s: any) =>
+        customerIds.size === 0 || customerIds.has(s.customer_id)
+      ) as SubRow[];
+
+      // Look up preferred route names
+      const prefIds = Array.from(new Set(filteredSubs.map(s => s.preferred_route_id).filter(Boolean))) as string[];
+      if (prefIds.length > 0) {
+        const r = await supabase.from("routes").select("id, name, route_date").in("id", prefIds);
+        (r.data || []).forEach((rt: any) => {
+          preferredRoutes[rt.id] = { name: rt.name, route_date: rt.route_date };
+        });
+      }
+
+      // Mark each order as paused if all its (recurring) subs are paused/cancelled
+      const subsByOrder = new Map<string, SubRow[]>();
+      filteredSubs.forEach(s => {
+        if (!s.order_id) return;
+        const arr = subsByOrder.get(s.order_id) || [];
+        arr.push(s);
+        subsByOrder.set(s.order_id, arr);
+      });
+      const orders: OrderRow[] = (ordersRes.data || []).map((o: any) => {
+        const linked = subsByOrder.get(o.id) || [];
+        const isPaused = linked.length > 0 && linked.every(s => s.status === "paused" || s.status === "cancelled");
+        return { ...o, is_paused: isPaused };
+      });
+
+      // Reviews
+      const customer_id = Array.from(customerIds)[0];
       if (customer_id) {
         const r = await supabase
           .from("reviews")
@@ -186,17 +216,12 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
         reviews = (r.data || []) as ReviewRow[];
       }
 
-      // Filter subs to this customer (via customer_id from orders)
-      const customerIds = new Set((ordersRes.data || []).map((o: any) => o.customer_id).filter(Boolean));
-      const filteredSubs = (subsRes.data || []).filter((s: any) =>
-        customerIds.size === 0 || customerIds.has(s.customer_id)
-      );
-
       return {
-        orders: (ordersRes.data || []) as OrderRow[],
-        subscriptions: filteredSubs as SubRow[],
+        orders,
+        subscriptions: filteredSubs,
         stops,
         reviews,
+        preferredRoutes,
       };
     },
   });
