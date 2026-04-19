@@ -146,7 +146,11 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
         if (user && businessId !== "unknown") {
           for (const item of group.items) {
             if (item.interval && item.interval !== "engangskøb") {
-              const nextDate = calculateNextServiceDate(item.interval);
+              // Anchor recurring schedule to chosen date if any, otherwise +7 days from today
+              const anchor = scheduleMode === "schedule" && preferredDate
+                ? preferredDate
+                : (() => { const d = new Date(); d.setDate(d.getDate() + 7); return d.toISOString().split("T")[0]; })();
+              const nextDate = calculateNextServiceDate(item.interval, anchor);
               await createSubscription.mutateAsync({
                 customer_id: user.id,
                 business_id: businessId,
@@ -160,6 +164,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                   description: item.details,
                   stepDetails: item.stepDetails,
                   pricingSnapshot: item.pricingSnapshot,
+                  startDate: anchor,
                 },
               });
             }
