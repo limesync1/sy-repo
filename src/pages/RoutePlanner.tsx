@@ -532,8 +532,9 @@ const Planner = () => {
         </DragOverlay>
 
         <StopDetailSheet
-          stopId={selectedStopId}
-          onClose={() => setSelectedStopId(null)}
+          stop={stops.find((s) => s.id === selectedStopId) || null}
+          open={!!selectedStopId}
+          onOpenChange={(o) => !o && setSelectedStopId(null)}
         />
       </div>
     </DndContext>
