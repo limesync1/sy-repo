@@ -59,7 +59,10 @@ export type CalendarColumn = {
   onAttachEmployee?: (employeeId: string) => void;
   onDetachEmployee?: (employeeId: string) => void;
   onDeleteRoute?: () => void;
+  /** Single-employee assign (kompatibilitet — sætter stop til 1 medarbejder, fjerner andre). */
   onAssignStop?: (stopId: string, employeeId: string | null) => void;
+  /** Toggle medarbejder på multi-medarbejder stop. */
+  onToggleAssignee?: (stopId: string, employeeId: string) => void;
   optimizing?: boolean;
   autoAssigning?: boolean;
 };

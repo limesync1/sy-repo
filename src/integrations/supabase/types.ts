@@ -715,6 +715,45 @@ export type Database = {
           },
         ]
       }
+      route_stop_assignees: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          is_lead: boolean
+          stop_id: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          is_lead?: boolean
+          stop_id: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          is_lead?: boolean
+          stop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_stop_assignees_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_stop_assignees_stop_id_fkey"
+            columns: ["stop_id"]
+            isOneToOne: false
+            referencedRelation: "route_stops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       route_stops: {
         Row: {
           address: string | null
@@ -733,6 +772,7 @@ export type Database = {
           photo_urls: string[] | null
           planned_arrival: string | null
           planned_departure: string | null
+          required_staff: number
           route_id: string
           sequence: number
           service_summary: string | null
@@ -760,6 +800,7 @@ export type Database = {
           photo_urls?: string[] | null
           planned_arrival?: string | null
           planned_departure?: string | null
+          required_staff?: number
           route_id: string
           sequence?: number
           service_summary?: string | null
@@ -787,6 +828,7 @@ export type Database = {
           photo_urls?: string[] | null
           planned_arrival?: string | null
           planned_departure?: string | null
+          required_staff?: number
           route_id?: string
           sequence?: number
           service_summary?: string | null
