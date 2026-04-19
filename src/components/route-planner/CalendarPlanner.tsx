@@ -4,7 +4,7 @@
 // Each stop is assigned to ONE of the route's employees via dropdown.
 // Drag-drop: from sidebar OR between slots — drop on a time slot to set planned_arrival.
 
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useDroppable, useDraggable, useDndContext } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,14 +26,15 @@ const START_HOUR = 6;
 const END_HOUR = 20;
 const SLOTS_PER_HOUR = 60 / SLOT_MIN;
 const TOTAL_SLOTS = (END_HOUR - START_HOUR) * SLOTS_PER_HOUR;
-// Tre zoom-niveauer giver hhv. komprimeret/normal/spacious visning.
-// SLOT_HEIGHT er pixel-højden af 1 slot (15 min). Ganges blot ved zoom.
-const ZOOM_LEVELS: Record<"compact" | "normal" | "spacious", number> = {
-  compact: 14,   // svarer til "se 60 min/række" — komprimeret oversigt
-  normal: 22,    // standard
-  spacious: 36,  // detaljeret, mest plads pr. stop
-};
-type ZoomLevel = keyof typeof ZOOM_LEVELS;
+
+// Zoom-niveauer styrer pixel-højden af 1 slot (15 min). Snap-interval er ALTID 15 min.
+type ZoomLevel = "compact" | "normal" | "spacious";
+const ZOOM_PX: Record<ZoomLevel, number> = { compact: 14, normal: 22, spacious: 36 };
+const ZOOM_LABEL: Record<ZoomLevel, string> = { compact: "Komp.", normal: "Normal", spacious: "Bred" };
+
+// Context så alle interne komponenter læser den aktuelle slot-højde uden prop-drilling
+const SlotHeightCtx = createContext<number>(ZOOM_PX.normal);
+const useSlotHeight = () => useContext(SlotHeightCtx);
 
 export type EmployeeOption = {
   id: string;
