@@ -51,6 +51,17 @@ const Planner = () => {
   const [draggingJob, setDraggingJob] = useState<any | null>(null);
   const [draggingStop, setDraggingStop] = useState<RouteStop | null>(null);
 
+  /* Stops grouped by route — must be called BEFORE early returns */
+  const stopsByRoute = useMemo(() => {
+    const map = new Map<string, RouteStop[]>();
+    for (const s of stops) {
+      const arr = map.get(s.route_id) || [];
+      arr.push(s);
+      map.set(s.route_id, arr);
+    }
+    return map;
+  }, [stops]);
+
   if (!business) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -74,19 +85,9 @@ const Planner = () => {
     );
   }
 
-  /* Stops grouped by route */
-  const stopsByRoute = useMemo(() => {
-    const map = new Map<string, RouteStop[]>();
-    for (const s of stops) {
-      const arr = map.get(s.route_id) || [];
-      arr.push(s);
-      map.set(s.route_id, arr);
-    }
-    return map;
-  }, [stops]);
-
   const routeForEmployee = (employeeId: string | null) =>
     routes.find((r) => r.employee_id === employeeId);
+
 
   /* Drop handler — drop a job onto an employee column */
   const handleDropOnEmployee = async (employeeId: string | null) => {
