@@ -424,9 +424,13 @@ export const useUpdateStop = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<RouteStop> & { id: string }) => {
+      // Strip virtuelle felter der ikke findes i DB-tabellen
+      const { assignee_ids, lead_employee_id, required_staff, ...dbUpdates } = updates as any;
+      const payload: any = { ...dbUpdates };
+      if (typeof required_staff === "number") payload.required_staff = required_staff;
       const { data, error } = await supabase
         .from("route_stops")
-        .update(updates)
+        .update(payload)
         .eq("id", id)
         .select("*")
         .single();
@@ -436,6 +440,7 @@ export const useUpdateStop = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["route-stops"] });
+      qc.invalidateQueries({ queryKey: ["stop-assignees-bulk"] });
     },
   });
 };
