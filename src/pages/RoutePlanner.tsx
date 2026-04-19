@@ -414,6 +414,13 @@ const Planner = () => {
         // Nyt stop er endnu ikke tildelt en medarbejder → ingen busy-check
         const finalMin = desiredMin;
         const slotIso = minToIso(date, finalMin);
+
+        // Advar hvis ruten er på en anden dato end kundens ønske
+        const wantedDate = effectiveJobDate(job);
+        const targetRoute = routes.find((r) => r.id === targetRouteId);
+        const routeDate = targetRoute?.route_date;
+        const dateMismatch = wantedDate && routeDate && wantedDate !== routeDate;
+
         await addStop.mutateAsync({
           route_id: targetRouteId,
           order_id: job.id,
@@ -436,7 +443,14 @@ const Planner = () => {
             planned_arrival: slotIso,
           });
         }
-        toast.success(`Tilføjet kl. ${minToHHmm(finalMin)}`);
+        if (dateMismatch) {
+          toast.warning(
+            `Tilføjet kl. ${minToHHmm(finalMin)} — men kunden ønsker ${format(parseISO(wantedDate!), "EEEE d. MMM", { locale: da })}`,
+            { duration: 6000 },
+          );
+        } else {
+          toast.success(`Tilføjet kl. ${minToHHmm(finalMin)}`);
+        }
       } catch (err: any) {
         toast.error(err.message || "Kunne ikke tilføje stop");
       }
