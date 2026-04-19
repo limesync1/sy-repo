@@ -361,30 +361,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 </>
               )}
 
-              {/* Order meta info */}
-              {orderCreatedAt && (
-                <>
-                  <section>
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1">
-                      <Hash className="h-3 w-3" />Bestillingsinfo
-                    </h3>
-                    <div className="space-y-1.5 text-xs">
-                      {stop.order_id && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Ordre-ID</span>
-                          <code className="text-[10px] bg-secondary/60 px-1.5 py-0.5 rounded">{stop.order_id.slice(0, 8)}</code>
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Bestilt</span>
-                        <span>{format(parseISO(orderCreatedAt), "d. MMM yyyy 'kl.' HH:mm", { locale: da })}</span>
-                      </div>
-                    </div>
-                  </section>
-                  <Separator />
-                </>
-              )}
-
               {/* Customer's notes from order */}
               {orderNotes && (
                 <>
@@ -398,6 +374,12 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                   </section>
                   <Separator />
                 </>
+              )}
+
+              {orderCreatedAt && (
+                <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                  <Hash className="h-3 w-3" />Bestilt {format(parseISO(orderCreatedAt), "d. MMM yyyy 'kl.' HH:mm", { locale: da })}
+                </p>
               )}
 
               {/* Planning */}
