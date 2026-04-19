@@ -187,13 +187,26 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
       const orderIds = (orders || []).map((o) => o.id);
       if (orderIds.length === 0) return [];
 
-      const { data: usedStops } = await supabase
+      // Find ordrer der allerede har et åbent (ikke-completed) stop på en rute
+      const { data: openStops } = await supabase
         .from("route_stops")
-        .select("order_id")
-        .in("order_id", orderIds);
+        .select("order_id, status")
+        .in("order_id", orderIds)
+        .neq("status", "completed");
+      const usedOpen = new Set((openStops || []).map((s) => s.order_id));
 
-      const used = new Set((usedStops || []).map((s) => s.order_id));
-      return (orders || []).filter((o) => !used.has(o.id));
+      // Skjul recurring ordrer hvis næste service-dato er mere end 14 dage fremme
+      const horizon = new Date();
+      horizon.setDate(horizon.getDate() + 14);
+
+      return (orders || []).filter((o) => {
+        if (usedOpen.has(o.id)) return false;
+        if (o.next_service_date) {
+          const nsd = new Date(o.next_service_date);
+          if (nsd > horizon) return false;
+        }
+        return true;
+      });
     },
   });
 };
