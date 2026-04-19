@@ -87,11 +87,12 @@ const useCustomers = (businessId: string) => {
         .select("customer_id, status")
         .eq("business_id", businessId);
 
-      const subCountByCustomer = new Map<string, number>();
+      const activeByCustomer = new Map<string, number>();
+      const pausedByCustomer = new Map<string, number>();
       (subs || []).forEach(s => {
-        if (s.status === "active" && s.customer_id) {
-          subCountByCustomer.set(s.customer_id, (subCountByCustomer.get(s.customer_id) || 0) + 1);
-        }
+        if (!s.customer_id) return;
+        if (s.status === "active") activeByCustomer.set(s.customer_id, (activeByCustomer.get(s.customer_id) || 0) + 1);
+        if (s.status === "paused") pausedByCustomer.set(s.customer_id, (pausedByCustomer.get(s.customer_id) || 0) + 1);
       });
 
       const grouped = new Map<string, Customer>();
@@ -101,7 +102,6 @@ const useCustomers = (businessId: string) => {
         if (existing) {
           existing.total_revenue += Number(o.total_amount || 0);
           existing.orders_count += 1;
-          // Keep most recent name/phone/address
           if (o.created_at > existing.last_order_at) {
             existing.last_order_at = o.created_at;
             if (o.customer_name) existing.name = o.customer_name;
@@ -122,7 +122,8 @@ const useCustomers = (businessId: string) => {
             customer_id: o.customer_id,
             total_revenue: Number(o.total_amount || 0),
             orders_count: 1,
-            active_subs: o.customer_id ? (subCountByCustomer.get(o.customer_id) || 0) : 0,
+            active_subs: o.customer_id ? (activeByCustomer.get(o.customer_id) || 0) : 0,
+            paused_subs: o.customer_id ? (pausedByCustomer.get(o.customer_id) || 0) : 0,
             last_order_at: o.created_at,
             first_order_at: o.created_at,
           });
