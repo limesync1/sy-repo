@@ -29,15 +29,12 @@ const EmployeeApp = () => {
   }
   if (!user) return <Navigate to="/log-ind" replace />;
 
-  const stopsByRoute = useMemo(() => {
-    const m = new Map<string, RouteStop[]>();
-    for (const s of stops) {
-      const arr = m.get(s.route_id) || [];
-      arr.push(s);
-      m.set(s.route_id, arr);
-    }
-    return m;
-  }, [stops]);
+  const stopsByRoute = new Map<string, RouteStop[]>();
+  for (const s of stops) {
+    const arr = stopsByRoute.get(s.route_id) || [];
+    arr.push(s);
+    stopsByRoute.set(s.route_id, arr);
+  }
 
   const totalStops = stops.length;
   const completedStops = stops.filter((s) => s.status === "completed").length;
