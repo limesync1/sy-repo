@@ -6,23 +6,32 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2 } from "lucide-react";
+import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2, Zap, CalendarDays } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 
-/** Calculate next service date based on interval */
-const calculateNextServiceDate = (interval: string): string => {
-  const now = new Date();
+/** Calculate next service date based on interval, anchored to a specific start date */
+const calculateNextServiceDate = (interval: string, startDate?: string): string => {
+  const base = startDate ? new Date(startDate) : new Date();
   switch (interval) {
-    case "ugentlig": now.setDate(now.getDate() + 7); break;
-    case "hver_14_dag": now.setDate(now.getDate() + 14); break;
-    case "månedlig": now.setMonth(now.getMonth() + 1); break;
-    case "kvartalsvis": now.setMonth(now.getMonth() + 3); break;
-    default: now.setMonth(now.getMonth() + 1); break;
+    case "ugentlig": base.setDate(base.getDate() + 7); break;
+    case "hver_14_dag": base.setDate(base.getDate() + 14); break;
+    case "månedlig": base.setMonth(base.getMonth() + 1); break;
+    case "kvartalsvis": base.setMonth(base.getMonth() + 3); break;
+    case "halvårlig": base.setMonth(base.getMonth() + 6); break;
+    case "årlig": base.setFullYear(base.getFullYear() + 1); break;
+    default: base.setMonth(base.getMonth() + 1); break;
   }
-  return now.toISOString();
+  return base.toISOString();
+};
+
+/** Suggest tomorrow as a sensible default if user picks "select date" */
+const tomorrowISO = () => {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().split("T")[0];
 };
 
 interface CartSheetProps {
