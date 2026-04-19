@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import {
   GripVertical, MapPin, Calendar as CalendarIcon, Clock, Phone,
-  StickyNote, Hourglass, ChevronDown, ChevronRight, User, Repeat,
+  StickyNote, Hourglass, ChevronDown, ChevronRight, User, Repeat, Route as RouteIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
@@ -30,6 +30,7 @@ type Props = {
     preferred_time_start?: string | null;
     preferred_time_end?: string | null;
     notes?: string | null;
+    preferred_route_name?: string | null;
     order_items?: OrderItem[] | null;
   };
 };
