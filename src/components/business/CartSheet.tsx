@@ -653,8 +653,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                         </div>
                       </div>
                     )}
-                  </div>
-                );
+                  </section>
               })()}
 
               {/* Order summary */}
