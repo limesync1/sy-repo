@@ -94,7 +94,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
   const customerEmail = (order as any)?.customer_email;
   const orderStatus = (order as any)?.status;
-  const orderNotes = (order as any)?.notes;
+  const orderNotes = (order as any)?.notes as string | null;
   const orderCreatedAt = (order as any)?.created_at;
   const preferredDate = (order as any)?.preferred_date;
   const preferredStart = (order as any)?.preferred_time_start?.slice(0, 5);
