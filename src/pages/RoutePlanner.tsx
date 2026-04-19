@@ -311,6 +311,33 @@ const Planner = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unassigned.length, businessId]);
 
+  /* Keyboard shortcuts: ←/→ for date, T for today, M for map, N for new route */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      // Ignore when typing in inputs
+      const t = e.target as HTMLElement;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setDate((d) => format(addDays(parseISO(d), -1), "yyyy-MM-dd"));
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        setDate((d) => format(addDays(parseISO(d), 1), "yyyy-MM-dd"));
+      } else if (e.key.toLowerCase() === "t") {
+        setDate(todayStr());
+      } else if (e.key.toLowerCase() === "m") {
+        setShowMap((v) => !v);
+      } else if (e.key.toLowerCase() === "n") {
+        setCreateOpen(true);
+      } else if (e.key === "Escape" && selectedStopId) {
+        setSelectedStopId(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selectedStopId]);
+
   if (!business) {
     return (
       <div className="flex min-h-screen items-center justify-center">
