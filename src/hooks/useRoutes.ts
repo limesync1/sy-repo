@@ -499,6 +499,75 @@ export const useDeleteStop = () => {
   });
 };
 
+/* ─── Multi-medarbejder pr. stop ───
+   Erstatter ALLE assignees for et stop med listen fra `employee_ids`.
+   `lead_id` markeres som primær (synces til route_stops.assigned_employee_id af DB-trigger).
+   Hvis listen er tom: alle tildelinger fjernes. */
+export const useSetStopAssignees = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      stop_id, employee_ids, lead_id,
+    }: { stop_id: string; employee_ids: string[]; lead_id?: string | null }) => {
+      // 1. Slet eksisterende
+      const { error: delErr } = await supabase
+        .from("route_stop_assignees")
+        .delete()
+        .eq("stop_id", stop_id);
+      if (delErr) throw delErr;
+
+      if (employee_ids.length === 0) {
+        // Trigger sætter assigned_employee_id = null automatisk
+        return { count: 0 };
+      }
+
+      // 2. Indsæt nye — sikr at præcis én er lead
+      const finalLead = lead_id && employee_ids.includes(lead_id) ? lead_id : employee_ids[0];
+      const rows = employee_ids.map((eid) => ({
+        stop_id,
+        employee_id: eid,
+        is_lead: eid === finalLead,
+      }));
+      const { error: insErr } = await supabase
+        .from("route_stop_assignees")
+        .insert(rows);
+      if (insErr) throw insErr;
+      return { count: rows.length };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+      qc.invalidateQueries({ queryKey: ["stop-assignees-bulk"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke opdatere medarbejdere"),
+  });
+};
+
+/* Hurtig single-employee assignment (bruges ved drop og dropdown).
+   Bevarer is_lead på den tildelte. */
+export const useAssignSingleEmployee = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      stop_id, employee_id,
+    }: { stop_id: string; employee_id: string | null }) => {
+      const { error: delErr } = await supabase
+        .from("route_stop_assignees")
+        .delete()
+        .eq("stop_id", stop_id);
+      if (delErr) throw delErr;
+      if (!employee_id) return;
+      const { error: insErr } = await supabase
+        .from("route_stop_assignees")
+        .insert({ stop_id, employee_id, is_lead: true });
+      if (insErr) throw insErr;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke tildele medarbejder"),
+  });
+};
+
 export const useUpdateStopStatus = () => {
   const qc = useQueryClient();
   return useMutation({
