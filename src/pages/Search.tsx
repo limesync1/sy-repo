@@ -29,6 +29,8 @@ import {
   Navigation,
   Map as MapIcon,
   List,
+  Phone,
+  ArrowRight,
 } from "lucide-react";
 import ResultsMap from "@/components/search/ResultsMap";
 import SiteNav from "@/components/SiteNav";
