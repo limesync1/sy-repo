@@ -286,11 +286,14 @@ export const useCreateOrder = () => {
       order: TablesInsert<"orders">;
       items: Omit<TablesInsert<"order_items">, "order_id">[];
     }) => {
-      const { data: orderData, error: orderError } = await supabase
+      const orderData: TablesInsert<"orders"> & { id: string } = {
+        ...order,
+        id: order.id ?? crypto.randomUUID(),
+      };
+
+      const { error: orderError } = await supabase
         .from("orders")
-        .insert(order)
-        .select()
-        .single();
+        .insert(orderData);
       if (orderError) throw orderError;
 
       if (items.length > 0) {
