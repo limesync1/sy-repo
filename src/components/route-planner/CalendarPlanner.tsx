@@ -50,12 +50,10 @@ export type CalendarColumn = {
   onAutoAssign?: () => void;
   onAttachEmployee?: (employeeId: string) => void;
   onDetachEmployee?: (employeeId: string) => void;
-  onDispatchToEmployee?: (employeeId: string) => void;
   onDeleteRoute?: () => void;
   onAssignStop?: (stopId: string, employeeId: string | null) => void;
   optimizing?: boolean;       // pr-rute spinner
   autoAssigning?: boolean;
-  dispatching?: boolean;
 };
 
 type Props = {
