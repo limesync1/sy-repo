@@ -244,14 +244,40 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                         const stepDetails: any[] = Array.isArray(d.stepDetails) ? d.stepDetails : [];
                         const itemInterval = d.interval && d.interval !== "engangskøb" ? d.interval : null;
                         const itemDescription = typeof d.description === "string" ? d.description : null;
+                        const svc = item.services || {};
+                        const serviceDescription = svc.description || null;
+                        const category = [svc.service_category, svc.subcategory].filter(Boolean).join(" · ");
+                        const pricingLabel =
+                          svc.pricing_type === "timepris" ? "Timepris" :
+                          svc.pricing_type === "prisberegner" ? "Prisberegner" :
+                          svc.pricing_type === "fast_pris" ? "Fast pris" : null;
                         return (
                           <div key={i} className="px-3 py-2.5">
-                            <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-start gap-3">
+                              {svc.image_url && (
+                                <img
+                                  src={svc.image_url}
+                                  alt={item.service_name}
+                                  className="h-12 w-12 rounded-md object-cover border shrink-0"
+                                  loading="lazy"
+                                />
+                              )}
                               <div className="min-w-0 flex-1">
-                                <p className="text-sm font-medium">{item.service_name}</p>
-                                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-medium">{item.service_name}</p>
+                                    {category && (
+                                      <p className="text-[11px] text-muted-foreground mt-0.5">{category}</p>
+                                    )}
+                                  </div>
+                                  <span className="text-sm font-semibold shrink-0">{Math.round(Number(item.total_price))} kr</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                  {pricingLabel && (
+                                    <Badge variant="outline" className="text-[10px] h-4 px-1.5">{pricingLabel}</Badge>
+                                  )}
                                   {item.quantity > 1 && (
-                                    <span className="text-xs text-muted-foreground">{item.quantity} × {Math.round(Number(item.unit_price))} kr</span>
+                                    <span className="text-[11px] text-muted-foreground">{item.quantity} × {Math.round(Number(item.unit_price))} kr</span>
                                   )}
                                   {itemInterval && (
                                     <Badge variant="secondary" className="text-[10px] gap-0.5 h-4 px-1.5">
@@ -261,8 +287,12 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                                   )}
                                 </div>
                               </div>
-                              <span className="text-sm font-semibold shrink-0">{Math.round(Number(item.total_price))} kr</span>
                             </div>
+
+                            {/* Service description from catalog */}
+                            {serviceDescription && (
+                              <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">{serviceDescription}</p>
+                            )}
 
                             {/* Calculator step breakdown */}
                             {stepDetails.length > 0 && (
