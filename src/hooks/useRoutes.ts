@@ -262,7 +262,10 @@ export const useOrderForStop = (orderId: string | null | undefined) => {
         .from("orders")
         .select(`
           *,
-          order_items ( service_name, quantity, unit_price, total_price, details ),
+          order_items (
+            service_name, quantity, unit_price, total_price, details,
+            services ( id, description, service_category, subcategory, pricing_type, unit, base_price, image_url, interval_options )
+          ),
           businesses ( name, phone, email )
         `)
         .eq("id", orderId!)

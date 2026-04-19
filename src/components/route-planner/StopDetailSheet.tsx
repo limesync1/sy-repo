@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { useOrderForStop, useUpdateStop, useDeleteStop, useUpdateStopStatus, type RouteStop } from "@/hooks/useRoutes";
+import { useOrderForStop, useUpdateStop, useDeleteStop, type RouteStop } from "@/hooks/useRoutes";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  MapPin, Phone, Mail, Clock, Navigation, Trash2, Save, CheckCircle2,
+  MapPin, Phone, Mail, Clock, Navigation, Trash2, Save,
   AlertCircle, Calendar as CalendarIcon, Banknote, FileText, Repeat, PauseCircle, Hash,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -31,7 +31,6 @@ type Props = {
 export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequenceLabel }: Props) => {
   const { data: order, isLoading } = useOrderForStop(stop?.order_id);
   const updateStop = useUpdateStop();
-  const updateStatus = useUpdateStopStatus();
   const deleteStop = useDeleteStop();
 
   const [duration, setDuration] = useState<number>(30);
@@ -69,10 +68,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
       notes: notes || null,
     } as any);
     toast.success("Ændringer gemt");
-  };
-
-  const handleStatus = (status: string) => {
-    updateStatus.mutate({ id: stop.id, status });
   };
 
   const handleDeleteConfirmed = () => {
@@ -244,14 +239,40 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                         const stepDetails: any[] = Array.isArray(d.stepDetails) ? d.stepDetails : [];
                         const itemInterval = d.interval && d.interval !== "engangskøb" ? d.interval : null;
                         const itemDescription = typeof d.description === "string" ? d.description : null;
+                        const svc = item.services || {};
+                        const serviceDescription = svc.description || null;
+                        const category = [svc.service_category, svc.subcategory].filter(Boolean).join(" · ");
+                        const pricingLabel =
+                          svc.pricing_type === "timepris" ? "Timepris" :
+                          svc.pricing_type === "prisberegner" ? "Prisberegner" :
+                          svc.pricing_type === "fast_pris" ? "Fast pris" : null;
                         return (
                           <div key={i} className="px-3 py-2.5">
-                            <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-start gap-3">
+                              {svc.image_url && (
+                                <img
+                                  src={svc.image_url}
+                                  alt={item.service_name}
+                                  className="h-12 w-12 rounded-md object-cover border shrink-0"
+                                  loading="lazy"
+                                />
+                              )}
                               <div className="min-w-0 flex-1">
-                                <p className="text-sm font-medium">{item.service_name}</p>
-                                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-medium">{item.service_name}</p>
+                                    {category && (
+                                      <p className="text-[11px] text-muted-foreground mt-0.5">{category}</p>
+                                    )}
+                                  </div>
+                                  <span className="text-sm font-semibold shrink-0">{Math.round(Number(item.total_price))} kr</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                  {pricingLabel && (
+                                    <Badge variant="outline" className="text-[10px] h-4 px-1.5">{pricingLabel}</Badge>
+                                  )}
                                   {item.quantity > 1 && (
-                                    <span className="text-xs text-muted-foreground">{item.quantity} × {Math.round(Number(item.unit_price))} kr</span>
+                                    <span className="text-[11px] text-muted-foreground">{item.quantity} × {Math.round(Number(item.unit_price))} kr</span>
                                   )}
                                   {itemInterval && (
                                     <Badge variant="secondary" className="text-[10px] gap-0.5 h-4 px-1.5">
@@ -261,8 +282,12 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                                   )}
                                 </div>
                               </div>
-                              <span className="text-sm font-semibold shrink-0">{Math.round(Number(item.total_price))} kr</span>
                             </div>
+
+                            {/* Service description from catalog */}
+                            {serviceDescription && (
+                              <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">{serviceDescription}</p>
+                            )}
 
                             {/* Calculator step breakdown */}
                             {stepDetails.length > 0 && (
@@ -331,30 +356,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 </>
               )}
 
-              {/* Order meta info */}
-              {orderCreatedAt && (
-                <>
-                  <section>
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1">
-                      <Hash className="h-3 w-3" />Bestillingsinfo
-                    </h3>
-                    <div className="space-y-1.5 text-xs">
-                      {stop.order_id && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Ordre-ID</span>
-                          <code className="text-[10px] bg-secondary/60 px-1.5 py-0.5 rounded">{stop.order_id.slice(0, 8)}</code>
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Bestilt</span>
-                        <span>{format(parseISO(orderCreatedAt), "d. MMM yyyy 'kl.' HH:mm", { locale: da })}</span>
-                      </div>
-                    </div>
-                  </section>
-                  <Separator />
-                </>
-              )}
-
               {/* Customer's notes from order */}
               {orderNotes && (
                 <>
@@ -368,6 +369,12 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                   </section>
                   <Separator />
                 </>
+              )}
+
+              {orderCreatedAt && (
+                <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                  <Hash className="h-3 w-3" />Bestilt {format(parseISO(orderCreatedAt), "d. MMM yyyy 'kl.' HH:mm", { locale: da })}
+                </p>
               )}
 
               {/* Planning */}
@@ -411,20 +418,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                       placeholder="Fx 'Brug bagindgangen', 'Hund i haven'..."
                     />
                   </div>
-                </div>
-              </section>
-
-              <Separator />
-
-              {/* Status changes */}
-              <section>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Status</h3>
-                <div className="grid grid-cols-3 gap-2">
-                  <Button size="sm" variant={stop.status === "pending" ? "default" : "outline"} onClick={() => handleStatus("pending")}>Afventer</Button>
-                  <Button size="sm" variant={stop.status === "in_progress" ? "default" : "outline"} onClick={() => handleStatus("in_progress")}>I gang</Button>
-                  <Button size="sm" variant={stop.status === "completed" ? "default" : "outline"} className={stop.status === "completed" ? "bg-green-600 hover:bg-green-700" : ""} onClick={() => handleStatus("completed")}>
-                    <CheckCircle2 className="h-3.5 w-3.5 mr-1" />Færdig
-                  </Button>
                 </div>
               </section>
 
