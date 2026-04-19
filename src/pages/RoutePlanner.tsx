@@ -555,6 +555,89 @@ const Planner = () => {
     } catch { /* toast handled in hook */ }
   };
 
+  /* ─── Auto-fordel: opretter/finder ruter pr. kundens ønskede dato og lægger jobs der ─── */
+  const [distributing, setDistributing] = useState(false);
+  const handleAutoDistribute = async () => {
+    if (!businessId) return;
+    const jobsWithDate = unassigned
+      .map((j: any) => ({ job: j, date: effectiveJobDate(j) }))
+      .filter((x) => !!x.date) as { job: any; date: string }[];
+
+    if (jobsWithDate.length === 0) {
+      toast.info("Ingen ledige opgaver med ønsket dato at fordele");
+      return;
+    }
+
+    const byDate = new Map<string, any[]>();
+    for (const { job, date: d } of jobsWithDate) {
+      const arr = byDate.get(d) || [];
+      arr.push(job);
+      byDate.set(d, arr);
+    }
+
+    setDistributing(true);
+    try {
+      const allDates = Array.from(byDate.keys()).sort();
+      const minDate = allDates[0];
+      const maxDate = allDates[allDates.length - 1];
+      const { data: existingRoutes } = await supabase
+        .from("routes")
+        .select("id, route_date, name")
+        .eq("business_id", businessId)
+        .gte("route_date", minDate)
+        .lte("route_date", maxDate);
+
+      let totalAssigned = 0;
+      let routesCreated = 0;
+
+      for (const [d, jobs] of byDate.entries()) {
+        let routeId = (existingRoutes || []).find((r: any) => r.route_date === d)?.id || null;
+        if (!routeId) {
+          const created = await createRoute.mutateAsync({
+            business_id: businessId,
+            route_date: d,
+            name: `Auto · ${format(parseISO(d), "EEE d/M", { locale: da })}`,
+          });
+          routeId = created.id;
+          routesCreated++;
+        }
+
+        const { data: stopsOnRoute } = await supabase
+          .from("route_stops")
+          .select("id")
+          .eq("route_id", routeId);
+        let seq = (stopsOnRoute || []).length;
+
+        for (const job of jobs) {
+          await addStop.mutateAsync({
+            route_id: routeId,
+            order_id: job.id,
+            sequence: seq++,
+            customer_name: job.customer_name,
+            customer_phone: job.customer_phone,
+            address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
+            latitude: job.latitude,
+            longitude: job.longitude,
+            service_summary: (job.order_items || [])
+              .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
+              .join(", ") || "Opgave",
+          });
+          totalAssigned++;
+        }
+      }
+
+      toast.success(
+        `${totalAssigned} opgaver fordelt på ${byDate.size} dage` +
+        (routesCreated > 0 ? ` (${routesCreated} nye ruter oprettet)` : ""),
+        { description: "Klik på en rute og 'Optimér' for bedste rækkefølge." },
+      );
+    } catch (e: any) {
+      toast.error(e.message || "Kunne ikke auto-fordele opgaver");
+    } finally {
+      setDistributing(false);
+    }
+  };
+
   return (
     <DndContext
       sensors={sensors}
