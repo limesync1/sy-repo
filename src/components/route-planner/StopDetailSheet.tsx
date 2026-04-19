@@ -356,14 +356,14 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               )}
 
               {/* Customer's notes from order */}
-              {(order as any)?.notes && (
+              {orderNotes && (
                 <>
                   <section>
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1">
                       <FileText className="h-3 w-3" />Note fra kunden
                     </h3>
                     <p className="text-sm bg-secondary/50 rounded-lg px-3 py-2 whitespace-pre-wrap">
-                      {(order as any).notes}
+                      {orderNotes}
                     </p>
                   </section>
                   <Separator />
