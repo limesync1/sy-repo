@@ -154,14 +154,37 @@ const Planner = () => {
   };
 
   const filteredUnassigned = useMemo(() => {
-    if (!search.trim()) return unassigned;
-    const q = search.toLowerCase();
-    return unassigned.filter((j: any) =>
-      j.customer_name?.toLowerCase().includes(q) ||
-      j.address?.toLowerCase().includes(q) ||
-      j.city?.toLowerCase().includes(q),
-    );
-  }, [unassigned, search]);
+    let list = unassigned;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((j: any) =>
+        j.customer_name?.toLowerCase().includes(q) ||
+        j.address?.toLowerCase().includes(q) ||
+        j.city?.toLowerCase().includes(q),
+      );
+    }
+    const sorted = [...list];
+    if (sortBy === "date") {
+      sorted.sort((a: any, b: any) => {
+        const ad = a.preferred_date || "9999-12-31";
+        const bd = b.preferred_date || "9999-12-31";
+        if (ad !== bd) return ad < bd ? -1 : 1;
+        const at = a.preferred_time_start || "99:99";
+        const bt = b.preferred_time_start || "99:99";
+        return at < bt ? -1 : at > bt ? 1 : 0;
+      });
+    } else if (sortBy === "price") {
+      sorted.sort((a: any, b: any) => Number(b.total_amount || 0) - Number(a.total_amount || 0));
+    } else if (sortBy === "name") {
+      sorted.sort((a: any, b: any) => (a.customer_name || "").localeCompare(b.customer_name || "", "da"));
+    }
+    return sorted;
+  }, [unassigned, search, sortBy]);
+
+  const unassignedTotal = useMemo(
+    () => filteredUnassigned.reduce((s: number, j: any) => s + Number(j.total_amount || 0), 0),
+    [filteredUnassigned],
+  );
 
   /* Stop assignment handler */
   const handleAssignStop = async (stopId: string, employeeId: string | null) => {
