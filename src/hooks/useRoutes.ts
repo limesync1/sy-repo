@@ -416,19 +416,78 @@ export const useUpdateStopStatus = () => {
 export const useOptimizeRoute = () => {
   const qc = useQueryClient();
   return useMutation({
+    // mutationKey lader os bruge useIsMutating() pr. routeId i UI
+    mutationKey: ["optimize-route"],
     mutationFn: async (routeId: string) => {
       const { data, error } = await supabase.functions.invoke("optimize-route", {
-        body: { route_id: routeId, use_ai: true },
+        body: { route_id: routeId },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      return data as { ok: true; reasoning: string; reordered: number; total_km: number; total_minutes: number };
+      return data as {
+        ok: true; reasoning: string; reordered: number;
+        total_km: number; total_minutes: number; provider?: string; groups?: number;
+      };
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["routes"] });
+      qc.invalidateQueries({ queryKey: ["routes-range"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke optimere ruten"),
+  });
+};
+
+/* ─── Auto-fordel: tildel utildelte stops til nærmeste medarbejder
+   baseret på balanceret round-robin (færre stops først). ─── */
+export const useAutoAssignStops = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ routeId, employeeIds }: { routeId: string; employeeIds: string[] }) => {
+      if (employeeIds.length === 0) throw new Error("Ingen medarbejdere tilkoblet");
+      const { data: stops, error } = await supabase
+        .from("route_stops")
+        .select("id, assigned_employee_id, latitude, longitude")
+        .eq("route_id", routeId);
+      if (error) throw error;
+
+      const unassigned = (stops || []).filter((s) => !s.assigned_employee_id);
+      if (unassigned.length === 0) return { assigned: 0 };
+
+      // Tæl eksisterende stops pr. medarbejder for balance
+      const counts = new Map<string, number>();
+      for (const eid of employeeIds) counts.set(eid, 0);
+      for (const s of stops || []) {
+        if (s.assigned_employee_id && counts.has(s.assigned_employee_id)) {
+          counts.set(s.assigned_employee_id, (counts.get(s.assigned_employee_id) || 0) + 1);
+        }
+      }
+
+      // Fordel utildelte til den medarbejder med færrest stops
+      const assignments: { id: string; assigned_employee_id: string }[] = [];
+      for (const stop of unassigned) {
+        let pickedId = employeeIds[0];
+        let pickedCount = counts.get(pickedId) ?? Infinity;
+        for (const eid of employeeIds) {
+          const c = counts.get(eid) ?? 0;
+          if (c < pickedCount) { pickedCount = c; pickedId = eid; }
+        }
+        counts.set(pickedId, pickedCount + 1);
+        assignments.push({ id: stop.id, assigned_employee_id: pickedId });
+      }
+
+      await Promise.all(assignments.map((a) =>
+        supabase.from("route_stops")
+          .update({ assigned_employee_id: a.assigned_employee_id })
+          .eq("id", a.id),
+      ));
+
+      return { assigned: assignments.length };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke fordele opgaver"),
   });
 };
 
