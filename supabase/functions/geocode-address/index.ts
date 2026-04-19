@@ -1,0 +1,53 @@
+// Geocode danske adresser via Nominatim (OpenStreetMap) — gratis og uden nøgle
+// Bruges til at sætte lat/lng på orders så de kan vises på kort
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  try {
+    const body = await req.json();
+    const address = String(body.address || "").trim();
+    const zip = String(body.zip_code || "").trim();
+    const city = String(body.city || "").trim();
+
+    if (!address && !zip && !city) {
+      return new Response(JSON.stringify({ error: "address, zip_code or city required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const query = [address, zip, city, "Danmark"].filter(Boolean).join(", ");
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=dk&q=${encodeURIComponent(query)}`;
+
+    const resp = await fetch(url, {
+      headers: { "User-Agent": "Serviceydere/1.0 (kontakt@serviceydere.dk)" },
+    });
+    if (!resp.ok) {
+      return new Response(JSON.stringify({ error: "Geocoding service error" }), {
+        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const data = await resp.json();
+    if (!Array.isArray(data) || data.length === 0) {
+      return new Response(JSON.stringify({ found: false }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const hit = data[0];
+    return new Response(JSON.stringify({
+      found: true,
+      latitude: parseFloat(hit.lat),
+      longitude: parseFloat(hit.lon),
+      display_name: hit.display_name,
+    }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});
