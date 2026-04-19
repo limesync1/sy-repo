@@ -104,8 +104,9 @@ const clusterIconCreator = (cluster: any) => {
 };
 
 // Cluster layer rendered imperatively because react-leaflet has no first-class
-// component for leaflet.markercluster. Markers are rebuilt whenever the input
-// list, highlight, or hover handler changes.
+// component for leaflet.markercluster. Markers are rebuilt only when the input
+// list changes; highlight changes update existing marker icons in place so an
+// open popup is not destroyed.
 const ClusterLayer = ({
   markers,
   highlightedId,
@@ -117,6 +118,13 @@ const ClusterLayer = ({
 }) => {
   const map = useMap();
   const clusterRef = useRef<any>(null);
+  const markerByIdRef = useRef<Map<string, L.Marker>>(new Map());
+  const hoverHandlerRef = useRef(onMarkerHover);
+
+  // Keep latest hover handler reachable from event listeners without rebuilding markers.
+  useEffect(() => {
+    hoverHandlerRef.current = onMarkerHover;
+  }, [onMarkerHover]);
 
   useEffect(() => {
     // @ts-ignore — markerClusterGroup added by leaflet.markercluster plugin.
@@ -131,23 +139,25 @@ const ClusterLayer = ({
     return () => {
       map.removeLayer(cluster);
       clusterRef.current = null;
+      markerByIdRef.current.clear();
     };
   }, [map]);
 
+  // Build markers only when the underlying list changes — NOT on hover/highlight,
+  // otherwise the open popup would be destroyed when the user moves the mouse.
   useEffect(() => {
     const cluster = clusterRef.current;
     if (!cluster) return;
     cluster.clearLayers();
+    markerByIdRef.current.clear();
 
     markers.forEach((b) => {
-      const isHi = b.id === highlightedId;
       const marker = L.marker([b._point.lat, b._point.lng], {
-        icon: buildPin(isHi),
-        zIndexOffset: isHi ? 1000 : 0,
+        icon: buildPin(false),
       });
 
-      // Build rich popup HTML — keeps everything inside the leaflet popup
-      // (React portals + Leaflet popups are awkward; plain HTML is robust).
+      // Build rich popup HTML — kept inside the leaflet popup so it survives
+      // re-renders driven by other state.
       const cats: string[] = Array.isArray(b.categories) && b.categories.length
         ? b.categories
         : b.category ? [b.category] : [];
@@ -156,7 +166,7 @@ const ClusterLayer = ({
       const avg = b._avgRating || 0;
 
       const cover = b.cover_image_url
-        ? `<div style="position:relative;height:120px;width:100%;overflow:hidden;background:hsl(210 40% 96%);">
+        ? `<div style="position:relative;height:130px;width:100%;overflow:hidden;background:hsl(210 40% 96%);">
              <img src="${b.cover_image_url}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" />
              ${b.is_verified ? `<div style="position:absolute;top:8px;left:8px;display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.95);color:hsl(222 47% 11%);padding:3px 8px;border-radius:999px;font-size:10px;font-weight:600;backdrop-filter:blur(4px);">✓ Verificeret</div>` : ""}
            </div>`
@@ -165,7 +175,7 @@ const ClusterLayer = ({
            </div>`;
 
       const logo = b.logo_url
-        ? `<img src="${b.logo_url}" alt="" style="width:40px;height:40px;border-radius:8px;object-fit:contain;background:white;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.15);padding:2px;flex-shrink:0;" />`
+        ? `<img src="${b.logo_url}" alt="" style="width:44px;height:44px;border-radius:10px;object-fit:contain;background:white;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.15);padding:2px;flex-shrink:0;" />`
         : "";
 
       const ratingHtml = cnt > 0
@@ -186,29 +196,29 @@ const ClusterLayer = ({
         : "";
 
       const phoneBtn = b.phone
-        ? `<a href="tel:${b.phone}" style="display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:8px 10px;border:1px solid hsl(214 32% 91%);border-radius:8px;color:hsl(222 47% 11%);font-size:12px;font-weight:600;text-decoration:none;background:white;flex-shrink:0;" onclick="event.stopPropagation()">
-             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        ? `<a href="tel:${b.phone}" style="display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:10px 12px;border:1px solid hsl(214 32% 91%);border-radius:10px;color:hsl(222 47% 11%);font-size:13px;font-weight:600;text-decoration:none;background:white;flex-shrink:0;min-height:40px;min-width:44px;" onclick="event.stopPropagation()">
+             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
            </a>`
         : "";
 
       const html = `
-        <div style="width:240px;font-family:ui-sans-serif,system-ui,sans-serif;">
+        <div style="width:260px;font-family:ui-sans-serif,system-ui,sans-serif;">
           ${cover}
-          <div style="padding:10px 12px 12px;">
-            <div style="display:flex;align-items:flex-start;gap:8px;">
+          <div style="padding:12px 14px 14px;">
+            <div style="display:flex;align-items:flex-start;gap:10px;">
               ${logo}
               <div style="flex:1;min-width:0;">
-                <a href="/b/${b.slug}" data-popup-link style="font-weight:700;font-size:14px;color:hsl(222 47% 11%);text-decoration:none;line-height:1.25;display:block;margin-bottom:2px;">${b.name}</a>
-                ${b.city ? `<div style="font-size:11px;color:hsl(215 16% 47%);">${b.zip_code || ""} ${b.city}</div>` : ""}
+                <a href="/b/${b.slug}" data-popup-link style="font-weight:700;font-size:15px;color:hsl(222 47% 11%);text-decoration:none;line-height:1.25;display:block;margin-bottom:2px;">${b.name}</a>
+                ${b.city ? `<div style="font-size:12px;color:hsl(215 16% 47%);">${b.zip_code || ""} ${b.city}</div>` : ""}
               </div>
             </div>
-            <div style="margin-top:8px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;">
+            <div style="margin-top:10px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;">
               ${catHtml}${ratingHtml}
             </div>
             ${distHtml ? `<div style="margin-top:6px;">${distHtml}</div>` : ""}
-            <div style="margin-top:10px;display:flex;gap:6px;">
-              <a href="/b/${b.slug}" data-popup-link style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:8px 10px;background:hsl(222 47% 11%);color:white;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;">
-                Se virksomhed
+            <div style="margin-top:12px;display:flex;gap:6px;">
+              <a href="/b/${b.slug}" data-popup-link style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:10px 12px;background:hsl(222 47% 11%);color:white;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;min-height:40px;">
+                Se virksomhed →
               </a>
               ${phoneBtn}
             </div>
@@ -217,17 +227,24 @@ const ClusterLayer = ({
       `;
 
       marker.bindPopup(html, {
-        maxWidth: 260,
-        minWidth: 240,
+        maxWidth: 280,
+        minWidth: 260,
         className: "rich-business-popup",
         closeButton: true,
+        // Keep popup open until user explicitly closes it — better on mobile
+        // where stray taps elsewhere on the map are common.
+        autoClose: false,
+        closeOnClick: false,
+        // Pan the map so the popup is fully visible — critical on mobile.
+        autoPan: true,
+        autoPanPadding: L.point(20, 20),
+        keepInView: true,
       });
 
-      // Hover sync — both directions handled in parent. Touch devices ignore mouseover.
-      if (onMarkerHover) {
-        marker.on("mouseover", () => onMarkerHover(b.id));
-        marker.on("mouseout", () => onMarkerHover(null));
-      }
+      // Hover sync — desktop only. We use refs so listeners stay stable and
+      // marker rebuilds aren't triggered by hover-state changes in parent.
+      marker.on("mouseover", () => hoverHandlerRef.current?.(b.id));
+      marker.on("mouseout", () => hoverHandlerRef.current?.(null));
 
       // Intercept popup link clicks so SPA navigation works (popups live outside React tree).
       marker.on("popupopen", (e: any) => {
@@ -242,9 +259,19 @@ const ClusterLayer = ({
         });
       });
 
+      markerByIdRef.current.set(b.id, marker);
       cluster.addLayer(marker);
     });
-  }, [markers, highlightedId, onMarkerHover]);
+  }, [markers]);
+
+  // Highlight changes update icons in place — preserves any open popup.
+  useEffect(() => {
+    markerByIdRef.current.forEach((marker, id) => {
+      const isHi = id === highlightedId;
+      marker.setIcon(buildPin(isHi));
+      marker.setZIndexOffset(isHi ? 1000 : 0);
+    });
+  }, [highlightedId]);
 
   return null;
 };
