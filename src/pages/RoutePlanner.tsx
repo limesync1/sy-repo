@@ -93,6 +93,7 @@ const Planner = () => {
   const [createOpen, setCreateOpen] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [distributing, setDistributing] = useState(false);
 
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
@@ -171,8 +172,43 @@ const Planner = () => {
     return emps[0]?.color || "hsl(184 90% 35%)";
   };
 
+  /** Kundens ønskede dato — preferred_date primært, ellers next_service_date (abonnement). */
+  const effectiveJobDate = (j: any): string | null => {
+    if (j.preferred_date) return j.preferred_date;
+    if (j.next_service_date) return String(j.next_service_date).slice(0, 10);
+    return null;
+  };
+
+  /** Tæller (uden filter) hvor mange opgaver der ligger uden for ±3 dage-vinduet
+      omkring den valgte dag. Vises som hint ifm. auto-fordel knap. */
+  const outsideWindowCount = useMemo(() => {
+    const target = parseISO(date).getTime();
+    const dayMs = 24 * 60 * 60 * 1000;
+    return unassigned.filter((j: any) => {
+      const ed = effectiveJobDate(j);
+      if (!ed) return false;
+      const diffDays = (parseISO(ed).getTime() - target) / dayMs;
+      // udeladt = fremtidig opgave længere end 3 dage frem
+      return diffDays > 3;
+    }).length;
+  }, [unassigned, date]);
+
+  /** Pr. valgt dag: vis opgaver der er
+      - uden dato (fleksible)
+      - forsinkede (effectiveDate ≤ valgt dag)
+      - inden for ±3 dage omkring valgt dag */
   const filteredUnassigned = useMemo(() => {
-    let list = unassigned;
+    const target = parseISO(date).getTime();
+    const dayMs = 24 * 60 * 60 * 1000;
+
+    let list = unassigned.filter((j: any) => {
+      const ed = effectiveJobDate(j);
+      if (!ed) return true; // ingen dato → altid vis
+      const diffDays = (parseISO(ed).getTime() - target) / dayMs;
+      // forsinket (negativ) ELLER inden for 3 dage frem
+      return diffDays <= 3;
+    });
+
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((j: any) =>
@@ -184,8 +220,8 @@ const Planner = () => {
     const sorted = [...list];
     if (sortBy === "date") {
       sorted.sort((a: any, b: any) => {
-        const ad = a.preferred_date || "9999-12-31";
-        const bd = b.preferred_date || "9999-12-31";
+        const ad = effectiveJobDate(a) || "9999-12-31";
+        const bd = effectiveJobDate(b) || "9999-12-31";
         if (ad !== bd) return ad < bd ? -1 : 1;
         const at = a.preferred_time_start || "99:99";
         const bt = b.preferred_time_start || "99:99";
@@ -197,7 +233,7 @@ const Planner = () => {
       sorted.sort((a: any, b: any) => (a.customer_name || "").localeCompare(b.customer_name || "", "da"));
     }
     return sorted;
-  }, [unassigned, search, sortBy]);
+  }, [unassigned, search, sortBy, date]);
 
   const unassignedTotal = useMemo(
     () => filteredUnassigned.reduce((s: number, j: any) => s + Number(j.total_amount || 0), 0),
@@ -379,6 +415,13 @@ const Planner = () => {
         // Nyt stop er endnu ikke tildelt en medarbejder → ingen busy-check
         const finalMin = desiredMin;
         const slotIso = minToIso(date, finalMin);
+
+        // Advar hvis ruten er på en anden dato end kundens ønske
+        const wantedDate = effectiveJobDate(job);
+        const targetRoute = routes.find((r) => r.id === targetRouteId);
+        const routeDate = targetRoute?.route_date;
+        const dateMismatch = wantedDate && routeDate && wantedDate !== routeDate;
+
         await addStop.mutateAsync({
           route_id: targetRouteId,
           order_id: job.id,
@@ -401,7 +444,14 @@ const Planner = () => {
             planned_arrival: slotIso,
           });
         }
-        toast.success(`Tilføjet kl. ${minToHHmm(finalMin)}`);
+        if (dateMismatch) {
+          toast.warning(
+            `Tilføjet kl. ${minToHHmm(finalMin)} — men kunden ønsker ${format(parseISO(wantedDate!), "EEEE d. MMM", { locale: da })}`,
+            { duration: 6000 },
+          );
+        } else {
+          toast.success(`Tilføjet kl. ${minToHHmm(finalMin)}`);
+        }
       } catch (err: any) {
         toast.error(err.message || "Kunne ikke tilføje stop");
       }
@@ -504,6 +554,88 @@ const Planner = () => {
       setNewRouteName("");
       setCreateOpen(false);
     } catch { /* toast handled in hook */ }
+  };
+
+  /* ─── Auto-fordel: opretter/finder ruter pr. kundens ønskede dato og lægger jobs der ─── */
+  const handleAutoDistribute = async () => {
+    if (!businessId) return;
+    const jobsWithDate = unassigned
+      .map((j: any) => ({ job: j, date: effectiveJobDate(j) }))
+      .filter((x) => !!x.date) as { job: any; date: string }[];
+
+    if (jobsWithDate.length === 0) {
+      toast.info("Ingen ledige opgaver med ønsket dato at fordele");
+      return;
+    }
+
+    const byDate = new Map<string, any[]>();
+    for (const { job, date: d } of jobsWithDate) {
+      const arr = byDate.get(d) || [];
+      arr.push(job);
+      byDate.set(d, arr);
+    }
+
+    setDistributing(true);
+    try {
+      const allDates = Array.from(byDate.keys()).sort();
+      const minDate = allDates[0];
+      const maxDate = allDates[allDates.length - 1];
+      const { data: existingRoutes } = await supabase
+        .from("routes")
+        .select("id, route_date, name")
+        .eq("business_id", businessId)
+        .gte("route_date", minDate)
+        .lte("route_date", maxDate);
+
+      let totalAssigned = 0;
+      let routesCreated = 0;
+
+      for (const [d, jobs] of byDate.entries()) {
+        let routeId = (existingRoutes || []).find((r: any) => r.route_date === d)?.id || null;
+        if (!routeId) {
+          const created = await createRoute.mutateAsync({
+            business_id: businessId,
+            route_date: d,
+            name: `Auto · ${format(parseISO(d), "EEE d/M", { locale: da })}`,
+          });
+          routeId = created.id;
+          routesCreated++;
+        }
+
+        const { data: stopsOnRoute } = await supabase
+          .from("route_stops")
+          .select("id")
+          .eq("route_id", routeId);
+        let seq = (stopsOnRoute || []).length;
+
+        for (const job of jobs) {
+          await addStop.mutateAsync({
+            route_id: routeId,
+            order_id: job.id,
+            sequence: seq++,
+            customer_name: job.customer_name,
+            customer_phone: job.customer_phone,
+            address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
+            latitude: job.latitude,
+            longitude: job.longitude,
+            service_summary: (job.order_items || [])
+              .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
+              .join(", ") || "Opgave",
+          });
+          totalAssigned++;
+        }
+      }
+
+      toast.success(
+        `${totalAssigned} opgaver fordelt på ${byDate.size} dage` +
+        (routesCreated > 0 ? ` (${routesCreated} nye ruter oprettet)` : ""),
+        { description: "Klik på en rute og 'Optimér' for bedste rækkefølge." },
+      );
+    } catch (e: any) {
+      toast.error(e.message || "Kunne ikke auto-fordele opgaver");
+    } finally {
+      setDistributing(false);
+    }
   };
 
   return (
@@ -635,6 +767,22 @@ const Planner = () => {
                         Total værdi: <span className="font-semibold text-foreground">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span>
                       </p>
                     )}
+                    {outsideWindowCount > 0 && (
+                      <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1 leading-snug">
+                        +{outsideWindowCount} opgave{outsideWindowCount === 1 ? "" : "r"} senere på måneden — brug 'Auto-fordel' for at lægge dem på den ønskede dato.
+                      </p>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full h-7 text-xs gap-1"
+                      onClick={handleAutoDistribute}
+                      disabled={distributing || unassigned.length === 0}
+                      title="Opretter ruter på hver kundes ønskede dato og lægger opgaverne der. Gælder ALLE ledige opgaver — ikke kun dem du ser."
+                    >
+                      {distributing ? <Loader2 className="h-3 w-3 animate-spin" /> : <CalendarIcon className="h-3 w-3" />}
+                      Auto-fordel pr. ønsket dato
+                    </Button>
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                       <Input
