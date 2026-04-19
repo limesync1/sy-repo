@@ -362,6 +362,45 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 </div>
               </div>
 
+              {/* Service address */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-foreground">Service-adresse</h4>
+                <p className="text-xs text-muted-foreground -mt-1">Adressen hvor servicen skal udføres — bruges til ruteplanlægning.</p>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Adresse (vej + nr.)</label>
+                  <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Hovedgaden 12" className="rounded-lg" />
+                </div>
+                <div className="grid grid-cols-[1fr_2fr] gap-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Postnr.</label>
+                    <Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} placeholder="8600" className="rounded-lg" inputMode="numeric" maxLength={4} />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">By</label>
+                    <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Silkeborg" className="rounded-lg" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Preferred timing (optional) */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-foreground">Ønsket tidspunkt <span className="text-xs font-normal text-muted-foreground">(valgfrit)</span></h4>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Dato</label>
+                  <Input type="date" value={preferredDate} onChange={(e) => setPreferredDate(e.target.value)} className="rounded-lg" min={new Date().toISOString().split("T")[0]} />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Fra</label>
+                    <Input type="time" value={preferredTimeStart} onChange={(e) => setPreferredTimeStart(e.target.value)} className="rounded-lg" />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Til</label>
+                    <Input type="time" value={preferredTimeEnd} onChange={(e) => setPreferredTimeEnd(e.target.value)} className="rounded-lg" />
+                  </div>
+                </div>
+              </div>
+
               {/* Order summary */}
               <div className="rounded-xl border border-border overflow-hidden">
                 <div className="px-4 py-2.5 bg-muted/40 border-b border-border">
