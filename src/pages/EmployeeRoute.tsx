@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMyRouteData, useDirections, useUpdateStopStatus, type RouteStop } from "@/hooks/useRoutes";
+import { useMyRouteData, useDirections, useUpdateStopStatus, type RouteStop, type Route } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,6 +34,13 @@ const stopIcon = (n: number, state: "next" | "done" | "future") => {
   });
 };
 
+const userIcon = L.divIcon({
+  className: "",
+  html: `<div style="width:18px;height:18px;border-radius:50%;background:#3b82f6;border:3px solid white;box-shadow:0 0 0 4px rgba(59,130,246,.3),0 2px 6px rgba(0,0,0,.3);"></div>`,
+  iconSize: [18, 18],
+  iconAnchor: [9, 9],
+});
+
 /* ── Helpers ────────────────────────────────────────────────────── */
 const FitTo = ({ points }: { points: [number, number][] }) => {
   const map = useMap();
@@ -51,100 +58,98 @@ const FitTo = ({ points }: { points: [number, number][] }) => {
   return null;
 };
 
-const Recenter = ({ to }: { to: [number, number] | null }) => {
-  const map = useMap();
-  useEffect(() => {
-    if (to) map.setView(to, 14, { animate: true });
-  }, [to, map]);
-  return null;
-};
-
 const formatKm = (m: number | null) => (m == null ? "—" : m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`);
 const formatMin = (s: number | null) => (s == null ? "—" : s < 60 ? "<1 min" : `${Math.round(s / 60)} min`);
 
-/* ── Component ──────────────────────────────────────────────────── */
+/* ── Outer wrapper handles auth/loading; Inner has all data hooks ── */
 const EmployeeRoute = () => {
-  const { routeId } = useParams<{ routeId: string }>();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { routeId } = useParams<{ routeId: string }>();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
+        <Loader2 className="h-5 w-5 animate-spin mr-2" /> Indlæser...
+      </div>
+    );
+  }
+  if (!user) return <Navigate to="/log-ind" replace />;
+  if (!routeId) return <Navigate to="/medarbejder" replace />;
+
+  return <RouteView routeId={routeId} onBack={() => navigate("/medarbejder")} />;
+};
+
+const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void }) => {
   const { data, isLoading } = useMyRouteData(routeId);
   const updateStatus = useUpdateStopStatus();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState<Record<string, string>>({});
   const [showList, setShowList] = useState(false);
-  const [collapsed, setCollapsed] = useState(false); // bottom card collapsed
-  const userPosRef = useRef<[number, number] | null>(null);
+  const [collapsed, setCollapsed] = useState(false);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
 
-  /* Try to get geolocation (optional) */
+  /* Geolocation */
   useEffect(() => {
     if (!navigator.geolocation) return;
     const watchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        const next: [number, number] = [pos.coords.latitude, pos.coords.longitude];
-        userPosRef.current = next;
-        setUserPos(next);
-      },
+      (pos) => setUserPos([pos.coords.latitude, pos.coords.longitude]),
       () => { /* silent */ },
       { enableHighAccuracy: true, maximumAge: 30000, timeout: 10000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
-  if (loading || isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
-        <Loader2 className="h-5 w-5 animate-spin mr-2" /> Indlæser rute...
-      </div>
-    );
-  }
-  if (!user) return <Navigate to="/log-ind" replace />;
-  if (!data) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 text-muted-foreground">
-        <p>Rute ikke fundet eller du har ikke adgang.</p>
-        <Button variant="outline" onClick={() => navigate("/medarbejder")}>Tilbage</Button>
-      </div>
-    );
-  }
+  const route = data?.route as (Route & { businesses?: { name?: string } }) | undefined;
+  const stops = data?.stops || [];
 
-  const { route, stops } = data;
-  const sortedStops = [...stops].sort((a, b) => a.sequence - b.sequence);
-  const validStops = sortedStops.filter((s) => s.latitude != null && s.longitude != null);
-
-  // Find next pending stop
+  const sortedStops = useMemo(
+    () => [...stops].sort((a, b) => a.sequence - b.sequence),
+    [stops],
+  );
+  const validStops = useMemo(
+    () => sortedStops.filter((s) => s.latitude != null && s.longitude != null),
+    [sortedStops],
+  );
   const nextStopIdx = sortedStops.findIndex((s) => s.status !== "completed");
   const nextStop: RouteStop | undefined = nextStopIdx >= 0 ? sortedStops[nextStopIdx] : undefined;
 
-  // Determine origin for the active leg: user position > last completed stop > start address
-  const startCoord: [number, number] | null =
-    route.start_latitude != null && route.start_longitude != null
+  const startCoord: [number, number] | null = useMemo(() => {
+    if (!route) return null;
+    return route.start_latitude != null && route.start_longitude != null
       ? [Number(route.start_latitude), Number(route.start_longitude)]
       : null;
-  const lastCompleted = [...sortedStops].reverse().find((s) => s.status === "completed" && s.latitude != null && s.longitude != null);
-  const legOrigin: { lat: number; lng: number } | null =
-    userPos
-      ? { lat: userPos[0], lng: userPos[1] }
-      : lastCompleted
-        ? { lat: Number(lastCompleted.latitude), lng: Number(lastCompleted.longitude) }
-        : startCoord
-          ? { lat: startCoord[0], lng: startCoord[1] }
-          : null;
+  }, [route]);
+
+  const lastCompleted = useMemo(
+    () =>
+      [...sortedStops]
+        .reverse()
+        .find((s) => s.status === "completed" && s.latitude != null && s.longitude != null),
+    [sortedStops],
+  );
+
+  const legOrigin: { lat: number; lng: number } | null = userPos
+    ? { lat: userPos[0], lng: userPos[1] }
+    : lastCompleted
+      ? { lat: Number(lastCompleted.latitude), lng: Number(lastCompleted.longitude) }
+      : startCoord
+        ? { lat: startCoord[0], lng: startCoord[1] }
+        : null;
 
   const legWaypoints = useMemo(() => {
     if (!nextStop || nextStop.latitude == null || nextStop.longitude == null || !legOrigin) return null;
     return [legOrigin, { lat: Number(nextStop.latitude), lng: Number(nextStop.longitude) }];
-  }, [legOrigin?.lat, legOrigin?.lng, nextStop?.id, nextStop?.latitude, nextStop?.longitude]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [legOrigin?.lat, legOrigin?.lng, nextStop?.latitude, nextStop?.longitude]);
 
   const { data: directions } = useDirections(legWaypoints);
 
-  // Polyline for active leg
   const legLine: [number, number][] = useMemo(() => {
     if (!directions?.geometry?.coordinates) return [];
     return directions.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
   }, [directions]);
 
-  // All map points for initial fit
   const allPoints: [number, number][] = useMemo(() => {
     const pts: [number, number][] = [];
     if (startCoord) pts.push(startCoord);
@@ -152,9 +157,30 @@ const EmployeeRoute = () => {
     return pts;
   }, [startCoord, validStops]);
 
-  const focusedPoint: [number, number] | null = nextStop && nextStop.latitude != null && nextStop.longitude != null
-    ? [Number(nextStop.latitude), Number(nextStop.longitude)]
-    : null;
+  const fitPoints: [number, number][] = useMemo(() => {
+    if (legLine.length > 1) return [legLine[0], legLine[legLine.length - 1]];
+    if (nextStop && nextStop.latitude != null && nextStop.longitude != null) {
+      const p: [number, number] = [Number(nextStop.latitude), Number(nextStop.longitude)];
+      return legOrigin ? [[legOrigin.lat, legOrigin.lng], p] : [p];
+    }
+    return allPoints;
+  }, [legLine, nextStop, legOrigin, allPoints]);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
+        <Loader2 className="h-5 w-5 animate-spin mr-2" /> Indlæser rute...
+      </div>
+    );
+  }
+  if (!data || !route) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 text-muted-foreground">
+        <p>Rute ikke fundet eller du har ikke adgang.</p>
+        <Button variant="outline" onClick={onBack}>Tilbage</Button>
+      </div>
+    );
+  }
 
   const handleNavigate = (s: RouteStop) => {
     const dest = s.address || (s.latitude && s.longitude ? `${s.latitude},${s.longitude}` : s.customer_name || "");
@@ -168,7 +194,7 @@ const EmployeeRoute = () => {
       await updateStatus.mutateAsync({ id: s.id, status: "completed", notes: noteDraft[s.id] });
       toast.success(`${s.customer_name || "Stop"} markeret som udført`);
       setSelectedId(null);
-    } catch { /* toast in hook */ }
+    } catch { /* */ }
   };
 
   const handleUndo = async (s: RouteStop) => {
@@ -238,16 +264,7 @@ const EmployeeRoute = () => {
               attribution="&copy; OpenStreetMap"
             />
 
-            {/* Initial fit to all */}
-            {!focusedPoint && <FitTo points={allPoints} />}
-            {/* Focus on next stop once we have one */}
-            {focusedPoint && legLine.length > 1 && (
-              <FitTo points={[
-                legLine[0],
-                legLine[legLine.length - 1],
-              ]} />
-            )}
-            {focusedPoint && legLine.length <= 1 && <Recenter to={focusedPoint} />}
+            <FitTo points={fitPoints} />
 
             {/* Start marker */}
             {startCoord && <Marker position={startCoord} icon={startIcon} />}
@@ -261,17 +278,7 @@ const EmployeeRoute = () => {
             )}
 
             {/* User position */}
-            {userPos && (
-              <Marker
-                position={userPos}
-                icon={L.divIcon({
-                  className: "",
-                  html: `<div style="width:18px;height:18px;border-radius:50%;background:#3b82f6;border:3px solid white;box-shadow:0 0 0 4px rgba(59,130,246,.3),0 2px 6px rgba(0,0,0,.3);"></div>`,
-                  iconSize: [18, 18],
-                  iconAnchor: [9, 9],
-                })}
-              />
-            )}
+            {userPos && <Marker position={userPos} icon={userIcon} />}
 
             {/* Stops */}
             {sortedStops.map((s, i) => {
@@ -288,22 +295,6 @@ const EmployeeRoute = () => {
               );
             })}
           </MapContainer>
-        )}
-
-        {/* Recenter on next button */}
-        {focusedPoint && (
-          <Button
-            size="icon"
-            variant="secondary"
-            className="absolute top-3 right-3 z-10 shadow-lg h-10 w-10"
-            onClick={() => {
-              // Force re-center by toggling a state
-              setCollapsed((c) => c);
-            }}
-            aria-label="Centrér på næste stop"
-          >
-            <Navigation className="h-4 w-4" />
-          </Button>
         )}
 
         {/* Bottom action card */}
