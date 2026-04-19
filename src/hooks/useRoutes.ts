@@ -6,11 +6,16 @@ export type Route = {
   id: string;
   business_id: string;
   employee_id: string | null;
-  route_date: string; // YYYY-MM-DD
+  route_date: string;
   status: string;
   total_distance_km: number | null;
+  total_duration_minutes: number | null;
   optimized_at: string | null;
   notes: string | null;
+  start_address: string | null;
+  start_latitude: number | null;
+  start_longitude: number | null;
+  planned_start_time: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -30,11 +35,17 @@ export type RouteStop = {
   service_summary: string | null;
   notes: string | null;
   planned_arrival: string | null;
+  planned_departure: string | null;
   completed_at: string | null;
   photo_urls: string[] | null;
+  duration_minutes: number;
+  time_window_start: string | null;
+  time_window_end: string | null;
+  distance_to_next_km: number | null;
+  travel_time_to_next_min: number | null;
 };
 
-/* ─── Routes for a date range (planner view) ─── */
+/* ─── Routes for a date (planner view) ─── */
 export const useRoutesForDate = (businessId: string | undefined, date: string) => {
   return useQuery({
     queryKey: ["routes", businessId, date],
@@ -52,19 +63,21 @@ export const useRoutesForDate = (businessId: string | undefined, date: string) =
   });
 };
 
-/* ─── Stops on a single route ─── */
-export const useRouteStops = (routeId: string | undefined) => {
+/* ─── Routes for a week range (multi-day overview) ─── */
+export const useRoutesForRange = (businessId: string | undefined, fromDate: string, toDate: string) => {
   return useQuery({
-    queryKey: ["route-stops", routeId],
-    enabled: !!routeId,
+    queryKey: ["routes-range", businessId, fromDate, toDate],
+    enabled: !!businessId && !!fromDate && !!toDate,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("route_stops")
+        .from("routes")
         .select("*")
-        .eq("route_id", routeId!)
-        .order("sequence", { ascending: true });
+        .eq("business_id", businessId!)
+        .gte("route_date", fromDate)
+        .lte("route_date", toDate)
+        .order("route_date", { ascending: true });
       if (error) throw error;
-      return (data || []) as RouteStop[];
+      return (data || []) as Route[];
     },
   });
 };
@@ -86,20 +99,19 @@ export const useStopsForRoutes = (routeIds: string[]) => {
   });
 };
 
-/* ─── Unassigned: confirmed/in_progress orders not yet on a route for this date ─── */
+/* ─── Unassigned: orders with status pending/confirmed/in_progress not yet on a route ─── */
 export const useUnassignedJobs = (businessId: string | undefined) => {
   return useQuery({
     queryKey: ["unassigned-jobs", businessId],
     enabled: !!businessId,
     queryFn: async () => {
-      // Pull orders that are confirmed/pending/in_progress and not yet linked to a stop
       const { data: orders, error } = await supabase
         .from("orders")
-        .select("id, customer_name, customer_phone, customer_email, total_amount, status, notes, created_at")
+        .select("id, customer_name, customer_phone, customer_email, total_amount, status, notes, address, zip_code, city, latitude, longitude, created_at")
         .eq("business_id", businessId!)
         .in("status", ["pending", "confirmed", "in_progress"])
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(200);
       if (error) throw error;
 
       const orderIds = (orders || []).map((o) => o.id);
@@ -120,16 +132,18 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
 export const useUpsertRoute = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ business_id, employee_id, route_date }: { business_id: string; employee_id: string | null; route_date: string }) => {
-      // Try find existing
-      const { data: existing } = await supabase
+    mutationFn: async ({
+      business_id, employee_id, route_date,
+    }: { business_id: string; employee_id: string | null; route_date: string }) => {
+      let query = supabase
         .from("routes")
         .select("*")
         .eq("business_id", business_id)
-        .eq("route_date", route_date)
-        .eq(employee_id ? "employee_id" : "employee_id", employee_id as any)
-        .maybeSingle();
+        .eq("route_date", route_date);
+      query = employee_id === null ? query.is("employee_id", null) : query.eq("employee_id", employee_id);
+      const { data: existing } = await query.maybeSingle();
       if (existing) return existing as Route;
+
       const { data, error } = await supabase
         .from("routes")
         .insert({ business_id, employee_id, route_date })
@@ -156,7 +170,10 @@ export const useAddStop = () => {
       customer_name?: string | null;
       customer_phone?: string | null;
       address?: string | null;
+      latitude?: number | null;
+      longitude?: number | null;
       service_summary?: string | null;
+      duration_minutes?: number;
     }) => {
       const { data, error } = await supabase
         .from("route_stops")
@@ -168,7 +185,10 @@ export const useAddStop = () => {
           customer_name: payload.customer_name ?? null,
           customer_phone: payload.customer_phone ?? null,
           address: payload.address ?? null,
+          latitude: payload.latitude ?? null,
+          longitude: payload.longitude ?? null,
           service_summary: payload.service_summary ?? null,
+          duration_minutes: payload.duration_minutes ?? 30,
         })
         .select("*")
         .single();
@@ -182,7 +202,6 @@ export const useAddStop = () => {
   });
 };
 
-/* ─── Reorder / move stops ─── */
 export const useUpdateStop = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -199,6 +218,24 @@ export const useUpdateStop = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["route-stops"] });
+    },
+  });
+};
+
+/* Bulk reorder — single round-trip for smooth dnd */
+export const useReorderStops = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (updates: { id: string; sequence: number; route_id?: string }[]) => {
+      // Run all updates in parallel
+      await Promise.all(updates.map((u) => {
+        const patch: any = { sequence: u.sequence };
+        if (u.route_id) patch.route_id = u.route_id;
+        return supabase.from("route_stops").update(patch).eq("id", u.id);
+      }));
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
     },
   });
 };
@@ -238,6 +275,37 @@ export const useUpdateStopStatus = () => {
       qc.invalidateQueries({ queryKey: ["my-day-stops"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke opdatere stop"),
+  });
+};
+
+/* ─── AI / heuristic optimize route ─── */
+export const useOptimizeRoute = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (routeId: string) => {
+      const { data, error } = await supabase.functions.invoke("optimize-route", {
+        body: { route_id: routeId, use_ai: true },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data as { ok: true; reasoning: string; reordered: number; total_km: number; total_minutes: number };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+      qc.invalidateQueries({ queryKey: ["routes"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke optimere ruten"),
+  });
+};
+
+/* ─── Geocode an address (used to enrich orders without coordinates) ─── */
+export const useGeocodeAddress = () => {
+  return useMutation({
+    mutationFn: async (input: { address?: string; zip_code?: string; city?: string }) => {
+      const { data, error } = await supabase.functions.invoke("geocode-address", { body: input });
+      if (error) throw error;
+      return data as { found: boolean; latitude?: number; longitude?: number; display_name?: string };
+    },
   });
 };
 
