@@ -17,9 +17,9 @@ interface Props {
 }
 
 const NAV_ITEMS: { key: NonNullable<Props["active"]>; label: string; to: string }[] = [
-  { key: "search", label: "Find services", to: "/search" },
-  { key: "quote", label: "Få tilbud", to: "/quote" },
-  { key: "business", label: "Bliv udbyder", to: "/auth?role=business" },
+  { key: "search", label: "Find services", to: "/virksomheder" },
+  { key: "quote", label: "Få tilbud", to: "/tilbud" },
+  { key: "business", label: "Bliv udbyder", to: "/log-ind?mode=business" },
 ];
 
 const SiteNav = ({ active, right }: Props) => {
@@ -28,8 +28,8 @@ const SiteNav = ({ active, right }: Props) => {
 
   const isActive = (key: NonNullable<Props["active"]>) => {
     if (active !== undefined) return active === key;
-    if (key === "search") return pathname.startsWith("/search");
-    if (key === "quote") return pathname.startsWith("/quote");
+    if (key === "search") return pathname.startsWith("/virksomheder") || pathname.startsWith("/search");
+    if (key === "quote") return pathname.startsWith("/tilbud") || pathname.startsWith("/quote");
     return false;
   };
 
@@ -61,12 +61,12 @@ const SiteNav = ({ active, right }: Props) => {
           {/* Right side */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             {right}
-            <Link to="/auth" className="hidden sm:inline-block">
+            <Link to="/log-ind" className="hidden sm:inline-block">
               <button className="rounded-full px-3 sm:px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary active:bg-secondary/70">
                 Log ind
               </button>
             </Link>
-            <Link to="/auth?signup=1" className="hidden sm:inline-block">
+            <Link to="/log-ind?signup=1" className="hidden sm:inline-block">
               <button className="rounded-full bg-foreground px-3 sm:px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80">
                 Opret konto
               </button>
@@ -102,14 +102,14 @@ const SiteNav = ({ active, right }: Props) => {
             ))}
             <div className="my-1 h-px bg-border" />
             <Link
-              to="/auth"
+              to="/log-ind"
               onClick={() => setOpen(false)}
               className="block rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary"
             >
               Log ind
             </Link>
             <Link
-              to="/auth?signup=1"
+              to="/log-ind?signup=1"
               onClick={() => setOpen(false)}
               className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
             >

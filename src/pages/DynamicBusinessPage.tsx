@@ -106,7 +106,7 @@ const DynamicBusinessContent = () => {
             <span className="hidden truncate text-sm font-semibold text-foreground sm:inline">{business.name}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/search" className="hidden md:inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:bg-secondary/70">
+            <Link to="/virksomheder" className="hidden md:inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:bg-secondary/70">
               <ArrowLeft className="h-3.5 w-3.5" /> Tilbage til søgning
             </Link>
             <CartSheet businessId={business.id} />

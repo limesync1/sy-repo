@@ -149,7 +149,7 @@ const RecentBusinesses = () => {
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">Verificerede serviceydere — klar til opgaven</p>
           </div>
-          <Link to="/search" className="text-sm font-semibold text-foreground underline-offset-4 hover:underline">
+          <Link to="/virksomheder" className="text-sm font-semibold text-foreground underline-offset-4 hover:underline">
             Vis alle
           </Link>
         </div>

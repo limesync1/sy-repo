@@ -22,13 +22,13 @@ const GetQuotes = () => {
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                <Link to="/quote">
+                <Link to="/tilbud">
                   <Button size="lg" className="h-12 gap-2 rounded-full bg-accent px-7 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/20 hover:bg-accent/90">
                     Prøv det gratis
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
-                <Link to="/search">
+                <Link to="/virksomheder">
                   <Button size="lg" variant="outline" className="h-12 gap-2 rounded-full border-background/20 bg-transparent px-6 text-sm font-medium text-background hover:bg-background/10 hover:text-background">
                     Browse virksomheder
                   </Button>

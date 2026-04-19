@@ -8,17 +8,17 @@ const Footer = () => {
           <div>
             <h4 className="mb-3 text-sm font-semibold text-foreground">Serviceydere</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/search" className="transition-colors hover:underline">Find services</Link></li>
-              <li><Link to="/quote" className="transition-colors hover:underline">Indhent tilbud</Link></li>
-              <li><Link to="/search" className="transition-colors hover:underline">Kategorier</Link></li>
+              <li><Link to="/virksomheder" className="transition-colors hover:underline">Find services</Link></li>
+              <li><Link to="/tilbud" className="transition-colors hover:underline">Indhent tilbud</Link></li>
+              <li><Link to="/virksomheder" className="transition-colors hover:underline">Kategorier</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="mb-3 text-sm font-semibold text-foreground">For virksomheder</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/auth" className="transition-colors hover:underline">Bliv udbyder</Link></li>
-              <li><Link to="/auth" className="transition-colors hover:underline">Log ind</Link></li>
-              <li><Link to="/admin" className="transition-colors hover:underline">Admin panel</Link></li>
+              <li><Link to="/log-ind?mode=business" className="transition-colors hover:underline">Bliv udbyder</Link></li>
+              <li><Link to="/log-ind" className="transition-colors hover:underline">Log ind</Link></li>
+              <li><Link to="/virksomhed" className="transition-colors hover:underline">Virksomhedspanel</Link></li>
             </ul>
           </div>
           <div>

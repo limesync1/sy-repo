@@ -208,7 +208,7 @@ const ClusterLayer = ({
             <div style="display:flex;align-items:flex-start;gap:10px;">
               ${logo}
               <div style="flex:1;min-width:0;">
-                <a href="/b/${b.slug}" data-popup-link style="font-weight:700;font-size:15px;color:hsl(222 47% 11%);text-decoration:none;line-height:1.25;display:block;margin-bottom:2px;">${b.name}</a>
+                <a href="/v/${b.slug}" data-popup-link style="font-weight:700;font-size:15px;color:hsl(222 47% 11%);text-decoration:none;line-height:1.25;display:block;margin-bottom:2px;">${b.name}</a>
                 ${b.city ? `<div style="font-size:12px;color:hsl(215 16% 47%);">${b.zip_code || ""} ${b.city}</div>` : ""}
               </div>
             </div>
@@ -217,7 +217,7 @@ const ClusterLayer = ({
             </div>
             ${distHtml ? `<div style="margin-top:6px;">${distHtml}</div>` : ""}
             <div style="margin-top:12px;display:flex;gap:6px;">
-              <a href="/b/${b.slug}" data-popup-link style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:10px 12px;background:hsl(222 47% 11%);color:white;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;min-height:40px;">
+              <a href="/v/${b.slug}" data-popup-link style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:10px 12px;background:hsl(222 47% 11%);color:white;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;min-height:40px;">
                 Se virksomhed →
               </a>
               ${phoneBtn}

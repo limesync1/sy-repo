@@ -287,7 +287,7 @@ const SearchPage = () => {
       <SEO
         title={seoTitle}
         description={seoDesc}
-        canonicalPath="/search"
+        canonicalPath="/virksomheder"
         keywords={`serviceydere, ${selectedCategory || "find services"}, danmark, sammenlign, book online`}
       />
       {/* Header — matches landing */}

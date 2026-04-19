@@ -51,7 +51,7 @@ const CustomerDashboard = () => {
       </div>
     </div>
   );
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/log-ind" replace />;
 
   const tabs = [
     { key: "orders" as const, label: "Bestillinger", icon: ShoppingCart },
@@ -65,7 +65,7 @@ const CustomerDashboard = () => {
       <SEO
         title="Mit kundepanel – Serviceydere"
         description="Administrer dine bestillinger, abonnementer og favoritter på Serviceydere."
-        canonicalPath="/dashboard"
+        canonicalPath="/min-konto"
         noIndex
       />
       <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
@@ -161,7 +161,7 @@ const FavoritesView = () => {
           Klik på hjertet på en virksomhed for at gemme den her.
         </p>
         <div className="mt-5">
-          <Link to="/search">
+          <Link to="/virksomheder">
             <Button variant="outline" className="gap-2 rounded-xl"><Store className="h-4 w-4" /> Find virksomheder</Button>
           </Link>
         </div>
@@ -180,7 +180,7 @@ const FavoritesView = () => {
         const primaryCat = cats[0];
 
         return (
-          <Link key={fav.id} to={`/b/${biz.slug}`} className="group flex flex-col gap-3">
+          <Link key={fav.id} to={`/v/${biz.slug}`} className="group flex flex-col gap-3">
             <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-secondary">
               {biz.cover_image_url ? (
                 <img src={biz.cover_image_url} alt={biz.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
@@ -259,7 +259,7 @@ const OrdersView = () => {
           Bestil en service hos en virksomhed, og den dukker automatisk op her.
         </p>
         <div className="mt-5 flex gap-3">
-          <Link to="/search">
+          <Link to="/virksomheder">
             <Button variant="outline" className="gap-2 rounded-xl"><Store className="h-4 w-4" /> Find virksomheder</Button>
           </Link>
         </div>

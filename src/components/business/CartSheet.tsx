@@ -172,7 +172,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
       setOrderSuccess(false);
       setName(""); setEmail(""); setPhone("");
       if (user) {
-        navigate("/dashboard");
+        navigate("/min-konto");
       } else {
         toast.success("Din bestilling er sendt! Virksomheden vil gennemgå og bekræfte den.");
       }

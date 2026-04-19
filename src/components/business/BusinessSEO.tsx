@@ -98,9 +98,9 @@ const BusinessSEO = ({
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Forside", item: origin + "/" },
-      { "@type": "ListItem", position: 2, name: "Find services", item: origin + "/search" },
+      { "@type": "ListItem", position: 2, name: "Find services", item: origin + "/virksomheder" },
       ...(categories?.[0]
-        ? [{ "@type": "ListItem", position: 3, name: categories[0], item: `${origin}/search?category=${encodeURIComponent(categories[0])}` }]
+        ? [{ "@type": "ListItem", position: 3, name: categories[0], item: `${origin}/virksomheder?category=${encodeURIComponent(categories[0])}` }]
         : []),
       { "@type": "ListItem", position: categories?.[0] ? 4 : 3, name, item: businessUrl },
     ],
