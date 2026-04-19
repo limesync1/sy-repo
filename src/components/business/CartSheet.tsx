@@ -435,63 +435,79 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
         ) : (
           /* ── Checkout view ── */
           <div className="flex flex-1 flex-col min-h-0">
-            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
               {/* Contact form */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-semibold text-foreground">Dine oplysninger</h4>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Fulde navn</label>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Dit navn" className="rounded-lg" />
+              <section className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
+                    <User className="h-3.5 w-3.5 text-accent" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-foreground">Dine oplysninger</h4>
                 </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">E-mail</label>
-                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="din@email.dk" className="rounded-lg" />
+                <div className="space-y-2.5 pl-9">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Fulde navn</label>
+                    <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Dit navn" className="rounded-lg" />
+                  </div>
+                  <div className="grid grid-cols-1 gap-2.5">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground">E-mail</label>
+                      <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="din@email.dk" className="rounded-lg" />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground">Telefon</label>
+                      <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 00 00 00 00" className="rounded-lg" />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Telefon</label>
-                  <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 00 00 00 00" className="rounded-lg" />
-                </div>
-              </div>
+              </section>
 
               {/* Service address */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-semibold text-foreground">Service-adresse</h4>
-                <p className="text-xs text-muted-foreground -mt-1">Adressen hvor servicen skal udføres — bruges til ruteplanlægning.</p>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Adresse (vej + nr.)</label>
-                  <Input value={address} onChange={(e) => onAddressChange(e.target.value)} placeholder="Hovedgaden 12" className="rounded-lg" />
-                </div>
-                <div className="grid grid-cols-[1fr_2fr] gap-2">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Postnr.</label>
-                    <Input value={zipCode} onChange={(e) => onZipChange(e.target.value)} placeholder="8600" className="rounded-lg" inputMode="numeric" maxLength={4} />
+              <section className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
+                    <MapPin className="h-3.5 w-3.5 text-accent" />
                   </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-muted-foreground">By</label>
-                    <Input value={city} onChange={(e) => onCityChange(e.target.value)} placeholder="Silkeborg" className="rounded-lg" />
-                  </div>
+                  <h4 className="text-sm font-semibold text-foreground">Service-adresse</h4>
                 </div>
+                <div className="space-y-2.5 pl-9">
+                  <p className="text-xs text-muted-foreground">Adressen hvor servicen skal udføres — bruges til ruteplanlægning.</p>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Adresse (vej + nr.)</label>
+                    <Input value={address} onChange={(e) => onAddressChange(e.target.value)} placeholder="Hovedgaden 12" className="rounded-lg" />
+                  </div>
+                  <div className="grid grid-cols-[1fr_2fr] gap-2">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground">Postnr.</label>
+                      <Input value={zipCode} onChange={(e) => onZipChange(e.target.value)} placeholder="8600" className="rounded-lg" inputMode="numeric" maxLength={4} />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground">By</label>
+                      <Input value={city} onChange={(e) => onCityChange(e.target.value)} placeholder="Silkeborg" className="rounded-lg" />
+                    </div>
+                  </div>
 
-                {/* Auto-verify status (no manual button) */}
-                <div className="min-h-[24px]">
-                  {verifying && (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Bekræfter adresse...
-                    </span>
-                  )}
-                  {!verifying && geo?.ok && (
-                    <span className="text-xs text-green-600 flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      <span className="truncate">{geo.display}</span>
-                    </span>
-                  )}
-                  {!verifying && geo && !geo.ok && (
-                    <span className="text-xs text-destructive flex items-center gap-1.5">
-                      <AlertCircle className="h-3.5 w-3.5" /> Kunne ikke finde — tjek stavemåde og postnr.
-                    </span>
-                  )}
+                  {/* Auto-verify status (no manual button) */}
+                  <div className="min-h-[28px]">
+                    {verifying && (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground rounded-md bg-secondary px-2 py-1">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Bekræfter adresse...
+                      </span>
+                    )}
+                    {!verifying && geo?.ok && (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-accent rounded-md bg-accent/10 border border-accent/20 px-2 py-1 max-w-full">
+                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{geo.display}</span>
+                      </span>
+                    )}
+                    {!verifying && geo && !geo.ok && (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-destructive rounded-md bg-destructive/10 border border-destructive/20 px-2 py-1">
+                        <AlertCircle className="h-3.5 w-3.5" /> Kunne ikke finde — tjek stavemåde og postnr.
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
+              </section>
 
 
               {/* Schedule mode toggle: ASAP vs choose date */}
