@@ -580,7 +580,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                       </h4>
                       <div className="space-y-2">
                         {data.orders.map(o => (
-                          <div key={o.id} className="rounded-xl border border-border bg-card p-3 space-y-1.5">
+                          <div key={o.id} className={`rounded-xl border p-3 space-y-1.5 ${o.is_paused ? "border-amber-300/60 bg-amber-50/30" : "border-border bg-card"}`}>
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0 flex-1">
                                 <p className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -593,9 +593,17 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                                     Ønsket: {format(parseISO(o.preferred_date), "d. MMM yyyy", { locale: da })}
                                   </p>
                                 )}
+                                {o.is_paused && (
+                                  <p className="text-[11px] text-amber-700 flex items-center gap-1 mt-0.5 font-medium">
+                                    <Pause className="h-3 w-3" />
+                                    Abonnementet er på pause — indgår ikke i ruteplanlægning
+                                  </p>
+                                )}
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
-                                <StatusBadge status={o.status} />
+                                {o.is_paused
+                                  ? <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-amber-300 text-amber-700 bg-amber-50">På pause</Badge>
+                                  : <StatusBadge status={o.status} />}
                                 <span className="text-sm font-bold text-foreground tabular-nums">{fmtKr(o.total_amount)}</span>
                               </div>
                             </div>
