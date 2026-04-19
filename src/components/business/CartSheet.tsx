@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2, Zap, CalendarDays, Loader2, AlertCircle } from "lucide-react";
+import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2, Zap, CalendarDays, Loader2, AlertCircle, User, MapPin, Clock, Sparkles, ShoppingBag } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
@@ -280,54 +280,81 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
           <Package className="h-5 w-5" />
           Bestilling
           {count > 0 && (
-            <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground">
+            <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground shadow-sm ring-2 ring-background animate-in zoom-in-50">
               {count}
             </span>
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="flex w-full flex-col sm:max-w-md p-0">
-        {/* Header */}
-        <div className="shrink-0 border-b border-border px-5 py-4">
-          <SheetHeader className="p-0">
-            <SheetTitle className="text-left">
-              {checkout ? (
-                 <button onClick={() => setCheckout(false)} className="flex items-center gap-2 text-base font-semibold text-foreground hover:text-foreground/80 transition-colors">
-                   <ChevronLeft className="h-4 w-4" /> Bekræft bestilling
-                 </button>
-               ) : (
-                 <div>
-                   <span className="block text-base">Din bestilling</span>
-                  {items.length > 0 && (
-                    <span className="block text-xs font-normal text-muted-foreground mt-0.5">
-                      {count} {count === 1 ? "service" : "services"}{businessCount > 1 ? ` · ${businessCount} virksomheder` : ""}
-                    </span>
-                  )}
+      <SheetContent className="flex w-full flex-col sm:max-w-md p-0 gap-0">
+        {/* Header with stepper */}
+        <div className="shrink-0 border-b border-border bg-card">
+          <div className="px-5 py-4">
+            <SheetHeader className="p-0">
+              <SheetTitle className="text-left">
+                {checkout ? (
+                  <button onClick={() => setCheckout(false)} className="flex items-center gap-2 text-base font-semibold text-foreground hover:text-accent transition-colors group">
+                    <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" /> Bekræft bestilling
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
+                      <ShoppingBag className="h-4 w-4 text-accent" />
+                    </div>
+                    <div>
+                      <span className="block text-base">Din bestilling</span>
+                      {items.length > 0 && (
+                        <span className="block text-xs font-normal text-muted-foreground mt-0.5">
+                          {count} {count === 1 ? "service" : "services"}{businessCount > 1 ? ` · ${businessCount} virksomheder` : ""}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </SheetTitle>
+            </SheetHeader>
+          </div>
+          {/* Step indicator — only when items exist */}
+          {items.length > 0 && !orderSuccess && (
+            <div className="flex items-center gap-1.5 px-5 pb-3">
+              {[
+                { label: "Kurv", active: !checkout, done: checkout },
+                { label: "Detaljer", active: checkout, done: false },
+                { label: "Bekræftet", active: false, done: false },
+              ].map((step, i) => (
+                <div key={i} className="flex-1 flex items-center gap-1.5">
+                  <div className={cn(
+                    "flex-1 h-1 rounded-full transition-colors",
+                    step.done ? "bg-accent" : step.active ? "bg-accent" : "bg-border"
+                  )} />
                 </div>
-              )}
-            </SheetTitle>
-          </SheetHeader>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Success state */}
         {orderSuccess ? (
-          <div className="flex flex-1 flex-col items-center justify-center text-center px-6">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mb-4">
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
+          <div className="flex flex-1 flex-col items-center justify-center text-center px-6 animate-in fade-in duration-300">
+            <div className="relative mb-5">
+              <div className="absolute inset-0 rounded-full bg-accent/20 blur-xl animate-pulse" />
+              <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-accent/10 ring-4 ring-accent/20">
+                <CheckCircle2 className="h-10 w-10 text-accent" strokeWidth={2.5} />
+              </div>
             </div>
-             <h3 className="text-lg font-bold text-foreground">Bestilling sendt!</h3>
-             <p className="mt-2 text-sm text-muted-foreground max-w-xs">
-               Virksomheden vil gennemgå din bestilling og vende tilbage med svar.
-               {user && " Du bliver nu sendt til dit kundepanel."}
+            <h3 className="text-xl font-bold text-foreground">Bestilling sendt! 🎉</h3>
+            <p className="mt-2 text-sm text-muted-foreground max-w-xs">
+              Virksomheden vil gennemgå din bestilling og vende tilbage med svar.
+              {user && " Du bliver nu sendt til dit kundepanel."}
             </p>
           </div>
         ) : items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center text-center px-6">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary mb-4">
-              <Package className="h-7 w-7 text-muted-foreground/30" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary mb-4">
+              <Package className="h-8 w-8 text-muted-foreground/40" />
             </div>
-             <p className="text-sm font-medium text-foreground">Din bestilling er tom</p>
-             <p className="mt-1 text-sm text-muted-foreground">Tilføj services fra virksomhedernes sider</p>
+            <p className="text-base font-semibold text-foreground">Din bestilling er tom</p>
+            <p className="mt-1.5 text-sm text-muted-foreground max-w-[240px]">Tilføj services fra virksomhedernes sider for at komme i gang</p>
           </div>
         ) : !checkout ? (
           /* ── Cart items view ── */
@@ -396,75 +423,91 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
 
             {/* Footer */}
             <div className="shrink-0 border-t border-border bg-card px-5 py-4">
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-sm font-medium text-muted-foreground">Total</span>
-                <span className="text-lg font-bold text-foreground">{total} kr</span>
+              <div className="mb-3 flex items-baseline justify-between">
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total</span>
+                <span className="text-xl font-bold text-foreground">{total} kr</span>
               </div>
-               <Button onClick={() => setCheckout(true)} className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90">
-                 Gå til bestilling
-               </Button>
+              <Button onClick={() => setCheckout(true)} size="lg" className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-semibold shadow-sm hover:shadow-md transition-all">
+                Gå til bestilling →
+              </Button>
             </div>
           </div>
         ) : (
           /* ── Checkout view ── */
           <div className="flex flex-1 flex-col min-h-0">
-            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
               {/* Contact form */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-semibold text-foreground">Dine oplysninger</h4>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Fulde navn</label>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Dit navn" className="rounded-lg" />
+              <section className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
+                    <User className="h-3.5 w-3.5 text-accent" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-foreground">Dine oplysninger</h4>
                 </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">E-mail</label>
-                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="din@email.dk" className="rounded-lg" />
+                <div className="space-y-2.5 pl-9">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Fulde navn</label>
+                    <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Dit navn" className="rounded-lg" />
+                  </div>
+                  <div className="grid grid-cols-1 gap-2.5">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground">E-mail</label>
+                      <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="din@email.dk" className="rounded-lg" />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground">Telefon</label>
+                      <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 00 00 00 00" className="rounded-lg" />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Telefon</label>
-                  <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 00 00 00 00" className="rounded-lg" />
-                </div>
-              </div>
+              </section>
 
               {/* Service address */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-semibold text-foreground">Service-adresse</h4>
-                <p className="text-xs text-muted-foreground -mt-1">Adressen hvor servicen skal udføres — bruges til ruteplanlægning.</p>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Adresse (vej + nr.)</label>
-                  <Input value={address} onChange={(e) => onAddressChange(e.target.value)} placeholder="Hovedgaden 12" className="rounded-lg" />
-                </div>
-                <div className="grid grid-cols-[1fr_2fr] gap-2">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Postnr.</label>
-                    <Input value={zipCode} onChange={(e) => onZipChange(e.target.value)} placeholder="8600" className="rounded-lg" inputMode="numeric" maxLength={4} />
+              <section className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
+                    <MapPin className="h-3.5 w-3.5 text-accent" />
                   </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-muted-foreground">By</label>
-                    <Input value={city} onChange={(e) => onCityChange(e.target.value)} placeholder="Silkeborg" className="rounded-lg" />
-                  </div>
+                  <h4 className="text-sm font-semibold text-foreground">Service-adresse</h4>
                 </div>
+                <div className="space-y-2.5 pl-9">
+                  <p className="text-xs text-muted-foreground">Adressen hvor servicen skal udføres — bruges til ruteplanlægning.</p>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Adresse (vej + nr.)</label>
+                    <Input value={address} onChange={(e) => onAddressChange(e.target.value)} placeholder="Hovedgaden 12" className="rounded-lg" />
+                  </div>
+                  <div className="grid grid-cols-[1fr_2fr] gap-2">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground">Postnr.</label>
+                      <Input value={zipCode} onChange={(e) => onZipChange(e.target.value)} placeholder="8600" className="rounded-lg" inputMode="numeric" maxLength={4} />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground">By</label>
+                      <Input value={city} onChange={(e) => onCityChange(e.target.value)} placeholder="Silkeborg" className="rounded-lg" />
+                    </div>
+                  </div>
 
-                {/* Auto-verify status (no manual button) */}
-                <div className="min-h-[24px]">
-                  {verifying && (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Bekræfter adresse...
-                    </span>
-                  )}
-                  {!verifying && geo?.ok && (
-                    <span className="text-xs text-green-600 flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      <span className="truncate">{geo.display}</span>
-                    </span>
-                  )}
-                  {!verifying && geo && !geo.ok && (
-                    <span className="text-xs text-destructive flex items-center gap-1.5">
-                      <AlertCircle className="h-3.5 w-3.5" /> Kunne ikke finde — tjek stavemåde og postnr.
-                    </span>
-                  )}
+                  {/* Auto-verify status (no manual button) */}
+                  <div className="min-h-[28px]">
+                    {verifying && (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground rounded-md bg-secondary px-2 py-1">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Bekræfter adresse...
+                      </span>
+                    )}
+                    {!verifying && geo?.ok && (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-accent rounded-md bg-accent/10 border border-accent/20 px-2 py-1 max-w-full">
+                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{geo.display}</span>
+                      </span>
+                    )}
+                    {!verifying && geo && !geo.ok && (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-destructive rounded-md bg-destructive/10 border border-destructive/20 px-2 py-1">
+                        <AlertCircle className="h-3.5 w-3.5" /> Kunne ikke finde — tjek stavemåde og postnr.
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
+              </section>
 
 
               {/* Schedule mode toggle: ASAP vs choose date */}
@@ -481,17 +524,22 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 const activePreset = TIME_PRESETS.find(p => p.start === preferredTimeStart && p.end === preferredTimeEnd);
 
                 return (
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="text-sm font-semibold text-foreground">
-                        {hasRecurring ? "Hvornår skal første besøg være?" : "Hvornår vil du have det udført?"}
-                      </h4>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {hasRecurring
-                          ? "Næste besøg planlægges automatisk efter dit valgte interval."
-                          : "Vælg en dato eller lad virksomheden kontakte dig hurtigst muligt."}
-                      </p>
+                  <section className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
+                        <Clock className="h-3.5 w-3.5 text-accent" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-foreground">
+                          {hasRecurring ? "Hvornår skal første besøg være?" : "Hvornår vil du have det udført?"}
+                        </h4>
+                      </div>
                     </div>
+                    <p className="text-xs text-muted-foreground pl-9 -mt-1">
+                      {hasRecurring
+                        ? "Næste besøg planlægges automatisk efter dit valgte interval."
+                        : "Vælg en dato eller lad virksomheden kontakte dig hurtigst muligt."}
+                    </p>
 
                     <div className="grid grid-cols-2 gap-2">
                       <button
@@ -605,7 +653,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                         </div>
                       </div>
                     )}
-                  </div>
+                  </section>
                 );
               })()}
 
@@ -654,22 +702,37 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
               </div>
 
               {/* Info notices */}
-               <p className="text-xs text-muted-foreground bg-accent/5 rounded-xl px-3.5 py-2.5 border border-accent/20">
-                 💡 Bestillingen sendes til virksomheden for godkendelse. Du modtager besked når de har svaret.
-               </p>
-
-              {user && items.some(i => i.interval && i.interval !== "engangskøb") && (
-                <p className="text-xs text-muted-foreground bg-accent/5 rounded-xl px-3.5 py-2.5 border border-accent/20">
-                  🔄 Tilbagevendende services oprettes automatisk i dit kundepanel efter godkendelse.
-                </p>
-              )}
+              <div className="space-y-2">
+                <div className="flex items-start gap-2.5 text-xs text-foreground/80 bg-accent/5 rounded-xl px-3.5 py-3 border border-accent/20">
+                  <Sparkles className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                  <span>Bestillingen sendes til virksomheden for godkendelse. Du modtager besked når de har svaret.</span>
+                </div>
+                {user && items.some(i => i.interval && i.interval !== "engangskøb") && (
+                  <div className="flex items-start gap-2.5 text-xs text-foreground/80 bg-accent/5 rounded-xl px-3.5 py-3 border border-accent/20">
+                    <CalendarClock className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                    <span>Tilbagevendende services oprettes automatisk i dit kundepanel efter godkendelse.</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Submit footer */}
-            <div className="shrink-0 border-t border-border bg-card px-5 py-4 space-y-2">
-              <Button onClick={handleOrder} disabled={createOrder.isPending}
-                className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90">
-                {createOrder.isPending ? "Sender bestilling..." : `Send bestilling – ${total} kr`}
+            <div className="shrink-0 border-t border-border bg-card px-5 py-4 space-y-2.5">
+              <div className="flex items-baseline justify-between">
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total at betale</span>
+                <span className="text-xl font-bold text-foreground">{total} kr</span>
+              </div>
+              <Button
+                onClick={handleOrder}
+                disabled={createOrder.isPending}
+                size="lg"
+                className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base shadow-sm hover:shadow-md transition-all"
+              >
+                {createOrder.isPending ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Sender bestilling...</>
+                ) : (
+                  <>Send bestilling <CheckCircle2 className="h-4 w-4" /></>
+                )}
               </Button>
             </div>
           </div>
