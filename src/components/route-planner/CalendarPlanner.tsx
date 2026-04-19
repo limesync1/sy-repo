@@ -217,14 +217,28 @@ const ColumnHeader = ({ col }: { col: CalendarColumn }) => {
               <MoreVertical className="h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            {col.onDeleteRoute && (
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={col.onDeleteRoute}
-              >
-                <Trash2 className="h-3.5 w-3.5 mr-2" />Slet rute
+          <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuLabel className="text-xs">Rute-handlinger</DropdownMenuLabel>
+            {col.onOptimize && col.stops.length >= 2 && (
+              <DropdownMenuItem onClick={col.onOptimize} disabled={col.optimizing}>
+                <Sparkles className="h-3.5 w-3.5 mr-2" />Optimér rækkefølge
               </DropdownMenuItem>
+            )}
+            {col.onAutoAssign && col.attachedEmployees.length >= 2 && (
+              <DropdownMenuItem onClick={col.onAutoAssign} disabled={col.autoAssigning}>
+                <Wand2 className="h-3.5 w-3.5 mr-2" />Fordel opgaver
+              </DropdownMenuItem>
+            )}
+            {col.onDeleteRoute && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={col.onDeleteRoute}
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-2" />Slet rute
+                </DropdownMenuItem>
+              </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
