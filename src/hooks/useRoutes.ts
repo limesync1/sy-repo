@@ -186,12 +186,19 @@ export const useRemoveRouteEmployee = () => {
         .eq("route_id", route_id)
         .eq("employee_id", employee_id);
       if (error) throw error;
-      // Also clear assigned_employee_id on stops referencing this employee on this route
-      await supabase
+      // Fjern også alle assignees af denne medarbejder på denne rute
+      const { data: stopsOnRoute } = await supabase
         .from("route_stops")
-        .update({ assigned_employee_id: null })
-        .eq("route_id", route_id)
-        .eq("assigned_employee_id", employee_id);
+        .select("id")
+        .eq("route_id", route_id);
+      const sIds = (stopsOnRoute || []).map((s) => s.id);
+      if (sIds.length > 0) {
+        await supabase
+          .from("route_stop_assignees")
+          .delete()
+          .in("stop_id", sIds)
+          .eq("employee_id", employee_id);
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-employees-bulk"] });
