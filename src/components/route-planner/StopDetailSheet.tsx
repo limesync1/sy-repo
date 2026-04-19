@@ -31,7 +31,6 @@ type Props = {
 export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequenceLabel }: Props) => {
   const { data: order, isLoading } = useOrderForStop(stop?.order_id);
   const updateStop = useUpdateStop();
-  const updateStatus = useUpdateStopStatus();
   const deleteStop = useDeleteStop();
 
   const [duration, setDuration] = useState<number>(30);
@@ -69,10 +68,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
       notes: notes || null,
     } as any);
     toast.success("Ændringer gemt");
-  };
-
-  const handleStatus = (status: string) => {
-    updateStatus.mutate({ id: stop.id, status });
   };
 
   const handleDeleteConfirmed = () => {
