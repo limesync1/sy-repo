@@ -1156,6 +1156,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_route_assigned_employee: {
+        Args: { _route_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_route_owner: {
+        Args: { _route_id: string; _user_id: string }
+        Returns: boolean
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
