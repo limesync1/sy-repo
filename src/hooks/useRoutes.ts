@@ -658,3 +658,67 @@ export const useMyDayStops = (date: string) => {
     },
   });
 };
+
+/* ─── Stops for a single route assigned to current employee ─── */
+export const useMyRouteData = (routeId: string | undefined) => {
+  return useQuery({
+    queryKey: ["my-route-data", routeId],
+    enabled: !!routeId,
+    queryFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return null;
+      const { data: emp } = await supabase
+        .from("employees")
+        .select("id, name")
+        .eq("user_id", user.user.id)
+        .maybeSingle();
+      if (!emp) return null;
+
+      const { data: route } = await supabase
+        .from("routes")
+        .select("*, businesses(name, phone)")
+        .eq("id", routeId!)
+        .maybeSingle();
+      if (!route) return null;
+
+      const { data: stops } = await supabase
+        .from("route_stops")
+        .select("*")
+        .eq("route_id", routeId!)
+        .eq("assigned_employee_id", emp.id)
+        .order("sequence", { ascending: true });
+
+      return {
+        route: route as Route & { businesses?: { name?: string; phone?: string } },
+        stops: (stops || []) as RouteStop[],
+        employee: emp,
+      };
+    },
+  });
+};
+
+/* ─── Driving directions geometry between two or more waypoints ─── */
+export const useDirections = (
+  waypoints: { lat: number; lng: number }[] | null,
+) => {
+  const key = waypoints?.map((w) => `${w.lat.toFixed(5)},${w.lng.toFixed(5)}`).join("|") || "";
+  return useQuery({
+    queryKey: ["directions", key],
+    enabled: !!waypoints && waypoints.length >= 2,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke("route-directions", {
+        body: { waypoints },
+      });
+      if (error) throw error;
+      return data as {
+        ok: boolean;
+        provider: "mapbox" | "fallback";
+        geometry: { type: "LineString"; coordinates: [number, number][] };
+        distance_m: number | null;
+        duration_s: number | null;
+      };
+    },
+  });
+};
+
