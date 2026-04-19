@@ -291,6 +291,8 @@ export type Database = {
           title: string | null
           updated_at: string
           user_id: string | null
+          work_end_time: string | null
+          work_start_time: string | null
         }
         Insert: {
           business_id: string
@@ -306,6 +308,8 @@ export type Database = {
           title?: string | null
           updated_at?: string
           user_id?: string | null
+          work_end_time?: string | null
+          work_start_time?: string | null
         }
         Update: {
           business_id?: string
@@ -321,6 +325,8 @@ export type Database = {
           title?: string | null
           updated_at?: string
           user_id?: string | null
+          work_end_time?: string | null
+          work_start_time?: string | null
         }
         Relationships: [
           {
@@ -878,10 +884,13 @@ export type Database = {
           id: string
           name: string | null
           notes: string | null
+          optimization_suggestions: Json | null
+          optimization_summary: string | null
           optimized_at: string | null
           planned_start_time: string | null
           route_date: string
           start_address: string | null
+          start_from_home: boolean
           start_latitude: number | null
           start_longitude: number | null
           status: string
@@ -896,10 +905,13 @@ export type Database = {
           id?: string
           name?: string | null
           notes?: string | null
+          optimization_suggestions?: Json | null
+          optimization_summary?: string | null
           optimized_at?: string | null
           planned_start_time?: string | null
           route_date: string
           start_address?: string | null
+          start_from_home?: boolean
           start_latitude?: number | null
           start_longitude?: number | null
           status?: string
@@ -914,10 +926,13 @@ export type Database = {
           id?: string
           name?: string | null
           notes?: string | null
+          optimization_suggestions?: Json | null
+          optimization_summary?: string | null
           optimized_at?: string | null
           planned_start_time?: string | null
           route_date?: string
           start_address?: string | null
+          start_from_home?: boolean
           start_latitude?: number | null
           start_longitude?: number | null
           status?: string
