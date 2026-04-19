@@ -78,7 +78,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
     }
     setVerifying(true);
     try {
-      const fullAddress = `${address}, ${zipCode} ${city}`;
+      // Geocoding edge function builds clean DK-format display string
       const { data } = await supabase.functions.invoke("geocode-address", {
         body: { address, zip_code: zipCode, city },
       });
