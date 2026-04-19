@@ -239,23 +239,116 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                   <section>
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Bestilte ydelser</h3>
                     <div className="rounded-lg border divide-y">
-                      {items.map((item: any, i: number) => (
-                        <div key={i} className="px-3 py-2 flex items-center justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium truncate">{item.service_name}</p>
-                            {item.quantity > 1 && (
-                              <p className="text-xs text-muted-foreground">{item.quantity} × {Math.round(Number(item.unit_price))} kr</p>
+                      {items.map((item: any, i: number) => {
+                        const d = item.details || {};
+                        const stepDetails: any[] = Array.isArray(d.stepDetails) ? d.stepDetails : [];
+                        const itemInterval = d.interval && d.interval !== "engangskøb" ? d.interval : null;
+                        const itemDescription = typeof d.description === "string" ? d.description : null;
+                        return (
+                          <div key={i} className="px-3 py-2.5">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-medium">{item.service_name}</p>
+                                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                  {item.quantity > 1 && (
+                                    <span className="text-xs text-muted-foreground">{item.quantity} × {Math.round(Number(item.unit_price))} kr</span>
+                                  )}
+                                  {itemInterval && (
+                                    <Badge variant="secondary" className="text-[10px] gap-0.5 h-4 px-1.5">
+                                      <Repeat className="h-2.5 w-2.5" />
+                                      {INTERVAL_LABELS[itemInterval] || itemInterval}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                              <span className="text-sm font-semibold shrink-0">{Math.round(Number(item.total_price))} kr</span>
+                            </div>
+
+                            {/* Calculator step breakdown */}
+                            {stepDetails.length > 0 && (
+                              <div className="mt-2 rounded-md bg-secondary/40 divide-y divide-border/50">
+                                {stepDetails.map((sd: any, si: number) => (
+                                  <div key={si} className="flex justify-between px-2.5 py-1 text-[11px]">
+                                    <span className="text-muted-foreground">
+                                      {sd.label}: <span className="text-foreground/80">{sd.value}{sd.unit ? ` ${sd.unit}` : ""}</span>
+                                    </span>
+                                    {typeof sd.subtotal === "number" && (
+                                      <span className="font-medium text-foreground">{sd.subtotal} kr</span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Free-text description from cart line */}
+                            {itemDescription && stepDetails.length === 0 && (
+                              <p className="text-[11px] text-muted-foreground mt-1.5 italic">{itemDescription}</p>
                             )}
                           </div>
-                          <span className="text-sm font-semibold shrink-0">{Math.round(Number(item.total_price))} kr</span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                     <div className="flex items-center justify-between mt-2 px-1">
                       <span className="text-xs text-muted-foreground flex items-center gap-1">
                         <Banknote className="h-3.5 w-3.5" />Total
                       </span>
                       <span className="text-base font-bold">{Math.round(totalAmount)} kr</span>
+                    </div>
+                  </section>
+                  <Separator />
+                </>
+              )}
+
+              {/* Subscription details (if recurring) */}
+              {(activeSub || pausedSub) && (
+                <>
+                  <section>
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1">
+                      <Repeat className="h-3 w-3" />Abonnement
+                    </h3>
+                    <div className={`rounded-lg border px-3 py-2 text-sm space-y-1 ${pausedSub ? "bg-orange-50 border-orange-200" : "bg-secondary/40"}`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Status</span>
+                        <span className="font-medium">{pausedSub ? "På pause" : "Aktiv"}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Interval</span>
+                        <span className="font-medium">
+                          {INTERVAL_LABELS[(activeSub || pausedSub)!.interval] || (activeSub || pausedSub)!.interval}
+                        </span>
+                      </div>
+                      {(activeSub || pausedSub)!.next_service_date && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Næste besøg</span>
+                          <span className="font-medium">
+                            {format(parseISO((activeSub || pausedSub)!.next_service_date), "d. MMM yyyy", { locale: da })}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                  <Separator />
+                </>
+              )}
+
+              {/* Order meta info */}
+              {orderCreatedAt && (
+                <>
+                  <section>
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1">
+                      <Hash className="h-3 w-3" />Bestillingsinfo
+                    </h3>
+                    <div className="space-y-1.5 text-xs">
+                      {stop.order_id && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Ordre-ID</span>
+                          <code className="text-[10px] bg-secondary/60 px-1.5 py-0.5 rounded">{stop.order_id.slice(0, 8)}</code>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Bestilt</span>
+                        <span>{format(parseISO(orderCreatedAt), "d. MMM yyyy 'kl.' HH:mm", { locale: da })}</span>
+                      </div>
                     </div>
                   </section>
                   <Separator />
