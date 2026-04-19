@@ -167,6 +167,12 @@ export const UnassignedJobCard = ({ job }: Props) => {
               <Hourglass className="h-2.5 w-2.5" />
               ~{estimatedMin}m
             </Badge>
+            {job.preferred_route_name && (
+              <Badge variant="outline" className="h-4 text-[10px] px-1.5 gap-0.5 border-accent/40 text-accent bg-accent/5">
+                <RouteIcon className="h-2.5 w-2.5" />
+                Sædvanlig: {job.preferred_route_name}
+              </Badge>
+            )}
           </div>
         </div>
       </div>
