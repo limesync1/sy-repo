@@ -713,12 +713,13 @@ export const useMyDayStops = (date: string) => {
         .eq("route_date", date);
       const todayIds = (routes || []).map((r) => r.id);
       if (todayIds.length === 0) return [];
-      // Only stops assigned to this employee
+      // Show stops on this employee's routes — either explicitly assigned to them
+      // or unassigned (shared on the route).
       const { data, error } = await supabase
         .from("route_stops")
         .select("*")
         .in("route_id", todayIds)
-        .eq("assigned_employee_id", emp.id)
+        .or(`assigned_employee_id.eq.${emp.id},assigned_employee_id.is.null`)
         .order("sequence", { ascending: true });
       if (error) throw error;
       return (data || []) as RouteStop[];
@@ -752,7 +753,7 @@ export const useMyRouteData = (routeId: string | undefined) => {
         .from("route_stops")
         .select("*")
         .eq("route_id", routeId!)
-        .eq("assigned_employee_id", emp.id)
+        .or(`assigned_employee_id.eq.${emp.id},assigned_employee_id.is.null`)
         .order("sequence", { ascending: true });
 
       return {
