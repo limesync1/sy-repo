@@ -125,10 +125,32 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               <div className="flex-1 min-w-0">
                 <SheetTitle className="text-left text-base">{stop.customer_name || "Stop"}</SheetTitle>
                 <SheetDescription className="text-left text-xs">
-                  Detaljer for dette stop. Tilpas tid, varighed og noter.
+                  {business?.name ? <>Bestilling hos <strong>{business.name}</strong></> : "Detaljer for dette stop"}
                 </SheetDescription>
                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                   {statusBadge()}
+                  {pausedSub && (
+                    <span>
+                      <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
+                        <PauseCircle className="h-2.5 w-2.5" />Abonnement på pause
+                      </Badge>
+                    </span>
+                  )}
+                  {recurringInterval && recurringInterval !== "engangskøb" && (
+                    <span>
+                      <Badge variant="secondary" className="gap-1 text-[10px]">
+                        <Repeat className="h-2.5 w-2.5" />
+                        {INTERVAL_LABELS[recurringInterval] || recurringInterval}
+                      </Badge>
+                    </span>
+                  )}
+                  {orderStatus && (
+                    <span>
+                      <Badge variant="outline" className="text-[10px] capitalize">
+                        Ordre: {orderStatus}
+                      </Badge>
+                    </span>
+                  )}
                   {!hasCoords && (
                     <span>
                       <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
