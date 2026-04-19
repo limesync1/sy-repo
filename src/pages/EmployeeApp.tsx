@@ -1,179 +1,195 @@
-import { useEffect, useMemo, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMyDayStops, useUpdateStopStatus, type RouteStop } from "@/hooks/useRoutes";
+import { useMyDayRoutes, useMyDayStops, type RouteStop } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Phone, Navigation, CheckCircle2, Clock, LogOut, Calendar as CalendarIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Calendar as CalendarIcon, LogOut, Play, Printer, MapPin, Clock, CheckCircle2,
+} from "lucide-react";
 import { format, addDays, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
-import { Input } from "@/components/ui/input";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
-
-const buildPin = (n: number, done = false) =>
-  L.divIcon({
-    className: "",
-    html: `<div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:${done ? "hsl(142 70% 45%)" : "hsl(184 90% 42%)"};color:white;font-weight:600;font-size:13px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);">${n}</div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-  });
-
-const FitBounds = ({ points }: { points: [number, number][] }) => {
-  const map = useMap();
-  useEffect(() => {
-    if (points.length === 0) return;
-    const bounds = L.latLngBounds(points.map((p) => L.latLng(p[0], p[1])));
-    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
-    setTimeout(() => map.invalidateSize(), 100);
-  }, [points, map]);
-  return null;
-};
 
 const EmployeeApp = () => {
   const { user, loading, signOut } = useAuth();
   const [date, setDate] = useState(todayStr());
-  const { data: stops = [], isLoading } = useMyDayStops(date);
-  const updateStatus = useUpdateStopStatus();
-  const [openStopId, setOpenStopId] = useState<string | null>(null);
-  const [noteDraft, setNoteDraft] = useState<Record<string, string>>({});
+  const { data: routes = [], isLoading: routesLoading } = useMyDayRoutes(date);
+  const { data: stops = [], isLoading: stopsLoading } = useMyDayStops(date);
 
-  if (loading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
+        Indlæser...
+      </div>
+    );
+  }
   if (!user) return <Navigate to="/log-ind" replace />;
 
-  const sorted = [...stops].sort((a, b) => a.sequence - b.sequence);
-  const completed = sorted.filter((s) => s.status === "completed").length;
-  const points: [number, number][] = sorted
-    .filter((s) => s.latitude != null && s.longitude != null)
-    .map((s) => [Number(s.latitude), Number(s.longitude)]);
+  const stopsByRoute = useMemo(() => {
+    const m = new Map<string, RouteStop[]>();
+    for (const s of stops) {
+      const arr = m.get(s.route_id) || [];
+      arr.push(s);
+      m.set(s.route_id, arr);
+    }
+    return m;
+  }, [stops]);
 
-  const handleNavigate = (s: RouteStop) => {
-    const q = s.address || (s.latitude && s.longitude ? `${s.latitude},${s.longitude}` : s.customer_name || "");
-    window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(q)}`, "_blank");
-  };
+  const totalStops = stops.length;
+  const completedStops = stops.filter((s) => s.status === "completed").length;
 
   return (
-    <div className="min-h-screen bg-secondary/40 pb-24">
+    <div className="min-h-screen bg-secondary/40 pb-12">
       <header className="bg-foreground text-background sticky top-0 z-30 shadow">
         <div className="container mx-auto px-4 py-3 flex items-center gap-3">
-          <div className="flex-1">
-            <h1 className="font-semibold">Min dag</h1>
-            <p className="text-xs opacity-80">{format(parseISO(date), "EEEE d. MMMM", { locale: da })} · {completed}/{sorted.length} færdige</p>
+          <div className="flex-1 min-w-0">
+            <h1 className="font-semibold text-lg">Min dag</h1>
+            <p className="text-xs opacity-80 truncate">
+              {format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da })}
+              {totalStops > 0 && ` · ${completedStops}/${totalStops} færdige`}
+            </p>
           </div>
-          <Button variant="ghost" size="icon" onClick={signOut} className="text-background hover:bg-background/10">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={signOut}
+            className="text-background hover:bg-background/10"
+            aria-label="Log ud"
+          >
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
         <div className="container mx-auto px-4 pb-3 flex items-center gap-2">
-          <Button size="sm" variant="ghost" onClick={() => setDate(format(addDays(parseISO(date), -1), "yyyy-MM-dd"))} className="text-background hover:bg-background/10">←</Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setDate(format(addDays(parseISO(date), -1), "yyyy-MM-dd"))}
+            className="text-background hover:bg-background/10"
+          >
+            ←
+          </Button>
           <CalendarIcon className="h-4 w-4 opacity-80" />
-          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-8 text-foreground bg-background w-[150px]" />
-          <Button size="sm" variant="ghost" onClick={() => setDate(format(addDays(parseISO(date), 1), "yyyy-MM-dd"))} className="text-background hover:bg-background/10">→</Button>
-          <Button size="sm" variant="ghost" onClick={() => setDate(todayStr())} className="text-background hover:bg-background/10 ml-auto">I dag</Button>
+          <Input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="h-8 text-foreground bg-background w-[160px]"
+          />
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setDate(format(addDays(parseISO(date), 1), "yyyy-MM-dd"))}
+            className="text-background hover:bg-background/10"
+          >
+            →
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setDate(todayStr())}
+            className="text-background hover:bg-background/10 ml-auto"
+          >
+            I dag
+          </Button>
         </div>
       </header>
 
-      {/* Map */}
-      <div className="h-[260px] w-full bg-muted">
-        {points.length > 0 ? (
-          <MapContainer center={points[0]} zoom={12} style={{ height: "100%", width: "100%" }} scrollWheelZoom={false}>
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap" />
-            <FitBounds points={points} />
-            {sorted.map((s, i) => {
-              if (s.latitude == null || s.longitude == null) return null;
-              return (
-                <Marker key={s.id} position={[Number(s.latitude), Number(s.longitude)]} icon={buildPin(i + 1, s.status === "completed")}>
-                  <Popup>
-                    <strong>{s.customer_name}</strong>
-                    {s.address && <><br />{s.address}</>}
-                  </Popup>
-                </Marker>
-              );
-            })}
-          </MapContainer>
-        ) : (
-          <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-            Ingen koordinater tilgængelige for kortvisning
-          </div>
+      <main className="container mx-auto px-4 py-6 space-y-4 max-w-2xl">
+        {(routesLoading || stopsLoading) && (
+          <p className="text-center text-muted-foreground">Indlæser ruter...</p>
         )}
-      </div>
 
-      {/* Stops list */}
-      <main className="container mx-auto px-4 py-4 space-y-3">
-        {isLoading && <p className="text-center text-muted-foreground">Indlæser ruter...</p>}
-        {!isLoading && sorted.length === 0 && (
-          <Card className="p-8 text-center text-muted-foreground">
-            <CalendarIcon className="h-10 w-10 mx-auto mb-3 opacity-40" />
-            <p>Ingen stop på din rute i dag.</p>
+        {!routesLoading && !stopsLoading && routes.length === 0 && (
+          <Card className="p-10 text-center text-muted-foreground">
+            <CalendarIcon className="h-12 w-12 mx-auto mb-3 opacity-40" />
+            <p className="text-base font-medium mb-1">Ingen ruter på denne dag</p>
+            <p className="text-sm">Du har ingen tildelte stop endnu.</p>
           </Card>
         )}
-        {sorted.map((s, i) => {
-          const isOpen = openStopId === s.id;
-          const done = s.status === "completed";
+
+        {routes.map((r) => {
+          const myStops = (stopsByRoute.get(r.id) || []).sort((a, b) => a.sequence - b.sequence);
+          const done = myStops.filter((s) => s.status === "completed").length;
+          const total = myStops.length;
+          const allDone = total > 0 && done === total;
+          const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+
           return (
-            <Card key={s.id} className={`p-4 ${done ? "opacity-70" : ""}`}>
-              <div className="flex items-start gap-3">
-                <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold shrink-0 ${done ? "bg-green-600 text-white" : "bg-primary text-primary-foreground"}`}>
-                  {done ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold">{s.customer_name || "Stop"}</h3>
-                    <Badge variant={done ? "secondary" : "outline"} className="text-[10px]">{s.status}</Badge>
+            <Card key={r.id} className="overflow-hidden">
+              <div className="p-5 border-b">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <h2 className="font-semibold text-lg truncate">
+                      {r.name || `Rute ${format(parseISO(r.route_date), "d. MMM", { locale: da })}`}
+                    </h2>
+                    <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground flex-wrap">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5" />
+                        {r.planned_start_time?.slice(0, 5) || "08:00"}
+                      </span>
+                      {r.start_address && (
+                        <span className="flex items-center gap-1 truncate max-w-[260px]">
+                          <MapPin className="h-3.5 w-3.5" />
+                          {r.start_address}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  {s.address && (
-                    <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
-                      <MapPin className="h-3.5 w-3.5" />{s.address}
-                    </p>
-                  )}
-                  {s.service_summary && <p className="text-sm mt-1">{s.service_summary}</p>}
-                  {s.planned_arrival && (
-                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                      <Clock className="h-3 w-3" />{format(parseISO(s.planned_arrival), "HH:mm")}
-                    </p>
-                  )}
+                  <Badge variant={allDone ? "secondary" : "outline"} className="shrink-0">
+                    {done}/{total}
+                  </Badge>
+                </div>
+
+                {/* Progress bar */}
+                <div className="h-1.5 w-full bg-muted rounded-full mt-4 overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all"
+                    style={{ width: `${progress}%` }}
+                  />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
-                <Button size="sm" variant="outline" onClick={() => handleNavigate(s)} className="gap-1">
-                  <Navigation className="h-3.5 w-3.5" />Naviger
+              <div className="p-4 grid grid-cols-2 gap-2">
+                <Button
+                  asChild
+                  size="lg"
+                  className="gap-2 h-12"
+                  disabled={total === 0}
+                >
+                  <Link to={`/medarbejder/rute/${r.id}`}>
+                    <Play className="h-4 w-4" />
+                    {allDone ? "Genåbn rute" : done > 0 ? "Fortsæt rute" : "Start rute"}
+                  </Link>
                 </Button>
-                {s.customer_phone && (
-                  <Button size="sm" variant="outline" asChild className="gap-1">
-                    <a href={`tel:${s.customer_phone}`}><Phone className="h-3.5 w-3.5" />Ring</a>
-                  </Button>
-                )}
-                <Button size="sm" variant="outline" onClick={() => setOpenStopId(isOpen ? null : s.id)}>
-                  {isOpen ? "Skjul" : "Note"}
+                <Button asChild size="lg" variant="outline" className="gap-2 h-12">
+                  <Link to={`/medarbejder/rute/${r.id}/print`}>
+                    <Printer className="h-4 w-4" />
+                    Udskriv liste
+                  </Link>
                 </Button>
-                {!done ? (
-                  <Button size="sm" onClick={() => updateStatus.mutate({ id: s.id, status: "completed", notes: noteDraft[s.id] })} className="gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5" />Færdig
-                  </Button>
-                ) : (
-                  <Button size="sm" variant="outline" onClick={() => updateStatus.mutate({ id: s.id, status: "pending" })}>
-                    Fortryd
-                  </Button>
-                )}
               </div>
 
-              {isOpen && (
-                <div className="mt-3 space-y-2">
-                  <Textarea
-                    placeholder="Tilføj note (synlig for virksomheden)…"
-                    value={noteDraft[s.id] ?? s.notes ?? ""}
-                    onChange={(e) => setNoteDraft((d) => ({ ...d, [s.id]: e.target.value }))}
-                    rows={3}
-                  />
-                  <Button size="sm" variant="outline" onClick={() => updateStatus.mutate({ id: s.id, status: s.status, notes: noteDraft[s.id] ?? "" })}>
-                    Gem note
-                  </Button>
+              {total > 0 && (
+                <div className="px-5 pb-4 -mt-1">
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    {myStops.slice(0, 3).map((s) => (
+                      <li key={s.id} className="flex items-center gap-2">
+                        {s.status === "completed" ? (
+                          <CheckCircle2 className="h-3 w-3 text-primary shrink-0" />
+                        ) : (
+                          <span className="h-3 w-3 rounded-full border border-muted-foreground/40 shrink-0" />
+                        )}
+                        <span className="truncate">{s.customer_name || "Stop"}</span>
+                      </li>
+                    ))}
+                    {myStops.length > 3 && (
+                      <li className="pl-5">+{myStops.length - 3} flere stop</li>
+                    )}
+                  </ul>
                 </div>
               )}
             </Card>
