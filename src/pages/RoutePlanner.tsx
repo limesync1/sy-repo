@@ -506,7 +506,6 @@ const Planner = () => {
                       totalMin={r?.total_duration_minutes}
                       optimizing={optimizeRoute.isPending}
                       onOptimize={r ? () => handleOptimize(r.id) : undefined}
-                      onDeleteStop={(id) => deleteStop.mutate(id)}
                       onSelectStop={setSelectedStopId}
                       selectedStopId={selectedStopId}
                     />
