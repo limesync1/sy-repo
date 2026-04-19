@@ -154,7 +154,9 @@ export const useOrderForStop = (orderId: string | null | undefined) => {
   });
 };
 
-/* ─── Create or get a route for an employee+date ─── */
+/* ─── Create or get a route for an employee+date.
+   Always seeds start_address from the business so all routes start from
+   the company's location. ─── */
 export const useUpsertRoute = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -170,9 +172,35 @@ export const useUpsertRoute = () => {
       const { data: existing } = await query.maybeSingle();
       if (existing) return existing as Route;
 
+      // Fetch business address — every route starts from the company
+      const { data: biz } = await supabase
+        .from("businesses")
+        .select("address, zip_code, city")
+        .eq("id", business_id)
+        .maybeSingle();
+      const startAddr = biz
+        ? [biz.address, [biz.zip_code, biz.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")
+        : null;
+
+      // Try to geocode the business address for accurate start coords
+      let startLat: number | null = null, startLng: number | null = null;
+      if (startAddr) {
+        try {
+          const { data: geo } = await supabase.functions.invoke("geocode-address", {
+            body: { address: biz?.address, zip_code: biz?.zip_code, city: biz?.city },
+          });
+          if (geo?.found) { startLat = geo.latitude; startLng = geo.longitude; }
+        } catch { /* non-fatal */ }
+      }
+
       const { data, error } = await supabase
         .from("routes")
-        .insert({ business_id, employee_id, route_date })
+        .insert({
+          business_id, employee_id, route_date,
+          start_address: startAddr,
+          start_latitude: startLat,
+          start_longitude: startLng,
+        })
         .select("*")
         .single();
       if (error) throw error;
