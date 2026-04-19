@@ -21,8 +21,11 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon, ArrowLeft,
-  Loader2, MapIcon, Search, Wand2, Plus,
+  Loader2, MapIcon, Search, Plus, Inbox, ArrowUpDown,
 } from "lucide-react";
 import { format, addDays, parseISO, startOfWeek, eachDayOfInterval } from "date-fns";
 import { da } from "date-fns/locale";
