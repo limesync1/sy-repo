@@ -21,12 +21,19 @@ import {
 import { format, isToday, parseISO } from "date-fns";
 import type { RouteStop } from "@/hooks/useRoutes";
 
-// Tidsgrid: 06–20. Slot-størrelse (snap-interval visuelt) er konfigurerbar via zoom.
+const SLOT_MIN = 15;
 const START_HOUR = 6;
 const END_HOUR = 20;
-// Pixel-højde pr. 15-minut "tick" — uafhængig af slot-størrelse, så længere stops altid fylder mere
-const SNAP_MIN = 15; // alle drops snappes til 15-min (uanset zoom-niveau)
-type SlotSize = 15 | 30 | 60;
+const SLOTS_PER_HOUR = 60 / SLOT_MIN;
+const TOTAL_SLOTS = (END_HOUR - START_HOUR) * SLOTS_PER_HOUR;
+// Tre zoom-niveauer giver hhv. komprimeret/normal/spacious visning.
+// SLOT_HEIGHT er pixel-højden af 1 slot (15 min). Ganges blot ved zoom.
+const ZOOM_LEVELS: Record<"compact" | "normal" | "spacious", number> = {
+  compact: 14,   // svarer til "se 60 min/række" — komprimeret oversigt
+  normal: 22,    // standard
+  spacious: 36,  // detaljeret, mest plads pr. stop
+};
+type ZoomLevel = keyof typeof ZOOM_LEVELS;
 
 export type EmployeeOption = {
   id: string;
