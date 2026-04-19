@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Navigate, Link, useSearchParams } from "react-router-dom";
-import { Building2, User, ArrowLeft, ShieldCheck, Star, Sparkles, CheckCircle } from "lucide-react";
+import { Building2, User, ArrowLeft, ShieldCheck, Star, Sparkles, CheckCircle, HardHat } from "lucide-react";
 import SEO from "@/components/SEO";
 
 const Auth = () => {
@@ -28,6 +28,7 @@ const Auth = () => {
 
   if (user) {
     if (mode === "customer") return <Navigate to="/min-konto" replace />;
+    if (mode === "employee") return <Navigate to="/medarbejder" replace />;
     return <Navigate to="/virksomhed" replace />;
   }
 
@@ -46,6 +47,7 @@ const Auth = () => {
 
   const isBusiness = mode === "business";
   const isCustomer = mode === "customer";
+  const isEmployee = mode === "employee";
   const showModeSelector = !mode;
 
   return (
