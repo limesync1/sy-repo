@@ -419,7 +419,7 @@ export const useMySubscriptions = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("subscriptions")
-        .select("*, businesses(name, slug, logo_url), services(name, pricing_type)")
+        .select("*, businesses(name, slug, logo_url), services(name, pricing_type), orders(status, business_response)")
         .eq("customer_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
