@@ -86,6 +86,12 @@ type StopLayout = { lane: number; lanes: number; conflictWithSameEmployee: boole
 const computeStopLayouts = (stops: RouteStop[]): Map<string, StopLayout> => {
   const result = new Map<string, StopLayout>();
   type Entry = { stop: RouteStop; start: number; end: number };
+  const assigneeIdsForStop = (stop: RouteStop) =>
+    Array.isArray(stop.assignee_ids) && stop.assignee_ids.length > 0
+      ? stop.assignee_ids
+      : stop.assigned_employee_id
+        ? [stop.assigned_employee_id]
+        : [];
   const entries: Entry[] = stops
     .map((s) => {
       const start = arrivalToMinutes(s.planned_arrival);
@@ -112,15 +118,14 @@ const computeStopLayouts = (stops: RouteStop[]): Map<string, StopLayout> => {
       lanes.push(assigned);
     }
     const totalLanes = laneEnds.length;
-    const empCount = new Map<string, number>();
-    for (const e of cluster) {
-      const k = e.stop.assigned_employee_id || "";
-      if (!k) continue;
-      empCount.set(k, (empCount.get(k) || 0) + 1);
-    }
     cluster.forEach((e, i) => {
-      const empKey = e.stop.assigned_employee_id || "";
-      const conflict = empKey ? (empCount.get(empKey) || 0) > 1 : false;
+      const assigneeIds = assigneeIdsForStop(e.stop);
+      const conflict = cluster.some((other) => {
+        if (other.stop.id === e.stop.id) return false;
+        if (e.start >= other.end || e.end <= other.start) return false;
+        const otherAssignees = assigneeIdsForStop(other.stop);
+        return assigneeIds.some((id) => otherAssignees.includes(id));
+      });
       result.set(e.stop.id, { lane: lanes[i], lanes: totalLanes, conflictWithSameEmployee: conflict });
     });
     cluster = [];

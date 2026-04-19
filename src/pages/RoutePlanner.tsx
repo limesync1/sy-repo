@@ -415,10 +415,15 @@ const Planner = () => {
         // Anti-overlap: hvis stoppet har en tildelt medarbejder, find første ledige slot
         // efter desiredMin der ikke kolliderer med et andet stop hos samme medarbejder.
         let finalMin = desiredMin;
-        if (draggedStop.assigned_employee_id) {
+        const draggedAssignees = (draggedStop.assignee_ids && draggedStop.assignee_ids.length > 0)
+          ? draggedStop.assignee_ids
+          : draggedStop.assigned_employee_id
+            ? [draggedStop.assigned_employee_id]
+            : [];
+        if (draggedAssignees.length > 0) {
           const busy = busyIntervalsForEmployee(
             targetStops,
-            draggedStop.assigned_employee_id,
+            draggedAssignees,
             draggedStop.id,
           );
           finalMin = findFirstFreeSlot(desiredMin, draggedStop.duration_minutes, busy);
