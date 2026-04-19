@@ -17,5 +17,3 @@ project_id = "gkectsellkpltrxvusot"
     verify_jwt = false
   [functions.create-employee]
     verify_jwt = false
-  [functions.match-quotes]
-    verify_jwt = false
