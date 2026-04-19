@@ -5,7 +5,7 @@
 // Drag-drop: from sidebar OR between slots — drop on a time slot to set planned_arrival.
 
 import { useEffect, useState } from "react";
-import { useDroppable, useDraggable } from "@dnd-kit/core";
+import { useDroppable, useDraggable, useDndContext } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,17 +16,17 @@ import {
 import {
   Loader2, Sparkles, Navigation, Clock, MapPin, AlertCircle,
   GripVertical, UserPlus, MoreVertical, Trash2, UserCheck,
-  Inbox, CheckCircle2, PlayCircle, Wand2,
+  Inbox, CheckCircle2, PlayCircle, Wand2, ZoomIn, ZoomOut,
 } from "lucide-react";
 import { format, isToday, parseISO } from "date-fns";
 import type { RouteStop } from "@/hooks/useRoutes";
 
-const SLOT_MIN = 15;
+// Tidsgrid: 06–20. Slot-størrelse (snap-interval visuelt) er konfigurerbar via zoom.
 const START_HOUR = 6;
 const END_HOUR = 20;
-const SLOTS_PER_HOUR = 60 / SLOT_MIN;
-const TOTAL_SLOTS = (END_HOUR - START_HOUR) * SLOTS_PER_HOUR;
-const SLOT_HEIGHT = 22; // larger for better visual breathing room
+// Pixel-højde pr. 15-minut "tick" — uafhængig af slot-størrelse, så længere stops altid fylder mere
+const SNAP_MIN = 15; // alle drops snappes til 15-min (uanset zoom-niveau)
+type SlotSize = 15 | 30 | 60;
 
 export type EmployeeOption = {
   id: string;
