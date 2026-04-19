@@ -41,6 +41,11 @@ export const minToHHmm = (mins: number): string => {
 
 export type Busy = { start: number; end: number };
 
+const stopAssigneeIds = (stop: RouteStop): string[] => {
+  if (Array.isArray(stop.assignee_ids) && stop.assignee_ids.length > 0) return stop.assignee_ids;
+  return stop.assigned_employee_id ? [stop.assigned_employee_id] : [];
+};
+
 /**
  * Find første ledige slot fra og med `desiredStart` for et stop af `durationMin` varighed,
  * der ikke overlapper med nogle af `busy`-intervallerne. Returnerer den faktiske starttid (snapped).
@@ -73,16 +78,22 @@ export const findFirstFreeSlot = (
  */
 export const busyIntervalsForEmployee = (
   stops: RouteStop[],
-  employeeId: string | null,
+  employeeId: string | string[] | null,
   excludeStopId?: string | null,
 ): Busy[] => {
   const out: Busy[] = [];
+  const wanted = new Set(Array.isArray(employeeId) ? employeeId.filter(Boolean) : employeeId ? [employeeId] : []);
+  if (wanted.size === 0) return out;
+
   for (const s of stops) {
     if (s.id === excludeStopId) continue;
-    if (s.assigned_employee_id !== employeeId) continue;
+    const assignees = stopAssigneeIds(s);
+    if (!assignees.some((id) => wanted.has(id))) continue;
+
     const start = isoToMin(s.planned_arrival);
     if (start == null) continue;
-    out.push({ start, end: start + Math.max(s.duration_minutes, SLOT_MIN) });
+    const end = isoToMin(s.planned_departure) ?? (start + Math.max(s.duration_minutes, SLOT_MIN));
+    out.push({ start, end });
   }
   return out;
 };
