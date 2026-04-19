@@ -335,6 +335,90 @@ export const useGeocodeAddress = () => {
   });
 };
 
+/* ─── Update route metadata (notes, planned_start_time, status, start address) ─── */
+export const useUpdateRoute = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Route> & { id: string }) => {
+      const { data, error } = await supabase
+        .from("routes")
+        .update(updates)
+        .eq("id", id)
+        .select("*")
+        .single();
+      if (error) throw error;
+      return data as Route;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["routes"] });
+      qc.invalidateQueries({ queryKey: ["routes-range"] });
+    },
+  });
+};
+
+/* ─── Send route to employee: mark dispatched + send email notification ─── */
+export const useDispatchRoute = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (routeId: string) => {
+      const { data: route, error: rErr } = await supabase
+        .from("routes")
+        .select("*, employees(name, email), businesses(name)")
+        .eq("id", routeId)
+        .single();
+      if (rErr) throw rErr;
+      const emp: any = (route as any).employees;
+      const biz: any = (route as any).businesses;
+      if (!emp?.email) throw new Error("Medarbejderen har ingen email");
+
+      const { data: stops } = await supabase
+        .from("route_stops")
+        .select("*")
+        .eq("route_id", routeId)
+        .order("sequence", { ascending: true });
+      const stopList = stops || [];
+      if (stopList.length === 0) throw new Error("Ruten har ingen stop");
+
+      await supabase
+        .from("routes")
+        .update({ status: "dispatched" })
+        .eq("id", routeId);
+
+      const dateLabel = new Date(route.route_date).toLocaleDateString("da-DK", {
+        weekday: "long", day: "numeric", month: "long", year: "numeric",
+      });
+      const first = stopList[0];
+
+      const { error: eErr } = await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "route-assigned",
+          recipientEmail: emp.email,
+          idempotencyKey: `route-dispatch-${routeId}-${Date.now()}`,
+          templateData: {
+            employeeName: emp.name,
+            businessName: biz?.name,
+            routeDate: dateLabel,
+            stopCount: stopList.length,
+            totalKm: route.total_distance_km,
+            totalDurationMinutes: route.total_duration_minutes,
+            plannedStartTime: route.planned_start_time?.slice(0, 5) || "08:00",
+            firstStopName: first.customer_name,
+            firstStopAddress: first.address,
+            appUrl: `${window.location.origin}/medarbejder`,
+          },
+        },
+      });
+      if (eErr) throw eErr;
+      return { ok: true, recipient: emp.email };
+    },
+    onSuccess: (res) => {
+      toast.success(`Rute sendt til ${res.recipient}`);
+      qc.invalidateQueries({ queryKey: ["routes"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke sende ruten"),
+  });
+};
+
 /* ─── Employee: my routes today ─── */
 export const useMyDayRoutes = (date: string) => {
   return useQuery({
