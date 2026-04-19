@@ -16,6 +16,8 @@ import CustomerDashboard from "./pages/CustomerDashboard";
 import Search from "./pages/Search";
 import RequestQuote from "./pages/RequestQuote";
 import Unsubscribe from "./pages/Unsubscribe";
+import RoutePlanner from "./pages/RoutePlanner";
+import EmployeeApp from "./pages/EmployeeApp";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +44,8 @@ const App = () => (
               <Route path="/log-ind" element={<Auth />} />
               <Route path="/admin" element={<PlatformAdmin />} />
               <Route path="/virksomhed" element={<Admin />} />
+              <Route path="/virksomhed/ruter" element={<RoutePlanner />} />
+              <Route path="/medarbejder" element={<EmployeeApp />} />
               <Route path="/min-konto" element={<CustomerDashboard />} />
               <Route path="/virksomheder" element={<Search />} />
               <Route path="/tilbud" element={<RequestQuote />} />

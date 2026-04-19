@@ -133,6 +133,7 @@ const NAV_ITEMS = [
   { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
   { value: "services", label: "Services", icon: Wrench },
   { value: "orders", label: "Aftaler", icon: ShoppingCart },
+  { value: "routes", label: "Ruter", icon: Route, requiresRoutePlanning: true, href: "/virksomhed/ruter" as string | undefined },
   { value: "employees", label: "Medarbejdere", icon: Users, requiresRoutePlanning: true },
   { value: "reviews", label: "Anmeldelser", icon: Star },
   { value: "settings", label: "Indstillinger", icon: Settings },
@@ -211,17 +212,26 @@ const AdminDashboard = () => {
 
         {/* Nav items */}
         <nav className="flex-1 space-y-px px-2 overflow-y-auto">
-          {visibleNav.map((item) => {
+          {visibleNav.map((item: any) => {
             const isActive = activeTab === item.value;
+            const baseClasses = `flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors ${
+              isActive
+                ? "bg-white/[0.12] text-white"
+                : "text-white/55 hover:bg-white/[0.06] hover:text-white/90"
+            }`;
+            if (item.href) {
+              return (
+                <Link key={item.value} to={item.href} onClick={() => setSidebarOpen(false)} className={baseClasses}>
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  {item.label}
+                </Link>
+              );
+            }
             return (
               <button
                 key={item.value}
                 onClick={() => { setActiveTab(item.value); setSidebarOpen(false); }}
-                className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-white/[0.12] text-white"
-                    : "text-white/55 hover:bg-white/[0.06] hover:text-white/90"
-                }`}
+                className={baseClasses}
               >
                 <item.icon className="h-4 w-4 shrink-0" />
                 {item.label}
