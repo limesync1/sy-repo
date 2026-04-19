@@ -7,7 +7,7 @@ import {
   useRoutesForDate, useStopsForRoutes, useUnassignedJobs,
   useAddStop, useUpdateStop,
   useOptimizeRoute, useGeocodeAddress, useRoutesForRange,
-  useDispatchRoute, useCreateRoute, useDeleteRoute,
+  useCreateRoute, useDeleteRoute,
   useRouteEmployees, useAddRouteEmployee, useRemoveRouteEmployee,
   useAutoAssignStops,
   type RouteStop, type Route,
@@ -115,7 +115,6 @@ const Planner = () => {
   const updateStop = useUpdateStop();
   const optimizeRoute = useOptimizeRoute();
   const autoAssign = useAutoAssignStops();
-  const dispatchRoute = useDispatchRoute();
   const geocode = useGeocodeAddress();
   const attachEmp = useAddRouteEmployee();
   const detachEmp = useRemoveRouteEmployee();
@@ -123,7 +122,6 @@ const Planner = () => {
   // Pr-rute "pending" state — kun den rute der faktisk optimeres viser spinner
   const [optimizingRouteId, setOptimizingRouteId] = useState<string | null>(null);
   const [autoAssigningRouteId, setAutoAssigningRouteId] = useState<string | null>(null);
-  const [dispatchingRouteId, setDispatchingRouteId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -235,24 +233,16 @@ const Planner = () => {
         onAutoAssign: () => handleAutoAssign(r.id, attached.map((e) => e.id), r.name),
         onAttachEmployee: (eid) => attachEmp.mutate({ route_id: r.id, employee_id: eid }),
         onDetachEmployee: (eid) => detachEmp.mutate({ route_id: r.id, employee_id: eid }),
-        onDispatchToEmployee: (eid) => {
-          setDispatchingRouteId(r.id);
-          dispatchRoute.mutate(
-            { routeId: r.id, employeeId: eid },
-            { onSettled: () => setDispatchingRouteId(null) },
-          );
-        },
         onDeleteRoute: () => {
           setRouteToDelete({ id: r.id, name: r.name || `Rute ${format(parseISO(r.route_date), "d/M")}` });
         },
         onAssignStop: handleAssignStop,
         optimizing: optimizingRouteId === r.id,
         autoAssigning: autoAssigningRouteId === r.id,
-        dispatching: dispatchingRouteId === r.id,
       } satisfies CalendarColumn;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [routes, stopsByRoute, employeesByRoute, employeeOptions, optimizingRouteId, autoAssigningRouteId, dispatchingRouteId]);
+  }, [routes, stopsByRoute, employeesByRoute, employeeOptions, optimizingRouteId, autoAssigningRouteId]);
 
   /* Map data */
   const mapRoutes: MapRoute[] = useMemo(() => {
