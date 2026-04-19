@@ -974,6 +974,7 @@ export type Database = {
           next_service_date: string | null
           order_id: string | null
           paused_at: string | null
+          preferred_route_id: string | null
           service_id: string
           service_name: string
           status: string
@@ -991,6 +992,7 @@ export type Database = {
           next_service_date?: string | null
           order_id?: string | null
           paused_at?: string | null
+          preferred_route_id?: string | null
           service_id: string
           service_name: string
           status?: string
@@ -1008,6 +1010,7 @@ export type Database = {
           next_service_date?: string | null
           order_id?: string | null
           paused_at?: string | null
+          preferred_route_id?: string | null
           service_id?: string
           service_name?: string
           status?: string
@@ -1027,6 +1030,13 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_preferred_route_id_fkey"
+            columns: ["preferred_route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
             referencedColumns: ["id"]
           },
           {

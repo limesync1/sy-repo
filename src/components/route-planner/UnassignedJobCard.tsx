@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import {
   GripVertical, MapPin, Calendar as CalendarIcon, Clock, Phone,
-  StickyNote, Hourglass, ChevronDown, ChevronRight, User, Repeat,
+  StickyNote, Hourglass, ChevronDown, ChevronRight, User, Repeat, Route as RouteIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
@@ -30,6 +30,7 @@ type Props = {
     preferred_time_start?: string | null;
     preferred_time_end?: string | null;
     notes?: string | null;
+    preferred_route_name?: string | null;
     order_items?: OrderItem[] | null;
   };
 };
@@ -166,6 +167,12 @@ export const UnassignedJobCard = ({ job }: Props) => {
               <Hourglass className="h-2.5 w-2.5" />
               ~{estimatedMin}m
             </Badge>
+            {job.preferred_route_name && (
+              <Badge variant="outline" className="h-4 text-[10px] px-1.5 gap-0.5 border-accent/40 text-accent bg-accent/5">
+                <RouteIcon className="h-2.5 w-2.5" />
+                Sædvanlig: {job.preferred_route_name}
+              </Badge>
+            )}
           </div>
         </div>
       </div>

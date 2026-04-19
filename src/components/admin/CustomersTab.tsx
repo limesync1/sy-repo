@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   Search, User, Mail, Phone, MapPin, Package, Repeat, Calendar,
-  Route as RouteIcon, TrendingUp, Star, Clock, ChevronRight, ExternalLink,
+  Route as RouteIcon, TrendingUp, Star, Clock, ChevronRight, ExternalLink, Pause,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -25,6 +25,7 @@ type Customer = {
   total_revenue: number;
   orders_count: number;
   active_subs: number;
+  paused_subs: number;
   last_order_at: string;
   first_order_at: string;
 };
@@ -39,6 +40,7 @@ type OrderRow = {
   address: string | null;
   zip_code: string | null;
   city: string | null;
+  is_paused?: boolean;
   order_items: Array<{ service_name: string; quantity: number; total_price: number; details: any }>;
 };
 
@@ -49,6 +51,8 @@ type SubRow = {
   status: string;
   next_service_date: string | null;
   total_price: number;
+  preferred_route_id?: string | null;
+  order_id?: string | null;
 };
 
 type RouteStopRow = {
@@ -83,11 +87,12 @@ const useCustomers = (businessId: string) => {
         .select("customer_id, status")
         .eq("business_id", businessId);
 
-      const subCountByCustomer = new Map<string, number>();
+      const activeByCustomer = new Map<string, number>();
+      const pausedByCustomer = new Map<string, number>();
       (subs || []).forEach(s => {
-        if (s.status === "active" && s.customer_id) {
-          subCountByCustomer.set(s.customer_id, (subCountByCustomer.get(s.customer_id) || 0) + 1);
-        }
+        if (!s.customer_id) return;
+        if (s.status === "active") activeByCustomer.set(s.customer_id, (activeByCustomer.get(s.customer_id) || 0) + 1);
+        if (s.status === "paused") pausedByCustomer.set(s.customer_id, (pausedByCustomer.get(s.customer_id) || 0) + 1);
       });
 
       const grouped = new Map<string, Customer>();
@@ -97,7 +102,6 @@ const useCustomers = (businessId: string) => {
         if (existing) {
           existing.total_revenue += Number(o.total_amount || 0);
           existing.orders_count += 1;
-          // Keep most recent name/phone/address
           if (o.created_at > existing.last_order_at) {
             existing.last_order_at = o.created_at;
             if (o.customer_name) existing.name = o.customer_name;
@@ -118,7 +122,8 @@ const useCustomers = (businessId: string) => {
             customer_id: o.customer_id,
             total_revenue: Number(o.total_amount || 0),
             orders_count: 1,
-            active_subs: o.customer_id ? (subCountByCustomer.get(o.customer_id) || 0) : 0,
+            active_subs: o.customer_id ? (activeByCustomer.get(o.customer_id) || 0) : 0,
+            paused_subs: o.customer_id ? (pausedByCustomer.get(o.customer_id) || 0) : 0,
             last_order_at: o.created_at,
             first_order_at: o.created_at,
           });
@@ -145,7 +150,7 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
           .order("created_at", { ascending: false }),
         supabase
           .from("subscriptions")
-          .select("id, service_name, interval, status, next_service_date, total_price")
+          .select("id, service_name, interval, status, next_service_date, total_price, preferred_route_id, order_id, customer_id")
           .eq("business_id", businessId)
           .order("created_at", { ascending: false }),
       ]);
@@ -153,6 +158,7 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
       const orderIds = (ordersRes.data || []).map(o => o.id);
       let stops: RouteStopRow[] = [];
       let reviews: ReviewRow[] = [];
+      let preferredRoutes: Record<string, { name: string | null; route_date: string }> = {};
 
       if (orderIds.length > 0) {
         const stopsRes = await supabase
@@ -170,8 +176,37 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
           }));
       }
 
-      // Reviews — filter to this customer if signed-in (via customer_id link)
-      const customer_id = (ordersRes.data || []).find(o => (o as any).customer_id)?.[Symbol.for("customer_id") as any];
+      // Filter subs to this customer
+      const customerIds = new Set((ordersRes.data || []).map((o: any) => o.customer_id).filter(Boolean));
+      const filteredSubs = (subsRes.data || []).filter((s: any) =>
+        customerIds.size === 0 || customerIds.has(s.customer_id)
+      ) as SubRow[];
+
+      // Look up preferred route names
+      const prefIds = Array.from(new Set(filteredSubs.map(s => s.preferred_route_id).filter(Boolean))) as string[];
+      if (prefIds.length > 0) {
+        const r = await supabase.from("routes").select("id, name, route_date").in("id", prefIds);
+        (r.data || []).forEach((rt: any) => {
+          preferredRoutes[rt.id] = { name: rt.name, route_date: rt.route_date };
+        });
+      }
+
+      // Mark each order as paused if all its (recurring) subs are paused/cancelled
+      const subsByOrder = new Map<string, SubRow[]>();
+      filteredSubs.forEach(s => {
+        if (!s.order_id) return;
+        const arr = subsByOrder.get(s.order_id) || [];
+        arr.push(s);
+        subsByOrder.set(s.order_id, arr);
+      });
+      const orders: OrderRow[] = (ordersRes.data || []).map((o: any) => {
+        const linked = subsByOrder.get(o.id) || [];
+        const isPaused = linked.length > 0 && linked.every(s => s.status === "paused" || s.status === "cancelled");
+        return { ...o, is_paused: isPaused };
+      });
+
+      // Reviews
+      const customer_id = Array.from(customerIds)[0];
       if (customer_id) {
         const r = await supabase
           .from("reviews")
@@ -181,17 +216,12 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
         reviews = (r.data || []) as ReviewRow[];
       }
 
-      // Filter subs to this customer (via customer_id from orders)
-      const customerIds = new Set((ordersRes.data || []).map((o: any) => o.customer_id).filter(Boolean));
-      const filteredSubs = (subsRes.data || []).filter((s: any) =>
-        customerIds.size === 0 || customerIds.has(s.customer_id)
-      );
-
       return {
-        orders: (ordersRes.data || []) as OrderRow[],
-        subscriptions: filteredSubs as SubRow[],
+        orders,
+        subscriptions: filteredSubs,
         stops,
         reviews,
+        preferredRoutes,
       };
     },
   });
@@ -336,6 +366,12 @@ const CustomersTab = ({ businessId }: Props) => {
                       {c.active_subs} abo.
                     </Badge>
                   )}
+                  {c.paused_subs > 0 && (
+                    <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50 text-[10px] h-5 px-1.5 gap-0.5">
+                      <Pause className="h-2.5 w-2.5" />
+                      {c.paused_subs} på pause
+                    </Badge>
+                  )}
                   <Badge variant="secondary" className="text-[10px] h-5 px-1.5">
                     {c.orders_count} ordrer
                   </Badge>
@@ -432,38 +468,78 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                 <p className="text-sm text-muted-foreground text-center py-4">Indlæser detaljer...</p>
               ) : (
                 <>
-                  {/* Subscriptions */}
-                  {data && data.subscriptions.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                        <Repeat className="h-3.5 w-3.5" /> Aktive abonnementer
-                      </h4>
-                      <div className="space-y-2">
-                        {data.subscriptions.map(s => (
-                          <div key={s.id} className="rounded-xl border border-border bg-card p-3">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0 flex-1">
-                                <p className="text-sm font-semibold text-foreground truncate">{s.service_name}</p>
-                                <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                  <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-accent/40 text-accent bg-accent/5">
-                                    {INTERVAL_LABELS[s.interval] || s.interval}
-                                  </Badge>
-                                  <StatusBadge status={s.status} />
-                                  {s.next_service_date && (
-                                    <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-                                      <Calendar className="h-3 w-3" />
-                                      Næste: {fmtDate(s.next_service_date)}
-                                    </span>
-                                  )}
-                                </div>
+                  {/* Subscriptions — split active vs paused */}
+                  {data && data.subscriptions.length > 0 && (() => {
+                    const activeSubs = data.subscriptions.filter(s => s.status === "active");
+                    const pausedSubs = data.subscriptions.filter(s => s.status === "paused");
+                    const cancelledSubs = data.subscriptions.filter(s => s.status === "cancelled");
+                    const renderSub = (s: SubRow) => {
+                      const pref = s.preferred_route_id ? data.preferredRoutes[s.preferred_route_id] : null;
+                      return (
+                        <div key={s.id} className={`rounded-xl border p-3 ${s.status === "paused" ? "border-amber-300/60 bg-amber-50/40" : "border-border bg-card"}`}>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-semibold text-foreground truncate">{s.service_name}</p>
+                              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-accent/40 text-accent bg-accent/5">
+                                  {INTERVAL_LABELS[s.interval] || s.interval}
+                                </Badge>
+                                <StatusBadge status={s.status} />
+                                {s.status === "active" && s.next_service_date && (
+                                  <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                    <Calendar className="h-3 w-3" />
+                                    Næste: {fmtDate(s.next_service_date)}
+                                  </span>
+                                )}
+                                {s.status === "paused" && (
+                                  <span className="text-[11px] text-amber-700 flex items-center gap-1">
+                                    <Pause className="h-3 w-3" />
+                                    Indgår ikke i ruteplanlægning
+                                  </span>
+                                )}
+                                {pref && (
+                                  <Link to={`/virksomhed/ruter?date=${pref.route_date}`} className="text-[11px] text-accent flex items-center gap-1 hover:underline">
+                                    <RouteIcon className="h-3 w-3" />
+                                    Sædvanlig rute: {pref.name || "Rute"}
+                                  </Link>
+                                )}
                               </div>
-                              <span className="text-sm font-bold text-foreground tabular-nums shrink-0">{fmtKr(s.total_price)}</span>
                             </div>
+                            <span className="text-sm font-bold text-foreground tabular-nums shrink-0">{fmtKr(s.total_price)}</span>
                           </div>
-                        ))}
+                        </div>
+                      );
+                    };
+                    return (
+                      <div className="space-y-4">
+                        {activeSubs.length > 0 && (
+                          <div className="space-y-2">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                              <Repeat className="h-3.5 w-3.5" /> Aktive abonnementer ({activeSubs.length})
+                            </h4>
+                            <div className="space-y-2">{activeSubs.map(renderSub)}</div>
+                          </div>
+                        )}
+                        {pausedSubs.length > 0 && (
+                          <div className="space-y-2">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
+                              <Pause className="h-3.5 w-3.5" /> På pause ({pausedSubs.length})
+                            </h4>
+                            <p className="text-[11px] text-muted-foreground">Disse abonnementer indgår ikke i ruteplanlægning. Når kunden genoptager dem, vises de igen — gerne på samme rute som før.</p>
+                            <div className="space-y-2">{pausedSubs.map(renderSub)}</div>
+                          </div>
+                        )}
+                        {cancelledSubs.length > 0 && (
+                          <div className="space-y-2">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                              <Repeat className="h-3.5 w-3.5" /> Opsagte ({cancelledSubs.length})
+                            </h4>
+                            <div className="space-y-2 opacity-60">{cancelledSubs.map(renderSub)}</div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Route history */}
                   {data && data.stops.length > 0 && (
@@ -504,7 +580,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                       </h4>
                       <div className="space-y-2">
                         {data.orders.map(o => (
-                          <div key={o.id} className="rounded-xl border border-border bg-card p-3 space-y-1.5">
+                          <div key={o.id} className={`rounded-xl border p-3 space-y-1.5 ${o.is_paused ? "border-amber-300/60 bg-amber-50/30" : "border-border bg-card"}`}>
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0 flex-1">
                                 <p className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -517,9 +593,17 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                                     Ønsket: {format(parseISO(o.preferred_date), "d. MMM yyyy", { locale: da })}
                                   </p>
                                 )}
+                                {o.is_paused && (
+                                  <p className="text-[11px] text-amber-700 flex items-center gap-1 mt-0.5 font-medium">
+                                    <Pause className="h-3 w-3" />
+                                    Abonnementet er på pause — indgår ikke i ruteplanlægning
+                                  </p>
+                                )}
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
-                                <StatusBadge status={o.status} />
+                                {o.is_paused
+                                  ? <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-amber-300 text-amber-700 bg-amber-50">På pause</Badge>
+                                  : <StatusBadge status={o.status} />}
                                 <span className="text-sm font-bold text-foreground tabular-nums">{fmtKr(o.total_amount)}</span>
                               </div>
                             </div>
