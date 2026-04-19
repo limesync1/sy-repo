@@ -679,9 +679,46 @@ export type Database = {
           },
         ]
       }
+      route_employees: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          route_id: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          route_id: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          route_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_employees_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_employees_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       route_stops: {
         Row: {
           address: string | null
+          assigned_employee_id: string | null
           completed_at: string | null
           created_at: string
           customer_name: string | null
@@ -708,6 +745,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          assigned_employee_id?: string | null
           completed_at?: string | null
           created_at?: string
           customer_name?: string | null
@@ -734,6 +772,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          assigned_employee_id?: string | null
           completed_at?: string | null
           created_at?: string
           customer_name?: string | null
@@ -759,6 +798,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "route_stops_assigned_employee_id_fkey"
+            columns: ["assigned_employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "route_stops_order_id_fkey"
             columns: ["order_id"]
@@ -788,6 +834,7 @@ export type Database = {
           created_at: string
           employee_id: string | null
           id: string
+          name: string | null
           notes: string | null
           optimized_at: string | null
           planned_start_time: string | null
@@ -805,6 +852,7 @@ export type Database = {
           created_at?: string
           employee_id?: string | null
           id?: string
+          name?: string | null
           notes?: string | null
           optimized_at?: string | null
           planned_start_time?: string | null
@@ -822,6 +870,7 @@ export type Database = {
           created_at?: string
           employee_id?: string | null
           id?: string
+          name?: string | null
           notes?: string | null
           optimized_at?: string | null
           planned_start_time?: string | null

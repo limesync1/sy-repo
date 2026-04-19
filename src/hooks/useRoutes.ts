@@ -5,9 +5,10 @@ import { toast } from "sonner";
 export type Route = {
   id: string;
   business_id: string;
-  employee_id: string | null;
+  employee_id: string | null; // legacy — kept for back-compat, not used in new model
   route_date: string;
   status: string;
+  name: string | null;
   total_distance_km: number | null;
   total_duration_minutes: number | null;
   optimized_at: string | null;
@@ -43,9 +44,16 @@ export type RouteStop = {
   time_window_end: string | null;
   distance_to_next_km: number | null;
   travel_time_to_next_min: number | null;
+  assigned_employee_id: string | null;
 };
 
-/* ─── Routes for a date (planner view) ─── */
+export type RouteEmployee = {
+  id: string;
+  route_id: string;
+  employee_id: string;
+};
+
+/* ─── Routes for a date ─── */
 export const useRoutesForDate = (businessId: string | undefined, date: string) => {
   return useQuery({
     queryKey: ["routes", businessId, date],
@@ -63,18 +71,17 @@ export const useRoutesForDate = (businessId: string | undefined, date: string) =
   });
 };
 
-/* ─── Routes for a week range (multi-day overview) ─── */
-export const useRoutesForRange = (businessId: string | undefined, fromDate: string, toDate: string) => {
+export const useRoutesForRange = (businessId: string | undefined, from: string, to: string) => {
   return useQuery({
-    queryKey: ["routes-range", businessId, fromDate, toDate],
-    enabled: !!businessId && !!fromDate && !!toDate,
+    queryKey: ["routes-range", businessId, from, to],
+    enabled: !!businessId && !!from && !!to,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("routes")
         .select("*")
         .eq("business_id", businessId!)
-        .gte("route_date", fromDate)
-        .lte("route_date", toDate)
+        .gte("route_date", from)
+        .lte("route_date", to)
         .order("route_date", { ascending: true });
       if (error) throw error;
       return (data || []) as Route[];
@@ -82,7 +89,7 @@ export const useRoutesForRange = (businessId: string | undefined, fromDate: stri
   });
 };
 
-/* ─── Stops on multiple routes (planner) ─── */
+/* ─── Stops for a list of routes ─── */
 export const useStopsForRoutes = (routeIds: string[]) => {
   return useQuery({
     queryKey: ["route-stops-bulk", routeIds.sort().join(",")],
@@ -99,7 +106,64 @@ export const useStopsForRoutes = (routeIds: string[]) => {
   });
 };
 
-/* ─── Unassigned: orders with status pending/confirmed/in_progress not yet on a route ─── */
+/* ─── Route ↔ Employees junction ─── */
+export const useRouteEmployees = (routeIds: string[]) => {
+  return useQuery({
+    queryKey: ["route-employees-bulk", routeIds.sort().join(",")],
+    enabled: routeIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("route_employees")
+        .select("*")
+        .in("route_id", routeIds);
+      if (error) throw error;
+      return (data || []) as RouteEmployee[];
+    },
+  });
+};
+
+export const useAddRouteEmployee = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ route_id, employee_id }: { route_id: string; employee_id: string }) => {
+      const { error } = await supabase
+        .from("route_employees")
+        .insert({ route_id, employee_id });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["route-employees-bulk"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke tilkoble medarbejder"),
+  });
+};
+
+export const useRemoveRouteEmployee = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ route_id, employee_id }: { route_id: string; employee_id: string }) => {
+      const { error } = await supabase
+        .from("route_employees")
+        .delete()
+        .eq("route_id", route_id)
+        .eq("employee_id", employee_id);
+      if (error) throw error;
+      // Also clear assigned_employee_id on stops referencing this employee on this route
+      await supabase
+        .from("route_stops")
+        .update({ assigned_employee_id: null })
+        .eq("route_id", route_id)
+        .eq("assigned_employee_id", employee_id);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["route-employees-bulk"] });
+      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke fjerne medarbejder"),
+  });
+};
+
+/* ─── Unassigned: orders not yet on a route ─── */
 export const useUnassignedJobs = (businessId: string | undefined) => {
   return useQuery({
     queryKey: ["unassigned-jobs", businessId],
@@ -134,7 +198,6 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
   });
 };
 
-/* ─── Full order details for the stop detail sheet ─── */
 export const useOrderForStop = (orderId: string | null | undefined) => {
   return useQuery({
     queryKey: ["order-for-stop", orderId],
@@ -154,25 +217,13 @@ export const useOrderForStop = (orderId: string | null | undefined) => {
   });
 };
 
-/* ─── Create or get a route for an employee+date.
-   Always seeds start_address from the business so all routes start from
-   the company's location. ─── */
-export const useUpsertRoute = () => {
+/* ─── Create a NEW route (manually). Always seeds start address from business. ─── */
+export const useCreateRoute = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({
-      business_id, employee_id, route_date,
-    }: { business_id: string; employee_id: string | null; route_date: string }) => {
-      let query = supabase
-        .from("routes")
-        .select("*")
-        .eq("business_id", business_id)
-        .eq("route_date", route_date);
-      query = employee_id === null ? query.is("employee_id", null) : query.eq("employee_id", employee_id);
-      const { data: existing } = await query.maybeSingle();
-      if (existing) return existing as Route;
-
-      // Fetch business address — every route starts from the company
+      business_id, route_date, name,
+    }: { business_id: string; route_date: string; name?: string | null }) => {
       const { data: biz } = await supabase
         .from("businesses")
         .select("address, zip_code, city")
@@ -182,7 +233,6 @@ export const useUpsertRoute = () => {
         ? [biz.address, [biz.zip_code, biz.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")
         : null;
 
-      // Try to geocode the business address for accurate start coords
       let startLat: number | null = null, startLng: number | null = null;
       if (startAddr) {
         try {
@@ -196,7 +246,9 @@ export const useUpsertRoute = () => {
       const { data, error } = await supabase
         .from("routes")
         .insert({
-          business_id, employee_id, route_date,
+          business_id,
+          route_date,
+          name: name || null,
           start_address: startAddr,
           start_latitude: startLat,
           start_longitude: startLng,
@@ -209,10 +261,39 @@ export const useUpsertRoute = () => {
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["routes", vars.business_id, vars.route_date] });
     },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke oprette rute"),
   });
 };
 
-/* ─── Add a stop to a route ─── */
+/* Legacy alias kept for back-compat — now creates a route without locking to an employee.
+   Kept so older callers compile. New UI should use useCreateRoute. */
+export const useUpsertRoute = () => {
+  const create = useCreateRoute();
+  return {
+    ...create,
+    mutateAsync: async (vars: { business_id: string; employee_id: string | null; route_date: string }) =>
+      create.mutateAsync({ business_id: vars.business_id, route_date: vars.route_date }),
+  } as any;
+};
+
+export const useDeleteRoute = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (routeId: string) => {
+      const { error } = await supabase.from("routes").delete().eq("id", routeId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["routes"] });
+      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+      qc.invalidateQueries({ queryKey: ["route-employees-bulk"] });
+      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke slette rute"),
+  });
+};
+
+/* ─── Stops ─── */
 export const useAddStop = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -228,6 +309,7 @@ export const useAddStop = () => {
       longitude?: number | null;
       service_summary?: string | null;
       duration_minutes?: number;
+      assigned_employee_id?: string | null;
     }) => {
       const { data, error } = await supabase
         .from("route_stops")
@@ -243,6 +325,7 @@ export const useAddStop = () => {
           longitude: payload.longitude ?? null,
           service_summary: payload.service_summary ?? null,
           duration_minutes: payload.duration_minutes ?? 30,
+          assigned_employee_id: payload.assigned_employee_id ?? null,
         })
         .select("*")
         .single();
@@ -276,12 +359,10 @@ export const useUpdateStop = () => {
   });
 };
 
-/* Bulk reorder — single round-trip for smooth dnd */
 export const useReorderStops = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (updates: { id: string; sequence: number; route_id?: string }[]) => {
-      // Run all updates in parallel
       await Promise.all(updates.map((u) => {
         const patch: any = { sequence: u.sequence };
         if (u.route_id) patch.route_id = u.route_id;
@@ -332,7 +413,6 @@ export const useUpdateStopStatus = () => {
   });
 };
 
-/* ─── AI / heuristic optimize route ─── */
 export const useOptimizeRoute = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -352,7 +432,6 @@ export const useOptimizeRoute = () => {
   });
 };
 
-/* ─── Geocode an address (used to enrich orders without coordinates) ─── */
 export const useGeocodeAddress = () => {
   return useMutation({
     mutationFn: async (input: { address?: string; zip_code?: string; city?: string }) => {
@@ -363,7 +442,6 @@ export const useGeocodeAddress = () => {
   });
 };
 
-/* ─── Update route metadata (notes, planned_start_time, status, start address) ─── */
 export const useUpdateRoute = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -381,47 +459,54 @@ export const useUpdateRoute = () => {
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
     },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke opdatere rute"),
   });
 };
 
-/* ─── Send route to employee: mark dispatched + send email notification ─── */
+/* ─── Dispatch route — sends email to a SPECIFIC employee on the route. ─── */
 export const useDispatchRoute = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (routeId: string) => {
+    mutationFn: async ({ routeId, employeeId }: { routeId: string; employeeId: string }) => {
       const { data: route, error: rErr } = await supabase
         .from("routes")
-        .select("*, employees(name, email), businesses(name)")
+        .select("*, businesses(name)")
         .eq("id", routeId)
         .single();
       if (rErr) throw rErr;
-      const emp: any = (route as any).employees;
-      const biz: any = (route as any).businesses;
+
+      const { data: emp, error: eErr } = await supabase
+        .from("employees")
+        .select("name, email")
+        .eq("id", employeeId)
+        .single();
+      if (eErr) throw eErr;
       if (!emp?.email) throw new Error("Medarbejderen har ingen email");
 
+      const biz: any = (route as any).businesses;
+
+      // Stops assigned to this employee on this route
       const { data: stops } = await supabase
         .from("route_stops")
         .select("*")
         .eq("route_id", routeId)
+        .eq("assigned_employee_id", employeeId)
         .order("sequence", { ascending: true });
       const stopList = stops || [];
-      if (stopList.length === 0) throw new Error("Ruten har ingen stop");
+      if (stopList.length === 0) throw new Error("Medarbejderen har ingen stop på denne rute");
 
-      await supabase
-        .from("routes")
-        .update({ status: "dispatched" })
-        .eq("id", routeId);
+      await supabase.from("routes").update({ status: "dispatched" }).eq("id", routeId);
 
       const dateLabel = new Date(route.route_date).toLocaleDateString("da-DK", {
         weekday: "long", day: "numeric", month: "long", year: "numeric",
       });
       const first = stopList[0];
 
-      const { error: eErr } = await supabase.functions.invoke("send-transactional-email", {
+      const { error: sendErr } = await supabase.functions.invoke("send-transactional-email", {
         body: {
           templateName: "route-assigned",
           recipientEmail: emp.email,
-          idempotencyKey: `route-dispatch-${routeId}-${Date.now()}`,
+          idempotencyKey: `route-dispatch-${routeId}-${employeeId}-${Date.now()}`,
           templateData: {
             employeeName: emp.name,
             businessName: biz?.name,
@@ -436,7 +521,7 @@ export const useDispatchRoute = () => {
           },
         },
       });
-      if (eErr) throw eErr;
+      if (sendErr) throw sendErr;
       return { ok: true, recipient: emp.email };
     },
     onSuccess: (res) => {
@@ -447,7 +532,7 @@ export const useDispatchRoute = () => {
   });
 };
 
-/* ─── Employee: my routes today ─── */
+/* ─── Employee app: my routes today (via junction table) ─── */
 export const useMyDayRoutes = (date: string) => {
   return useQuery({
     queryKey: ["my-day-routes", date],
@@ -456,14 +541,20 @@ export const useMyDayRoutes = (date: string) => {
       if (!user.user) return [];
       const { data: emp } = await supabase
         .from("employees")
-        .select("id, business_id, name")
+        .select("id")
         .eq("user_id", user.user.id)
         .maybeSingle();
       if (!emp) return [];
+      const { data: links } = await supabase
+        .from("route_employees")
+        .select("route_id")
+        .eq("employee_id", emp.id);
+      const routeIds = (links || []).map((l) => l.route_id);
+      if (routeIds.length === 0) return [];
       const { data, error } = await supabase
         .from("routes")
         .select("*")
-        .eq("employee_id", emp.id)
+        .in("id", routeIds)
         .eq("route_date", date);
       if (error) throw error;
       return (data || []) as Route[];
@@ -483,17 +574,25 @@ export const useMyDayStops = (date: string) => {
         .eq("user_id", user.user.id)
         .maybeSingle();
       if (!emp) return [];
+      const { data: links } = await supabase
+        .from("route_employees")
+        .select("route_id")
+        .eq("employee_id", emp.id);
+      const routeIds = (links || []).map((l) => l.route_id);
+      if (routeIds.length === 0) return [];
       const { data: routes } = await supabase
         .from("routes")
         .select("id")
-        .eq("employee_id", emp.id)
+        .in("id", routeIds)
         .eq("route_date", date);
-      const routeIds = (routes || []).map((r) => r.id);
-      if (routeIds.length === 0) return [];
+      const todayIds = (routes || []).map((r) => r.id);
+      if (todayIds.length === 0) return [];
+      // Only stops assigned to this employee
       const { data, error } = await supabase
         .from("route_stops")
         .select("*")
-        .in("route_id", routeIds)
+        .in("route_id", todayIds)
+        .eq("assigned_employee_id", emp.id)
         .order("sequence", { ascending: true });
       if (error) throw error;
       return (data || []) as RouteStop[];
