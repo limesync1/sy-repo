@@ -9,6 +9,7 @@ import {
   useOptimizeRoute, useGeocodeAddress, useRoutesForRange,
   useDispatchRoute, useCreateRoute, useDeleteRoute,
   useRouteEmployees, useAddRouteEmployee, useRemoveRouteEmployee,
+  useAutoAssignStops,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
@@ -101,10 +102,16 @@ const Planner = () => {
   const addStop = useAddStop();
   const updateStop = useUpdateStop();
   const optimizeRoute = useOptimizeRoute();
+  const autoAssign = useAutoAssignStops();
   const dispatchRoute = useDispatchRoute();
   const geocode = useGeocodeAddress();
   const attachEmp = useAddRouteEmployee();
   const detachEmp = useRemoveRouteEmployee();
+
+  // Pr-rute "pending" state — kun den rute der faktisk optimeres viser spinner
+  const [optimizingRouteId, setOptimizingRouteId] = useState<string | null>(null);
+  const [autoAssigningRouteId, setAutoAssigningRouteId] = useState<string | null>(null);
+  const [dispatchingRouteId, setDispatchingRouteId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -211,20 +218,29 @@ const Planner = () => {
         totalKm: r.total_distance_km,
         totalMin: r.total_duration_minutes,
         routeStatus: r.status,
-        onOptimize: () => handleOptimize(r.id),
+        optimizedAt: r.optimized_at,
+        onOptimize: () => handleOptimize(r.id, r.name),
+        onAutoAssign: () => handleAutoAssign(r.id, attached.map((e) => e.id), r.name),
         onAttachEmployee: (eid) => attachEmp.mutate({ route_id: r.id, employee_id: eid }),
         onDetachEmployee: (eid) => detachEmp.mutate({ route_id: r.id, employee_id: eid }),
-        onDispatchToEmployee: (eid) => dispatchRoute.mutate({ routeId: r.id, employeeId: eid }),
+        onDispatchToEmployee: (eid) => {
+          setDispatchingRouteId(r.id);
+          dispatchRoute.mutate(
+            { routeId: r.id, employeeId: eid },
+            { onSettled: () => setDispatchingRouteId(null) },
+          );
+        },
         onDeleteRoute: () => {
           if (confirm("Slet ruten og alle dens stops?")) deleteRoute.mutate(r.id);
         },
         onAssignStop: handleAssignStop,
-        optimizing: optimizeRoute.isPending,
-        dispatching: dispatchRoute.isPending,
+        optimizing: optimizingRouteId === r.id,
+        autoAssigning: autoAssigningRouteId === r.id,
+        dispatching: dispatchingRouteId === r.id,
       } satisfies CalendarColumn;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [routes, stopsByRoute, employeesByRoute, employeeOptions, optimizeRoute.isPending, dispatchRoute.isPending]);
+  }, [routes, stopsByRoute, employeesByRoute, employeeOptions, optimizingRouteId, autoAssigningRouteId, dispatchingRouteId]);
 
   /* Map data */
   const mapRoutes: MapRoute[] = useMemo(() => {
@@ -383,13 +399,37 @@ const Planner = () => {
     }
   };
 
-  const handleOptimize = async (routeId: string) => {
+  const handleOptimize = async (routeId: string, routeName: string | null) => {
+    setOptimizingRouteId(routeId);
+    const label = routeName || "Rute";
     try {
       const result = await optimizeRoute.mutateAsync(routeId);
-      toast.success(`Optimeret: ${result.total_km.toFixed(1)} km · ${Math.round(result.total_minutes)} min`, {
-        description: result.reasoning,
-      });
+      const groupNote = result.groups && result.groups > 1
+        ? ` · ${result.groups} medarbejder-grupper`
+        : "";
+      toast.success(
+        `${label}: ${result.total_km.toFixed(1)} km · ${Math.floor(result.total_minutes / 60)}t ${result.total_minutes % 60}m${groupNote}`,
+        { description: result.reasoning },
+      );
+    } catch { /* error toast handled in hook */ }
+    finally { setOptimizingRouteId(null); }
+  };
+
+  const handleAutoAssign = async (routeId: string, employeeIds: string[], routeName: string | null) => {
+    if (employeeIds.length < 2) {
+      toast.error("Tilkobl mindst 2 medarbejdere før du fordeler opgaver");
+      return;
+    }
+    setAutoAssigningRouteId(routeId);
+    try {
+      const res = await autoAssign.mutateAsync({ routeId, employeeIds });
+      if (res.assigned === 0) {
+        toast.info("Alle stops er allerede tildelt");
+      } else {
+        toast.success(`${routeName || "Rute"}: ${res.assigned} stops fordelt jævnt mellem ${employeeIds.length} medarbejdere`);
+      }
     } catch { /* */ }
+    finally { setAutoAssigningRouteId(null); }
   };
 
   const handleCreateRoute = async () => {

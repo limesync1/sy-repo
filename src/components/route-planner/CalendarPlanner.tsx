@@ -16,7 +16,7 @@ import {
 import {
   Loader2, Send, Sparkles, Navigation, Clock, MapPin, AlertCircle,
   GripVertical, UserPlus, MoreVertical, Trash2, UserCheck,
-  Inbox, CheckCircle2, PlayCircle,
+  Inbox, CheckCircle2, PlayCircle, Wand2,
 } from "lucide-react";
 import { format, isToday, parseISO } from "date-fns";
 import type { RouteStop } from "@/hooks/useRoutes";
@@ -45,13 +45,16 @@ export type CalendarColumn = {
   totalKm?: number | null;
   totalMin?: number | null;
   routeStatus?: string;
+  optimizedAt?: string | null;
   onOptimize?: () => void;
+  onAutoAssign?: () => void;
   onAttachEmployee?: (employeeId: string) => void;
   onDetachEmployee?: (employeeId: string) => void;
   onDispatchToEmployee?: (employeeId: string) => void;
   onDeleteRoute?: () => void;
   onAssignStop?: (stopId: string, employeeId: string | null) => void;
-  optimizing?: boolean;
+  optimizing?: boolean;       // pr-rute spinner
+  autoAssigning?: boolean;
   dispatching?: boolean;
 };
 
@@ -325,17 +328,43 @@ const ColumnHeader = ({ col }: { col: CalendarColumn }) => {
         )}
       </div>
 
-      {col.onOptimize && col.stops.length >= 2 && (
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-6 text-[10px] gap-1 px-1.5 w-full hover:bg-primary hover:text-primary-foreground hover:border-primary"
-          onClick={col.onOptimize}
-          disabled={col.optimizing}
-        >
-          {col.optimizing ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <Sparkles className="h-2.5 w-2.5" />}
-          Optimér rækkefølge
-        </Button>
+      {/* Action buttons */}
+      {(col.onAutoAssign || col.onOptimize) && col.stops.length > 0 && (
+        <div className="flex gap-1">
+          {col.onAutoAssign && col.attachedEmployees.length >= 2 && unassignedCount > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-6 text-[10px] gap-1 px-1.5 flex-1 hover:bg-accent hover:text-accent-foreground"
+              onClick={col.onAutoAssign}
+              disabled={col.autoAssigning}
+              title={`Fordel ${unassignedCount} utildelte stops jævnt mellem medarbejdere`}
+            >
+              {col.autoAssigning ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <Wand2 className="h-2.5 w-2.5" />}
+              Fordel {unassignedCount}
+            </Button>
+          )}
+          {col.onOptimize && col.stops.length >= 2 && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-6 text-[10px] gap-1 px-1.5 flex-1 hover:bg-primary hover:text-primary-foreground hover:border-primary"
+              onClick={col.onOptimize}
+              disabled={col.optimizing}
+              title="Optimerer rækkefølgen for hver medarbejder på denne rute, baseret på live trafik"
+            >
+              {col.optimizing ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <Sparkles className="h-2.5 w-2.5" />}
+              {col.optimizing ? "Optimerer..." : "Optimér"}
+            </Button>
+          )}
+        </div>
+      )}
+
+      {col.optimizedAt && !col.optimizing && (
+        <p className="text-[9px] text-muted-foreground italic flex items-center gap-1">
+          <CheckCircle2 className="h-2.5 w-2.5 text-emerald-600" />
+          Optimeret {format(new Date(col.optimizedAt), "HH:mm")}
+        </p>
       )}
     </div>
   );
