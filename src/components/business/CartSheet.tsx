@@ -566,7 +566,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                         {/* Time-window quick chips */}
                         <div>
                           <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Foretrukket tidsrum (valgfrit)</label>
-                          <div className="grid grid-cols-3 gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             {TIME_PRESETS.map((p) => {
                               const active = activePreset?.label === p.label;
                               return (
