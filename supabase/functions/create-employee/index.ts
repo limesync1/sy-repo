@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
   // Verify caller owns the business
   const { data: biz, error: bizErr } = await admin
     .from('businesses')
-    .select('id, name, owner_id, logo_url, slug')
+    .select('id, name, owner_id, logo_url, slug, address, city, zip_code')
     .eq('id', businessId)
     .maybeSingle()
   if (bizErr || !biz) {
