@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2, Zap, CalendarDays, Loader2, AlertCircle } from "lucide-react";
+import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2, Zap, CalendarDays, Loader2, AlertCircle, User, MapPin, Clock, Sparkles, ShoppingBag } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
