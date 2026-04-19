@@ -15,12 +15,13 @@ import { useState } from "react";
 import {
   Plus, Trash2, LogOut,
   Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart,
-  Star, Settings, Menu, X, ExternalLink, Bell,
+  Star, Settings, Menu, X, ExternalLink, Bell, Users, Route,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import DashboardTab from "@/components/admin/DashboardTab";
 import ReviewsTab from "@/components/admin/ReviewsTab";
 import AftaleTab from "@/components/admin/AftaleTab";
+import EmployeesTab from "@/components/admin/EmployeesTab";
 
 /* ─── Constants ─── */
 const CATEGORIES = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS", "Elektriker", "Sikkerhed"];
@@ -132,6 +133,7 @@ const NAV_ITEMS = [
   { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
   { value: "services", label: "Services", icon: Wrench },
   { value: "orders", label: "Aftaler", icon: ShoppingCart },
+  { value: "employees", label: "Medarbejdere", icon: Users, requiresRoutePlanning: true },
   { value: "reviews", label: "Anmeldelser", icon: Star },
   { value: "settings", label: "Indstillinger", icon: Settings },
 ];
@@ -154,19 +156,22 @@ const AdminDashboard = () => {
   if (isLoading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
   if (!business) return <CreateBusinessForm />;
 
+  const routePlanningEnabled = !!(business.settings as any)?.route_planning_enabled;
+  const visibleNav = NAV_ITEMS.filter((n) => !n.requiresRoutePlanning || routePlanningEnabled);
+
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard": return <DashboardWrapper business={business} onNavigate={setActiveTab} />;
       case "services": return <ServicesTab businessId={business.id} />;
       case "orders": return <AftaleTab businessId={business.id} />;
-      
+      case "employees": return <EmployeesTab businessId={business.id} businessName={business.name} routePlanningEnabled={routePlanningEnabled} />;
       case "reviews": return <ReviewsWrapper businessId={business.id} />;
       case "settings": return <SettingsTab business={business} />;
       default: return null;
     }
   };
 
-  const currentNav = NAV_ITEMS.find(n => n.value === activeTab);
+  const currentNav = visibleNav.find(n => n.value === activeTab) || NAV_ITEMS.find(n => n.value === activeTab);
 
   return (
     <div className="flex min-h-screen bg-secondary/50">
@@ -206,7 +211,7 @@ const AdminDashboard = () => {
 
         {/* Nav items */}
         <nav className="flex-1 space-y-px px-2 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
+          {visibleNav.map((item) => {
             const isActive = activeTab === item.value;
             return (
               <button
@@ -1106,6 +1111,9 @@ const SettingsTab = ({ business }: { business: any }) => {
     new_review: false,
     ...(business.notification_settings as Record<string, boolean> || {}),
   });
+  const [routePlanningEnabled, setRoutePlanningEnabled] = useState<boolean>(
+    !!(business.settings as any)?.route_planning_enabled
+  );
 
   // CVR lookup
   const [cvrQuery, setCvrQuery] = useState("");
@@ -1195,6 +1203,10 @@ const SettingsTab = ({ business }: { business: any }) => {
       categories: selectedCategories,
       opening_hours: openHours,
       notification_settings: notifSettings,
+      settings: {
+        ...((business.settings as any) || {}),
+        route_planning_enabled: routePlanningEnabled,
+      },
     } as any, {
       onSuccess: () => toast.success("Indstillinger gemt"),
       onError: (e) => toast.error(e.message),
@@ -1203,6 +1215,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
   const origCategories = (business.categories as string[]) || (business.category ? [business.category] : []);
   const origNotif = business.notification_settings as Record<string, boolean> || {};
+  const origRoutePlanning = !!(business.settings as any)?.route_planning_enabled;
   const hasChanges = name !== business.name || description !== (business.description || "") ||
     phone !== (business.phone || "") || email !== (business.email || "") ||
     address !== (business.address || "") || city !== (business.city || "") ||
@@ -1210,6 +1223,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     coverUrl !== (business.cover_image_url || "") ||
     JSON.stringify([...selectedCategories].sort()) !== JSON.stringify([...origCategories].sort()) ||
     JSON.stringify(openHours) !== JSON.stringify(business.opening_hours || {}) ||
+    routePlanningEnabled !== origRoutePlanning ||
     JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
 
   return (
@@ -1404,7 +1418,42 @@ const SettingsTab = ({ business }: { business: any }) => {
         </CardContent>
       </Card>
 
-      {/* Opening Hours */}
+      {/* Route Planning */}
+      <Card className="rounded-xl shadow-sm border-border">
+        <CardContent className="p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Route className="h-4 w-4 text-muted-foreground" />
+            Ruteplanlægning
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Aktivér ruteplanlægning for at oprette medarbejder-konti og planlægge daglige
+            ruter med stop hos kunder. Ruterne kan optimeres med AI baseret på afstand,
+            tidsvinduer og prioriteter.
+          </p>
+          <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-3">
+            <div>
+              <p className="text-sm font-medium text-foreground">Aktivér ruteplanlægning</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Tilføjer "Medarbejdere"-fanen og giver adgang til ruteplanlæggeren.
+              </p>
+            </div>
+            <button
+              onClick={() => setRoutePlanningEnabled((v) => !v)}
+              className={`relative mt-0.5 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${
+                routePlanningEnabled ? "bg-accent" : "bg-border"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm transition-transform mt-0.5 ${
+                  routePlanningEnabled ? "translate-x-4 ml-0.5" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+
+
       <Card className="rounded-xl shadow-sm border-border">
         <CardContent className="p-5 space-y-4">
           <h3 className="text-sm font-semibold text-foreground">Åbningstider</h3>
