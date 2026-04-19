@@ -18,15 +18,26 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
+} from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
+  ResizablePanelGroup, ResizablePanel, ResizableHandle,
+} from "@/components/ui/resizable";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon, ArrowLeft,
-  Loader2, MapIcon, Search, Plus, Inbox, ArrowUpDown,
+  Loader2, MapIcon, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
 } from "lucide-react";
 import { format, addDays, parseISO, startOfWeek, eachDayOfInterval } from "date-fns";
 import { da } from "date-fns/locale";
@@ -80,6 +91,7 @@ const Planner = () => {
   const [showMap, setShowMap] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
+  const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
 
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
@@ -231,7 +243,7 @@ const Planner = () => {
           );
         },
         onDeleteRoute: () => {
-          if (confirm("Slet ruten og alle dens stops?")) deleteRoute.mutate(r.id);
+          setRouteToDelete({ id: r.id, name: r.name || `Rute ${format(parseISO(r.route_date), "d/M")}` });
         },
         onAssignStop: handleAssignStop,
         optimizing: optimizingRouteId === r.id,
@@ -298,6 +310,33 @@ const Planner = () => {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unassigned.length, businessId]);
+
+  /* Keyboard shortcuts: ←/→ for date, T for today, M for map, N for new route */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      // Ignore when typing in inputs
+      const t = e.target as HTMLElement;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setDate((d) => format(addDays(parseISO(d), -1), "yyyy-MM-dd"));
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        setDate((d) => format(addDays(parseISO(d), 1), "yyyy-MM-dd"));
+      } else if (e.key.toLowerCase() === "t") {
+        setDate(todayStr());
+      } else if (e.key.toLowerCase() === "m") {
+        setShowMap((v) => !v);
+      } else if (e.key.toLowerCase() === "n") {
+        setCreateOpen(true);
+      } else if (e.key === "Escape" && selectedStopId) {
+        setSelectedStopId(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selectedStopId]);
 
   if (!business) {
     return (
@@ -499,6 +538,9 @@ const Planner = () => {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Opret ny rute for {format(parseISO(date), "EEEE d. MMMM", { locale: da })}</DialogTitle>
+                    <DialogDescription>
+                      Ruten starter fra virksomhedens adresse. Du kan tilkoble medarbejdere og opgaver bagefter.
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-2">
                     <Label htmlFor="route-name">Navn på ruten (valgfrit)</Label>
@@ -507,10 +549,9 @@ const Planner = () => {
                       placeholder="fx Nord, Aarhus C, Mandag-team..."
                       value={newRouteName}
                       onChange={(e) => setNewRouteName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleCreateRoute(); }}
+                      autoFocus
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Ruten starter fra virksomhedens adresse. Du kan tilkoble medarbejdere bagefter.
-                    </p>
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setCreateOpen(false)}>Annullér</Button>
@@ -522,119 +563,135 @@ const Planner = () => {
                 </DialogContent>
               </Dialog>
 
-              <Button variant="ghost" size="sm" className="h-7" onClick={() => setShowMap((v) => !v)}>
+              <Button
+                variant={showMap ? "default" : "ghost"}
+                size="sm"
+                className="h-7"
+                onClick={() => setShowMap((v) => !v)}
+              >
                 <MapIcon className="h-3.5 w-3.5 mr-1" />{showMap ? "Skjul kort" : "Vis kort"}
               </Button>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Tastatur-genveje">
+                    <Keyboard className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  <div className="space-y-1">
+                    <p className="font-semibold mb-1">Tastatur-genveje</p>
+                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">←</kbd> <kbd className="px-1 rounded bg-secondary text-[10px]">→</kbd> Skift dag</p>
+                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">T</kbd> I dag</p>
+                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">N</kbd> Ny rute</p>
+                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">M</kbd> Vis/skjul kort</p>
+                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">Esc</kbd> Luk panel</p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </header>
 
         {view === "day" ? (
-          <div className="flex-1 grid gap-3 p-3 overflow-hidden"
-            style={{
-              gridTemplateColumns: showMap ? "300px 1fr 360px" : "300px 1fr",
-              height: "calc(100vh - 50px)",
-            }}>
-            {/* Sidebar: ledige opgaver */}
-            <aside className="overflow-hidden">
-              <Card className="flex flex-col h-full overflow-hidden">
-                {/* Header section */}
-                <div className="p-3 border-b bg-secondary/30 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h2 className="font-semibold text-sm flex items-center gap-1.5">
-                      <Inbox className="h-4 w-4 text-primary" />
-                      Opgavepool
-                    </h2>
-                    <Badge variant="secondary" className="tabular-nums">
-                      {filteredUnassigned.length}
-                    </Badge>
-                  </div>
-                  {filteredUnassigned.length > 0 && (
-                    <p className="text-[10px] text-muted-foreground tabular-nums">
-                      Total værdi: <span className="font-semibold text-foreground">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span>
-                    </p>
-                  )}
-                  <div className="relative">
-                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                    <Input
-                      placeholder="Søg navn eller adresse..."
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      className="h-7 pl-7 pr-2 text-xs"
-                    />
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <ArrowUpDown className="h-3 w-3 text-muted-foreground shrink-0" />
-                    <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-                      <SelectTrigger className="h-6 text-[11px] flex-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="date" className="text-xs">Sortér efter dato</SelectItem>
-                        <SelectItem value="price" className="text-xs">Højeste pris først</SelectItem>
-                        <SelectItem value="name" className="text-xs">Navn (A-Å)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {geocoding && (
-                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                      <Loader2 className="h-2.5 w-2.5 animate-spin" />Finder GPS-koordinater...
-                    </p>
-                  )}
-                </div>
-
-                {/* Scrollable list */}
-                <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
-                  {filteredUnassigned.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-12 px-4 text-center gap-2">
-                      <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
-                        <Inbox className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <p className="text-xs text-muted-foreground italic">
-                        {search ? "Ingen opgaver matcher søgningen" : "Alle opgaver er planlagt 🎉"}
-                      </p>
+          <div className="flex-1 overflow-hidden p-3" style={{ height: "calc(100vh - 50px)" }}>
+            <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg">
+              {/* Sidebar: Opgavepool */}
+              <ResizablePanel defaultSize={22} minSize={16} maxSize={40} className="overflow-hidden">
+                <Card className="flex flex-col h-full overflow-hidden">
+                  <div className="p-3 border-b bg-secondary/30 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h2 className="font-semibold text-sm flex items-center gap-1.5">
+                        <Inbox className="h-4 w-4 text-primary" />
+                        Opgavepool
+                      </h2>
+                      <Badge variant="secondary" className="tabular-nums">
+                        {filteredUnassigned.length}
+                      </Badge>
                     </div>
-                  )}
-                  {filteredUnassigned.map((job: any) => (
-                    <UnassignedJobCard key={job.id} job={job} />
-                  ))}
-                </div>
-              </Card>
-            </aside>
-
-            {/* Calendar */}
-            <main className="overflow-hidden">
-              <CalendarPlanner
-                routeDate={date}
-                columns={calendarColumns}
-                selectedStopId={selectedStopId}
-                onSelectStop={setSelectedStopId}
-              />
-            </main>
-
-            {/* Map */}
-            {showMap && (
-              <aside className="overflow-hidden">
-                <Card className="p-2 h-full flex flex-col">
-                  <div className="flex items-center justify-between mb-2 px-1">
-                    <h2 className="font-semibold text-sm flex items-center gap-1.5">
-                      <MapIcon className="h-4 w-4 text-primary" />Kort
-                    </h2>
-                    <p className="text-[10px] text-muted-foreground">
-                      {mapRoutes.reduce((acc, r) => acc + r.stops.length, 0)} planlagt · {unassignedMapStops.length} ledige
-                    </p>
+                    {filteredUnassigned.length > 0 && (
+                      <p className="text-[10px] text-muted-foreground tabular-nums">
+                        Total værdi: <span className="font-semibold text-foreground">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span>
+                      </p>
+                    )}
+                    <div className="relative">
+                      <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                      <Input
+                        placeholder="Søg navn eller adresse..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="h-7 pl-7 pr-7 text-xs"
+                      />
+                      {search && (
+                        <button
+                          type="button"
+                          onClick={() => setSearch("")}
+                          className="absolute right-1.5 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center rounded hover:bg-secondary text-muted-foreground"
+                          aria-label="Ryd søgning"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <ArrowUpDown className="h-3 w-3 text-muted-foreground shrink-0" />
+                      <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                        <SelectTrigger className="h-6 text-[11px] flex-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="date" className="text-xs">Sortér efter dato</SelectItem>
+                          <SelectItem value="price" className="text-xs">Højeste pris først</SelectItem>
+                          <SelectItem value="name" className="text-xs">Navn (A-Å)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {geocoding && (
+                      <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <Loader2 className="h-2.5 w-2.5 animate-spin" />Finder GPS-koordinater...
+                      </p>
+                    )}
                   </div>
-                  <div className="flex-1 min-h-0">
-                    <RouteMap
-                      routes={mapRoutes}
-                      unassigned={unassignedMapStops}
-                      selectedStopId={selectedStopId}
-                      onStopClick={setSelectedStopId}
-                    />
+
+                  <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
+                    {filteredUnassigned.length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-12 px-4 text-center gap-2">
+                        <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
+                          <Inbox className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <p className="text-xs text-muted-foreground italic">
+                          {search
+                            ? "Ingen opgaver matcher søgningen"
+                            : routes.length === 0
+                              ? "Opret en rute først, så kan du trække opgaver herfra og ind i kalenderen"
+                              : "Alle opgaver er planlagt 🎉"}
+                        </p>
+                        {search && (
+                          <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => setSearch("")}>
+                            Ryd søgning
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                    {filteredUnassigned.map((job: any) => (
+                      <UnassignedJobCard key={job.id} job={job} />
+                    ))}
                   </div>
                 </Card>
-              </aside>
-            )}
+              </ResizablePanel>
+
+              <ResizableHandle withHandle className="bg-transparent w-2 hover:bg-primary/20 transition-colors" />
+
+              {/* Calendar */}
+              <ResizablePanel defaultSize={78} className="overflow-hidden">
+                <CalendarPlanner
+                  routeDate={date}
+                  columns={calendarColumns}
+                  selectedStopId={selectedStopId}
+                  onSelectStop={setSelectedStopId}
+                />
+              </ResizablePanel>
+            </ResizablePanelGroup>
           </div>
         ) : (
           <WeekView
@@ -643,6 +700,57 @@ const Planner = () => {
             onPickDate={(d) => { setDate(d); setView("day"); }}
           />
         )}
+
+        {/* Map drawer — undgår overlap med stop-detail-sheet ved at åbne fra højre på kommando */}
+        <Sheet open={showMap} onOpenChange={setShowMap}>
+          <SheetContent side="right" className="w-[min(720px,90vw)] sm:max-w-none p-0 flex flex-col">
+            <SheetHeader className="px-4 py-3 border-b shrink-0">
+              <SheetTitle className="flex items-center gap-2 text-base">
+                <MapIcon className="h-4 w-4 text-primary" />Kort
+              </SheetTitle>
+              <SheetDescription className="text-xs">
+                {mapRoutes.reduce((acc, r) => acc + r.stops.length, 0)} planlagte stops · {unassignedMapStops.length} ledige opgaver
+              </SheetDescription>
+            </SheetHeader>
+            <div className="flex-1 min-h-0 p-2">
+              <RouteMap
+                routes={mapRoutes}
+                unassigned={unassignedMapStops}
+                selectedStopId={selectedStopId}
+                onStopClick={setSelectedStopId}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Slet rute bekræftelse */}
+        <AlertDialog open={!!routeToDelete} onOpenChange={(o) => !o && setRouteToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Slet rute?</AlertDialogTitle>
+              <AlertDialogDescription>
+                <strong>{routeToDelete?.name}</strong> og alle dens stops slettes permanent.
+                Tilkoblede medarbejdere fjernes fra ruten, og opgaverne ryger tilbage i opgavepoolen.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annullér</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (routeToDelete) {
+                    deleteRoute.mutate(routeToDelete.id, {
+                      onSuccess: () => toast.success(`${routeToDelete.name} slettet`),
+                    });
+                    setRouteToDelete(null);
+                  }
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Slet rute
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <DragOverlay>
           {activeDragId && activeDragData?.type === "job" && (
