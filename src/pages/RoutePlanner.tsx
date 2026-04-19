@@ -463,12 +463,13 @@ const Planner = () => {
     const label = routeName || "Rute";
     try {
       const result = await optimizeRoute.mutateAsync(routeId);
-      const groupNote = result.groups && result.groups > 1
-        ? ` · ${result.groups} medarbejder-grupper`
+      const empNote = result.employees && result.employees > 1
+        ? ` · ${result.employees} medarbejdere`
         : "";
+      const unassignedNote = result.unassigned ? ` · ${result.unassigned} kunne ikke planlægges` : "";
       toast.success(
-        `${label}: ${result.total_km.toFixed(1)} km · ${Math.floor(result.total_minutes / 60)}t ${result.total_minutes % 60}m${groupNote}`,
-        { description: result.reasoning },
+        `${label}: ${result.total_km.toFixed(1)} km · ${Math.floor(result.total_minutes / 60)}t ${result.total_minutes % 60}m${empNote}${unassignedNote}`,
+        { description: result.summary || result.reasoning },
       );
     } catch { /* error toast handled in hook */ }
     finally { setOptimizingRouteId(null); }
