@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     }
 
     const query = [address, zip, city, "Danmark"].filter(Boolean).join(", ");
-    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=dk&q=${encodeURIComponent(query)}`;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&countrycodes=dk&q=${encodeURIComponent(query)}`;
 
     const resp = await fetch(url, {
       headers: { "User-Agent": "Serviceydere/1.0 (kontakt@serviceydere.dk)" },
@@ -39,11 +39,28 @@ Deno.serve(async (req) => {
       });
     }
     const hit = data[0];
+    // Build a clean Danish-format display name: "Vej Nr, 1234 By"
+    // Nominatim returns address parts when addressdetails=1 — but to keep this lightweight
+    // we parse from the input + display fallback.
+    const addr = hit.address || {};
+    const road = addr.road || addr.pedestrian || addr.residential || "";
+    const houseNumber = addr.house_number || "";
+    const postcode = addr.postcode || zip || "";
+    const town = addr.city || addr.town || addr.village || addr.municipality || city || "";
+    let formatted = "";
+    if (road) {
+      formatted = `${road}${houseNumber ? " " + houseNumber : ""}`;
+      if (postcode || town) formatted += `, ${[postcode, town].filter(Boolean).join(" ")}`;
+    } else {
+      // Fallback: use what user typed
+      formatted = [address, [zip, city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+    }
     return new Response(JSON.stringify({
       found: true,
       latitude: parseFloat(hit.lat),
       longitude: parseFloat(hit.lon),
-      display_name: hit.display_name,
+      display_name: formatted,
+      raw_display_name: hit.display_name,
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
