@@ -398,19 +398,43 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 <p className="text-xs text-muted-foreground -mt-1">Adressen hvor servicen skal udføres — bruges til ruteplanlægning.</p>
                 <div>
                   <label className="mb-1 block text-xs font-medium text-muted-foreground">Adresse (vej + nr.)</label>
-                  <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Hovedgaden 12" className="rounded-lg" />
+                  <Input value={address} onChange={(e) => onAddressChange(e.target.value)} placeholder="Hovedgaden 12" className="rounded-lg" />
                 </div>
                 <div className="grid grid-cols-[1fr_2fr] gap-2">
                   <div>
                     <label className="mb-1 block text-xs font-medium text-muted-foreground">Postnr.</label>
-                    <Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} placeholder="8600" className="rounded-lg" inputMode="numeric" maxLength={4} />
+                    <Input value={zipCode} onChange={(e) => onZipChange(e.target.value)} placeholder="8600" className="rounded-lg" inputMode="numeric" maxLength={4} />
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-medium text-muted-foreground">By</label>
-                    <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Silkeborg" className="rounded-lg" />
+                    <Input value={city} onChange={(e) => onCityChange(e.target.value)} placeholder="Silkeborg" className="rounded-lg" />
                   </div>
                 </div>
+
+                {/* Verify address button + status */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button" variant="outline" size="sm"
+                    disabled={verifying || !address || !zipCode || !city}
+                    onClick={verifyAddress}
+                    className="h-8 text-xs"
+                  >
+                    {verifying ? "Tjekker..." : "Bekræft adresse"}
+                  </Button>
+                  {geo?.ok && (
+                    <span className="text-xs text-green-600 flex items-center gap-1">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Adresse fundet
+                    </span>
+                  )}
+                  {geo && !geo.ok && (
+                    <span className="text-xs text-destructive">Kunne ikke finde — ret stavemåde</span>
+                  )}
+                </div>
+                {geo?.ok && geo.display && (
+                  <p className="text-[11px] text-muted-foreground italic truncate">📍 {geo.display}</p>
+                )}
               </div>
+
 
               {/* Preferred timing (optional) */}
               <div className="space-y-3">
