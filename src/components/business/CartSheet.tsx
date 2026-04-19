@@ -536,7 +536,8 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                               <Button
                                 variant="outline"
                                 className={cn(
-                                  "w-full justify-start gap-2 rounded-lg bg-background font-normal h-10",
+                                  "w-full justify-start gap-2 rounded-lg bg-background font-normal h-10 border-border",
+                                  "hover:bg-accent/5 hover:text-foreground hover:border-accent/40",
                                   !selectedDate && "text-muted-foreground"
                                 )}
                               >
