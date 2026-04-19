@@ -47,11 +47,53 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
   const [preferredTimeStart, setPreferredTimeStart] = useState("");
   const [preferredTimeEnd, setPreferredTimeEnd] = useState("");
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [geo, setGeo] = useState<{ ok: boolean; display?: string; lat?: number; lng?: number } | null>(null);
+
+  // Reset verification whenever address changes
+  const onAddressChange = (v: string) => { setAddress(v); setGeo(null); };
+  const onZipChange = (v: string) => { setZipCode(v); setGeo(null); };
+  const onCityChange = (v: string) => { setCity(v); setGeo(null); };
+
+  const verifyAddress = async (): Promise<{ lat?: number; lng?: number } | null> => {
+    if (!address.trim() || !zipCode.trim() || !city.trim()) {
+      toast.error("Udfyld adresse, postnr. og by");
+      return null;
+    }
+    setVerifying(true);
+    try {
+      const fullAddress = `${address}, ${zipCode} ${city}`;
+      const { data } = await supabase.functions.invoke("geocode-address", {
+        body: { address: fullAddress },
+      });
+      if (data?.found && data.latitude && data.longitude) {
+        setGeo({ ok: true, display: data.display_name, lat: data.latitude, lng: data.longitude });
+        return { lat: data.latitude, lng: data.longitude };
+      }
+      setGeo({ ok: false });
+      return null;
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const handleOrder = async () => {
     if (!name || !email || !phone || !address || !zipCode || !city) {
       toast.error("Udfyld venligst alle felter inkl. adresse for at sende bestillingen");
       return;
+    }
+
+    // Block until address can be geocoded — protects route planner from typos
+    let coords = geo?.ok ? { lat: geo.lat!, lng: geo.lng! } : null;
+    if (!coords) {
+      const r = await verifyAddress();
+      if (!r) {
+        toast.error("Vi kunne ikke finde adressen — tjek stavemåde og postnummer", {
+          description: "Adressen skal være gyldig før vi kan planlægge en rute.",
+        });
+        return;
+      }
+      coords = { lat: r.lat!, lng: r.lng! };
     }
 
     try {
@@ -67,6 +109,8 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
             address,
             zip_code: zipCode,
             city,
+            latitude: coords.lat,
+            longitude: coords.lng,
             preferred_date: preferredDate || null,
             preferred_time_start: preferredTimeStart || null,
             preferred_time_end: preferredTimeEnd || null,
@@ -87,20 +131,6 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
             },
           })),
         });
-
-        // Auto-geocode customer address (best-effort, non-blocking)
-        const fullAddress = `${address}, ${zipCode} ${city}`;
-        supabase.functions
-          .invoke("geocode-address", { body: { address: fullAddress } })
-          .then(({ data }) => {
-            if (data?.latitude && data?.longitude) {
-              return supabase
-                .from("orders")
-                .update({ latitude: data.latitude, longitude: data.longitude })
-                .eq("id", orderResult.id);
-            }
-          })
-          .catch(() => { /* ignore */ });
 
         if (user && businessId !== "unknown") {
           for (const item of group.items) {
@@ -368,19 +398,43 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 <p className="text-xs text-muted-foreground -mt-1">Adressen hvor servicen skal udføres — bruges til ruteplanlægning.</p>
                 <div>
                   <label className="mb-1 block text-xs font-medium text-muted-foreground">Adresse (vej + nr.)</label>
-                  <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Hovedgaden 12" className="rounded-lg" />
+                  <Input value={address} onChange={(e) => onAddressChange(e.target.value)} placeholder="Hovedgaden 12" className="rounded-lg" />
                 </div>
                 <div className="grid grid-cols-[1fr_2fr] gap-2">
                   <div>
                     <label className="mb-1 block text-xs font-medium text-muted-foreground">Postnr.</label>
-                    <Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} placeholder="8600" className="rounded-lg" inputMode="numeric" maxLength={4} />
+                    <Input value={zipCode} onChange={(e) => onZipChange(e.target.value)} placeholder="8600" className="rounded-lg" inputMode="numeric" maxLength={4} />
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-medium text-muted-foreground">By</label>
-                    <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Silkeborg" className="rounded-lg" />
+                    <Input value={city} onChange={(e) => onCityChange(e.target.value)} placeholder="Silkeborg" className="rounded-lg" />
                   </div>
                 </div>
+
+                {/* Verify address button + status */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button" variant="outline" size="sm"
+                    disabled={verifying || !address || !zipCode || !city}
+                    onClick={verifyAddress}
+                    className="h-8 text-xs"
+                  >
+                    {verifying ? "Tjekker..." : "Bekræft adresse"}
+                  </Button>
+                  {geo?.ok && (
+                    <span className="text-xs text-green-600 flex items-center gap-1">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Adresse fundet
+                    </span>
+                  )}
+                  {geo && !geo.ok && (
+                    <span className="text-xs text-destructive">Kunne ikke finde — ret stavemåde</span>
+                  )}
+                </div>
+                {geo?.ok && geo.display && (
+                  <p className="text-[11px] text-muted-foreground italic truncate">📍 {geo.display}</p>
+                )}
               </div>
+
 
               {/* Preferred timing (optional) */}
               <div className="space-y-3">
