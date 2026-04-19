@@ -32,6 +32,9 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const routeId = typeof body?.route_id === "string" ? body.route_id.trim() : "";
     const accessToken = typeof body?.access_token === "string" ? body.access_token.trim() : "";
+    // Hvis true: tillader VRP at omfordele alle stops (selv manuelt tildelte) for max gevinst.
+    // Default: true — det er standard adfærd ved klik på "Optimer".
+    const respectPinned = body?.respect_pinned === true;
 
     if (!routeId) {
       return new Response(JSON.stringify({ ok: false, error: "route_id required" }), {
