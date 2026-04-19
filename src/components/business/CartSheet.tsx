@@ -71,19 +71,21 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
   const onZipChange = (v: string) => { setZipCode(v); setGeo(null); };
   const onCityChange = (v: string) => { setCity(v); setGeo(null); };
 
-  const verifyAddress = async (): Promise<{ lat?: number; lng?: number } | null> => {
+  const verifyAddress = async (silent = false): Promise<{ lat?: number; lng?: number } | null> => {
     if (!address.trim() || !zipCode.trim() || !city.trim()) {
-      toast.error("Udfyld adresse, postnr. og by");
+      if (!silent) toast.error("Udfyld adresse, postnr. og by");
       return null;
     }
     setVerifying(true);
     try {
       const fullAddress = `${address}, ${zipCode} ${city}`;
       const { data } = await supabase.functions.invoke("geocode-address", {
-        body: { address: fullAddress },
+        body: { address, zip_code: zipCode, city },
       });
       if (data?.found && data.latitude && data.longitude) {
-        setGeo({ ok: true, display: data.display_name, lat: data.latitude, lng: data.longitude });
+        // Use clean Danish-format display from the function
+        const display = data.display_name || `${address}, ${zipCode} ${city}`;
+        setGeo({ ok: true, display, lat: data.latitude, lng: data.longitude });
         return { lat: data.latitude, lng: data.longitude };
       }
       setGeo({ ok: false });
@@ -92,6 +94,16 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
       setVerifying(false);
     }
   };
+
+  // Auto-verify address as user types (debounced) — no manual button needed
+  useEffect(() => {
+    if (!checkout) return;
+    if (!address.trim() || zipCode.trim().length < 4 || !city.trim()) return;
+    if (geo) return; // already verified or failed
+    const t = setTimeout(() => { verifyAddress(true); }, 700);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, zipCode, city, checkout]);
 
   const handleOrder = async () => {
     if (!name || !email || !phone || !address || !zipCode || !city) {
