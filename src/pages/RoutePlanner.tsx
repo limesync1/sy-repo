@@ -50,6 +50,7 @@ import RouteMap, { type MapRoute, type MapStop } from "@/components/route-planne
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { CalendarPlanner, type CalendarColumn, type EmployeeOption } from "@/components/route-planner/CalendarPlanner";
+import { busyIntervalsForEmployee, findFirstFreeSlot, hhmmToMin, minToIso, minToHHmm } from "@/components/route-planner/lib/scheduling";
 import { supabase } from "@/integrations/supabase/client";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
@@ -369,12 +370,15 @@ const Planner = () => {
     if (overData?.type !== "slot") return;
 
     const targetRouteId: string = overData.routeId;
-    const slotIso = slotToIso(date, overData.slotTime);
+    const desiredMin: number = hhmmToMin(overData.slotTime) ?? 480;
 
     if (activeData?.type === "job") {
       const job = activeData.job;
       try {
         const existingStops = stopsByRoute.get(targetRouteId) || [];
+        // Nyt stop er endnu ikke tildelt en medarbejder → ingen busy-check
+        const finalMin = desiredMin;
+        const slotIso = minToIso(date, finalMin);
         await addStop.mutateAsync({
           route_id: targetRouteId,
           order_id: job.id,
@@ -397,7 +401,7 @@ const Planner = () => {
             planned_arrival: slotIso,
           });
         }
-        toast.success(`Tilføjet kl. ${overData.slotTime}`);
+        toast.success(`Tilføjet kl. ${minToHHmm(finalMin)}`);
       } catch (err: any) {
         toast.error(err.message || "Kunne ikke tilføje stop");
       }
@@ -407,14 +411,27 @@ const Planner = () => {
     if (activeData?.type === "stop") {
       const draggedStop: RouteStop = activeData.stop;
       try {
+        const targetStops = stopsByRoute.get(targetRouteId) || [];
+        // Anti-overlap: hvis stoppet har en tildelt medarbejder, find første ledige slot
+        // efter desiredMin der ikke kolliderer med et andet stop hos samme medarbejder.
+        let finalMin = desiredMin;
+        if (draggedStop.assigned_employee_id) {
+          const busy = busyIntervalsForEmployee(
+            targetStops,
+            draggedStop.assigned_employee_id,
+            draggedStop.id,
+          );
+          finalMin = findFirstFreeSlot(desiredMin, draggedStop.duration_minutes, busy);
+        }
+        const slotIso = minToIso(date, finalMin);
+        const moved = finalMin !== desiredMin;
+
         if (draggedStop.route_id !== targetRouteId) {
-          const targetStops = stopsByRoute.get(targetRouteId) || [];
           await updateStop.mutateAsync({
             id: draggedStop.id,
             route_id: targetRouteId,
             sequence: targetStops.length,
             planned_arrival: slotIso,
-            // Clear assignment when moved to different route
             assigned_employee_id: null,
           });
         } else {
@@ -423,7 +440,13 @@ const Planner = () => {
             planned_arrival: slotIso,
           });
         }
-        toast.success(`Flyttet til kl. ${overData.slotTime}`);
+        if (moved) {
+          toast.info(
+            `Flyttet til kl. ${minToHHmm(finalMin)} (rykket fra ${overData.slotTime} for at undgå overlap)`,
+          );
+        } else {
+          toast.success(`Flyttet til kl. ${minToHHmm(finalMin)}`);
+        }
       } catch (err: any) {
         toast.error(err.message || "Kunne ikke flytte stop");
       }
