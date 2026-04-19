@@ -13,11 +13,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   MapPin, Phone, Mail, Clock, Navigation, Trash2, Save, CheckCircle2,
-  AlertCircle, Calendar as CalendarIcon, Banknote, FileText,
+  AlertCircle, Calendar as CalendarIcon, Banknote, FileText, Repeat, PauseCircle, Hash,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
+import { INTERVAL_LABELS } from "@/types/service";
 
 type Props = {
   stop: RouteStop | null;
