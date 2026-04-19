@@ -47,7 +47,15 @@ const CATEGORIES = [
   { label: "Sikkerhed", icon: ShieldCheck },
 ];
 
-const BusinessCard = ({ biz }: { biz: any }) => {
+const BusinessCard = ({
+  biz,
+  onHover,
+  isHighlighted,
+}: {
+  biz: any;
+  onHover?: (id: string | null) => void;
+  isHighlighted?: boolean;
+}) => {
   const cats: string[] = Array.isArray(biz.categories) && biz.categories.length > 0
     ? biz.categories
     : biz.category ? [biz.category] : [];
@@ -56,8 +64,18 @@ const BusinessCard = ({ biz }: { biz: any }) => {
   const avg = biz._avgRating || 0;
   const cnt = biz._reviewCount || 0;
 
+  // Stop propagation on action buttons so the wrapping link doesn't navigate.
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
+
   return (
-    <Link to={`/b/${biz.slug}`} className="group flex flex-col gap-3">
+    <Link
+      to={`/b/${biz.slug}`}
+      onMouseEnter={() => onHover?.(biz.id)}
+      onMouseLeave={() => onHover?.(null)}
+      className={`group relative flex flex-col gap-3 rounded-2xl p-2 -m-2 transition-all ${
+        isHighlighted ? "ring-2 ring-accent ring-offset-2 ring-offset-background" : ""
+      }`}
+    >
       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-secondary">
         {biz.cover_image_url ? (
           <img
@@ -72,7 +90,9 @@ const BusinessCard = ({ biz }: { biz: any }) => {
           </div>
         )}
 
-        <FavoriteButton businessId={biz.id} />
+        <div onClick={stop}>
+          <FavoriteButton businessId={biz.id} />
+        </div>
 
         {biz.is_verified && (
           <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur">
@@ -128,6 +148,24 @@ const BusinessCard = ({ biz }: { biz: any }) => {
             </span>
           </div>
         )}
+
+        {/* Quick actions — visible on hover (desktop) and always on touch devices for accessibility */}
+        <div className="mt-2 flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+          <span className="inline-flex flex-1 items-center justify-center gap-1 rounded-full bg-foreground px-3 py-1.5 text-[12px] font-semibold text-background hover:bg-foreground/90">
+            Se virksomhed
+            <ArrowRight className="h-3 w-3" />
+          </span>
+          {biz.phone && (
+            <a
+              href={`tel:${biz.phone}`}
+              onClick={stop}
+              aria-label={`Ring til ${biz.name}`}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-foreground hover:border-foreground/40 hover:bg-secondary"
+            >
+              <Phone className="h-3.5 w-3.5" />
+            </a>
+          )}
+        </div>
       </div>
     </Link>
   );
