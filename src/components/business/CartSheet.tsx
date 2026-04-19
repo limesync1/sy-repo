@@ -453,24 +453,78 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
               </div>
 
 
-              {/* Preferred timing (optional) */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-semibold text-foreground">Ønsket tidspunkt <span className="text-xs font-normal text-muted-foreground">(valgfrit)</span></h4>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Dato</label>
-                  <Input type="date" value={preferredDate} onChange={(e) => setPreferredDate(e.target.value)} className="rounded-lg" min={new Date().toISOString().split("T")[0]} />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Fra</label>
-                    <Input type="time" value={preferredTimeStart} onChange={(e) => setPreferredTimeStart(e.target.value)} className="rounded-lg" />
+              {/* Schedule mode toggle: ASAP vs choose date */}
+              {(() => {
+                const hasRecurring = items.some(i => i.interval && i.interval !== "engangskøb");
+                return (
+                  <div className="space-y-3">
+                    <div>
+                      <h4 className="text-sm font-semibold text-foreground">
+                        {hasRecurring ? "Hvornår skal første besøg være?" : "Hvornår vil du have det udført?"}
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {hasRecurring
+                          ? "Næste besøg planlægges automatisk efter dit valgte interval."
+                          : "Vælg en dato eller lad virksomheden kontakte dig hurtigst muligt."}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => { setScheduleMode("asap"); setPreferredDate(""); setPreferredTimeStart(""); setPreferredTimeEnd(""); }}
+                        className={`flex flex-col items-start gap-1 rounded-xl border-2 p-3 text-left transition-all ${
+                          scheduleMode === "asap"
+                            ? "border-accent bg-accent/5"
+                            : "border-border bg-card hover:border-accent/40"
+                        }`}
+                      >
+                        <Zap className={`h-4 w-4 ${scheduleMode === "asap" ? "text-accent" : "text-muted-foreground"}`} />
+                        <span className="text-sm font-semibold text-foreground">Hurtigst muligt</span>
+                        <span className="text-[11px] text-muted-foreground leading-tight">Virksomheden kontakter dig for aftale</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setScheduleMode("schedule"); if (!preferredDate) setPreferredDate(tomorrowISO()); }}
+                        className={`flex flex-col items-start gap-1 rounded-xl border-2 p-3 text-left transition-all ${
+                          scheduleMode === "schedule"
+                            ? "border-accent bg-accent/5"
+                            : "border-border bg-card hover:border-accent/40"
+                        }`}
+                      >
+                        <CalendarDays className={`h-4 w-4 ${scheduleMode === "schedule" ? "text-accent" : "text-muted-foreground"}`} />
+                        <span className="text-sm font-semibold text-foreground">Vælg dato</span>
+                        <span className="text-[11px] text-muted-foreground leading-tight">Vælg dato og evt. tidspunkt</span>
+                      </button>
+                    </div>
+
+                    {scheduleMode === "schedule" && (
+                      <div className="space-y-3 rounded-xl border border-border bg-secondary/30 p-3">
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                            {hasRecurring ? "Dato for første besøg" : "Dato"}
+                          </label>
+                          <Input
+                            type="date"
+                            value={preferredDate}
+                            onChange={(e) => setPreferredDate(e.target.value)}
+                            className="rounded-lg bg-background"
+                            min={new Date().toISOString().split("T")[0]}
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-muted-foreground">Tidsvindue (valgfrit)</label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input type="time" value={preferredTimeStart} onChange={(e) => setPreferredTimeStart(e.target.value)} className="rounded-lg bg-background" placeholder="Fra" />
+                            <Input type="time" value={preferredTimeEnd} onChange={(e) => setPreferredTimeEnd(e.target.value)} className="rounded-lg bg-background" placeholder="Til" />
+                          </div>
+                          <p className="mt-1 text-[11px] text-muted-foreground">Fx 08:00–12:00. Lad stå tomt hvis du er fleksibel.</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Til</label>
-                    <Input type="time" value={preferredTimeEnd} onChange={(e) => setPreferredTimeEnd(e.target.value)} className="rounded-lg" />
-                  </div>
-                </div>
-              </div>
+                );
+              })()}
 
               {/* Order summary */}
               <div className="rounded-xl border border-border overflow-hidden">
