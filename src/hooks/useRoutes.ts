@@ -505,8 +505,9 @@ export const useOptimizeRoute = () => {
   });
 };
 
-/* ─── Auto-fordel: tildel utildelte stops til nærmeste medarbejder
-   baseret på balanceret round-robin (færre stops først). ─── */
+/* ─── Auto-fordel: tildel utildelte stops til medarbejdere uden at skabe overlap.
+   Vælger medarbejder med færrest stops OG hvor stoppets tidsvindue er ledigt.
+   Hvis ingen er ledige, vælges den med færrest stops (fallback) — UI viser så konflikt-badge. ─── */
 export const useAutoAssignStops = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -514,14 +515,35 @@ export const useAutoAssignStops = () => {
       if (employeeIds.length === 0) throw new Error("Ingen medarbejdere tilkoblet");
       const { data: stops, error } = await supabase
         .from("route_stops")
-        .select("id, assigned_employee_id, latitude, longitude")
+        .select("id, assigned_employee_id, latitude, longitude, planned_arrival, duration_minutes")
         .eq("route_id", routeId);
       if (error) throw error;
 
       const unassigned = (stops || []).filter((s) => !s.assigned_employee_id);
       if (unassigned.length === 0) return { assigned: 0 };
 
-      // Tæl eksisterende stops pr. medarbejder for balance
+      // Helper: minutter siden midnat
+      const isoMin = (iso: string | null) => {
+        if (!iso) return null;
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return null;
+        return d.getHours() * 60 + d.getMinutes();
+      };
+
+      // Byg busy-intervaller pr. medarbejder
+      type Busy = { start: number; end: number };
+      const busyByEmp = new Map<string, Busy[]>();
+      for (const eid of employeeIds) busyByEmp.set(eid, []);
+      for (const s of stops || []) {
+        if (!s.assigned_employee_id || !busyByEmp.has(s.assigned_employee_id)) continue;
+        const start = isoMin(s.planned_arrival);
+        if (start == null) continue;
+        busyByEmp.get(s.assigned_employee_id)!.push({
+          start, end: start + Math.max(s.duration_minutes || 30, 15),
+        });
+      }
+
+      // Tæl total stops pr. medarbejder for balance
       const counts = new Map<string, number>();
       for (const eid of employeeIds) counts.set(eid, 0);
       for (const s of stops || []) {
@@ -530,16 +552,36 @@ export const useAutoAssignStops = () => {
         }
       }
 
-      // Fordel utildelte til den medarbejder med færrest stops
       const assignments: { id: string; assigned_employee_id: string }[] = [];
       for (const stop of unassigned) {
-        let pickedId = employeeIds[0];
-        let pickedCount = counts.get(pickedId) ?? Infinity;
-        for (const eid of employeeIds) {
-          const c = counts.get(eid) ?? 0;
-          if (c < pickedCount) { pickedCount = c; pickedId = eid; }
+        const start = isoMin(stop.planned_arrival);
+        const dur = Math.max(stop.duration_minutes || 30, 15);
+        const end = start != null ? start + dur : null;
+
+        // 1. find ledige (uden overlap), foretræk færrest stops
+        let pickedId: string | null = null;
+        let pickedCount = Infinity;
+        if (start != null && end != null) {
+          for (const eid of employeeIds) {
+            const busy = busyByEmp.get(eid) || [];
+            const clash = busy.some((b) => start < b.end && end > b.start);
+            if (clash) continue;
+            const c = counts.get(eid) ?? 0;
+            if (c < pickedCount) { pickedCount = c; pickedId = eid; }
+          }
         }
-        counts.set(pickedId, pickedCount + 1);
+        // 2. fallback: færrest stops uanset
+        if (!pickedId) {
+          for (const eid of employeeIds) {
+            const c = counts.get(eid) ?? 0;
+            if (c < pickedCount) { pickedCount = c; pickedId = eid; }
+          }
+          if (!pickedId) pickedId = employeeIds[0];
+        }
+        counts.set(pickedId, (counts.get(pickedId) ?? 0) + 1);
+        if (start != null && end != null) {
+          busyByEmp.get(pickedId)!.push({ start, end });
+        }
         assignments.push({ id: stop.id, assigned_employee_id: pickedId });
       }
 
