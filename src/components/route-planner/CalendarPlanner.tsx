@@ -491,7 +491,7 @@ const StopBlock = ({
               <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shrink-0" title="I gang" />
             )}
             {!hasCoords && (
-              <AlertCircle className="h-3 w-3 text-orange-500 shrink-0" title="Mangler GPS" />
+              <span title="Mangler GPS"><AlertCircle className="h-3 w-3 text-orange-500 shrink-0" /></span>
             )}
           </div>
 
