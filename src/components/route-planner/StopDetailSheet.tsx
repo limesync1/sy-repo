@@ -50,6 +50,8 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
   const items = useMemo(() => (order as any)?.order_items || [], [order]);
   const totalAmount = Number((order as any)?.total_amount || 0);
+  const subscriptions: any[] = (order as any)?.subscriptions || [];
+  const business = (order as any)?.businesses;
 
   if (!stop) return null;
 
@@ -91,10 +93,20 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   };
 
   const customerEmail = (order as any)?.customer_email;
+  const orderStatus = (order as any)?.status;
+  const orderNotes = (order as any)?.notes;
+  const orderCreatedAt = (order as any)?.created_at;
   const preferredDate = (order as any)?.preferred_date;
   const preferredStart = (order as any)?.preferred_time_start?.slice(0, 5);
   const preferredEnd = (order as any)?.preferred_time_end?.slice(0, 5);
   const hasCoords = stop.latitude != null && stop.longitude != null;
+
+  // Detect any active subscription (recurring) and any paused state
+  const activeSub = subscriptions.find((s) => s.status === "active");
+  const pausedSub = subscriptions.find((s) => s.status === "paused");
+  const recurringInterval = activeSub?.interval || pausedSub?.interval || (
+    items.find((i: any) => i.details?.interval && i.details.interval !== "engangskøb")?.details?.interval
+  );
 
   return (
     <>
