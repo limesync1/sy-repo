@@ -74,6 +74,66 @@ const minutesToY = (mins: number): number => {
   return (offset / SLOT_MIN) * SLOT_HEIGHT;
 };
 
+// Lane-allokering à la Google Calendar:
+// Stops der overlapper i tid grupperes i "clusters" og fordeles på baner side-om-side.
+// Returnerer Map<stopId, { lane, lanes, conflictWithSameEmployee }>.
+type StopLayout = { lane: number; lanes: number; conflictWithSameEmployee: boolean };
+const computeStopLayouts = (stops: RouteStop[]): Map<string, StopLayout> => {
+  const result = new Map<string, StopLayout>();
+  type Entry = { stop: RouteStop; start: number; end: number };
+  const entries: Entry[] = stops
+    .map((s) => {
+      const start = arrivalToMinutes(s.planned_arrival);
+      if (start == null) return null;
+      const end = start + Math.max(s.duration_minutes, SLOT_MIN);
+      return { stop: s, start, end };
+    })
+    .filter((x): x is Entry => x !== null)
+    .sort((a, b) => a.start - b.start || a.end - b.end);
+
+  // Gruppér i clusters af kontinuerligt overlappende stops
+  let cluster: Entry[] = [];
+  let clusterEnd = -Infinity;
+  const flush = () => {
+    if (cluster.length === 0) return;
+    // Tildel baner via grådig algoritme
+    const laneEnds: number[] = []; // sluttid for sidste stop i hver bane
+    const lanes: number[] = [];
+    for (const e of cluster) {
+      let assigned = -1;
+      for (let i = 0; i < laneEnds.length; i++) {
+        if (laneEnds[i] <= e.start) { assigned = i; break; }
+      }
+      if (assigned === -1) { assigned = laneEnds.length; laneEnds.push(e.end); }
+      else { laneEnds[assigned] = e.end; }
+      lanes.push(assigned);
+    }
+    const totalLanes = laneEnds.length;
+    // Tjek om flere stops i clusteret deler samme medarbejder = reel konflikt
+    const empCount = new Map<string, number>();
+    for (const e of cluster) {
+      const k = e.stop.assigned_employee_id || "";
+      if (!k) continue;
+      empCount.set(k, (empCount.get(k) || 0) + 1);
+    }
+    cluster.forEach((e, i) => {
+      const empKey = e.stop.assigned_employee_id || "";
+      const conflict = empKey ? (empCount.get(empKey) || 0) > 1 : false;
+      result.set(e.stop.id, { lane: lanes[i], lanes: totalLanes, conflictWithSameEmployee: conflict });
+    });
+    cluster = [];
+    clusterEnd = -Infinity;
+  };
+
+  for (const e of entries) {
+    if (e.start >= clusterEnd) flush();
+    cluster.push(e);
+    clusterEnd = Math.max(clusterEnd, e.end);
+  }
+  flush();
+  return result;
+};
+
 const slotIndexToTimeLabel = (i: number): string => {
   const totalMin = START_HOUR * 60 + i * SLOT_MIN;
   const h = Math.floor(totalMin / 60);
@@ -195,6 +255,9 @@ const ColumnHeader = ({ col }: { col: CalendarColumn }) => {
     (e) => !col.attachedEmployees.find((a) => a.id === e.id),
   );
   const unassignedCount = col.stops.filter((s) => !s.assigned_employee_id).length;
+  // Tæl unikke konflikter: stops hvor samme medarbejder har overlappende tider
+  const layouts = computeStopLayouts(col.stops);
+  const conflictCount = Array.from(layouts.values()).filter((l) => l.conflictWithSameEmployee).length;
 
   return (
     <div
@@ -316,6 +379,15 @@ const ColumnHeader = ({ col }: { col: CalendarColumn }) => {
             <AlertCircle className="h-2.5 w-2.5" />{unassignedCount} utildelt
           </Badge>
         )}
+        {conflictCount > 0 && (
+          <Badge
+            variant="outline"
+            className="text-[9px] h-4 px-1 gap-0.5 border-destructive/50 text-destructive bg-destructive/5 tabular-nums"
+            title="Samme medarbejder har overlappende tider"
+          >
+            <AlertCircle className="h-2.5 w-2.5" />{conflictCount} konflikt
+          </Badge>
+        )}
         {col.totalKm != null && col.totalKm > 0 && (
           <Badge variant="outline" className="text-[9px] h-4 px-1 gap-0.5 tabular-nums">
             <Navigation className="h-2.5 w-2.5" />{col.totalKm.toFixed(1)} km
@@ -379,6 +451,7 @@ const CalendarColumnView = ({
   onSelectStop?: (id: string) => void;
 }) => {
   const isEmpty = col.stops.length === 0;
+  const layouts = computeStopLayouts(col.stops);
   return (
     <div className="border-r relative bg-background">
       {Array.from({ length: TOTAL_SLOTS }).map((_, i) => (
@@ -395,21 +468,27 @@ const CalendarColumnView = ({
         </div>
       )}
 
-      {col.stops.map((stop) => (
-        <StopBlock
-          key={stop.id}
-          stop={stop}
-          color={
-            stop.assigned_employee_id
-              ? col.attachedEmployees.find((e) => e.id === stop.assigned_employee_id)?.color ?? col.color
-              : col.color
-          }
-          attachedEmployees={col.attachedEmployees}
-          isSelected={selectedStopId === stop.id}
-          onSelect={() => onSelectStop?.(stop.id)}
-          onAssign={col.onAssignStop}
-        />
-      ))}
+      {col.stops.map((stop) => {
+        const layout = layouts.get(stop.id) || { lane: 0, lanes: 1, conflictWithSameEmployee: false };
+        return (
+          <StopBlock
+            key={stop.id}
+            stop={stop}
+            color={
+              stop.assigned_employee_id
+                ? col.attachedEmployees.find((e) => e.id === stop.assigned_employee_id)?.color ?? col.color
+                : col.color
+            }
+            attachedEmployees={col.attachedEmployees}
+            isSelected={selectedStopId === stop.id}
+            onSelect={() => onSelectStop?.(stop.id)}
+            onAssign={col.onAssignStop}
+            lane={layout.lane}
+            lanes={layout.lanes}
+            hasConflict={layout.conflictWithSameEmployee}
+          />
+        );
+      })}
     </div>
   );
 };
@@ -453,6 +532,7 @@ const SlotCell = ({
 
 const StopBlock = ({
   stop, color, attachedEmployees, isSelected, onSelect, onAssign,
+  lane = 0, lanes = 1, hasConflict = false,
 }: {
   stop: RouteStop;
   color: string;
@@ -460,6 +540,9 @@ const StopBlock = ({
   isSelected: boolean;
   onSelect: () => void;
   onAssign?: (stopId: string, employeeId: string | null) => void;
+  lane?: number;
+  lanes?: number;
+  hasConflict?: boolean;
 }) => {
   const arrivalMin = arrivalToMinutes(stop.planned_arrival);
   if (arrivalMin == null || arrivalMin < START_HOUR * 60 || arrivalMin >= END_HOUR * 60) return null;
@@ -481,19 +564,26 @@ const StopBlock = ({
     : null;
   const isUnassigned = !assignedEmp && attachedEmployees.length > 0;
 
+  // Side-om-side layout ved overlap. Lille overlap (4%) for visuel "stack"-effekt
+  // når de ikke er valgt — gør det tydeligt at der er flere uden at miste klikflade.
+  const widthPct = lanes > 1 ? (100 / lanes) : 100;
+  const leftPct = lanes > 1 ? lane * widthPct : 0;
+
   return (
     <div
       ref={setNodeRef}
-      className={`absolute left-1 right-1 rounded-md border bg-background shadow-sm overflow-hidden cursor-pointer transition-all z-10 ${
+      className={`absolute rounded-md border bg-background shadow-sm overflow-hidden cursor-pointer transition-all z-10 ${
         isDragging ? "opacity-40 scale-95" : ""
       } ${
-        isSelected ? "ring-2 ring-primary border-primary shadow-lg z-20"
+        isSelected ? "ring-2 ring-primary border-primary shadow-lg z-30"
           : isDone ? "opacity-60"
           : "hover:shadow-md hover:z-20 hover:border-foreground/30"
-      }`}
+      } ${hasConflict ? "ring-1 ring-destructive/60" : ""}`}
       style={{
         top: `${top}px`,
         height: `${heightPx}px`,
+        left: `calc(${leftPct}% + 2px)`,
+        width: `calc(${widthPct}% - 4px)`,
         borderLeftWidth: "4px",
         borderLeftColor: color,
         background: isDone ? "hsl(var(--secondary))" : undefined,
