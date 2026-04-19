@@ -753,7 +753,7 @@ export const useMyRouteData = (routeId: string | undefined) => {
         .from("route_stops")
         .select("*")
         .eq("route_id", routeId!)
-        .eq("assigned_employee_id", emp.id)
+        .or(`assigned_employee_id.eq.${emp.id},assigned_employee_id.is.null`)
         .order("sequence", { ascending: true });
 
       return {
