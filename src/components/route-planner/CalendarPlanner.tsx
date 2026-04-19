@@ -520,6 +520,7 @@ const SlotCell = ({
 
 const StopBlock = ({
   stop, color, attachedEmployees, isSelected, onSelect, onAssign,
+  lane = 0, lanes = 1, hasConflict = false,
 }: {
   stop: RouteStop;
   color: string;
@@ -527,6 +528,9 @@ const StopBlock = ({
   isSelected: boolean;
   onSelect: () => void;
   onAssign?: (stopId: string, employeeId: string | null) => void;
+  lane?: number;
+  lanes?: number;
+  hasConflict?: boolean;
 }) => {
   const arrivalMin = arrivalToMinutes(stop.planned_arrival);
   if (arrivalMin == null || arrivalMin < START_HOUR * 60 || arrivalMin >= END_HOUR * 60) return null;
@@ -548,19 +552,26 @@ const StopBlock = ({
     : null;
   const isUnassigned = !assignedEmp && attachedEmployees.length > 0;
 
+  // Side-om-side layout ved overlap. Lille overlap (4%) for visuel "stack"-effekt
+  // når de ikke er valgt — gør det tydeligt at der er flere uden at miste klikflade.
+  const widthPct = lanes > 1 ? (100 / lanes) : 100;
+  const leftPct = lanes > 1 ? lane * widthPct : 0;
+
   return (
     <div
       ref={setNodeRef}
-      className={`absolute left-1 right-1 rounded-md border bg-background shadow-sm overflow-hidden cursor-pointer transition-all z-10 ${
+      className={`absolute rounded-md border bg-background shadow-sm overflow-hidden cursor-pointer transition-all z-10 ${
         isDragging ? "opacity-40 scale-95" : ""
       } ${
-        isSelected ? "ring-2 ring-primary border-primary shadow-lg z-20"
+        isSelected ? "ring-2 ring-primary border-primary shadow-lg z-30"
           : isDone ? "opacity-60"
           : "hover:shadow-md hover:z-20 hover:border-foreground/30"
-      }`}
+      } ${hasConflict ? "ring-1 ring-destructive/60" : ""}`}
       style={{
         top: `${top}px`,
         height: `${heightPx}px`,
+        left: `calc(${leftPct}% + 2px)`,
+        width: `calc(${widthPct}% - 4px)`,
         borderLeftWidth: "4px",
         borderLeftColor: color,
         background: isDone ? "hsl(var(--secondary))" : undefined,
