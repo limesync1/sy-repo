@@ -74,6 +74,66 @@ const minutesToY = (mins: number): number => {
   return (offset / SLOT_MIN) * SLOT_HEIGHT;
 };
 
+// Lane-allokering à la Google Calendar:
+// Stops der overlapper i tid grupperes i "clusters" og fordeles på baner side-om-side.
+// Returnerer Map<stopId, { lane, lanes, conflictWithSameEmployee }>.
+type StopLayout = { lane: number; lanes: number; conflictWithSameEmployee: boolean };
+const computeStopLayouts = (stops: RouteStop[]): Map<string, StopLayout> => {
+  const result = new Map<string, StopLayout>();
+  type Entry = { stop: RouteStop; start: number; end: number };
+  const entries: Entry[] = stops
+    .map((s) => {
+      const start = arrivalToMinutes(s.planned_arrival);
+      if (start == null) return null;
+      const end = start + Math.max(s.duration_minutes, SLOT_MIN);
+      return { stop: s, start, end };
+    })
+    .filter((x): x is Entry => x !== null)
+    .sort((a, b) => a.start - b.start || a.end - b.end);
+
+  // Gruppér i clusters af kontinuerligt overlappende stops
+  let cluster: Entry[] = [];
+  let clusterEnd = -Infinity;
+  const flush = () => {
+    if (cluster.length === 0) return;
+    // Tildel baner via grådig algoritme
+    const laneEnds: number[] = []; // sluttid for sidste stop i hver bane
+    const lanes: number[] = [];
+    for (const e of cluster) {
+      let assigned = -1;
+      for (let i = 0; i < laneEnds.length; i++) {
+        if (laneEnds[i] <= e.start) { assigned = i; break; }
+      }
+      if (assigned === -1) { assigned = laneEnds.length; laneEnds.push(e.end); }
+      else { laneEnds[assigned] = e.end; }
+      lanes.push(assigned);
+    }
+    const totalLanes = laneEnds.length;
+    // Tjek om flere stops i clusteret deler samme medarbejder = reel konflikt
+    const empCount = new Map<string, number>();
+    for (const e of cluster) {
+      const k = e.stop.assigned_employee_id || "";
+      if (!k) continue;
+      empCount.set(k, (empCount.get(k) || 0) + 1);
+    }
+    cluster.forEach((e, i) => {
+      const empKey = e.stop.assigned_employee_id || "";
+      const conflict = empKey ? (empCount.get(empKey) || 0) > 1 : false;
+      result.set(e.stop.id, { lane: lanes[i], lanes: totalLanes, conflictWithSameEmployee: conflict });
+    });
+    cluster = [];
+    clusterEnd = -Infinity;
+  };
+
+  for (const e of entries) {
+    if (e.start >= clusterEnd) flush();
+    cluster.push(e);
+    clusterEnd = Math.max(clusterEnd, e.end);
+  }
+  flush();
+  return result;
+};
+
 const slotIndexToTimeLabel = (i: number): string => {
   const totalMin = START_HOUR * 60 + i * SLOT_MIN;
   const h = Math.floor(totalMin / 60);
