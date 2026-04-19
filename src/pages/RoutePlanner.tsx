@@ -557,7 +557,6 @@ const Planner = () => {
   };
 
   /* ─── Auto-fordel: opretter/finder ruter pr. kundens ønskede dato og lægger jobs der ─── */
-  const [distributing, setDistributing] = useState(false);
   const handleAutoDistribute = async () => {
     if (!businessId) return;
     const jobsWithDate = unassigned
