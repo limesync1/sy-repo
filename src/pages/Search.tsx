@@ -181,6 +181,7 @@ const SearchPage = () => {
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [sort, setSort] = useState<SortOption>(initialSort);
   const [view, setView] = useState<"grid" | "map">("grid");
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   useEffect(() => {
     setDebouncedQuery(searchParams.get("q") || "");
