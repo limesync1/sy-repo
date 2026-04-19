@@ -384,7 +384,9 @@ const Planner = () => {
           address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
           latitude: job.latitude,
           longitude: job.longitude,
-          service_summary: `Ordre · ${Math.round(Number(job.total_amount || 0))} kr`,
+          service_summary: (job.order_items || [])
+            .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
+            .join(", ") || "Opgave",
         });
         const created = await supabase.from("route_stops")
           .select("id").eq("route_id", targetRouteId).eq("order_id", job.id)
