@@ -439,6 +439,7 @@ const CalendarColumnView = ({
   onSelectStop?: (id: string) => void;
 }) => {
   const isEmpty = col.stops.length === 0;
+  const layouts = computeStopLayouts(col.stops);
   return (
     <div className="border-r relative bg-background">
       {Array.from({ length: TOTAL_SLOTS }).map((_, i) => (
@@ -455,21 +456,27 @@ const CalendarColumnView = ({
         </div>
       )}
 
-      {col.stops.map((stop) => (
-        <StopBlock
-          key={stop.id}
-          stop={stop}
-          color={
-            stop.assigned_employee_id
-              ? col.attachedEmployees.find((e) => e.id === stop.assigned_employee_id)?.color ?? col.color
-              : col.color
-          }
-          attachedEmployees={col.attachedEmployees}
-          isSelected={selectedStopId === stop.id}
-          onSelect={() => onSelectStop?.(stop.id)}
-          onAssign={col.onAssignStop}
-        />
-      ))}
+      {col.stops.map((stop) => {
+        const layout = layouts.get(stop.id) || { lane: 0, lanes: 1, conflictWithSameEmployee: false };
+        return (
+          <StopBlock
+            key={stop.id}
+            stop={stop}
+            color={
+              stop.assigned_employee_id
+                ? col.attachedEmployees.find((e) => e.id === stop.assigned_employee_id)?.color ?? col.color
+                : col.color
+            }
+            attachedEmployees={col.attachedEmployees}
+            isSelected={selectedStopId === stop.id}
+            onSelect={() => onSelectStop?.(stop.id)}
+            onAssign={col.onAssignStop}
+            lane={layout.lane}
+            lanes={layout.lanes}
+            hasConflict={layout.conflictWithSameEmployee}
+          />
+        );
+      })}
     </div>
   );
 };
