@@ -649,7 +649,7 @@ export const useAutoAssignStops = () => {
 
       const { data: stops, error } = await supabase
         .from("route_stops")
-        .select("id, latitude, longitude, planned_arrival, duration_minutes, required_staff")
+        .select("id, latitude, longitude, planned_arrival, planned_departure, duration_minutes, required_staff")
         .eq("route_id", routeId);
       if (error) throw error;
 
@@ -689,9 +689,8 @@ export const useAutoAssignStops = () => {
         for (const eid of ids) {
           if (counts.has(eid)) counts.set(eid, (counts.get(eid) || 0) + 1);
           if (start != null && busyByEmp.has(eid)) {
-            busyByEmp.get(eid)!.push({
-              start, end: start + Math.max(s.duration_minutes || 30, 15),
-            });
+            const end = isoMin(s.planned_departure) ?? (start + Math.max(s.duration_minutes || 30, 15));
+            busyByEmp.get(eid)!.push({ start, end });
           }
         }
       }
@@ -729,8 +728,10 @@ export const useAutoAssignStops = () => {
             return a.count - b.count;
           });
 
-        const picked = candidates.slice(0, slotsLeft);
-        if (picked.length === 0) continue;
+        const picked = (start != null && end != null)
+          ? candidates.filter((c) => !c.clash).slice(0, slotsLeft)
+          : candidates.slice(0, slotsLeft);
+        if (picked.length < slotsLeft) continue;
 
         picked.forEach((p, idx) => {
           counts.set(p.eid, (counts.get(p.eid) ?? 0) + 1);
