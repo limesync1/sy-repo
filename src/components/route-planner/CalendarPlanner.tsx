@@ -379,6 +379,15 @@ const ColumnHeader = ({ col }: { col: CalendarColumn }) => {
             <AlertCircle className="h-2.5 w-2.5" />{unassignedCount} utildelt
           </Badge>
         )}
+        {conflictCount > 0 && (
+          <Badge
+            variant="outline"
+            className="text-[9px] h-4 px-1 gap-0.5 border-destructive/50 text-destructive bg-destructive/5 tabular-nums"
+            title="Samme medarbejder har overlappende tider"
+          >
+            <AlertCircle className="h-2.5 w-2.5" />{conflictCount} konflikt
+          </Badge>
+        )}
         {col.totalKm != null && col.totalKm > 0 && (
           <Badge variant="outline" className="text-[9px] h-4 px-1 gap-0.5 tabular-nums">
             <Navigation className="h-2.5 w-2.5" />{col.totalKm.toFixed(1)} km
