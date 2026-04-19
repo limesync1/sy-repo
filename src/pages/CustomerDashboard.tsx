@@ -283,6 +283,19 @@ const OrdersView = () => {
       }).eq("id", orderId);
       if (error) throw error;
 
+      // Aktivér eller annullér tilknyttede abonnementer på baggrund af kundens svar på tilpasset forslag
+      if (response === "accepted") {
+        await supabase.from("subscriptions")
+          .update({ status: "active" })
+          .eq("order_id", orderId)
+          .eq("status", "pending");
+      } else {
+        await supabase.from("subscriptions")
+          .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
+          .eq("order_id", orderId)
+          .in("status", ["pending", "active"]);
+      }
+
       toast.success(response === "accepted" ? "Du har godkendt forslaget!" : "Du har afvist forslaget. Virksomheden vil modtage besked.");
       qc.invalidateQueries({ queryKey: ["my-orders"] });
     } catch (e: any) {
