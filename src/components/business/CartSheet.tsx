@@ -280,54 +280,81 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
           <Package className="h-5 w-5" />
           Bestilling
           {count > 0 && (
-            <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground">
+            <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground shadow-sm ring-2 ring-background animate-in zoom-in-50">
               {count}
             </span>
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="flex w-full flex-col sm:max-w-md p-0">
-        {/* Header */}
-        <div className="shrink-0 border-b border-border px-5 py-4">
-          <SheetHeader className="p-0">
-            <SheetTitle className="text-left">
-              {checkout ? (
-                 <button onClick={() => setCheckout(false)} className="flex items-center gap-2 text-base font-semibold text-foreground hover:text-foreground/80 transition-colors">
-                   <ChevronLeft className="h-4 w-4" /> Bekræft bestilling
-                 </button>
-               ) : (
-                 <div>
-                   <span className="block text-base">Din bestilling</span>
-                  {items.length > 0 && (
-                    <span className="block text-xs font-normal text-muted-foreground mt-0.5">
-                      {count} {count === 1 ? "service" : "services"}{businessCount > 1 ? ` · ${businessCount} virksomheder` : ""}
-                    </span>
-                  )}
+      <SheetContent className="flex w-full flex-col sm:max-w-md p-0 gap-0">
+        {/* Header with stepper */}
+        <div className="shrink-0 border-b border-border bg-card">
+          <div className="px-5 py-4">
+            <SheetHeader className="p-0">
+              <SheetTitle className="text-left">
+                {checkout ? (
+                  <button onClick={() => setCheckout(false)} className="flex items-center gap-2 text-base font-semibold text-foreground hover:text-accent transition-colors group">
+                    <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" /> Bekræft bestilling
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
+                      <ShoppingBag className="h-4 w-4 text-accent" />
+                    </div>
+                    <div>
+                      <span className="block text-base">Din bestilling</span>
+                      {items.length > 0 && (
+                        <span className="block text-xs font-normal text-muted-foreground mt-0.5">
+                          {count} {count === 1 ? "service" : "services"}{businessCount > 1 ? ` · ${businessCount} virksomheder` : ""}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </SheetTitle>
+            </SheetHeader>
+          </div>
+          {/* Step indicator — only when items exist */}
+          {items.length > 0 && !orderSuccess && (
+            <div className="flex items-center gap-1.5 px-5 pb-3">
+              {[
+                { label: "Kurv", active: !checkout, done: checkout },
+                { label: "Detaljer", active: checkout, done: false },
+                { label: "Bekræftet", active: false, done: false },
+              ].map((step, i) => (
+                <div key={i} className="flex-1 flex items-center gap-1.5">
+                  <div className={cn(
+                    "flex-1 h-1 rounded-full transition-colors",
+                    step.done ? "bg-accent" : step.active ? "bg-accent" : "bg-border"
+                  )} />
                 </div>
-              )}
-            </SheetTitle>
-          </SheetHeader>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Success state */}
         {orderSuccess ? (
-          <div className="flex flex-1 flex-col items-center justify-center text-center px-6">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mb-4">
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
+          <div className="flex flex-1 flex-col items-center justify-center text-center px-6 animate-in fade-in duration-300">
+            <div className="relative mb-5">
+              <div className="absolute inset-0 rounded-full bg-accent/20 blur-xl animate-pulse" />
+              <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-accent/10 ring-4 ring-accent/20">
+                <CheckCircle2 className="h-10 w-10 text-accent" strokeWidth={2.5} />
+              </div>
             </div>
-             <h3 className="text-lg font-bold text-foreground">Bestilling sendt!</h3>
-             <p className="mt-2 text-sm text-muted-foreground max-w-xs">
-               Virksomheden vil gennemgå din bestilling og vende tilbage med svar.
-               {user && " Du bliver nu sendt til dit kundepanel."}
+            <h3 className="text-xl font-bold text-foreground">Bestilling sendt! 🎉</h3>
+            <p className="mt-2 text-sm text-muted-foreground max-w-xs">
+              Virksomheden vil gennemgå din bestilling og vende tilbage med svar.
+              {user && " Du bliver nu sendt til dit kundepanel."}
             </p>
           </div>
         ) : items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center text-center px-6">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary mb-4">
-              <Package className="h-7 w-7 text-muted-foreground/30" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary mb-4">
+              <Package className="h-8 w-8 text-muted-foreground/40" />
             </div>
-             <p className="text-sm font-medium text-foreground">Din bestilling er tom</p>
-             <p className="mt-1 text-sm text-muted-foreground">Tilføj services fra virksomhedernes sider</p>
+            <p className="text-base font-semibold text-foreground">Din bestilling er tom</p>
+            <p className="mt-1.5 text-sm text-muted-foreground max-w-[240px]">Tilføj services fra virksomhedernes sider for at komme i gang</p>
           </div>
         ) : !checkout ? (
           /* ── Cart items view ── */
