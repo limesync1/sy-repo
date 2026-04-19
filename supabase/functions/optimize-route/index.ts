@@ -1,6 +1,9 @@
-// AI-drevet ruteoptimering + ægte trafik-baserede køretider via Mapbox Directions Matrix API
-// AI bestemmer rækkefølgen — Mapbox beregner præcise distancer/tider med live trafik
-// Falder tilbage til OSRM Demo, derefter haversine hvis begge fejler
+// Per-rute optimering. Behandler hver rute som en pulje af stops, der grupperes
+// pr. tildelt medarbejder. Hver medarbejder-gruppe optimeres uafhængigt med start
+// fra rutens start-adresse (virksomhedens adresse). Stops uden tildelt medarbejder
+// behandles som én ekstra gruppe, så ruten samlet stadig optimeres.
+//
+// Mapbox Directions Matrix → live trafik. OSRM → fallback. Haversine → sidste udvej.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -18,6 +21,7 @@ type Stop = {
   duration_minutes: number;
   time_window_start: string | null;
   time_window_end: string | null;
+  assigned_employee_id: string | null;
 };
 
 type LatLng = { lat: number; lng: number };
@@ -32,26 +36,18 @@ function haversine(a: LatLng, b: LatLng): number {
   return 2 * R * Math.asin(Math.sqrt(x));
 }
 
-// Mapbox Directions Matrix API — supports up to 25 coords, gives traffic-aware durations
 async function mapboxMatrix(coords: LatLng[]): Promise<Matrix | null> {
   const token = Deno.env.get("MAPBOX_ACCESS_TOKEN");
   if (!token || coords.length < 2 || coords.length > 25) return null;
   const coordStr = coords.map((c) => `${c.lng},${c.lat}`).join(";");
-  // driving-traffic = live trafik-data (peak hours, current congestion)
   const url = `https://api.mapbox.com/directions-matrix/v1/mapbox/driving-traffic/${coordStr}?annotations=duration,distance&access_token=${token}`;
   try {
     const resp = await fetch(url, { signal: AbortSignal.timeout(15000) });
-    if (!resp.ok) {
-      console.warn("Mapbox matrix HTTP", resp.status, await resp.text().catch(() => ""));
-      return null;
-    }
+    if (!resp.ok) return null;
     const json = await resp.json();
     if (!json.durations || !json.distances) return null;
     return { durations: json.durations, distances: json.distances, provider: "mapbox" };
-  } catch (e) {
-    console.warn("Mapbox matrix failed:", e);
-    return null;
-  }
+  } catch { return null; }
 }
 
 async function osrmMatrix(coords: LatLng[]): Promise<Matrix | null> {
@@ -64,42 +60,66 @@ async function osrmMatrix(coords: LatLng[]): Promise<Matrix | null> {
     const json = await resp.json();
     if (json.code !== "Ok") return null;
     return { durations: json.durations, distances: json.distances, provider: "osrm" };
-  } catch (e) {
-    console.warn("OSRM matrix failed:", e);
-    return null;
-  }
+  } catch { return null; }
 }
 
-function nearestNeighborWithMatrix(
-  startIdx: number,
-  stops: Stop[],
-  durations: number[][] | null,
-  startCoord: LatLng,
-): string[] {
-  const cost = (fromIdx: number, toStopIdx: number): number => {
-    if (durations) return durations[fromIdx][toStopIdx + 1];
-    const from = fromIdx === 0 ? startCoord : { lat: stops[fromIdx - 1].latitude!, lng: stops[fromIdx - 1].longitude! };
-    const to = { lat: stops[toStopIdx].latitude!, lng: stops[toStopIdx].longitude! };
-    return haversine(from, to);
-  };
-  const remaining = stops.map((_, i) => i);
-  const order: string[] = [];
+// 2-opt forbedring oven på nearest-neighbor. Giver typisk 10-25% kortere ruter.
+function nearestNeighbor(startIdx: number, n: number, costMatrix: number[][]): number[] {
+  // costMatrix: index 0 = start, 1..n = stops
+  const remaining = new Set<number>();
+  for (let i = 1; i <= n; i++) remaining.add(i);
+  const order: number[] = [];
   let cur = startIdx;
-  while (remaining.length) {
-    let best = remaining[0];
-    let bestCost = cost(cur, best);
+  while (remaining.size) {
+    let best = -1, bestCost = Infinity;
     for (const i of remaining) {
-      const c = cost(cur, i);
+      const c = costMatrix[cur][i];
       if (c < bestCost) { bestCost = c; best = i; }
     }
-    order.push(stops[best].id);
-    remaining.splice(remaining.indexOf(best), 1);
-    cur = best + 1;
+    order.push(best);
+    remaining.delete(best);
+    cur = best;
   }
   return order;
 }
 
-// Add minutes to "HH:mm:ss" → ISO datetime on given date
+function twoOpt(order: number[], costMatrix: number[][]): number[] {
+  if (order.length < 4) return order;
+  const route = [0, ...order]; // include start
+  let improved = true;
+  let iterations = 0;
+  while (improved && iterations < 20) {
+    improved = false;
+    iterations++;
+    for (let i = 1; i < route.length - 2; i++) {
+      for (let j = i + 1; j < route.length - 1; j++) {
+        const a = route[i - 1], b = route[i], c = route[j], d = route[j + 1];
+        const before = costMatrix[a][b] + costMatrix[c][d];
+        const after = costMatrix[a][c] + costMatrix[b][d];
+        if (after + 1e-9 < before) {
+          // reverse i..j
+          const seg = route.slice(i, j + 1).reverse();
+          route.splice(i, seg.length, ...seg);
+          improved = true;
+        }
+      }
+    }
+  }
+  return route.slice(1);
+}
+
+function buildCostMatrix(coords: LatLng[], matrix: Matrix | null): number[][] {
+  const n = coords.length;
+  const m: number[][] = Array.from({ length: n }, () => Array(n).fill(0));
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      if (i === j) continue;
+      m[i][j] = matrix ? matrix.durations[i][j] : haversine(coords[i], coords[j]) * 60; // sek
+    }
+  }
+  return m;
+}
+
 function timeToDateIso(routeDate: string, hhmmss: string, addMinutes = 0): string {
   const [h, m] = hhmmss.split(":").map(Number);
   const d = new Date(routeDate + "T00:00:00");
@@ -113,7 +133,6 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const routeId = String(body.route_id || "").trim();
-    const useAI = body.use_ai !== false;
     if (!routeId) {
       return new Response(JSON.stringify({ error: "route_id required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -137,142 +156,143 @@ Deno.serve(async (req) => {
     }
 
     const { data: stops } = await supabase
-      .from("route_stops").select("*").eq("route_id", routeId).order("sequence", { ascending: true });
-    const validStops = ((stops || []) as Stop[]).filter((s) => s.latitude != null && s.longitude != null);
+      .from("route_stops")
+      .select("*")
+      .eq("route_id", routeId)
+      .order("sequence", { ascending: true });
+
+    const allStops = (stops || []) as Stop[];
+    const validStops = allStops.filter((s) => s.latitude != null && s.longitude != null);
+
     if (validStops.length < 1) {
-      return new Response(JSON.stringify({ ok: true, message: "Ingen stop med GPS at optimere", reordered: 0 }), {
-        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({
+        ok: true, message: "Ingen stop med GPS at optimere", reordered: 0,
+        total_km: 0, total_minutes: 0, provider: "none", reasoning: "Ingen stop at optimere",
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Start address: route.start_* OR business address (always from business now)
+    // Fælles startpunkt for ALLE medarbejdere på ruten
     const start: LatLng = route.start_latitude && route.start_longitude
       ? { lat: Number(route.start_latitude), lng: Number(route.start_longitude) }
       : { lat: Number(validStops[0].latitude), lng: Number(validStops[0].longitude) };
 
-    const allCoords: LatLng[] = [start, ...validStops.map((s) => ({ lat: Number(s.latitude), lng: Number(s.longitude) }))];
-
-    // Try Mapbox first (real-time traffic), then OSRM, then haversine
-    let matrix: Matrix | null = await mapboxMatrix(allCoords);
-    if (!matrix) matrix = await osrmMatrix(allCoords);
-    const provider = matrix?.provider || "haversine";
-
-    let optimizedOrder: string[] = validStops.length >= 2
-      ? nearestNeighborWithMatrix(0, validStops, matrix?.durations || null, start)
-      : [validStops[0].id];
-    let reasoning = `Optimeret med nearest-neighbor + ${provider === "mapbox" ? "Mapbox live trafik" : provider === "osrm" ? "OSRM" : "haversine"}`;
-
-    if (useAI && validStops.length >= 2) {
-      const apiKey = Deno.env.get("LOVABLE_API_KEY");
-      if (apiKey) {
-        try {
-          const stopsForAI = validStops.map((s, i) => ({
-            id: s.id, name: s.customer_name, address: s.address,
-            duration_min: s.duration_minutes,
-            window_start: s.time_window_start, window_end: s.time_window_end,
-            travel_min_from_start: matrix ? Math.round(matrix.durations[0][i + 1] / 60) : null,
-          }));
-
-          const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-            method: "POST",
-            headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-            body: JSON.stringify({
-              model: "google/gemini-2.5-flash",
-              messages: [
-                { role: "system", content: "Du er ekspert i ruteoptimering. Minimerer total køretid mens tidsvinduer respekteres. Returnér via tool-call." },
-                { role: "user", content: `Optimér rute. Start ${route.planned_start_time || "08:00"}.\nStop:\n${JSON.stringify(stopsForAI, null, 2)}` },
-              ],
-              tools: [{
-                type: "function",
-                function: {
-                  name: "set_route_order",
-                  parameters: {
-                    type: "object",
-                    properties: {
-                      order: { type: "array", items: { type: "string" } },
-                      reasoning: { type: "string" },
-                    },
-                    required: ["order", "reasoning"], additionalProperties: false,
-                  },
-                },
-              }],
-              tool_choice: { type: "function", function: { name: "set_route_order" } },
-            }),
-          });
-          if (aiResp.ok) {
-            const aiJson = await aiResp.json();
-            const tc = aiJson.choices?.[0]?.message?.tool_calls?.[0];
-            if (tc) {
-              const args = JSON.parse(tc.function.arguments);
-              if (Array.isArray(args.order) && args.order.length > 0) {
-                const aiOrder = args.order.filter((id: string) => validStops.some((s) => s.id === id));
-                for (const s of validStops) if (!aiOrder.includes(s.id)) aiOrder.push(s.id);
-                optimizedOrder = aiOrder;
-                reasoning = (args.reasoning || "AI-optimeret") + ` · ${provider === "mapbox" ? "Mapbox trafik" : provider === "osrm" ? "OSRM" : "haversine"}`;
-              }
-            }
-          }
-        } catch (e) { console.error("AI optimization failed:", e); }
-      }
+    // Gruppér stops pr. medarbejder. null-gruppe = utildelte stops.
+    const groups = new Map<string | null, Stop[]>();
+    for (const s of validStops) {
+      const key = s.assigned_employee_id || null;
+      const arr = groups.get(key) || [];
+      arr.push(s);
+      groups.set(key, arr);
     }
 
-    // Compute precise per-leg distances + times + ETA per stop
-    const idxOf = (id: string) => validStops.findIndex((s) => s.id === id);
     const startTime = route.planned_start_time || "08:00:00";
-    let totalKm = 0, totalMin = 0;
-    let cursorMin = 0; // minutes since startTime
-    // Add initial drive from start to first stop
-    if (matrix && optimizedOrder.length > 0) {
-      const firstIdx = idxOf(optimizedOrder[0]);
-      cursorMin += Math.round(matrix.durations[0][firstIdx + 1] / 60);
-      totalKm += matrix.distances[0][firstIdx + 1] / 1000;
-      totalMin += Math.round(matrix.durations[0][firstIdx + 1] / 60);
-    }
+    let grandKm = 0, grandMin = 0;
+    let provider: "mapbox" | "osrm" | "haversine" = "haversine";
+    const groupSummaries: string[] = [];
 
-    type Update = {
-      id: string; sequence: number;
+    type StopUpdate = {
+      id: string;
+      sequence: number;
       distance_to_next_km: number | null;
       travel_time_to_next_min: number | null;
       planned_arrival: string;
       planned_departure: string;
     };
-    const updates: Update[] = [];
+    const allUpdates: StopUpdate[] = [];
+    let globalSeq = 0;
 
-    for (let i = 0; i < optimizedOrder.length; i++) {
-      const curIdx = idxOf(optimizedOrder[i]);
-      const cur = validStops[curIdx];
-      const arrivalIso = timeToDateIso(route.route_date, startTime, cursorMin);
-      cursorMin += cur.duration_minutes;
-      const departureIso = timeToDateIso(route.route_date, startTime, cursorMin);
-      totalMin += cur.duration_minutes;
+    // Optimér hver gruppe uafhængigt — alle starter fra samme adresse
+    for (const [empId, groupStops] of groups) {
+      if (groupStops.length === 0) continue;
 
-      let distKm: number | null = null, travelMin: number | null = null;
-      if (i < optimizedOrder.length - 1) {
-        const nextIdx = idxOf(optimizedOrder[i + 1]);
-        if (matrix) {
-          travelMin = Math.round(matrix.durations[curIdx + 1][nextIdx + 1] / 60);
-          distKm = Number((matrix.distances[curIdx + 1][nextIdx + 1] / 1000).toFixed(2));
-        } else {
-          const next = validStops[nextIdx];
-          distKm = Number(haversine(
-            { lat: Number(cur.latitude), lng: Number(cur.longitude) },
-            { lat: Number(next.latitude), lng: Number(next.longitude) },
-          ).toFixed(2));
-          travelMin = Math.round((distKm / 50) * 60);
-        }
-        cursorMin += travelMin || 0;
-        totalKm += distKm || 0;
-        totalMin += travelMin || 0;
+      const coords: LatLng[] = [start, ...groupStops.map((s) => ({
+        lat: Number(s.latitude), lng: Number(s.longitude),
+      }))];
+
+      let matrix: Matrix | null = null;
+      if (coords.length >= 2 && coords.length <= 25) {
+        matrix = await mapboxMatrix(coords) || await osrmMatrix(coords);
+        if (matrix && provider === "haversine") provider = matrix.provider;
+      }
+      const costMatrix = buildCostMatrix(coords, matrix);
+
+      // Find bedste rækkefølge: nearest-neighbor + 2-opt forbedring
+      let order: number[];
+      if (groupStops.length === 1) {
+        order = [1];
+      } else {
+        order = nearestNeighbor(0, groupStops.length, costMatrix);
+        order = twoOpt(order, costMatrix);
       }
 
-      updates.push({
-        id: cur.id, sequence: i,
-        distance_to_next_km: distKm, travel_time_to_next_min: travelMin,
-        planned_arrival: arrivalIso, planned_departure: departureIso,
+      // Beregn ETA, distance, varighed for denne medarbejder
+      let cursorMin = 0;
+      let groupKm = 0, groupMin = 0;
+
+      for (let i = 0; i < order.length; i++) {
+        const matIdx = order[i];
+        const stop = groupStops[matIdx - 1];
+
+        // Travel from previous (or start) to this stop
+        const prevMatIdx = i === 0 ? 0 : order[i - 1];
+        const travelSec = costMatrix[prevMatIdx][matIdx];
+        const travelMin = matrix ? Math.round(travelSec / 60) : Math.round((travelSec / 60) * (60 / 50)); // haversine ~50 km/h
+        const distKm = matrix
+          ? Number((matrix.distances[prevMatIdx][matIdx] / 1000).toFixed(2))
+          : Number(haversine(coords[prevMatIdx], coords[matIdx]).toFixed(2));
+
+        cursorMin += travelMin;
+        groupKm += distKm;
+        groupMin += travelMin;
+
+        const arrivalIso = timeToDateIso(route.route_date, startTime, cursorMin);
+        cursorMin += stop.duration_minutes;
+        const departureIso = timeToDateIso(route.route_date, startTime, cursorMin);
+        groupMin += stop.duration_minutes;
+
+        // Distance/time TO NEXT stop (eller null hvis sidste)
+        let toNextKm: number | null = null, toNextMin: number | null = null;
+        if (i < order.length - 1) {
+          const nextMatIdx = order[i + 1];
+          toNextMin = matrix
+            ? Math.round(costMatrix[matIdx][nextMatIdx] / 60)
+            : Math.round((costMatrix[matIdx][nextMatIdx] / 60) * (60 / 50));
+          toNextKm = matrix
+            ? Number((matrix.distances[matIdx][nextMatIdx] / 1000).toFixed(2))
+            : Number(haversine(coords[matIdx], coords[nextMatIdx]).toFixed(2));
+        }
+
+        allUpdates.push({
+          id: stop.id,
+          sequence: globalSeq++,
+          distance_to_next_km: toNextKm,
+          travel_time_to_next_min: toNextMin,
+          planned_arrival: arrivalIso,
+          planned_departure: departureIso,
+        });
+      }
+
+      grandKm += groupKm;
+      grandMin += groupMin;
+
+      const empLabel = empId ? `Medarbejder` : `Utildelt`;
+      groupSummaries.push(`${empLabel}: ${groupStops.length} stop · ${groupKm.toFixed(1)} km`);
+    }
+
+    // Stops uden GPS — placér til sidst, behold deres tildeling
+    const noGpsStops = allStops.filter((s) => s.latitude == null || s.longitude == null);
+    for (const s of noGpsStops) {
+      allUpdates.push({
+        id: s.id,
+        sequence: globalSeq++,
+        distance_to_next_km: null,
+        travel_time_to_next_min: null,
+        planned_arrival: timeToDateIso(route.route_date, startTime, 0),
+        planned_departure: timeToDateIso(route.route_date, startTime, s.duration_minutes),
       });
     }
 
-    await Promise.all(updates.map((u) =>
+    await Promise.all(allUpdates.map((u) =>
       supabase.from("route_stops").update({
         sequence: u.sequence,
         distance_to_next_km: u.distance_to_next_km,
@@ -284,14 +304,22 @@ Deno.serve(async (req) => {
 
     await supabase.from("routes").update({
       optimized_at: new Date().toISOString(),
-      total_distance_km: Number(totalKm.toFixed(2)),
-      total_duration_minutes: totalMin,
+      total_distance_km: Number(grandKm.toFixed(2)),
+      total_duration_minutes: grandMin,
     }).eq("id", routeId);
 
+    const reasoning = groups.size > 1
+      ? `Optimeret pr. medarbejder (${groups.size} grupper) via ${provider === "mapbox" ? "Mapbox live trafik" : provider === "osrm" ? "OSRM" : "estimat"} + 2-opt`
+      : `Optimeret rækkefølge via ${provider === "mapbox" ? "Mapbox live trafik" : provider === "osrm" ? "OSRM" : "estimat"} + 2-opt`;
+
     return new Response(JSON.stringify({
-      ok: true, reasoning, reordered: optimizedOrder.length,
-      total_km: Number(totalKm.toFixed(2)), total_minutes: totalMin,
+      ok: true,
+      reasoning,
+      reordered: validStops.length,
+      total_km: Number(grandKm.toFixed(2)),
+      total_minutes: grandMin,
       provider,
+      groups: groups.size,
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
     console.error("optimize-route error:", e);
