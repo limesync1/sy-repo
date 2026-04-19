@@ -54,11 +54,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
   if (!stop) return null;
 
-  const handleNavigate = () => {
-    const q = stop.address || (stop.latitude && stop.longitude ? `${stop.latitude},${stop.longitude}` : stop.customer_name || "");
-    window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(q)}`, "_blank");
-  };
-
   const handleSave = async () => {
     await updateStop.mutateAsync({
       id: stop.id,
