@@ -27,8 +27,8 @@ const Auth = () => {
   );
 
   if (user) {
-    if (mode === "customer") return <Navigate to="/dashboard" replace />;
-    return <Navigate to="/admin" replace />;
+    if (mode === "customer") return <Navigate to="/min-konto" replace />;
+    return <Navigate to="/virksomhed" replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,7 +53,7 @@ const Auth = () => {
       <SEO
         title={isSignUp ? "Opret konto – Serviceydere" : "Log ind – Serviceydere"}
         description={isSignUp ? "Opret en konto på Serviceydere og kom i gang med at finde de bedste serviceydere i Danmark." : "Log ind på din Serviceydere-konto for at administrere bestillinger, abonnementer og favoritter."}
-        canonicalPath="/auth"
+        canonicalPath="/log-ind"
         noIndex
       />
       {/* ── Left: Branding panel ── */}
@@ -117,7 +117,7 @@ const Auth = () => {
             <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-6 lg:hidden" />
           </Link>
           {mode && (
-            <Link to="/auth" className="text-xs text-muted-foreground hover:text-foreground hover:underline transition-colors">
+            <Link to="/log-ind" className="text-xs text-muted-foreground hover:text-foreground hover:underline transition-colors">
               Skift logintype
             </Link>
           )}
@@ -134,7 +134,7 @@ const Auth = () => {
                   <p className="mt-1.5 text-sm text-muted-foreground">Vælg hvordan du vil bruge Serviceydere</p>
                 </div>
 
-                <Link to="/auth?mode=customer" className="group block">
+                <Link to="/log-ind?mode=customer" className="group block">
                   <Card className="border-border/60 transition-all group-hover:border-accent/30 group-hover:shadow-md">
                     <CardContent className="flex items-center gap-4 p-5">
                       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent/10 transition-colors group-hover:bg-accent/15">
@@ -149,7 +149,7 @@ const Auth = () => {
                   </Card>
                 </Link>
 
-                <Link to="/auth?mode=business" className="group block">
+                <Link to="/log-ind?mode=business" className="group block">
                   <Card className="border-border/60 transition-all group-hover:border-foreground/20 group-hover:shadow-md">
                     <CardContent className="flex items-center gap-4 p-5">
                       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-foreground/5 transition-colors group-hover:bg-foreground/10">
