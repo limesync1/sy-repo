@@ -21,3 +21,5 @@ project_id = "gkectsellkpltrxvusot"
     verify_jwt = false
   [functions.optimize-route]
     verify_jwt = false
+  [functions.admin-reset-password]
+    verify_jwt = true
