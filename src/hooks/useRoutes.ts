@@ -605,11 +605,25 @@ export const useOptimizeRoute = () => {
     // mutationKey lader os bruge useIsMutating() pr. routeId i UI
     mutationKey: ["optimize-route"],
     mutationFn: async (routeId: string) => {
-      const { data, error } = await supabase.functions.invoke("optimize-route", {
-        body: { route_id: routeId },
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) throw new Error("Du skal være logget ind for at optimere ruten");
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/optimize-route`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ route_id: routeId, access_token: accessToken }),
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.error || "Kunne ikke optimere ruten");
+      if (!data?.ok) throw new Error(data?.error || "Kunne ikke optimere ruten");
+
       return data as {
         ok: true; reasoning: string; reordered: number;
         total_km: number; total_minutes: number; provider?: string; groups?: number;

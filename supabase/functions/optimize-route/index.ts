@@ -139,18 +139,59 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const body = await req.json();
-    const routeId = String(body.route_id || "").trim();
+    const body = await req.json().catch(() => ({}));
+    const routeId = typeof body?.route_id === "string" ? body.route_id.trim() : "";
+    const accessToken = typeof body?.access_token === "string" ? body.access_token.trim() : "";
+
     if (!routeId) {
-      return new Response(JSON.stringify({ error: "route_id required" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      return new Response(JSON.stringify({ ok: false, error: "route_id required" }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
+    if (!accessToken) {
+      return new Response(JSON.stringify({ ok: false, error: "access_token required" }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const authClient = createClient(supabaseUrl, anonKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    });
+
+    const {
+      data: { user },
+      error: authError,
+    } = await authClient.auth.getUser();
+
+    if (authError || !user) {
+      return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const [{ data: isAdmin, error: adminError }, { data: isOwner, error: ownerError }] = await Promise.all([
+      supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }),
+      supabase.rpc("is_route_owner", { _route_id: routeId, _user_id: user.id }),
+    ]);
+
+    if (adminError) throw adminError;
+    if (ownerError) throw ownerError;
+
+    if (!isAdmin && !isOwner) {
+      return new Response(JSON.stringify({ ok: false, error: "Du har ikke adgang til at optimere denne rute" }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { data: route } = await supabase
       .from("routes")
@@ -158,8 +199,8 @@ Deno.serve(async (req) => {
       .eq("id", routeId)
       .maybeSingle();
     if (!route) {
-      return new Response(JSON.stringify({ error: "Route not found" }), {
-        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      return new Response(JSON.stringify({ ok: false, error: "Route not found" }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
