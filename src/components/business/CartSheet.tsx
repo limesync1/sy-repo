@@ -55,6 +55,8 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
   const [preferredDate, setPreferredDate] = useState("");
   const [preferredTimeStart, setPreferredTimeStart] = useState("");
   const [preferredTimeEnd, setPreferredTimeEnd] = useState("");
+  /** "asap" = hurtigst muligt (virksomhed kontakter); "schedule" = kunden vælger dato */
+  const [scheduleMode, setScheduleMode] = useState<"asap" | "schedule">("asap");
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [geo, setGeo] = useState<{ ok: boolean; display?: string; lat?: number; lng?: number } | null>(null);
