@@ -12,7 +12,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  MapPin, Phone, Mail, Clock, Navigation, Trash2, Save, CheckCircle2,
+  MapPin, Phone, Mail, Clock, Navigation, Trash2, Save,
   AlertCircle, Calendar as CalendarIcon, Banknote, FileText, Repeat, PauseCircle, Hash,
 } from "lucide-react";
 import { toast } from "sonner";
