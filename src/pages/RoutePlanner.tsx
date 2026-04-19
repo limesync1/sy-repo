@@ -399,13 +399,37 @@ const Planner = () => {
     }
   };
 
-  const handleOptimize = async (routeId: string) => {
+  const handleOptimize = async (routeId: string, routeName: string | null) => {
+    setOptimizingRouteId(routeId);
+    const label = routeName || "Rute";
     try {
       const result = await optimizeRoute.mutateAsync(routeId);
-      toast.success(`Optimeret: ${result.total_km.toFixed(1)} km · ${Math.round(result.total_minutes)} min`, {
-        description: result.reasoning,
-      });
+      const groupNote = result.groups && result.groups > 1
+        ? ` · ${result.groups} medarbejder-grupper`
+        : "";
+      toast.success(
+        `${label}: ${result.total_km.toFixed(1)} km · ${Math.floor(result.total_minutes / 60)}t ${result.total_minutes % 60}m${groupNote}`,
+        { description: result.reasoning },
+      );
+    } catch { /* error toast handled in hook */ }
+    finally { setOptimizingRouteId(null); }
+  };
+
+  const handleAutoAssign = async (routeId: string, employeeIds: string[], routeName: string | null) => {
+    if (employeeIds.length < 2) {
+      toast.error("Tilkobl mindst 2 medarbejdere før du fordeler opgaver");
+      return;
+    }
+    setAutoAssigningRouteId(routeId);
+    try {
+      const res = await autoAssign.mutateAsync({ routeId, employeeIds });
+      if (res.assigned === 0) {
+        toast.info("Alle stops er allerede tildelt");
+      } else {
+        toast.success(`${routeName || "Rute"}: ${res.assigned} stops fordelt jævnt mellem ${employeeIds.length} medarbejdere`);
+      }
     } catch { /* */ }
+    finally { setAutoAssigningRouteId(null); }
   };
 
   const handleCreateRoute = async () => {
