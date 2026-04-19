@@ -83,6 +83,19 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
       return;
     }
 
+    // Block until address can be geocoded — protects route planner from typos
+    let coords = geo?.ok ? { lat: geo.lat!, lng: geo.lng! } : null;
+    if (!coords) {
+      const r = await verifyAddress();
+      if (!r) {
+        toast.error("Vi kunne ikke finde adressen — tjek stavemåde og postnummer", {
+          description: "Adressen skal være gyldig før vi kan planlægge en rute.",
+        });
+        return;
+      }
+      coords = { lat: r.lat!, lng: r.lng! };
+    }
+
     try {
       for (const [businessId, group] of Object.entries(groupedByBusiness)) {
         const bizTotal = group.items.reduce((acc, i) => acc + i.total * i.quantity, 0);
@@ -96,6 +109,8 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
             address,
             zip_code: zipCode,
             city,
+            latitude: coords.lat,
+            longitude: coords.lng,
             preferred_date: preferredDate || null,
             preferred_time_start: preferredTimeStart || null,
             preferred_time_end: preferredTimeEnd || null,
@@ -117,17 +132,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
           })),
         });
 
-        // Auto-geocode customer address (best-effort, non-blocking)
-        const fullAddress = `${address}, ${zipCode} ${city}`;
-        supabase.functions
-          .invoke("geocode-address", { body: { address: fullAddress } })
-          .then(({ data }) => {
-            if (data?.latitude && data?.longitude) {
-              return supabase
-                .from("orders")
-                .update({ latitude: data.latitude, longitude: data.longitude })
-                .eq("id", orderResult.id);
-            }
+
           })
           .catch(() => { /* ignore */ });
 
