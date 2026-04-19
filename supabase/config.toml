@@ -17,3 +17,7 @@ project_id = "gkectsellkpltrxvusot"
     verify_jwt = false
   [functions.create-employee]
     verify_jwt = false
+  [functions.geocode-address]
+    verify_jwt = false
+  [functions.optimize-route]
+    verify_jwt = false
