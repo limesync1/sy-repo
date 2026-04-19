@@ -445,34 +445,40 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                   </div>
                 </div>
 
-                {/* Verify address button + status */}
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button" variant="outline" size="sm"
-                    disabled={verifying || !address || !zipCode || !city}
-                    onClick={verifyAddress}
-                    className="h-8 text-xs"
-                  >
-                    {verifying ? "Tjekker..." : "Bekræft adresse"}
-                  </Button>
-                  {geo?.ok && (
-                    <span className="text-xs text-green-600 flex items-center gap-1">
-                      <CheckCircle2 className="h-3.5 w-3.5" /> Adresse fundet
+                {/* Auto-verify status (no manual button) */}
+                <div className="min-h-[24px]">
+                  {verifying && (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Bekræfter adresse...
                     </span>
                   )}
-                  {geo && !geo.ok && (
-                    <span className="text-xs text-destructive">Kunne ikke finde — ret stavemåde</span>
+                  {!verifying && geo?.ok && (
+                    <span className="text-xs text-green-600 flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      <span className="truncate">{geo.display}</span>
+                    </span>
+                  )}
+                  {!verifying && geo && !geo.ok && (
+                    <span className="text-xs text-destructive flex items-center gap-1.5">
+                      <AlertCircle className="h-3.5 w-3.5" /> Kunne ikke finde — tjek stavemåde og postnr.
+                    </span>
                   )}
                 </div>
-                {geo?.ok && geo.display && (
-                  <p className="text-[11px] text-muted-foreground italic truncate">📍 {geo.display}</p>
-                )}
               </div>
 
 
               {/* Schedule mode toggle: ASAP vs choose date */}
               {(() => {
                 const hasRecurring = items.some(i => i.interval && i.interval !== "engangskøb");
+                const selectedDate = preferredDate ? new Date(preferredDate + "T00:00:00") : undefined;
+                const today = new Date(); today.setHours(0, 0, 0, 0);
+                const TIME_PRESETS = [
+                  { label: "Morgen", start: "08:00", end: "12:00" },
+                  { label: "Eftermiddag", start: "12:00", end: "16:00" },
+                  { label: "Aften", start: "16:00", end: "20:00" },
+                ];
+                const activePreset = TIME_PRESETS.find(p => p.start === preferredTimeStart && p.end === preferredTimeEnd);
+
                 return (
                   <div className="space-y-3">
                     <div>
@@ -490,26 +496,28 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                       <button
                         type="button"
                         onClick={() => { setScheduleMode("asap"); setPreferredDate(""); setPreferredTimeStart(""); setPreferredTimeEnd(""); }}
-                        className={`flex flex-col items-start gap-1 rounded-xl border-2 p-3 text-left transition-all ${
+                        className={cn(
+                          "flex flex-col items-start gap-1 rounded-xl border-2 p-3 text-left transition-all",
                           scheduleMode === "asap"
                             ? "border-accent bg-accent/5"
                             : "border-border bg-card hover:border-accent/40"
-                        }`}
+                        )}
                       >
-                        <Zap className={`h-4 w-4 ${scheduleMode === "asap" ? "text-accent" : "text-muted-foreground"}`} />
+                        <Zap className={cn("h-4 w-4", scheduleMode === "asap" ? "text-accent" : "text-muted-foreground")} />
                         <span className="text-sm font-semibold text-foreground">Hurtigst muligt</span>
                         <span className="text-[11px] text-muted-foreground leading-tight">Virksomheden kontakter dig for aftale</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => { setScheduleMode("schedule"); if (!preferredDate) setPreferredDate(tomorrowISO()); }}
-                        className={`flex flex-col items-start gap-1 rounded-xl border-2 p-3 text-left transition-all ${
+                        className={cn(
+                          "flex flex-col items-start gap-1 rounded-xl border-2 p-3 text-left transition-all",
                           scheduleMode === "schedule"
                             ? "border-accent bg-accent/5"
                             : "border-border bg-card hover:border-accent/40"
-                        }`}
+                        )}
                       >
-                        <CalendarDays className={`h-4 w-4 ${scheduleMode === "schedule" ? "text-accent" : "text-muted-foreground"}`} />
+                        <CalendarDays className={cn("h-4 w-4", scheduleMode === "schedule" ? "text-accent" : "text-muted-foreground")} />
                         <span className="text-sm font-semibold text-foreground">Vælg dato</span>
                         <span className="text-[11px] text-muted-foreground leading-tight">Vælg dato og evt. tidspunkt</span>
                       </button>
@@ -517,25 +525,76 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
 
                     {scheduleMode === "schedule" && (
                       <div className="space-y-3 rounded-xl border border-border bg-secondary/30 p-3">
+                        {/* Pretty popover date picker */}
                         <div>
-                          <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                            {hasRecurring ? "Dato for første besøg" : "Dato"}
+                          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                            {hasRecurring ? "Dato for første besøg" : "Vælg dato"}
                           </label>
-                          <Input
-                            type="date"
-                            value={preferredDate}
-                            onChange={(e) => setPreferredDate(e.target.value)}
-                            className="rounded-lg bg-background"
-                            min={new Date().toISOString().split("T")[0]}
-                          />
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full justify-start gap-2 rounded-lg bg-background font-normal h-10",
+                                  !selectedDate && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarDays className="h-4 w-4 text-accent" />
+                                {selectedDate
+                                  ? format(selectedDate, "EEEE d. MMMM yyyy", { locale: da })
+                                  : "Klik for at vælge dato"}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={selectedDate}
+                                onSelect={(d) => {
+                                  if (d) setPreferredDate(d.toISOString().split("T")[0]);
+                                }}
+                                disabled={(date) => date < today}
+                                locale={da}
+                                weekStartsOn={1}
+                                initialFocus
+                                className={cn("p-3 pointer-events-auto")}
+                              />
+                            </PopoverContent>
+                          </Popover>
                         </div>
+
+                        {/* Time-window quick chips */}
                         <div>
-                          <label className="mb-1 block text-xs font-medium text-muted-foreground">Tidsvindue (valgfrit)</label>
-                          <div className="grid grid-cols-2 gap-2">
-                            <Input type="time" value={preferredTimeStart} onChange={(e) => setPreferredTimeStart(e.target.value)} className="rounded-lg bg-background" placeholder="Fra" />
-                            <Input type="time" value={preferredTimeEnd} onChange={(e) => setPreferredTimeEnd(e.target.value)} className="rounded-lg bg-background" placeholder="Til" />
+                          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Foretrukket tidsrum (valgfrit)</label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {TIME_PRESETS.map((p) => {
+                              const active = activePreset?.label === p.label;
+                              return (
+                                <button
+                                  key={p.label}
+                                  type="button"
+                                  onClick={() => {
+                                    if (active) {
+                                      setPreferredTimeStart(""); setPreferredTimeEnd("");
+                                    } else {
+                                      setPreferredTimeStart(p.start); setPreferredTimeEnd(p.end);
+                                    }
+                                  }}
+                                  className={cn(
+                                    "rounded-lg border-2 px-2 py-2 text-xs font-medium transition-all",
+                                    active
+                                      ? "border-accent bg-accent/10 text-foreground"
+                                      : "border-border bg-background text-muted-foreground hover:border-accent/40"
+                                  )}
+                                >
+                                  <div className="font-semibold">{p.label}</div>
+                                  <div className="text-[10px] opacity-70">{p.start}–{p.end}</div>
+                                </button>
+                              );
+                            })}
                           </div>
-                          <p className="mt-1 text-[11px] text-muted-foreground">Fx 08:00–12:00. Lad stå tomt hvis du er fleksibel.</p>
+                          {(preferredTimeStart || preferredTimeEnd) && !activePreset && (
+                            <p className="mt-1.5 text-[11px] text-muted-foreground">Valgt: {preferredTimeStart}–{preferredTimeEnd}</p>
+                          )}
                         </div>
                       </div>
                     )}
