@@ -26,6 +26,7 @@ import {
 import SEO from "@/components/SEO";
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+  pending: { label: "Afventer godkendelse", variant: "outline" },
   active: { label: "Aktiv", variant: "default" },
   paused: { label: "På pause", variant: "secondary" },
   cancelled: { label: "Opsagt", variant: "destructive" },
@@ -658,7 +659,10 @@ const SubscriptionsView = () => {
                 <Card key={sub.id} className="overflow-hidden rounded-2xl border-border transition-shadow hover:shadow-md">
                   <CardContent className="p-0">
                     <div className={`h-1 w-full ${
-                      sub.status === "active" ? "bg-accent" : sub.status === "paused" ? "bg-yellow-400" : "bg-destructive"
+                      sub.status === "active" ? "bg-accent"
+                      : sub.status === "paused" ? "bg-yellow-400"
+                      : sub.status === "pending" ? "bg-muted-foreground/30"
+                      : "bg-destructive"
                     }`} />
                     <div className="p-5 space-y-4">
                       <div className="flex items-start justify-between gap-3">
@@ -696,6 +700,11 @@ const SubscriptionsView = () => {
                       )}
 
                       <div className="flex flex-wrap gap-2 pt-1">
+                        {sub.status === "pending" && (
+                          <p className="text-xs text-muted-foreground italic">
+                            Afventer at virksomheden godkender din bestilling. Abonnementet aktiveres automatisk når den er godkendt.
+                          </p>
+                        )}
                         {sub.status === "active" && (
                           <>
                             <Button variant="outline" size="sm" onClick={() => handlePause(sub.id)}
