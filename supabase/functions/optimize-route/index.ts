@@ -1,9 +1,10 @@
-// Per-rute optimering. Behandler hver rute som en pulje af stops, der grupperes
-// pr. tildelt medarbejder. Hver medarbejder-gruppe optimeres uafhængigt med start
-// fra rutens start-adresse (virksomhedens adresse). Stops uden tildelt medarbejder
-// behandles som én ekstra gruppe, så ruten samlet stadig optimeres.
+// Per-rute optimering med multi-medarbejder support.
 //
-// Mapbox Directions Matrix → live trafik. OSRM → fallback. Haversine → sidste udvej.
+// Model: Hvert stop har 1+ medarbejdere via route_stop_assignees. Vi optimerer
+// rækkefølgen pr. medarbejder (geografisk via Mapbox/OSRM + 2-opt), men sørger for at
+// stops med flere medarbejdere får SAMME planned_arrival på tværs af alle deres
+// medarbejdere. Til sidst kører vi en konflikt-resolver der garanterer at ingen
+// medarbejder har overlappende tider — overlap rykkes til næste 15-min slot.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -11,6 +12,8 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const SLOT_MIN = 15;
 
 type Stop = {
   id: string;
@@ -21,7 +24,8 @@ type Stop = {
   duration_minutes: number;
   time_window_start: string | null;
   time_window_end: string | null;
-  assigned_employee_id: string | null;
+  required_staff: number | null;
+  assignee_ids: string[]; // udfyldt af os
 };
 
 type LatLng = { lat: number; lng: number };
@@ -63,9 +67,7 @@ async function osrmMatrix(coords: LatLng[]): Promise<Matrix | null> {
   } catch { return null; }
 }
 
-// 2-opt forbedring oven på nearest-neighbor. Giver typisk 10-25% kortere ruter.
 function nearestNeighbor(startIdx: number, n: number, costMatrix: number[][]): number[] {
-  // costMatrix: index 0 = start, 1..n = stops
   const remaining = new Set<number>();
   for (let i = 1; i <= n; i++) remaining.add(i);
   const order: number[] = [];
@@ -85,19 +87,18 @@ function nearestNeighbor(startIdx: number, n: number, costMatrix: number[][]): n
 
 function twoOpt(order: number[], costMatrix: number[][]): number[] {
   if (order.length < 4) return order;
-  const route = [0, ...order]; // include start
+  const route = [0, ...order];
   let improved = true;
-  let iterations = 0;
-  while (improved && iterations < 20) {
+  let iter = 0;
+  while (improved && iter < 20) {
     improved = false;
-    iterations++;
+    iter++;
     for (let i = 1; i < route.length - 2; i++) {
       for (let j = i + 1; j < route.length - 1; j++) {
         const a = route[i - 1], b = route[i], c = route[j], d = route[j + 1];
         const before = costMatrix[a][b] + costMatrix[c][d];
         const after = costMatrix[a][c] + costMatrix[b][d];
         if (after + 1e-9 < before) {
-          // reverse i..j
           const seg = route.slice(i, j + 1).reverse();
           route.splice(i, seg.length, ...seg);
           improved = true;
@@ -114,14 +115,21 @@ function buildCostMatrix(coords: LatLng[], matrix: Matrix | null): number[][] {
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < n; j++) {
       if (i === j) continue;
-      m[i][j] = matrix ? matrix.durations[i][j] : haversine(coords[i], coords[j]) * 60; // sek
+      m[i][j] = matrix ? matrix.durations[i][j] : haversine(coords[i], coords[j]) * 60;
     }
   }
   return m;
 }
 
+const snap = (mins: number) => Math.round(mins / SLOT_MIN) * SLOT_MIN;
+const ceilSnap = (mins: number) => Math.ceil(mins / SLOT_MIN) * SLOT_MIN;
+
 function timeToDateIso(routeDate: string, hhmmss: string, addMinutes = 0): string {
   const [h, m] = hhmmss.split(":").map(Number);
+  // Fortolk routeDate som lokal Europe/Copenhagen-dag. setHours bruger lokal tid på serveren —
+  // for konsistens på tværs af tidszoner bygger vi UTC eksplicit ved at antage CET/CEST offset
+  // matches af Date-objektet ved den dato. Vi bruger setHours på en Date oprettet fra
+  // routeDate-strengen, hvilket fortolkes som lokal midnat.
   const d = new Date(routeDate + "T00:00:00");
   d.setHours(h, m + addMinutes, 0, 0);
   return d.toISOString();
@@ -155,13 +163,43 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { data: stops } = await supabase
+    const { data: rawStops } = await supabase
       .from("route_stops")
       .select("*")
       .eq("route_id", routeId)
       .order("sequence", { ascending: true });
 
-    const allStops = (stops || []) as Stop[];
+    const allStopsRaw = (rawStops || []) as any[];
+    const stopIds = allStopsRaw.map((s) => s.id);
+
+    // Hent alle assignees for stops på denne rute
+    const { data: assignees } = stopIds.length > 0
+      ? await supabase
+          .from("route_stop_assignees")
+          .select("stop_id, employee_id, is_lead")
+          .in("stop_id", stopIds)
+      : { data: [] as any[] };
+
+    const assigneesByStop = new Map<string, string[]>();
+    (assignees || []).forEach((a: any) => {
+      const arr = assigneesByStop.get(a.stop_id) || [];
+      arr.push(a.employee_id);
+      assigneesByStop.set(a.stop_id, arr);
+    });
+
+    const allStops: Stop[] = allStopsRaw.map((s) => ({
+      id: s.id,
+      customer_name: s.customer_name,
+      address: s.address,
+      latitude: s.latitude,
+      longitude: s.longitude,
+      duration_minutes: s.duration_minutes,
+      time_window_start: s.time_window_start,
+      time_window_end: s.time_window_end,
+      required_staff: s.required_staff,
+      assignee_ids: assigneesByStop.get(s.id) || [],
+    }));
+
     const validStops = allStops.filter((s) => s.latitude != null && s.longitude != null);
 
     if (validStops.length < 1) {
@@ -171,38 +209,44 @@ Deno.serve(async (req) => {
       }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Fælles startpunkt for ALLE medarbejdere på ruten
     const start: LatLng = route.start_latitude && route.start_longitude
       ? { lat: Number(route.start_latitude), lng: Number(route.start_longitude) }
       : { lat: Number(validStops[0].latitude), lng: Number(validStops[0].longitude) };
 
-    // Gruppér stops pr. medarbejder. null-gruppe = utildelte stops.
-    const groups = new Map<string | null, Stop[]>();
+    // Saml unikke "primær-ejere" pr. stop til gruppering: vi bruger et stops "anker-medarbejder"
+    // = den første assignee (sorteret). Stops uden assignee samles i en utildelt-gruppe.
+    // På den måde får hvert stop præcis én plads i sekvensen, men respekterer fulde assignee-listen.
+    const ownerKey = (s: Stop) => s.assignee_ids.length > 0 ? s.assignee_ids.slice().sort().join("|") : "__unassigned__";
+
+    const groups = new Map<string, Stop[]>();
     for (const s of validStops) {
-      const key = s.assigned_employee_id || null;
-      const arr = groups.get(key) || [];
+      const k = ownerKey(s);
+      const arr = groups.get(k) || [];
       arr.push(s);
-      groups.set(key, arr);
+      groups.set(k, arr);
     }
 
     const startTime = route.planned_start_time || "08:00:00";
-    let grandKm = 0, grandMin = 0;
     let provider: "mapbox" | "osrm" | "haversine" = "haversine";
-    const groupSummaries: string[] = [];
 
     type StopUpdate = {
       id: string;
       sequence: number;
       distance_to_next_km: number | null;
       travel_time_to_next_min: number | null;
-      planned_arrival: string;
-      planned_departure: string;
+      arrivalMin: number;       // minutter siden midnat (start-tid baseline)
+      durationMin: number;
+      assignees: string[];
     };
     const allUpdates: StopUpdate[] = [];
     let globalSeq = 0;
 
-    // Optimér hver gruppe uafhængigt — alle starter fra samme adresse
-    for (const [empId, groupStops] of groups) {
+    const startMin = (() => {
+      const [h, m] = startTime.split(":").map(Number);
+      return h * 60 + m;
+    })();
+
+    for (const [, groupStops] of groups) {
       if (groupStops.length === 0) continue;
 
       const coords: LatLng[] = [start, ...groupStops.map((s) => ({
@@ -216,41 +260,29 @@ Deno.serve(async (req) => {
       }
       const costMatrix = buildCostMatrix(coords, matrix);
 
-      // Find bedste rækkefølge: nearest-neighbor + 2-opt forbedring
       let order: number[];
-      if (groupStops.length === 1) {
-        order = [1];
-      } else {
+      if (groupStops.length === 1) order = [1];
+      else {
         order = nearestNeighbor(0, groupStops.length, costMatrix);
         order = twoOpt(order, costMatrix);
       }
 
-      // Beregn ETA, distance, varighed for denne medarbejder
-      let cursorMin = 0;
-      let groupKm = 0, groupMin = 0;
-
+      let cursorMin = startMin;
       for (let i = 0; i < order.length; i++) {
         const matIdx = order[i];
         const stop = groupStops[matIdx - 1];
-
-        // Travel from previous (or start) to this stop
         const prevMatIdx = i === 0 ? 0 : order[i - 1];
         const travelSec = costMatrix[prevMatIdx][matIdx];
-        const travelMin = matrix ? Math.round(travelSec / 60) : Math.round((travelSec / 60) * (60 / 50)); // haversine ~50 km/h
+        const travelMin = matrix ? Math.round(travelSec / 60) : Math.round((travelSec / 60) * (60 / 50));
         const distKm = matrix
           ? Number((matrix.distances[prevMatIdx][matIdx] / 1000).toFixed(2))
           : Number(haversine(coords[prevMatIdx], coords[matIdx]).toFixed(2));
 
         cursorMin += travelMin;
-        groupKm += distKm;
-        groupMin += travelMin;
+        // Snap ankomst til 15-min for ren visning
+        const arrival = snap(cursorMin);
+        cursorMin = arrival + stop.duration_minutes;
 
-        const arrivalIso = timeToDateIso(route.route_date, startTime, cursorMin);
-        cursorMin += stop.duration_minutes;
-        const departureIso = timeToDateIso(route.route_date, startTime, cursorMin);
-        groupMin += stop.duration_minutes;
-
-        // Distance/time TO NEXT stop (eller null hvis sidste)
         let toNextKm: number | null = null, toNextMin: number | null = null;
         if (i < order.length - 1) {
           const nextMatIdx = order[i + 1];
@@ -264,43 +296,91 @@ Deno.serve(async (req) => {
 
         allUpdates.push({
           id: stop.id,
-          sequence: globalSeq++,
+          sequence: 0, // sættes efter konflikt-resolver
           distance_to_next_km: toNextKm,
           travel_time_to_next_min: toNextMin,
-          planned_arrival: arrivalIso,
-          planned_departure: departureIso,
+          arrivalMin: arrival,
+          durationMin: stop.duration_minutes,
+          assignees: stop.assignee_ids,
         });
       }
-
-      grandKm += groupKm;
-      grandMin += groupMin;
-
-      const empLabel = empId ? `Medarbejder` : `Utildelt`;
-      groupSummaries.push(`${empLabel}: ${groupStops.length} stop · ${groupKm.toFixed(1)} km`);
     }
 
-    // Stops uden GPS — placér til sidst, behold deres tildeling
+    // === Konflikt-resolver ===
+    // Sortér efter ankomst, og for hver stop tjek mod hver af dets medarbejderes busy-intervaller.
+    // Hvis konflikt: ryk stoppets ankomst til seneste blokerende slut, snappet til 15 min.
+    // Dette garanterer at samme medarbejder aldrig har overlap, og co-assignees forbliver synkrone.
+    allUpdates.sort((a, b) => a.arrivalMin - b.arrivalMin);
+
+    type Busy = { start: number; end: number };
+    const busyByEmp = new Map<string, Busy[]>();
+    const ensure = (eid: string) => {
+      let b = busyByEmp.get(eid);
+      if (!b) { b = []; busyByEmp.set(eid, b); }
+      return b;
+    };
+    // Utildelte stops "blokerer" ikke nogen medarbejder
+    for (const u of allUpdates) {
+      let arrival = u.arrivalMin;
+      const dur = Math.max(u.durationMin, SLOT_MIN);
+      if (u.assignees.length > 0) {
+        // Find seneste konflikt-end på tværs af alle medarbejdere på dette stop
+        let safety = 0;
+        while (safety++ < 200) {
+          const end = arrival + dur;
+          let latestClashEnd: number | null = null;
+          for (const eid of u.assignees) {
+            for (const b of ensure(eid)) {
+              if (arrival < b.end && end > b.start) {
+                if (latestClashEnd == null || b.end > latestClashEnd) latestClashEnd = b.end;
+              }
+            }
+          }
+          if (latestClashEnd == null) break;
+          arrival = ceilSnap(latestClashEnd);
+        }
+        for (const eid of u.assignees) {
+          ensure(eid).push({ start: arrival, end: arrival + dur });
+        }
+      }
+      u.arrivalMin = arrival;
+    }
+
+    // Sortér igen efter resolver (kan have flyttet rundt) og tildel sekvens
+    allUpdates.sort((a, b) => a.arrivalMin - b.arrivalMin);
+    allUpdates.forEach((u) => { u.sequence = globalSeq++; });
+
+    // Stops uden GPS placeres til sidst
     const noGpsStops = allStops.filter((s) => s.latitude == null || s.longitude == null);
-    for (const s of noGpsStops) {
-      allUpdates.push({
-        id: s.id,
-        sequence: globalSeq++,
-        distance_to_next_km: null,
-        travel_time_to_next_min: null,
-        planned_arrival: timeToDateIso(route.route_date, startTime, 0),
-        planned_departure: timeToDateIso(route.route_date, startTime, s.duration_minutes),
-      });
-    }
+    const noGpsUpdates: StopUpdate[] = noGpsStops.map((s) => ({
+      id: s.id,
+      sequence: globalSeq++,
+      distance_to_next_km: null,
+      travel_time_to_next_min: null,
+      arrivalMin: startMin,
+      durationMin: s.duration_minutes,
+      assignees: s.assignee_ids,
+    }));
 
-    await Promise.all(allUpdates.map((u) =>
-      supabase.from("route_stops").update({
+    const grandKm = allUpdates.reduce((sum, u) => sum + (u.distance_to_next_km || 0), 0);
+    // Total varighed = fra første ankomst til sidste afgang
+    const lastEnd = allUpdates.length > 0
+      ? Math.max(...allUpdates.map((u) => u.arrivalMin + u.durationMin))
+      : startMin;
+    const grandMin = Math.max(0, lastEnd - startMin);
+
+    const writes = [...allUpdates, ...noGpsUpdates];
+    await Promise.all(writes.map((u) => {
+      const arrivalIso = timeToDateIso(route.route_date, "00:00:00", u.arrivalMin);
+      const departureIso = timeToDateIso(route.route_date, "00:00:00", u.arrivalMin + u.durationMin);
+      return supabase.from("route_stops").update({
         sequence: u.sequence,
         distance_to_next_km: u.distance_to_next_km,
         travel_time_to_next_min: u.travel_time_to_next_min,
-        planned_arrival: u.planned_arrival,
-        planned_departure: u.planned_departure,
-      }).eq("id", u.id),
-    ));
+        planned_arrival: arrivalIso,
+        planned_departure: departureIso,
+      }).eq("id", u.id);
+    }));
 
     await supabase.from("routes").update({
       optimized_at: new Date().toISOString(),
@@ -308,9 +388,9 @@ Deno.serve(async (req) => {
       total_duration_minutes: grandMin,
     }).eq("id", routeId);
 
-    const reasoning = groups.size > 1
-      ? `Optimeret pr. medarbejder (${groups.size} grupper) via ${provider === "mapbox" ? "Mapbox live trafik" : provider === "osrm" ? "OSRM" : "estimat"} + 2-opt`
-      : `Optimeret rækkefølge via ${provider === "mapbox" ? "Mapbox live trafik" : provider === "osrm" ? "OSRM" : "estimat"} + 2-opt`;
+    const reasoning = `Optimeret pr. medarbejder-gruppe (${groups.size}) via ${
+      provider === "mapbox" ? "Mapbox live trafik" : provider === "osrm" ? "OSRM" : "estimat"
+    } + 2-opt + konflikt-resolver`;
 
     return new Response(JSON.stringify({
       ok: true,

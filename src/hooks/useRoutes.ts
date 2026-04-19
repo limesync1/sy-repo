@@ -655,6 +655,8 @@ export const useAutoAssignStops = () => {
         assigneesByStop.set(a.stop_id, arr);
       });
 
+      // Brug LOKAL tid (matcher hvordan optimize-route og UI viser planned_arrival).
+      // getHours/getMinutes konverterer ISO-strengen (UTC) til klientens tidszone.
       const isoMin = (iso: string | null) => {
         if (!iso) return null;
         const d = new Date(iso);
