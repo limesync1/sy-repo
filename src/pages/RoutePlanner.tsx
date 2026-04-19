@@ -538,6 +538,9 @@ const Planner = () => {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Opret ny rute for {format(parseISO(date), "EEEE d. MMMM", { locale: da })}</DialogTitle>
+                    <DialogDescription>
+                      Ruten starter fra virksomhedens adresse. Du kan tilkoble medarbejdere og opgaver bagefter.
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-2">
                     <Label htmlFor="route-name">Navn på ruten (valgfrit)</Label>
@@ -546,10 +549,9 @@ const Planner = () => {
                       placeholder="fx Nord, Aarhus C, Mandag-team..."
                       value={newRouteName}
                       onChange={(e) => setNewRouteName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleCreateRoute(); }}
+                      autoFocus
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Ruten starter fra virksomhedens adresse. Du kan tilkoble medarbejdere bagefter.
-                    </p>
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setCreateOpen(false)}>Annullér</Button>
@@ -561,9 +563,32 @@ const Planner = () => {
                 </DialogContent>
               </Dialog>
 
-              <Button variant="ghost" size="sm" className="h-7" onClick={() => setShowMap((v) => !v)}>
+              <Button
+                variant={showMap ? "default" : "ghost"}
+                size="sm"
+                className="h-7"
+                onClick={() => setShowMap((v) => !v)}
+              >
                 <MapIcon className="h-3.5 w-3.5 mr-1" />{showMap ? "Skjul kort" : "Vis kort"}
               </Button>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Tastatur-genveje">
+                    <Keyboard className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  <div className="space-y-1">
+                    <p className="font-semibold mb-1">Tastatur-genveje</p>
+                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">←</kbd> <kbd className="px-1 rounded bg-secondary text-[10px]">→</kbd> Skift dag</p>
+                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">T</kbd> I dag</p>
+                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">N</kbd> Ny rute</p>
+                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">M</kbd> Vis/skjul kort</p>
+                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">Esc</kbd> Luk panel</p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </header>
