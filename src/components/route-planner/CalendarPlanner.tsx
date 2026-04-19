@@ -45,13 +45,16 @@ export type CalendarColumn = {
   totalKm?: number | null;
   totalMin?: number | null;
   routeStatus?: string;
+  optimizedAt?: string | null;
   onOptimize?: () => void;
+  onAutoAssign?: () => void;
   onAttachEmployee?: (employeeId: string) => void;
   onDetachEmployee?: (employeeId: string) => void;
   onDispatchToEmployee?: (employeeId: string) => void;
   onDeleteRoute?: () => void;
   onAssignStop?: (stopId: string, employeeId: string | null) => void;
-  optimizing?: boolean;
+  optimizing?: boolean;       // pr-rute spinner
+  autoAssigning?: boolean;
   dispatching?: boolean;
 };
 
