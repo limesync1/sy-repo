@@ -1,5 +1,5 @@
 import { useDraggable } from "@dnd-kit/core";
-import { GripVertical, MapPin, Calendar as CalendarIcon, Clock } from "lucide-react";
+import { GripVertical, MapPin, Calendar as CalendarIcon, Clock, Phone, StickyNote, Package, Hourglass } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isToday, isTomorrow } from "date-fns";
 import { da } from "date-fns/locale";
