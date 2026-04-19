@@ -15,12 +15,13 @@ import { useState } from "react";
 import {
   Plus, Trash2, LogOut,
   Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart,
-  Star, Settings, Menu, X, ExternalLink, Bell,
+  Star, Settings, Menu, X, ExternalLink, Bell, Users, Route,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import DashboardTab from "@/components/admin/DashboardTab";
 import ReviewsTab from "@/components/admin/ReviewsTab";
 import AftaleTab from "@/components/admin/AftaleTab";
+import EmployeesTab from "@/components/admin/EmployeesTab";
 
 /* ─── Constants ─── */
 const CATEGORIES = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS", "Elektriker", "Sikkerhed"];
@@ -132,6 +133,7 @@ const NAV_ITEMS = [
   { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
   { value: "services", label: "Services", icon: Wrench },
   { value: "orders", label: "Aftaler", icon: ShoppingCart },
+  { value: "employees", label: "Medarbejdere", icon: Users, requiresRoutePlanning: true },
   { value: "reviews", label: "Anmeldelser", icon: Star },
   { value: "settings", label: "Indstillinger", icon: Settings },
 ];
@@ -154,19 +156,22 @@ const AdminDashboard = () => {
   if (isLoading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
   if (!business) return <CreateBusinessForm />;
 
+  const routePlanningEnabled = !!(business.settings as any)?.route_planning_enabled;
+  const visibleNav = NAV_ITEMS.filter((n) => !n.requiresRoutePlanning || routePlanningEnabled);
+
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard": return <DashboardWrapper business={business} onNavigate={setActiveTab} />;
       case "services": return <ServicesTab businessId={business.id} />;
       case "orders": return <AftaleTab businessId={business.id} />;
-      
+      case "employees": return <EmployeesTab businessId={business.id} businessName={business.name} routePlanningEnabled={routePlanningEnabled} />;
       case "reviews": return <ReviewsWrapper businessId={business.id} />;
       case "settings": return <SettingsTab business={business} />;
       default: return null;
     }
   };
 
-  const currentNav = NAV_ITEMS.find(n => n.value === activeTab);
+  const currentNav = visibleNav.find(n => n.value === activeTab) || NAV_ITEMS.find(n => n.value === activeTab);
 
   return (
     <div className="flex min-h-screen bg-secondary/50">
@@ -206,7 +211,7 @@ const AdminDashboard = () => {
 
         {/* Nav items */}
         <nav className="flex-1 space-y-px px-2 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
+          {visibleNav.map((item) => {
             const isActive = activeTab === item.value;
             return (
               <button
