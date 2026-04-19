@@ -93,7 +93,7 @@ const AcceptInvitation = () => {
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4 bg-secondary/30">
-      <SEO title="Accepter invitation – Serviceydere" canonicalPath="/medarbejder/accepter" noIndex />
+      <SEO title="Accepter invitation – Serviceydere" description="Accepter din medarbejder-invitation og opret din konto." canonicalPath="/medarbejder/accepter" noIndex />
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10">
