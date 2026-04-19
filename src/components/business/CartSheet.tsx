@@ -702,22 +702,37 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
               </div>
 
               {/* Info notices */}
-               <p className="text-xs text-muted-foreground bg-accent/5 rounded-xl px-3.5 py-2.5 border border-accent/20">
-                 💡 Bestillingen sendes til virksomheden for godkendelse. Du modtager besked når de har svaret.
-               </p>
-
-              {user && items.some(i => i.interval && i.interval !== "engangskøb") && (
-                <p className="text-xs text-muted-foreground bg-accent/5 rounded-xl px-3.5 py-2.5 border border-accent/20">
-                  🔄 Tilbagevendende services oprettes automatisk i dit kundepanel efter godkendelse.
-                </p>
-              )}
+              <div className="space-y-2">
+                <div className="flex items-start gap-2.5 text-xs text-foreground/80 bg-accent/5 rounded-xl px-3.5 py-3 border border-accent/20">
+                  <Sparkles className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                  <span>Bestillingen sendes til virksomheden for godkendelse. Du modtager besked når de har svaret.</span>
+                </div>
+                {user && items.some(i => i.interval && i.interval !== "engangskøb") && (
+                  <div className="flex items-start gap-2.5 text-xs text-foreground/80 bg-accent/5 rounded-xl px-3.5 py-3 border border-accent/20">
+                    <CalendarClock className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                    <span>Tilbagevendende services oprettes automatisk i dit kundepanel efter godkendelse.</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Submit footer */}
-            <div className="shrink-0 border-t border-border bg-card px-5 py-4 space-y-2">
-              <Button onClick={handleOrder} disabled={createOrder.isPending}
-                className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90">
-                {createOrder.isPending ? "Sender bestilling..." : `Send bestilling – ${total} kr`}
+            <div className="shrink-0 border-t border-border bg-card px-5 py-4 space-y-2.5">
+              <div className="flex items-baseline justify-between">
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total at betale</span>
+                <span className="text-xl font-bold text-foreground">{total} kr</span>
+              </div>
+              <Button
+                onClick={handleOrder}
+                disabled={createOrder.isPending}
+                size="lg"
+                className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base shadow-sm hover:shadow-md transition-all"
+              >
+                {createOrder.isPending ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Sender bestilling...</>
+                ) : (
+                  <>Send bestilling <CheckCircle2 className="h-4 w-4" /></>
+                )}
               </Button>
             </div>
           </div>
