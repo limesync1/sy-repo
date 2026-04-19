@@ -728,6 +728,20 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
       }).eq("id", orderId);
       if (error) throw error;
 
+      // Aktivér eller annullér tilknyttede abonnementer baseret på svaret.
+      // Ved "adjusted" venter vi på kundens svar, så abonnementer forbliver pending.
+      if (responseType === "accepted") {
+        await supabase.from("subscriptions")
+          .update({ status: "active" })
+          .eq("order_id", orderId)
+          .eq("status", "pending");
+      } else if (responseType === "rejected") {
+        await supabase.from("subscriptions")
+          .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
+          .eq("order_id", orderId)
+          .in("status", ["pending", "active"]);
+      }
+
       toast.success(
         responseType === "accepted" ? "Aftale godkendt!"
         : responseType === "rejected" ? "Aftale afvist"

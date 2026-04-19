@@ -177,6 +177,8 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 total_price: item.total,
                 order_id: orderResult.id,
                 next_service_date: nextDate,
+                // Abonnementet aktiveres først når virksomheden godkender ordren
+                status: "pending",
                 details: {
                   description: item.details,
                   stepDetails: item.stepDetails,
