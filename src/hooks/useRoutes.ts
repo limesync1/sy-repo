@@ -262,12 +262,21 @@ export const useOrderForStop = (orderId: string | null | undefined) => {
         .from("orders")
         .select(`
           *,
-          order_items ( service_name, quantity, unit_price, total_price, details )
+          order_items ( service_name, quantity, unit_price, total_price, details ),
+          businesses ( name, phone, email )
         `)
         .eq("id", orderId!)
         .maybeSingle();
       if (error) throw error;
-      return data;
+
+      // Also fetch any active/paused subscription tied to this order so the
+      // planner sees if the visit is recurring and on which interval.
+      const { data: subs } = await supabase
+        .from("subscriptions")
+        .select("id, interval, status, next_service_date, paused_at, total_price, service_name")
+        .eq("order_id", orderId!);
+
+      return { ...(data || {}), subscriptions: subs || [] } as any;
     },
   });
 };
