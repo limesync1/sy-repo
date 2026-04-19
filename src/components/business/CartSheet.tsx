@@ -197,6 +197,8 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
       setCheckout(false);
       setOrderSuccess(false);
       setName(""); setEmail(""); setPhone("");
+      setAddress(""); setZipCode(""); setCity("");
+      setPreferredDate(""); setPreferredTimeStart(""); setPreferredTimeEnd("");
       if (user) {
         navigate("/min-konto");
       } else {
