@@ -44,13 +44,27 @@ export type RouteStop = {
   time_window_end: string | null;
   distance_to_next_km: number | null;
   travel_time_to_next_min: number | null;
+  /** Lead/primary employee — synced from route_stop_assignees by trigger. */
   assigned_employee_id: string | null;
+  /** Hvor mange medarbejdere opgaven kræver (1+). Default 1. */
+  required_staff?: number;
+  /** Alle tildelte medarbejdere (joinet ind i useStopsForRoutes). */
+  assignee_ids?: string[];
+  /** Lead-medarbejder på opgaven (kan være forskellig fra assigned_employee_id ved race). */
+  lead_employee_id?: string | null;
 };
 
 export type RouteEmployee = {
   id: string;
   route_id: string;
   employee_id: string;
+};
+
+export type StopAssignee = {
+  id: string;
+  stop_id: string;
+  employee_id: string;
+  is_lead: boolean;
 };
 
 /* ─── Routes for a date ─── */
