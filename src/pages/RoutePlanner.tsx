@@ -767,6 +767,22 @@ const Planner = () => {
                         Total værdi: <span className="font-semibold text-foreground">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span>
                       </p>
                     )}
+                    {outsideWindowCount > 0 && (
+                      <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1 leading-snug">
+                        +{outsideWindowCount} opgave{outsideWindowCount === 1 ? "" : "r"} senere på måneden — brug 'Auto-fordel' for at lægge dem på den ønskede dato.
+                      </p>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full h-7 text-xs gap-1"
+                      onClick={handleAutoDistribute}
+                      disabled={distributing || unassigned.length === 0}
+                      title="Opretter ruter på hver kundes ønskede dato og lægger opgaverne der. Gælder ALLE ledige opgaver — ikke kun dem du ser."
+                    >
+                      {distributing ? <Loader2 className="h-3 w-3 animate-spin" /> : <CalendarIcon className="h-3 w-3" />}
+                      Auto-fordel pr. ønsket dato
+                    </Button>
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                       <Input
