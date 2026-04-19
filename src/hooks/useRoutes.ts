@@ -103,7 +103,7 @@ export const useRoutesForRange = (businessId: string | undefined, from: string, 
   });
 };
 
-/* ─── Stops for a list of routes ─── */
+/* ─── Stops for a list of routes (joiner assignees ind) ─── */
 export const useStopsForRoutes = (routeIds: string[]) => {
   return useQuery({
     queryKey: ["route-stops-bulk", routeIds.sort().join(",")],
@@ -115,7 +115,31 @@ export const useStopsForRoutes = (routeIds: string[]) => {
         .in("route_id", routeIds)
         .order("sequence", { ascending: true });
       if (error) throw error;
-      return (data || []) as RouteStop[];
+      const stops = (data || []) as any[];
+      const stopIds = stops.map((s) => s.id);
+      if (stopIds.length === 0) return stops as RouteStop[];
+
+      const { data: assignees } = await supabase
+        .from("route_stop_assignees")
+        .select("stop_id, employee_id, is_lead")
+        .in("stop_id", stopIds);
+
+      const byStop = new Map<string, { ids: string[]; lead: string | null }>();
+      (assignees || []).forEach((a: any) => {
+        const entry = byStop.get(a.stop_id) || { ids: [], lead: null };
+        entry.ids.push(a.employee_id);
+        if (a.is_lead) entry.lead = a.employee_id;
+        byStop.set(a.stop_id, entry);
+      });
+
+      return stops.map((s) => {
+        const entry = byStop.get(s.id);
+        return {
+          ...s,
+          assignee_ids: entry?.ids || (s.assigned_employee_id ? [s.assigned_employee_id] : []),
+          lead_employee_id: entry?.lead ?? s.assigned_employee_id ?? null,
+        } as RouteStop;
+      });
     },
   });
 };
