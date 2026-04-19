@@ -468,38 +468,78 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                 <p className="text-sm text-muted-foreground text-center py-4">Indlæser detaljer...</p>
               ) : (
                 <>
-                  {/* Subscriptions */}
-                  {data && data.subscriptions.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                        <Repeat className="h-3.5 w-3.5" /> Aktive abonnementer
-                      </h4>
-                      <div className="space-y-2">
-                        {data.subscriptions.map(s => (
-                          <div key={s.id} className="rounded-xl border border-border bg-card p-3">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0 flex-1">
-                                <p className="text-sm font-semibold text-foreground truncate">{s.service_name}</p>
-                                <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                  <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-accent/40 text-accent bg-accent/5">
-                                    {INTERVAL_LABELS[s.interval] || s.interval}
-                                  </Badge>
-                                  <StatusBadge status={s.status} />
-                                  {s.next_service_date && (
-                                    <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-                                      <Calendar className="h-3 w-3" />
-                                      Næste: {fmtDate(s.next_service_date)}
-                                    </span>
-                                  )}
-                                </div>
+                  {/* Subscriptions — split active vs paused */}
+                  {data && data.subscriptions.length > 0 && (() => {
+                    const activeSubs = data.subscriptions.filter(s => s.status === "active");
+                    const pausedSubs = data.subscriptions.filter(s => s.status === "paused");
+                    const cancelledSubs = data.subscriptions.filter(s => s.status === "cancelled");
+                    const renderSub = (s: SubRow) => {
+                      const pref = s.preferred_route_id ? data.preferredRoutes[s.preferred_route_id] : null;
+                      return (
+                        <div key={s.id} className={`rounded-xl border p-3 ${s.status === "paused" ? "border-amber-300/60 bg-amber-50/40" : "border-border bg-card"}`}>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-semibold text-foreground truncate">{s.service_name}</p>
+                              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-accent/40 text-accent bg-accent/5">
+                                  {INTERVAL_LABELS[s.interval] || s.interval}
+                                </Badge>
+                                <StatusBadge status={s.status} />
+                                {s.status === "active" && s.next_service_date && (
+                                  <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                    <Calendar className="h-3 w-3" />
+                                    Næste: {fmtDate(s.next_service_date)}
+                                  </span>
+                                )}
+                                {s.status === "paused" && (
+                                  <span className="text-[11px] text-amber-700 flex items-center gap-1">
+                                    <Pause className="h-3 w-3" />
+                                    Indgår ikke i ruteplanlægning
+                                  </span>
+                                )}
+                                {pref && (
+                                  <Link to={`/virksomhed/ruter?date=${pref.route_date}`} className="text-[11px] text-accent flex items-center gap-1 hover:underline">
+                                    <RouteIcon className="h-3 w-3" />
+                                    Sædvanlig rute: {pref.name || "Rute"}
+                                  </Link>
+                                )}
                               </div>
-                              <span className="text-sm font-bold text-foreground tabular-nums shrink-0">{fmtKr(s.total_price)}</span>
                             </div>
+                            <span className="text-sm font-bold text-foreground tabular-nums shrink-0">{fmtKr(s.total_price)}</span>
                           </div>
-                        ))}
+                        </div>
+                      );
+                    };
+                    return (
+                      <div className="space-y-4">
+                        {activeSubs.length > 0 && (
+                          <div className="space-y-2">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                              <Repeat className="h-3.5 w-3.5" /> Aktive abonnementer ({activeSubs.length})
+                            </h4>
+                            <div className="space-y-2">{activeSubs.map(renderSub)}</div>
+                          </div>
+                        )}
+                        {pausedSubs.length > 0 && (
+                          <div className="space-y-2">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
+                              <Pause className="h-3.5 w-3.5" /> På pause ({pausedSubs.length})
+                            </h4>
+                            <p className="text-[11px] text-muted-foreground">Disse abonnementer indgår ikke i ruteplanlægning. Når kunden genoptager dem, vises de igen — gerne på samme rute som før.</p>
+                            <div className="space-y-2">{pausedSubs.map(renderSub)}</div>
+                          </div>
+                        )}
+                        {cancelledSubs.length > 0 && (
+                          <div className="space-y-2">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                              <Repeat className="h-3.5 w-3.5" /> Opsagte ({cancelledSubs.length})
+                            </h4>
+                            <div className="space-y-2 opacity-60">{cancelledSubs.map(renderSub)}</div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Route history */}
                   {data && data.stops.length > 0 && (
