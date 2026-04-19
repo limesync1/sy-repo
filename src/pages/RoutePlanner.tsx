@@ -103,10 +103,16 @@ const Planner = () => {
   const addStop = useAddStop();
   const updateStop = useUpdateStop();
   const optimizeRoute = useOptimizeRoute();
+  const autoAssign = useAutoAssignStops();
   const dispatchRoute = useDispatchRoute();
   const geocode = useGeocodeAddress();
   const attachEmp = useAddRouteEmployee();
   const detachEmp = useRemoveRouteEmployee();
+
+  // Pr-rute "pending" state — kun den rute der faktisk optimeres viser spinner
+  const [optimizingRouteId, setOptimizingRouteId] = useState<string | null>(null);
+  const [autoAssigningRouteId, setAutoAssigningRouteId] = useState<string | null>(null);
+  const [dispatchingRouteId, setDispatchingRouteId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
