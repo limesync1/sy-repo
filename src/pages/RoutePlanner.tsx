@@ -7,15 +7,16 @@ import {
   useRoutesForDate, useStopsForRoutes, useUnassignedJobs,
   useUpsertRoute, useAddStop, useReorderStops, useDeleteStop,
   useOptimizeRoute, useGeocodeAddress, useRoutesForRange,
+  useDispatchRoute,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ChevronLeft, ChevronRight, Calendar as CalendarIcon, ArrowLeft, Sparkles,
+  ChevronLeft, ChevronRight, Calendar as CalendarIcon, ArrowLeft,
   Loader2, MapIcon, Search, Wand2,
 } from "lucide-react";
 import { format, addDays, parseISO, startOfWeek, eachDayOfInterval } from "date-fns";
@@ -29,6 +30,7 @@ import { arrayMove } from "@dnd-kit/sortable";
 import RouteMap, { type MapRoute, type MapStop } from "@/components/route-planner/RouteMap";
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { EmployeeColumn } from "@/components/route-planner/EmployeeColumn";
+import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { supabase } from "@/integrations/supabase/client";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");

@@ -433,6 +433,9 @@ export type Database = {
           longitude: number | null
           next_service_date: string | null
           notes: string | null
+          preferred_date: string | null
+          preferred_time_end: string | null
+          preferred_time_start: string | null
           status: Database["public"]["Enums"]["order_status"]
           total_amount: number
           updated_at: string
@@ -458,6 +461,9 @@ export type Database = {
           longitude?: number | null
           next_service_date?: string | null
           notes?: string | null
+          preferred_date?: string | null
+          preferred_time_end?: string | null
+          preferred_time_start?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
           updated_at?: string
@@ -483,6 +489,9 @@ export type Database = {
           longitude?: number | null
           next_service_date?: string | null
           notes?: string | null
+          preferred_date?: string | null
+          preferred_time_end?: string | null
+          preferred_time_start?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
           updated_at?: string
@@ -1115,6 +1124,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      recalc_route_totals: { Args: { _route_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "business_owner" | "user" | "employee"
