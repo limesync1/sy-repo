@@ -113,3 +113,27 @@
 .animate-magic-bg-2 { animation: magic-bg-2 15s ease-in-out infinite; }
 .animate-magic-bg-3 { animation: magic-bg-3 18s ease-in-out infinite; }
 .animate-float { animation: float-particle 4s ease-in-out infinite; }
+
+/* Rich Leaflet popup — strip default chrome so the inner card design shines */
+.leaflet-popup.rich-business-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.25);
+}
+.leaflet-popup.rich-business-popup .leaflet-popup-content {
+  margin: 0;
+  width: auto !important;
+}
+.leaflet-popup.rich-business-popup .leaflet-popup-tip {
+  box-shadow: 0 4px 10px -4px rgba(0, 0, 0, 0.2);
+}
+.leaflet-popup.rich-business-popup a[data-popup-link]:hover {
+  opacity: 0.9;
+}
+/* Larger, easier-to-tap close button on touch devices */
+.leaflet-popup.rich-business-popup .leaflet-popup-close-button {
+  padding: 6px 8px 0 0;
+  font-size: 20px;
+  color: hsl(0 0% 45%);
+}
