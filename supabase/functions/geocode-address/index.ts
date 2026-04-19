@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     }
 
     const query = [address, zip, city, "Danmark"].filter(Boolean).join(", ");
-    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=dk&q=${encodeURIComponent(query)}`;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&countrycodes=dk&q=${encodeURIComponent(query)}`;
 
     const resp = await fetch(url, {
       headers: { "User-Agent": "Serviceydere/1.0 (kontakt@serviceydere.dk)" },
