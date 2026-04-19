@@ -3,13 +3,12 @@
 // between an ordered list of waypoints. Falls back to a straight line when
 // Mapbox is unavailable.
 
-import { corsHeaders } from "@supabase/supabase-js/cors";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 type LatLng = { lat: number; lng: number };
-
-type ReqBody = {
-  waypoints: LatLng[]; // 2..25 in order
-};
 
 async function mapboxDirections(coords: LatLng[], token: string) {
   const coordStr = coords.map((c) => `${c.lng},${c.lat}`).join(";");
@@ -33,17 +32,25 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const body = (await req.json()) as ReqBody;
-    const wp = body.waypoints || [];
+    const body = await req.json();
+    const wp: LatLng[] = body?.waypoints || [];
     if (!Array.isArray(wp) || wp.length < 2) {
       return new Response(JSON.stringify({ error: "Mindst 2 waypoints kræves" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const trimmed = wp.slice(0, 25);
-    const token = Deno.env.get("MAPBOX_ACCESS_TOKEN");
+    const trimmed = wp.slice(0, 25).filter(
+      (p) => typeof p?.lat === "number" && typeof p?.lng === "number",
+    );
+    if (trimmed.length < 2) {
+      return new Response(JSON.stringify({ error: "Ugyldige koordinater" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
+    const token = Deno.env.get("MAPBOX_ACCESS_TOKEN");
     if (token) {
       const dir = await mapboxDirections(trimmed, token);
       if (dir) {
