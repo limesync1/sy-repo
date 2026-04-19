@@ -16,10 +16,9 @@ import {
 import {
   Loader2, Send, Sparkles, Navigation, Clock, MapPin, AlertCircle,
   GripVertical, UserPlus, MoreVertical, Trash2, UserCheck,
-  Inbox, CheckCircle2, PlayCircle, Wand2, CheckCheck,
+  Inbox, CheckCircle2, PlayCircle, Wand2,
 } from "lucide-react";
-import { format, isToday, parseISO, formatDistanceToNow } from "date-fns";
-import { da } from "date-fns/locale";
+import { format, isToday, parseISO } from "date-fns";
 import type { RouteStop } from "@/hooks/useRoutes";
 
 const SLOT_MIN = 15;
