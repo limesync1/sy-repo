@@ -50,6 +50,7 @@ import RouteMap, { type MapRoute, type MapStop } from "@/components/route-planne
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { CalendarPlanner, type CalendarColumn, type EmployeeOption } from "@/components/route-planner/CalendarPlanner";
+import { busyIntervalsForEmployee, findFirstFreeSlot, hhmmToMin, minToIso, minToHHmm } from "@/components/route-planner/lib/scheduling";
 import { supabase } from "@/integrations/supabase/client";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
