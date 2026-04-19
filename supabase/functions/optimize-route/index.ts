@@ -196,7 +196,7 @@ Deno.serve(async (req) => {
         preferred_start_min: null,
         preferred_end_min: null,
         required_staff: Math.max(1, s.required_staff || 1),
-        pinned_assignees: assigneesByStop.get(s.id) || [],
+        pinned_assignees: respectPinned ? (assigneesByStop.get(s.id) || []) : [],
       }));
 
     if (validStops.length === 0) {
