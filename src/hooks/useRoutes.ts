@@ -17,8 +17,25 @@ export type Route = {
   start_latitude: number | null;
   start_longitude: number | null;
   planned_start_time: string | null;
+  start_from_home?: boolean;
+  optimization_summary?: string | null;
+  optimization_suggestions?: AISuggestion[] | null;
   created_at: string;
   updated_at: string;
+};
+
+export type AISuggestion = {
+  id: string;
+  title: string;
+  reason: string;
+  estimated_savings_min?: number;
+  estimated_savings_km?: number;
+  action: {
+    type: "swap_assignee" | "reorder";
+    stop_id: string;
+    from_employee_id?: string;
+    to_employee_id?: string;
+  };
 };
 
 export type RouteStop = {
