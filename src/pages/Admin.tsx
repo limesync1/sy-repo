@@ -1418,7 +1418,42 @@ const SettingsTab = ({ business }: { business: any }) => {
         </CardContent>
       </Card>
 
-      {/* Opening Hours */}
+      {/* Route Planning */}
+      <Card className="rounded-xl shadow-sm border-border">
+        <CardContent className="p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Route className="h-4 w-4 text-muted-foreground" />
+            Ruteplanlægning
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Aktivér ruteplanlægning for at oprette medarbejder-konti og planlægge daglige
+            ruter med stop hos kunder. Ruterne kan optimeres med AI baseret på afstand,
+            tidsvinduer og prioriteter.
+          </p>
+          <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-3">
+            <div>
+              <p className="text-sm font-medium text-foreground">Aktivér ruteplanlægning</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Tilføjer "Medarbejdere"-fanen og giver adgang til ruteplanlæggeren.
+              </p>
+            </div>
+            <button
+              onClick={() => setRoutePlanningEnabled((v) => !v)}
+              className={`relative mt-0.5 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${
+                routePlanningEnabled ? "bg-accent" : "bg-border"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm transition-transform mt-0.5 ${
+                  routePlanningEnabled ? "translate-x-4 ml-0.5" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+
+
       <Card className="rounded-xl shadow-sm border-border">
         <CardContent className="p-5 space-y-4">
           <h3 className="text-sm font-semibold text-foreground">Åbningstider</h3>
