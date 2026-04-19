@@ -1111,6 +1111,9 @@ const SettingsTab = ({ business }: { business: any }) => {
     new_review: false,
     ...(business.notification_settings as Record<string, boolean> || {}),
   });
+  const [routePlanningEnabled, setRoutePlanningEnabled] = useState<boolean>(
+    !!(business.settings as any)?.route_planning_enabled
+  );
 
   // CVR lookup
   const [cvrQuery, setCvrQuery] = useState("");
@@ -1200,6 +1203,10 @@ const SettingsTab = ({ business }: { business: any }) => {
       categories: selectedCategories,
       opening_hours: openHours,
       notification_settings: notifSettings,
+      settings: {
+        ...((business.settings as any) || {}),
+        route_planning_enabled: routePlanningEnabled,
+      },
     } as any, {
       onSuccess: () => toast.success("Indstillinger gemt"),
       onError: (e) => toast.error(e.message),
@@ -1208,6 +1215,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
   const origCategories = (business.categories as string[]) || (business.category ? [business.category] : []);
   const origNotif = business.notification_settings as Record<string, boolean> || {};
+  const origRoutePlanning = !!(business.settings as any)?.route_planning_enabled;
   const hasChanges = name !== business.name || description !== (business.description || "") ||
     phone !== (business.phone || "") || email !== (business.email || "") ||
     address !== (business.address || "") || city !== (business.city || "") ||
@@ -1215,6 +1223,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     coverUrl !== (business.cover_image_url || "") ||
     JSON.stringify([...selectedCategories].sort()) !== JSON.stringify([...origCategories].sort()) ||
     JSON.stringify(openHours) !== JSON.stringify(business.opening_hours || {}) ||
+    routePlanningEnabled !== origRoutePlanning ||
     JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
 
   return (
