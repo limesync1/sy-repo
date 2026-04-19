@@ -17,8 +17,25 @@ export type Route = {
   start_latitude: number | null;
   start_longitude: number | null;
   planned_start_time: string | null;
+  start_from_home?: boolean;
+  optimization_summary?: string | null;
+  optimization_suggestions?: AISuggestion[] | null;
   created_at: string;
   updated_at: string;
+};
+
+export type AISuggestion = {
+  id: string;
+  title: string;
+  reason: string;
+  estimated_savings_min?: number;
+  estimated_savings_km?: number;
+  action: {
+    type: "swap_assignee" | "reorder";
+    stop_id: string;
+    from_employee_id?: string;
+    to_employee_id?: string;
+  };
 };
 
 export type RouteStop = {
@@ -626,7 +643,12 @@ export const useOptimizeRoute = () => {
 
       return data as {
         ok: true; reasoning: string; reordered: number;
-        total_km: number; total_minutes: number; provider?: string; groups?: number;
+        total_km: number; total_minutes: number; provider?: string;
+        summary?: string | null;
+        suggestions?: AISuggestion[];
+        unassigned?: number;
+        soft_violations?: number;
+        employees?: number;
       };
     },
     onSuccess: () => {
@@ -635,6 +657,36 @@ export const useOptimizeRoute = () => {
       qc.invalidateQueries({ queryKey: ["routes-range"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke optimere ruten"),
+  });
+};
+
+/* ─── Anvend ét AI-forslag på en rute. ─── */
+export const useApplyRouteSuggestion = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ routeId, suggestionId }: { routeId: string; suggestionId: string }) => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) throw new Error("Du skal være logget ind");
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/apply-route-suggestion`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ route_id: routeId, suggestion_id: suggestionId, access_token: accessToken }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!data?.ok) throw new Error(data?.error || "Kunne ikke anvende forslag");
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+      qc.invalidateQueries({ queryKey: ["routes"] });
+      qc.invalidateQueries({ queryKey: ["routes-range"] });
+      toast.success("Forslag anvendt");
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke anvende forslag"),
   });
 };
 
