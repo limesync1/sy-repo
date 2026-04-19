@@ -572,10 +572,17 @@ const SubscriptionsView = () => {
     });
   };
   const handleResume = (id: string) => {
-    updateSub.mutate({ id, status: "active", paused_at: null }, {
-      onSuccess: () => toast.success("Service genoptaget"),
-      onError: (e) => toast.error(e.message),
-    });
+    // Genoptag: planlæg næste besøg snarest (i morgen) så det igen dukker op i ruteplanlægning
+    // — preferred_route_id på abonnementet huskes fra sidste gang og bruges til at foreslå samme rute
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    updateSub.mutate(
+      { id, status: "active", paused_at: null, next_service_date: tomorrow.toISOString() },
+      {
+        onSuccess: () => toast.success("Service genoptaget — næste besøg planlægges snarest"),
+        onError: (e) => toast.error(e.message),
+      }
+    );
   };
   const handleCancel = (id: string) => {
     if (!confirm("Er du sikker på, at du vil opsige denne service?")) return;
