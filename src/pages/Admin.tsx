@@ -15,13 +15,14 @@ import { useState } from "react";
 import {
   Plus, Trash2, LogOut,
   Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart,
-  Star, Settings, Menu, X, ExternalLink, Bell, Users, Route,
+  Star, Settings, Menu, X, ExternalLink, Bell, Users, Route, Contact,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import DashboardTab from "@/components/admin/DashboardTab";
 import ReviewsTab from "@/components/admin/ReviewsTab";
 import AftaleTab from "@/components/admin/AftaleTab";
 import EmployeesTab from "@/components/admin/EmployeesTab";
+import CustomersTab from "@/components/admin/CustomersTab";
 
 /* ─── Constants ─── */
 const CATEGORIES = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS", "Elektriker", "Sikkerhed"];
@@ -133,6 +134,7 @@ const NAV_ITEMS = [
   { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
   { value: "services", label: "Services", icon: Wrench },
   { value: "orders", label: "Aftaler", icon: ShoppingCart },
+  { value: "customers", label: "Kunder", icon: Contact },
   { value: "routes", label: "Ruter", icon: Route, requiresRoutePlanning: true, href: "/virksomhed/ruter" as string | undefined },
   { value: "employees", label: "Medarbejdere", icon: Users, requiresRoutePlanning: true },
   { value: "reviews", label: "Anmeldelser", icon: Star },
@@ -165,6 +167,7 @@ const AdminDashboard = () => {
       case "dashboard": return <DashboardWrapper business={business} onNavigate={setActiveTab} />;
       case "services": return <ServicesTab businessId={business.id} />;
       case "orders": return <AftaleTab businessId={business.id} />;
+      case "customers": return <CustomersTab businessId={business.id} />;
       case "employees": return <EmployeesTab businessId={business.id} businessName={business.name} routePlanningEnabled={routePlanningEnabled} />;
       case "reviews": return <ReviewsWrapper businessId={business.id} />;
       case "settings": return <SettingsTab business={business} />;
