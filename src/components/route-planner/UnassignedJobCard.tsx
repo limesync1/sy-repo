@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
-import { GripVertical, MapPin, Calendar as CalendarIcon, Clock, Phone, StickyNote, Package, Hourglass } from "lucide-react";
+import {
+  GripVertical, MapPin, Calendar as CalendarIcon, Clock, Phone,
+  StickyNote, Hourglass, ChevronDown, ChevronRight, User,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { format, parseISO, isToday, isTomorrow } from "date-fns";
+import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { da } from "date-fns/locale";
 
 type Props = {
@@ -27,10 +31,23 @@ const formatPreferredDate = (d: string) => {
   const date = parseISO(d);
   if (isToday(date)) return "I dag";
   if (isTomorrow(date)) return "I morgen";
-  return format(date, "EEE d. MMM", { locale: da });
+  const diff = differenceInDays(date, new Date());
+  if (diff > 0 && diff < 7) return format(date, "EEEE", { locale: da });
+  return format(date, "d. MMM", { locale: da });
+};
+
+/** Get urgency styling based on preferred date */
+const getUrgency = (d?: string | null) => {
+  if (!d) return null;
+  const date = parseISO(d);
+  if (isPast(date) && !isToday(date)) return { label: "Forsinket", className: "border-destructive/40 text-destructive bg-destructive/5" };
+  if (isToday(date)) return { label: "I dag", className: "border-orange-300 text-orange-700 bg-orange-50" };
+  if (isTomorrow(date)) return { label: "I morgen", className: "border-amber-300 text-amber-700 bg-amber-50" };
+  return { label: format(date, "d. MMM", { locale: da }), className: "border-border text-muted-foreground bg-secondary/40" };
 };
 
 export const UnassignedJobCard = ({ job }: Props) => {
+  const [expanded, setExpanded] = useState(false);
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `job-${job.id}`,
     data: { type: "job", job },
@@ -38,11 +55,10 @@ export const UnassignedJobCard = ({ job }: Props) => {
 
   const items = job.order_items || [];
   const itemCount = items.length;
-  const totalQty = items.reduce((s, i) => s + Number(i.quantity || 0), 0);
   const fullAddress = [job.address, [job.zip_code, job.city].filter(Boolean).join(" ")]
     .filter(Boolean).join(", ");
 
-  // Estimer varighed: 30 min/stop som default, eller fra preferred window
+  // Estimate duration: 30 min default, or from preferred window
   let estimatedMin = 30;
   if (job.preferred_time_start && job.preferred_time_end) {
     const [sh, sm] = job.preferred_time_start.split(":").map(Number);
@@ -50,76 +66,61 @@ export const UnassignedJobCard = ({ job }: Props) => {
     estimatedMin = (eh * 60 + em) - (sh * 60 + sm);
   }
 
+  const urgency = getUrgency(job.preferred_date);
+  const hasGps = job.latitude != null && job.longitude != null;
+
   return (
     <div
       ref={setNodeRef}
-      {...listeners}
-      {...attributes}
       style={{ opacity: isDragging ? 0.4 : 1 }}
-      className="rounded-lg border bg-background p-2.5 cursor-grab active:cursor-grabbing hover:border-primary hover:shadow-sm transition-all"
+      className="group rounded-lg border bg-card hover:border-primary/60 hover:shadow-md transition-all overflow-hidden"
     >
-      <div className="flex items-start gap-2">
-        <GripVertical className="h-4 w-4 text-muted-foreground/60 mt-0.5 shrink-0" />
+      {/* Drag handle row */}
+      <div
+        {...listeners}
+        {...attributes}
+        className="flex items-start gap-2 p-2.5 cursor-grab active:cursor-grabbing"
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground/50 mt-0.5 shrink-0 group-hover:text-primary/70 transition-colors" />
         <div className="flex-1 min-w-0 space-y-1.5">
-          {/* Customer name + price */}
+          {/* Header: name + price */}
           <div className="flex items-start justify-between gap-2">
-            <p className="text-sm font-semibold truncate flex-1">{job.customer_name}</p>
-            <span className="text-xs font-bold text-foreground shrink-0">
+            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+              <User className="h-3 w-3 text-muted-foreground shrink-0" />
+              <p className="text-sm font-semibold truncate">{job.customer_name}</p>
+            </div>
+            <span className="text-xs font-bold text-primary shrink-0 tabular-nums">
               {Math.round(Number(job.total_amount || 0))} kr
             </span>
           </div>
 
-          {/* Phone */}
-          {job.customer_phone && (
-            <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-              <Phone className="h-3 w-3 shrink-0" />
-              <span className="truncate">{job.customer_phone}</span>
-            </p>
-          )}
-
-          {/* All services as small list */}
+          {/* First service inline */}
           {itemCount > 0 && (
-            <div className="space-y-0.5">
-              {items.slice(0, 3).map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between gap-2 text-[11px]">
-                  <span className="text-foreground/80 truncate flex items-center gap-1">
-                    <Package className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />
-                    {item.quantity > 1 && <span className="text-muted-foreground">{item.quantity}× </span>}
-                    {item.service_name}
-                  </span>
-                </div>
-              ))}
-              {itemCount > 3 && (
-                <p className="text-[10px] text-muted-foreground pl-3.5">+{itemCount - 3} flere ydelser</p>
-              )}
-            </div>
+            <p className="text-[11px] text-foreground/70 truncate">
+              {items[0].quantity > 1 && <span className="text-muted-foreground">{items[0].quantity}× </span>}
+              {items[0].service_name}
+              {itemCount > 1 && <span className="text-muted-foreground"> · +{itemCount - 1} mere</span>}
+            </p>
           )}
 
           {/* Address */}
           {fullAddress && (
             <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1">
-              <MapPin className="h-3 w-3 shrink-0" />{fullAddress}
+              <MapPin className={`h-3 w-3 shrink-0 ${hasGps ? "text-emerald-500" : "text-orange-400"}`} />
+              <span className="truncate">{fullAddress}</span>
             </p>
           )}
 
-          {/* Notes */}
-          {job.notes && (
-            <p className="text-[11px] text-muted-foreground flex items-start gap-1 italic">
-              <StickyNote className="h-3 w-3 shrink-0 mt-0.5" />
-              <span className="line-clamp-2">{job.notes}</span>
-            </p>
-          )}
-
-          {/* Badges row: date, time window, estimated duration, item count */}
-          <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-            {job.preferred_date && (
-              <Badge variant="outline" className="h-4 text-[10px] px-1.5 gap-0.5 border-amber-300 text-amber-700 bg-amber-50">
+          {/* Compact badge row */}
+          <div className="flex items-center gap-1 flex-wrap">
+            {urgency && (
+              <Badge variant="outline" className={`h-4 text-[10px] px-1.5 gap-0.5 ${urgency.className}`}>
                 <CalendarIcon className="h-2.5 w-2.5" />
-                {formatPreferredDate(job.preferred_date)}
+                {urgency.label}
               </Badge>
             )}
             {job.preferred_time_start && (
-              <Badge variant="outline" className="h-4 text-[10px] px-1.5 gap-0.5 border-amber-300 text-amber-700 bg-amber-50">
+              <Badge variant="outline" className="h-4 text-[10px] px-1.5 gap-0.5 border-border text-muted-foreground">
                 <Clock className="h-2.5 w-2.5" />
                 {job.preferred_time_start.slice(0, 5)}
                 {job.preferred_time_end && `–${job.preferred_time_end.slice(0, 5)}`}
@@ -127,16 +128,59 @@ export const UnassignedJobCard = ({ job }: Props) => {
             )}
             <Badge variant="secondary" className="h-4 text-[10px] px-1.5 gap-0.5">
               <Hourglass className="h-2.5 w-2.5" />
-              ~{estimatedMin} min
+              ~{estimatedMin}m
             </Badge>
-            {totalQty > 1 && (
-              <Badge variant="secondary" className="h-4 text-[10px] px-1.5">
-                {totalQty} stk
-              </Badge>
-            )}
           </div>
         </div>
       </div>
+
+      {/* Expandable details */}
+      {(job.customer_phone || itemCount > 1 || job.notes) && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="w-full flex items-center justify-center gap-1 px-2 py-1 text-[10px] text-muted-foreground hover:bg-secondary/60 border-t border-border/50 transition-colors"
+        >
+          {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+          {expanded ? "Skjul detaljer" : "Vis detaljer"}
+        </button>
+      )}
+
+      {expanded && (
+        <div className="px-2.5 pb-2.5 pt-1 space-y-1.5 border-t border-border/50 bg-secondary/20">
+          {job.customer_phone && (
+            <a
+              href={`tel:${job.customer_phone}`}
+              className="text-[11px] text-foreground hover:text-primary flex items-center gap-1.5"
+            >
+              <Phone className="h-3 w-3 shrink-0" />
+              {job.customer_phone}
+            </a>
+          )}
+          {itemCount > 1 && (
+            <div className="space-y-0.5">
+              <p className="text-[10px] uppercase text-muted-foreground tracking-wide">Ydelser</p>
+              {items.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between gap-2 text-[11px] text-foreground/80">
+                  <span className="truncate">
+                    {item.quantity > 1 && <span className="text-muted-foreground">{item.quantity}× </span>}
+                    {item.service_name}
+                  </span>
+                  <span className="text-muted-foreground tabular-nums shrink-0">
+                    {Math.round(Number(item.total_price))} kr
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          {job.notes && (
+            <div className="flex items-start gap-1.5 text-[11px] text-foreground/70 italic bg-background rounded px-2 py-1.5">
+              <StickyNote className="h-3 w-3 shrink-0 mt-0.5 text-muted-foreground" />
+              <span className="leading-snug">{job.notes}</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

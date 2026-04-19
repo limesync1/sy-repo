@@ -21,8 +21,11 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon, ArrowLeft,
-  Loader2, MapIcon, Search, Wand2, Plus,
+  Loader2, MapIcon, Search, Plus, Inbox, ArrowUpDown,
 } from "lucide-react";
 import { format, addDays, parseISO, startOfWeek, eachDayOfInterval } from "date-fns";
 import { da } from "date-fns/locale";
@@ -68,6 +71,7 @@ const Planner = () => {
   const [date, setDate] = useState<string>(todayStr());
   const [view, setView] = useState<"day" | "week">("day");
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<"date" | "price" | "name">("date");
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
@@ -150,14 +154,37 @@ const Planner = () => {
   };
 
   const filteredUnassigned = useMemo(() => {
-    if (!search.trim()) return unassigned;
-    const q = search.toLowerCase();
-    return unassigned.filter((j: any) =>
-      j.customer_name?.toLowerCase().includes(q) ||
-      j.address?.toLowerCase().includes(q) ||
-      j.city?.toLowerCase().includes(q),
-    );
-  }, [unassigned, search]);
+    let list = unassigned;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((j: any) =>
+        j.customer_name?.toLowerCase().includes(q) ||
+        j.address?.toLowerCase().includes(q) ||
+        j.city?.toLowerCase().includes(q),
+      );
+    }
+    const sorted = [...list];
+    if (sortBy === "date") {
+      sorted.sort((a: any, b: any) => {
+        const ad = a.preferred_date || "9999-12-31";
+        const bd = b.preferred_date || "9999-12-31";
+        if (ad !== bd) return ad < bd ? -1 : 1;
+        const at = a.preferred_time_start || "99:99";
+        const bt = b.preferred_time_start || "99:99";
+        return at < bt ? -1 : at > bt ? 1 : 0;
+      });
+    } else if (sortBy === "price") {
+      sorted.sort((a: any, b: any) => Number(b.total_amount || 0) - Number(a.total_amount || 0));
+    } else if (sortBy === "name") {
+      sorted.sort((a: any, b: any) => (a.customer_name || "").localeCompare(b.customer_name || "", "da"));
+    }
+    return sorted;
+  }, [unassigned, search, sortBy]);
+
+  const unassignedTotal = useMemo(
+    () => filteredUnassigned.reduce((s: number, j: any) => s + Number(j.total_amount || 0), 0),
+    [filteredUnassigned],
+  );
 
   /* Stop assignment handler */
   const handleAssignStop = async (stopId: string, employeeId: string | null) => {
@@ -465,33 +492,68 @@ const Planner = () => {
         {view === "day" ? (
           <div className="flex-1 grid gap-3 p-3 overflow-hidden"
             style={{
-              gridTemplateColumns: showMap ? "260px 1fr 360px" : "260px 1fr",
+              gridTemplateColumns: showMap ? "300px 1fr 360px" : "300px 1fr",
               height: "calc(100vh - 50px)",
             }}>
             {/* Sidebar: ledige opgaver */}
             <aside className="overflow-hidden">
-              <Card className="p-2.5 flex flex-col h-full">
-                <h2 className="font-semibold text-sm mb-2 flex items-center justify-between">
-                  Ledige opgaver
-                  <Badge variant="secondary">{filteredUnassigned.length}</Badge>
-                </h2>
-                <div className="relative mb-2">
-                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                  <Input
-                    placeholder="Søg navn eller adresse..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="h-7 pl-7 text-xs"
-                  />
+              <Card className="flex flex-col h-full overflow-hidden">
+                {/* Header section */}
+                <div className="p-3 border-b bg-secondary/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-semibold text-sm flex items-center gap-1.5">
+                      <Inbox className="h-4 w-4 text-primary" />
+                      Opgavepool
+                    </h2>
+                    <Badge variant="secondary" className="tabular-nums">
+                      {filteredUnassigned.length}
+                    </Badge>
+                  </div>
+                  {filteredUnassigned.length > 0 && (
+                    <p className="text-[10px] text-muted-foreground tabular-nums">
+                      Total værdi: <span className="font-semibold text-foreground">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span>
+                    </p>
+                  )}
+                  <div className="relative">
+                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input
+                      placeholder="Søg navn eller adresse..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="h-7 pl-7 pr-2 text-xs"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <ArrowUpDown className="h-3 w-3 text-muted-foreground shrink-0" />
+                    <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                      <SelectTrigger className="h-6 text-[11px] flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="date" className="text-xs">Sortér efter dato</SelectItem>
+                        <SelectItem value="price" className="text-xs">Højeste pris først</SelectItem>
+                        <SelectItem value="name" className="text-xs">Navn (A-Å)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {geocoding && (
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      <Loader2 className="h-2.5 w-2.5 animate-spin" />Finder GPS-koordinater...
+                    </p>
+                  )}
                 </div>
-                {geocoding && (
-                  <p className="text-[10px] text-muted-foreground mb-2 flex items-center gap-1">
-                    <Loader2 className="h-2.5 w-2.5 animate-spin" />Finder GPS...
-                  </p>
-                )}
-                <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
+
+                {/* Scrollable list */}
+                <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
                   {filteredUnassigned.length === 0 && (
-                    <p className="text-xs text-muted-foreground italic text-center py-8">Ingen ledige opgaver</p>
+                    <div className="flex flex-col items-center justify-center py-12 px-4 text-center gap-2">
+                      <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
+                        <Inbox className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <p className="text-xs text-muted-foreground italic">
+                        {search ? "Ingen opgaver matcher søgningen" : "Alle opgaver er planlagt 🎉"}
+                      </p>
+                    </div>
                   )}
                   {filteredUnassigned.map((job: any) => (
                     <UnassignedJobCard key={job.id} job={job} />
