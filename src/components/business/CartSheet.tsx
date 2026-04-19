@@ -64,6 +64,12 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
             customer_name: name,
             customer_email: email,
             customer_phone: phone,
+            address,
+            zip_code: zipCode,
+            city,
+            preferred_date: preferredDate || null,
+            preferred_time_start: preferredTimeStart || null,
+            preferred_time_end: preferredTimeEnd || null,
             total_amount: bizTotal,
             customer_id: user?.id || null,
           },
@@ -81,6 +87,20 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
             },
           })),
         });
+
+        // Auto-geocode customer address (best-effort, non-blocking)
+        const fullAddress = `${address}, ${zipCode} ${city}`;
+        supabase.functions
+          .invoke("geocode-address", { body: { address: fullAddress } })
+          .then(({ data }) => {
+            if (data?.latitude && data?.longitude) {
+              return supabase
+                .from("orders")
+                .update({ latitude: data.latitude, longitude: data.longitude })
+                .eq("id", orderResult.id);
+            }
+          })
+          .catch(() => { /* ignore */ });
 
         if (user && businessId !== "unknown") {
           for (const item of group.items) {
