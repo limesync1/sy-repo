@@ -40,11 +40,17 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [zipCode, setZipCode] = useState("");
+  const [city, setCity] = useState("");
+  const [preferredDate, setPreferredDate] = useState("");
+  const [preferredTimeStart, setPreferredTimeStart] = useState("");
+  const [preferredTimeEnd, setPreferredTimeEnd] = useState("");
   const [orderSuccess, setOrderSuccess] = useState(false);
 
   const handleOrder = async () => {
-    if (!name || !email || !phone) {
-      toast.error("Udfyld venligst alle felter for at sende bestillingen");
+    if (!name || !email || !phone || !address || !zipCode || !city) {
+      toast.error("Udfyld venligst alle felter inkl. adresse for at sende bestillingen");
       return;
     }
 
@@ -58,6 +64,12 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
             customer_name: name,
             customer_email: email,
             customer_phone: phone,
+            address,
+            zip_code: zipCode,
+            city,
+            preferred_date: preferredDate || null,
+            preferred_time_start: preferredTimeStart || null,
+            preferred_time_end: preferredTimeEnd || null,
             total_amount: bizTotal,
             customer_id: user?.id || null,
           },
@@ -75,6 +87,20 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
             },
           })),
         });
+
+        // Auto-geocode customer address (best-effort, non-blocking)
+        const fullAddress = `${address}, ${zipCode} ${city}`;
+        supabase.functions
+          .invoke("geocode-address", { body: { address: fullAddress } })
+          .then(({ data }) => {
+            if (data?.latitude && data?.longitude) {
+              return supabase
+                .from("orders")
+                .update({ latitude: data.latitude, longitude: data.longitude })
+                .eq("id", orderResult.id);
+            }
+          })
+          .catch(() => { /* ignore */ });
 
         if (user && businessId !== "unknown") {
           for (const item of group.items) {
@@ -171,6 +197,8 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
       setCheckout(false);
       setOrderSuccess(false);
       setName(""); setEmail(""); setPhone("");
+      setAddress(""); setZipCode(""); setCity("");
+      setPreferredDate(""); setPreferredTimeStart(""); setPreferredTimeEnd("");
       if (user) {
         navigate("/min-konto");
       } else {
@@ -331,6 +359,45 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 <div>
                   <label className="mb-1 block text-xs font-medium text-muted-foreground">Telefon</label>
                   <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 00 00 00 00" className="rounded-lg" />
+                </div>
+              </div>
+
+              {/* Service address */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-foreground">Service-adresse</h4>
+                <p className="text-xs text-muted-foreground -mt-1">Adressen hvor servicen skal udføres — bruges til ruteplanlægning.</p>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Adresse (vej + nr.)</label>
+                  <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Hovedgaden 12" className="rounded-lg" />
+                </div>
+                <div className="grid grid-cols-[1fr_2fr] gap-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Postnr.</label>
+                    <Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} placeholder="8600" className="rounded-lg" inputMode="numeric" maxLength={4} />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">By</label>
+                    <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Silkeborg" className="rounded-lg" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Preferred timing (optional) */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-foreground">Ønsket tidspunkt <span className="text-xs font-normal text-muted-foreground">(valgfrit)</span></h4>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Dato</label>
+                  <Input type="date" value={preferredDate} onChange={(e) => setPreferredDate(e.target.value)} className="rounded-lg" min={new Date().toISOString().split("T")[0]} />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Fra</label>
+                    <Input type="time" value={preferredTimeStart} onChange={(e) => setPreferredTimeStart(e.target.value)} className="rounded-lg" />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Til</label>
+                    <Input type="time" value={preferredTimeEnd} onChange={(e) => setPreferredTimeEnd(e.target.value)} className="rounded-lg" />
+                  </div>
                 </div>
               </div>
 

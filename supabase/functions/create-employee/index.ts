@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
   // Verify caller owns the business
   const { data: biz, error: bizErr } = await admin
     .from('businesses')
-    .select('id, name, owner_id, logo_url, slug')
+    .select('id, name, owner_id, logo_url, slug, address, city, zip_code')
     .eq('id', businessId)
     .maybeSingle()
   if (bizErr || !biz) {
@@ -125,6 +125,23 @@ Deno.serve(async (req) => {
     })
   }
 
+  // Build home address from business address (employee starts route from business HQ)
+  const homeAddressParts = [biz.address, [biz.zip_code, biz.city].filter(Boolean).join(' ')].filter(Boolean)
+  const homeAddress = homeAddressParts.length ? homeAddressParts.join(', ') : null
+
+  // Geocode the business address (best-effort, non-blocking on failure)
+  let homeLat: number | null = null
+  let homeLng: number | null = null
+  if (homeAddress) {
+    try {
+      const geo = await admin.functions.invoke('geocode-address', { body: { address: homeAddress } })
+      if (geo.data?.latitude && geo.data?.longitude) {
+        homeLat = Number(geo.data.latitude)
+        homeLng = Number(geo.data.longitude)
+      }
+    } catch { /* ignore */ }
+  }
+
   // Insert employee row, linked to user_id
   const { data: employee, error: empErr } = await admin
     .from('employees')
@@ -135,6 +152,9 @@ Deno.serve(async (req) => {
       email,
       phone,
       title,
+      home_address: homeAddress,
+      home_latitude: homeLat,
+      home_longitude: homeLng,
     })
     .select()
     .single()
