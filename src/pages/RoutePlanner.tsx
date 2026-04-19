@@ -18,15 +18,26 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
+} from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
+  ResizablePanelGroup, ResizablePanel, ResizableHandle,
+} from "@/components/ui/resizable";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon, ArrowLeft,
-  Loader2, MapIcon, Search, Plus, Inbox, ArrowUpDown,
+  Loader2, MapIcon, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
 } from "lucide-react";
 import { format, addDays, parseISO, startOfWeek, eachDayOfInterval } from "date-fns";
 import { da } from "date-fns/locale";
