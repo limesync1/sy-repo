@@ -802,13 +802,20 @@ export const useDispatchRoute = () => {
 
       const biz: any = (route as any).businesses;
 
-      // Stops assigned to this employee on this route
-      const { data: stops } = await supabase
-        .from("route_stops")
-        .select("*")
-        .eq("route_id", routeId)
-        .eq("assigned_employee_id", employeeId)
-        .order("sequence", { ascending: true });
+      // Stops where this employee is one of the assignees on this route
+      const { data: myAssignments } = await supabase
+        .from("route_stop_assignees")
+        .select("stop_id")
+        .eq("employee_id", employeeId);
+      const myStopIds = (myAssignments || []).map((a: any) => a.stop_id);
+      const { data: stops } = myStopIds.length > 0
+        ? await supabase
+            .from("route_stops")
+            .select("*")
+            .eq("route_id", routeId)
+            .in("id", myStopIds)
+            .order("sequence", { ascending: true })
+        : { data: [] as any[] };
       const stopList = stops || [];
       if (stopList.length === 0) throw new Error("Medarbejderen har ingen stop på denne rute");
 
