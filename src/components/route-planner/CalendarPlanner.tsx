@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, Send, Sparkles, Navigation, Clock, MapPin, AlertCircle, GripVertical } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import type { RouteStop } from "@/hooks/useRoutes";
 
 const SLOT_MIN = 15;

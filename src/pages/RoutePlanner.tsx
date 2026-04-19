@@ -5,7 +5,7 @@ import { useMyBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
 import {
   useRoutesForDate, useStopsForRoutes, useUnassignedJobs,
-  useUpsertRoute, useAddStop, useReorderStops, useDeleteStop,
+  useUpsertRoute, useAddStop, useReorderStops, useUpdateStop,
   useOptimizeRoute, useGeocodeAddress, useRoutesForRange,
   useDispatchRoute,
   type RouteStop, type Route,
@@ -24,27 +24,33 @@ import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
-  closestCenter, type DragEndEvent, type DragStartEvent,
+  pointerWithin, type DragEndEvent, type DragStartEvent,
 } from "@dnd-kit/core";
-import { arrayMove } from "@dnd-kit/sortable";
 import RouteMap, { type MapRoute, type MapStop } from "@/components/route-planner/RouteMap";
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
-import { EmployeeColumn } from "@/components/route-planner/EmployeeColumn";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
+import { CalendarPlanner, type CalendarColumn } from "@/components/route-planner/CalendarPlanner";
 import { supabase } from "@/integrations/supabase/client";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
-// Distinct, accessible colors for employee routes
 const ROUTE_COLORS = [
-  "hsl(184 90% 35%)", // teal (brand)
-  "hsl(24 90% 50%)",  // orange
-  "hsl(260 70% 55%)", // purple
-  "hsl(140 60% 40%)", // green
-  "hsl(340 75% 50%)", // pink
-  "hsl(50 90% 45%)",  // amber
-  "hsl(210 80% 50%)", // blue
+  "hsl(184 90% 35%)",
+  "hsl(24 90% 50%)",
+  "hsl(260 70% 55%)",
+  "hsl(140 60% 40%)",
+  "hsl(340 75% 50%)",
+  "hsl(50 90% 45%)",
+  "hsl(210 80% 50%)",
 ];
+
+/** Convert a "HH:mm" slot time on a given date to ISO timestamp. */
+const slotToIso = (date: string, hhmm: string): string => {
+  const [h, m] = hhmm.split(":").map(Number);
+  const d = new Date(date + "T00:00:00");
+  d.setHours(h, m, 0, 0);
+  return d.toISOString();
+};
 
 const RoutePlanner = () => {
   const { user, loading } = useAuth();
@@ -62,6 +68,7 @@ const Planner = () => {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
   const [geocoding, setGeocoding] = useState(false);
+  const [showMap, setShowMap] = useState(true);
 
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
@@ -74,7 +81,6 @@ const Planner = () => {
   const { data: stops = [] } = useStopsForRoutes(routeIds);
   const { data: unassigned = [] } = useUnassignedJobs(businessId);
 
-  // Week view data
   const weekStart = useMemo(() => format(startOfWeek(parseISO(date), { weekStartsOn: 1 }), "yyyy-MM-dd"), [date]);
   const weekEnd = useMemo(() => format(addDays(parseISO(weekStart), 6), "yyyy-MM-dd"), [weekStart]);
   const { data: weekRoutes = [] } = useRoutesForRange(businessId, weekStart, weekEnd);
@@ -82,15 +88,13 @@ const Planner = () => {
   const upsertRoute = useUpsertRoute();
   const addStop = useAddStop();
   const reorderStops = useReorderStops();
-  const deleteStop = useDeleteStop();
+  const updateStop = useUpdateStop();
   const optimizeRoute = useOptimizeRoute();
+  const dispatchRoute = useDispatchRoute();
   const geocode = useGeocodeAddress();
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-  );
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
-  /* Stops grouped by route */
   const stopsByRoute = useMemo(() => {
     const map = new Map<string, RouteStop[]>();
     for (const s of stops) {
@@ -101,7 +105,6 @@ const Planner = () => {
     return map;
   }, [stops]);
 
-  /* Color per employee */
   const colorForEmployee = (employeeId: string | null) => {
     if (!employeeId) return "hsl(220 13% 50%)";
     const idx = activeEmployees.findIndex((e: any) => e.id === employeeId);
@@ -111,7 +114,6 @@ const Planner = () => {
   const routeForEmployee = (employeeId: string | null): Route | undefined =>
     routes.find((r) => r.employee_id === employeeId);
 
-  /* Filtered unassigned by search */
   const filteredUnassigned = useMemo(() => {
     if (!search.trim()) return unassigned;
     const q = search.toLowerCase();
@@ -122,29 +124,46 @@ const Planner = () => {
     );
   }, [unassigned, search]);
 
-  /* Map data — collect routes + unassigned with coords */
-  const mapRoutes: MapRoute[] = useMemo(() => {
-    const list: MapRoute[] = [];
-    // Unassigned-route column (no employee)
+  /* Build calendar columns */
+  const calendarColumns: CalendarColumn[] = useMemo(() => {
+    const cols: CalendarColumn[] = [];
     const noEmpRoute = routeForEmployee(null);
     if (noEmpRoute) {
-      const colStops = (stopsByRoute.get(noEmpRoute.id) || [])
-        .filter((s) => s.latitude != null && s.longitude != null)
-        .sort((a, b) => a.sequence - b.sequence)
-        .map((s, i) => ({
-          id: s.id,
-          lat: Number(s.latitude),
-          lng: Number(s.longitude),
-          label: s.customer_name || "Stop",
-          sublabel: s.address || undefined,
-          index: i + 1,
-        }));
-      if (colStops.length) list.push({ color: colorForEmployee(null), stops: colStops });
+      cols.push({
+        routeId: noEmpRoute.id, employeeId: null,
+        label: "Ikke tildelt", subtitle: "Uden medarbejder",
+        color: colorForEmployee(null),
+        stops: stopsByRoute.get(noEmpRoute.id) || [],
+        totalKm: noEmpRoute.total_distance_km, totalMin: noEmpRoute.total_duration_minutes,
+        routeStatus: noEmpRoute.status,
+      });
     }
     for (const emp of activeEmployees) {
       const r = routeForEmployee(emp.id);
-      if (!r) continue;
-      const colStops = (stopsByRoute.get(r.id) || [])
+      cols.push({
+        routeId: r?.id || "",
+        employeeId: emp.id,
+        label: emp.name,
+        subtitle: emp.title || emp.email,
+        color: colorForEmployee(emp.id),
+        stops: r ? (stopsByRoute.get(r.id) || []) : [],
+        totalKm: r?.total_distance_km, totalMin: r?.total_duration_minutes,
+        routeStatus: r?.status,
+        onOptimize: r ? () => handleOptimize(r.id) : undefined,
+        onDispatch: r ? () => dispatchRoute.mutate(r.id) : undefined,
+        optimizing: optimizeRoute.isPending,
+        dispatching: dispatchRoute.isPending,
+      });
+    }
+    return cols;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routes, stopsByRoute, activeEmployees, optimizeRoute.isPending, dispatchRoute.isPending]);
+
+  /* Map data */
+  const mapRoutes: MapRoute[] = useMemo(() => {
+    const list: MapRoute[] = [];
+    for (const col of calendarColumns) {
+      const colStops = col.stops
         .filter((s) => s.latitude != null && s.longitude != null)
         .sort((a, b) => a.sequence - b.sequence)
         .map((s, i) => ({
@@ -155,35 +174,29 @@ const Planner = () => {
           sublabel: s.address || undefined,
           index: i + 1,
         }));
-      if (colStops.length) list.push({ color: colorForEmployee(emp.id), stops: colStops });
+      if (colStops.length) list.push({ color: col.color, stops: colStops });
     }
     return list;
-  }, [routes, stopsByRoute, activeEmployees]);
+  }, [calendarColumns]);
 
   const unassignedMapStops: MapStop[] = useMemo(() =>
     filteredUnassigned
       .filter((j: any) => j.latitude != null && j.longitude != null)
       .map((j: any) => ({
-        id: j.id,
-        lat: Number(j.latitude),
-        lng: Number(j.longitude),
-        label: j.customer_name,
-        sublabel: j.address,
-        color: "hsl(220 13% 50%)",
+        id: j.id, lat: Number(j.latitude), lng: Number(j.longitude),
+        label: j.customer_name, sublabel: j.address, color: "hsl(220 13% 50%)",
       })),
   [filteredUnassigned]);
 
-  /* Auto-geocode jobs that have address but no coords */
+  /* Auto-geocode jobs missing coords */
   useEffect(() => {
     if (!businessId || geocoding) return;
     const needsGeocode = unassigned.filter((j: any) =>
       (j.address || j.zip_code || j.city) && (j.latitude == null || j.longitude == null),
     );
     if (needsGeocode.length === 0) return;
-
     setGeocoding(true);
     (async () => {
-      // Process up to 5 at a time to be polite to Nominatim
       for (const job of needsGeocode.slice(0, 5)) {
         try {
           const res = await geocode.mutateAsync({
@@ -193,8 +206,7 @@ const Planner = () => {
           });
           if (res.found) {
             await supabase.from("orders").update({
-              latitude: res.latitude,
-              longitude: res.longitude,
+              latitude: res.latitude, longitude: res.longitude,
             }).eq("id", job.id);
           }
         } catch { /* ignore */ }
@@ -227,15 +239,14 @@ const Planner = () => {
     );
   }
 
-  /* ─── DnD handlers ─── */
+  /* ─── DnD ─── */
   const handleDragStart = (e: DragStartEvent) => {
     setActiveDragId(e.active.id as string);
     setActiveDragData(e.active.data.current);
   };
 
   const handleDragEnd = async (e: DragEndEvent) => {
-    const active = e.active;
-    const over = e.over;
+    const { active, over } = e;
     setActiveDragId(null);
     setActiveDragData(null);
     if (!over || !businessId) return;
@@ -243,102 +254,72 @@ const Planner = () => {
     const activeData: any = active.data.current;
     const overData: any = over.data.current;
 
-    // Case 1: dragging an unassigned job
-    if (activeData?.type === "job") {
-      const job = activeData.job;
-      // Determine target column
-      let targetEmployeeId: string | null | undefined;
-      if (overData?.type === "column") targetEmployeeId = overData.employeeId;
-      else if (overData?.type === "stop") {
-        const targetRoute = routes.find((r) => r.id === overData.stop.route_id);
-        targetEmployeeId = targetRoute?.employee_id ?? null;
-      }
-      if (targetEmployeeId === undefined) return;
+    // Drop on a calendar slot — assign or move stop to specific time
+    if (overData?.type === "slot") {
+      const targetEmployeeId: string | null = overData.employeeId;
+      const slotIso = slotToIso(date, overData.slotTime);
 
-      try {
-        const route = await upsertRoute.mutateAsync({
-          business_id: businessId, employee_id: targetEmployeeId, route_date: date,
-        });
-        const existingStops = stopsByRoute.get(route.id) || [];
-        await addStop.mutateAsync({
-          route_id: route.id,
-          order_id: job.id,
-          sequence: existingStops.length,
-          customer_name: job.customer_name,
-          customer_phone: job.customer_phone,
-          address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
-          latitude: job.latitude,
-          longitude: job.longitude,
-          service_summary: `Ordre · ${Math.round(Number(job.total_amount || 0))} kr`,
-        });
-        toast.success("Stop tilføjet");
-      } catch (err: any) {
-        toast.error(err.message || "Kunne ikke tilføje stop");
-      }
-      return;
-    }
-
-    // Case 2: dragging an existing stop
-    if (activeData?.type === "stop") {
-      const draggedStop: RouteStop = activeData.stop;
-
-      // Dropped on a column
-      if (overData?.type === "column") {
-        const targetEmployeeId = overData.employeeId;
-        const currentRoute = routes.find((r) => r.id === draggedStop.route_id);
-        if (currentRoute?.employee_id === targetEmployeeId) return; // same column, no-op
+      if (activeData?.type === "job") {
+        const job = activeData.job;
         try {
           const route = await upsertRoute.mutateAsync({
             business_id: businessId, employee_id: targetEmployeeId, route_date: date,
           });
           const existingStops = stopsByRoute.get(route.id) || [];
-          await reorderStops.mutateAsync([
-            { id: draggedStop.id, sequence: existingStops.length, route_id: route.id },
-          ]);
-          toast.success("Stop flyttet");
+          await addStop.mutateAsync({
+            route_id: route.id,
+            order_id: job.id,
+            sequence: existingStops.length,
+            customer_name: job.customer_name,
+            customer_phone: job.customer_phone,
+            address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
+            latitude: job.latitude,
+            longitude: job.longitude,
+            service_summary: `Ordre · ${Math.round(Number(job.total_amount || 0))} kr`,
+          });
+          // Set planned arrival to slot time
+          const created = await supabase.from("route_stops")
+            .select("id").eq("route_id", route.id).eq("order_id", job.id)
+            .order("created_at", { ascending: false }).limit(1).maybeSingle();
+          if (created.data?.id) {
+            await updateStop.mutateAsync({
+              id: created.data.id,
+              planned_arrival: slotIso,
+            });
+          }
+          toast.success(`Tilføjet kl. ${overData.slotTime}`);
         } catch (err: any) {
-          toast.error(err.message || "Kunne ikke flytte stop");
+          toast.error(err.message || "Kunne ikke tilføje stop");
         }
         return;
       }
 
-      // Dropped on another stop → reorder (within same column) or insert (across columns)
-      if (overData?.type === "stop") {
-        const targetStop: RouteStop = overData.stop;
-        if (draggedStop.id === targetStop.id) return;
-
-        if (draggedStop.route_id === targetStop.route_id) {
-          // Reorder within same column
-          const colStops = (stopsByRoute.get(draggedStop.route_id) || [])
-            .slice()
-            .sort((a, b) => a.sequence - b.sequence);
-          const oldIdx = colStops.findIndex((s) => s.id === draggedStop.id);
-          const newIdx = colStops.findIndex((s) => s.id === targetStop.id);
-          if (oldIdx === -1 || newIdx === -1) return;
-          const reordered = arrayMove(colStops, oldIdx, newIdx);
-          await reorderStops.mutateAsync(
-            reordered.map((s, i) => ({ id: s.id, sequence: i })),
-          );
-        } else {
-          // Move across columns at target's position
-          const targetRoute = routes.find((r) => r.id === targetStop.route_id);
-          if (!targetRoute) return;
-          try {
-            const targetColStops = (stopsByRoute.get(targetStop.route_id) || [])
-              .slice().sort((a, b) => a.sequence - b.sequence);
-            const insertIdx = targetColStops.findIndex((s) => s.id === targetStop.id);
-            const updates: { id: string; sequence: number; route_id?: string }[] = [
-              { id: draggedStop.id, sequence: insertIdx, route_id: targetStop.route_id },
-            ];
-            for (let i = insertIdx; i < targetColStops.length; i++) {
-              updates.push({ id: targetColStops[i].id, sequence: i + 1 });
-            }
-            await reorderStops.mutateAsync(updates);
-            toast.success("Stop flyttet");
-          } catch (err: any) {
-            toast.error(err.message || "Kunne ikke flytte stop");
+      if (activeData?.type === "stop") {
+        const draggedStop: RouteStop = activeData.stop;
+        const currentRoute = routes.find((r) => r.id === draggedStop.route_id);
+        try {
+          if (currentRoute?.employee_id !== targetEmployeeId) {
+            const targetRoute = await upsertRoute.mutateAsync({
+              business_id: businessId, employee_id: targetEmployeeId, route_date: date,
+            });
+            const targetStops = stopsByRoute.get(targetRoute.id) || [];
+            await updateStop.mutateAsync({
+              id: draggedStop.id,
+              route_id: targetRoute.id,
+              sequence: targetStops.length,
+              planned_arrival: slotIso,
+            });
+          } else {
+            await updateStop.mutateAsync({
+              id: draggedStop.id,
+              planned_arrival: slotIso,
+            });
           }
+          toast.success(`Flyttet til kl. ${overData.slotTime}`);
+        } catch (err: any) {
+          toast.error(err.message || "Kunne ikke flytte stop");
         }
+        return;
       }
     }
   };
@@ -349,22 +330,17 @@ const Planner = () => {
       toast.success(`Optimeret: ${result.total_km.toFixed(1)} km · ${Math.round(result.total_minutes)} min`, {
         description: result.reasoning,
       });
-    } catch { /* error toast already shown */ }
+    } catch { /* */ }
   };
 
   const handleAutoAssignAll = async () => {
     if (!businessId) return;
     if (activeEmployees.length === 0) {
-      toast.error("Ingen aktive medarbejdere at fordele opgaver til");
-      return;
+      toast.error("Ingen aktive medarbejdere"); return;
     }
     const withCoords = unassigned.filter((j: any) => j.latitude != null && j.longitude != null);
-    if (withCoords.length === 0) {
-      toast.error("Ingen ledige opgaver med GPS at fordele");
-      return;
-    }
+    if (withCoords.length === 0) { toast.error("Ingen ledige opgaver med GPS"); return; }
     try {
-      // Round-robin distribute
       for (let i = 0; i < withCoords.length; i++) {
         const job: any = withCoords[i];
         const emp = activeEmployees[i % activeEmployees.length];
@@ -379,12 +355,10 @@ const Planner = () => {
           customer_name: job.customer_name,
           customer_phone: job.customer_phone,
           address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
-          latitude: job.latitude,
-          longitude: job.longitude,
+          latitude: job.latitude, longitude: job.longitude,
           service_summary: `Ordre · ${Math.round(Number(job.total_amount || 0))} kr`,
         });
       }
-      // Optimize each employee route afterwards
       for (const emp of activeEmployees) {
         const r = routeForEmployee(emp.id);
         if (r) await optimizeRoute.mutateAsync(r.id).catch(() => {});
@@ -398,63 +372,68 @@ const Planner = () => {
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={pointerWithin}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="min-h-screen bg-secondary/30">
+      <div className="min-h-screen bg-secondary/30 flex flex-col">
         {/* Header */}
         <header className="bg-background border-b sticky top-0 z-30">
-          <div className="container mx-auto px-4 py-3 flex items-center gap-3 flex-wrap">
+          <div className="px-4 py-2 flex items-center gap-3 flex-wrap">
             <Button asChild variant="ghost" size="sm">
               <Link to="/virksomhed"><ArrowLeft className="h-4 w-4 mr-1" />Tilbage</Link>
             </Button>
-            <h1 className="text-lg font-semibold flex items-center gap-2">
-              <MapIcon className="h-5 w-5 text-primary" />
-              Ruteplanlægger
+            <h1 className="text-base font-semibold flex items-center gap-2">
+              <MapIcon className="h-4 w-4 text-primary" />Ruteplanlægger
             </h1>
 
-            <Tabs value={view} onValueChange={(v) => setView(v as any)} className="ml-2">
-              <TabsList className="h-8">
-                <TabsTrigger value="day" className="text-xs h-6 px-3">Dag</TabsTrigger>
-                <TabsTrigger value="week" className="text-xs h-6 px-3">Uge</TabsTrigger>
+            <Tabs value={view} onValueChange={(v) => setView(v as any)}>
+              <TabsList className="h-7">
+                <TabsTrigger value="day" className="text-xs h-5 px-2">Dag</TabsTrigger>
+                <TabsTrigger value="week" className="text-xs h-5 px-2">Uge</TabsTrigger>
               </TabsList>
             </Tabs>
 
-            <div className="ml-auto flex items-center gap-2 flex-wrap">
-              <Button variant="outline" size="icon" className="h-8 w-8"
+            <div className="flex items-center gap-1.5">
+              <Button variant="outline" size="icon" className="h-7 w-7"
                 onClick={() => setDate(format(addDays(parseISO(date), -1), "yyyy-MM-dd"))}>
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-3.5 w-3.5" />
               </Button>
-              <div className="flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-[160px] h-8" />
-              </div>
-              <Button variant="outline" size="icon" className="h-8 w-8"
+              <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-[150px] h-7" />
+              <Button variant="outline" size="icon" className="h-7 w-7"
                 onClick={() => setDate(format(addDays(parseISO(date), 1), "yyyy-MM-dd"))}>
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-3.5 w-3.5" />
               </Button>
-              <Button variant="outline" size="sm" className="h-8" onClick={() => setDate(todayStr())}>I dag</Button>
-              <Button
-                size="sm" className="h-8 gap-1.5"
+              <Button variant="outline" size="sm" className="h-7" onClick={() => setDate(todayStr())}>I dag</Button>
+            </div>
+
+            <span className="text-xs text-muted-foreground capitalize">
+              {format(parseISO(date), "EEEE d. MMMM", { locale: da })}
+            </span>
+
+            <div className="ml-auto flex items-center gap-1.5">
+              <Button variant="ghost" size="sm" className="h-7" onClick={() => setShowMap((v) => !v)}>
+                <MapIcon className="h-3.5 w-3.5 mr-1" />{showMap ? "Skjul kort" : "Vis kort"}
+              </Button>
+              <Button size="sm" className="h-7 gap-1"
                 onClick={handleAutoAssignAll}
-                disabled={unassigned.length === 0 || activeEmployees.length === 0}
-              >
-                <Wand2 className="h-3.5 w-3.5" />
-                Auto-fordel & optimér
+                disabled={unassigned.length === 0 || activeEmployees.length === 0}>
+                <Wand2 className="h-3.5 w-3.5" />Auto-fordel
               </Button>
             </div>
-          </div>
-          <div className="container mx-auto px-4 pb-2 text-sm text-muted-foreground capitalize">
-            {format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da })}
           </div>
         </header>
 
         {view === "day" ? (
-          <div className="container mx-auto px-4 py-4 grid grid-cols-1 lg:grid-cols-[280px_1fr_minmax(380px,40%)] gap-4 h-[calc(100vh-115px)]">
-            {/* Unassigned jobs */}
-            <aside className="overflow-hidden flex flex-col">
-              <Card className="p-3 flex flex-col h-full">
+          <div className="flex-1 grid gap-3 p-3 overflow-hidden"
+            style={{
+              gridTemplateColumns: showMap ? "260px 1fr 360px" : "260px 1fr",
+              height: "calc(100vh - 50px)",
+            }}>
+            {/* Sidebar: ledige opgaver */}
+            <aside className="overflow-hidden">
+              <Card className="p-2.5 flex flex-col h-full">
                 <h2 className="font-semibold text-sm mb-2 flex items-center justify-between">
                   Ledige opgaver
                   <Badge variant="secondary">{filteredUnassigned.length}</Badge>
@@ -462,18 +441,18 @@ const Planner = () => {
                 <div className="relative mb-2">
                   <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                   <Input
-                    placeholder="Søg..."
+                    placeholder="Søg navn eller adresse..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="h-8 pl-7 text-sm"
+                    className="h-7 pl-7 text-xs"
                   />
                 </div>
                 {geocoding && (
-                  <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                    <Loader2 className="h-3 w-3 animate-spin" />Finder GPS-koordinater...
+                  <p className="text-[10px] text-muted-foreground mb-2 flex items-center gap-1">
+                    <Loader2 className="h-2.5 w-2.5 animate-spin" />Finder GPS...
                   </p>
                 )}
-                <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
                   {filteredUnassigned.length === 0 && (
                     <p className="text-xs text-muted-foreground italic text-center py-8">Ingen ledige opgaver</p>
                   )}
@@ -484,84 +463,46 @@ const Planner = () => {
               </Card>
             </aside>
 
-            {/* Employee columns */}
-            <main className="overflow-x-auto overflow-y-auto">
-              <div
-                className="grid gap-3 h-full pb-2"
-                style={{ gridTemplateColumns: `repeat(${Math.max(activeEmployees.length + 1, 1)}, minmax(240px, 1fr))` }}
-              >
-                {(() => {
-                  const r = routeForEmployee(null);
-                  const colStops = r ? (stopsByRoute.get(r.id) || []) : [];
-                  return (
-                    <EmployeeColumn
-                      key="unassigned-route"
-                      routeId={r?.id || ""}
-                      employeeId={null}
-                      label="Ikke tildelt"
-                      subtitle="Ruter uden medarbejder"
-                      color={colorForEmployee(null)}
-                      stops={colStops}
-                      totalKm={r?.total_distance_km}
-                      totalMin={r?.total_duration_minutes}
-                      optimizing={optimizeRoute.isPending}
-                      onOptimize={r ? () => handleOptimize(r.id) : undefined}
-                      onSelectStop={setSelectedStopId}
-                      selectedStopId={selectedStopId}
-                    />
-                  );
-                })()}
-                {activeEmployees.map((emp: any) => {
-                  const r = routeForEmployee(emp.id);
-                  const colStops = r ? (stopsByRoute.get(r.id) || []) : [];
-                  return (
-                    <EmployeeColumn
-                      key={emp.id}
-                      routeId={r?.id || ""}
-                      employeeId={emp.id}
-                      label={emp.name}
-                      subtitle={emp.title || emp.email}
-                      color={colorForEmployee(emp.id)}
-                      stops={colStops}
-                      totalKm={r?.total_distance_km}
-                      totalMin={r?.total_duration_minutes}
-                      optimizing={optimizeRoute.isPending}
-                      onOptimize={r ? () => handleOptimize(r.id) : undefined}
-                      onSelectStop={setSelectedStopId}
-                      selectedStopId={selectedStopId}
-                    />
-                  );
-                })}
-                {activeEmployees.length === 0 && (
-                  <Card className="p-6 text-center text-sm text-muted-foreground">
-                    Ingen aktive medarbejdere. Tilføj medarbejdere på{" "}
-                    <Link to="/virksomhed" className="underline">virksomhedspanelet</Link>.
-                  </Card>
-                )}
-              </div>
+            {/* Calendar */}
+            <main className="overflow-hidden">
+              {activeEmployees.length === 0 ? (
+                <Card className="p-6 text-center text-sm text-muted-foreground h-full flex items-center justify-center">
+                  Ingen aktive medarbejdere. Tilføj medarbejdere på{" "}
+                  <Link to="/virksomhed" className="underline ml-1">virksomhedspanelet</Link>.
+                </Card>
+              ) : (
+                <CalendarPlanner
+                  routeDate={date}
+                  columns={calendarColumns}
+                  selectedStopId={selectedStopId}
+                  onSelectStop={setSelectedStopId}
+                />
+              )}
             </main>
 
             {/* Map */}
-            <aside className="overflow-hidden">
-              <Card className="p-2 h-full flex flex-col">
-                <div className="flex items-center justify-between mb-2 px-1">
-                  <h2 className="font-semibold text-sm flex items-center gap-1.5">
-                    <MapIcon className="h-4 w-4 text-primary" />Kort
-                  </h2>
-                  <p className="text-xs text-muted-foreground">
-                    {mapRoutes.reduce((acc, r) => acc + r.stops.length, 0)} stop · {unassignedMapStops.length} ledige
-                  </p>
-                </div>
-                <div className="flex-1 min-h-0">
-                  <RouteMap
-                    routes={mapRoutes}
-                    unassigned={unassignedMapStops}
-                    selectedStopId={selectedStopId}
-                    onStopClick={setSelectedStopId}
-                  />
-                </div>
-              </Card>
-            </aside>
+            {showMap && (
+              <aside className="overflow-hidden">
+                <Card className="p-2 h-full flex flex-col">
+                  <div className="flex items-center justify-between mb-2 px-1">
+                    <h2 className="font-semibold text-sm flex items-center gap-1.5">
+                      <MapIcon className="h-4 w-4 text-primary" />Kort
+                    </h2>
+                    <p className="text-[10px] text-muted-foreground">
+                      {mapRoutes.reduce((acc, r) => acc + r.stops.length, 0)} planlagt · {unassignedMapStops.length} ledige
+                    </p>
+                  </div>
+                  <div className="flex-1 min-h-0">
+                    <RouteMap
+                      routes={mapRoutes}
+                      unassigned={unassignedMapStops}
+                      selectedStopId={selectedStopId}
+                      onStopClick={setSelectedStopId}
+                    />
+                  </div>
+                </Card>
+              </aside>
+            )}
           </div>
         ) : (
           <WeekView
@@ -575,27 +516,30 @@ const Planner = () => {
 
         <DragOverlay>
           {activeDragId && activeDragData?.type === "job" && (
-            <div className="rounded-md border bg-background p-2.5 shadow-lg w-[240px] opacity-90">
+            <div className="rounded-md border bg-background p-2 shadow-lg w-[220px] opacity-90">
               <p className="text-sm font-medium truncate">{activeDragData.job.customer_name}</p>
+              {activeDragData.job.address && (
+                <p className="text-[10px] text-muted-foreground truncate">{activeDragData.job.address}</p>
+              )}
             </div>
           )}
           {activeDragId && activeDragData?.type === "stop" && (
-            <div className="rounded-md border bg-background p-2 shadow-lg w-[220px] opacity-90">
-              <div className="flex items-center gap-2">
-                <span className="h-5 w-5 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center">
-                  {activeDragData.stop.sequence + 1}
-                </span>
-                <p className="text-sm font-medium truncate">{activeDragData.stop.customer_name}</p>
-              </div>
+            <div className="rounded-md border bg-background p-2 shadow-lg w-[200px] opacity-90 border-l-4 border-l-primary">
+              <p className="text-sm font-medium truncate">{activeDragData.stop.customer_name}</p>
+              <p className="text-[10px] text-muted-foreground">{activeDragData.stop.duration_minutes} min</p>
             </div>
           )}
         </DragOverlay>
+
+        <StopDetailSheet
+          stopId={selectedStopId}
+          onClose={() => setSelectedStopId(null)}
+        />
       </div>
     </DndContext>
   );
 };
 
-/* ─── Week overview: km/duration per employee per day ─── */
 const WeekView = ({
   weekStart, weekRoutes, employees, onPickDate, colorForEmployee,
 }: {
@@ -622,10 +566,8 @@ const WeekView = ({
               <th className="text-left py-2 px-2 font-semibold">Medarbejder</th>
               {days.map((d) => (
                 <th key={d.toISOString()} className="text-center py-2 px-2 font-medium min-w-[110px]">
-                  <button
-                    onClick={() => onPickDate(format(d, "yyyy-MM-dd"))}
-                    className="hover:text-primary transition-colors"
-                  >
+                  <button onClick={() => onPickDate(format(d, "yyyy-MM-dd"))}
+                    className="hover:text-primary transition-colors">
                     <div className="text-xs uppercase text-muted-foreground">
                       {format(d, "EEE", { locale: da })}
                     </div>
@@ -649,10 +591,8 @@ const WeekView = ({
                   return (
                     <td key={d.toISOString()} className="text-center py-2 px-2">
                       {r ? (
-                        <button
-                          onClick={() => onPickDate(format(d, "yyyy-MM-dd"))}
-                          className="text-xs hover:text-primary"
-                        >
+                        <button onClick={() => onPickDate(format(d, "yyyy-MM-dd"))}
+                          className="text-xs hover:text-primary">
                           {r.total_distance_km != null ? `${r.total_distance_km.toFixed(0)} km` : "—"}
                           {r.total_duration_minutes != null && (
                             <div className="text-muted-foreground">
