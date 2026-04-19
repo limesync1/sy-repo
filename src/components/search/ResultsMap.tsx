@@ -217,7 +217,7 @@ const ClusterLayer = ({
             </div>
             ${distHtml ? `<div style="margin-top:6px;">${distHtml}</div>` : ""}
             <div style="margin-top:12px;display:flex;gap:6px;">
-              <a href="/b/${b.slug}" data-popup-link style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:10px 12px;background:hsl(222 47% 11%);color:white;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;min-height:40px;">
+              <a href="/v/${b.slug}" data-popup-link style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:10px 12px;background:hsl(222 47% 11%);color:white;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;min-height:40px;">
                 Se virksomhed →
               </a>
               ${phoneBtn}
