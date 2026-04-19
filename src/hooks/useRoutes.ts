@@ -195,12 +195,31 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
         .neq("status", "completed");
       const usedOpen = new Set((openStops || []).map((s) => s.order_id));
 
+      // Hent abonnement-status pr. ordre, så pausede/annullerede ikke vises i pool
+      const { data: subs } = await supabase
+        .from("subscriptions")
+        .select("order_id, status")
+        .in("order_id", orderIds);
+      const subsByOrder = new Map<string, string[]>();
+      (subs || []).forEach((s: any) => {
+        if (!s.order_id) return;
+        const arr = subsByOrder.get(s.order_id) || [];
+        arr.push(s.status);
+        subsByOrder.set(s.order_id, arr);
+      });
+
       // Skjul recurring ordrer hvis næste service-dato er mere end 14 dage fremme
       const horizon = new Date();
       horizon.setDate(horizon.getDate() + 14);
 
       return (orders || []).filter((o) => {
         if (usedOpen.has(o.id)) return false;
+        // Skjul ordrer hvis abonnementet er pausered eller annulleret (alle subs)
+        const subStatuses = subsByOrder.get(o.id);
+        if (subStatuses && subStatuses.length > 0) {
+          const anyActive = subStatuses.some((st) => st === "active");
+          if (!anyActive) return false; // alle på pause/annulleret
+        }
         if (o.next_service_date) {
           const nsd = new Date(o.next_service_date);
           if (nsd > horizon) return false;
