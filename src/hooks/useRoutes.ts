@@ -195,37 +195,60 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
         .neq("status", "completed");
       const usedOpen = new Set((openStops || []).map((s) => s.order_id));
 
-      // Hent abonnement-status pr. ordre, så pausede/annullerede ikke vises i pool
+      // Hent abonnement-status + preferred route pr. ordre
       const { data: subs } = await supabase
         .from("subscriptions")
-        .select("order_id, status")
+        .select("order_id, status, preferred_route_id")
         .in("order_id", orderIds);
-      const subsByOrder = new Map<string, string[]>();
+      const subsByOrder = new Map<string, { statuses: string[]; preferredRouteId?: string | null }>();
       (subs || []).forEach((s: any) => {
         if (!s.order_id) return;
-        const arr = subsByOrder.get(s.order_id) || [];
-        arr.push(s.status);
-        subsByOrder.set(s.order_id, arr);
+        const entry = subsByOrder.get(s.order_id) || { statuses: [], preferredRouteId: null };
+        entry.statuses.push(s.status);
+        if (s.preferred_route_id && !entry.preferredRouteId) entry.preferredRouteId = s.preferred_route_id;
+        subsByOrder.set(s.order_id, entry);
       });
+
+      // Hent rutenavn for preferred routes (vises som hint på kortet)
+      const prefRouteIds = Array.from(new Set(
+        Array.from(subsByOrder.values()).map(v => v.preferredRouteId).filter(Boolean) as string[]
+      ));
+      const routeNameById = new Map<string, string>();
+      if (prefRouteIds.length > 0) {
+        const { data: rts } = await supabase
+          .from("routes")
+          .select("id, name")
+          .in("id", prefRouteIds);
+        (rts || []).forEach((r: any) => routeNameById.set(r.id, r.name || "Rute"));
+      }
 
       // Skjul recurring ordrer hvis næste service-dato er mere end 14 dage fremme
       const horizon = new Date();
       horizon.setDate(horizon.getDate() + 14);
 
-      return (orders || []).filter((o) => {
-        if (usedOpen.has(o.id)) return false;
-        // Skjul ordrer hvis abonnementet er pausered eller annulleret (alle subs)
-        const subStatuses = subsByOrder.get(o.id);
-        if (subStatuses && subStatuses.length > 0) {
-          const anyActive = subStatuses.some((st) => st === "active");
-          if (!anyActive) return false; // alle på pause/annulleret
-        }
-        if (o.next_service_date) {
-          const nsd = new Date(o.next_service_date);
-          if (nsd > horizon) return false;
-        }
-        return true;
-      });
+      return (orders || [])
+        .filter((o) => {
+          if (usedOpen.has(o.id)) return false;
+          const entry = subsByOrder.get(o.id);
+          if (entry && entry.statuses.length > 0) {
+            const anyActive = entry.statuses.some((st) => st === "active");
+            if (!anyActive) return false; // alle på pause/annulleret
+          }
+          if (o.next_service_date) {
+            const nsd = new Date(o.next_service_date);
+            if (nsd > horizon) return false;
+          }
+          return true;
+        })
+        .map((o) => {
+          const entry = subsByOrder.get(o.id);
+          const prefId = entry?.preferredRouteId || null;
+          return {
+            ...o,
+            preferred_route_id: prefId,
+            preferred_route_name: prefId ? (routeNameById.get(prefId) || null) : null,
+          };
+        });
     },
   });
 };
