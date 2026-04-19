@@ -198,7 +198,7 @@ const RequestQuote = () => {
         description={category
           ? `Beskriv din opgave og få op til 3 skræddersyede tilbud på ${category} fra verificerede serviceydere. Helt gratis og uforpligtende.`
           : "Beskriv din opgave og få op til 3 skræddersyede tilbud fra verificerede serviceydere i Danmark. Helt gratis og uforpligtende — klar på 3-10 sekunder."}
-        canonicalPath="/quote"
+        canonicalPath="/tilbud"
         keywords={`få tilbud, ${category || "serviceydere"}, AI matchning, gratis tilbud, danmark, sammenlign serviceydere`}
       />
       {/* Sticky light nav — shared site nav with working mobile menu */}
@@ -208,7 +208,7 @@ const RequestQuote = () => {
           <>
             {count > 0 && <CartSheet />}
             {user && (
-              <Link to="/dashboard" className="hidden sm:inline-block">
+              <Link to="/min-konto" className="hidden sm:inline-block">
                 <Button size="sm" className="rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90">Mit panel</Button>
               </Link>
             )}

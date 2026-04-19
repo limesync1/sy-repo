@@ -140,7 +140,7 @@ const NAV_ITEMS = [
 const Admin = () => {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/log-ind" replace />;
   return <AdminDashboard />;
 };
 
@@ -228,7 +228,7 @@ const AdminDashboard = () => {
         {/* Sidebar footer — always visible */}
         <div className="shrink-0 border-t border-white/[0.06] px-2 py-2 space-y-px">
           <Link
-            to={`/b/${business.slug}`}
+            to={`/v/${business.slug}`}
             className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-sm font-medium text-white/55 hover:bg-white/[0.06] hover:text-white/90 transition-colors"
           >
             <ExternalLink className="h-4 w-4 shrink-0" />

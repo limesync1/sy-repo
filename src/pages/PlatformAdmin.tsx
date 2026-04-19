@@ -34,7 +34,7 @@ const PlatformAdmin = () => {
   if (loading || roleLoading) {
     return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
   }
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/log-ind" replace />;
   if (!isAdmin) return <Navigate to="/" replace />;
 
   const current = NAV.find((n) => n.value === tab);
@@ -77,7 +77,7 @@ const PlatformAdmin = () => {
           </nav>
 
           <div className="shrink-0 border-t border-white/[0.06] px-2 py-2 space-y-px">
-            <Link to="/admin" className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-sm font-medium text-white/55 hover:bg-white/[0.06] hover:text-white/90">
+            <Link to="/virksomhed" className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-sm font-medium text-white/55 hover:bg-white/[0.06] hover:text-white/90">
               <Building2 className="h-4 w-4 shrink-0" /> Min virksomhed
             </Link>
             <button onClick={signOut} className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-sm font-medium text-white/55 hover:bg-red-500/20 hover:text-red-400">

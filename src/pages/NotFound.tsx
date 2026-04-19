@@ -44,7 +44,7 @@ const NotFound = () => {
               Til forsiden
             </Button>
           </Link>
-          <Link to="/search">
+          <Link to="/virksomheder">
             <Button variant="outline" className="gap-2 rounded-xl">
               <Search className="h-4 w-4" />
               Søg

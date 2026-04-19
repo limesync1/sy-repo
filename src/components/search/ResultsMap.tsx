@@ -208,7 +208,7 @@ const ClusterLayer = ({
             <div style="display:flex;align-items:flex-start;gap:10px;">
               ${logo}
               <div style="flex:1;min-width:0;">
-                <a href="/b/${b.slug}" data-popup-link style="font-weight:700;font-size:15px;color:hsl(222 47% 11%);text-decoration:none;line-height:1.25;display:block;margin-bottom:2px;">${b.name}</a>
+                <a href="/v/${b.slug}" data-popup-link style="font-weight:700;font-size:15px;color:hsl(222 47% 11%);text-decoration:none;line-height:1.25;display:block;margin-bottom:2px;">${b.name}</a>
                 ${b.city ? `<div style="font-size:12px;color:hsl(215 16% 47%);">${b.zip_code || ""} ${b.city}</div>` : ""}
               </div>
             </div>
