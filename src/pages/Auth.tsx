@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Navigate, Link, useSearchParams } from "react-router-dom";
-import { Building2, User, ArrowLeft, ShieldCheck, Star, Sparkles, CheckCircle } from "lucide-react";
+import { Building2, User, ArrowLeft, ShieldCheck, Star, Sparkles, CheckCircle, HardHat } from "lucide-react";
 import SEO from "@/components/SEO";
 
 const Auth = () => {
@@ -28,6 +28,7 @@ const Auth = () => {
 
   if (user) {
     if (mode === "customer") return <Navigate to="/min-konto" replace />;
+    if (mode === "employee") return <Navigate to="/medarbejder" replace />;
     return <Navigate to="/virksomhed" replace />;
   }
 
@@ -46,6 +47,7 @@ const Auth = () => {
 
   const isBusiness = mode === "business";
   const isCustomer = mode === "customer";
+  const isEmployee = mode === "employee";
   const showModeSelector = !mode;
 
   return (
@@ -164,6 +166,21 @@ const Auth = () => {
                   </Card>
                 </Link>
 
+                <Link to="/log-ind?mode=employee" className="group block">
+                  <Card className="border-border/60 transition-all group-hover:border-amber-400/40 group-hover:shadow-md">
+                    <CardContent className="flex items-center gap-4 p-5">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 transition-colors group-hover:bg-amber-200">
+                        <HardHat className="h-6 w-6 text-amber-700" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground">Jeg er medarbejder</h3>
+                        <p className="text-sm text-muted-foreground">Se mine ruter og opgaver</p>
+                      </div>
+                      <ArrowLeft className="h-4 w-4 rotate-180 text-muted-foreground/40 transition-transform group-hover:translate-x-1 group-hover:text-foreground" />
+                    </CardContent>
+                  </Card>
+                </Link>
+
                 {/* Trust line */}
                 <div className="flex items-center justify-center gap-4 pt-2 text-xs text-muted-foreground/60">
                   <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Gratis</span>
@@ -174,23 +191,30 @@ const Auth = () => {
             )}
 
             {/* ── Login / Signup Form ── */}
-            {(isBusiness || isCustomer) && (
+            {(isBusiness || isCustomer || isEmployee) && (
               <div className="space-y-6">
                 <div className="text-center">
                   <div className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl ${
-                    isBusiness ? "bg-foreground/5" : "bg-accent/10"
+                    isBusiness ? "bg-foreground/5" : isEmployee ? "bg-amber-100" : "bg-accent/10"
                   }`}>
                     {isBusiness
                       ? <Building2 className="h-6 w-6 text-foreground" />
-                      : <User className="h-6 w-6 text-accent" />
+                      : isEmployee
+                        ? <HardHat className="h-6 w-6 text-amber-700" />
+                        : <User className="h-6 w-6 text-accent" />
                     }
                   </div>
                   <h1 className="text-2xl font-bold text-foreground">
                     {isSignUp ? "Opret konto" : "Log ind"}
                   </h1>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {isBusiness ? "Virksomhedskonto" : "Kundekonto"} · {isSignUp ? "Kom i gang på få sekunder" : "Velkommen tilbage"}
+                    {isBusiness ? "Virksomhedskonto" : isEmployee ? "Medarbejderkonto" : "Kundekonto"} · {isSignUp ? "Kom i gang på få sekunder" : "Velkommen tilbage"}
                   </p>
+                  {isEmployee && !isSignUp && (
+                    <p className="mt-2 text-xs text-muted-foreground italic">
+                      Du skal være inviteret af din virksomhed for at logge ind.
+                    </p>
+                  )}
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-3">

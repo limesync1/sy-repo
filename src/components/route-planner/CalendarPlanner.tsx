@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import {
-  Loader2, Send, Sparkles, Navigation, Clock, MapPin, AlertCircle,
+  Loader2, Sparkles, Navigation, Clock, MapPin, AlertCircle,
   GripVertical, UserPlus, MoreVertical, Trash2, UserCheck,
   Inbox, CheckCircle2, PlayCircle, Wand2,
 } from "lucide-react";
@@ -50,12 +50,10 @@ export type CalendarColumn = {
   onAutoAssign?: () => void;
   onAttachEmployee?: (employeeId: string) => void;
   onDetachEmployee?: (employeeId: string) => void;
-  onDispatchToEmployee?: (employeeId: string) => void;
   onDeleteRoute?: () => void;
   onAssignStop?: (stopId: string, employeeId: string | null) => void;
   optimizing?: boolean;       // pr-rute spinner
   autoAssigning?: boolean;
-  dispatching?: boolean;
 };
 
 type Props = {
@@ -193,7 +191,6 @@ export const CalendarPlanner = ({ routeDate, columns, selectedStopId, onSelectSt
 const ColumnHeader = ({ col }: { col: CalendarColumn }) => {
   const completed = col.stops.filter((s) => s.status === "completed").length;
   const inProgress = col.stops.filter((s) => s.status === "in_progress").length;
-  const isDispatched = col.routeStatus === "dispatched";
   const unattached = col.availableEmployees.filter(
     (e) => !col.attachedEmployees.find((a) => a.id === e.id),
   );
@@ -206,11 +203,6 @@ const ColumnHeader = ({ col }: { col: CalendarColumn }) => {
     >
       <div className="flex items-center gap-1.5 min-w-0">
         <p className="text-sm font-semibold truncate flex-1">{col.label}</p>
-        {isDispatched && (
-          <Badge className="h-4 px-1 text-[9px] gap-0.5 bg-emerald-100 text-emerald-700 border-0">
-            <Send className="h-2.5 w-2.5" />Sendt
-          </Badge>
-        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button size="sm" variant="ghost" className="h-5 w-5 p-0">
@@ -265,12 +257,6 @@ const ColumnHeader = ({ col }: { col: CalendarColumn }) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-44">
               <DropdownMenuLabel className="text-xs">{emp.name}</DropdownMenuLabel>
-              {col.onDispatchToEmployee && (
-                <DropdownMenuItem onClick={() => col.onDispatchToEmployee?.(emp.id)}>
-                  <Send className="h-3.5 w-3.5 mr-2" />Send rute til {emp.name.split(" ")[0]}
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
               {col.onDetachEmployee && (
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive"

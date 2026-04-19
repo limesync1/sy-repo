@@ -14,6 +14,7 @@ import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { toast } from "sonner";
+import { stripPrices } from "@/lib/employee-display";
 
 /* ── Icons ──────────────────────────────────────────────────────── */
 const startIcon = L.divIcon({
@@ -343,8 +344,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                         <span className="truncate">{nextStop.address}</span>
                       </p>
                     )}
-                    {nextStop.service_summary && (
-                      <p className="text-sm mt-1 line-clamp-2">{nextStop.service_summary}</p>
+                    {nextStop.service_summary && stripPrices(nextStop.service_summary) && (
+                      <p className="text-sm mt-1 line-clamp-2">{stripPrices(nextStop.service_summary)}</p>
                     )}
                   </div>
                 </div>
@@ -414,7 +415,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                         <MapPin className="h-3.5 w-3.5 mt-0.5" />{s.address}
                       </p>
                     )}
-                    {s.service_summary && <p className="text-sm mt-2">{s.service_summary}</p>}
+                    {s.service_summary && stripPrices(s.service_summary) && <p className="text-sm mt-2">{stripPrices(s.service_summary)}</p>}
                     {s.planned_arrival && (
                       <p className="text-xs text-muted-foreground flex items-center gap-1 mt-2">
                         <Clock className="h-3 w-3" /> Planlagt {new Date(s.planned_arrival).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
@@ -491,7 +492,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{s.customer_name || "Stop"}</p>
                     {s.address && <p className="text-xs text-muted-foreground truncate">{s.address}</p>}
-                    {s.service_summary && <p className="text-xs mt-1 line-clamp-1">{s.service_summary}</p>}
+                    {s.service_summary && stripPrices(s.service_summary) && <p className="text-xs mt-1 line-clamp-1">{stripPrices(s.service_summary)}</p>}
                   </div>
                   {isNext && <Badge variant="default" className="text-[10px] shrink-0">Næste</Badge>}
                 </button>

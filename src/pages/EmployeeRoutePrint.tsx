@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Printer, Loader2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
+import { stripPrices } from "@/lib/employee-display";
 
 const EmployeeRoutePrint = () => {
   const { routeId } = useParams<{ routeId: string }>();
@@ -130,9 +131,9 @@ const EmployeeRoutePrint = () => {
                     {s.customer_phone && (
                       <p className="text-sm mt-0.5 print:text-black">📞 {s.customer_phone}</p>
                     )}
-                    {s.service_summary && (
+                    {s.service_summary && stripPrices(s.service_summary) && (
                       <p className="text-sm mt-2 print:text-black">
-                        <strong>Opgave:</strong> {s.service_summary}
+                        <strong>Opgave:</strong> {stripPrices(s.service_summary)}
                       </p>
                     )}
                     {s.duration_minutes > 0 && (

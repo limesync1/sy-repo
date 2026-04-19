@@ -2,11 +2,18 @@ import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import {
   GripVertical, MapPin, Calendar as CalendarIcon, Clock, Phone,
-  StickyNote, Hourglass, ChevronDown, ChevronRight, User,
+  StickyNote, Hourglass, ChevronDown, ChevronRight, User, Repeat,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { da } from "date-fns/locale";
+
+type OrderItem = {
+  service_name: string;
+  quantity: number;
+  total_price: number;
+  details?: { interval?: string } | null;
+};
 
 type Props = {
   job: {
@@ -23,8 +30,18 @@ type Props = {
     preferred_time_start?: string | null;
     preferred_time_end?: string | null;
     notes?: string | null;
-    order_items?: { service_name: string; quantity: number; total_price: number }[] | null;
+    order_items?: OrderItem[] | null;
   };
+};
+
+const INTERVAL_LABELS: Record<string, string> = {
+  ugentlig: "Ugentlig",
+  hver_14_dag: "Hver 14. dag",
+  månedlig: "Månedlig",
+  kvartalsvis: "Kvartalsvis",
+  halvårlig: "Halvårlig",
+  årlig: "Årlig",
+  engangskøb: "Engangs",
 };
 
 const formatPreferredDate = (d: string) => {
@@ -119,6 +136,25 @@ export const UnassignedJobCard = ({ job }: Props) => {
                 {urgency.label}
               </Badge>
             )}
+            {/* Interval badge — viser engangs vs abonnement */}
+            {(() => {
+              const interval = items.find((it: any) => it.details?.interval)?.details?.interval;
+              if (!interval) return null;
+              const isRecurring = interval !== "engangskøb";
+              return (
+                <Badge
+                  variant="outline"
+                  className={`h-4 text-[10px] px-1.5 gap-0.5 ${
+                    isRecurring
+                      ? "border-primary/40 text-primary bg-primary/5"
+                      : "border-border text-muted-foreground bg-secondary/40"
+                  }`}
+                >
+                  {isRecurring ? <Repeat className="h-2.5 w-2.5" /> : <Hourglass className="h-2.5 w-2.5" />}
+                  {INTERVAL_LABELS[interval] || interval}
+                </Badge>
+              );
+            })()}
             {job.preferred_time_start && (
               <Badge variant="outline" className="h-4 text-[10px] px-1.5 gap-0.5 border-border text-muted-foreground">
                 <Clock className="h-2.5 w-2.5" />
