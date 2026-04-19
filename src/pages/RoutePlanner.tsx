@@ -171,8 +171,43 @@ const Planner = () => {
     return emps[0]?.color || "hsl(184 90% 35%)";
   };
 
+  /** Kundens ønskede dato — preferred_date primært, ellers next_service_date (abonnement). */
+  const effectiveJobDate = (j: any): string | null => {
+    if (j.preferred_date) return j.preferred_date;
+    if (j.next_service_date) return String(j.next_service_date).slice(0, 10);
+    return null;
+  };
+
+  /** Tæller (uden filter) hvor mange opgaver der ligger uden for ±3 dage-vinduet
+      omkring den valgte dag. Vises som hint ifm. auto-fordel knap. */
+  const outsideWindowCount = useMemo(() => {
+    const target = parseISO(date).getTime();
+    const dayMs = 24 * 60 * 60 * 1000;
+    return unassigned.filter((j: any) => {
+      const ed = effectiveJobDate(j);
+      if (!ed) return false;
+      const diffDays = (parseISO(ed).getTime() - target) / dayMs;
+      // udeladt = fremtidig opgave længere end 3 dage frem
+      return diffDays > 3;
+    }).length;
+  }, [unassigned, date]);
+
+  /** Pr. valgt dag: vis opgaver der er
+      - uden dato (fleksible)
+      - forsinkede (effectiveDate ≤ valgt dag)
+      - inden for ±3 dage omkring valgt dag */
   const filteredUnassigned = useMemo(() => {
-    let list = unassigned;
+    const target = parseISO(date).getTime();
+    const dayMs = 24 * 60 * 60 * 1000;
+
+    let list = unassigned.filter((j: any) => {
+      const ed = effectiveJobDate(j);
+      if (!ed) return true; // ingen dato → altid vis
+      const diffDays = (parseISO(ed).getTime() - target) / dayMs;
+      // forsinket (negativ) ELLER inden for 3 dage frem
+      return diffDays <= 3;
+    });
+
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((j: any) =>
@@ -184,8 +219,8 @@ const Planner = () => {
     const sorted = [...list];
     if (sortBy === "date") {
       sorted.sort((a: any, b: any) => {
-        const ad = a.preferred_date || "9999-12-31";
-        const bd = b.preferred_date || "9999-12-31";
+        const ad = effectiveJobDate(a) || "9999-12-31";
+        const bd = effectiveJobDate(b) || "9999-12-31";
         if (ad !== bd) return ad < bd ? -1 : 1;
         const at = a.preferred_time_start || "99:99";
         const bt = b.preferred_time_start || "99:99";
@@ -197,7 +232,7 @@ const Planner = () => {
       sorted.sort((a: any, b: any) => (a.customer_name || "").localeCompare(b.customer_name || "", "da"));
     }
     return sorted;
-  }, [unassigned, search, sortBy]);
+  }, [unassigned, search, sortBy, date]);
 
   const unassignedTotal = useMemo(
     () => filteredUnassigned.reduce((s: number, j: any) => s + Number(j.total_amount || 0), 0),
