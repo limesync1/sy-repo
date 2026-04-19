@@ -219,20 +219,29 @@ const Planner = () => {
         totalKm: r.total_distance_km,
         totalMin: r.total_duration_minutes,
         routeStatus: r.status,
-        onOptimize: () => handleOptimize(r.id),
+        optimizedAt: r.optimized_at,
+        onOptimize: () => handleOptimize(r.id, r.name),
+        onAutoAssign: () => handleAutoAssign(r.id, attached.map((e) => e.id), r.name),
         onAttachEmployee: (eid) => attachEmp.mutate({ route_id: r.id, employee_id: eid }),
         onDetachEmployee: (eid) => detachEmp.mutate({ route_id: r.id, employee_id: eid }),
-        onDispatchToEmployee: (eid) => dispatchRoute.mutate({ routeId: r.id, employeeId: eid }),
+        onDispatchToEmployee: (eid) => {
+          setDispatchingRouteId(r.id);
+          dispatchRoute.mutate(
+            { routeId: r.id, employeeId: eid },
+            { onSettled: () => setDispatchingRouteId(null) },
+          );
+        },
         onDeleteRoute: () => {
           if (confirm("Slet ruten og alle dens stops?")) deleteRoute.mutate(r.id);
         },
         onAssignStop: handleAssignStop,
-        optimizing: optimizeRoute.isPending,
-        dispatching: dispatchRoute.isPending,
+        optimizing: optimizingRouteId === r.id,
+        autoAssigning: autoAssigningRouteId === r.id,
+        dispatching: dispatchingRouteId === r.id,
       } satisfies CalendarColumn;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [routes, stopsByRoute, employeesByRoute, employeeOptions, optimizeRoute.isPending, dispatchRoute.isPending]);
+  }, [routes, stopsByRoute, employeesByRoute, employeeOptions, optimizingRouteId, autoAssigningRouteId, dispatchingRouteId]);
 
   /* Map data */
   const mapRoutes: MapRoute[] = useMemo(() => {
