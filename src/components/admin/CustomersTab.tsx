@@ -25,6 +25,7 @@ type Customer = {
   total_revenue: number;
   orders_count: number;
   active_subs: number;
+  paused_subs: number;
   last_order_at: string;
   first_order_at: string;
 };
@@ -39,6 +40,7 @@ type OrderRow = {
   address: string | null;
   zip_code: string | null;
   city: string | null;
+  is_paused?: boolean;
   order_items: Array<{ service_name: string; quantity: number; total_price: number; details: any }>;
 };
 
@@ -49,6 +51,8 @@ type SubRow = {
   status: string;
   next_service_date: string | null;
   total_price: number;
+  preferred_route_id?: string | null;
+  order_id?: string | null;
 };
 
 type RouteStopRow = {
