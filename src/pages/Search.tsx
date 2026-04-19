@@ -417,12 +417,22 @@ const SearchPage = () => {
           </div>
         ) : rankedBusinesses && rankedBusinesses.length > 0 ? (
           view === "map" ? (
-            <ResultsMap businesses={rankedBusinesses} userPoint={userPoint} radiusKm={radiusKm} />
+            <ResultsMap
+              businesses={rankedBusinesses}
+              userPoint={userPoint}
+              radiusKm={radiusKm}
+              highlightedId={highlightedId}
+              onMarkerHover={setHighlightedId}
+            />
           ) : (
             <div className="grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {rankedBusinesses.map((biz: any, i: number) => (
                 <div key={biz.id} style={{ animation: `fade-in 0.4s ease-out ${Math.min(i, 8) * 50}ms both` }}>
-                  <BusinessCard biz={biz} />
+                  <BusinessCard
+                    biz={biz}
+                    onHover={setHighlightedId}
+                    isHighlighted={highlightedId === biz.id}
+                  />
                 </div>
               ))}
             </div>
