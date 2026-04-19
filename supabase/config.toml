@@ -15,3 +15,5 @@ project_id = "gkectsellkpltrxvusot"
     verify_jwt = false
   [functions.sitemap]
     verify_jwt = false
+  [functions.create-employee]
+    verify_jwt = true

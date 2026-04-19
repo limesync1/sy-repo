@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
-  useEmployees, useEmployeeInvitations,
-  useInviteEmployee, useResendInvitation,
+  useEmployees, useCreateEmployee,
   useUpdateEmployee, useDeleteEmployee,
 } from "@/hooks/useEmployees";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,8 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
-  Plus, Mail, Phone, Briefcase, UserPlus, X,
-  Send, Trash2, Power, PowerOff, Clock, CheckCircle2,
+  Mail, Phone, Briefcase, UserPlus, X,
+  Trash2, Power, PowerOff, CheckCircle2,
 } from "lucide-react";
 
 interface Props {
@@ -20,11 +19,9 @@ interface Props {
   routePlanningEnabled: boolean;
 }
 
-const EmployeesTab = ({ businessId, businessName, routePlanningEnabled }: Props) => {
+const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const { data: employees, isLoading } = useEmployees(businessId);
-  const { data: invitations } = useEmployeeInvitations(businessId);
-  const invite = useInviteEmployee();
-  const resend = useResendInvitation();
+  const create = useCreateEmployee();
   const update = useUpdateEmployee();
   const remove = useDeleteEmployee();
 
@@ -39,28 +36,27 @@ const EmployeesTab = ({ businessId, businessName, routePlanningEnabled }: Props)
     setShowForm(false);
   };
 
-  const handleInvite = () => {
+  const handleCreate = () => {
     if (!name.trim() || !email.trim()) {
       toast.error("Navn og email er påkrævet");
       return;
     }
-    invite.mutate(
-      { business_id: businessId, business_name: businessName, name, email, phone, title },
+    create.mutate(
+      { business_id: businessId, name, email, phone, title },
       {
-        onSuccess: ({ emailSent }) => {
+        onSuccess: ({ emailSent, accountAlreadyExisted }) => {
+          const base = accountAlreadyExisted
+            ? "Medarbejder tilføjet (kontoen fandtes i forvejen)"
+            : "Medarbejder oprettet med login";
           toast.success(
             emailSent
-              ? "Medarbejder oprettet og invitation sendt"
-              : "Medarbejder oprettet — kunne ikke sende email, prøv 'Send igen'"
+              ? `${base} — email sendt med oplysninger`
+              : `${base} — email kunne ikke sendes`
           );
           resetForm();
         },
         onError: (e: any) => {
-          if (e.message?.includes("duplicate") || e.code === "23505") {
-            toast.error("Denne medarbejder er allerede oprettet");
-          } else {
-            toast.error(e.message || "Noget gik galt");
-          }
+          toast.error(e.message || "Noget gik galt");
         },
       }
     );
@@ -87,7 +83,6 @@ const EmployeesTab = ({ businessId, businessName, routePlanningEnabled }: Props)
 
   const activeEmployees = employees?.filter((e) => e.is_active) || [];
   const inactiveEmployees = employees?.filter((e) => !e.is_active) || [];
-  const pendingInvitations = invitations || [];
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -95,7 +90,8 @@ const EmployeesTab = ({ businessId, businessName, routePlanningEnabled }: Props)
         <div>
           <h2 className="text-lg font-semibold text-foreground">Medarbejdere</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Inviter medarbejdere — de får adgang til en personlig app med dagens ruter.
+            Tilføj medarbejdere — der oprettes automatisk en konto, og de modtager
+            login-oplysninger på email.
           </p>
         </div>
         {!showForm && (
@@ -104,12 +100,12 @@ const EmployeesTab = ({ businessId, businessName, routePlanningEnabled }: Props)
             className="h-9 rounded-lg bg-foreground text-background hover:bg-foreground/90 text-sm font-medium px-4 shadow-sm"
           >
             <UserPlus className="mr-1.5 h-4 w-4" />
-            Inviter medarbejder
+            Tilføj medarbejder
           </Button>
         )}
       </div>
 
-      {/* Invite Form */}
+      {/* Create Form */}
       {showForm && (
         <Card className="rounded-xl border-accent/30 shadow-sm">
           <CardContent className="p-5 space-y-4">
@@ -172,17 +168,21 @@ const EmployeesTab = ({ businessId, businessName, routePlanningEnabled }: Props)
                 />
               </div>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Der genereres automatisk en sikker adgangskode, og medarbejderen
+              modtager en email med login-oplysninger og link til medarbejder-appen.
+            </p>
             <div className="flex justify-end gap-2 pt-1">
               <Button variant="ghost" onClick={resetForm} className="h-9 text-sm">
                 Annuller
               </Button>
               <Button
-                onClick={handleInvite}
-                disabled={invite.isPending}
+                onClick={handleCreate}
+                disabled={create.isPending}
                 className="h-9 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 text-sm font-semibold px-5"
               >
-                <Send className="mr-1.5 h-4 w-4" />
-                {invite.isPending ? "Sender..." : "Send invitation"}
+                <UserPlus className="mr-1.5 h-4 w-4" />
+                {create.isPending ? "Opretter..." : "Opret medarbejder"}
               </Button>
             </div>
           </CardContent>
@@ -190,65 +190,6 @@ const EmployeesTab = ({ businessId, businessName, routePlanningEnabled }: Props)
       )}
 
       {isLoading && <p className="text-sm text-muted-foreground">Indlæser…</p>}
-
-      {/* Pending Invitations */}
-      {pendingInvitations.length > 0 && (
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-            Afventer accept ({pendingInvitations.length})
-          </h3>
-          <div className="space-y-2">
-            {pendingInvitations.map((inv) => {
-              const employee = employees?.find((e) => e.id === inv.employee_id);
-              const expired = new Date(inv.expires_at) < new Date();
-              return (
-                <Card key={inv.id} className="rounded-xl border-amber-500/30 bg-amber-50/30">
-                  <CardContent className="p-4 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
-                        <Clock className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
-                          {employee?.name || inv.email}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {inv.email} · {expired ? "Udløbet" : `Udløber ${new Date(inv.expires_at).toLocaleDateString("da-DK")}`}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={resend.isPending}
-                      onClick={() => {
-                        if (!employee) return;
-                        resend.mutate(
-                          {
-                            invitation_id: inv.id,
-                            business_id: businessId,
-                            business_name: businessName,
-                            employee_name: employee.name,
-                            email: inv.email,
-                          },
-                          {
-                            onSuccess: () => toast.success("Invitation sendt igen"),
-                            onError: (e: any) => toast.error(e.message),
-                          }
-                        );
-                      }}
-                      className="h-8 text-xs shrink-0"
-                    >
-                      <Send className="mr-1 h-3 w-3" />
-                      Send igen
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Active Employees */}
       {activeEmployees.length > 0 && (
@@ -291,7 +232,7 @@ const EmployeesTab = ({ businessId, businessName, routePlanningEnabled }: Props)
       )}
 
       {/* Empty state */}
-      {!isLoading && (employees?.length === 0) && pendingInvitations.length === 0 && !showForm && (
+      {!isLoading && (employees?.length === 0) && !showForm && (
         <Card className="rounded-xl border-dashed">
           <CardContent className="p-8 text-center">
             <UserPlus className="mx-auto mb-3 h-10 w-10 text-muted-foreground/50" />
@@ -299,15 +240,15 @@ const EmployeesTab = ({ businessId, businessName, routePlanningEnabled }: Props)
               Ingen medarbejdere endnu
             </h3>
             <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
-              Inviter dine første medarbejdere — de får en email med et link til
-              at oprette deres konto og adgang til ruteplanlæggeren.
+              Tilføj din første medarbejder — de modtager en email med deres
+              login-oplysninger og adgang til ruteplanlæggeren.
             </p>
             <Button
               onClick={() => setShowForm(true)}
               className="h-9 rounded-lg bg-foreground text-background hover:bg-foreground/90 text-sm font-medium px-4"
             >
               <UserPlus className="mr-1.5 h-4 w-4" />
-              Inviter første medarbejder
+              Tilføj første medarbejder
             </Button>
           </CardContent>
         </Card>
@@ -343,14 +284,10 @@ const EmployeeRow = ({
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm font-medium text-foreground truncate">{employee.name}</p>
-              {linked ? (
+              {linked && (
                 <Badge variant="outline" className="h-5 text-[10px] gap-1 border-emerald-500/30 text-emerald-700 bg-emerald-50">
                   <CheckCircle2 className="h-2.5 w-2.5" />
                   Konto aktiv
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="h-5 text-[10px] border-amber-500/30 text-amber-700 bg-amber-50">
-                  Konto ikke oprettet
                 </Badge>
               )}
               {employee.title && (

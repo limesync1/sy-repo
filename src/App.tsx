@@ -16,7 +16,6 @@ import CustomerDashboard from "./pages/CustomerDashboard";
 import Search from "./pages/Search";
 import RequestQuote from "./pages/RequestQuote";
 import Unsubscribe from "./pages/Unsubscribe";
-import AcceptInvitation from "./pages/AcceptInvitation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,7 +47,6 @@ const App = () => (
               <Route path="/tilbud" element={<RequestQuote />} />
               <Route path="/afmeld" element={<Unsubscribe />} />
               <Route path="/v/:slug" element={<DynamicBusinessPage />} />
-              <Route path="/medarbejder/accepter" element={<AcceptInvitation />} />
               <Route path="/demo" element={<BusinessPage />} />
 
               {/* ── Legacy redirects (preserve bookmarks & SEO) ── */}
