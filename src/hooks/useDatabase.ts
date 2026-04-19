@@ -297,7 +297,18 @@ export const useCreateOrder = () => {
       if (orderError) throw orderError;
 
       if (items.length > 0) {
-        const orderItems = items.map((item) => ({ ...item, order_id: orderData.id }));
+        // Validate service_ids exist — drop FK if the service was removed/seeded.
+        const ids = Array.from(new Set(items.map((i) => i.service_id).filter(Boolean) as string[]));
+        const validIds = new Set<string>();
+        if (ids.length > 0) {
+          const { data: existing } = await supabase.from("services").select("id").in("id", ids);
+          existing?.forEach((s: { id: string }) => validIds.add(s.id));
+        }
+        const orderItems = items.map((item) => ({
+          ...item,
+          service_id: item.service_id && validIds.has(item.service_id) ? item.service_id : null,
+          order_id: orderData.id,
+        }));
         const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
         if (itemsError) throw itemsError;
       }
