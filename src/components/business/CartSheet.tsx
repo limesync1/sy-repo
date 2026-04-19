@@ -524,17 +524,22 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 const activePreset = TIME_PRESETS.find(p => p.start === preferredTimeStart && p.end === preferredTimeEnd);
 
                 return (
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="text-sm font-semibold text-foreground">
-                        {hasRecurring ? "Hvornår skal første besøg være?" : "Hvornår vil du have det udført?"}
-                      </h4>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {hasRecurring
-                          ? "Næste besøg planlægges automatisk efter dit valgte interval."
-                          : "Vælg en dato eller lad virksomheden kontakte dig hurtigst muligt."}
-                      </p>
+                  <section className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
+                        <Clock className="h-3.5 w-3.5 text-accent" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-foreground">
+                          {hasRecurring ? "Hvornår skal første besøg være?" : "Hvornår vil du have det udført?"}
+                        </h4>
+                      </div>
                     </div>
+                    <p className="text-xs text-muted-foreground pl-9 -mt-1">
+                      {hasRecurring
+                        ? "Næste besøg planlægges automatisk efter dit valgte interval."
+                        : "Vælg en dato eller lad virksomheden kontakte dig hurtigst muligt."}
+                    </p>
 
                     <div className="grid grid-cols-2 gap-2">
                       <button
