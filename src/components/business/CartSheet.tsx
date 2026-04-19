@@ -132,10 +132,6 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
           })),
         });
 
-
-          })
-          .catch(() => { /* ignore */ });
-
         if (user && businessId !== "unknown") {
           for (const item of group.items) {
             if (item.interval && item.interval !== "engangskøb") {
