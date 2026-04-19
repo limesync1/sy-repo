@@ -426,20 +426,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 </div>
               </section>
 
-              <Separator />
-
-              {/* Status changes */}
-              <section>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Status</h3>
-                <div className="grid grid-cols-3 gap-2">
-                  <Button size="sm" variant={stop.status === "pending" ? "default" : "outline"} onClick={() => handleStatus("pending")}>Afventer</Button>
-                  <Button size="sm" variant={stop.status === "in_progress" ? "default" : "outline"} onClick={() => handleStatus("in_progress")}>I gang</Button>
-                  <Button size="sm" variant={stop.status === "completed" ? "default" : "outline"} className={stop.status === "completed" ? "bg-green-600 hover:bg-green-700" : ""} onClick={() => handleStatus("completed")}>
-                    <CheckCircle2 className="h-3.5 w-3.5 mr-1" />Færdig
-                  </Button>
-                </div>
-              </section>
-
               {isLoading && <p className="text-xs text-muted-foreground italic">Indlæser ordredetaljer...</p>}
             </div>
           </ScrollArea>
