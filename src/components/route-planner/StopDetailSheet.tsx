@@ -161,20 +161,11 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
           <ScrollArea className="flex-1">
             <div className="px-5 py-4 space-y-5">
               {/* Quick actions */}
-              <div className="grid grid-cols-2 gap-2">
-                <Button onClick={handleNavigate} variant="outline" className="gap-1.5 h-9">
-                  <Navigation className="h-4 w-4" />Naviger
+              {stop.customer_phone && (
+                <Button asChild variant="outline" className="w-full gap-1.5 h-9">
+                  <a href={`tel:${stop.customer_phone}`}><Phone className="h-4 w-4" />Ring til kunde</a>
                 </Button>
-                {stop.customer_phone ? (
-                  <Button asChild variant="outline" className="gap-1.5 h-9">
-                    <a href={`tel:${stop.customer_phone}`}><Phone className="h-4 w-4" />Ring</a>
-                  </Button>
-                ) : (
-                  <Button variant="outline" className="gap-1.5 h-9" disabled>
-                    <Phone className="h-4 w-4" />Intet tlf.
-                  </Button>
-                )}
-              </div>
+              )}
 
               {/* Customer */}
               <section>
