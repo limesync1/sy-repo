@@ -5,9 +5,10 @@ import { useMyBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
 import {
   useRoutesForDate, useStopsForRoutes, useUnassignedJobs,
-  useUpsertRoute, useAddStop, useUpdateStop,
+  useAddStop, useUpdateStop,
   useOptimizeRoute, useGeocodeAddress, useRoutesForRange,
-  useDispatchRoute,
+  useDispatchRoute, useCreateRoute, useDeleteRoute,
+  useRouteEmployees, useAddRouteEmployee, useRemoveRouteEmployee,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
@@ -16,8 +17,12 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon, ArrowLeft,
-  Loader2, MapIcon, Search, Wand2,
+  Loader2, MapIcon, Search, Wand2, Plus,
 } from "lucide-react";
 import { format, addDays, parseISO, startOfWeek, eachDayOfInterval } from "date-fns";
 import { da } from "date-fns/locale";
@@ -29,7 +34,7 @@ import {
 import RouteMap, { type MapRoute, type MapStop } from "@/components/route-planner/RouteMap";
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
-import { CalendarPlanner, type CalendarColumn } from "@/components/route-planner/CalendarPlanner";
+import { CalendarPlanner, type CalendarColumn, type EmployeeOption } from "@/components/route-planner/CalendarPlanner";
 import { supabase } from "@/integrations/supabase/client";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
@@ -44,7 +49,6 @@ const ROUTE_COLORS = [
   "hsl(210 80% 50%)",
 ];
 
-/** Convert a "HH:mm" slot time on a given date to ISO timestamp. */
 const slotToIso = (date: string, hhmm: string): string => {
   const [h, m] = hhmm.split(":").map(Number);
   const d = new Date(date + "T00:00:00");
@@ -69,6 +73,8 @@ const Planner = () => {
   const [activeDragData, setActiveDragData] = useState<any>(null);
   const [geocoding, setGeocoding] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newRouteName, setNewRouteName] = useState("");
 
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
@@ -79,21 +85,41 @@ const Planner = () => {
   const { data: routes = [] } = useRoutesForDate(businessId, date);
   const routeIds = useMemo(() => routes.map((r) => r.id), [routes]);
   const { data: stops = [] } = useStopsForRoutes(routeIds);
+  const { data: routeLinks = [] } = useRouteEmployees(routeIds);
   const { data: unassigned = [] } = useUnassignedJobs(businessId);
 
   const weekStart = useMemo(() => format(startOfWeek(parseISO(date), { weekStartsOn: 1 }), "yyyy-MM-dd"), [date]);
   const weekEnd = useMemo(() => format(addDays(parseISO(weekStart), 6), "yyyy-MM-dd"), [weekStart]);
   const { data: weekRoutes = [] } = useRoutesForRange(businessId, weekStart, weekEnd);
 
-  const upsertRoute = useUpsertRoute();
+  const createRoute = useCreateRoute();
+  const deleteRoute = useDeleteRoute();
   const addStop = useAddStop();
-  // reorder via updateStop
   const updateStop = useUpdateStop();
   const optimizeRoute = useOptimizeRoute();
   const dispatchRoute = useDispatchRoute();
   const geocode = useGeocodeAddress();
+  const attachEmp = useAddRouteEmployee();
+  const detachEmp = useRemoveRouteEmployee();
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  /* Build per-employee color map (stable per business) */
+  const employeeColors = useMemo(() => {
+    const map = new Map<string, string>();
+    activeEmployees.forEach((e: any, i: number) => {
+      map.set(e.id, ROUTE_COLORS[i % ROUTE_COLORS.length]);
+    });
+    return map;
+  }, [activeEmployees]);
+
+  const employeeOptions: EmployeeOption[] = useMemo(() =>
+    activeEmployees.map((e: any) => ({
+      id: e.id,
+      name: e.name,
+      color: employeeColors.get(e.id) || ROUTE_COLORS[0],
+    })),
+  [activeEmployees, employeeColors]);
 
   const stopsByRoute = useMemo(() => {
     const map = new Map<string, RouteStop[]>();
@@ -105,14 +131,23 @@ const Planner = () => {
     return map;
   }, [stops]);
 
-  const colorForEmployee = (employeeId: string | null) => {
-    if (!employeeId) return "hsl(220 13% 50%)";
-    const idx = activeEmployees.findIndex((e: any) => e.id === employeeId);
-    return ROUTE_COLORS[idx >= 0 ? idx % ROUTE_COLORS.length : 0];
-  };
+  const employeesByRoute = useMemo(() => {
+    const map = new Map<string, EmployeeOption[]>();
+    for (const link of routeLinks) {
+      const opt = employeeOptions.find((e) => e.id === link.employee_id);
+      if (!opt) continue;
+      const arr = map.get(link.route_id) || [];
+      arr.push(opt);
+      map.set(link.route_id, arr);
+    }
+    return map;
+  }, [routeLinks, employeeOptions]);
 
-  const routeForEmployee = (employeeId: string | null): Route | undefined =>
-    routes.find((r) => r.employee_id === employeeId);
+  /* Color for a route = first attached employee, else neutral teal */
+  const colorForRoute = (routeId: string): string => {
+    const emps = employeesByRoute.get(routeId) || [];
+    return emps[0]?.color || "hsl(184 90% 35%)";
+  };
 
   const filteredUnassigned = useMemo(() => {
     if (!search.trim()) return unassigned;
@@ -124,40 +159,45 @@ const Planner = () => {
     );
   }, [unassigned, search]);
 
-  /* Build calendar columns */
-  const calendarColumns: CalendarColumn[] = useMemo(() => {
-    const cols: CalendarColumn[] = [];
-    const noEmpRoute = routeForEmployee(null);
-    if (noEmpRoute) {
-      cols.push({
-        routeId: noEmpRoute.id, employeeId: null,
-        label: "Ikke tildelt", subtitle: "Uden medarbejder",
-        color: colorForEmployee(null),
-        stops: stopsByRoute.get(noEmpRoute.id) || [],
-        totalKm: noEmpRoute.total_distance_km, totalMin: noEmpRoute.total_duration_minutes,
-        routeStatus: noEmpRoute.status,
-      });
+  /* Stop assignment handler */
+  const handleAssignStop = async (stopId: string, employeeId: string | null) => {
+    try {
+      await updateStop.mutateAsync({ id: stopId, assigned_employee_id: employeeId });
+      toast.success(employeeId ? "Tildelt medarbejder" : "Tildeling fjernet");
+    } catch (e: any) {
+      toast.error(e.message || "Kunne ikke opdatere tildeling");
     }
-    for (const emp of activeEmployees) {
-      const r = routeForEmployee(emp.id);
-      cols.push({
-        routeId: r?.id || "",
-        employeeId: emp.id,
-        label: emp.name,
-        subtitle: emp.title || emp.email,
-        color: colorForEmployee(emp.id),
-        stops: r ? (stopsByRoute.get(r.id) || []) : [],
-        totalKm: r?.total_distance_km, totalMin: r?.total_duration_minutes,
-        routeStatus: r?.status,
-        onOptimize: r ? () => handleOptimize(r.id) : undefined,
-        onDispatch: r ? () => dispatchRoute.mutate(r.id) : undefined,
+  };
+
+  /* Build calendar columns — one per route */
+  const calendarColumns: CalendarColumn[] = useMemo(() => {
+    return routes.map((r) => {
+      const attached = employeesByRoute.get(r.id) || [];
+      return {
+        routeId: r.id,
+        label: r.name || `Rute ${format(parseISO(r.route_date), "d/M")}`,
+        subtitle: r.start_address || undefined,
+        color: colorForRoute(r.id),
+        stops: stopsByRoute.get(r.id) || [],
+        attachedEmployees: attached,
+        availableEmployees: employeeOptions,
+        totalKm: r.total_distance_km,
+        totalMin: r.total_duration_minutes,
+        routeStatus: r.status,
+        onOptimize: () => handleOptimize(r.id),
+        onAttachEmployee: (eid) => attachEmp.mutate({ route_id: r.id, employee_id: eid }),
+        onDetachEmployee: (eid) => detachEmp.mutate({ route_id: r.id, employee_id: eid }),
+        onDispatchToEmployee: (eid) => dispatchRoute.mutate({ routeId: r.id, employeeId: eid }),
+        onDeleteRoute: () => {
+          if (confirm("Slet ruten og alle dens stops?")) deleteRoute.mutate(r.id);
+        },
+        onAssignStop: handleAssignStop,
         optimizing: optimizeRoute.isPending,
         dispatching: dispatchRoute.isPending,
-      });
-    }
-    return cols;
+      } satisfies CalendarColumn;
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [routes, stopsByRoute, activeEmployees, optimizeRoute.isPending, dispatchRoute.isPending]);
+  }, [routes, stopsByRoute, employeesByRoute, employeeOptions, optimizeRoute.isPending, dispatchRoute.isPending]);
 
   /* Map data */
   const mapRoutes: MapRoute[] = useMemo(() => {
@@ -254,72 +294,64 @@ const Planner = () => {
     const activeData: any = active.data.current;
     const overData: any = over.data.current;
 
-    // Drop on a calendar slot — assign or move stop to specific time
-    if (overData?.type === "slot") {
-      const targetEmployeeId: string | null = overData.employeeId;
-      const slotIso = slotToIso(date, overData.slotTime);
+    if (overData?.type !== "slot") return;
 
-      if (activeData?.type === "job") {
-        const job = activeData.job;
-        try {
-          const route = await upsertRoute.mutateAsync({
-            business_id: businessId, employee_id: targetEmployeeId, route_date: date,
+    const targetRouteId: string = overData.routeId;
+    const slotIso = slotToIso(date, overData.slotTime);
+
+    if (activeData?.type === "job") {
+      const job = activeData.job;
+      try {
+        const existingStops = stopsByRoute.get(targetRouteId) || [];
+        await addStop.mutateAsync({
+          route_id: targetRouteId,
+          order_id: job.id,
+          sequence: existingStops.length,
+          customer_name: job.customer_name,
+          customer_phone: job.customer_phone,
+          address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
+          latitude: job.latitude,
+          longitude: job.longitude,
+          service_summary: `Ordre · ${Math.round(Number(job.total_amount || 0))} kr`,
+        });
+        const created = await supabase.from("route_stops")
+          .select("id").eq("route_id", targetRouteId).eq("order_id", job.id)
+          .order("created_at", { ascending: false }).limit(1).maybeSingle();
+        if (created.data?.id) {
+          await updateStop.mutateAsync({
+            id: created.data.id,
+            planned_arrival: slotIso,
           });
-          const existingStops = stopsByRoute.get(route.id) || [];
-          await addStop.mutateAsync({
-            route_id: route.id,
-            order_id: job.id,
-            sequence: existingStops.length,
-            customer_name: job.customer_name,
-            customer_phone: job.customer_phone,
-            address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
-            latitude: job.latitude,
-            longitude: job.longitude,
-            service_summary: `Ordre · ${Math.round(Number(job.total_amount || 0))} kr`,
-          });
-          // Set planned arrival to slot time
-          const created = await supabase.from("route_stops")
-            .select("id").eq("route_id", route.id).eq("order_id", job.id)
-            .order("created_at", { ascending: false }).limit(1).maybeSingle();
-          if (created.data?.id) {
-            await updateStop.mutateAsync({
-              id: created.data.id,
-              planned_arrival: slotIso,
-            });
-          }
-          toast.success(`Tilføjet kl. ${overData.slotTime}`);
-        } catch (err: any) {
-          toast.error(err.message || "Kunne ikke tilføje stop");
         }
-        return;
+        toast.success(`Tilføjet kl. ${overData.slotTime}`);
+      } catch (err: any) {
+        toast.error(err.message || "Kunne ikke tilføje stop");
       }
+      return;
+    }
 
-      if (activeData?.type === "stop") {
-        const draggedStop: RouteStop = activeData.stop;
-        const currentRoute = routes.find((r) => r.id === draggedStop.route_id);
-        try {
-          if (currentRoute?.employee_id !== targetEmployeeId) {
-            const targetRoute = await upsertRoute.mutateAsync({
-              business_id: businessId, employee_id: targetEmployeeId, route_date: date,
-            });
-            const targetStops = stopsByRoute.get(targetRoute.id) || [];
-            await updateStop.mutateAsync({
-              id: draggedStop.id,
-              route_id: targetRoute.id,
-              sequence: targetStops.length,
-              planned_arrival: slotIso,
-            });
-          } else {
-            await updateStop.mutateAsync({
-              id: draggedStop.id,
-              planned_arrival: slotIso,
-            });
-          }
-          toast.success(`Flyttet til kl. ${overData.slotTime}`);
-        } catch (err: any) {
-          toast.error(err.message || "Kunne ikke flytte stop");
+    if (activeData?.type === "stop") {
+      const draggedStop: RouteStop = activeData.stop;
+      try {
+        if (draggedStop.route_id !== targetRouteId) {
+          const targetStops = stopsByRoute.get(targetRouteId) || [];
+          await updateStop.mutateAsync({
+            id: draggedStop.id,
+            route_id: targetRouteId,
+            sequence: targetStops.length,
+            planned_arrival: slotIso,
+            // Clear assignment when moved to different route
+            assigned_employee_id: null,
+          });
+        } else {
+          await updateStop.mutateAsync({
+            id: draggedStop.id,
+            planned_arrival: slotIso,
+          });
         }
-        return;
+        toast.success(`Flyttet til kl. ${overData.slotTime}`);
+      } catch (err: any) {
+        toast.error(err.message || "Kunne ikke flytte stop");
       }
     }
   };
@@ -333,40 +365,18 @@ const Planner = () => {
     } catch { /* */ }
   };
 
-  const handleAutoAssignAll = async () => {
+  const handleCreateRoute = async () => {
     if (!businessId) return;
-    if (activeEmployees.length === 0) {
-      toast.error("Ingen aktive medarbejdere"); return;
-    }
-    const withCoords = unassigned.filter((j: any) => j.latitude != null && j.longitude != null);
-    if (withCoords.length === 0) { toast.error("Ingen ledige opgaver med GPS"); return; }
     try {
-      for (let i = 0; i < withCoords.length; i++) {
-        const job: any = withCoords[i];
-        const emp = activeEmployees[i % activeEmployees.length];
-        const route = await upsertRoute.mutateAsync({
-          business_id: businessId, employee_id: emp.id, route_date: date,
-        });
-        const existingStops = (stopsByRoute.get(route.id) || []).length;
-        await addStop.mutateAsync({
-          route_id: route.id,
-          order_id: job.id,
-          sequence: existingStops + i,
-          customer_name: job.customer_name,
-          customer_phone: job.customer_phone,
-          address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
-          latitude: job.latitude, longitude: job.longitude,
-          service_summary: `Ordre · ${Math.round(Number(job.total_amount || 0))} kr`,
-        });
-      }
-      for (const emp of activeEmployees) {
-        const r = routeForEmployee(emp.id);
-        if (r) await optimizeRoute.mutateAsync(r.id).catch(() => {});
-      }
-      toast.success(`Fordelte ${withCoords.length} opgaver og optimerede ruterne`);
-    } catch (e: any) {
-      toast.error(e.message || "Kunne ikke auto-fordele");
-    }
+      await createRoute.mutateAsync({
+        business_id: businessId,
+        route_date: date,
+        name: newRouteName.trim() || null,
+      });
+      toast.success("Rute oprettet");
+      setNewRouteName("");
+      setCreateOpen(false);
+    } catch { /* toast handled in hook */ }
   };
 
   return (
@@ -413,13 +423,40 @@ const Planner = () => {
             </span>
 
             <div className="ml-auto flex items-center gap-1.5">
+              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="h-7 gap-1">
+                    <Plus className="h-3.5 w-3.5" />Opret rute
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Opret ny rute for {format(parseISO(date), "EEEE d. MMMM", { locale: da })}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-2">
+                    <Label htmlFor="route-name">Navn på ruten (valgfrit)</Label>
+                    <Input
+                      id="route-name"
+                      placeholder="fx Nord, Aarhus C, Mandag-team..."
+                      value={newRouteName}
+                      onChange={(e) => setNewRouteName(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Ruten starter fra virksomhedens adresse. Du kan tilkoble medarbejdere bagefter.
+                    </p>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setCreateOpen(false)}>Annullér</Button>
+                    <Button onClick={handleCreateRoute} disabled={createRoute.isPending}>
+                      {createRoute.isPending && <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />}
+                      Opret rute
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
               <Button variant="ghost" size="sm" className="h-7" onClick={() => setShowMap((v) => !v)}>
                 <MapIcon className="h-3.5 w-3.5 mr-1" />{showMap ? "Skjul kort" : "Vis kort"}
-              </Button>
-              <Button size="sm" className="h-7 gap-1"
-                onClick={handleAutoAssignAll}
-                disabled={unassigned.length === 0 || activeEmployees.length === 0}>
-                <Wand2 className="h-3.5 w-3.5" />Auto-fordel
               </Button>
             </div>
           </div>
@@ -465,19 +502,12 @@ const Planner = () => {
 
             {/* Calendar */}
             <main className="overflow-hidden">
-              {activeEmployees.length === 0 ? (
-                <Card className="p-6 text-center text-sm text-muted-foreground h-full flex items-center justify-center">
-                  Ingen aktive medarbejdere. Tilføj medarbejdere på{" "}
-                  <Link to="/virksomhed" className="underline ml-1">virksomhedspanelet</Link>.
-                </Card>
-              ) : (
-                <CalendarPlanner
-                  routeDate={date}
-                  columns={calendarColumns}
-                  selectedStopId={selectedStopId}
-                  onSelectStop={setSelectedStopId}
-                />
-              )}
+              <CalendarPlanner
+                routeDate={date}
+                columns={calendarColumns}
+                selectedStopId={selectedStopId}
+                onSelectStop={setSelectedStopId}
+              />
             </main>
 
             {/* Map */}
@@ -508,9 +538,7 @@ const Planner = () => {
           <WeekView
             weekStart={weekStart}
             weekRoutes={weekRoutes}
-            employees={activeEmployees}
             onPickDate={(d) => { setDate(d); setView("day"); }}
-            colorForEmployee={colorForEmployee}
           />
         )}
 
@@ -542,82 +570,52 @@ const Planner = () => {
 };
 
 const WeekView = ({
-  weekStart, weekRoutes, employees, onPickDate, colorForEmployee,
+  weekStart, weekRoutes, onPickDate,
 }: {
   weekStart: string;
   weekRoutes: Route[];
-  employees: any[];
   onPickDate: (d: string) => void;
-  colorForEmployee: (id: string | null) => string;
 }) => {
   const days = eachDayOfInterval({
     start: parseISO(weekStart),
     end: addDays(parseISO(weekStart), 6),
   });
-
-  const routeFor = (empId: string | null, dateStr: string) =>
-    weekRoutes.find((r) => r.employee_id === empId && r.route_date === dateStr);
+  const routesPerDay = (dateStr: string) => weekRoutes.filter((r) => r.route_date === dateStr);
 
   return (
     <div className="container mx-auto px-4 py-4">
       <Card className="p-4 overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left py-2 px-2 font-semibold">Medarbejder</th>
-              {days.map((d) => (
-                <th key={d.toISOString()} className="text-center py-2 px-2 font-medium min-w-[110px]">
-                  <button onClick={() => onPickDate(format(d, "yyyy-MM-dd"))}
-                    className="hover:text-primary transition-colors">
-                    <div className="text-xs uppercase text-muted-foreground">
-                      {format(d, "EEE", { locale: da })}
-                    </div>
-                    <div>{format(d, "d/M")}</div>
-                  </button>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {employees.map((emp: any) => (
-              <tr key={emp.id} className="border-b hover:bg-secondary/30">
-                <td className="py-2 px-2">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: colorForEmployee(emp.id) }} />
-                    <span className="font-medium">{emp.name}</span>
-                  </div>
-                </td>
-                {days.map((d) => {
-                  const r = routeFor(emp.id, format(d, "yyyy-MM-dd"));
-                  return (
-                    <td key={d.toISOString()} className="text-center py-2 px-2">
-                      {r ? (
-                        <button onClick={() => onPickDate(format(d, "yyyy-MM-dd"))}
-                          className="text-xs hover:text-primary">
-                          {r.total_distance_km != null ? `${r.total_distance_km.toFixed(0)} km` : "—"}
-                          {r.total_duration_minutes != null && (
-                            <div className="text-muted-foreground">
-                              {Math.floor(r.total_duration_minutes / 60)}t {r.total_duration_minutes % 60}m
-                            </div>
-                          )}
-                        </button>
-                      ) : (
-                        <span className="text-muted-foreground text-xs">—</span>
+        <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(7, minmax(140px, 1fr))" }}>
+          {days.map((d) => {
+            const ds = format(d, "yyyy-MM-dd");
+            const ds_routes = routesPerDay(ds);
+            return (
+              <button
+                key={ds}
+                onClick={() => onPickDate(ds)}
+                className="text-left border rounded-md p-3 hover:bg-secondary/40 transition-colors"
+              >
+                <div className="text-xs uppercase text-muted-foreground">
+                  {format(d, "EEE", { locale: da })}
+                </div>
+                <div className="text-lg font-semibold">{format(d, "d/M")}</div>
+                <div className="mt-2 space-y-1">
+                  {ds_routes.length === 0 && (
+                    <p className="text-xs text-muted-foreground italic">Ingen ruter</p>
+                  )}
+                  {ds_routes.map((r) => (
+                    <div key={r.id} className="text-xs border-l-2 border-primary pl-2">
+                      <p className="font-medium truncate">{r.name || "Rute"}</p>
+                      {r.total_distance_km != null && r.total_distance_km > 0 && (
+                        <p className="text-muted-foreground">{r.total_distance_km.toFixed(1)} km</p>
                       )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-            {employees.length === 0 && (
-              <tr>
-                <td colSpan={days.length + 1} className="text-center text-muted-foreground py-8 text-sm">
-                  Ingen aktive medarbejdere
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                    </div>
+                  ))}
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </Card>
     </div>
   );
