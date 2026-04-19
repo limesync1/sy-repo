@@ -255,6 +255,9 @@ const ColumnHeader = ({ col }: { col: CalendarColumn }) => {
     (e) => !col.attachedEmployees.find((a) => a.id === e.id),
   );
   const unassignedCount = col.stops.filter((s) => !s.assigned_employee_id).length;
+  // Tæl unikke konflikter: stops hvor samme medarbejder har overlappende tider
+  const layouts = computeStopLayouts(col.stops);
+  const conflictCount = Array.from(layouts.values()).filter((l) => l.conflictWithSameEmployee).length;
 
   return (
     <div
