@@ -47,6 +47,35 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
   const [preferredTimeStart, setPreferredTimeStart] = useState("");
   const [preferredTimeEnd, setPreferredTimeEnd] = useState("");
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [geo, setGeo] = useState<{ ok: boolean; display?: string; lat?: number; lng?: number } | null>(null);
+
+  // Reset verification whenever address changes
+  const onAddressChange = (v: string) => { setAddress(v); setGeo(null); };
+  const onZipChange = (v: string) => { setZipCode(v); setGeo(null); };
+  const onCityChange = (v: string) => { setCity(v); setGeo(null); };
+
+  const verifyAddress = async (): Promise<{ lat?: number; lng?: number } | null> => {
+    if (!address.trim() || !zipCode.trim() || !city.trim()) {
+      toast.error("Udfyld adresse, postnr. og by");
+      return null;
+    }
+    setVerifying(true);
+    try {
+      const fullAddress = `${address}, ${zipCode} ${city}`;
+      const { data } = await supabase.functions.invoke("geocode-address", {
+        body: { address: fullAddress },
+      });
+      if (data?.found && data.latitude && data.longitude) {
+        setGeo({ ok: true, display: data.display_name, lat: data.latitude, lng: data.longitude });
+        return { lat: data.latitude, lng: data.longitude };
+      }
+      setGeo({ ok: false });
+      return null;
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const handleOrder = async () => {
     if (!name || !email || !phone || !address || !zipCode || !city) {
