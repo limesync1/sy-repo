@@ -952,12 +952,19 @@ export const useMyRouteData = (routeId: string | undefined) => {
         .maybeSingle();
       if (!route) return null;
 
-      const { data: stops } = await supabase
+      const { data: myAssign } = await supabase
+        .from("route_stop_assignees")
+        .select("stop_id")
+        .eq("employee_id", emp.id);
+      const myStopIds = new Set((myAssign || []).map((a: any) => a.stop_id));
+      const { data: rawStops } = await supabase
         .from("route_stops")
         .select("*")
         .eq("route_id", routeId!)
-        .or(`assigned_employee_id.eq.${emp.id},assigned_employee_id.is.null`)
         .order("sequence", { ascending: true });
+      const stops = (rawStops || []).filter((s: any) =>
+        myStopIds.has(s.id) || !s.assigned_employee_id,
+      );
 
       return {
         route: route as Route & { businesses?: { name?: string; phone?: string } },
