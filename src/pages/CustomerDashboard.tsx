@@ -654,14 +654,17 @@ const SubscriptionsView = () => {
 
           <div className="grid gap-3 sm:grid-cols-2">
             {subs.map((sub: any) => {
-              const cfg = STATUS_CONFIG[sub.status] || STATUS_CONFIG.active;
+              const effectiveStatus = sub.status === "active" && sub.orders?.status === "pending"
+                ? "pending"
+                : sub.status;
+              const cfg = STATUS_CONFIG[effectiveStatus] || STATUS_CONFIG.active;
               return (
                 <Card key={sub.id} className="overflow-hidden rounded-2xl border-border transition-shadow hover:shadow-md">
                   <CardContent className="p-0">
                     <div className={`h-1 w-full ${
-                      sub.status === "active" ? "bg-accent"
-                      : sub.status === "paused" ? "bg-yellow-400"
-                      : sub.status === "pending" ? "bg-muted-foreground/30"
+                      effectiveStatus === "active" ? "bg-accent"
+                      : effectiveStatus === "paused" ? "bg-yellow-400"
+                      : effectiveStatus === "pending" ? "bg-muted-foreground/30"
                       : "bg-destructive"
                     }`} />
                     <div className="p-5 space-y-4">
@@ -700,12 +703,12 @@ const SubscriptionsView = () => {
                       )}
 
                       <div className="flex flex-wrap gap-2 pt-1">
-                        {sub.status === "pending" && (
+                        {effectiveStatus === "pending" && (
                           <p className="text-xs text-muted-foreground italic">
                             Afventer at virksomheden godkender din bestilling. Abonnementet aktiveres automatisk når den er godkendt.
                           </p>
                         )}
-                        {sub.status === "active" && (
+                        {effectiveStatus === "active" && (
                           <>
                             <Button variant="outline" size="sm" onClick={() => handlePause(sub.id)}
                               className="gap-1.5 rounded-xl text-xs"><Pause className="h-3.5 w-3.5" /> Sæt på pause</Button>
@@ -717,17 +720,17 @@ const SubscriptionsView = () => {
                               className="gap-1.5 rounded-xl text-xs ml-auto"><Star className="h-3.5 w-3.5" /> Anmeld</Button>
                           </>
                         )}
-                        {sub.status === "paused" && (
+                        {effectiveStatus === "paused" && (
                           <>
                             <Button size="sm" onClick={() => handleResume(sub.id)}
                               className="gap-1.5 rounded-xl text-xs bg-accent text-accent-foreground hover:bg-accent/90">
                               <Play className="h-3.5 w-3.5" /> Genoptag</Button>
                             <Button variant="outline" size="sm" onClick={() => handleCancel(sub.id)}
-                              className="gap-1.5 rounded-xl text-xs text-destructive hover:text-destructive">
+                              className="gap-1.5 rounded-xl text-xs text-destructive hover:text-destructive hover:bg-destructive/5">
                               <XCircle className="h-3.5 w-3.5" /> Opsig</Button>
                           </>
                         )}
-                        {sub.status === "cancelled" && (
+                        {effectiveStatus === "cancelled" && (
                           <p className="text-xs text-muted-foreground italic">
                             Opsagt {sub.cancelled_at ? new Date(sub.cancelled_at).toLocaleDateString("da-DK") : ""}
                           </p>
