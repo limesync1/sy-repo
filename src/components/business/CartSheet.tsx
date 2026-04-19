@@ -245,6 +245,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
       setName(""); setEmail(""); setPhone("");
       setAddress(""); setZipCode(""); setCity("");
       setPreferredDate(""); setPreferredTimeStart(""); setPreferredTimeEnd("");
+      setScheduleMode("asap");
       if (user) {
         navigate("/min-konto");
       } else {
