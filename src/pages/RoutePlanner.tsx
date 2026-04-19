@@ -243,7 +243,7 @@ const Planner = () => {
           );
         },
         onDeleteRoute: () => {
-          if (confirm("Slet ruten og alle dens stops?")) deleteRoute.mutate(r.id);
+          setRouteToDelete({ id: r.id, name: r.name || `Rute ${format(parseISO(r.route_date), "d/M")}` });
         },
         onAssignStop: handleAssignStop,
         optimizing: optimizingRouteId === r.id,
