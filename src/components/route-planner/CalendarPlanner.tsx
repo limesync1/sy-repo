@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Loader2, Sparkles, Navigation, Clock, MapPin, AlertCircle,
-  GripVertical, UserPlus, MoreVertical, Trash2, UserCheck,
+  UserPlus, MoreVertical, Trash2, UserCheck,
   Inbox, CheckCircle2, PlayCircle, Wand2, ZoomIn, ZoomOut,
 } from "lucide-react";
 import { format, isToday, parseISO } from "date-fns";
