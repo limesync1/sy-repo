@@ -641,8 +641,10 @@ const StopBlock = ({
   const arrivalMin = arrivalToMinutes(stop.planned_arrival);
   if (arrivalMin == null || arrivalMin < START_HOUR * 60 || arrivalMin >= END_HOUR * 60) return null;
   const top = ((arrivalMin - START_HOUR * 60) / SLOT_MIN) * slotHeight;
-  const heightPx = Math.max((stop.duration_minutes / SLOT_MIN) * slotHeight, slotHeight * 1.5);
+  // Mindre minimum-højde — sikrer altid 2 linjer er læselige
+  const heightPx = Math.max((stop.duration_minutes / SLOT_MIN) * slotHeight, 38);
 
+  // Hele kortet er draggable — meget nemmere end at ramme et lille greb
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: stop.id,
     data: { type: "stop", stop },
@@ -661,15 +663,23 @@ const StopBlock = ({
   const widthPct = lanes > 1 ? (100 / lanes) : 100;
   const leftPct = lanes > 1 ? lane * widthPct : 0;
 
+  // Visnings-tærskler i absolutte pixels — uafhængig af zoom
+  const showService = heightPx >= 56;
+  const showAssign = heightPx >= 50;
+  const showAddress = heightPx >= 78;
+  const showWindow = heightPx >= 96;
+
   return (
     <div
       ref={setNodeRef}
-      className={`absolute rounded-md border bg-background shadow-sm overflow-hidden cursor-pointer transition-all z-10 ${
-        isDragging ? "opacity-40 scale-95" : ""
+      {...listeners}
+      {...attributes}
+      className={`group absolute rounded-md border bg-card shadow-sm overflow-hidden transition-all z-10 select-none ${
+        isDragging ? "opacity-40 scale-95 cursor-grabbing" : "cursor-grab active:cursor-grabbing"
       } ${
         isSelected ? "ring-2 ring-primary border-primary shadow-lg z-30"
           : isDone ? "opacity-60"
-          : "hover:shadow-md hover:z-20 hover:border-foreground/30"
+          : "hover:shadow-md hover:z-20 hover:border-foreground/40"
       } ${hasConflict ? "ring-1 ring-destructive/60" : ""}`}
       style={{
         top: `${top}px`,
@@ -680,59 +690,65 @@ const StopBlock = ({
         borderLeftColor: color,
         background: isDone ? "hsl(var(--secondary))" : undefined,
       }}
-      onClick={onSelect}
+      onClick={(e) => { e.stopPropagation(); onSelect(); }}
     >
-      <div className="flex items-start gap-1 p-1.5 h-full">
-        <span
-          {...listeners}
-          {...attributes}
-          onClick={(e) => e.stopPropagation()}
-          className="cursor-grab active:cursor-grabbing shrink-0 opacity-30 hover:opacity-100 transition-opacity"
-        >
-          <GripVertical className="h-3 w-3" />
-        </span>
-        <div className="flex-1 min-w-0 overflow-hidden">
-          <div className="flex items-center gap-1">
-            <p className={`text-xs font-semibold truncate flex-1 leading-tight ${isDone ? "line-through" : ""}`}>
-              {stop.customer_name || "Stop"}
-            </p>
-            {isDone && <CheckCircle2 className="h-3 w-3 text-emerald-600 shrink-0" />}
-            {isInProgress && (
-              <span title="I gang" className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shrink-0" />
-            )}
-            {!hasCoords && (
-              <span title="Mangler GPS koordinater"><AlertCircle className="h-3 w-3 text-orange-500 shrink-0" /></span>
-            )}
-          </div>
-
+      <div className="flex flex-col gap-0.5 px-2 py-1.5 h-full overflow-hidden">
+        {/* Top-linje: tid + navn + status */}
+        <div className="flex items-center gap-1.5 min-w-0">
           {arrivalLabel && (
-            <p className="text-[9px] text-muted-foreground flex items-center gap-1 mt-0.5 tabular-nums">
-              <Clock className="h-2 w-2" />{arrivalLabel}
-              {departureLabel && `–${departureLabel}`}
-              <span className="ml-auto font-medium">{stop.duration_minutes}m</span>
-            </p>
+            <span className="text-[10px] font-bold tabular-nums text-foreground/80 shrink-0 leading-none">
+              {arrivalLabel}
+            </span>
           )}
-
-          {stop.service_summary && heightPx >= slotHeight * 2 && (
-            <p className="text-[10px] text-foreground/70 truncate mt-0.5">
-              {stop.service_summary}
-            </p>
+          <p className={`text-[12px] font-semibold truncate flex-1 leading-tight ${isDone ? "line-through" : ""}`}>
+            {stop.customer_name || "Stop"}
+          </p>
+          {isDone && <CheckCircle2 className="h-3 w-3 text-emerald-600 shrink-0" />}
+          {isInProgress && (
+            <span title="I gang" className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shrink-0" />
           )}
-
-          {stop.address && heightPx >= slotHeight * 2.5 && (
-            <p className="text-[9px] text-muted-foreground truncate flex items-center gap-0.5 mt-0.5">
-              <MapPin className="h-2 w-2 shrink-0" />{stop.address}
-            </p>
+          {!hasCoords && (
+            <span title="Mangler GPS koordinater"><AlertCircle className="h-3 w-3 text-orange-500 shrink-0" /></span>
           )}
+          {hasConflict && (
+            <span title="Overlapper med et andet stop hos samme medarbejder">
+              <AlertCircle className="h-3 w-3 text-destructive shrink-0" />
+            </span>
+          )}
+        </div>
 
-          {onAssign && heightPx >= slotHeight * 1.8 && (
-            <div onClick={(e) => e.stopPropagation()} className="mt-1">
+        {/* Anden linje: varighed + sluttid */}
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground tabular-nums leading-none">
+          <Clock className="h-2.5 w-2.5 shrink-0" />
+          <span className="font-medium">{stop.duration_minutes}m</span>
+          {departureLabel && <span>· slutter {departureLabel}</span>}
+        </div>
+
+        {/* Service-summary */}
+        {showService && stop.service_summary && (
+          <p className="text-[11px] text-foreground/75 truncate leading-tight">
+            {stop.service_summary}
+          </p>
+        )}
+
+        {/* Adresse */}
+        {showAddress && stop.address && (
+          <p className="text-[10px] text-muted-foreground truncate flex items-center gap-0.5 leading-tight">
+            <MapPin className="h-2.5 w-2.5 shrink-0" />
+            <span className="truncate">{stop.address}</span>
+          </p>
+        )}
+
+        {/* Tildel-knap + tidsvindue — klik må ikke starte drag */}
+        <div className="mt-auto flex items-center gap-1 flex-wrap">
+          {showAssign && onAssign && (
+            <div onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className={`inline-flex items-center gap-1 rounded px-1 py-0.5 text-[9px] font-medium transition-colors ${
+                    className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors ${
                       assignedEmp
-                        ? "text-white"
+                        ? "text-white shadow-sm"
                         : isUnassigned
                           ? "bg-orange-50 border border-orange-300 text-orange-700 hover:bg-orange-100"
                           : "border border-border text-muted-foreground hover:bg-secondary"
@@ -740,7 +756,9 @@ const StopBlock = ({
                     style={assignedEmp ? { background: assignedEmp.color } : undefined}
                   >
                     <UserCheck className="h-2.5 w-2.5" />
-                    {assignedEmp ? assignedEmp.name.split(" ")[0] : "Tildel"}
+                    <span className="truncate max-w-[80px]">
+                      {assignedEmp ? assignedEmp.name.split(" ")[0] : "Tildel"}
+                    </span>
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-44">
@@ -769,8 +787,8 @@ const StopBlock = ({
             </div>
           )}
 
-          {stop.time_window_start && heightPx >= slotHeight * 4 && (
-            <Badge variant="outline" className="h-3.5 text-[9px] px-1 gap-0.5 mt-0.5 border-amber-300 text-amber-700 bg-amber-50">
+          {showWindow && stop.time_window_start && (
+            <Badge variant="outline" className="h-4 text-[9px] px-1 gap-0.5 border-amber-300 text-amber-700 bg-amber-50 tabular-nums">
               {stop.time_window_start.slice(0, 5)}
               {stop.time_window_end && `–${stop.time_window_end.slice(0, 5)}`}
             </Badge>
