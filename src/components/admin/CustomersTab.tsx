@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   Search, User, Mail, Phone, MapPin, Package, Repeat, Calendar,
-  Route as RouteIcon, TrendingUp, Star, Clock, ChevronRight, ExternalLink,
+  Route as RouteIcon, TrendingUp, Star, Clock, ChevronRight, ExternalLink, Pause,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -364,6 +364,12 @@ const CustomersTab = ({ businessId }: Props) => {
                     <Badge variant="outline" className="border-emerald-300 text-emerald-700 bg-emerald-50 text-[10px] h-5 px-1.5 gap-0.5">
                       <Repeat className="h-2.5 w-2.5" />
                       {c.active_subs} abo.
+                    </Badge>
+                  )}
+                  {c.paused_subs > 0 && (
+                    <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50 text-[10px] h-5 px-1.5 gap-0.5">
+                      <Pause className="h-2.5 w-2.5" />
+                      {c.paused_subs} på pause
                     </Badge>
                   )}
                   <Badge variant="secondary" className="text-[10px] h-5 px-1.5">
