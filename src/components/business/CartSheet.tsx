@@ -472,11 +472,12 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 const hasRecurring = items.some(i => i.interval && i.interval !== "engangskøb");
                 const selectedDate = preferredDate ? new Date(preferredDate + "T00:00:00") : undefined;
                 const today = new Date(); today.setHours(0, 0, 0, 0);
-                const TIME_PRESETS = [
-                  { label: "Morgen", start: "08:00", end: "12:00" },
-                  { label: "Eftermiddag", start: "12:00", end: "16:00" },
-                  { label: "Aften", start: "16:00", end: "20:00" },
-                ];
+                 const TIME_PRESETS = [
+                   { label: "Tidlig morgen", start: "05:00", end: "08:00" },
+                   { label: "Morgen", start: "08:00", end: "12:00" },
+                   { label: "Eftermiddag", start: "12:00", end: "16:00" },
+                   { label: "Aften", start: "16:00", end: "20:00" },
+                 ];
                 const activePreset = TIME_PRESETS.find(p => p.start === preferredTimeStart && p.end === preferredTimeEnd);
 
                 return (
