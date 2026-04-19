@@ -107,11 +107,17 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
     queryFn: async () => {
       const { data: orders, error } = await supabase
         .from("orders")
-        .select("id, customer_name, customer_phone, customer_email, total_amount, status, notes, address, zip_code, city, latitude, longitude, created_at")
+        .select(`
+          id, customer_name, customer_phone, customer_email, total_amount, status, notes,
+          address, zip_code, city, latitude, longitude, created_at,
+          preferred_date, preferred_time_start, preferred_time_end,
+          order_items ( service_name, quantity, total_price )
+        `)
         .eq("business_id", businessId!)
         .in("status", ["pending", "confirmed", "in_progress"])
+        .order("preferred_date", { ascending: true, nullsFirst: false })
         .order("created_at", { ascending: false })
-        .limit(200);
+        .limit(300);
       if (error) throw error;
 
       const orderIds = (orders || []).map((o) => o.id);
@@ -124,6 +130,26 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
 
       const used = new Set((usedStops || []).map((s) => s.order_id));
       return (orders || []).filter((o) => !used.has(o.id));
+    },
+  });
+};
+
+/* ─── Full order details for the stop detail sheet ─── */
+export const useOrderForStop = (orderId: string | null | undefined) => {
+  return useQuery({
+    queryKey: ["order-for-stop", orderId],
+    enabled: !!orderId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orders")
+        .select(`
+          *,
+          order_items ( service_name, quantity, unit_price, total_price, details )
+        `)
+        .eq("id", orderId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
     },
   });
 };
