@@ -911,16 +911,21 @@ export const useMyDayStops = (date: string) => {
         .eq("route_date", date);
       const todayIds = (routes || []).map((r) => r.id);
       if (todayIds.length === 0) return [];
-      // Show stops on this employee's routes — either explicitly assigned to them
-      // or unassigned (shared on the route).
+      // Stops på denne medarbejders ruter — enten tildelt dem (via assignees-tabel) eller utildelt
+      const { data: myAssign } = await supabase
+        .from("route_stop_assignees")
+        .select("stop_id")
+        .eq("employee_id", emp.id);
+      const myStopIds = new Set((myAssign || []).map((a: any) => a.stop_id));
       const { data, error } = await supabase
         .from("route_stops")
         .select("*")
         .in("route_id", todayIds)
-        .or(`assigned_employee_id.eq.${emp.id},assigned_employee_id.is.null`)
         .order("sequence", { ascending: true });
       if (error) throw error;
-      return (data || []) as RouteStop[];
+      // Filtrer: vis stops jeg er på, eller utildelte stops på en rute jeg er på
+      const filtered = (data || []).filter((s: any) => myStopIds.has(s.id) || !s.assigned_employee_id);
+      return filtered as RouteStop[];
     },
   });
 };
