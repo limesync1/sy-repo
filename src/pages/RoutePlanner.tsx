@@ -5,7 +5,7 @@ import { useMyBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
 import {
   useRoutesForDate, useStopsForRoutes, useUnassignedJobs,
-  useUpsertRoute, useAddStop, useReorderStops, useUpdateStop,
+  useUpsertRoute, useAddStop, useUpdateStop,
   useOptimizeRoute, useGeocodeAddress, useRoutesForRange,
   useDispatchRoute,
   type RouteStop, type Route,
@@ -87,7 +87,7 @@ const Planner = () => {
 
   const upsertRoute = useUpsertRoute();
   const addStop = useAddStop();
-  const reorderStops = useReorderStops();
+  // reorder via updateStop
   const updateStop = useUpdateStop();
   const optimizeRoute = useOptimizeRoute();
   const dispatchRoute = useDispatchRoute();
