@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
@@ -6,7 +6,7 @@ import { useEmployees } from "@/hooks/useEmployees";
 import {
   useRoutesForDate, useStopsForRoutes, useUnassignedJobs,
   useUpsertRoute, useAddStop, useUpdateStop, useDeleteStop,
-  type Route as RouteRow, type RouteStop,
+  type RouteStop,
 } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon, Trash2, MapPin, GripVertical,
-  Phone, ArrowLeft,
+  ArrowLeft,
 } from "lucide-react";
 import { format, addDays, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
