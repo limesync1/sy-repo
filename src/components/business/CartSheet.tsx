@@ -6,23 +6,21 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2, Zap, CalendarDays, Loader2, AlertCircle, User, MapPin, Clock, Sparkles, ShoppingBag } from "lucide-react";
+import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2, Loader2, AlertCircle, User, MapPin, ShoppingBag } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
-import { format } from "date-fns";
-import { da } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
-/** Calculate next service date based on interval, anchored to a specific start date */
-const calculateNextServiceDate = (interval: string, startDate?: string): string => {
-  const base = startDate ? new Date(startDate) : new Date();
+/** Calculate next service date based on interval, anchored to today. */
+const calculateNextServiceDate = (interval: string): string => {
+  const base = new Date();
   switch (interval) {
     case "ugentlig": base.setDate(base.getDate() + 7); break;
     case "hver_14_dag": base.setDate(base.getDate() + 14); break;
+    case "hver_4_uge": base.setDate(base.getDate() + 28); break;
+    case "hver_8_uge": base.setDate(base.getDate() + 56); break;
     case "månedlig": base.setMonth(base.getMonth() + 1); break;
     case "kvartalsvis": base.setMonth(base.getMonth() + 3); break;
     case "halvårlig": base.setMonth(base.getMonth() + 6); break;
@@ -30,13 +28,6 @@ const calculateNextServiceDate = (interval: string, startDate?: string): string 
     default: base.setMonth(base.getMonth() + 1); break;
   }
   return base.toISOString();
-};
-
-/** Suggest tomorrow as a sensible default if user picks "select date" */
-const tomorrowISO = () => {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
-  return d.toISOString().split("T")[0];
 };
 
 interface CartSheetProps {
