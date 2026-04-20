@@ -730,7 +730,7 @@ const Planner = () => {
                         <p className="text-xs text-muted-foreground italic">
                           {search
                             ? "Ingen opgaver matcher søgningen"
-                            : routes.length === 0
+                            : calendarRoutesRaw.length === 0
                               ? "Opret en rute først, så kan du trække opgaver herfra og ind i kalenderen"
                               : "Alle opgaver er planlagt 🎉"}
                         </p>
