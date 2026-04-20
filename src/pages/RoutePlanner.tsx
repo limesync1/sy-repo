@@ -444,6 +444,79 @@ const Planner = () => {
     const activeData: any = active.data.current;
     const overData: any = over.data.current;
 
+    /* ─── Drop fra MonthWeekCalendar ─── */
+    // Træk en hel rute → ny dato
+    if (activeData?.type === "route" && overData?.type === "day") {
+      const route: Route = activeData.route;
+      const newDate: string = overData.date;
+      if (route.route_date === newDate) return;
+      try {
+        await updateRoute.mutateAsync({ id: route.id, route_date: newDate });
+        toast.success(`Rute flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`);
+      } catch (err: any) {
+        toast.error(err.message || "Kunne ikke flytte rute");
+      }
+      return;
+    }
+
+    // Træk en opgave fra opgavepool → eksisterende rute (kalender-pille)
+    if (activeData?.type === "job" && overData?.type === "route") {
+      const job = activeData.job;
+      const targetRouteId: string = overData.routeId;
+      try {
+        const { data: existingStops } = await supabase
+          .from("route_stops").select("id").eq("route_id", targetRouteId);
+        await addStop.mutateAsync({
+          route_id: targetRouteId,
+          order_id: job.id,
+          sequence: (existingStops || []).length,
+          customer_name: job.customer_name,
+          customer_phone: job.customer_phone,
+          address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
+          latitude: job.latitude,
+          longitude: job.longitude,
+          service_summary: (job.order_items || [])
+            .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
+            .join(", ") || "Opgave",
+        });
+        toast.success("Opgave tilføjet til ruten");
+      } catch (err: any) {
+        toast.error(err.message || "Kunne ikke tilføje opgave");
+      }
+      return;
+    }
+
+    // Træk en opgave fra opgavepool → tom dag (opret ny rute + læg opgave på)
+    if (activeData?.type === "job" && overData?.type === "day") {
+      const job = activeData.job;
+      const newDate: string = overData.date;
+      try {
+        const created = await createRoute.mutateAsync({
+          business_id: businessId,
+          route_date: newDate,
+          name: `Rute ${format(parseISO(newDate), "d/M", { locale: da })}`,
+          color: ROUTE_COLOR_PALETTE[Math.floor(Math.random() * ROUTE_COLOR_PALETTE.length)],
+        });
+        await addStop.mutateAsync({
+          route_id: created.id,
+          order_id: job.id,
+          sequence: 0,
+          customer_name: job.customer_name,
+          customer_phone: job.customer_phone,
+          address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
+          latitude: job.latitude,
+          longitude: job.longitude,
+          service_summary: (job.order_items || [])
+            .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
+            .join(", ") || "Opgave",
+        });
+        toast.success(`Ny rute oprettet på ${format(parseISO(newDate), "d. MMM", { locale: da })}`);
+      } catch (err: any) {
+        toast.error(err.message || "Kunne ikke oprette rute");
+      }
+      return;
+    }
+
     if (overData?.type !== "slot") return;
 
     const targetRouteId: string = overData.routeId;
