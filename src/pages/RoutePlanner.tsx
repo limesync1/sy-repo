@@ -192,16 +192,24 @@ const Planner = () => {
       arr.push(s);
       stopsByRoute.set(s.route_id, arr);
     }
-    const empCountByRoute = new Map<string, number>();
+    const empByRoute = new Map<string, { id: string; name: string }[]>();
     for (const link of calendarRouteLinks) {
-      empCountByRoute.set(link.route_id, (empCountByRoute.get(link.route_id) || 0) + 1);
+      const emp = activeEmployees.find((e: any) => e.id === link.employee_id);
+      if (!emp) continue;
+      const arr = empByRoute.get(link.route_id) || [];
+      arr.push({ id: emp.id, name: emp.name });
+      empByRoute.set(link.route_id, arr);
     }
-    return calendarRoutesRaw.map((r) => ({
-      ...r,
-      stops: stopsByRoute.get(r.id) || [],
-      attachedEmployeeCount: empCountByRoute.get(r.id) || 0,
-    }));
-  }, [calendarRoutesRaw, calendarStops, calendarRouteLinks]);
+    return calendarRoutesRaw.map((r) => {
+      const emps = empByRoute.get(r.id) || [];
+      return {
+        ...r,
+        stops: stopsByRoute.get(r.id) || [],
+        attachedEmployees: emps,
+        attachedEmployeeCount: emps.length,
+      };
+    });
+  }, [calendarRoutesRaw, calendarStops, calendarRouteLinks, activeEmployees]);
 
   /* Map data — viser ruter for det aktuelle range (måned/uge) */
   const mapRoutes: MapRoute[] = useMemo(() => {
