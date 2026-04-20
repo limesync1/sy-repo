@@ -23,6 +23,7 @@ import type { Route, RouteStop } from "@/hooks/useRoutes";
 export type CalendarRoute = Route & {
   stops: RouteStop[];
   attachedEmployeeCount: number;
+  attachedEmployees: { id: string; name: string }[];
 };
 
 type Props = {
@@ -265,6 +266,9 @@ const RoutePill = ({ route, onSelect, onSelectStop, onOptimize, optimizing, comp
 
   const stopCount = route.stops.length;
   const completedCount = route.stops.filter((s) => s.status === "completed").length;
+  const initialsFor = (n: string) => n.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("");
+  const visibleEmployees = route.attachedEmployees.slice(0, 3);
+  const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
 
   return (
     <div
@@ -294,20 +298,41 @@ const RoutePill = ({ route, onSelect, onSelectStop, onOptimize, optimizing, comp
           <p className="text-[11px] font-semibold truncate text-foreground leading-tight">
             {route.name || `Rute ${format(parseISO(route.route_date), "d/M")}`}
           </p>
-          {!compact && (
+          {!compact ? (
             <div className="flex items-center gap-1 text-[10px] text-muted-foreground tabular-nums mt-0.5">
-              <Users className="h-2.5 w-2.5" />{route.attachedEmployeeCount}
-              <span className="mx-0.5">·</span>
               <MapPin className="h-2.5 w-2.5" />{stopCount}
               {completedCount > 0 && <span className="text-emerald-600">({completedCount}✓)</span>}
             </div>
-          )}
-          {compact && stopCount > 0 && (
-            <p className="text-[9px] text-muted-foreground tabular-nums">
-              {stopCount} stop{stopCount === 1 ? "" : ""}
-            </p>
+          ) : (
+            stopCount > 0 && (
+              <p className="text-[9px] text-muted-foreground tabular-nums">{stopCount} stop</p>
+            )
           )}
         </div>
+        {/* Medarbejder-avatarer */}
+        {visibleEmployees.length > 0 && (
+          <div className="flex -space-x-1 shrink-0" title={route.attachedEmployees.map((e) => e.name).join(", ")}>
+            {visibleEmployees.map((emp) => (
+              <span
+                key={emp.id}
+                className="inline-flex items-center justify-center h-4 w-4 rounded-full text-[8px] font-bold ring-1 ring-background bg-secondary text-foreground tabular-nums"
+                title={emp.name}
+              >
+                {initialsFor(emp.name)}
+              </span>
+            ))}
+            {extraEmployees > 0 && (
+              <span className="inline-flex items-center justify-center h-4 min-w-[1rem] px-0.5 rounded-full text-[8px] font-bold ring-1 ring-background bg-muted text-muted-foreground">
+                +{extraEmployees}
+              </span>
+            )}
+          </div>
+        )}
+        {visibleEmployees.length === 0 && route.attachedEmployeeCount === 0 && !compact && (
+          <span className="text-[9px] text-muted-foreground italic flex items-center gap-0.5 shrink-0">
+            <Users className="h-2.5 w-2.5" />0
+          </span>
+        )}
         {stopCount >= 2 && (
           <button
             type="button"

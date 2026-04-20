@@ -30,6 +30,9 @@ import {
 import {
   ResizablePanelGroup, ResizablePanel, ResizableHandle,
 } from "@/components/ui/resizable";
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
+} from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon, ArrowLeft,
@@ -48,6 +51,7 @@ import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
 import { RouteEditSheet, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
+import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
 import { supabase } from "@/integrations/supabase/client";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
@@ -191,16 +195,24 @@ const Planner = () => {
       arr.push(s);
       stopsByRoute.set(s.route_id, arr);
     }
-    const empCountByRoute = new Map<string, number>();
+    const empByRoute = new Map<string, { id: string; name: string }[]>();
     for (const link of calendarRouteLinks) {
-      empCountByRoute.set(link.route_id, (empCountByRoute.get(link.route_id) || 0) + 1);
+      const emp = activeEmployees.find((e: any) => e.id === link.employee_id);
+      if (!emp) continue;
+      const arr = empByRoute.get(link.route_id) || [];
+      arr.push({ id: emp.id, name: emp.name });
+      empByRoute.set(link.route_id, arr);
     }
-    return calendarRoutesRaw.map((r) => ({
-      ...r,
-      stops: stopsByRoute.get(r.id) || [],
-      attachedEmployeeCount: empCountByRoute.get(r.id) || 0,
-    }));
-  }, [calendarRoutesRaw, calendarStops, calendarRouteLinks]);
+    return calendarRoutesRaw.map((r) => {
+      const emps = empByRoute.get(r.id) || [];
+      return {
+        ...r,
+        stops: stopsByRoute.get(r.id) || [],
+        attachedEmployees: emps,
+        attachedEmployeeCount: emps.length,
+      };
+    });
+  }, [calendarRoutesRaw, calendarStops, calendarRouteLinks, activeEmployees]);
 
   /* Map data — viser ruter for det aktuelle range (måned/uge) */
   const mapRoutes: MapRoute[] = useMemo(() => {
@@ -323,12 +335,6 @@ const Planner = () => {
   const handleDragStart = (e: DragStartEvent) => {
     setActiveDragId(e.active.id as string);
     setActiveDragData(e.active.data.current);
-    // Hjælp brugeren: skift automatisk til ugevisning når man begynder at trække en opgave
-    // i månedsvisning (mere plads = lettere at slippe præcist).
-    const data: any = e.active.data.current;
-    if (data?.type === "job" && view === "month") {
-      setView("week");
-    }
   };
 
   const handleDragEnd = async (e: DragEndEvent) => {
@@ -687,7 +693,7 @@ const Planner = () => {
                       </p>
                     )}
                     {outsideWindowCount > 0 && (
-                      <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1 leading-snug">
+                      <p className="text-[10px] text-foreground bg-accent/5 border border-accent/20 rounded px-2 py-1 leading-snug">
                         +{outsideWindowCount} opgave{outsideWindowCount === 1 ? "" : "r"} senere på måneden — brug 'Auto-fordel' for at lægge dem på den ønskede dato.
                       </p>
                     )}
@@ -771,7 +777,7 @@ const Planner = () => {
               <ResizableHandle withHandle className="bg-transparent w-2 hover:bg-primary/20 transition-colors" />
 
               {/* Calendar */}
-              <ResizablePanel defaultSize={showMap ? 45 : 80} className="overflow-hidden">
+              <ResizablePanel defaultSize={80} className="overflow-hidden">
                 <MonthWeekCalendar
                   view={view}
                   anchorDate={date}
@@ -787,47 +793,30 @@ const Planner = () => {
                   draggingType={activeDragData?.type === "job" ? "job" : activeDragData?.type === "route" ? "route" : null}
                 />
               </ResizablePanel>
-
-              {/* Inline map panel — ikke en Sheet, så den ikke konflikter med stop-detail */}
-              {showMap && (
-                <>
-                  <ResizableHandle withHandle className="bg-transparent w-2 hover:bg-primary/20 transition-colors" />
-                  <ResizablePanel defaultSize={35} minSize={20} maxSize={60} className="overflow-hidden">
-                    <Card className="h-full flex flex-col overflow-hidden">
-                      <div className="px-3 py-2 border-b bg-secondary/30 flex items-center justify-between shrink-0">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <MapIcon className="h-4 w-4 text-primary shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold leading-tight">Kort</p>
-                            <p className="text-[10px] text-muted-foreground leading-tight">
-                              {mapRoutes.reduce((acc, r) => acc + r.stops.length, 0)} planlagte · {unassignedMapStops.length} ledige
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7"
-                          onClick={() => setShowMap(false)}
-                          aria-label="Skjul kort"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <div className="flex-1 min-h-0">
-                        <RouteMap
-                          routes={mapRoutes}
-                          unassigned={unassignedMapStops}
-                          selectedStopId={selectedStopId}
-                          onStopClick={setSelectedStopId}
-                        />
-                      </div>
-                    </Card>
-                  </ResizablePanel>
-                </>
-              )}
             </ResizablePanelGroup>
         </div>
+
+        {/* Kort — slide-in fra højre, samme stil som rute-redigering */}
+        <Sheet open={showMap} onOpenChange={setShowMap}>
+          <SheetContent side="right" className="w-full sm:max-w-2xl flex flex-col p-0">
+            <SheetHeader className="px-4 py-3 border-b shrink-0">
+              <SheetTitle className="flex items-center gap-2 text-base">
+                <MapIcon className="h-4 w-4 text-primary" />Kort
+              </SheetTitle>
+              <SheetDescription className="text-xs">
+                {mapRoutes.reduce((acc, r) => acc + r.stops.length, 0)} planlagte stops · {unassignedMapStops.length} ledige opgaver
+              </SheetDescription>
+            </SheetHeader>
+            <div className="flex-1 min-h-0">
+              <RouteMap
+                routes={mapRoutes}
+                unassigned={unassignedMapStops}
+                selectedStopId={selectedStopId}
+                onStopClick={setSelectedStopId}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
 
 
         {/* Slet rute bekræftelse */}
@@ -905,6 +894,15 @@ const Planner = () => {
           }
           availableEmployees={activeEmployees.map((e: any) => ({ id: e.id, name: e.name }))}
           stopCount={editingRoute ? (calendarStops.filter((s) => s.route_id === editingRoute.id).length) : 0}
+        />
+
+        {/* Slide-in: stops på den valgte rute (vises ved siden af rute-redigering) */}
+        <RouteStopsPanel
+          route={editingRoute}
+          open={!!editingRoute}
+          onOpenChange={(o) => !o && setEditingRoute(null)}
+          stops={editingRoute ? calendarStops.filter((s) => s.route_id === editingRoute.id) : []}
+          onSelectStop={(s) => setSelectedStopId(s.id)}
         />
       </div>
     </DndContext>
