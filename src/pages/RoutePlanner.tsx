@@ -4,12 +4,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
 import {
-  useRoutesForDate, useStopsForRoutes, useUnassignedJobs,
-  useAddStop, useUpdateStop,
+  useStopsForRoutes, useUnassignedJobs,
+  useAddStop,
   useOptimizeRoute, useGeocodeAddress, useRoutesForRange,
-  useCreateRoute, useDeleteRoute,
-  useRouteEmployees, useAddRouteEmployee, useRemoveRouteEmployee,
-  useAutoAssignStops,
+  useCreateRoute, useDeleteRoute, useUpdateRoute,
+  useRouteEmployees,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
@@ -48,7 +47,6 @@ import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard"
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
 import { RouteEditSheet, ROUTE_COLOR_PALETTE } from "@/components/route-planner/RouteEditSheet";
-import { useUpdateRoute } from "@/hooks/useRoutes";
 import { supabase } from "@/integrations/supabase/client";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
