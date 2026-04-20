@@ -152,21 +152,30 @@ export const RouteEditSheet = ({
             {/* Farve */}
             <div className="space-y-2">
               <Label>Farve</Label>
-              <div className="flex flex-wrap gap-2">
-                {ROUTE_COLOR_PALETTE.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => setColor(c)}
-                    className={cn(
-                      "h-8 w-8 rounded-full ring-offset-2 transition-all hover:scale-110",
-                      color === c && "ring-2 ring-foreground",
-                    )}
-                    style={{ background: c }}
-                    aria-label={`Vælg farve ${c}`}
-                  />
-                ))}
+              <div className="grid grid-cols-6 gap-2">
+                {ROUTE_COLORS.map((c) => {
+                  const selected = color === c.value;
+                  return (
+                    <button
+                      key={c.value}
+                      type="button"
+                      onClick={() => setColor(c.value)}
+                      title={c.name}
+                      className={cn(
+                        "relative aspect-square rounded-lg transition-all hover:scale-105 ring-offset-2 ring-offset-background flex items-center justify-center",
+                        selected ? "ring-2 ring-foreground shadow-md" : "hover:ring-1 hover:ring-foreground/30",
+                      )}
+                      style={{ background: c.value }}
+                      aria-label={`Vælg farve ${c.name}`}
+                    >
+                      {selected && <Check className="h-4 w-4 text-white drop-shadow" strokeWidth={3} />}
+                    </button>
+                  );
+                })}
               </div>
+              <p className="text-[11px] text-muted-foreground">
+                Valgt: <span className="font-medium text-foreground">{ROUTE_COLORS.find((c) => c.value === color)?.name || "Brugerdefineret"}</span>
+              </p>
             </div>
 
             {/* Dato */}
