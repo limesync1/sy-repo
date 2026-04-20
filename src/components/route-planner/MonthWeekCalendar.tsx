@@ -11,7 +11,7 @@ import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Plus, Users, MapPin } from "lucide-react";
+import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown } from "lucide-react";
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   addDays, eachDayOfInterval, getISOWeek, isSameMonth, isToday, isSameDay,
@@ -35,13 +35,15 @@ type Props = {
   onCreateRoute: (date: string) => void;
   onOptimizeRoute: (routeId: string) => void;
   optimizingRouteId?: string | null;
+  /** Sat til 'job' når brugeren trækker en opgave fra opgavepoolen — får drop-targets til at lyse op. */
+  draggingType?: "job" | "route" | null;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
-  onCreateRoute, onOptimizeRoute, optimizingRouteId,
+  onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType,
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
@@ -119,6 +121,7 @@ export const MonthWeekCalendar = ({
                     onOptimizeRoute={onOptimizeRoute}
                     optimizingRouteId={optimizingRouteId}
                     compact={view === "month"}
+                    draggingType={draggingType}
                   />
                 );
               })}
