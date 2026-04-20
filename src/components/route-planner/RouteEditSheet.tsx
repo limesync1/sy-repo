@@ -95,6 +95,7 @@ export const RouteEditSheet = ({
         route_date: date,
       });
       toast.success("Rute opdateret");
+      onOpenChange(false);
     } catch { /* hook viser toast */ }
   };
 

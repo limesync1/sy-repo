@@ -84,6 +84,7 @@ export const RouteStopsPanel = ({ route, stops, open, onOpenChange, onSelectStop
           side="right"
           className="w-full sm:max-w-sm flex flex-col p-0 sm:right-[28rem] shadow-xl"
           hideOverlay
+          hideCloseButton
           // Vis ved siden af RouteEditSheet (som er sm:max-w-md ≈ 28rem bred)
           onOpenAutoFocus={(e) => e.preventDefault()}
           onPointerDownOutside={(e) => e.preventDefault()}
