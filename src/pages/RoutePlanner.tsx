@@ -303,6 +303,25 @@ const Planner = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routes, stopsByRoute, employeesByRoute, employeeOptions, optimizingRouteId, autoAssigningRouteId]);
 
+  /* Build CalendarRoute[] for MonthWeekCalendar (range covers month/week view) */
+  const calendarRoutes: CalendarRoute[] = useMemo(() => {
+    const stopsByRoute = new Map<string, RouteStop[]>();
+    for (const s of calendarStops) {
+      const arr = stopsByRoute.get(s.route_id) || [];
+      arr.push(s);
+      stopsByRoute.set(s.route_id, arr);
+    }
+    const empCountByRoute = new Map<string, number>();
+    for (const link of calendarRouteLinks) {
+      empCountByRoute.set(link.route_id, (empCountByRoute.get(link.route_id) || 0) + 1);
+    }
+    return calendarRoutesRaw.map((r) => ({
+      ...r,
+      stops: stopsByRoute.get(r.id) || [],
+      attachedEmployeeCount: empCountByRoute.get(r.id) || 0,
+    }));
+  }, [calendarRoutesRaw, calendarStops, calendarRouteLinks]);
+
   /* Map data */
   const mapRoutes: MapRoute[] = useMemo(() => {
     const list: MapRoute[] = [];
