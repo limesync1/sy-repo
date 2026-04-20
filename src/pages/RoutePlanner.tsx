@@ -1102,60 +1102,24 @@ const Planner = () => {
           open={!!selectedStopId}
           onOpenChange={(o) => !o && setSelectedStopId(null)}
         />
+
+        <RouteEditSheet
+          route={editingRoute}
+          open={!!editingRoute}
+          onOpenChange={(o) => !o && setEditingRoute(null)}
+          attachedEmployees={
+            editingRoute
+              ? (calendarRouteLinks
+                  .filter((l) => l.route_id === editingRoute.id)
+                  .map((l) => activeEmployees.find((e: any) => e.id === l.employee_id))
+                  .filter(Boolean) as any).map((e: any) => ({ id: e.id, name: e.name }))
+              : []
+          }
+          availableEmployees={activeEmployees.map((e: any) => ({ id: e.id, name: e.name }))}
+          stopCount={editingRoute ? (calendarStops.filter((s) => s.route_id === editingRoute.id).length) : 0}
+        />
       </div>
     </DndContext>
-  );
-};
-
-const WeekView = ({
-  weekStart, weekRoutes, onPickDate,
-}: {
-  weekStart: string;
-  weekRoutes: Route[];
-  onPickDate: (d: string) => void;
-}) => {
-  const days = eachDayOfInterval({
-    start: parseISO(weekStart),
-    end: addDays(parseISO(weekStart), 6),
-  });
-  const routesPerDay = (dateStr: string) => weekRoutes.filter((r) => r.route_date === dateStr);
-
-  return (
-    <div className="container mx-auto px-4 py-4">
-      <Card className="p-4 overflow-x-auto">
-        <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(7, minmax(140px, 1fr))" }}>
-          {days.map((d) => {
-            const ds = format(d, "yyyy-MM-dd");
-            const ds_routes = routesPerDay(ds);
-            return (
-              <button
-                key={ds}
-                onClick={() => onPickDate(ds)}
-                className="text-left border rounded-md p-3 hover:bg-secondary/40 transition-colors"
-              >
-                <div className="text-xs uppercase text-muted-foreground">
-                  {format(d, "EEE", { locale: da })}
-                </div>
-                <div className="text-lg font-semibold">{format(d, "d/M")}</div>
-                <div className="mt-2 space-y-1">
-                  {ds_routes.length === 0 && (
-                    <p className="text-xs text-muted-foreground italic">Ingen ruter</p>
-                  )}
-                  {ds_routes.map((r) => (
-                    <div key={r.id} className="text-xs border-l-2 border-primary pl-2">
-                      <p className="font-medium truncate">{r.name || "Rute"}</p>
-                      {r.total_distance_km != null && r.total_distance_km > 0 && (
-                        <p className="text-muted-foreground">{r.total_distance_km.toFixed(1)} km</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </Card>
-    </div>
   );
 };
 
