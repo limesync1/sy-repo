@@ -760,7 +760,7 @@ const Planner = () => {
                   onSelectStop={(s) => setSelectedStopId(s.id)}
                   onCreateRoute={(d) => { setNewRouteDate(d); setCreateOpen(true); }}
                   onOptimizeRoute={(id) => {
-                    const r = routes.find((x) => x.id === id) ?? weekRoutes.find((x) => x.id === id);
+                    const r = calendarRoutesRaw.find((x) => x.id === id);
                     handleOptimize(id, r?.name ?? null);
                   }}
                   optimizingRouteId={optimizingRouteId}
@@ -856,7 +856,7 @@ const Planner = () => {
         </DragOverlay>
 
         <StopDetailSheet
-          stop={stops.find((s) => s.id === selectedStopId) || null}
+          stop={calendarStops.find((s) => s.id === selectedStopId) || null}
           open={!!selectedStopId}
           onOpenChange={(o) => !o && setSelectedStopId(null)}
         />
