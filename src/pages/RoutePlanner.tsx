@@ -939,14 +939,7 @@ const Planner = () => {
                 </>
               )}
             </ResizablePanelGroup>
-          </div>
-        ) : (
-          <WeekView
-            weekStart={weekStart}
-            weekRoutes={weekRoutes}
-            onPickDate={(d) => { setDate(d); setView("day"); }}
-          />
-        )}
+        </div>
 
 
         {/* Slet rute bekræftelse */}
