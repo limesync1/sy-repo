@@ -125,9 +125,9 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
             city,
             latitude: coords.lat,
             longitude: coords.lng,
-            preferred_date: scheduleMode === "schedule" ? (preferredDate || null) : null,
-            preferred_time_start: scheduleMode === "schedule" ? (preferredTimeStart || null) : null,
-            preferred_time_end: scheduleMode === "schedule" ? (preferredTimeEnd || null) : null,
+            preferred_date: null,
+            preferred_time_start: null,
+            preferred_time_end: null,
             total_amount: bizTotal,
             customer_id: user?.id || null,
           },
@@ -149,11 +149,8 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
         if (user && businessId !== "unknown") {
           for (const item of group.items) {
             if (item.interval && item.interval !== "engangskøb") {
-              // Anchor recurring schedule to chosen date if any, otherwise +7 days from today
-              const anchor = scheduleMode === "schedule" && preferredDate
-                ? preferredDate
-                : (() => { const d = new Date(); d.setDate(d.getDate() + 7); return d.toISOString().split("T")[0]; })();
-              const nextDate = calculateNextServiceDate(item.interval, anchor);
+              // Næste service-dato beregnes fra i dag — virksomhedsejer planlægger derefter i kalenderen.
+              const nextDate = calculateNextServiceDate(item.interval);
               await createSubscription.mutateAsync({
                 customer_id: user.id,
                 business_id: businessId,
@@ -169,7 +166,6 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                   description: item.details,
                   stepDetails: item.stepDetails,
                   pricingSnapshot: item.pricingSnapshot,
-                  startDate: anchor,
                 },
               });
             }
