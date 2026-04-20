@@ -83,15 +83,7 @@ const Planner = () => {
   const { data: employees = [] } = useEmployees(businessId);
   const activeEmployees = useMemo(() => employees.filter((e: any) => e.is_active), [employees]);
 
-  const { data: routes = [] } = useRoutesForDate(businessId, date);
-  const routeIds = useMemo(() => routes.map((r) => r.id), [routes]);
-  const { data: stops = [] } = useStopsForRoutes(routeIds);
-  const { data: routeLinks = [] } = useRouteEmployees(routeIds);
   const { data: unassigned = [] } = useUnassignedJobs(businessId);
-
-  const weekStart = useMemo(() => format(startOfWeek(parseISO(date), { weekStartsOn: 1 }), "yyyy-MM-dd"), [date]);
-  const weekEnd = useMemo(() => format(addDays(parseISO(weekStart), 6), "yyyy-MM-dd"), [weekStart]);
-  const { data: weekRoutes = [] } = useRoutesForRange(businessId, weekStart, weekEnd);
 
   // Range for kalender: hele måneden hvis month-view, ugen hvis week-view
   const calendarRange = useMemo(() => {
@@ -113,16 +105,11 @@ const Planner = () => {
   const deleteRoute = useDeleteRoute();
   const updateRoute = useUpdateRoute();
   const addStop = useAddStop();
-  const updateStop = useUpdateStop();
   const optimizeRoute = useOptimizeRoute();
-  const autoAssign = useAutoAssignStops();
   const geocode = useGeocodeAddress();
-  const attachEmp = useAddRouteEmployee();
-  const detachEmp = useRemoveRouteEmployee();
 
   // Pr-rute "pending" state — kun den rute der faktisk optimeres viser spinner
   const [optimizingRouteId, setOptimizingRouteId] = useState<string | null>(null);
-  const [autoAssigningRouteId, setAutoAssigningRouteId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
