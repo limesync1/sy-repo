@@ -24,9 +24,6 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
-} from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -36,7 +33,7 @@ import {
 } from "@/components/ui/resizable";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-  ChevronLeft, ChevronRight, Calendar as CalendarIcon, ArrowLeft,
+  Calendar as CalendarIcon, ArrowLeft,
   Loader2, MapIcon, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
 } from "lucide-react";
 import { format, addDays, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
@@ -49,31 +46,12 @@ import {
 import RouteMap, { type MapRoute, type MapStop } from "@/components/route-planner/RouteMap";
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
-import { type CalendarColumn, type EmployeeOption } from "@/components/route-planner/CalendarPlanner";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
 import { RouteEditSheet, ROUTE_COLOR_PALETTE } from "@/components/route-planner/RouteEditSheet";
 import { useUpdateRoute } from "@/hooks/useRoutes";
-import { busyIntervalsForEmployee, findFirstFreeSlot, hhmmToMin, minToIso, minToHHmm } from "@/components/route-planner/lib/scheduling";
 import { supabase } from "@/integrations/supabase/client";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
-
-const ROUTE_COLORS = [
-  "hsl(184 90% 35%)",
-  "hsl(24 90% 50%)",
-  "hsl(260 70% 55%)",
-  "hsl(140 60% 40%)",
-  "hsl(340 75% 50%)",
-  "hsl(50 90% 45%)",
-  "hsl(210 80% 50%)",
-];
-
-const slotToIso = (date: string, hhmm: string): string => {
-  const [h, m] = hhmm.split(":").map(Number);
-  const d = new Date(date + "T00:00:00");
-  d.setHours(h, m, 0, 0);
-  return d.toISOString();
-};
 
 const RoutePlanner = () => {
   const { user, loading } = useAuth();
