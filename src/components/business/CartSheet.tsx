@@ -6,23 +6,21 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2, Zap, CalendarDays, Loader2, AlertCircle, User, MapPin, Clock, Sparkles, ShoppingBag } from "lucide-react";
+import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2, Loader2, AlertCircle, User, MapPin, ShoppingBag, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
-import { format } from "date-fns";
-import { da } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
-/** Calculate next service date based on interval, anchored to a specific start date */
-const calculateNextServiceDate = (interval: string, startDate?: string): string => {
-  const base = startDate ? new Date(startDate) : new Date();
+/** Calculate next service date based on interval, anchored to today. */
+const calculateNextServiceDate = (interval: string): string => {
+  const base = new Date();
   switch (interval) {
     case "ugentlig": base.setDate(base.getDate() + 7); break;
     case "hver_14_dag": base.setDate(base.getDate() + 14); break;
+    case "hver_4_uge": base.setDate(base.getDate() + 28); break;
+    case "hver_8_uge": base.setDate(base.getDate() + 56); break;
     case "månedlig": base.setMonth(base.getMonth() + 1); break;
     case "kvartalsvis": base.setMonth(base.getMonth() + 3); break;
     case "halvårlig": base.setMonth(base.getMonth() + 6); break;
@@ -30,13 +28,6 @@ const calculateNextServiceDate = (interval: string, startDate?: string): string 
     default: base.setMonth(base.getMonth() + 1); break;
   }
   return base.toISOString();
-};
-
-/** Suggest tomorrow as a sensible default if user picks "select date" */
-const tomorrowISO = () => {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
-  return d.toISOString().split("T")[0];
 };
 
 interface CartSheetProps {
@@ -57,11 +48,6 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
   const [address, setAddress] = useState("");
   const [zipCode, setZipCode] = useState("");
   const [city, setCity] = useState("");
-  const [preferredDate, setPreferredDate] = useState("");
-  const [preferredTimeStart, setPreferredTimeStart] = useState("");
-  const [preferredTimeEnd, setPreferredTimeEnd] = useState("");
-  /** "asap" = hurtigst muligt (virksomhed kontakter); "schedule" = kunden vælger dato */
-  const [scheduleMode, setScheduleMode] = useState<"asap" | "schedule">("asap");
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [geo, setGeo] = useState<{ ok: boolean; display?: string; lat?: number; lng?: number } | null>(null);
@@ -139,9 +125,9 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
             city,
             latitude: coords.lat,
             longitude: coords.lng,
-            preferred_date: scheduleMode === "schedule" ? (preferredDate || null) : null,
-            preferred_time_start: scheduleMode === "schedule" ? (preferredTimeStart || null) : null,
-            preferred_time_end: scheduleMode === "schedule" ? (preferredTimeEnd || null) : null,
+            preferred_date: null,
+            preferred_time_start: null,
+            preferred_time_end: null,
             total_amount: bizTotal,
             customer_id: user?.id || null,
           },
@@ -163,11 +149,8 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
         if (user && businessId !== "unknown") {
           for (const item of group.items) {
             if (item.interval && item.interval !== "engangskøb") {
-              // Anchor recurring schedule to chosen date if any, otherwise +7 days from today
-              const anchor = scheduleMode === "schedule" && preferredDate
-                ? preferredDate
-                : (() => { const d = new Date(); d.setDate(d.getDate() + 7); return d.toISOString().split("T")[0]; })();
-              const nextDate = calculateNextServiceDate(item.interval, anchor);
+              // Næste service-dato beregnes fra i dag — virksomhedsejer planlægger derefter i kalenderen.
+              const nextDate = calculateNextServiceDate(item.interval);
               await createSubscription.mutateAsync({
                 customer_id: user.id,
                 business_id: businessId,
@@ -183,7 +166,6 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                   description: item.details,
                   stepDetails: item.stepDetails,
                   pricingSnapshot: item.pricingSnapshot,
-                  startDate: anchor,
                 },
               });
             }
@@ -263,8 +245,6 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
       setOrderSuccess(false);
       setName(""); setEmail(""); setPhone("");
       setAddress(""); setZipCode(""); setCity("");
-      setPreferredDate(""); setPreferredTimeStart(""); setPreferredTimeEnd("");
-      setScheduleMode("asap");
       if (user) {
         navigate("/min-konto");
       } else {
@@ -511,153 +491,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 </div>
               </section>
 
-
-              {/* Schedule mode toggle: ASAP vs choose date */}
-              {(() => {
-                const hasRecurring = items.some(i => i.interval && i.interval !== "engangskøb");
-                const selectedDate = preferredDate ? new Date(preferredDate + "T00:00:00") : undefined;
-                const today = new Date(); today.setHours(0, 0, 0, 0);
-                 const TIME_PRESETS = [
-                   { label: "Tidlig morgen", start: "05:00", end: "08:00" },
-                   { label: "Morgen", start: "08:00", end: "12:00" },
-                   { label: "Eftermiddag", start: "12:00", end: "16:00" },
-                   { label: "Aften", start: "16:00", end: "20:00" },
-                 ];
-                const activePreset = TIME_PRESETS.find(p => p.start === preferredTimeStart && p.end === preferredTimeEnd);
-
-                return (
-                  <section className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
-                        <Clock className="h-3.5 w-3.5 text-accent" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-semibold text-foreground">
-                          {hasRecurring ? "Hvornår skal første besøg være?" : "Hvornår vil du have det udført?"}
-                        </h4>
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground pl-9 -mt-1">
-                      {hasRecurring
-                        ? "Næste besøg planlægges automatisk efter dit valgte interval."
-                        : "Vælg en dato eller lad virksomheden kontakte dig hurtigst muligt."}
-                    </p>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => { setScheduleMode("asap"); setPreferredDate(""); setPreferredTimeStart(""); setPreferredTimeEnd(""); }}
-                        className={cn(
-                          "flex flex-col items-start gap-1 rounded-xl border-2 p-3 text-left transition-all",
-                          scheduleMode === "asap"
-                            ? "border-accent bg-accent/5"
-                            : "border-border bg-card hover:border-accent/40"
-                        )}
-                      >
-                        <Zap className={cn("h-4 w-4", scheduleMode === "asap" ? "text-accent" : "text-muted-foreground")} />
-                        <span className="text-sm font-semibold text-foreground">Hurtigst muligt</span>
-                        <span className="text-[11px] text-muted-foreground leading-tight">Virksomheden kontakter dig for aftale</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { setScheduleMode("schedule"); if (!preferredDate) setPreferredDate(tomorrowISO()); }}
-                        className={cn(
-                          "flex flex-col items-start gap-1 rounded-xl border-2 p-3 text-left transition-all",
-                          scheduleMode === "schedule"
-                            ? "border-accent bg-accent/5"
-                            : "border-border bg-card hover:border-accent/40"
-                        )}
-                      >
-                        <CalendarDays className={cn("h-4 w-4", scheduleMode === "schedule" ? "text-accent" : "text-muted-foreground")} />
-                        <span className="text-sm font-semibold text-foreground">Vælg dato</span>
-                        <span className="text-[11px] text-muted-foreground leading-tight">Vælg dato og evt. tidspunkt</span>
-                      </button>
-                    </div>
-
-                    {scheduleMode === "schedule" && (
-                      <div className="space-y-3 rounded-xl border border-border bg-secondary/30 p-3">
-                        {/* Pretty popover date picker */}
-                        <div>
-                          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                            {hasRecurring ? "Dato for første besøg" : "Vælg dato"}
-                          </label>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "w-full justify-start gap-2 rounded-lg bg-background font-normal h-10 border-border",
-                                  "hover:bg-accent/5 hover:text-foreground hover:border-accent/40",
-                                  !selectedDate && "text-muted-foreground"
-                                )}
-                              >
-                                <CalendarDays className="h-4 w-4 text-accent" />
-                                {selectedDate
-                                  ? format(selectedDate, "EEEE d. MMMM yyyy", { locale: da })
-                                  : "Klik for at vælge dato"}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={selectedDate}
-                                onSelect={(d) => {
-                                   if (d) {
-                                     const y = d.getFullYear();
-                                     const m = String(d.getMonth() + 1).padStart(2, "0");
-                                     const day = String(d.getDate()).padStart(2, "0");
-                                     setPreferredDate(`${y}-${m}-${day}`);
-                                   }
-                                 }}
-                                disabled={(date) => date < today}
-                                locale={da}
-                                weekStartsOn={1}
-                                initialFocus
-                                className={cn("p-3 pointer-events-auto")}
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-
-                        {/* Time-window quick chips */}
-                        <div>
-                          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Foretrukket tidsrum (valgfrit)</label>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            {TIME_PRESETS.map((p) => {
-                              const active = activePreset?.label === p.label;
-                              return (
-                                <button
-                                  key={p.label}
-                                  type="button"
-                                  onClick={() => {
-                                    if (active) {
-                                      setPreferredTimeStart(""); setPreferredTimeEnd("");
-                                    } else {
-                                      setPreferredTimeStart(p.start); setPreferredTimeEnd(p.end);
-                                    }
-                                  }}
-                                  className={cn(
-                                    "rounded-lg border-2 px-2 py-2 text-xs font-medium transition-all",
-                                    active
-                                      ? "border-accent bg-accent/10 text-foreground"
-                                      : "border-border bg-background text-muted-foreground hover:border-accent/40"
-                                  )}
-                                >
-                                  <div className="font-semibold">{p.label}</div>
-                                  <div className="text-[10px] opacity-70">{p.start}–{p.end}</div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                          {(preferredTimeStart || preferredTimeEnd) && !activePreset && (
-                            <p className="mt-1.5 text-[11px] text-muted-foreground">Valgt: {preferredTimeStart}–{preferredTimeEnd}</p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </section>
-                );
-              })()}
+              {/* Service-intervaller vises i kurv-listen ovenfor — virksomheden planlægger besøgsdatoer i deres kalender. */}
 
               {/* Order summary */}
               <div className="rounded-xl border border-border overflow-hidden">

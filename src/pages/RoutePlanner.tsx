@@ -50,6 +50,9 @@ import RouteMap, { type MapRoute, type MapStop } from "@/components/route-planne
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { CalendarPlanner, type CalendarColumn, type EmployeeOption } from "@/components/route-planner/CalendarPlanner";
+import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
+import { RouteEditSheet, ROUTE_COLOR_PALETTE } from "@/components/route-planner/RouteEditSheet";
+import { useUpdateRoute } from "@/hooks/useRoutes";
 import { busyIntervalsForEmployee, findFirstFreeSlot, hhmmToMin, minToIso, minToHHmm } from "@/components/route-planner/lib/scheduling";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -82,7 +85,7 @@ const RoutePlanner = () => {
 const Planner = () => {
   const { data: business } = useMyBusiness();
   const [date, setDate] = useState<string>(todayStr());
-  const [view, setView] = useState<"day" | "week">("day");
+  const [view, setView] = useState<"month" | "week">("month");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "price" | "name">("date");
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
@@ -92,6 +95,9 @@ const Planner = () => {
   const [showMap, setShowMap] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
+  const [newRouteColor, setNewRouteColor] = useState(ROUTE_COLOR_PALETTE[0]);
+  const [newRouteDate, setNewRouteDate] = useState(todayStr());
+  const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
   const [distributing, setDistributing] = useState(false);
 
@@ -547,8 +553,9 @@ const Planner = () => {
     try {
       await createRoute.mutateAsync({
         business_id: businessId,
-        route_date: date,
+        route_date: newRouteDate,
         name: newRouteName.trim() || null,
+        color: newRouteColor,
       });
       toast.success("Rute oprettet");
       setNewRouteName("");
@@ -658,7 +665,7 @@ const Planner = () => {
 
             <Tabs value={view} onValueChange={(v) => setView(v as any)}>
               <TabsList className="h-7">
-                <TabsTrigger value="day" className="text-xs h-5 px-2">Dag</TabsTrigger>
+                <TabsTrigger value="month" className="text-xs h-5 px-2">Måned</TabsTrigger>
                 <TabsTrigger value="week" className="text-xs h-5 px-2">Uge</TabsTrigger>
               </TabsList>
             </Tabs>
@@ -690,21 +697,47 @@ const Planner = () => {
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Opret ny rute for {format(parseISO(date), "EEEE d. MMMM", { locale: da })}</DialogTitle>
+                    <DialogTitle>Opret ny rute</DialogTitle>
                     <DialogDescription>
                       Ruten starter fra virksomhedens adresse. Du kan tilkoble medarbejdere og opgaver bagefter.
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="space-y-2">
-                    <Label htmlFor="route-name">Navn på ruten (valgfrit)</Label>
-                    <Input
-                      id="route-name"
-                      placeholder="fx Nord, Aarhus C, Mandag-team..."
-                      value={newRouteName}
-                      onChange={(e) => setNewRouteName(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") handleCreateRoute(); }}
-                      autoFocus
-                    />
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="route-name">Navn (valgfrit)</Label>
+                      <Input
+                        id="route-name"
+                        placeholder="fx Nord, Aarhus C, Mandag-team..."
+                        value={newRouteName}
+                        onChange={(e) => setNewRouteName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") handleCreateRoute(); }}
+                        autoFocus
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="route-date">Dato</Label>
+                      <Input
+                        id="route-date"
+                        type="date"
+                        value={newRouteDate}
+                        onChange={(e) => setNewRouteDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Farve</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {ROUTE_COLOR_PALETTE.map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => setNewRouteColor(c)}
+                            className={`h-8 w-8 rounded-full transition-all hover:scale-110 ${newRouteColor === c ? "ring-2 ring-foreground ring-offset-2" : ""}`}
+                            style={{ background: c }}
+                            aria-label={`Vælg farve ${c}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setCreateOpen(false)}>Annullér</Button>

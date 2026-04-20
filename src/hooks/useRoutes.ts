@@ -352,8 +352,8 @@ export const useCreateRoute = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({
-      business_id, route_date, name,
-    }: { business_id: string; route_date: string; name?: string | null }) => {
+      business_id, route_date, name, color,
+    }: { business_id: string; route_date: string; name?: string | null; color?: string | null }) => {
       const { data: biz } = await supabase
         .from("businesses")
         .select("address, zip_code, city")
@@ -379,6 +379,7 @@ export const useCreateRoute = () => {
           business_id,
           route_date,
           name: name || null,
+          color: color || "#14b8a6",
           start_address: startAddr,
           start_latitude: startLat,
           start_longitude: startLng,
@@ -390,6 +391,7 @@ export const useCreateRoute = () => {
     },
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["routes", vars.business_id, vars.route_date] });
+      qc.invalidateQueries({ queryKey: ["routes-range"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke oprette rute"),
   });
