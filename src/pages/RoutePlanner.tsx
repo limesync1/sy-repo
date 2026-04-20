@@ -286,6 +286,16 @@ const Planner = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [selectedStopId]);
 
+  /* Når create-dialog åbnes, foreslå en ledig farve for den valgte dato */
+  useEffect(() => {
+    if (!createOpen) return;
+    const usedColorsThisDay = calendarRoutes
+      .filter((r) => r.route_date === newRouteDate)
+      .map((r) => r.color);
+    setNewRouteColor(pickAvailableColor(usedColorsThisDay));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [createOpen, newRouteDate]);
+
   if (!business) {
     return (
       <div className="flex min-h-screen items-center justify-center">
