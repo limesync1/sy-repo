@@ -197,46 +197,6 @@ const Planner = () => {
   );
 
   /* Stop assignment handler */
-  const handleAssignStop = async (stopId: string, employeeId: string | null) => {
-    try {
-      await updateStop.mutateAsync({ id: stopId, assigned_employee_id: employeeId });
-      toast.success(employeeId ? "Tildelt medarbejder" : "Tildeling fjernet");
-    } catch (e: any) {
-      toast.error(e.message || "Kunne ikke opdatere tildeling");
-    }
-  };
-
-  /* Build calendar columns — one per route */
-  const calendarColumns: CalendarColumn[] = useMemo(() => {
-    return routes.map((r) => {
-      const attached = employeesByRoute.get(r.id) || [];
-      return {
-        routeId: r.id,
-        label: r.name || `Rute ${format(parseISO(r.route_date), "d/M")}`,
-        subtitle: r.start_address || undefined,
-        color: colorForRoute(r.id),
-        stops: stopsByRoute.get(r.id) || [],
-        attachedEmployees: attached,
-        availableEmployees: employeeOptions,
-        totalKm: r.total_distance_km,
-        totalMin: r.total_duration_minutes,
-        routeStatus: r.status,
-        optimizedAt: r.optimized_at,
-        onOptimize: () => handleOptimize(r.id, r.name),
-        onAutoAssign: () => handleAutoAssign(r.id, attached.map((e) => e.id), r.name),
-        onAttachEmployee: (eid) => attachEmp.mutate({ route_id: r.id, employee_id: eid }),
-        onDetachEmployee: (eid) => detachEmp.mutate({ route_id: r.id, employee_id: eid }),
-        onDeleteRoute: () => {
-          setRouteToDelete({ id: r.id, name: r.name || `Rute ${format(parseISO(r.route_date), "d/M")}` });
-        },
-        onAssignStop: handleAssignStop,
-        optimizing: optimizingRouteId === r.id,
-        autoAssigning: autoAssigningRouteId === r.id,
-      } satisfies CalendarColumn;
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [routes, stopsByRoute, employeesByRoute, employeeOptions, optimizingRouteId, autoAssigningRouteId]);
-
   /* Build CalendarRoute[] for MonthWeekCalendar (range covers month/week view) */
   const calendarRoutes: CalendarRoute[] = useMemo(() => {
     const stopsByRoute = new Map<string, RouteStop[]>();
@@ -256,11 +216,11 @@ const Planner = () => {
     }));
   }, [calendarRoutesRaw, calendarStops, calendarRouteLinks]);
 
-  /* Map data */
+  /* Map data — viser ruter for det aktuelle range (måned/uge) */
   const mapRoutes: MapRoute[] = useMemo(() => {
     const list: MapRoute[] = [];
-    for (const col of calendarColumns) {
-      const colStops = col.stops
+    for (const r of calendarRoutes) {
+      const colStops = r.stops
         .filter((s) => s.latitude != null && s.longitude != null)
         .sort((a, b) => a.sequence - b.sequence)
         .map((s, i) => ({
@@ -271,10 +231,10 @@ const Planner = () => {
           sublabel: s.address || undefined,
           index: i + 1,
         }));
-      if (colStops.length) list.push({ color: col.color, stops: colStops });
+      if (colStops.length) list.push({ color: r.color, stops: colStops });
     }
     return list;
-  }, [calendarColumns]);
+  }, [calendarRoutes]);
 
   const unassignedMapStops: MapStop[] = useMemo(() =>
     filteredUnassigned
