@@ -777,7 +777,7 @@ const Planner = () => {
               <ResizableHandle withHandle className="bg-transparent w-2 hover:bg-primary/20 transition-colors" />
 
               {/* Calendar */}
-              <ResizablePanel defaultSize={showMap ? 45 : 80} className="overflow-hidden">
+              <ResizablePanel defaultSize={80} className="overflow-hidden">
                 <MonthWeekCalendar
                   view={view}
                   anchorDate={date}
@@ -793,47 +793,30 @@ const Planner = () => {
                   draggingType={activeDragData?.type === "job" ? "job" : activeDragData?.type === "route" ? "route" : null}
                 />
               </ResizablePanel>
-
-              {/* Inline map panel — ikke en Sheet, så den ikke konflikter med stop-detail */}
-              {showMap && (
-                <>
-                  <ResizableHandle withHandle className="bg-transparent w-2 hover:bg-primary/20 transition-colors" />
-                  <ResizablePanel defaultSize={35} minSize={20} maxSize={60} className="overflow-hidden">
-                    <Card className="h-full flex flex-col overflow-hidden">
-                      <div className="px-3 py-2 border-b bg-secondary/30 flex items-center justify-between shrink-0">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <MapIcon className="h-4 w-4 text-primary shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold leading-tight">Kort</p>
-                            <p className="text-[10px] text-muted-foreground leading-tight">
-                              {mapRoutes.reduce((acc, r) => acc + r.stops.length, 0)} planlagte · {unassignedMapStops.length} ledige
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7"
-                          onClick={() => setShowMap(false)}
-                          aria-label="Skjul kort"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <div className="flex-1 min-h-0">
-                        <RouteMap
-                          routes={mapRoutes}
-                          unassigned={unassignedMapStops}
-                          selectedStopId={selectedStopId}
-                          onStopClick={setSelectedStopId}
-                        />
-                      </div>
-                    </Card>
-                  </ResizablePanel>
-                </>
-              )}
             </ResizablePanelGroup>
         </div>
+
+        {/* Kort — slide-in fra højre, samme stil som rute-redigering */}
+        <Sheet open={showMap} onOpenChange={setShowMap}>
+          <SheetContent side="right" className="w-full sm:max-w-2xl flex flex-col p-0">
+            <SheetHeader className="px-4 py-3 border-b shrink-0">
+              <SheetTitle className="flex items-center gap-2 text-base">
+                <MapIcon className="h-4 w-4 text-primary" />Kort
+              </SheetTitle>
+              <SheetDescription className="text-xs">
+                {mapRoutes.reduce((acc, r) => acc + r.stops.length, 0)} planlagte stops · {unassignedMapStops.length} ledige opgaver
+              </SheetDescription>
+            </SheetHeader>
+            <div className="flex-1 min-h-0">
+              <RouteMap
+                routes={mapRoutes}
+                unassigned={unassignedMapStops}
+                selectedStopId={selectedStopId}
+                onStopClick={setSelectedStopId}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
 
 
         {/* Slet rute bekræftelse */}
