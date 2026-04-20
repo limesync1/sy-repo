@@ -23,6 +23,7 @@ import type { Route, RouteStop } from "@/hooks/useRoutes";
 export type CalendarRoute = Route & {
   stops: RouteStop[];
   attachedEmployeeCount: number;
+  attachedEmployees: { id: string; name: string }[];
 };
 
 type Props = {
