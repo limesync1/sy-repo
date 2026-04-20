@@ -50,6 +50,9 @@ import RouteMap, { type MapRoute, type MapStop } from "@/components/route-planne
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { CalendarPlanner, type CalendarColumn, type EmployeeOption } from "@/components/route-planner/CalendarPlanner";
+import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
+import { RouteEditSheet, ROUTE_COLOR_PALETTE } from "@/components/route-planner/RouteEditSheet";
+import { useUpdateRoute } from "@/hooks/useRoutes";
 import { busyIntervalsForEmployee, findFirstFreeSlot, hhmmToMin, minToIso, minToHHmm } from "@/components/route-planner/lib/scheduling";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -82,7 +85,7 @@ const RoutePlanner = () => {
 const Planner = () => {
   const { data: business } = useMyBusiness();
   const [date, setDate] = useState<string>(todayStr());
-  const [view, setView] = useState<"day" | "week">("day");
+  const [view, setView] = useState<"month" | "week">("month");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "price" | "name">("date");
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
@@ -92,6 +95,9 @@ const Planner = () => {
   const [showMap, setShowMap] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
+  const [newRouteColor, setNewRouteColor] = useState(ROUTE_COLOR_PALETTE[0]);
+  const [newRouteDate, setNewRouteDate] = useState(todayStr());
+  const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
   const [distributing, setDistributing] = useState(false);
 
