@@ -323,6 +323,12 @@ const Planner = () => {
   const handleDragStart = (e: DragStartEvent) => {
     setActiveDragId(e.active.id as string);
     setActiveDragData(e.active.data.current);
+    // Hjælp brugeren: skift automatisk til ugevisning når man begynder at trække en opgave
+    // i månedsvisning (mere plads = lettere at slippe præcist).
+    const data: any = e.active.data.current;
+    if (data?.type === "job" && view === "month") {
+      setView("week");
+    }
   };
 
   const handleDragEnd = async (e: DragEndEvent) => {
