@@ -7,6 +7,7 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DndContext, PointerSensor, useSensor, useSensors,
   closestCenter, type DragEndEvent,
