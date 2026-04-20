@@ -784,6 +784,7 @@ const Planner = () => {
                     handleOptimize(id, r?.name ?? null);
                   }}
                   optimizingRouteId={optimizingRouteId}
+                  draggingType={activeDragData?.type === "job" ? "job" : activeDragData?.type === "route" ? "route" : null}
                 />
               </ResizablePanel>
 
