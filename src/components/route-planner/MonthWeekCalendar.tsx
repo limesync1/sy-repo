@@ -241,9 +241,10 @@ type RoutePillProps = {
   onOptimize: () => void;
   optimizing: boolean;
   compact: boolean;
+  jobDragActive?: boolean;
 };
 
-const RoutePill = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact }: RoutePillProps) => {
+const RoutePill = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive }: RoutePillProps) => {
   // Drag-handle: hele pillen kan trækkes til ny dato
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
     id: `route:${route.id}`,
@@ -273,9 +274,16 @@ const RoutePill = ({ route, onSelect, onSelectStop, onOptimize, optimizing, comp
         "relative rounded-md border-l-4 cursor-pointer transition-all overflow-hidden bg-card hover:shadow-sm",
         "border border-border/60",
         isDragging && "opacity-40",
-        isOver && "ring-2 ring-accent",
+        // Når en opgave er ved at blive sluppet på pillen — markér tydeligt
+        jobDragActive && !isOver && "ring-1 shadow-sm",
+        isOver && "ring-2 ring-accent shadow-md scale-[1.02]",
       )}
-      style={{ borderLeftColor: route.color }}
+      style={{
+        borderLeftColor: route.color,
+        ...(jobDragActive && !isOver
+          ? { boxShadow: `0 0 0 1px ${route.color}40, 0 1px 3px ${route.color}20` }
+          : {}),
+      }}
     >
       <div
         {...listeners}
