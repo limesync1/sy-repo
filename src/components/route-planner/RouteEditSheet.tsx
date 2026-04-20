@@ -115,7 +115,7 @@ export const RouteEditSheet = ({
               Rediger rute
             </SheetTitle>
             <SheetDescription>
-              {format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da })}
+              {date ? format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da }) : ""}
               {stopCount > 0 && <> · {stopCount} stop</>}
             </SheetDescription>
           </SheetHeader>
