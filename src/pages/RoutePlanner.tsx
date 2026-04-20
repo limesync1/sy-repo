@@ -135,6 +135,7 @@ const Planner = () => {
 
   const createRoute = useCreateRoute();
   const deleteRoute = useDeleteRoute();
+  const updateRoute = useUpdateRoute();
   const addStop = useAddStop();
   const updateStop = useUpdateStop();
   const optimizeRoute = useOptimizeRoute();
