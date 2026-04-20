@@ -4,12 +4,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
 import {
-  useRoutesForDate, useStopsForRoutes, useUnassignedJobs,
-  useAddStop, useUpdateStop,
+  useStopsForRoutes, useUnassignedJobs,
+  useAddStop,
   useOptimizeRoute, useGeocodeAddress, useRoutesForRange,
-  useCreateRoute, useDeleteRoute,
-  useRouteEmployees, useAddRouteEmployee, useRemoveRouteEmployee,
-  useAutoAssignStops,
+  useCreateRoute, useDeleteRoute, useUpdateRoute,
+  useRouteEmployees,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
@@ -24,9 +23,6 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
-} from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -49,31 +45,11 @@ import {
 import RouteMap, { type MapRoute, type MapStop } from "@/components/route-planner/RouteMap";
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
-import { type CalendarColumn, type EmployeeOption } from "@/components/route-planner/CalendarPlanner";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
 import { RouteEditSheet, ROUTE_COLOR_PALETTE } from "@/components/route-planner/RouteEditSheet";
-import { useUpdateRoute } from "@/hooks/useRoutes";
-import { busyIntervalsForEmployee, findFirstFreeSlot, hhmmToMin, minToIso, minToHHmm } from "@/components/route-planner/lib/scheduling";
 import { supabase } from "@/integrations/supabase/client";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
-
-const ROUTE_COLORS = [
-  "hsl(184 90% 35%)",
-  "hsl(24 90% 50%)",
-  "hsl(260 70% 55%)",
-  "hsl(140 60% 40%)",
-  "hsl(340 75% 50%)",
-  "hsl(50 90% 45%)",
-  "hsl(210 80% 50%)",
-];
-
-const slotToIso = (date: string, hhmm: string): string => {
-  const [h, m] = hhmm.split(":").map(Number);
-  const d = new Date(date + "T00:00:00");
-  d.setHours(h, m, 0, 0);
-  return d.toISOString();
-};
 
 const RoutePlanner = () => {
   const { user, loading } = useAuth();
@@ -107,15 +83,7 @@ const Planner = () => {
   const { data: employees = [] } = useEmployees(businessId);
   const activeEmployees = useMemo(() => employees.filter((e: any) => e.is_active), [employees]);
 
-  const { data: routes = [] } = useRoutesForDate(businessId, date);
-  const routeIds = useMemo(() => routes.map((r) => r.id), [routes]);
-  const { data: stops = [] } = useStopsForRoutes(routeIds);
-  const { data: routeLinks = [] } = useRouteEmployees(routeIds);
   const { data: unassigned = [] } = useUnassignedJobs(businessId);
-
-  const weekStart = useMemo(() => format(startOfWeek(parseISO(date), { weekStartsOn: 1 }), "yyyy-MM-dd"), [date]);
-  const weekEnd = useMemo(() => format(addDays(parseISO(weekStart), 6), "yyyy-MM-dd"), [weekStart]);
-  const { data: weekRoutes = [] } = useRoutesForRange(businessId, weekStart, weekEnd);
 
   // Range for kalender: hele måneden hvis month-view, ugen hvis week-view
   const calendarRange = useMemo(() => {
@@ -137,63 +105,13 @@ const Planner = () => {
   const deleteRoute = useDeleteRoute();
   const updateRoute = useUpdateRoute();
   const addStop = useAddStop();
-  const updateStop = useUpdateStop();
   const optimizeRoute = useOptimizeRoute();
-  const autoAssign = useAutoAssignStops();
   const geocode = useGeocodeAddress();
-  const attachEmp = useAddRouteEmployee();
-  const detachEmp = useRemoveRouteEmployee();
 
   // Pr-rute "pending" state — kun den rute der faktisk optimeres viser spinner
   const [optimizingRouteId, setOptimizingRouteId] = useState<string | null>(null);
-  const [autoAssigningRouteId, setAutoAssigningRouteId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
-
-  /* Build per-employee color map (stable per business) */
-  const employeeColors = useMemo(() => {
-    const map = new Map<string, string>();
-    activeEmployees.forEach((e: any, i: number) => {
-      map.set(e.id, ROUTE_COLORS[i % ROUTE_COLORS.length]);
-    });
-    return map;
-  }, [activeEmployees]);
-
-  const employeeOptions: EmployeeOption[] = useMemo(() =>
-    activeEmployees.map((e: any) => ({
-      id: e.id,
-      name: e.name,
-      color: employeeColors.get(e.id) || ROUTE_COLORS[0],
-    })),
-  [activeEmployees, employeeColors]);
-
-  const stopsByRoute = useMemo(() => {
-    const map = new Map<string, RouteStop[]>();
-    for (const s of stops) {
-      const arr = map.get(s.route_id) || [];
-      arr.push(s);
-      map.set(s.route_id, arr);
-    }
-    return map;
-  }, [stops]);
-
-  const employeesByRoute = useMemo(() => {
-    const map = new Map<string, EmployeeOption[]>();
-    for (const link of routeLinks) {
-      const opt = employeeOptions.find((e) => e.id === link.employee_id);
-      if (!opt) continue;
-      const arr = map.get(link.route_id) || [];
-      arr.push(opt);
-      map.set(link.route_id, arr);
-    }
-    return map;
-  }, [routeLinks, employeeOptions]);
-
-  /* Color for a route = first attached employee, else neutral teal */
-  const colorForRoute = (routeId: string): string => {
-    const emps = employeesByRoute.get(routeId) || [];
-    return emps[0]?.color || "hsl(184 90% 35%)";
-  };
 
   /** Kundens ønskede dato — preferred_date primært, ellers next_service_date (abonnement). */
   const effectiveJobDate = (j: any): string | null => {
@@ -264,46 +182,6 @@ const Planner = () => {
   );
 
   /* Stop assignment handler */
-  const handleAssignStop = async (stopId: string, employeeId: string | null) => {
-    try {
-      await updateStop.mutateAsync({ id: stopId, assigned_employee_id: employeeId });
-      toast.success(employeeId ? "Tildelt medarbejder" : "Tildeling fjernet");
-    } catch (e: any) {
-      toast.error(e.message || "Kunne ikke opdatere tildeling");
-    }
-  };
-
-  /* Build calendar columns — one per route */
-  const calendarColumns: CalendarColumn[] = useMemo(() => {
-    return routes.map((r) => {
-      const attached = employeesByRoute.get(r.id) || [];
-      return {
-        routeId: r.id,
-        label: r.name || `Rute ${format(parseISO(r.route_date), "d/M")}`,
-        subtitle: r.start_address || undefined,
-        color: colorForRoute(r.id),
-        stops: stopsByRoute.get(r.id) || [],
-        attachedEmployees: attached,
-        availableEmployees: employeeOptions,
-        totalKm: r.total_distance_km,
-        totalMin: r.total_duration_minutes,
-        routeStatus: r.status,
-        optimizedAt: r.optimized_at,
-        onOptimize: () => handleOptimize(r.id, r.name),
-        onAutoAssign: () => handleAutoAssign(r.id, attached.map((e) => e.id), r.name),
-        onAttachEmployee: (eid) => attachEmp.mutate({ route_id: r.id, employee_id: eid }),
-        onDetachEmployee: (eid) => detachEmp.mutate({ route_id: r.id, employee_id: eid }),
-        onDeleteRoute: () => {
-          setRouteToDelete({ id: r.id, name: r.name || `Rute ${format(parseISO(r.route_date), "d/M")}` });
-        },
-        onAssignStop: handleAssignStop,
-        optimizing: optimizingRouteId === r.id,
-        autoAssigning: autoAssigningRouteId === r.id,
-      } satisfies CalendarColumn;
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [routes, stopsByRoute, employeesByRoute, employeeOptions, optimizingRouteId, autoAssigningRouteId]);
-
   /* Build CalendarRoute[] for MonthWeekCalendar (range covers month/week view) */
   const calendarRoutes: CalendarRoute[] = useMemo(() => {
     const stopsByRoute = new Map<string, RouteStop[]>();
@@ -323,11 +201,11 @@ const Planner = () => {
     }));
   }, [calendarRoutesRaw, calendarStops, calendarRouteLinks]);
 
-  /* Map data */
+  /* Map data — viser ruter for det aktuelle range (måned/uge) */
   const mapRoutes: MapRoute[] = useMemo(() => {
     const list: MapRoute[] = [];
-    for (const col of calendarColumns) {
-      const colStops = col.stops
+    for (const r of calendarRoutes) {
+      const colStops = r.stops
         .filter((s) => s.latitude != null && s.longitude != null)
         .sort((a, b) => a.sequence - b.sequence)
         .map((s, i) => ({
@@ -338,10 +216,10 @@ const Planner = () => {
           sublabel: s.address || undefined,
           index: i + 1,
         }));
-      if (colStops.length) list.push({ color: col.color, stops: colStops });
+      if (colStops.length) list.push({ color: r.color, stops: colStops });
     }
     return list;
-  }, [calendarColumns]);
+  }, [calendarRoutes]);
 
   const unassignedMapStops: MapStop[] = useMemo(() =>
     filteredUnassigned
@@ -518,109 +396,6 @@ const Planner = () => {
       return;
     }
 
-    if (overData?.type !== "slot") return;
-
-    const targetRouteId: string = overData.routeId;
-    const desiredMin: number = hhmmToMin(overData.slotTime) ?? 480;
-
-    if (activeData?.type === "job") {
-      const job = activeData.job;
-      try {
-        const existingStops = stopsByRoute.get(targetRouteId) || [];
-        // Nyt stop er endnu ikke tildelt en medarbejder → ingen busy-check
-        const finalMin = desiredMin;
-        const slotIso = minToIso(date, finalMin);
-
-        // Advar hvis ruten er på en anden dato end kundens ønske
-        const wantedDate = effectiveJobDate(job);
-        const targetRoute = routes.find((r) => r.id === targetRouteId);
-        const routeDate = targetRoute?.route_date;
-        const dateMismatch = wantedDate && routeDate && wantedDate !== routeDate;
-
-        await addStop.mutateAsync({
-          route_id: targetRouteId,
-          order_id: job.id,
-          sequence: existingStops.length,
-          customer_name: job.customer_name,
-          customer_phone: job.customer_phone,
-          address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
-          latitude: job.latitude,
-          longitude: job.longitude,
-          service_summary: (job.order_items || [])
-            .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
-            .join(", ") || "Opgave",
-        });
-        const created = await supabase.from("route_stops")
-          .select("id").eq("route_id", targetRouteId).eq("order_id", job.id)
-          .order("created_at", { ascending: false }).limit(1).maybeSingle();
-        if (created.data?.id) {
-          await updateStop.mutateAsync({
-            id: created.data.id,
-            planned_arrival: slotIso,
-          });
-        }
-        if (dateMismatch) {
-          toast.warning(
-            `Tilføjet kl. ${minToHHmm(finalMin)} — men kunden ønsker ${format(parseISO(wantedDate!), "EEEE d. MMM", { locale: da })}`,
-            { duration: 6000 },
-          );
-        } else {
-          toast.success(`Tilføjet kl. ${minToHHmm(finalMin)}`);
-        }
-      } catch (err: any) {
-        toast.error(err.message || "Kunne ikke tilføje stop");
-      }
-      return;
-    }
-
-    if (activeData?.type === "stop") {
-      const draggedStop: RouteStop = activeData.stop;
-      try {
-        const targetStops = stopsByRoute.get(targetRouteId) || [];
-        // Anti-overlap: hvis stoppet har en tildelt medarbejder, find første ledige slot
-        // efter desiredMin der ikke kolliderer med et andet stop hos samme medarbejder.
-        let finalMin = desiredMin;
-        const draggedAssignees = (draggedStop.assignee_ids && draggedStop.assignee_ids.length > 0)
-          ? draggedStop.assignee_ids
-          : draggedStop.assigned_employee_id
-            ? [draggedStop.assigned_employee_id]
-            : [];
-        if (draggedAssignees.length > 0) {
-          const busy = busyIntervalsForEmployee(
-            targetStops,
-            draggedAssignees,
-            draggedStop.id,
-          );
-          finalMin = findFirstFreeSlot(desiredMin, draggedStop.duration_minutes, busy);
-        }
-        const slotIso = minToIso(date, finalMin);
-        const moved = finalMin !== desiredMin;
-
-        if (draggedStop.route_id !== targetRouteId) {
-          await updateStop.mutateAsync({
-            id: draggedStop.id,
-            route_id: targetRouteId,
-            sequence: targetStops.length,
-            planned_arrival: slotIso,
-            assigned_employee_id: null,
-          });
-        } else {
-          await updateStop.mutateAsync({
-            id: draggedStop.id,
-            planned_arrival: slotIso,
-          });
-        }
-        if (moved) {
-          toast.info(
-            `Flyttet til kl. ${minToHHmm(finalMin)} (rykket fra ${overData.slotTime} for at undgå overlap)`,
-          );
-        } else {
-          toast.success(`Flyttet til kl. ${minToHHmm(finalMin)}`);
-        }
-      } catch (err: any) {
-        toast.error(err.message || "Kunne ikke flytte stop");
-      }
-    }
   };
 
   const handleOptimize = async (routeId: string, routeName: string | null) => {
@@ -638,23 +413,6 @@ const Planner = () => {
       );
     } catch { /* error toast handled in hook */ }
     finally { setOptimizingRouteId(null); }
-  };
-
-  const handleAutoAssign = async (routeId: string, employeeIds: string[], routeName: string | null) => {
-    if (employeeIds.length < 2) {
-      toast.error("Tilkobl mindst 2 medarbejdere før du fordeler opgaver");
-      return;
-    }
-    setAutoAssigningRouteId(routeId);
-    try {
-      const res = await autoAssign.mutateAsync({ routeId, employeeIds });
-      if (res.assigned === 0) {
-        toast.info("Alle stops er allerede tildelt");
-      } else {
-        toast.success(`${routeName || "Rute"}: ${res.assigned} stops fordelt jævnt mellem ${employeeIds.length} medarbejdere`);
-      }
-    } catch { /* */ }
-    finally { setAutoAssigningRouteId(null); }
   };
 
   const handleCreateRoute = async () => {
@@ -972,7 +730,7 @@ const Planner = () => {
                         <p className="text-xs text-muted-foreground italic">
                           {search
                             ? "Ingen opgaver matcher søgningen"
-                            : routes.length === 0
+                            : calendarRoutesRaw.length === 0
                               ? "Opret en rute først, så kan du trække opgaver herfra og ind i kalenderen"
                               : "Alle opgaver er planlagt 🎉"}
                         </p>
@@ -1002,7 +760,7 @@ const Planner = () => {
                   onSelectStop={(s) => setSelectedStopId(s.id)}
                   onCreateRoute={(d) => { setNewRouteDate(d); setCreateOpen(true); }}
                   onOptimizeRoute={(id) => {
-                    const r = routes.find((x) => x.id === id) ?? weekRoutes.find((x) => x.id === id);
+                    const r = calendarRoutesRaw.find((x) => x.id === id);
                     handleOptimize(id, r?.name ?? null);
                   }}
                   optimizingRouteId={optimizingRouteId}
@@ -1098,7 +856,7 @@ const Planner = () => {
         </DragOverlay>
 
         <StopDetailSheet
-          stop={stops.find((s) => s.id === selectedStopId) || null}
+          stop={calendarStops.find((s) => s.id === selectedStopId) || null}
           open={!!selectedStopId}
           onOpenChange={(o) => !o && setSelectedStopId(null)}
         />
