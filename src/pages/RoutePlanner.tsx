@@ -885,11 +885,18 @@ const Planner = () => {
 
               {/* Calendar */}
               <ResizablePanel defaultSize={showMap ? 45 : 80} className="overflow-hidden">
-                <CalendarPlanner
-                  routeDate={date}
-                  columns={calendarColumns}
-                  selectedStopId={selectedStopId}
-                  onSelectStop={setSelectedStopId}
+                <MonthWeekCalendar
+                  view={view}
+                  anchorDate={date}
+                  routes={calendarRoutes}
+                  onSelectRoute={(r) => setEditingRoute(r)}
+                  onSelectStop={(s) => setSelectedStopId(s.id)}
+                  onCreateRoute={(d) => { setNewRouteDate(d); setCreateOpen(true); }}
+                  onOptimizeRoute={(id) => {
+                    const r = routes.find((x) => x.id === id) ?? weekRoutes.find((x) => x.id === id);
+                    handleOptimize(id, r?.name ?? null);
+                  }}
+                  optimizingRouteId={optimizingRouteId}
                 />
               </ResizablePanel>
 
