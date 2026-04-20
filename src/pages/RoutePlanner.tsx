@@ -46,7 +46,8 @@ import RouteMap, { type MapRoute, type MapStop } from "@/components/route-planne
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
-import { RouteEditSheet, ROUTE_COLOR_PALETTE } from "@/components/route-planner/RouteEditSheet";
+import { RouteEditSheet, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
+import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { supabase } from "@/integrations/supabase/client";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
@@ -71,7 +72,7 @@ const Planner = () => {
   const [showMap, setShowMap] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
-  const [newRouteColor, setNewRouteColor] = useState(ROUTE_COLOR_PALETTE[0]);
+  const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [newRouteDate, setNewRouteDate] = useState(todayStr());
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
@@ -285,6 +286,16 @@ const Planner = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [selectedStopId]);
 
+  /* Når create-dialog åbnes, foreslå en ledig farve for den valgte dato */
+  useEffect(() => {
+    if (!createOpen) return;
+    const usedColorsThisDay = calendarRoutes
+      .filter((r) => r.route_date === newRouteDate)
+      .map((r) => r.color);
+    setNewRouteColor(pickAvailableColor(usedColorsThisDay));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [createOpen, newRouteDate]);
+
   if (!business) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -312,6 +323,12 @@ const Planner = () => {
   const handleDragStart = (e: DragStartEvent) => {
     setActiveDragId(e.active.id as string);
     setActiveDragData(e.active.data.current);
+    // Hjælp brugeren: skift automatisk til ugevisning når man begynder at trække en opgave
+    // i månedsvisning (mere plads = lettere at slippe præcist).
+    const data: any = e.active.data.current;
+    if (data?.type === "job" && view === "month") {
+      setView("week");
+    }
   };
 
   const handleDragEnd = async (e: DragEndEvent) => {
@@ -370,11 +387,15 @@ const Planner = () => {
       const job = activeData.job;
       const newDate: string = overData.date;
       try {
+        // Find ledig farve baseret på allerede brugte farver samme dag
+        const usedColorsThisDay = calendarRoutes
+          .filter((r) => r.route_date === newDate)
+          .map((r) => r.color);
         const created = await createRoute.mutateAsync({
           business_id: businessId,
           route_date: newDate,
           name: `Rute ${format(parseISO(newDate), "d/M", { locale: da })}`,
-          color: ROUTE_COLOR_PALETTE[Math.floor(Math.random() * ROUTE_COLOR_PALETTE.length)],
+          color: pickAvailableColor(usedColorsThisDay),
         });
         await addStop.mutateAsync({
           route_id: created.id,
@@ -582,28 +603,27 @@ const Planner = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="route-date">Dato</Label>
-                      <Input
-                        id="route-date"
-                        type="date"
-                        value={newRouteDate}
-                        onChange={(e) => setNewRouteDate(e.target.value)}
-                      />
+                      <Label>Dato</Label>
+                      <DatePickerField value={newRouteDate} onChange={setNewRouteDate} />
                     </div>
                     <div className="space-y-2">
                       <Label>Farve</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {ROUTE_COLOR_PALETTE.map((c) => (
+                      <div className="grid grid-cols-6 gap-2">
+                        {ROUTE_COLORS.map((c) => (
                           <button
-                            key={c}
+                            key={c.value}
                             type="button"
-                            onClick={() => setNewRouteColor(c)}
-                            className={`h-8 w-8 rounded-full transition-all hover:scale-110 ${newRouteColor === c ? "ring-2 ring-foreground ring-offset-2" : ""}`}
-                            style={{ background: c }}
-                            aria-label={`Vælg farve ${c}`}
+                            onClick={() => setNewRouteColor(c.value)}
+                            title={c.name}
+                            className={`relative aspect-square rounded-lg transition-all hover:scale-105 ring-offset-2 ring-offset-background ${newRouteColor === c.value ? "ring-2 ring-foreground shadow-md" : "hover:ring-1 hover:ring-foreground/30"}`}
+                            style={{ background: c.value }}
+                            aria-label={`Vælg farve ${c.name}`}
                           />
                         ))}
                       </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        Valgt: <span className="font-medium text-foreground">{ROUTE_COLORS.find((c) => c.value === newRouteColor)?.name || "Brugerdefineret"}</span>
+                      </p>
                     </div>
                   </div>
                   <DialogFooter>
@@ -764,6 +784,7 @@ const Planner = () => {
                     handleOptimize(id, r?.name ?? null);
                   }}
                   optimizingRouteId={optimizingRouteId}
+                  draggingType={activeDragData?.type === "job" ? "job" : activeDragData?.type === "route" ? "route" : null}
                 />
               </ResizablePanel>
 
@@ -840,11 +861,20 @@ const Planner = () => {
 
         <DragOverlay>
           {activeDragId && activeDragData?.type === "job" && (
-            <div className="rounded-md border bg-background p-2 shadow-lg w-[220px] opacity-90">
-              <p className="text-sm font-medium truncate">{activeDragData.job.customer_name}</p>
+            <div
+              className="rounded-lg border-2 border-accent bg-card p-2.5 shadow-2xl w-[240px] cursor-grabbing"
+              style={{ transform: "rotate(-2deg)" }}
+            >
+              <div className="flex items-center justify-between gap-2 mb-0.5">
+                <p className="text-sm font-semibold truncate">{activeDragData.job.customer_name}</p>
+                <span className="text-xs font-bold text-accent shrink-0 tabular-nums">
+                  {Math.round(Number(activeDragData.job.total_amount || 0))} kr
+                </span>
+              </div>
               {activeDragData.job.address && (
-                <p className="text-[10px] text-muted-foreground truncate">{activeDragData.job.address}</p>
+                <p className="text-[11px] text-muted-foreground truncate">📍 {activeDragData.job.address}</p>
               )}
+              <p className="text-[10px] text-accent mt-1 italic">Slip på en rute eller en dag</p>
             </div>
           )}
           {activeDragId && activeDragData?.type === "stop" && (

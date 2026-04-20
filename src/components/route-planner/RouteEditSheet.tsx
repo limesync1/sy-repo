@@ -12,12 +12,13 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Sparkles, Trash2, UserPlus, X, Save, Calendar as CalendarIcon } from "lucide-react";
+import { Loader2, Sparkles, Trash2, UserPlus, X, Save, Check } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useUpdateRoute, useDeleteRoute, useOptimizeRoute, useAddRouteEmployee, useRemoveRouteEmployee, type Route } from "@/hooks/useRoutes";
+import { DatePickerField } from "./DatePickerField";
 
 export type RouteEmployeeOption = { id: string; name: string };
 
@@ -30,22 +31,38 @@ type Props = {
   stopCount: number;
 };
 
-export const ROUTE_COLOR_PALETTE = [
-  "#14b8a6", // teal
-  "#3b82f6", // blue
-  "#8b5cf6", // violet
-  "#ec4899", // pink
-  "#f59e0b", // amber
-  "#10b981", // emerald
-  "#ef4444", // red
-  "#6366f1", // indigo
-];
+/** Navngivne farver — bruges i picker, til tooltips og demo-data. */
+export const ROUTE_COLORS = [
+  { name: "Teal",     value: "#14b8a6" },
+  { name: "Blå",      value: "#3b82f6" },
+  { name: "Indigo",   value: "#6366f1" },
+  { name: "Violet",   value: "#8b5cf6" },
+  { name: "Pink",     value: "#ec4899" },
+  { name: "Rød",      value: "#ef4444" },
+  { name: "Orange",   value: "#f97316" },
+  { name: "Amber",    value: "#f59e0b" },
+  { name: "Emerald",  value: "#10b981" },
+  { name: "Cyan",     value: "#06b6d4" },
+  { name: "Slate",    value: "#64748b" },
+  { name: "Fuchsia",  value: "#d946ef" },
+] as const;
+
+/** Bagudkompatibel farve-array (kun hex-værdier). */
+export const ROUTE_COLOR_PALETTE = ROUTE_COLORS.map((c) => c.value);
+
+/** Find første farve der ikke er i `usedColors` — eller en tilfældig hvis alle er brugt. */
+export const pickAvailableColor = (usedColors: string[]): string => {
+  const used = new Set(usedColors);
+  const free = ROUTE_COLORS.find((c) => !used.has(c.value));
+  if (free) return free.value;
+  return ROUTE_COLORS[Math.floor(Math.random() * ROUTE_COLORS.length)].value;
+};
 
 export const RouteEditSheet = ({
   route, open, onOpenChange, attachedEmployees, availableEmployees, stopCount,
 }: Props) => {
   const [name, setName] = useState("");
-  const [color, setColor] = useState(ROUTE_COLOR_PALETTE[0]);
+  const [color, setColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [date, setDate] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -135,34 +152,36 @@ export const RouteEditSheet = ({
             {/* Farve */}
             <div className="space-y-2">
               <Label>Farve</Label>
-              <div className="flex flex-wrap gap-2">
-                {ROUTE_COLOR_PALETTE.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => setColor(c)}
-                    className={cn(
-                      "h-8 w-8 rounded-full ring-offset-2 transition-all hover:scale-110",
-                      color === c && "ring-2 ring-foreground",
-                    )}
-                    style={{ background: c }}
-                    aria-label={`Vælg farve ${c}`}
-                  />
-                ))}
+              <div className="grid grid-cols-6 gap-2">
+                {ROUTE_COLORS.map((c) => {
+                  const selected = color === c.value;
+                  return (
+                    <button
+                      key={c.value}
+                      type="button"
+                      onClick={() => setColor(c.value)}
+                      title={c.name}
+                      className={cn(
+                        "relative aspect-square rounded-lg transition-all hover:scale-105 ring-offset-2 ring-offset-background flex items-center justify-center",
+                        selected ? "ring-2 ring-foreground shadow-md" : "hover:ring-1 hover:ring-foreground/30",
+                      )}
+                      style={{ background: c.value }}
+                      aria-label={`Vælg farve ${c.name}`}
+                    >
+                      {selected && <Check className="h-4 w-4 text-white drop-shadow" strokeWidth={3} />}
+                    </button>
+                  );
+                })}
               </div>
+              <p className="text-[11px] text-muted-foreground">
+                Valgt: <span className="font-medium text-foreground">{ROUTE_COLORS.find((c) => c.value === color)?.name || "Brugerdefineret"}</span>
+              </p>
             </div>
 
             {/* Dato */}
             <div className="space-y-2">
-              <Label htmlFor="route-edit-date" className="flex items-center gap-1.5">
-                <CalendarIcon className="h-3.5 w-3.5" />Dato
-              </Label>
-              <Input
-                id="route-edit-date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
+              <Label>Dato</Label>
+              <DatePickerField value={date} onChange={setDate} />
               <p className="text-[11px] text-muted-foreground">
                 Du kan også trække ruten direkte til en ny dag i kalenderen.
               </p>
