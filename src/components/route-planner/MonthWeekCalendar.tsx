@@ -146,16 +146,21 @@ type DayCellProps = {
   onOptimizeRoute: (routeId: string) => void;
   optimizingRouteId?: string | null;
   compact: boolean;
+  draggingType?: "job" | "route" | null;
 };
 
 const DayCell = ({
   date, dateStr, routes, inMonth, today,
-  onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact,
+  onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType,
 }: DayCellProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `day:${dateStr}`,
     data: { type: "day", date: dateStr },
   });
+
+  const isDragActive = !!draggingType;
+  const isJobDragActive = draggingType === "job";
+  const emptyDay = routes.length === 0;
 
   return (
     <div
@@ -164,7 +169,10 @@ const DayCell = ({
         "border-r last:border-r-0 relative group flex flex-col gap-1 p-1.5 transition-colors",
         compact ? "min-h-[110px]" : "min-h-[160px]",
         !inMonth && "bg-secondary/10",
-        isOver && "bg-accent/10 ring-2 ring-accent ring-inset",
+        // Når en opgave eller rute trækkes — gør dage subtilt mere indbydende
+        isDragActive && inMonth && !isOver && "ring-1 ring-accent/30 ring-inset",
+        // Når man hovrer over en dag — tydeligt highlight
+        isOver && "bg-accent/15 ring-2 ring-accent ring-inset shadow-inner",
       )}
     >
       {/* Dato-header */}
@@ -200,8 +208,26 @@ const DayCell = ({
             onOptimize={() => onOptimizeRoute(r.id)}
             optimizing={optimizingRouteId === r.id}
             compact={compact}
+            jobDragActive={isJobDragActive}
           />
         ))}
+
+        {/* "Slip her" overlay på tomme dage når en opgave trækkes */}
+        {isJobDragActive && emptyDay && inMonth && (
+          <div
+            className={cn(
+              "flex-1 flex flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed transition-all",
+              isOver
+                ? "border-accent bg-accent/15 text-accent scale-[1.02]"
+                : "border-accent/40 bg-accent/5 text-accent/70",
+            )}
+          >
+            <ArrowDown className={cn("h-4 w-4", isOver && "animate-bounce")} />
+            <span className="text-[10px] font-medium leading-tight text-center px-1">
+              Slip for ny rute
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
