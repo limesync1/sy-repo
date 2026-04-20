@@ -415,23 +415,6 @@ const Planner = () => {
     finally { setOptimizingRouteId(null); }
   };
 
-  const handleAutoAssign = async (routeId: string, employeeIds: string[], routeName: string | null) => {
-    if (employeeIds.length < 2) {
-      toast.error("Tilkobl mindst 2 medarbejdere før du fordeler opgaver");
-      return;
-    }
-    setAutoAssigningRouteId(routeId);
-    try {
-      const res = await autoAssign.mutateAsync({ routeId, employeeIds });
-      if (res.assigned === 0) {
-        toast.info("Alle stops er allerede tildelt");
-      } else {
-        toast.success(`${routeName || "Rute"}: ${res.assigned} stops fordelt jævnt mellem ${employeeIds.length} medarbejdere`);
-      }
-    } catch { /* */ }
-    finally { setAutoAssigningRouteId(null); }
-  };
-
   const handleCreateRoute = async () => {
     if (!businessId) return;
     try {
