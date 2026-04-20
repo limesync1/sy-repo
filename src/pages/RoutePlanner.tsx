@@ -128,51 +128,6 @@ const Planner = () => {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
-  /* Build per-employee color map (stable per business) */
-  const employeeColors = useMemo(() => {
-    const map = new Map<string, string>();
-    activeEmployees.forEach((e: any, i: number) => {
-      map.set(e.id, ROUTE_COLORS[i % ROUTE_COLORS.length]);
-    });
-    return map;
-  }, [activeEmployees]);
-
-  const employeeOptions: EmployeeOption[] = useMemo(() =>
-    activeEmployees.map((e: any) => ({
-      id: e.id,
-      name: e.name,
-      color: employeeColors.get(e.id) || ROUTE_COLORS[0],
-    })),
-  [activeEmployees, employeeColors]);
-
-  const stopsByRoute = useMemo(() => {
-    const map = new Map<string, RouteStop[]>();
-    for (const s of stops) {
-      const arr = map.get(s.route_id) || [];
-      arr.push(s);
-      map.set(s.route_id, arr);
-    }
-    return map;
-  }, [stops]);
-
-  const employeesByRoute = useMemo(() => {
-    const map = new Map<string, EmployeeOption[]>();
-    for (const link of routeLinks) {
-      const opt = employeeOptions.find((e) => e.id === link.employee_id);
-      if (!opt) continue;
-      const arr = map.get(link.route_id) || [];
-      arr.push(opt);
-      map.set(link.route_id, arr);
-    }
-    return map;
-  }, [routeLinks, employeeOptions]);
-
-  /* Color for a route = first attached employee, else neutral teal */
-  const colorForRoute = (routeId: string): string => {
-    const emps = employeesByRoute.get(routeId) || [];
-    return emps[0]?.color || "hsl(184 90% 35%)";
-  };
-
   /** Kundens ønskede dato — preferred_date primært, ellers next_service_date (abonnement). */
   const effectiveJobDate = (j: any): string | null => {
     if (j.preferred_date) return j.preferred_date;
