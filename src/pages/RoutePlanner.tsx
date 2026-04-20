@@ -861,11 +861,20 @@ const Planner = () => {
 
         <DragOverlay>
           {activeDragId && activeDragData?.type === "job" && (
-            <div className="rounded-md border bg-background p-2 shadow-lg w-[220px] opacity-90">
-              <p className="text-sm font-medium truncate">{activeDragData.job.customer_name}</p>
+            <div
+              className="rounded-lg border-2 border-accent bg-card p-2.5 shadow-2xl w-[240px] cursor-grabbing"
+              style={{ transform: "rotate(-2deg)" }}
+            >
+              <div className="flex items-center justify-between gap-2 mb-0.5">
+                <p className="text-sm font-semibold truncate">{activeDragData.job.customer_name}</p>
+                <span className="text-xs font-bold text-accent shrink-0 tabular-nums">
+                  {Math.round(Number(activeDragData.job.total_amount || 0))} kr
+                </span>
+              </div>
               {activeDragData.job.address && (
-                <p className="text-[10px] text-muted-foreground truncate">{activeDragData.job.address}</p>
+                <p className="text-[11px] text-muted-foreground truncate">📍 {activeDragData.job.address}</p>
               )}
+              <p className="text-[10px] text-accent mt-1 italic">Slip på en rute eller en dag</p>
             </div>
           )}
           {activeDragId && activeDragData?.type === "stop" && (
