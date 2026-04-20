@@ -39,7 +39,7 @@ import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon, ArrowLeft,
   Loader2, MapIcon, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
 } from "lucide-react";
-import { format, addDays, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
+import { format, addDays, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import {
@@ -49,7 +49,7 @@ import {
 import RouteMap, { type MapRoute, type MapStop } from "@/components/route-planner/RouteMap";
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
-import { CalendarPlanner, type CalendarColumn, type EmployeeOption } from "@/components/route-planner/CalendarPlanner";
+import { type CalendarColumn, type EmployeeOption } from "@/components/route-planner/CalendarPlanner";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
 import { RouteEditSheet, ROUTE_COLOR_PALETTE } from "@/components/route-planner/RouteEditSheet";
 import { useUpdateRoute } from "@/hooks/useRoutes";
