@@ -9,6 +9,7 @@ export type Route = {
   route_date: string;
   status: string;
   name: string | null;
+  color: string;
   total_distance_km: number | null;
   total_duration_minutes: number | null;
   optimized_at: string | null;
