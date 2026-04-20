@@ -85,7 +85,7 @@ const RoutePlanner = () => {
 const Planner = () => {
   const { data: business } = useMyBusiness();
   const [date, setDate] = useState<string>(todayStr());
-  const [view, setView] = useState<"month" | "week" | "day">("month");
+  const [view, setView] = useState<"month" | "week">("month");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "price" | "name">("date");
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
