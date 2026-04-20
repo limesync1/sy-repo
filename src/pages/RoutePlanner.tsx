@@ -39,7 +39,7 @@ import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon, ArrowLeft,
   Loader2, MapIcon, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
 } from "lucide-react";
-import { format, addDays, parseISO, startOfWeek, eachDayOfInterval } from "date-fns";
+import { format, addDays, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import {
@@ -116,6 +116,22 @@ const Planner = () => {
   const weekStart = useMemo(() => format(startOfWeek(parseISO(date), { weekStartsOn: 1 }), "yyyy-MM-dd"), [date]);
   const weekEnd = useMemo(() => format(addDays(parseISO(weekStart), 6), "yyyy-MM-dd"), [weekStart]);
   const { data: weekRoutes = [] } = useRoutesForRange(businessId, weekStart, weekEnd);
+
+  // Range for kalender: hele måneden hvis month-view, ugen hvis week-view
+  const calendarRange = useMemo(() => {
+    const anchor = parseISO(date);
+    if (view === "week") {
+      const ws = startOfWeek(anchor, { weekStartsOn: 1 });
+      return { start: format(ws, "yyyy-MM-dd"), end: format(addDays(ws, 6), "yyyy-MM-dd") };
+    }
+    const ms = startOfWeek(startOfMonth(anchor), { weekStartsOn: 1 });
+    const me = endOfWeek(endOfMonth(anchor), { weekStartsOn: 1 });
+    return { start: format(ms, "yyyy-MM-dd"), end: format(me, "yyyy-MM-dd") };
+  }, [date, view]);
+  const { data: calendarRoutesRaw = [] } = useRoutesForRange(businessId, calendarRange.start, calendarRange.end);
+  const calendarRouteIds = useMemo(() => calendarRoutesRaw.map((r) => r.id), [calendarRoutesRaw]);
+  const { data: calendarStops = [] } = useStopsForRoutes(calendarRouteIds);
+  const { data: calendarRouteLinks = [] } = useRouteEmployees(calendarRouteIds);
 
   const createRoute = useCreateRoute();
   const deleteRoute = useDeleteRoute();
