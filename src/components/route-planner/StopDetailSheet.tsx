@@ -222,7 +222,14 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                     <div className="rounded-lg border divide-y">
                       {items.map((item: any, i: number) => {
                         const d = item.details || {};
-                        const stepDetails: any[] = Array.isArray(d.stepDetails) ? d.stepDetails : [];
+                        // Backend gemmer både 'stepDetails' (cart) og 'steps' (gamle/seedede ordrer)
+                        const stepDetails: any[] = Array.isArray(d.stepDetails)
+                          ? d.stepDetails
+                          : Array.isArray(d.steps)
+                            ? d.steps
+                            : [];
+                        const hours: number | null = typeof d.hours === "number" ? d.hours : null;
+                        const customNote: string | null = typeof d.note === "string" && d.note.trim() ? d.note : null;
                         const itemInterval = d.interval && d.interval !== "engangskøb" ? d.interval : null;
                         const itemDescription = typeof d.description === "string" ? d.description : null;
                         const svc = item.services || {};
@@ -257,7 +264,11 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                                   {pricingLabel && (
                                     <Badge variant="outline" className="text-[10px] h-4 px-1.5">{pricingLabel}</Badge>
                                   )}
-                                  {item.quantity > 1 && (
+                                  {hours !== null ? (
+                                    <span className="text-[11px] text-muted-foreground">
+                                      {hours} {hours === 1 ? "time" : "timer"} × {Math.round(Number(item.unit_price))} kr
+                                    </span>
+                                  ) : item.quantity > 1 && (
                                     <span className="text-[11px] text-muted-foreground">{item.quantity} × {Math.round(Number(item.unit_price))} kr</span>
                                   )}
                                   {itemInterval && (
@@ -283,12 +294,35 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                                     <span className="text-muted-foreground">
                                       {sd.label}: <span className="text-foreground/80">{sd.value}{sd.unit ? ` ${sd.unit}` : ""}</span>
                                     </span>
-                                    {typeof sd.subtotal === "number" && (
+                                    {typeof sd.subtotal === "number" ? (
                                       <span className="font-medium text-foreground">{sd.subtotal} kr</span>
+                                    ) : typeof sd.price_per_unit === "number" && typeof sd.value === "number" ? (
+                                      <span className="font-medium text-foreground">
+                                        {Math.round(sd.value * sd.price_per_unit)} kr
+                                      </span>
+                                    ) : (
+                                      <span />
                                     )}
                                   </div>
                                 ))}
                               </div>
+                            )}
+
+                            {/* Hourly breakdown when no calc steps */}
+                            {stepDetails.length === 0 && hours !== null && (
+                              <div className="mt-2 rounded-md bg-secondary/40 px-2.5 py-1 text-[11px] flex justify-between">
+                                <span className="text-muted-foreground">
+                                  Timer: <span className="text-foreground/80">{hours} {hours === 1 ? "time" : "timer"}</span>
+                                </span>
+                                <span className="font-medium text-foreground">{Math.round(Number(item.total_price))} kr</span>
+                              </div>
+                            )}
+
+                            {/* Customer note on this specific line */}
+                            {customNote && (
+                              <p className="text-[11px] mt-2 rounded-md bg-amber-50 border border-amber-200 px-2.5 py-1.5 text-amber-900">
+                                <span className="font-semibold">Note:</span> {customNote}
+                              </p>
                             )}
 
                             {/* Free-text description from cart line */}
