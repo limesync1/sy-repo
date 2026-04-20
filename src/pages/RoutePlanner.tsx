@@ -371,11 +371,15 @@ const Planner = () => {
       const job = activeData.job;
       const newDate: string = overData.date;
       try {
+        // Find ledig farve baseret på allerede brugte farver samme dag
+        const usedColorsThisDay = calendarRoutes
+          .filter((r) => r.route_date === newDate)
+          .map((r) => r.color);
         const created = await createRoute.mutateAsync({
           business_id: businessId,
           route_date: newDate,
           name: `Rute ${format(parseISO(newDate), "d/M", { locale: da })}`,
-          color: ROUTE_COLOR_PALETTE[Math.floor(Math.random() * ROUTE_COLOR_PALETTE.length)],
+          color: pickAvailableColor(usedColorsThisDay),
         });
         await addStop.mutateAsync({
           route_id: created.id,
