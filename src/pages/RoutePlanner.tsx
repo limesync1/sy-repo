@@ -583,28 +583,27 @@ const Planner = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="route-date">Dato</Label>
-                      <Input
-                        id="route-date"
-                        type="date"
-                        value={newRouteDate}
-                        onChange={(e) => setNewRouteDate(e.target.value)}
-                      />
+                      <Label>Dato</Label>
+                      <DatePickerField value={newRouteDate} onChange={setNewRouteDate} />
                     </div>
                     <div className="space-y-2">
                       <Label>Farve</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {ROUTE_COLOR_PALETTE.map((c) => (
+                      <div className="grid grid-cols-6 gap-2">
+                        {ROUTE_COLORS.map((c) => (
                           <button
-                            key={c}
+                            key={c.value}
                             type="button"
-                            onClick={() => setNewRouteColor(c)}
-                            className={`h-8 w-8 rounded-full transition-all hover:scale-110 ${newRouteColor === c ? "ring-2 ring-foreground ring-offset-2" : ""}`}
-                            style={{ background: c }}
-                            aria-label={`Vælg farve ${c}`}
+                            onClick={() => setNewRouteColor(c.value)}
+                            title={c.name}
+                            className={`relative aspect-square rounded-lg transition-all hover:scale-105 ring-offset-2 ring-offset-background ${newRouteColor === c.value ? "ring-2 ring-foreground shadow-md" : "hover:ring-1 hover:ring-foreground/30"}`}
+                            style={{ background: c.value }}
+                            aria-label={`Vælg farve ${c.name}`}
                           />
                         ))}
                       </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        Valgt: <span className="font-medium text-foreground">{ROUTE_COLORS.find((c) => c.value === newRouteColor)?.name || "Brugerdefineret"}</span>
+                      </p>
                     </div>
                   </div>
                   <DialogFooter>
