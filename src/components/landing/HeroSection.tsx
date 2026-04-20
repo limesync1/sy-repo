@@ -109,7 +109,7 @@ const HeroSection = () => {
             <div className="relative aspect-[5/4] w-full overflow-hidden rounded-3xl bg-secondary shadow-xl md:aspect-[4/3] lg:aspect-[5/4] lg:max-h-[480px]">
               <img
                 src={heroImage}
-                alt="Professionel serviceyder klar til at hj00e6lpe"
+                alt="Professionel serviceyder klar til at hjælpe"
                 className="h-full w-full object-cover"
                 width={1536}
                 height={1024}
