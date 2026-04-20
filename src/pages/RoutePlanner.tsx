@@ -39,7 +39,7 @@ import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon, ArrowLeft,
   Loader2, MapIcon, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
 } from "lucide-react";
-import { format, addDays, parseISO, startOfWeek, eachDayOfInterval } from "date-fns";
+import { format, addDays, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import {
@@ -49,7 +49,7 @@ import {
 import RouteMap, { type MapRoute, type MapStop } from "@/components/route-planner/RouteMap";
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
-import { CalendarPlanner, type CalendarColumn, type EmployeeOption } from "@/components/route-planner/CalendarPlanner";
+import { type CalendarColumn, type EmployeeOption } from "@/components/route-planner/CalendarPlanner";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
 import { RouteEditSheet, ROUTE_COLOR_PALETTE } from "@/components/route-planner/RouteEditSheet";
 import { useUpdateRoute } from "@/hooks/useRoutes";
@@ -85,7 +85,7 @@ const RoutePlanner = () => {
 const Planner = () => {
   const { data: business } = useMyBusiness();
   const [date, setDate] = useState<string>(todayStr());
-  const [view, setView] = useState<"month" | "week" | "day">("month");
+  const [view, setView] = useState<"month" | "week">("month");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "price" | "name">("date");
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
@@ -117,8 +117,25 @@ const Planner = () => {
   const weekEnd = useMemo(() => format(addDays(parseISO(weekStart), 6), "yyyy-MM-dd"), [weekStart]);
   const { data: weekRoutes = [] } = useRoutesForRange(businessId, weekStart, weekEnd);
 
+  // Range for kalender: hele måneden hvis month-view, ugen hvis week-view
+  const calendarRange = useMemo(() => {
+    const anchor = parseISO(date);
+    if (view === "week") {
+      const ws = startOfWeek(anchor, { weekStartsOn: 1 });
+      return { start: format(ws, "yyyy-MM-dd"), end: format(addDays(ws, 6), "yyyy-MM-dd") };
+    }
+    const ms = startOfWeek(startOfMonth(anchor), { weekStartsOn: 1 });
+    const me = endOfWeek(endOfMonth(anchor), { weekStartsOn: 1 });
+    return { start: format(ms, "yyyy-MM-dd"), end: format(me, "yyyy-MM-dd") };
+  }, [date, view]);
+  const { data: calendarRoutesRaw = [] } = useRoutesForRange(businessId, calendarRange.start, calendarRange.end);
+  const calendarRouteIds = useMemo(() => calendarRoutesRaw.map((r) => r.id), [calendarRoutesRaw]);
+  const { data: calendarStops = [] } = useStopsForRoutes(calendarRouteIds);
+  const { data: calendarRouteLinks = [] } = useRouteEmployees(calendarRouteIds);
+
   const createRoute = useCreateRoute();
   const deleteRoute = useDeleteRoute();
+  const updateRoute = useUpdateRoute();
   const addStop = useAddStop();
   const updateStop = useUpdateStop();
   const optimizeRoute = useOptimizeRoute();
@@ -287,6 +304,25 @@ const Planner = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routes, stopsByRoute, employeesByRoute, employeeOptions, optimizingRouteId, autoAssigningRouteId]);
 
+  /* Build CalendarRoute[] for MonthWeekCalendar (range covers month/week view) */
+  const calendarRoutes: CalendarRoute[] = useMemo(() => {
+    const stopsByRoute = new Map<string, RouteStop[]>();
+    for (const s of calendarStops) {
+      const arr = stopsByRoute.get(s.route_id) || [];
+      arr.push(s);
+      stopsByRoute.set(s.route_id, arr);
+    }
+    const empCountByRoute = new Map<string, number>();
+    for (const link of calendarRouteLinks) {
+      empCountByRoute.set(link.route_id, (empCountByRoute.get(link.route_id) || 0) + 1);
+    }
+    return calendarRoutesRaw.map((r) => ({
+      ...r,
+      stops: stopsByRoute.get(r.id) || [],
+      attachedEmployeeCount: empCountByRoute.get(r.id) || 0,
+    }));
+  }, [calendarRoutesRaw, calendarStops, calendarRouteLinks]);
+
   /* Map data */
   const mapRoutes: MapRoute[] = useMemo(() => {
     const list: MapRoute[] = [];
@@ -408,6 +444,79 @@ const Planner = () => {
 
     const activeData: any = active.data.current;
     const overData: any = over.data.current;
+
+    /* ─── Drop fra MonthWeekCalendar ─── */
+    // Træk en hel rute → ny dato
+    if (activeData?.type === "route" && overData?.type === "day") {
+      const route: Route = activeData.route;
+      const newDate: string = overData.date;
+      if (route.route_date === newDate) return;
+      try {
+        await updateRoute.mutateAsync({ id: route.id, route_date: newDate });
+        toast.success(`Rute flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`);
+      } catch (err: any) {
+        toast.error(err.message || "Kunne ikke flytte rute");
+      }
+      return;
+    }
+
+    // Træk en opgave fra opgavepool → eksisterende rute (kalender-pille)
+    if (activeData?.type === "job" && overData?.type === "route") {
+      const job = activeData.job;
+      const targetRouteId: string = overData.routeId;
+      try {
+        const { data: existingStops } = await supabase
+          .from("route_stops").select("id").eq("route_id", targetRouteId);
+        await addStop.mutateAsync({
+          route_id: targetRouteId,
+          order_id: job.id,
+          sequence: (existingStops || []).length,
+          customer_name: job.customer_name,
+          customer_phone: job.customer_phone,
+          address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
+          latitude: job.latitude,
+          longitude: job.longitude,
+          service_summary: (job.order_items || [])
+            .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
+            .join(", ") || "Opgave",
+        });
+        toast.success("Opgave tilføjet til ruten");
+      } catch (err: any) {
+        toast.error(err.message || "Kunne ikke tilføje opgave");
+      }
+      return;
+    }
+
+    // Træk en opgave fra opgavepool → tom dag (opret ny rute + læg opgave på)
+    if (activeData?.type === "job" && overData?.type === "day") {
+      const job = activeData.job;
+      const newDate: string = overData.date;
+      try {
+        const created = await createRoute.mutateAsync({
+          business_id: businessId,
+          route_date: newDate,
+          name: `Rute ${format(parseISO(newDate), "d/M", { locale: da })}`,
+          color: ROUTE_COLOR_PALETTE[Math.floor(Math.random() * ROUTE_COLOR_PALETTE.length)],
+        });
+        await addStop.mutateAsync({
+          route_id: created.id,
+          order_id: job.id,
+          sequence: 0,
+          customer_name: job.customer_name,
+          customer_phone: job.customer_phone,
+          address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
+          latitude: job.latitude,
+          longitude: job.longitude,
+          service_summary: (job.order_items || [])
+            .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
+            .join(", ") || "Opgave",
+        });
+        toast.success(`Ny rute oprettet på ${format(parseISO(newDate), "d. MMM", { locale: da })}`);
+      } catch (err: any) {
+        toast.error(err.message || "Kunne ikke oprette rute");
+      }
+      return;
+    }
 
     if (overData?.type !== "slot") return;
 
@@ -779,8 +888,7 @@ const Planner = () => {
           </div>
         </header>
 
-        {view === "day" ? (
-          <div className="flex-1 overflow-hidden p-3" style={{ height: "calc(100vh - 50px)" }}>
+        <div className="flex-1 overflow-hidden p-3" style={{ height: "calc(100vh - 50px)" }}>
             <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg">
               {/* Sidebar: Opgavepool */}
               <ResizablePanel defaultSize={20} minSize={14} maxSize={36} className="overflow-hidden">
@@ -886,11 +994,18 @@ const Planner = () => {
 
               {/* Calendar */}
               <ResizablePanel defaultSize={showMap ? 45 : 80} className="overflow-hidden">
-                <CalendarPlanner
-                  routeDate={date}
-                  columns={calendarColumns}
-                  selectedStopId={selectedStopId}
-                  onSelectStop={setSelectedStopId}
+                <MonthWeekCalendar
+                  view={view}
+                  anchorDate={date}
+                  routes={calendarRoutes}
+                  onSelectRoute={(r) => setEditingRoute(r)}
+                  onSelectStop={(s) => setSelectedStopId(s.id)}
+                  onCreateRoute={(d) => { setNewRouteDate(d); setCreateOpen(true); }}
+                  onOptimizeRoute={(id) => {
+                    const r = routes.find((x) => x.id === id) ?? weekRoutes.find((x) => x.id === id);
+                    handleOptimize(id, r?.name ?? null);
+                  }}
+                  optimizingRouteId={optimizingRouteId}
                 />
               </ResizablePanel>
 
@@ -933,14 +1048,7 @@ const Planner = () => {
                 </>
               )}
             </ResizablePanelGroup>
-          </div>
-        ) : (
-          <WeekView
-            weekStart={weekStart}
-            weekRoutes={weekRoutes}
-            onPickDate={(d) => { setDate(d); setView("day"); }}
-          />
-        )}
+        </div>
 
 
         {/* Slet rute bekræftelse */}
@@ -994,60 +1102,24 @@ const Planner = () => {
           open={!!selectedStopId}
           onOpenChange={(o) => !o && setSelectedStopId(null)}
         />
+
+        <RouteEditSheet
+          route={editingRoute}
+          open={!!editingRoute}
+          onOpenChange={(o) => !o && setEditingRoute(null)}
+          attachedEmployees={
+            editingRoute
+              ? (calendarRouteLinks
+                  .filter((l) => l.route_id === editingRoute.id)
+                  .map((l) => activeEmployees.find((e: any) => e.id === l.employee_id))
+                  .filter(Boolean) as any).map((e: any) => ({ id: e.id, name: e.name }))
+              : []
+          }
+          availableEmployees={activeEmployees.map((e: any) => ({ id: e.id, name: e.name }))}
+          stopCount={editingRoute ? (calendarStops.filter((s) => s.route_id === editingRoute.id).length) : 0}
+        />
       </div>
     </DndContext>
-  );
-};
-
-const WeekView = ({
-  weekStart, weekRoutes, onPickDate,
-}: {
-  weekStart: string;
-  weekRoutes: Route[];
-  onPickDate: (d: string) => void;
-}) => {
-  const days = eachDayOfInterval({
-    start: parseISO(weekStart),
-    end: addDays(parseISO(weekStart), 6),
-  });
-  const routesPerDay = (dateStr: string) => weekRoutes.filter((r) => r.route_date === dateStr);
-
-  return (
-    <div className="container mx-auto px-4 py-4">
-      <Card className="p-4 overflow-x-auto">
-        <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(7, minmax(140px, 1fr))" }}>
-          {days.map((d) => {
-            const ds = format(d, "yyyy-MM-dd");
-            const ds_routes = routesPerDay(ds);
-            return (
-              <button
-                key={ds}
-                onClick={() => onPickDate(ds)}
-                className="text-left border rounded-md p-3 hover:bg-secondary/40 transition-colors"
-              >
-                <div className="text-xs uppercase text-muted-foreground">
-                  {format(d, "EEE", { locale: da })}
-                </div>
-                <div className="text-lg font-semibold">{format(d, "d/M")}</div>
-                <div className="mt-2 space-y-1">
-                  {ds_routes.length === 0 && (
-                    <p className="text-xs text-muted-foreground italic">Ingen ruter</p>
-                  )}
-                  {ds_routes.map((r) => (
-                    <div key={r.id} className="text-xs border-l-2 border-primary pl-2">
-                      <p className="font-medium truncate">{r.name || "Rute"}</p>
-                      {r.total_distance_km != null && r.total_distance_km > 0 && (
-                        <p className="text-muted-foreground">{r.total_distance_km.toFixed(1)} km</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </Card>
-    </div>
   );
 };
 
