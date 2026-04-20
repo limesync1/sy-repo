@@ -100,6 +100,9 @@ const Planner = () => {
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
   const [distributing, setDistributing] = useState(false);
+  const [editingRouteId, setEditingRouteId] = useState<string | null>(null);
+
+  const updateRoute = useUpdateRoute();
 
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
