@@ -879,6 +879,7 @@ export type Database = {
       routes: {
         Row: {
           business_id: string
+          color: string
           created_at: string
           employee_id: string | null
           id: string
@@ -900,6 +901,7 @@ export type Database = {
         }
         Insert: {
           business_id: string
+          color?: string
           created_at?: string
           employee_id?: string | null
           id?: string
@@ -921,6 +923,7 @@ export type Database = {
         }
         Update: {
           business_id?: string
+          color?: string
           created_at?: string
           employee_id?: string | null
           id?: string

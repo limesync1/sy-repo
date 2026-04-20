@@ -9,6 +9,7 @@ export type Route = {
   route_date: string;
   status: string;
   name: string | null;
+  color: string;
   total_distance_km: number | null;
   total_duration_minutes: number | null;
   optimized_at: string | null;
@@ -97,7 +98,7 @@ export const useRoutesForDate = (businessId: string | undefined, date: string) =
         .eq("route_date", date)
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return (data || []) as Route[];
+      return (data || []) as unknown as Route[];
     },
   });
 };
@@ -115,7 +116,7 @@ export const useRoutesForRange = (businessId: string | undefined, from: string, 
         .lte("route_date", to)
         .order("route_date", { ascending: true });
       if (error) throw error;
-      return (data || []) as Route[];
+      return (data || []) as unknown as Route[];
     },
   });
 };
@@ -385,7 +386,7 @@ export const useCreateRoute = () => {
         .select("*")
         .single();
       if (error) throw error;
-      return data as Route;
+      return data as unknown as Route;
     },
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["routes", vars.business_id, vars.route_date] });
@@ -839,7 +840,7 @@ export const useUpdateRoute = () => {
         .select("*")
         .single();
       if (error) throw error;
-      return data as Route;
+      return data as unknown as Route;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["routes"] });
@@ -950,7 +951,7 @@ export const useMyDayRoutes = (date: string) => {
         .in("id", routeIds)
         .eq("route_date", date);
       if (error) throw error;
-      return (data || []) as Route[];
+      return (data || []) as unknown as Route[];
     },
   });
 };
@@ -1036,7 +1037,7 @@ export const useMyRouteData = (routeId: string | undefined) => {
       );
 
       return {
-        route: route as Route & { businesses?: { name?: string; phone?: string } },
+        route: route as unknown as Route & { businesses?: { name?: string; phone?: string } },
         stops: (stops || []) as RouteStop[],
         employee: emp,
       };
