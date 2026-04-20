@@ -45,6 +45,19 @@ export const ROUTE_COLORS = [
   { name: "Cyan",     value: "#06b6d4" },
   { name: "Slate",    value: "#64748b" },
   { name: "Fuchsia",  value: "#d946ef" },
+  // Udvidet palet — mørkere/lyse varianter for flere ruter
+  { name: "Lime",         value: "#84cc16" },
+  { name: "Grøn",         value: "#22c55e" },
+  { name: "Sky",          value: "#0ea5e9" },
+  { name: "Rose",         value: "#f43f5e" },
+  { name: "Mørk teal",    value: "#0f766e" },
+  { name: "Mørk blå",     value: "#1d4ed8" },
+  { name: "Mørk lilla",   value: "#7c3aed" },
+  { name: "Mørk grøn",    value: "#15803d" },
+  { name: "Mørk rød",     value: "#b91c1c" },
+  { name: "Mørk orange",  value: "#c2410c" },
+  { name: "Stone",        value: "#78716c" },
+  { name: "Zinc",         value: "#52525b" },
 ] as const;
 
 /** Bagudkompatibel farve-array (kun hex-værdier). */
@@ -159,7 +172,7 @@ export const RouteEditSheet = ({
             {/* Farve */}
             <div className="space-y-2">
               <Label>Farve</Label>
-              <div className="grid grid-cols-6 gap-2">
+              <div className="grid grid-cols-12 gap-1.5">
                 {ROUTE_COLORS.map((c) => {
                   const selected = color === c.value;
                   return (
@@ -169,13 +182,13 @@ export const RouteEditSheet = ({
                       onClick={() => setColor(c.value)}
                       title={c.name}
                       className={cn(
-                        "relative aspect-square rounded-lg transition-all hover:scale-105 ring-offset-2 ring-offset-background flex items-center justify-center",
+                        "relative aspect-square rounded-md transition-all hover:scale-110 ring-offset-1 ring-offset-background flex items-center justify-center",
                         selected ? "ring-2 ring-foreground shadow-md" : "hover:ring-1 hover:ring-foreground/30",
                       )}
                       style={{ background: c.value }}
                       aria-label={`Vælg farve ${c.name}`}
                     >
-                      {selected && <Check className="h-4 w-4 text-white drop-shadow" strokeWidth={3} />}
+                      {selected && <Check className="h-2.5 w-2.5 text-white drop-shadow" strokeWidth={4} />}
                     </button>
                   );
                 })}
