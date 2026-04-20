@@ -12,12 +12,13 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Sparkles, Trash2, UserPlus, X, Save, Calendar as CalendarIcon } from "lucide-react";
+import { Loader2, Sparkles, Trash2, UserPlus, X, Save, Check } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useUpdateRoute, useDeleteRoute, useOptimizeRoute, useAddRouteEmployee, useRemoveRouteEmployee, type Route } from "@/hooks/useRoutes";
+import { DatePickerField } from "./DatePickerField";
 
 export type RouteEmployeeOption = { id: string; name: string };
 
@@ -30,16 +31,32 @@ type Props = {
   stopCount: number;
 };
 
-export const ROUTE_COLOR_PALETTE = [
-  "#14b8a6", // teal
-  "#3b82f6", // blue
-  "#8b5cf6", // violet
-  "#ec4899", // pink
-  "#f59e0b", // amber
-  "#10b981", // emerald
-  "#ef4444", // red
-  "#6366f1", // indigo
-];
+/** Navngivne farver — bruges i picker, til tooltips og demo-data. */
+export const ROUTE_COLORS = [
+  { name: "Teal",     value: "#14b8a6" },
+  { name: "Blå",      value: "#3b82f6" },
+  { name: "Indigo",   value: "#6366f1" },
+  { name: "Violet",   value: "#8b5cf6" },
+  { name: "Pink",     value: "#ec4899" },
+  { name: "Rød",      value: "#ef4444" },
+  { name: "Orange",   value: "#f97316" },
+  { name: "Amber",    value: "#f59e0b" },
+  { name: "Emerald",  value: "#10b981" },
+  { name: "Cyan",     value: "#06b6d4" },
+  { name: "Slate",    value: "#64748b" },
+  { name: "Fuchsia",  value: "#d946ef" },
+] as const;
+
+/** Bagudkompatibel farve-array (kun hex-værdier). */
+export const ROUTE_COLOR_PALETTE = ROUTE_COLORS.map((c) => c.value);
+
+/** Find første farve der ikke er i `usedColors` — eller en tilfældig hvis alle er brugt. */
+export const pickAvailableColor = (usedColors: string[]): string => {
+  const used = new Set(usedColors);
+  const free = ROUTE_COLORS.find((c) => !used.has(c.value));
+  if (free) return free.value;
+  return ROUTE_COLORS[Math.floor(Math.random() * ROUTE_COLORS.length)].value;
+};
 
 export const RouteEditSheet = ({
   route, open, onOpenChange, attachedEmployees, availableEmployees, stopCount,
