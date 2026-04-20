@@ -779,8 +779,7 @@ const Planner = () => {
           </div>
         </header>
 
-        {view === "day" ? (
-          <div className="flex-1 overflow-hidden p-3" style={{ height: "calc(100vh - 50px)" }}>
+        <div className="flex-1 overflow-hidden p-3" style={{ height: "calc(100vh - 50px)" }}>
             <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg">
               {/* Sidebar: Opgavepool */}
               <ResizablePanel defaultSize={20} minSize={14} maxSize={36} className="overflow-hidden">
