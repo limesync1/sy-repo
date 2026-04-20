@@ -62,7 +62,7 @@ export const RouteEditSheet = ({
   route, open, onOpenChange, attachedEmployees, availableEmployees, stopCount,
 }: Props) => {
   const [name, setName] = useState("");
-  const [color, setColor] = useState(ROUTE_COLOR_PALETTE[0]);
+  const [color, setColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [date, setDate] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -171,15 +171,8 @@ export const RouteEditSheet = ({
 
             {/* Dato */}
             <div className="space-y-2">
-              <Label htmlFor="route-edit-date" className="flex items-center gap-1.5">
-                <CalendarIcon className="h-3.5 w-3.5" />Dato
-              </Label>
-              <Input
-                id="route-edit-date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
+              <Label>Dato</Label>
+              <DatePickerField value={date} onChange={setDate} />
               <p className="text-[11px] text-muted-foreground">
                 Du kan også trække ruten direkte til en ny dag i kalenderen.
               </p>
