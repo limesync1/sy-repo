@@ -124,6 +124,7 @@ export const RouteEditSheet = ({
       <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
         <SheetContent
           className="w-full sm:max-w-md flex flex-col p-0 shadow-xl"
+          hideOverlay
           onOpenAutoFocus={(e) => e.preventDefault()}
           onPointerDownOutside={(e) => e.preventDefault()}
           onInteractOutside={(e) => e.preventDefault()}
