@@ -895,6 +895,15 @@ const Planner = () => {
           availableEmployees={activeEmployees.map((e: any) => ({ id: e.id, name: e.name }))}
           stopCount={editingRoute ? (calendarStops.filter((s) => s.route_id === editingRoute.id).length) : 0}
         />
+
+        {/* Slide-in: stops på den valgte rute (vises ved siden af rute-redigering) */}
+        <RouteStopsPanel
+          route={editingRoute}
+          open={!!editingRoute}
+          onOpenChange={(o) => !o && setEditingRoute(null)}
+          stops={editingRoute ? calendarStops.filter((s) => s.route_id === editingRoute.id) : []}
+          onSelectStop={(s) => setSelectedStopId(s.id)}
+        />
       </div>
     </DndContext>
   );
