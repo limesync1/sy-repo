@@ -82,8 +82,12 @@ export const RouteStopsPanel = ({ route, stops, open, onOpenChange, onSelectStop
       <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
         <SheetContent
           side="right"
-          className="w-full sm:max-w-sm flex flex-col p-0 sm:right-[28rem]"
+          className="w-full sm:max-w-sm flex flex-col p-0 sm:right-[28rem] shadow-xl"
+          hideOverlay
           // Vis ved siden af RouteEditSheet (som er sm:max-w-md ≈ 28rem bred)
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
         >
           <SheetHeader className="px-4 py-3 border-b shrink-0">
             <SheetTitle className="flex items-center gap-2 text-base">
@@ -92,7 +96,9 @@ export const RouteStopsPanel = ({ route, stops, open, onOpenChange, onSelectStop
                 style={{ background: route.color }}
               />
               Stops på ruten
-              <Badge variant="secondary" className="ml-auto tabular-nums">{items.length}</Badge>
+              <span className="ml-auto inline-flex items-center justify-center rounded-md bg-secondary text-secondary-foreground px-2 py-0.5 text-xs font-semibold tabular-nums">
+                {items.length}
+              </span>
             </SheetTitle>
             <SheetDescription className="text-xs">
               Træk for at omrangere · Klik for detaljer

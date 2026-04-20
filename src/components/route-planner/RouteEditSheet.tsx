@@ -121,8 +121,14 @@ export const RouteEditSheet = ({
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="w-full sm:max-w-md flex flex-col p-0">
+      <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
+        <SheetContent
+          className="w-full sm:max-w-md flex flex-col p-0 shadow-xl"
+          hideOverlay
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <SheetHeader className="px-5 py-4 border-b shrink-0">
             <SheetTitle className="flex items-center gap-2">
               <span
