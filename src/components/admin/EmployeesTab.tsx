@@ -286,6 +286,8 @@ const EmployeeRow = ({
   const [editTitle, setEditTitle] = useState(employee.title || "");
   const resetPw = useResetEmployeePassword();
   const fallbackColor = employee.color || "#64748b";
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
