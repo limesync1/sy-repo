@@ -4,7 +4,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -15,7 +17,9 @@ import {
 import {
   MapPin, Phone, Mail, Clock, Trash2, Save,
   AlertCircle, Calendar as CalendarIcon, Banknote, FileText, Repeat, PauseCircle, Hash,
+  Timer, Hourglass,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -404,96 +408,42 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               )}
 
               {/* Planning */}
-              <section>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Planlægning</h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Tidsrum for besøget</label>
-                    <Select
-                      value={timeSlot || "none"}
-                      onValueChange={(v) => setTimeSlot(v === "none" ? "" : v)}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Vælg tidsrum" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Intet tidsrum</SelectItem>
-                        <SelectItem value="06:00-08:00">06–08 · Tidlig morgen</SelectItem>
-                        <SelectItem value="08:00-12:00">08–12 · Formiddag</SelectItem>
-                        <SelectItem value="12:00-16:00">12–16 · Eftermiddag</SelectItem>
-                        <SelectItem value="16:00-20:00">16–20 · Aften</SelectItem>
-                        <SelectItem value="08:00-16:00">08–16 · Hele dagen</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Estimeret varighed</label>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 flex items-center gap-1.5">
-                        <Input
-                          type="number"
-                          min={0}
-                          max={23}
-                          value={durationHours}
-                          onChange={(e) => setDurationHours(Math.max(0, Number(e.target.value) || 0))}
-                          className="h-9"
-                          aria-label="Timer"
-                        />
-                        <span className="text-xs text-muted-foreground">timer</span>
-                      </div>
-                      <div className="flex-1 flex items-center gap-1.5">
-                        <Input
-                          type="number"
-                          min={0}
-                          max={59}
-                          step={5}
-                          value={durationMinutes}
-                          onChange={(e) => setDurationMinutes(Math.max(0, Math.min(59, Number(e.target.value) || 0)))}
-                          className="h-9"
-                          aria-label="Minutter"
-                        />
-                        <span className="text-xs text-muted-foreground">min</span>
-                      </div>
-                    </div>
-                  </div>
-                  {stop.planned_arrival && (
-                    <div className="text-xs text-muted-foreground flex items-center gap-1.5 px-1">
-                      <Clock className="h-3 w-3" />
-                      Planlagt ankomst: <strong className="text-foreground">{format(parseISO(stop.planned_arrival), "HH:mm")}</strong>
-                      {stop.distance_to_next_km != null && stop.distance_to_next_km > 0 && (
-                        <span className="ml-auto">→ næste: {stop.distance_to_next_km.toFixed(1)} km</span>
-                      )}
-                    </div>
-                  )}
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Intern note (synlig for medarbejderen)</label>
-                    <Textarea
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      rows={3}
-                      placeholder="Fx 'Brug bagindgangen', 'Hund i haven'..."
-                    />
-                  </div>
-                </div>
-              </section>
+              <PlanningSection
+                timeSlot={timeSlot}
+                setTimeSlot={setTimeSlot}
+                durationHours={durationHours}
+                setDurationHours={setDurationHours}
+                durationMinutes={durationMinutes}
+                setDurationMinutes={setDurationMinutes}
+                notes={notes}
+                setNotes={setNotes}
+                plannedArrival={stop.planned_arrival}
+                distanceToNextKm={stop.distance_to_next_km}
+              />
 
               {isLoading && <p className="text-xs text-muted-foreground italic">Indlæser ordredetaljer...</p>}
             </div>
           </ScrollArea>
 
-          {/* Footer actions */}
-          <div className="border-t px-5 py-3 flex items-center gap-2 shrink-0 bg-background">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setConfirmDelete(true)}
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-            >
-              <Trash2 className="h-4 w-4 mr-1" />Fjern
-            </Button>
-            <Button onClick={handleSave} className="ml-auto gap-1.5" disabled={updateStop.isPending}>
-              <Save className="h-4 w-4" />Gem
-            </Button>
+          {/* Footer actions — match RouteEditSheet stil */}
+          <div className="border-t p-4 shrink-0 bg-card">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={() => setConfirmDelete(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-1.5" />Fjern
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleSave}
+                disabled={updateStop.isPending}
+              >
+                <Save className="h-4 w-4 mr-1.5" />
+                Gem
+              </Button>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
@@ -519,5 +469,254 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
         </AlertDialogContent>
       </AlertDialog>
     </>
+  );
+};
+
+/* ────────────────────────────────────────────
+   PlanningSection — matcher RouteEditSheet/DatePickerField design:
+   popover-knapper med ikon, label-mønster, kort hint-tekst.
+   ──────────────────────────────────────────── */
+
+const TIME_SLOTS: { value: string; short: string; label: string }[] = [
+  { value: "06:00-08:00", short: "06–08", label: "Tidlig morgen" },
+  { value: "08:00-12:00", short: "08–12", label: "Formiddag" },
+  { value: "12:00-16:00", short: "12–16", label: "Eftermiddag" },
+  { value: "16:00-20:00", short: "16–20", label: "Aften" },
+  { value: "08:00-16:00", short: "08–16", label: "Hele dagen" },
+];
+
+const DURATION_PRESETS: { hours: number; minutes: number; label: string }[] = [
+  { hours: 0, minutes: 15, label: "15 min" },
+  { hours: 0, minutes: 30, label: "30 min" },
+  { hours: 0, minutes: 45, label: "45 min" },
+  { hours: 1, minutes: 0, label: "1 time" },
+  { hours: 1, minutes: 30, label: "1½ time" },
+  { hours: 2, minutes: 0, label: "2 timer" },
+  { hours: 3, minutes: 0, label: "3 timer" },
+  { hours: 4, minutes: 0, label: "4 timer" },
+];
+
+type PlanningProps = {
+  timeSlot: string;
+  setTimeSlot: (v: string) => void;
+  durationHours: number;
+  setDurationHours: (n: number) => void;
+  durationMinutes: number;
+  setDurationMinutes: (n: number) => void;
+  notes: string;
+  setNotes: (v: string) => void;
+  plannedArrival: string | null | undefined;
+  distanceToNextKm: number | null | undefined;
+};
+
+const PlanningSection = ({
+  timeSlot, setTimeSlot,
+  durationHours, setDurationHours,
+  durationMinutes, setDurationMinutes,
+  notes, setNotes,
+  plannedArrival, distanceToNextKm,
+}: PlanningProps) => {
+  const [slotOpen, setSlotOpen] = useState(false);
+  const [durOpen, setDurOpen] = useState(false);
+
+  const selectedSlot = TIME_SLOTS.find((s) => s.value === timeSlot);
+  const totalMin = durationHours * 60 + durationMinutes;
+  const durationLabel = totalMin === 0
+    ? "Vælg varighed"
+    : durationHours === 0
+      ? `${durationMinutes} min`
+      : durationMinutes === 0
+        ? `${durationHours} ${durationHours === 1 ? "time" : "timer"}`
+        : `${durationHours} t ${durationMinutes} min`;
+
+  return (
+    <section>
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+        Planlægning
+      </h3>
+      <div className="space-y-4">
+        {/* Tidsrum */}
+        <div className="space-y-2">
+          <Label>Tidsrum</Label>
+          <Popover open={slotOpen} onOpenChange={setSlotOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal h-9 bg-background",
+                  "hover:bg-accent/10 hover:text-foreground hover:border-accent/40",
+                  !selectedSlot && "text-muted-foreground",
+                )}
+              >
+                <Clock className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
+                {selectedSlot ? (
+                  <span>
+                    <span className="font-medium tabular-nums">{selectedSlot.short}</span>
+                    <span className="text-muted-foreground ml-2">· {selectedSlot.label}</span>
+                  </span>
+                ) : (
+                  <span>Vælg tidsrum</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[280px] p-2" align="start">
+              <div className="space-y-1">
+                {TIME_SLOTS.map((s) => {
+                  const active = s.value === timeSlot;
+                  return (
+                    <button
+                      key={s.value}
+                      type="button"
+                      onClick={() => { setTimeSlot(s.value); setSlotOpen(false); }}
+                      className={cn(
+                        "w-full flex items-center gap-3 rounded-md px-2.5 py-1.5 text-sm text-left transition-colors",
+                        active
+                          ? "bg-accent/15 text-foreground"
+                          : "hover:bg-accent/10",
+                      )}
+                    >
+                      <span className="font-semibold tabular-nums w-12 text-foreground">{s.short}</span>
+                      <span className="text-muted-foreground flex-1">{s.label}</span>
+                    </button>
+                  );
+                })}
+                {timeSlot && (
+                  <>
+                    <div className="border-t my-1" />
+                    <button
+                      type="button"
+                      onClick={() => { setTimeSlot(""); setSlotOpen(false); }}
+                      className="w-full text-left rounded-md px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-accent/10"
+                    >
+                      Ryd tidsrum
+                    </button>
+                  </>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
+          <p className="text-[11px] text-muted-foreground">
+            Hvornår på dagen besøget skal udføres.
+          </p>
+        </div>
+
+        {/* Varighed */}
+        <div className="space-y-2">
+          <Label>Estimeret varighed</Label>
+          <Popover open={durOpen} onOpenChange={setDurOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal h-9 bg-background",
+                  "hover:bg-accent/10 hover:text-foreground hover:border-accent/40",
+                  totalMin === 0 && "text-muted-foreground",
+                )}
+              >
+                <Hourglass className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
+                <span className="font-medium">{durationLabel}</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[280px] p-3" align="start">
+              {/* Presets */}
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 font-semibold">
+                Hurtigvalg
+              </p>
+              <div className="grid grid-cols-4 gap-1.5 mb-3">
+                {DURATION_PRESETS.map((p) => {
+                  const active = p.hours === durationHours && p.minutes === durationMinutes;
+                  return (
+                    <button
+                      key={p.label}
+                      type="button"
+                      onClick={() => {
+                        setDurationHours(p.hours);
+                        setDurationMinutes(p.minutes);
+                      }}
+                      className={cn(
+                        "h-8 rounded-md text-xs font-medium border transition-colors",
+                        active
+                          ? "bg-foreground text-background border-foreground"
+                          : "bg-background hover:bg-accent/10 hover:border-accent/40",
+                      )}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {/* Brugerdefineret */}
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 font-semibold">
+                Brugerdefineret
+              </p>
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={23}
+                    value={durationHours}
+                    onChange={(e) => setDurationHours(Math.max(0, Math.min(23, Number(e.target.value) || 0)))}
+                    className="h-9 text-center tabular-nums"
+                    aria-label="Timer"
+                  />
+                  <p className="text-[10px] text-center text-muted-foreground mt-1">timer</p>
+                </div>
+                <span className="text-muted-foreground pb-5">:</span>
+                <div className="flex-1">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={59}
+                    step={5}
+                    value={durationMinutes}
+                    onChange={(e) => setDurationMinutes(Math.max(0, Math.min(59, Number(e.target.value) || 0)))}
+                    className="h-9 text-center tabular-nums"
+                    aria-label="Minutter"
+                  />
+                  <p className="text-[10px] text-center text-muted-foreground mt-1">min</p>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+          <p className="text-[11px] text-muted-foreground">
+            Bruges til at beregne ankomsttider for resten af ruten.
+          </p>
+        </div>
+
+        {/* Planlagt ankomst (read-only info-strip) */}
+        {plannedArrival && (
+          <div className="rounded-md bg-secondary/50 border px-3 py-2 text-xs flex items-center gap-2">
+            <Timer className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <span className="text-muted-foreground">Planlagt ankomst:</span>
+            <strong className="text-foreground tabular-nums">
+              {format(parseISO(plannedArrival), "HH:mm")}
+            </strong>
+            {distanceToNextKm != null && distanceToNextKm > 0 && (
+              <span className="ml-auto text-muted-foreground tabular-nums">
+                → næste: {distanceToNextKm.toFixed(1)} km
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Note */}
+        <div className="space-y-2">
+          <Label>Intern note</Label>
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
+            placeholder="Fx 'Brug bagindgangen', 'Hund i haven'..."
+            className="resize-none"
+          />
+          <p className="text-[11px] text-muted-foreground">
+            Synlig for medarbejderen i medarbejder-appen.
+          </p>
+        </div>
+      </div>
+    </section>
   );
 };
