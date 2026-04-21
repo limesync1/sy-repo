@@ -121,48 +121,35 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent className="sm:max-w-lg w-full p-0 flex flex-col">
-          <SheetHeader className="px-5 py-4 border-b shrink-0">
-            <div className="flex items-start gap-3">
-              {sequenceLabel && (
-                <span
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-white text-sm font-bold shrink-0"
-                  style={{ background: routeColor || "hsl(var(--primary))" }}
-                >
-                  {sequenceLabel}
-                </span>
-              )}
-              <div className="flex-1 min-w-0">
-                <SheetTitle className="text-left text-base">{stop.customer_name || "Stop"}</SheetTitle>
-                <SheetDescription className="text-left text-xs">
+          <SheetHeader className="px-5 py-4 border-b shrink-0 space-y-0">
+            <SheetHeaderBlock
+              accent={routeColor}
+              badge={sequenceLabel ?? <MapPin className="h-4 w-4" />}
+              title={<SheetTitle className="text-base">{stop.customer_name || "Stop"}</SheetTitle>}
+              description={
+                <SheetDescription className="text-xs">
                   {business?.name ? <>Bestilling hos <strong>{business.name}</strong></> : "Detaljer for dette stop"}
                 </SheetDescription>
-                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                  {statusBadge()}
-                  {pausedSub && (
-                    <span>
-                      <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
-                        <PauseCircle className="h-2.5 w-2.5" />Abonnement på pause
-                      </Badge>
-                    </span>
-                  )}
-                  {recurringInterval && recurringInterval !== "engangskøb" && (
-                    <span>
-                      <Badge variant="secondary" className="gap-1 text-[10px]">
-                        <Repeat className="h-2.5 w-2.5" />
-                        {INTERVAL_LABELS[recurringInterval] || recurringInterval}
-                      </Badge>
-                    </span>
-                  )}
-                  {!hasCoords && (
-                    <span>
-                      <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
-                        <AlertCircle className="h-2.5 w-2.5" />Mangler GPS
-                      </Badge>
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
+              }
+            >
+              {statusBadge()}
+              {pausedSub && (
+                <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
+                  <PauseCircle className="h-2.5 w-2.5" />Abonnement på pause
+                </Badge>
+              )}
+              {recurringInterval && recurringInterval !== "engangskøb" && (
+                <Badge variant="secondary" className="gap-1 text-[10px]">
+                  <Repeat className="h-2.5 w-2.5" />
+                  {INTERVAL_LABELS[recurringInterval] || recurringInterval}
+                </Badge>
+              )}
+              {!hasCoords && (
+                <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
+                  <AlertCircle className="h-2.5 w-2.5" />Mangler GPS
+                </Badge>
+              )}
+            </SheetHeaderBlock>
           </SheetHeader>
 
           <ScrollArea className="flex-1">
