@@ -72,6 +72,7 @@ const Planner = () => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "price" | "name">("date");
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
+  const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
   const [geocoding, setGeocoding] = useState(false);
@@ -197,12 +198,12 @@ const Planner = () => {
       arr.push(s);
       stopsByRoute.set(s.route_id, arr);
     }
-    const empByRoute = new Map<string, { id: string; name: string }[]>();
+    const empByRoute = new Map<string, { id: string; name: string; avatar_url?: string | null; color?: string | null }[]>();
     for (const link of calendarRouteLinks) {
       const emp = activeEmployees.find((e: any) => e.id === link.employee_id);
       if (!emp) continue;
       const arr = empByRoute.get(link.route_id) || [];
-      arr.push({ id: emp.id, name: emp.name });
+      arr.push({ id: emp.id, name: emp.name, avatar_url: (emp as any).avatar_url, color: (emp as any).color });
       empByRoute.set(link.route_id, arr);
     }
     return calendarRoutesRaw.map((r) => {
@@ -791,7 +792,11 @@ const Planner = () => {
                       </div>
                     )}
                     {filteredUnassigned.map((job: any) => (
-                      <UnassignedJobCard key={job.id} job={job} />
+                      <UnassignedJobCard
+                        key={job.id}
+                        job={job}
+                        onClick={() => setSelectedJob(job)}
+                      />
                     ))}
                   </div>
                 </Card>
@@ -884,6 +889,48 @@ const Planner = () => {
           stop={calendarStops.find((s) => s.id === selectedStopId) || null}
           open={!!selectedStopId}
           onOpenChange={(o) => !o && setSelectedStopId(null)}
+        />
+
+        {/* Klik på en opgave i opgavepoolen åbner samme detalje-sheet i read-only */}
+        <StopDetailSheet
+          readOnly
+          stop={
+            selectedJob
+              ? ({
+                  id: `job-${selectedJob.id}`,
+                  route_id: "",
+                  order_id: selectedJob.id,
+                  subscription_id: null,
+                  sequence: 0,
+                  status: "pending",
+                  customer_name: selectedJob.customer_name,
+                  customer_phone: selectedJob.customer_phone,
+                  address: [
+                    selectedJob.address,
+                    [selectedJob.zip_code, selectedJob.city].filter(Boolean).join(" "),
+                  ].filter(Boolean).join(", "),
+                  latitude: selectedJob.latitude,
+                  longitude: selectedJob.longitude,
+                  duration_minutes: Number(selectedJob.estimated_duration_minutes) || 30,
+                  time_window_start: selectedJob.preferred_time_start,
+                  time_window_end: selectedJob.preferred_time_end,
+                  notes: selectedJob.notes,
+                  service_summary: null,
+                  planned_arrival: null,
+                  planned_departure: null,
+                  distance_to_next_km: null,
+                  travel_time_to_next_min: null,
+                  required_staff: 1,
+                  assigned_employee_id: null,
+                  completed_at: null,
+                  photo_urls: [],
+                  created_at: "",
+                  updated_at: "",
+                } as any)
+              : null
+          }
+          open={!!selectedJob}
+          onOpenChange={(o) => !o && setSelectedJob(null)}
         />
 
         <RouteEditSheet

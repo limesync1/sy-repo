@@ -31,9 +31,11 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   routeColor?: string;
   sequenceLabel?: number;
+  /** Når true vises kun read-only view (bruges når man åbner en opgave fra opgavepoolen). */
+  readOnly?: boolean;
 };
 
-export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequenceLabel }: Props) => {
+export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequenceLabel, readOnly }: Props) => {
   const { data: order, isLoading } = useOrderForStop(stop?.order_id);
   const updateStop = useUpdateStop();
   const deleteStop = useDeleteStop();
@@ -152,13 +154,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
           </SheetHeader>
 
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-secondary/20">
-              {/* Quick action */}
-              {stop.customer_phone && (
-                <Button asChild variant="outline" className="w-full gap-1.5 h-9 bg-background">
-                  <a href={`tel:${stop.customer_phone}`}><Phone className="h-4 w-4" />Ring til kunde</a>
-                </Button>
-              )}
-
               {/* Customer */}
               <Section icon={<User className="h-3.5 w-3.5" />} title="Kunde">
                 <div className="space-y-1.5 text-sm">
@@ -369,29 +364,32 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               )}
 
               {/* Planning */}
-              <Section
-                icon={<CalendarClock className="h-3.5 w-3.5" />}
-                title="Planlægning"
-                hint="Tidsrum, varighed & note"
-              >
-                <PlanningSection
-                  timeSlot={timeSlot}
-                  setTimeSlot={setTimeSlot}
-                  durationHours={durationHours}
-                  setDurationHours={setDurationHours}
-                  durationMinutes={durationMinutes}
-                  setDurationMinutes={setDurationMinutes}
-                  notes={notes}
-                  setNotes={setNotes}
-                  plannedArrival={stop.planned_arrival}
-                  distanceToNextKm={stop.distance_to_next_km}
-                />
-              </Section>
+              {!readOnly && (
+                <Section
+                  icon={<CalendarClock className="h-3.5 w-3.5" />}
+                  title="Planlægning"
+                  hint="Tidsrum, varighed & note"
+                >
+                  <PlanningSection
+                    timeSlot={timeSlot}
+                    setTimeSlot={setTimeSlot}
+                    durationHours={durationHours}
+                    setDurationHours={setDurationHours}
+                    durationMinutes={durationMinutes}
+                    setDurationMinutes={setDurationMinutes}
+                    notes={notes}
+                    setNotes={setNotes}
+                    plannedArrival={stop.planned_arrival}
+                    distanceToNextKm={stop.distance_to_next_km}
+                  />
+                </Section>
+              )}
 
               {isLoading && <p className="text-xs text-muted-foreground italic">Indlæser ordredetaljer...</p>}
           </div>
 
           {/* Footer actions */}
+          {!readOnly && (
           <SheetFooterBar>
             <div className="flex gap-2">
               <Button
@@ -411,6 +409,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               </Button>
             </div>
           </SheetFooterBar>
+          )}
         </SheetContent>
       </Sheet>
 

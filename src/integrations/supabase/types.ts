@@ -278,7 +278,9 @@ export type Database = {
       }
       employees: {
         Row: {
+          avatar_url: string | null
           business_id: string
+          color: string
           created_at: string
           email: string
           home_address: string | null
@@ -295,7 +297,9 @@ export type Database = {
           work_start_time: string | null
         }
         Insert: {
+          avatar_url?: string | null
           business_id: string
+          color?: string
           created_at?: string
           email: string
           home_address?: string | null
@@ -312,7 +316,9 @@ export type Database = {
           work_start_time?: string | null
         }
         Update: {
+          avatar_url?: string | null
           business_id?: string
+          color?: string
           created_at?: string
           email?: string
           home_address?: string | null

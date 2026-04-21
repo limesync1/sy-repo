@@ -7,6 +7,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { da } from "date-fns/locale";
+import { formatDurationMin } from "@/lib/duration-format";
 
 type OrderItem = {
   service_name: string;
@@ -34,6 +35,7 @@ type Props = {
     preferred_route_name?: string | null;
     order_items?: OrderItem[] | null;
   };
+  onClick?: () => void;
 };
 
 const INTERVAL_LABELS: Record<string, string> = {
@@ -65,7 +67,7 @@ const getUrgency = (d?: string | null) => {
   return { label: format(date, "d. MMM", { locale: da }), className: "border-border text-muted-foreground bg-secondary/40" };
 };
 
-export const UnassignedJobCard = ({ job }: Props) => {
+export const UnassignedJobCard = ({ job, onClick }: Props) => {
   const [expanded, setExpanded] = useState(false);
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `job-${job.id}`,
@@ -74,8 +76,9 @@ export const UnassignedJobCard = ({ job }: Props) => {
 
   const items = job.order_items || [];
   const itemCount = items.length;
-  const fullAddress = [job.address, [job.zip_code, job.city].filter(Boolean).join(" ")]
-    .filter(Boolean).join(", ");
+  // Vis hele adressen: gade, postnummer og by samlet
+  const cityLine = [job.zip_code, job.city].filter(Boolean).join(" ");
+  const fullAddress = [job.address, cityLine].filter(Boolean).join(", ");
 
   // Foretrukken kilde til varighed: eksplicit estimeret felt fra ordren.
   // Falder tilbage til tidsvindue, derefter 30 min default.
@@ -97,14 +100,23 @@ export const UnassignedJobCard = ({ job }: Props) => {
       style={{ opacity: isDragging ? 0.4 : 1 }}
       className="group rounded-lg border bg-card hover:border-primary/60 hover:shadow-md transition-all overflow-hidden"
     >
-      {/* Drag handle row */}
-      <div
-        {...listeners}
-        {...attributes}
-        className="flex items-start gap-2 p-2.5 cursor-grab active:cursor-grabbing"
-      >
-        <GripVertical className="h-4 w-4 text-muted-foreground/50 mt-0.5 shrink-0 group-hover:text-primary/70 transition-colors" />
-        <div className="flex-1 min-w-0 space-y-1.5">
+      {/* Top row: drag handle + clickable content */}
+      <div className="flex items-start gap-2 p-2.5">
+        {/* Kun grip-håndtaget initierer drag — så kortet selv kan klikkes */}
+        <button
+          type="button"
+          {...listeners}
+          {...attributes}
+          aria-label="Træk for at flytte"
+          className="shrink-0 mt-0.5 text-muted-foreground/50 hover:text-primary/70 cursor-grab active:cursor-grabbing"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onClick}
+          className="flex-1 min-w-0 space-y-1.5 text-left cursor-pointer"
+        >
           {/* Header: name + price */}
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-1.5 min-w-0 flex-1">
@@ -169,7 +181,7 @@ export const UnassignedJobCard = ({ job }: Props) => {
             )}
             <Badge variant="secondary" className="h-4 text-[10px] px-1.5 gap-0.5">
               <Hourglass className="h-2.5 w-2.5" />
-              ~{estimatedMin}m
+              ~{formatDurationMin(estimatedMin, { short: true })}
             </Badge>
             {job.preferred_route_name && (
               <Badge variant="outline" className="h-4 text-[10px] px-1.5 gap-0.5 border-accent/40 text-accent bg-accent/5">
@@ -178,7 +190,7 @@ export const UnassignedJobCard = ({ job }: Props) => {
               </Badge>
             )}
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Expandable details */}

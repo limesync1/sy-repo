@@ -142,8 +142,6 @@ export const RouteEditSheet = ({
           className="w-full sm:max-w-md flex flex-col p-0 shadow-xl"
           hideOverlay
           onOpenAutoFocus={(e) => e.preventDefault()}
-          onPointerDownOutside={(e) => e.preventDefault()}
-          onInteractOutside={(e) => e.preventDefault()}
         >
           <SheetHeader className="px-5 py-4 border-b shrink-0 space-y-0">
             <SheetHeaderBlock
