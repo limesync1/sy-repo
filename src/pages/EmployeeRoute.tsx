@@ -539,16 +539,34 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           </MapContainer>
         )}
 
-        {/* Bottom action card */}
+        {/* Floating recenter / follow toggle — only when route is started */}
+        {routeStarted && !allDone && (
+          <div className="absolute right-3 z-10" style={{ bottom: collapsed ? "5.5rem" : "16rem" }}>
+            <Button
+              size="icon"
+              variant={followMode ? "default" : "secondary"}
+              onClick={() => setFollowMode((v) => !v)}
+              className="h-11 w-11 rounded-full shadow-lg"
+              aria-label={followMode ? "Slå live-følg fra" : "Slå live-følg til"}
+              title={followMode ? "Følger din position" : "Fri udforskning"}
+            >
+              <Crosshair className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
+
+        {/* Bottom card — matches RoutePlanner card aesthetics */}
         {allDone ? (
-          <div className="absolute bottom-0 inset-x-0 z-10 p-4 bg-background border-t shadow-2xl">
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="h-10 w-10 text-primary shrink-0" />
+          <div className="absolute bottom-0 inset-x-0 z-10 p-3">
+            <div className="rounded-2xl bg-background border border-border shadow-2xl p-4 flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500/15 text-green-600 shrink-0">
+                <CheckCircle2 className="h-7 w-7" />
+              </span>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-base">Rute færdig! 🎉</p>
+                <p className="font-semibold text-base">Rute færdig 🎉</p>
                 <p className="text-xs text-muted-foreground">
-                  Alle stop udført
-                  {autoReturn != null && autoReturn > 0 && ` · sender dig til oversigt om ${autoReturn}s`}
+                  Alle {sortedStops.length} stop udført
+                  {autoReturn != null && autoReturn > 0 && ` · oversigt om ${autoReturn}s`}
                 </p>
               </div>
               <Button
@@ -561,103 +579,118 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             </div>
           </div>
         ) : nextStop && (
-          <div className="absolute bottom-0 inset-x-0 z-10 bg-background border-t shadow-2xl">
-            <button
-              type="button"
-              className="w-full flex items-center gap-2 px-4 py-2 border-b text-xs text-muted-foreground hover:bg-muted/50"
-              onClick={() => setCollapsed((c) => !c)}
-            >
-              {collapsed ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-              <span className="flex-1 text-left">
-                Næste stop {nextStopIdx + 1} af {sortedStops.length}
-                {isAtNextStop && <span className="ml-2 text-primary font-semibold">· Du er fremme</span>}
-              </span>
-              {directions && (
-                <span className="font-medium">
-                  {formatKm(directions.distance_m)} · {formatMin(directions.duration_s)}
-                  {etaLabel && <span className="ml-1 text-primary">→ {etaLabel}</span>}
+          <div className="absolute bottom-0 inset-x-0 z-10 p-3 pointer-events-none">
+            <div className="rounded-2xl bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto">
+              {/* Header strip — clickable to collapse */}
+              <button
+                type="button"
+                className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-muted/40 transition-colors border-b"
+                onClick={() => setCollapsed((c) => !c)}
+              >
+                <span
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-background text-xs font-bold shrink-0"
+                  style={{ background: route.color || "hsl(184 90% 42%)" }}
+                >
+                  {nextStopIdx + 1}
                 </span>
-              )}
-            </button>
-
-            {!collapsed && (
-              <div className="p-4 space-y-3">
-                {!routeStarted && (
-                  <Button onClick={handleStartRoute} size="lg" className="w-full gap-2">
-                    <Play className="h-5 w-5" /> Start rute
-                  </Button>
-                )}
-                {routeStarted && (
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button onClick={() => setFollowMode(true)} variant={followMode ? "default" : "outline"} size="sm">
-                      Følg live
-                    </Button>
-                    <Button onClick={() => setFollowMode(false)} variant={!followMode ? "default" : "outline"} size="sm">
-                      Fri udforskning
-                    </Button>
-                  </div>
-                )}
-                <div className="flex items-start gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm shrink-0">
-                    {nextStopIdx + 1}
+                <span className="flex-1 text-left text-sm">
+                  <span className="font-semibold">Næste stop</span>
+                  <span className="text-muted-foreground"> · {nextStopIdx + 1} af {sortedStops.length}</span>
+                  {isAtNextStop && (
+                    <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-semibold text-green-600">
+                      <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                      Fremme
+                    </span>
+                  )}
+                </span>
+                {directions && (
+                  <span className="text-xs font-medium tabular-nums text-muted-foreground hidden sm:inline">
+                    {formatKm(directions.distance_m)} · {formatMin(directions.duration_s)}
                   </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold truncate">{nextStop.customer_name || "Stop"}</p>
+                )}
+                {collapsed ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+              </button>
+
+              {!collapsed && (
+                <div className="p-4 space-y-3">
+                  {!routeStarted ? (
+                    <Button onClick={handleStartRoute} size="lg" className="w-full gap-2 h-14 text-base">
+                      <Play className="h-5 w-5" /> Start rute
+                    </Button>
+                  ) : null}
+
+                  {/* Customer card */}
+                  <div className="rounded-xl border bg-muted/30 p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-semibold text-base truncate flex-1">{nextStop.customer_name || "Stop"}</p>
+                      {distanceToNextM != null && (
+                        <Badge variant="secondary" className="shrink-0 tabular-nums">
+                          {distanceToNextM < 1000 ? `${Math.round(distanceToNextM)} m` : `${(distanceToNextM/1000).toFixed(1)} km`}
+                        </Badge>
+                      )}
+                    </div>
                     {nextStop.address && (
-                      <p className="text-sm text-muted-foreground flex items-start gap-1 mt-0.5">
+                      <p className="text-sm text-muted-foreground flex items-start gap-1 mt-1">
                         <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                         <span className="truncate">{nextStop.address}</span>
                       </p>
                     )}
                     {nextStop.service_summary && stripPrices(nextStop.service_summary) && (
-                      <p className="text-sm mt-1 line-clamp-2">{stripPrices(nextStop.service_summary)}</p>
+                      <p className="text-sm mt-2 line-clamp-2">{stripPrices(nextStop.service_summary)}</p>
                     )}
-                    {distanceToNextM != null && (
-                      <p className="text-[11px] text-muted-foreground mt-1 tabular-nums">
-                        {distanceToNextM < 1000 ? `${Math.round(distanceToNextM)} m` : `${(distanceToNextM/1000).toFixed(1)} km`} til stoppet
-                      </p>
-                    )}
-                    {etaLabel && (
-                      <p className="text-[11px] text-primary mt-1 tabular-nums">
-                        Forventet ankomst {etaLabel}
-                      </p>
+                    {(directions || etaLabel) && (
+                      <div className="flex items-center gap-3 mt-2 pt-2 border-t text-[11px] tabular-nums">
+                        {directions && (
+                          <span className="text-muted-foreground">
+                            <Clock className="inline h-3 w-3 mr-1" />
+                            {formatMin(directions.duration_s)}
+                          </span>
+                        )}
+                        {etaLabel && (
+                          <span className="font-medium" style={{ color: route.color || "hsl(184 90% 42%)" }}>
+                            Ankomst {etaLabel}
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
-                </div>
 
-                <div className="grid grid-cols-3 gap-2">
-                  <Button onClick={() => handleNavigate(nextStop)} variant="outline" size="sm" className="gap-1">
-                    <Navigation className="h-4 w-4" /> Naviger
-                  </Button>
-                  {nextStop.customer_phone ? (
-                    <Button asChild variant="outline" size="sm" className="gap-1">
-                      <a href={`tel:${nextStop.customer_phone}`}><Phone className="h-4 w-4" /> Ring</a>
+                  {/* Quick actions */}
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button onClick={() => handleNavigate(nextStop)} variant="outline" size="sm" className="gap-1 h-10">
+                      <Navigation className="h-4 w-4" /> Naviger
                     </Button>
-                  ) : (
-                    <Button variant="outline" size="sm" disabled className="gap-1">
-                      <Phone className="h-4 w-4" /> Ring
+                    {nextStop.customer_phone ? (
+                      <Button asChild variant="outline" size="sm" className="gap-1 h-10">
+                        <a href={`tel:${nextStop.customer_phone}`}><Phone className="h-4 w-4" /> Ring</a>
+                      </Button>
+                    ) : (
+                      <Button variant="outline" size="sm" disabled className="gap-1 h-10">
+                        <Phone className="h-4 w-4" /> Ring
+                      </Button>
+                    )}
+                    <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" size="sm" className="h-10">
+                      Detaljer
                     </Button>
-                  )}
-                  <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" size="sm">
-                    Detaljer
+                  </div>
+
+                  {/* Big complete CTA */}
+                  <Button
+                    onClick={() => handleComplete(nextStop)}
+                    size="lg"
+                    className={`w-full gap-2 h-14 text-base font-semibold ${isAtNextStop ? "ring-4 ring-primary/40 animate-pulse" : ""}`}
+                    disabled={updateStatus.isPending}
+                  >
+                    {updateStatus.isPending ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="h-6 w-6" />
+                    )}
+                    {isAtNextStop ? "Du er fremme — markér udført" : "Markér som udført"}
                   </Button>
                 </div>
-
-                <Button
-                  onClick={() => handleComplete(nextStop)}
-                  size="lg"
-                  className={`w-full gap-2 h-14 text-base ${isAtNextStop ? "ring-4 ring-primary/50 animate-pulse" : ""}`}
-                  disabled={updateStatus.isPending}
-                >
-                  {updateStatus.isPending ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <CheckCircle2 className="h-6 w-6" />
-                  )}
-                  {isAtNextStop ? "Du er fremme — markér udført" : "Markér som udført"}
-                </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
       </div>
