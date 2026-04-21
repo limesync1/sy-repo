@@ -558,7 +558,64 @@ const EmployeeRow = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={confirmReset} onOpenChange={setConfirmReset}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Send nulstillings-email?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Der sendes en email til <strong>{employee.email}</strong> med et link til at vælge en ny adgangskode. Den nuværende adgangskode forbliver aktiv indtil ny er valgt.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annullér</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                resetPw.mutate(
+                  { employee_id: employee.id },
+                  {
+                    onSuccess: ({ emailSent }) =>
+                      toast.success(emailSent ? "Nulstillings-email sendt" : "Link genereret, men email kunne ikke sendes"),
+                    onError: (e: any) => toast.error(e.message || "Kunne ikke sende"),
+                  },
+                );
+              }}
+            >
+              Send email
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Slet {employee.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Medarbejderen og deres login-konto fjernes permanent. Tildelte ruter bevares, men medarbejderen kan ikke længere logge ind. Dette kan ikke fortrydes.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annullér</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onRemove.mutate(
+                  { id: employee.id, business_id: businessId },
+                  {
+                    onSuccess: () => toast.success("Medarbejder slettet"),
+                    onError: (e: any) => toast.error(e.message),
+                  }
+                );
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Slet permanent
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
+    </TooltipProvider>
   );
 };
 
