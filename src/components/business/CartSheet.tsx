@@ -8,10 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2, Loader2, AlertCircle, User, MapPin, ShoppingBag, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Building2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 import { cn } from "@/lib/utils";
+import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
+import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
 
 /** Calculate next service date based on interval, anchored to today. */
 const calculateNextServiceDate = (interval: string): string => {
@@ -48,6 +51,10 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
   const [address, setAddress] = useState("");
   const [zipCode, setZipCode] = useState("");
   const [city, setCity] = useState("");
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [cvr, setCvr] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [geo, setGeo] = useState<{ ok: boolean; display?: string; lat?: number; lng?: number } | null>(null);
@@ -125,6 +132,8 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
             city,
             latitude: coords.lat,
             longitude: coords.lng,
+            cvr: cvr.replace(/\D/g, "") || null,
+            company_name: companyName.trim() || null,
             preferred_date: null,
             preferred_time_start: null,
             preferred_time_end: null,
@@ -245,6 +254,8 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
       setOrderSuccess(false);
       setName(""); setEmail(""); setPhone("");
       setAddress(""); setZipCode(""); setCity("");
+      setLatitude(null); setLongitude(null);
+      setCvr(""); setCompanyName("");
       if (user) {
         navigate("/min-konto");
       } else {
@@ -453,41 +464,71 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                   <h4 className="text-sm font-semibold text-foreground">Service-adresse</h4>
                 </div>
                 <div className="space-y-2.5 pl-9">
-                  <p className="text-xs text-muted-foreground">Adressen hvor servicen skal udføres — bruges til ruteplanlægning.</p>
+                  <p className="text-xs text-muted-foreground">Søg adresse og vælg fra listen — verificeres automatisk.</p>
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Adresse (vej + nr.)</label>
-                    <Input value={address} onChange={(e) => onAddressChange(e.target.value)} placeholder="Hovedgaden 12" className="rounded-lg" />
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Adresse</label>
+                    <AddressAutocomplete
+                      value={{ address, zip_code: zipCode, city, latitude, longitude }}
+                      onChange={(v) => {
+                        setAddress(v.address);
+                        setZipCode(v.zip_code);
+                        setCity(v.city);
+                        setLatitude(v.latitude ?? null);
+                        setLongitude(v.longitude ?? null);
+                        // Sync legacy geo state for handleOrder validation
+                        if (v.latitude && v.longitude) {
+                          setGeo({ ok: true, display: `${v.address}, ${v.zip_code} ${v.city}`, lat: v.latitude, lng: v.longitude });
+                        } else {
+                          setGeo(null);
+                        }
+                      }}
+                    />
                   </div>
-                  <div className="grid grid-cols-[1fr_2fr] gap-2">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground">Postnr.</label>
-                      <Input value={zipCode} onChange={(e) => onZipChange(e.target.value)} placeholder="8600" className="rounded-lg" inputMode="numeric" maxLength={4} />
+                  {(zipCode || city) && (
+                    <div className="grid grid-cols-[1fr_2fr] gap-2">
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-muted-foreground">Postnr.</label>
+                        <Input value={zipCode} onChange={(e) => onZipChange(e.target.value)} placeholder="8600" className="rounded-lg" inputMode="numeric" maxLength={4} />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-muted-foreground">By</label>
+                        <Input value={city} onChange={(e) => onCityChange(e.target.value)} placeholder="Silkeborg" className="rounded-lg" />
+                      </div>
                     </div>
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground">By</label>
-                      <Input value={city} onChange={(e) => onCityChange(e.target.value)} placeholder="Silkeborg" className="rounded-lg" />
-                    </div>
-                  </div>
+                  )}
+                </div>
+              </section>
 
-                  {/* Auto-verify status (no manual button) */}
-                  <div className="min-h-[28px]">
-                    {verifying && (
-                      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground rounded-md bg-secondary px-2 py-1">
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Bekræfter adresse...
-                      </span>
-                    )}
-                    {!verifying && geo?.ok && (
-                      <span className="inline-flex items-center gap-1.5 text-xs text-accent rounded-md bg-accent/10 border border-accent/20 px-2 py-1 max-w-full">
-                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{geo.display}</span>
-                      </span>
-                    )}
-                    {!verifying && geo && !geo.ok && (
-                      <span className="inline-flex items-center gap-1.5 text-xs text-destructive rounded-md bg-destructive/10 border border-destructive/20 px-2 py-1">
-                        <AlertCircle className="h-3.5 w-3.5" /> Kunne ikke finde — tjek stavemåde og postnr.
-                      </span>
-                    )}
+              {/* CVR (valgfrit) — bruges til erhvervskunder */}
+              <section className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
+                    <Building2 className="h-3.5 w-3.5 text-accent" />
                   </div>
+                  <h4 className="text-sm font-semibold text-foreground">Bestiller du som virksomhed? <span className="text-xs font-normal text-muted-foreground">(valgfrit)</span></h4>
+                </div>
+                <div className="space-y-2 pl-9">
+                  <p className="text-xs text-muted-foreground">Indtast CVR-nummer — vi henter automatisk firmaoplysninger.</p>
+                  <CvrLookupField
+                    value={cvr}
+                    onChange={setCvr}
+                    onResult={(r: CvrResult | null) => {
+                      if (!r) return;
+                      setCompanyName(r.name);
+                      if (!name) setName(r.name);
+                      if (r.address) setAddress(r.address);
+                      if (r.zip_code) setZipCode(r.zip_code);
+                      if (r.city) setCity(r.city);
+                      if (r.phone && !phone) setPhone(r.phone);
+                      if (r.email && !email) setEmail(r.email);
+                      setGeo(null); setLatitude(null); setLongitude(null);
+                    }}
+                  />
+                  {(cvr.replace(/\D/g, "").length === 8 || companyName) && (
+                    <p className="text-[11px] text-muted-foreground italic">
+                      ℹ️ Bestillingen markeres som <strong className="text-foreground not-italic">erhvervskunde</strong>.
+                    </p>
+                  )}
                 </div>
               </section>
 

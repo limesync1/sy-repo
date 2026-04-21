@@ -429,6 +429,7 @@ export type Database = {
           business_message: string | null
           business_response: string | null
           city: string | null
+          company_name: string | null
           completed_cycles: number
           created_at: string
           customer_email: string
@@ -436,6 +437,7 @@ export type Database = {
           customer_name: string
           customer_phone: string | null
           customer_response: string | null
+          cvr: string | null
           id: string
           latitude: number | null
           longitude: number | null
@@ -460,6 +462,7 @@ export type Database = {
           business_message?: string | null
           business_response?: string | null
           city?: string | null
+          company_name?: string | null
           completed_cycles?: number
           created_at?: string
           customer_email: string
@@ -467,6 +470,7 @@ export type Database = {
           customer_name: string
           customer_phone?: string | null
           customer_response?: string | null
+          cvr?: string | null
           id?: string
           latitude?: number | null
           longitude?: number | null
@@ -491,6 +495,7 @@ export type Database = {
           business_message?: string | null
           business_response?: string | null
           city?: string | null
+          company_name?: string | null
           completed_cycles?: number
           created_at?: string
           customer_email?: string
@@ -498,6 +503,7 @@ export type Database = {
           customer_name?: string
           customer_phone?: string | null
           customer_response?: string | null
+          cvr?: string | null
           id?: string
           latitude?: number | null
           longitude?: number | null
