@@ -88,8 +88,6 @@ export const RouteStopsPanel = ({ route, stops, open, onOpenChange, onSelectStop
           hideCloseButton
           // Vis ved siden af RouteEditSheet (som er sm:max-w-md ≈ 28rem bred)
           onOpenAutoFocus={(e) => e.preventDefault()}
-          onPointerDownOutside={(e) => e.preventDefault()}
-          onInteractOutside={(e) => e.preventDefault()}
         >
           <SheetHeader className="px-4 py-3 border-b shrink-0">
             <SheetTitle className="flex items-center gap-2 text-base">
