@@ -596,11 +596,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           </div>
         ) : nextStop && (
           <div className="absolute bottom-0 inset-x-0 z-10 p-3 pointer-events-none">
-            <div className="rounded-2xl bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto">
-              {/* Header strip — clickable to collapse */}
+            <Card className="overflow-hidden shadow-2xl pointer-events-auto">
+              {/* Header strip — same look as DayCell header in calendar */}
               <button
                 type="button"
-                className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-muted/40 transition-colors border-b"
+                className="w-full flex items-center gap-2 px-3 py-2 bg-secondary/30 hover:bg-secondary/50 transition-colors border-b"
                 onClick={() => setCollapsed((c) => !c)}
               >
                 <span
@@ -613,30 +613,30 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <span className="font-semibold">Næste stop</span>
                   <span className="text-muted-foreground"> · {nextStopIdx + 1} af {sortedStops.length}</span>
                   {isAtNextStop && (
-                    <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-semibold text-accent">
-                      <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+                    <Badge className="ml-2 bg-accent text-accent-foreground hover:bg-accent">
+                      <span className="h-1.5 w-1.5 rounded-full bg-accent-foreground mr-1 animate-pulse" />
                       Fremme
-                    </span>
+                    </Badge>
                   )}
                 </span>
                 {directions && (
-                  <span className="text-xs font-medium tabular-nums text-muted-foreground hidden sm:inline">
+                  <Badge variant="outline" className="tabular-nums hidden sm:inline-flex">
                     {formatKm(directions.distance_m)} · {formatMin(directions.duration_s)}
-                  </span>
+                  </Badge>
                 )}
                 {collapsed ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
               </button>
 
               {!collapsed && (
-                <div className="p-4 space-y-3">
+                <div className="p-3 space-y-3">
                   {!routeStarted ? (
                     <Button onClick={handleStartRoute} size="lg" className="w-full gap-2 h-14 text-base">
                       <Play className="h-5 w-5" /> Start rute
                     </Button>
                   ) : null}
 
-                  {/* Customer card */}
-                  <div className="rounded-xl border bg-muted/30 p-3">
+                  {/* Customer card — secondary background like calendar pills */}
+                  <div className="rounded-lg bg-secondary/30 border p-3">
                     <div className="flex items-start justify-between gap-2">
                       <p className="font-semibold text-base truncate flex-1">{nextStop.customer_name || "Stop"}</p>
                       {distanceToNextM != null && (
@@ -706,7 +706,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   </Button>
                 </div>
               )}
-            </div>
+            </Card>
           </div>
         )}
       </div>
