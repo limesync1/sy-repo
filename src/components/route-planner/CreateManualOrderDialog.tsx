@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -21,8 +21,8 @@ import { roundPrice, buildPricingSnapshot } from "@/lib/service-pricing";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
-import { Building2 } from "lucide-react";
-import { Section, Field, SheetHeaderBlock } from "./SheetSection";
+import { Building2, BadgeCheck } from "lucide-react";
+import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
 type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string };
@@ -213,7 +213,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
         .eq("id", businessId)
         .maybeSingle();
 
-      await supabase.functions.invoke("send-transactional-email", {
+      const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
         body: {
           templateName: "manual-order-approval",
           recipientEmail: customerEmail.trim().toLowerCase(),
@@ -248,8 +248,13 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
           },
         },
       });
+      if (mailErr) {
+        console.error("Mail send failed:", mailErr);
+        toast.error("Bestilling oprettet, men godkendelsesmailen kunne ikke sendes. Kontakt support.");
+      } else {
+        toast.success("Bestilling oprettet — kunden har modtaget en mail med godkendelseslink");
+      }
 
-      toast.success("Bestilling oprettet — kunden har modtaget en mail med godkendelseslink");
       reset();
       onOpenChange(false);
     } catch (e: any) {
@@ -287,7 +292,25 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
               <Field label="Telefon">
                 <Input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-9" />
               </Field>
+              <Field label="Adresse" hint="Søg — verificeres automatisk via DAWA">
+                <AddressAutocomplete
+                  value={{ address, zip_code: zipCode, city, latitude, longitude }}
+                  onChange={(v) => {
+                    setAddress(v.address);
+                    setZipCode(v.zip_code);
+                    setCity(v.city);
+                    setLatitude(v.latitude ?? null);
+                    setLongitude(v.longitude ?? null);
+                  }}
+                />
+              </Field>
             </div>
+            {(zipCode || city) && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+                <Field label="Postnr."><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-9" /></Field>
+                <div className="sm:col-span-2"><Field label="By"><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-9" /></Field></div>
+              </div>
+            )}
           </Section>
 
           {/* CVR (valgfrit) */}
@@ -308,34 +331,13 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
               }}
             />
             {(cvr.replace(/\D/g, "").length === 8 || companyName) && (
-              <p className="mt-2 text-[11px] text-muted-foreground italic">
-                ℹ️ Bestillingen markeres som <strong className="text-foreground not-italic">erhvervskunde</strong>.
-              </p>
+              <div className="mt-2.5 flex items-center gap-2 rounded-md border border-accent/30 bg-accent/5 px-2.5 py-1.5">
+                <BadgeCheck className="h-3.5 w-3.5 text-accent shrink-0" />
+                <p className="text-[11px] text-foreground">
+                  Bestillingen markeres som <strong>erhvervskunde</strong>.
+                </p>
+              </div>
             )}
-          </Section>
-
-          {/* Adresse — DAWA autocomplete */}
-          <Section icon={<MapPin className="h-3.5 w-3.5" />} title="Adresse" hint="Søg og vælg — verificeres automatisk">
-            <div className="space-y-3">
-              <Field label="Vej, nr. og by">
-                <AddressAutocomplete
-                  value={{ address, zip_code: zipCode, city, latitude, longitude }}
-                  onChange={(v) => {
-                    setAddress(v.address);
-                    setZipCode(v.zip_code);
-                    setCity(v.city);
-                    setLatitude(v.latitude ?? null);
-                    setLongitude(v.longitude ?? null);
-                  }}
-                />
-              </Field>
-              {(zipCode || city) && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <Field label="Postnr."><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-9" /></Field>
-                  <div className="sm:col-span-2"><Field label="By"><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-9" /></Field></div>
-                </div>
-              )}
-            </div>
           </Section>
 
           {/* Foreslået dato */}
@@ -478,20 +480,24 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
           </Section>
         </div>
 
-        {/* Sticky footer med total + CTA */}
-        <DialogFooter className="border-t bg-background px-5 py-3 shrink-0 sm:items-center sm:justify-between gap-2">
-          <div className="flex items-baseline gap-2">
-            <span className="text-[11px] text-muted-foreground uppercase tracking-wide">I alt</span>
-            <span className="text-xl font-bold tabular-nums">{fmt(totalAmount)}</span>
+        {/* Footer — matcher SheetFooterBar i StopDetailSheet/RouteEditSheet */}
+        <SheetFooterBar>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-baseline gap-2">
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">I alt</span>
+              <span className="text-xl font-bold tabular-nums">{fmt(totalAmount)}</span>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+                Annullér
+              </Button>
+              <Button onClick={handleSubmit} disabled={submitting || items.length === 0}>
+                {submitting ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
+                Send til godkendelse
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting} size="sm">Annullér</Button>
-            <Button onClick={handleSubmit} disabled={submitting || items.length === 0} size="sm">
-              {submitting ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
-              Send til godkendelse
-            </Button>
-          </div>
-        </DialogFooter>
+        </SheetFooterBar>
       </DialogContent>
     </Dialog>
   );
