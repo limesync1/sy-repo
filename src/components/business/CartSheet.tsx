@@ -484,7 +484,6 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                   <h4 className="text-sm font-semibold text-foreground">Service-adresse</h4>
                 </div>
                 <div className="space-y-2.5 pl-9">
-                  <p className="text-xs text-muted-foreground">Søg adresse og vælg fra listen — verificeres automatisk.</p>
                   <div>
                     <label className="mb-1 block text-xs font-medium text-muted-foreground">Adresse</label>
                     <AddressAutocomplete
