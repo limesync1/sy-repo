@@ -134,14 +134,14 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
           placeholder={placeholder || "Begynd at skrive adresse…"}
           className={cn(
             "h-9 pr-9 transition-colors",
-            verified && "border-emerald-500 focus-visible:ring-emerald-500/30",
+            verified && "border-accent focus-visible:ring-accent/30",
             invalid && "border-destructive focus-visible:ring-destructive/30",
           )}
           autoComplete="off"
         />
         <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
           {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            : verified ? <Check className="h-3.5 w-3.5 text-emerald-600" />
+            : verified ? <Check className="h-3.5 w-3.5 text-accent" />
             : invalid ? <MapPin className="h-3.5 w-3.5 text-destructive" />
             : <MapPin className="h-3.5 w-3.5" />}
         </span>
