@@ -528,12 +528,32 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Floating right-side controls ─── */}
         <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
+          {routeStarted && !allDone && (
+            <Button
+              size="icon" variant="secondary"
+              onClick={() => setListOpen((v) => !v)}
+              className="h-11 w-11 rounded-full shadow-lg bg-background/95 backdrop-blur"
+              aria-label="Vis liste"
+            >
+              <List className="h-5 w-5" />
+            </Button>
+          )}
+          {routeStarted && !allDone && (
+            <Button
+              size="icon" variant="secondary"
+              onClick={() => setAudioEnabled((v) => !v)}
+              className="h-11 w-11 rounded-full shadow-lg bg-background/95 backdrop-blur"
+              aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
+            >
+              {audioEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+            </Button>
+          )}
           {routeStarted && (
             <Button
               size="icon"
               variant={followMode ? "default" : "secondary"}
               onClick={() => setFollowMode((v) => !v)}
-              className="h-11 w-11 rounded-full shadow-lg"
+              className="h-11 w-11 rounded-full shadow-lg backdrop-blur"
               style={followMode ? { background: themeColor } : undefined}
               aria-label={followMode ? "Slå live-følg fra" : "Slå live-følg til"}
               title={followMode ? "Følger din position" : "Recentrer"}
@@ -542,6 +562,106 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             </Button>
           )}
         </div>
+
+        {/* ─── Fullscreen drive mode: floating top overlays (back pill + maneuver banner + traffic alert) ─── */}
+        {routeStarted && !allDone && (
+          <>
+            {/* Back pill — top-left */}
+            <div className="absolute top-3 left-3 z-[1000] flex items-center gap-2">
+              <Button
+                asChild
+                size="icon"
+                variant="secondary"
+                className="h-11 w-11 rounded-full shadow-lg bg-background/95 backdrop-blur"
+              >
+                <Link to="/medarbejder" aria-label="Tilbage">
+                  <ArrowLeft className="h-5 w-5" />
+                </Link>
+              </Button>
+              <div
+                className="flex items-center gap-2 px-3 h-11 rounded-full text-background text-xs font-semibold shadow-lg backdrop-blur"
+                style={{ background: themeColor }}
+              >
+                <span className="tabular-nums">{completedCount}/{sortedStops.length}</span>
+              </div>
+            </div>
+
+            {/* Maneuver banner — floating top center */}
+            {maneuver && nextStop && (
+              <div className="absolute top-[68px] left-3 right-3 z-[1000] pointer-events-none">
+                <Card className="overflow-hidden shadow-2xl rounded-2xl pointer-events-auto bg-background/98 backdrop-blur border-0">
+                  <div className="flex items-stretch">
+                    <div
+                      className="flex flex-col items-center justify-center w-24 shrink-0 text-background py-3"
+                      style={{ background: themeColor }}
+                    >
+                      <ManeuverIcon
+                        type={maneuver.currentStep.maneuver.type}
+                        modifier={maneuver.currentStep.maneuver.modifier}
+                        className="h-11 w-11"
+                      />
+                      <span className="text-[11px] font-bold tracking-wide mt-1 tabular-nums">
+                        {formatKm(maneuver.distanceToManeuverM)}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0 px-3 py-3">
+                      <p className="font-bold text-base leading-tight truncate">
+                        {maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
+                      </p>
+                      {maneuver.currentStep.name && (
+                        <p className="text-sm text-muted-foreground truncate mt-0.5">
+                          ad <span className="font-semibold text-foreground">{maneuver.currentStep.name}</span>
+                        </p>
+                      )}
+                      {maneuver.nextStep && (
+                        <div className="flex items-center gap-1.5 mt-1.5 pt-1.5 border-t text-[11px] text-muted-foreground">
+                          <span>Derefter:</span>
+                          <ManeuverIcon
+                            type={maneuver.nextStep.maneuver.type}
+                            modifier={maneuver.nextStep.maneuver.modifier}
+                            className="h-3.5 w-3.5"
+                          />
+                          <span className="truncate">
+                            {maneuverLabel(maneuver.nextStep.maneuver.type, maneuver.nextStep.maneuver.modifier)}
+                            {maneuver.nextStep.name && ` · ${maneuver.nextStep.name}`}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            )}
+
+            {/* Traffic / forsinkelse alert — animeret når ETA stiger */}
+            {trafficAlert && (
+              <div className={`absolute ${maneuver ? "top-[200px]" : "top-[68px]"} left-3 right-3 z-[1000] pointer-events-none`}>
+                <div className="pointer-events-auto rounded-xl shadow-2xl overflow-hidden bg-orange-50 border border-orange-300 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="flex items-center gap-2.5 px-3 py-2.5">
+                    <div className="h-9 w-9 rounded-full bg-orange-500 text-white flex items-center justify-center shrink-0 animate-pulse">
+                      <TrafficCone className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-orange-900 leading-tight">
+                        Trafik på ruten
+                      </p>
+                      <p className="text-[11px] text-orange-800 leading-tight mt-0.5">
+                        +{trafficAlert.addedMin} min ekstra ({trafficAlert.deltaPct}% længere)
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setTrafficAlert(null)}
+                      className="text-orange-600 hover:text-orange-900 text-xs font-semibold px-2 py-1 rounded shrink-0"
+                      aria-label="Luk advarsel"
+                    >
+                      OK
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
 
         {/* ─── Pre-start CTA: big start button at the bottom ─── */}
         {!routeStarted && !allDone && nextStop && (
