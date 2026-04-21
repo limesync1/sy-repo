@@ -433,7 +433,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
           <div
             className="flex items-center gap-2 px-3 py-1.5 rounded-full text-background text-xs font-semibold shrink-0 max-w-[55%]"
-            style={{ background: themeColor }}
+            style={{ background: routeBadgeColor }}
           >
             <span className="truncate">{route.name || "Rute"}</span>
             <span className="px-1.5 py-0.5 rounded-full bg-background/25 tabular-nums text-[10px]">
