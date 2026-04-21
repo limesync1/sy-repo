@@ -12,13 +12,13 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Sparkles, Trash2, UserPlus, X, Save, Check } from "lucide-react";
-import { Palette, CalendarDays, Users, Pencil } from "lucide-react";
+import { Loader2, Sparkles, Trash2, Save, Check } from "lucide-react";
+import { Palette, CalendarDays, Pencil } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useUpdateRoute, useDeleteRoute, useOptimizeRoute, useAddRouteEmployee, useRemoveRouteEmployee, type Route } from "@/hooks/useRoutes";
+import { useUpdateRoute, useDeleteRoute, useOptimizeRoute, type Route } from "@/hooks/useRoutes";
 import { DatePickerField } from "./DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 
@@ -28,8 +28,6 @@ type Props = {
   route: Route | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  attachedEmployees: RouteEmployeeOption[];
-  availableEmployees: RouteEmployeeOption[];
   stopCount: number;
 };
 
@@ -74,7 +72,7 @@ export const pickAvailableColor = (usedColors: string[]): string => {
 };
 
 export const RouteEditSheet = ({
-  route, open, onOpenChange, attachedEmployees, availableEmployees, stopCount,
+  route, open, onOpenChange, stopCount,
 }: Props) => {
   const [name, setName] = useState("");
   const [color, setColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
@@ -84,8 +82,6 @@ export const RouteEditSheet = ({
   const updateRoute = useUpdateRoute();
   const deleteRoute = useDeleteRoute();
   const optimize = useOptimizeRoute();
-  const attach = useAddRouteEmployee();
-  const detach = useRemoveRouteEmployee();
 
   useEffect(() => {
     if (!route) return;
@@ -132,8 +128,6 @@ export const RouteEditSheet = ({
       );
     } catch { /* */ }
   };
-
-  const unattached = availableEmployees.filter((e) => !attachedEmployees.find((a) => a.id === e.id));
 
   return (
     <>
