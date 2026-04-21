@@ -1297,7 +1297,7 @@ const StopListPanel = ({
                 } ${isDone ? "opacity-60" : ""}`}
                 style={{
                   borderColor: isNext ? themeColor : undefined,
-                  background: isNext ? `${themeColor}08` : undefined,
+                  background: isNext ? "hsl(184 70% 97%)" : undefined,
                   borderLeftWidth: isNext ? 3 : 1,
                   borderLeftColor: isNext ? themeColor : isDone ? "hsl(142 70% 45%)" : "hsl(220 14% 90%)",
                   ...(isHl ? { ["--tw-ring-color" as any]: themeColor } : {}),
