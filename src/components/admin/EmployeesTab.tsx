@@ -12,6 +12,9 @@ import {
   Mail, Phone, Briefcase, UserPlus, X,
   Trash2, Power, PowerOff, CheckCircle2,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
+import { cn } from "@/lib/utils";
 
 interface Props {
   businessId: string;
@@ -265,21 +268,90 @@ const EmployeeRow = ({
   onUpdate: ReturnType<typeof useUpdateEmployee>;
   onRemove: ReturnType<typeof useDeleteEmployee>;
 }) => {
-  const initials = employee.name
-    .split(" ")
-    .map((n: string) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
   const linked = !!employee.user_id;
+  const [uploading, setUploading] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const fallbackColor = employee.color || "#64748b";
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Kun billedfiler er tilladt");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Billedet må max være 5MB");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `employees/${employee.id}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("business-assets").upload(path, file, {
+        cacheControl: "3600",
+        upsert: true,
+      });
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from("business-assets").getPublicUrl(path);
+      onUpdate.mutate(
+        { id: employee.id, business_id: businessId, avatar_url: publicUrl } as any,
+        { onSuccess: () => toast.success("Profilbillede opdateret") },
+      );
+    } catch (err: any) {
+      toast.error(err.message || "Upload fejlede");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveAvatar = () => {
+    onUpdate.mutate(
+      { id: employee.id, business_id: businessId, avatar_url: null } as any,
+      { onSuccess: () => toast.success("Billede fjernet") },
+    );
+  };
+
+  const handlePickColor = (color: string) => {
+    onUpdate.mutate(
+      { id: employee.id, business_id: businessId, color } as any,
+      { onSuccess: () => toast.success("Farve opdateret") },
+    );
+    setPickerOpen(false);
+  };
 
   return (
     <Card className={`rounded-xl ${employee.is_active ? "" : "opacity-60"}`}>
       <CardContent className="p-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent text-sm font-semibold">
-            {initials}
+          {/* Avatar / farve-prik med hover-overlay til upload */}
+          <div className="relative h-10 w-10 shrink-0 group/avatar">
+            {employee.avatar_url ? (
+              <img
+                src={employee.avatar_url}
+                alt={employee.name}
+                className="h-10 w-10 rounded-full object-cover border"
+              />
+            ) : (
+              <div
+                className="h-10 w-10 rounded-full border"
+                style={{ background: fallbackColor }}
+                aria-label={`Farve for ${employee.name}`}
+              />
+            )}
+            <label
+              className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/60 text-background text-[9px] font-semibold opacity-0 group-hover/avatar:opacity-100 cursor-pointer transition-opacity"
+              title="Skift profilbillede"
+            >
+              {uploading ? "..." : "Skift"}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarUpload}
+                disabled={uploading}
+              />
+            </label>
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
@@ -306,6 +378,47 @@ const EmployeeRow = ({
                 </span>
               )}
             </div>
+            {/* Farve / billede-styring */}
+            <div className="mt-1.5 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setPickerOpen((v) => !v)}
+                className="text-[10px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1 underline-offset-2 hover:underline"
+              >
+                <span
+                  className="inline-block h-2.5 w-2.5 rounded-full border"
+                  style={{ background: fallbackColor }}
+                />
+                Skift farve
+              </button>
+              {employee.avatar_url && (
+                <button
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  className="text-[10px] text-muted-foreground hover:text-destructive underline-offset-2 hover:underline"
+                >
+                  Fjern billede
+                </button>
+              )}
+            </div>
+            {pickerOpen && (
+              <div className="mt-2 grid grid-cols-12 gap-1 max-w-xs">
+                {ROUTE_COLORS.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => handlePickColor(c.value)}
+                    title={c.name}
+                    className={cn(
+                      "aspect-square rounded-md border transition-all hover:scale-110",
+                      fallbackColor === c.value && "ring-2 ring-foreground",
+                    )}
+                    style={{ background: c.value }}
+                    aria-label={c.name}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
