@@ -290,7 +290,8 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
       setName(""); setEmail(""); setPhone("");
       setAddress(""); setZipCode(""); setCity("");
       setLatitude(null); setLongitude(null);
-      setCvr(""); setCompanyName("");
+      setCvr(""); setCompanyName(""); setContactName("");
+      setCustomerType("private");
       if (user) {
         navigate("/min-konto");
       } else {
