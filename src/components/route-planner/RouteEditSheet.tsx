@@ -145,35 +145,38 @@ export const RouteEditSheet = ({
           onPointerDownOutside={(e) => e.preventDefault()}
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <SheetHeader className="px-5 py-4 border-b shrink-0">
-            <SheetTitle className="flex items-center gap-2">
-              <span
-                className="inline-block h-3 w-3 rounded-full ring-2 ring-background"
-                style={{ background: color }}
-              />
-              Rediger rute
-            </SheetTitle>
-            <SheetDescription>
-              {date ? format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da }) : ""}
-              {stopCount > 0 && <> · {stopCount} stop</>}
-            </SheetDescription>
+          <SheetHeader className="px-5 py-4 border-b shrink-0 space-y-0">
+            <SheetHeaderBlock
+              icon={<Pencil className="h-4 w-4" />}
+              accent={color}
+              title={<SheetTitle className="text-base">Rediger rute</SheetTitle>}
+              description={
+                <SheetDescription className="text-xs">
+                  {date ? format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da }) : ""}
+                  {stopCount > 0 && <> · {stopCount} stop</>}
+                </SheetDescription>
+              }
+            />
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-secondary/20">
             {/* Navn */}
-            <div className="space-y-2">
-              <Label htmlFor="route-edit-name">Navn</Label>
+            <Section icon={<Pencil className="h-3.5 w-3.5" />} title="Navn">
               <Input
                 id="route-edit-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="fx Nord, Aarhus C, Mandag-team..."
+                className="h-9"
               />
-            </div>
+            </Section>
 
             {/* Farve */}
-            <div className="space-y-2">
-              <Label>Farve</Label>
+            <Section
+              icon={<Palette className="h-3.5 w-3.5" />}
+              title="Farve"
+              hint={ROUTE_COLORS.find((c) => c.value === color)?.name || "Brugerdefineret"}
+            >
               <div className="grid grid-cols-12 gap-1.5">
                 {ROUTE_COLORS.map((c) => {
                   const selected = color === c.value;
@@ -195,25 +198,23 @@ export const RouteEditSheet = ({
                   );
                 })}
               </div>
-              <p className="text-[11px] text-muted-foreground">
-                Valgt: <span className="font-medium text-foreground">{ROUTE_COLORS.find((c) => c.value === color)?.name || "Brugerdefineret"}</span>
-              </p>
-            </div>
+            </Section>
 
             {/* Dato */}
-            <div className="space-y-2">
-              <Label>Dato</Label>
+            <Section
+              icon={<CalendarDays className="h-3.5 w-3.5" />}
+              title="Dato"
+              hint="Træk i kalenderen for hurtigt skift"
+            >
               <DatePickerField value={date} onChange={setDate} />
-              <p className="text-[11px] text-muted-foreground">
-                Du kan også trække ruten direkte til en ny dag i kalenderen.
-              </p>
-            </div>
-
-            <Separator />
+            </Section>
 
             {/* Medarbejdere */}
-            <div className="space-y-2">
-              <Label>Medarbejdere på ruten</Label>
+            <Section
+              icon={<Users className="h-3.5 w-3.5" />}
+              title="Medarbejdere"
+              hint={`${attachedEmployees.length} på ruten`}
+            >
               {attachedEmployees.length === 0 ? (
                 <p className="text-xs text-muted-foreground italic">Ingen medarbejdere tilkoblet endnu.</p>
               ) : (
@@ -234,7 +235,7 @@ export const RouteEditSheet = ({
                 </div>
               )}
               {unattached.length > 0 && (
-                <div className="space-y-1 pt-1">
+                <div className="space-y-1 pt-3 mt-3 border-t">
                   <p className="text-[11px] text-muted-foreground flex items-center gap-1">
                     <UserPlus className="h-3 w-3" />Tilkobl medarbejder
                   </p>
@@ -253,11 +254,11 @@ export const RouteEditSheet = ({
                   </div>
                 </div>
               )}
-            </div>
+            </Section>
           </div>
 
           {/* Footer actions */}
-          <div className="border-t p-4 space-y-2 shrink-0 bg-card">
+          <SheetFooterBar className="space-y-2">
             {stopCount >= 2 && (
               <Button
                 variant="outline"
@@ -290,7 +291,7 @@ export const RouteEditSheet = ({
                 Gem
               </Button>
             </div>
-          </div>
+          </SheetFooterBar>
         </SheetContent>
       </Sheet>
 
