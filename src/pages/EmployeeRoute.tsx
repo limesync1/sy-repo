@@ -83,8 +83,8 @@ const FitTo = ({ points, enabled }: { points: [number, number][]; enabled: boole
 
 /** Google-Maps-like live follow: smoothly glides camera to the user (no bounds jumping). */
 const FollowUser = ({
-  active, userPos, bearing,
-}: { active: boolean; userPos: [number, number] | null; bearing: number | null }) => {
+  active, userPos,
+}: { active: boolean; userPos: [number, number] | null }) => {
   const map = useMap();
   const initRef = useRef(false);
   useEffect(() => {
@@ -101,20 +101,6 @@ const FollowUser = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, userPos?.[0], userPos?.[1], map]);
-
-  // Rotate the map container itself so the user's heading is "up" (Google Maps style).
-  useEffect(() => {
-    if (!active || bearing == null) {
-      const c = map.getContainer();
-      c.style.transform = "";
-      c.style.transition = "";
-      return;
-    }
-    const c = map.getContainer();
-    c.style.transformOrigin = "center center";
-    c.style.transition = "transform 700ms cubic-bezier(0.22, 1, 0.36, 1)";
-    c.style.transform = `rotate(${-bearing}deg)`;
-  }, [active, bearing, map]);
   return null;
 };
 
