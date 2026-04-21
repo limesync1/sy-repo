@@ -13,10 +13,11 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus, Trash2, Send, Check, ShoppingBag, User, MapPin, Calendar } from "lucide-react";
+import { Loader2, Trash2, Send, ShoppingBag, User, MapPin, Calendar as CalendarIcon, MessageSquare, Package } from "lucide-react";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 import { roundPrice, buildPricingSnapshot } from "@/lib/service-pricing";
+import { DatePickerField } from "@/components/route-planner/DatePickerField";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
 type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string };
@@ -58,7 +59,6 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
   const [zipCode, setZipCode] = useState("");
   const [city, setCity] = useState("");
   const [preferredDate, setPreferredDate] = useState("");
-  const [preferredTime, setPreferredTime] = useState("");
   const [businessMessage, setBusinessMessage] = useState("");
 
   // Cart
@@ -84,7 +84,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
   const reset = () => {
     setCustomerName(""); setCustomerEmail(""); setCustomerPhone("");
     setAddress(""); setZipCode(""); setCity("");
-    setPreferredDate(""); setPreferredTime(""); setBusinessMessage("");
+    setPreferredDate(""); setBusinessMessage("");
     setItems([]);
   };
 
@@ -136,7 +136,6 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
         latitude: lat,
         longitude: lng,
         preferred_date: preferredDate || null,
-        preferred_time_start: preferredTime || null,
         total_amount: totalAmount,
         status: "pending",
         business_message: businessMessage.trim() || null,
@@ -200,9 +199,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
             address: address.trim()
               ? `${address.trim()}${zipCode.trim() || city.trim() ? `, ${[zipCode.trim(), city.trim()].filter(Boolean).join(" ")}` : ""}`
               : undefined,
-            preferredDate: preferredDate
-              ? `${preferredDate}${preferredTime ? ` kl. ${preferredTime}` : ""}`
-              : undefined,
+            preferredDate: preferredDate || undefined,
             totalAmount,
             items: items.map((it) => ({
               name: it.service.name,
