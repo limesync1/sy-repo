@@ -26,40 +26,70 @@ import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuv
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
   className: "",
-  html: `<div style="width:30px;height:30px;border-radius:50%;background:hsl(222 47% 11%);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:9px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,.3);">START</div>`,
-  iconSize: [30, 30],
-  iconAnchor: [15, 15],
+  html: `
+    <div style="position:relative;width:38px;height:46px;">
+      <div style="position:absolute;top:0;left:0;width:38px;height:38px;border-radius:50%;background:hsl(0 0% 13%);display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,.25);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-9-9 18-2-7-7-2z"/></svg>
+      </div>
+      <div style="position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid hsl(0 0% 13%);"></div>
+    </div>`,
+  iconSize: [38, 46],
+  iconAnchor: [19, 44],
 });
 
 const stopIcon = (n: number, state: "next" | "done" | "future", color: string, highlighted = false) => {
-  const bg = state === "done" ? "hsl(142 70% 45%)" : state === "next" ? color : "hsl(220 14% 65%)";
-  const baseRing = state === "next" ? `0 0 0 5px ${color}33, 0 0 0 9px ${color}1a` : "";
-  const hlRing = highlighted ? `0 0 0 4px hsl(48 96% 53%), 0 0 0 8px hsl(48 96% 53% / 0.35)` : "";
-  const ring = [baseRing, hlRing].filter(Boolean).join(", ") || "none";
-  const size = highlighted ? 46 : state === "next" ? 42 : 34;
+  // Serviceydere-stil: pin-form (afrundet teardrop) i stedet for ren cirkel
+  const bg =
+    state === "done"
+      ? "hsl(142 70% 45%)"
+      : state === "next"
+        ? "hsl(184 90% 32%)" // accent (Serviceydere teal)
+        : "hsl(0 0% 13%)";   // foreground (mørk neutral)
+  const opacity = state === "future" ? 0.85 : 1;
+  const ring = state === "next"
+    ? `0 0 0 4px hsl(184 90% 32% / 0.18), 0 0 0 9px hsl(184 90% 32% / 0.08)`
+    : "none";
+  const hlRing = highlighted ? `, 0 0 0 4px hsl(45 100% 55%), 0 0 0 8px hsl(45 100% 55% / 0.30)` : "";
+  const size = highlighted ? 44 : state === "next" ? 42 : 34;
+  const fontSize = state === "next" ? 15 : 12;
+  const inner =
+    state === "done"
+      ? `<svg width="${Math.round(size * 0.5)}" height="${Math.round(size * 0.5)}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+      : `<span style="color:white;font-weight:800;font-size:${fontSize}px;line-height:1;font-feature-settings:'tnum';">${n}</span>`;
   return L.divIcon({
     className: "",
-    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:${state === "next" ? 16 : 13}px;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,.35), ${ring};">${state === "done" ? "✓" : n}</div>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
+    html: `
+      <div style="position:relative;width:${size}px;height:${Math.round(size * 1.18)}px;opacity:${opacity};">
+        <div style="
+          width:${size}px;height:${size}px;border-radius:50% 50% 50% 50% / 55% 55% 45% 45%;
+          background:${bg};
+          display:flex;align-items:center;justify-content:center;
+          border:2.5px solid white;
+          box-shadow:0 4px 12px rgba(0,0,0,.28)${hlRing};
+          ${ring !== "none" ? `outline-offset:0;box-shadow:0 4px 12px rgba(0,0,0,.28), ${ring}${hlRing};` : ""}
+        ">${inner}</div>
+        <div style="position:absolute;left:50%;top:${size - 4}px;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid ${bg};filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));"></div>
+      </div>`,
+    iconSize: [size, Math.round(size * 1.18)],
+    iconAnchor: [size / 2, Math.round(size * 1.15)],
   });
 };
 
-/** Google Maps-style blue navigation puck with directional cone. */
+/** Serviceydere-stil navigation puck (teal accent). */
 const navPuckIcon = (rotation: number) => L.divIcon({
   className: "",
   html: `
-    <div style="position:relative;width:60px;height:60px;transform:rotate(${rotation}deg);transform-origin:center;">
-      <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-bottom:32px solid rgba(59,130,246,0.55);"></div>
-      <div style="position:absolute;top:18px;left:18px;width:24px;height:24px;border-radius:50%;background:hsl(217 91% 60%);border:4px solid white;box-shadow:0 2px 8px rgba(0,0,0,.4);"></div>
+    <div style="position:relative;width:64px;height:64px;transform:rotate(${rotation}deg);transform-origin:center;">
+      <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:34px solid hsl(184 90% 32% / 0.45);"></div>
+      <div style="position:absolute;top:18px;left:18px;width:28px;height:28px;border-radius:50%;background:hsl(184 90% 32%);border:4px solid white;box-shadow:0 4px 14px hsl(184 90% 32% / 0.5), 0 2px 6px rgba(0,0,0,.25);"></div>
     </div>`,
-  iconSize: [60, 60],
-  iconAnchor: [30, 30],
+  iconSize: [64, 64],
+  iconAnchor: [32, 32],
 });
 
 const userDotIcon = L.divIcon({
   className: "",
-  html: `<div style="width:18px;height:18px;border-radius:50%;background:hsl(217 91% 60%);border:3px solid white;box-shadow:0 0 0 6px rgba(59,130,246,.25),0 2px 6px rgba(0,0,0,.3);"></div>`,
+  html: `<div style="width:18px;height:18px;border-radius:50%;background:hsl(184 90% 32%);border:3px solid white;box-shadow:0 0 0 7px hsl(184 90% 32% / 0.22),0 2px 6px rgba(0,0,0,.25);"></div>`,
   iconSize: [18, 18],
   iconAnchor: [9, 9],
 });
@@ -255,7 +285,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const completedCount = sortedStops.filter((s) => s.status === "completed").length;
   const allDone = sortedStops.length > 0 && completedCount === sortedStops.length;
   const progress = sortedStops.length > 0 ? (completedCount / sortedStops.length) * 100 : 0;
-  const themeColor = route?.color || "hsl(184 90% 42%)";
+  // Brug Serviceydere accent (teal) som primær handlings-farve i kort-UI'et.
+  // route.color beholdes til badges/rute-identifikation i kalenderen.
+  const themeColor = "hsl(184 90% 32%)";
+  const routeBadgeColor = route?.color || "hsl(184 90% 32%)";
 
   /* Fanfare ved dagsfærdig */
   useEffect(() => {
@@ -400,7 +433,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
           <div
             className="flex items-center gap-2 px-3 py-1.5 rounded-full text-background text-xs font-semibold shrink-0 max-w-[55%]"
-            style={{ background: themeColor }}
+            style={{ background: routeBadgeColor }}
           >
             <span className="truncate">{route.name || "Rute"}</span>
             <span className="px-1.5 py-0.5 rounded-full bg-background/25 tabular-nums text-[10px]">
@@ -1121,53 +1154,51 @@ const StopListPanel = ({
       aria-hidden={false}
     >
       <div
-        className="pointer-events-auto mx-auto w-full max-w-3xl bg-background border-t-2 shadow-2xl rounded-t-2xl transition-transform duration-300 ease-out"
+        className="pointer-events-auto mx-auto w-full max-w-3xl bg-background/98 backdrop-blur shadow-2xl rounded-t-2xl transition-transform duration-300 ease-out border-t border-border"
         style={{
-          transform: open ? "translateY(0)" : "translateY(calc(100% - 56px))",
-          maxHeight: "70vh",
-          borderTopColor: themeColor,
+          transform: open ? "translateY(0)" : "translateY(calc(100% - 38px))",
+          maxHeight: "60vh",
         }}
       >
+        {/* Kompakt rail — kun 38px høj når lukket */}
         <button
           type="button"
           onClick={onToggle}
-          className="w-full flex items-center gap-3 px-4 h-[56px] border-b bg-secondary/30 hover:bg-secondary/50 transition-colors rounded-t-2xl relative"
+          className="w-full flex items-center gap-2 px-3 h-[38px] hover:bg-secondary/40 transition-colors rounded-t-2xl relative"
           aria-expanded={open}
         >
-          <span className="h-1 w-10 rounded-full bg-muted-foreground/30 absolute left-1/2 -translate-x-1/2 top-1.5" />
-          <List className="h-4 w-4 text-muted-foreground mt-1" />
-          <div className="flex-1 flex items-center gap-2 mt-1">
-            <span className="font-semibold text-sm">Alle stop</span>
-            <Badge variant="secondary" className="tabular-nums text-[10px] h-4 px-1.5">
-              {done}/{total}
-            </Badge>
-          </div>
-          {/* Mini progress dots — kalender-stil */}
-          <div className="flex gap-0.5 items-center mt-1">
-            {stops.slice(0, Math.min(stops.length, 12)).map((s, i) => (
+          <span className="h-0.5 w-8 rounded-full bg-muted-foreground/25 absolute left-1/2 -translate-x-1/2 top-1" />
+          <List className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-[11px] font-semibold text-foreground/80">Alle stop</span>
+          <Badge variant="secondary" className="tabular-nums text-[9px] h-3.5 px-1 font-bold">
+            {done}/{total}
+          </Badge>
+          {/* Mini progress dots — kompakt */}
+          <div className="flex-1 flex gap-0.5 items-center justify-end overflow-hidden">
+            {stops.slice(0, 10).map((s) => (
               <span
                 key={s.id}
-                className="h-1.5 w-1.5 rounded-full"
+                className="h-1 w-1 rounded-full shrink-0"
                 style={{
                   background:
                     s.status === "completed"
                       ? "hsl(142 70% 45%)"
                       : s.id === nextStopId
                         ? themeColor
-                        : "hsl(220 14% 80%)",
+                        : "hsl(220 14% 82%)",
                 }}
               />
             ))}
-            {stops.length > 12 && (
-              <span className="text-[9px] text-muted-foreground tabular-nums ml-0.5">+{stops.length - 12}</span>
+            {stops.length > 10 && (
+              <span className="text-[8px] text-muted-foreground tabular-nums ml-0.5">+{stops.length - 10}</span>
             )}
           </div>
-          {open ? <ChevronDown className="h-4 w-4 mt-1 ml-1" /> : <ChevronUp className="h-4 w-4 mt-1 ml-1" />}
+          {open ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />}
         </button>
 
         <div
-          className="overflow-y-auto p-2 space-y-1"
-          style={{ maxHeight: "calc(70vh - 56px)" }}
+          className="overflow-y-auto p-2 space-y-1 border-t"
+          style={{ maxHeight: "calc(60vh - 38px)" }}
         >
           {stops.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-6">Ingen stop på denne rute.</p>
