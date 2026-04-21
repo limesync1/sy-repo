@@ -438,11 +438,13 @@ export type Database = {
           customer_phone: string | null
           customer_response: string | null
           cvr: string | null
+          estimated_duration_minutes: number | null
           id: string
           latitude: number | null
           longitude: number | null
           next_service_date: string | null
           notes: string | null
+          parent_order_id: string | null
           preferred_date: string | null
           preferred_time_end: string | null
           preferred_time_start: string | null
@@ -471,11 +473,13 @@ export type Database = {
           customer_phone?: string | null
           customer_response?: string | null
           cvr?: string | null
+          estimated_duration_minutes?: number | null
           id?: string
           latitude?: number | null
           longitude?: number | null
           next_service_date?: string | null
           notes?: string | null
+          parent_order_id?: string | null
           preferred_date?: string | null
           preferred_time_end?: string | null
           preferred_time_start?: string | null
@@ -504,11 +508,13 @@ export type Database = {
           customer_phone?: string | null
           customer_response?: string | null
           cvr?: string | null
+          estimated_duration_minutes?: number | null
           id?: string
           latitude?: number | null
           longitude?: number | null
           next_service_date?: string | null
           notes?: string | null
+          parent_order_id?: string | null
           preferred_date?: string | null
           preferred_time_end?: string | null
           preferred_time_start?: string | null
@@ -532,6 +538,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "admin_users_overview"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "orders_parent_order_id_fkey"
+            columns: ["parent_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
           },
         ]
       }
