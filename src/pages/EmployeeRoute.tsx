@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData, useDirections, useUpdateStopStatus, useOrderForStop, type RouteStop, type Route } from "@/hooks/useRoutes";
+import { useStartStopTime, useEndStopTime } from "@/hooks/useRoutes";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
@@ -190,6 +192,8 @@ const EmployeeRoute = () => {
 const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void }) => {
   const { data, isLoading } = useMyRouteData(routeId);
   const updateStatus = useUpdateStopStatus();
+  const startStopTime = useStartStopTime();
+  const endStopTime = useEndStopTime();
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState<Record<string, string>>({});
@@ -337,6 +341,25 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const name = nextStop.customer_name || "stoppet";
     setTimeout(() => speak(`Du er ankommet til ${name}`), 600);
   }, [isAtNextStop, nextStop?.id, audioEnabled]);
+
+  /* Auto check-in når medarbejder ankommer til stop (geofence) */
+  useEffect(() => {
+    if (!isAtNextStop || !nextStop) return;
+    (async () => {
+      try {
+        const { data: u } = await supabase.auth.getUser();
+        if (!u.user) return;
+        const { data: emp } = await supabase
+          .from("employees")
+          .select("id")
+          .eq("user_id", u.user.id)
+          .maybeSingle();
+        if (!emp) return;
+        await startStopTime.mutateAsync({ stop_id: nextStop.id, employee_id: emp.id });
+      } catch { /* non-fatal */ }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAtNextStop, nextStop?.id]);
 
   const legLine: [number, number][] = useMemo(() => {
     if (!directions?.geometry?.coordinates) return [];
@@ -564,6 +587,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   const handleComplete = async (s: RouteStop) => {
     try {
+      // Stop tidsregistrering for den loggede medarbejder på denne opgave
+      try {
+        const { data: u } = await supabase.auth.getUser();
+        if (u.user) {
+          const { data: emp } = await supabase
+            .from("employees")
+            .select("id")
+            .eq("user_id", u.user.id)
+            .maybeSingle();
+          if (emp) {
+            await endStopTime.mutateAsync({ stop_id: s.id, employee_id: emp.id });
+          }
+        }
+      } catch { /* non-fatal */ }
       await updateStatus.mutateAsync({ id: s.id, status: "completed", notes: noteDraft[s.id] });
       if (audioEnabled) playSuccessChime();
       toast.success(`${s.customer_name || "Stop"} markeret som udført`);

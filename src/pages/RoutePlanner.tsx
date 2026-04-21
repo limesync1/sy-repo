@@ -8,7 +8,6 @@ import {
   useAddStop,
   useOptimizeRoute, useGeocodeAddress, useRoutesForRange,
   useCreateRoute, useDeleteRoute, useUpdateRoute,
-  useRouteEmployees,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
@@ -107,7 +106,6 @@ const Planner = () => {
   const { data: calendarRoutesRaw = [] } = useRoutesForRange(businessId, calendarRange.start, calendarRange.end);
   const calendarRouteIds = useMemo(() => calendarRoutesRaw.map((r) => r.id), [calendarRoutesRaw]);
   const { data: calendarStops = [] } = useStopsForRoutes(calendarRouteIds);
-  const { data: calendarRouteLinks = [] } = useRouteEmployees(calendarRouteIds);
 
   const createRoute = useCreateRoute();
   const deleteRoute = useDeleteRoute();
@@ -198,24 +196,26 @@ const Planner = () => {
       arr.push(s);
       stopsByRoute.set(s.route_id, arr);
     }
-    const empByRoute = new Map<string, { id: string; name: string; avatar_url?: string | null; color?: string | null }[]>();
-    for (const link of calendarRouteLinks) {
-      const emp = activeEmployees.find((e: any) => e.id === link.employee_id);
-      if (!emp) continue;
-      const arr = empByRoute.get(link.route_id) || [];
-      arr.push({ id: emp.id, name: emp.name, avatar_url: (emp as any).avatar_url, color: (emp as any).color });
-      empByRoute.set(link.route_id, arr);
-    }
     return calendarRoutesRaw.map((r) => {
-      const emps = empByRoute.get(r.id) || [];
+      // Saml UNIK liste af medarbejdere på tværs af alle stops på ruten
+      const empIds = new Set<string>();
+      const stopsForRoute = stopsByRoute.get(r.id) || [];
+      for (const s of stopsForRoute) {
+        const ids = s.assignee_ids ?? (s.assigned_employee_id ? [s.assigned_employee_id] : []);
+        for (const id of ids) empIds.add(id);
+      }
+      const emps = Array.from(empIds)
+        .map((id) => activeEmployees.find((e: any) => e.id === id))
+        .filter(Boolean)
+        .map((e: any) => ({ id: e.id, name: e.name, avatar_url: e.avatar_url, color: e.color }));
       return {
         ...r,
-        stops: stopsByRoute.get(r.id) || [],
+        stops: stopsForRoute,
         attachedEmployees: emps,
         attachedEmployeeCount: emps.length,
       };
     });
-  }, [calendarRoutesRaw, calendarStops, calendarRouteLinks, activeEmployees]);
+  }, [calendarRoutesRaw, calendarStops, activeEmployees]);
 
   /* Map data — viser ruter for det aktuelle range (måned/uge) */
   const mapRoutes: MapRoute[] = useMemo(() => {
@@ -937,15 +937,6 @@ const Planner = () => {
           route={editingRoute}
           open={!!editingRoute}
           onOpenChange={(o) => !o && setEditingRoute(null)}
-          attachedEmployees={
-            editingRoute
-              ? (calendarRouteLinks
-                  .filter((l) => l.route_id === editingRoute.id)
-                  .map((l) => activeEmployees.find((e: any) => e.id === l.employee_id))
-                  .filter(Boolean) as any).map((e: any) => ({ id: e.id, name: e.name }))
-              : []
-          }
-          availableEmployees={activeEmployees.map((e: any) => ({ id: e.id, name: e.name }))}
           stopCount={editingRoute ? (calendarStops.filter((s) => s.route_id === editingRoute.id).length) : 0}
         />
 
@@ -956,6 +947,9 @@ const Planner = () => {
           onOpenChange={(o) => !o && setEditingRoute(null)}
           stops={editingRoute ? calendarStops.filter((s) => s.route_id === editingRoute.id) : []}
           onSelectStop={(s) => setSelectedStopId(s.id)}
+          employees={activeEmployees.map((e: any) => ({
+            id: e.id, name: e.name, avatar_url: e.avatar_url, color: e.color,
+          }))}
         />
       </div>
     </DndContext>
