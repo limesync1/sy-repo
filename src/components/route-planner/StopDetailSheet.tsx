@@ -407,78 +407,18 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               )}
 
               {/* Planning */}
-              <section>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Planlægning</h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Tidsrum for besøget</label>
-                    <Select
-                      value={timeSlot || "none"}
-                      onValueChange={(v) => setTimeSlot(v === "none" ? "" : v)}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Vælg tidsrum" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Intet tidsrum</SelectItem>
-                        <SelectItem value="06:00-08:00">06–08 · Tidlig morgen</SelectItem>
-                        <SelectItem value="08:00-12:00">08–12 · Formiddag</SelectItem>
-                        <SelectItem value="12:00-16:00">12–16 · Eftermiddag</SelectItem>
-                        <SelectItem value="16:00-20:00">16–20 · Aften</SelectItem>
-                        <SelectItem value="08:00-16:00">08–16 · Hele dagen</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Estimeret varighed</label>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 flex items-center gap-1.5">
-                        <Input
-                          type="number"
-                          min={0}
-                          max={23}
-                          value={durationHours}
-                          onChange={(e) => setDurationHours(Math.max(0, Number(e.target.value) || 0))}
-                          className="h-9"
-                          aria-label="Timer"
-                        />
-                        <span className="text-xs text-muted-foreground">timer</span>
-                      </div>
-                      <div className="flex-1 flex items-center gap-1.5">
-                        <Input
-                          type="number"
-                          min={0}
-                          max={59}
-                          step={5}
-                          value={durationMinutes}
-                          onChange={(e) => setDurationMinutes(Math.max(0, Math.min(59, Number(e.target.value) || 0)))}
-                          className="h-9"
-                          aria-label="Minutter"
-                        />
-                        <span className="text-xs text-muted-foreground">min</span>
-                      </div>
-                    </div>
-                  </div>
-                  {stop.planned_arrival && (
-                    <div className="text-xs text-muted-foreground flex items-center gap-1.5 px-1">
-                      <Clock className="h-3 w-3" />
-                      Planlagt ankomst: <strong className="text-foreground">{format(parseISO(stop.planned_arrival), "HH:mm")}</strong>
-                      {stop.distance_to_next_km != null && stop.distance_to_next_km > 0 && (
-                        <span className="ml-auto">→ næste: {stop.distance_to_next_km.toFixed(1)} km</span>
-                      )}
-                    </div>
-                  )}
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Intern note (synlig for medarbejderen)</label>
-                    <Textarea
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      rows={3}
-                      placeholder="Fx 'Brug bagindgangen', 'Hund i haven'..."
-                    />
-                  </div>
-                </div>
-              </section>
+              <PlanningSection
+                timeSlot={timeSlot}
+                setTimeSlot={setTimeSlot}
+                durationHours={durationHours}
+                setDurationHours={setDurationHours}
+                durationMinutes={durationMinutes}
+                setDurationMinutes={setDurationMinutes}
+                notes={notes}
+                setNotes={setNotes}
+                plannedArrival={stop.planned_arrival}
+                distanceToNextKm={stop.distance_to_next_km}
+              />
 
               {isLoading && <p className="text-xs text-muted-foreground italic">Indlæser ordredetaljer...</p>}
             </div>
