@@ -860,7 +860,7 @@ const StopListPanel = ({
 
   return (
     <div
-      className="absolute left-0 right-0 bottom-0 z-20 pointer-events-none"
+      className="absolute left-0 right-0 bottom-0 z-[1100] pointer-events-none"
       aria-hidden={false}
     >
       <div
