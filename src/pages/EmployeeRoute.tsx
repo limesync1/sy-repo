@@ -838,7 +838,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Pre-start CTA: big start button at the bottom ─── */}
         {!routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3">
+          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pb-[50px]">
             <Card
               className="overflow-hidden shadow-2xl rounded-2xl border-t-2"
               style={{ borderTopColor: themeColor }}
