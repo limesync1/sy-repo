@@ -192,6 +192,8 @@ const EmployeeRoute = () => {
 const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void }) => {
   const { data, isLoading } = useMyRouteData(routeId);
   const updateStatus = useUpdateStopStatus();
+  const startStopTime = useStartStopTime();
+  const endStopTime = useEndStopTime();
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState<Record<string, string>>({});
@@ -566,6 +568,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   const handleComplete = async (s: RouteStop) => {
     try {
+      // Stop tidsregistrering for den loggede medarbejder på denne opgave
+      try {
+        const { data: u } = await supabase.auth.getUser();
+        if (u.user) {
+          const { data: emp } = await supabase
+            .from("employees")
+            .select("id")
+            .eq("user_id", u.user.id)
+            .maybeSingle();
+          if (emp) {
+            await endStopTime.mutateAsync({ stop_id: s.id, employee_id: emp.id });
+          }
+        }
+      } catch { /* non-fatal */ }
       await updateStatus.mutateAsync({ id: s.id, status: "completed", notes: noteDraft[s.id] });
       if (audioEnabled) playSuccessChime();
       toast.success(`${s.customer_name || "Stop"} markeret som udført`);
