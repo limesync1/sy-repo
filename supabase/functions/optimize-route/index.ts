@@ -115,11 +115,17 @@ Deno.serve(async (req) => {
       assigneesByStop.set(a.stop_id, arr);
     });
 
-    // Hent medarbejdere på ruten
-    const { data: routeEmps } = await supabase
-      .from("route_employees")
-      .select("employee_id, employees(id, name, home_latitude, home_longitude, work_start_time, work_end_time)")
-      .eq("route_id", routeId);
+    // NY MODEL: medarbejdere er knyttet pr. STOP, ikke pr. rute. Vi samler
+    // unikke medarbejdere fra alle stops på ruten — det er dem optimeringen
+    // skal arbejde med. Hvis et stop ingen assignees har, kan VRP heller
+    // ikke gøre noget meningsfuldt med det (det ender som "unassigned").
+    const uniqueEmployeeIds = Array.from(new Set((assignees || []).map((a: any) => a.employee_id)));
+    const { data: empRows } = uniqueEmployeeIds.length > 0
+      ? await supabase
+          .from("employees")
+          .select("id, name, home_latitude, home_longitude, work_start_time, work_end_time")
+          .in("id", uniqueEmployeeIds)
+      : { data: [] as any[] };
 
     const startFromHome = !!route.start_from_home;
     const fallbackStart = {
@@ -136,53 +142,26 @@ Deno.serve(async (req) => {
 
     const planStartMin = hhmmssToMin(route.planned_start_time, 8 * 60);
 
-    const employees: EmployeeCtx[] = (routeEmps || [])
-      .map((re: any) => {
-        const e = re.employees;
-        if (!e) return null;
-        const hasHome = startFromHome && e.home_latitude != null && e.home_longitude != null;
-        const lat = hasHome ? Number(e.home_latitude) : defaultStart.lat;
-        const lng = hasHome ? Number(e.home_longitude) : defaultStart.lng;
-        return {
-          id: e.id,
-          name: e.name,
-          start_lat: lat,
-          start_lng: lng,
-          end_lat: lat,
-          end_lng: lng,
-          work_start_min: Math.max(planStartMin, hhmmssToMin(e.work_start_time, 8 * 60)),
-          work_end_min: hhmmssToMin(e.work_end_time, 16 * 60),
-        } as EmployeeCtx;
-      })
-      .filter(Boolean) as EmployeeCtx[];
-
-    // Hvis ingen ruteansatte, fald tilbage til alle eksisterende assignees
-    if (employees.length === 0) {
-      const allAssigneeIds = Array.from(new Set((assignees || []).map((a: any) => a.employee_id)));
-      if (allAssigneeIds.length > 0) {
-        const { data: empRows } = await supabase
-          .from("employees")
-          .select("id, name, home_latitude, home_longitude, work_start_time, work_end_time")
-          .in("id", allAssigneeIds);
-        for (const e of empRows || []) {
-          const hasHome = startFromHome && e.home_latitude != null && e.home_longitude != null;
-          employees.push({
-            id: e.id,
-            name: e.name,
-            start_lat: hasHome ? Number(e.home_latitude) : defaultStart.lat,
-            start_lng: hasHome ? Number(e.home_longitude) : defaultStart.lng,
-            end_lat: hasHome ? Number(e.home_latitude) : defaultStart.lat,
-            end_lng: hasHome ? Number(e.home_longitude) : defaultStart.lng,
-            work_start_min: Math.max(planStartMin, hhmmssToMin(e.work_start_time, 8 * 60)),
-            work_end_min: hhmmssToMin(e.work_end_time, 16 * 60),
-          });
-        }
-      }
-    }
+    const employees: EmployeeCtx[] = (empRows || []).map((e: any) => {
+      const hasHome = startFromHome && e.home_latitude != null && e.home_longitude != null;
+      const lat = hasHome ? Number(e.home_latitude) : defaultStart.lat;
+      const lng = hasHome ? Number(e.home_longitude) : defaultStart.lng;
+      return {
+        id: e.id,
+        name: e.name,
+        start_lat: lat,
+        start_lng: lng,
+        end_lat: lat,
+        end_lng: lng,
+        work_start_min: Math.max(planStartMin, hhmmssToMin(e.work_start_time, 8 * 60)),
+        work_end_min: hhmmssToMin(e.work_end_time, 16 * 60),
+      } as EmployeeCtx;
+    });
 
     if (employees.length === 0) {
       return new Response(JSON.stringify({
-        ok: false, error: "Ingen medarbejdere tilknyttet ruten — tilføj mindst én før optimering",
+        ok: false,
+        error: "Ingen medarbejdere tildelt opgaverne på ruten — tildel mindst én medarbejder pr. opgave før optimering",
       }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
