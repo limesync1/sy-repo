@@ -211,6 +211,31 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     setTimeout(() => speak("Godt arbejde. Alle stop er klaret."), 800);
   }, [allDone, audioEnabled]);
 
+  /* Auto-redirect til oversigt 8 sek. efter dagen er færdig (kan annulleres). */
+  useEffect(() => {
+    if (!allDone) return;
+    setAutoReturn(8);
+    const tick = setInterval(() => {
+      setAutoReturn((n) => {
+        if (n == null) return null;
+        if (n <= 1) {
+          clearInterval(tick);
+          navigate("/medarbejder");
+          return 0;
+        }
+        return n - 1;
+      });
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [allDone, navigate]);
+
+  /** Estimeret ankomsttid kl. HH:MM ud fra køretid + nuværende tid. */
+  const etaLabel: string | null = useMemo(() => {
+    if (!directions?.duration_s) return null;
+    const eta = new Date(Date.now() + directions.duration_s * 1000);
+    return eta.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+  }, [directions?.duration_s]);
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center text-muted-foreground">
