@@ -666,37 +666,93 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Pre-start CTA: big start button at the bottom ─── */}
         {!routeStarted && !allDone && nextStop && (
           <div className="absolute bottom-0 inset-x-0 z-[1000] p-3">
-            <Card className="overflow-hidden shadow-2xl">
-              <div className="px-4 py-3 bg-secondary/40 border-b flex items-center gap-3">
-                <span
-                  className="flex h-9 w-9 items-center justify-center rounded-full text-background text-sm font-bold shrink-0"
-                  style={{ background: themeColor }}
-                >
-                  {nextStopIdx + 1}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">
-                    Klar til at starte
+            <Card
+              className="overflow-hidden shadow-2xl rounded-2xl border-t-2"
+              style={{ borderTopColor: themeColor }}
+            >
+              {/* Kalender-stil header */}
+              <div className="px-4 pt-3 pb-2 bg-secondary/30">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold flex-1">
+                    Næste stop · {nextStopIdx + 1} af {sortedStops.length}
                   </p>
-                  <p className="font-semibold truncate">{nextStop.customer_name || "Stop"}</p>
-                </div>
-                {sortedStops.length > 1 && (
-                  <Badge variant="outline" className="shrink-0">
+                  <Badge variant="secondary" className="text-[9px] h-4 px-1.5 tabular-nums">
                     {sortedStops.length} stop
                   </Badge>
-                )}
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <span
+                    className="flex h-10 w-10 items-center justify-center rounded-xl text-background text-sm font-bold shrink-0 shadow-sm"
+                    style={{ background: themeColor }}
+                  >
+                    {nextStopIdx + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm truncate leading-tight">
+                      {nextStop.customer_name || "Stop"}
+                    </p>
+                    {nextStop.address && (
+                      <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
+                        <MapPin className="h-2.5 w-2.5 shrink-0" />{nextStop.address}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Segmented progress — kalender-stil */}
+                <div className="flex gap-0.5 mt-2.5">
+                  {sortedStops.map((s, i) => (
+                    <div
+                      key={s.id}
+                      className="flex-1 h-1 rounded-full transition-all"
+                      style={{
+                        background:
+                          s.status === "completed"
+                            ? "hsl(142 70% 45%)"
+                            : i === nextStopIdx
+                              ? themeColor
+                              : "hsl(220 14% 88%)",
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
+
+              {/* Info-grid: km, tid, ETA */}
+              {(directions || etaLabel) && (
+                <div className="grid grid-cols-3 divide-x bg-background border-t border-b">
+                  <div className="px-2 py-2 text-center">
+                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
+                    <p className="text-sm font-bold tabular-nums mt-0.5">
+                      {directions?.distance_m != null ? formatKm(directions.distance_m) : "—"}
+                    </p>
+                  </div>
+                  <div className="px-2 py-2 text-center">
+                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Køretid</p>
+                    <p className="text-sm font-bold tabular-nums mt-0.5">
+                      {directions?.duration_s != null ? formatMin(directions.duration_s) : "—"}
+                    </p>
+                  </div>
+                  <div className="px-2 py-2 text-center">
+                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Ankomst</p>
+                    <p className="text-sm font-bold tabular-nums mt-0.5" style={{ color: themeColor }}>
+                      {etaLabel || "—"}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div className="p-3">
                 <Button
                   onClick={handleStartRoute}
                   size="lg"
-                  className="w-full gap-2 h-14 text-base font-bold"
+                  className="w-full gap-2 h-13 text-base font-bold rounded-xl shadow-lg hover:shadow-xl transition-shadow"
                   style={{ background: themeColor }}
                 >
-                  <Play className="h-5 w-5" /> Start rute
+                  <Play className="h-5 w-5 fill-current" /> Start rute
                 </Button>
-                <p className="text-[11px] text-muted-foreground text-center mt-2">
-                  Vi zoomer ind på din position og følger dig live, ligesom Google Maps.
+                <p className="text-[10px] text-muted-foreground text-center mt-2">
+                  Live navigation · auto-zoom · stemmevejledning
                 </p>
               </div>
             </Card>
