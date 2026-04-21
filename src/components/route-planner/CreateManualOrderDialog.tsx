@@ -421,11 +421,6 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
             )}
           </Section>
 
-          {/* Foreslået dato */}
-          <Section icon={<CalendarIcon className="h-3.5 w-3.5" />} title="Foreslået dato" hint="Valgfrit — kunden kan bekræfte eller ændre">
-            <DatePickerField value={preferredDate} onChange={setPreferredDate} />
-          </Section>
-
           {/* Services */}
           <Section icon={<Package className="h-3.5 w-3.5" />} title="Services" required hint={`${items.length} valgt`}>
             <Select value="" onValueChange={addService}>
