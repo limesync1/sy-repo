@@ -31,10 +31,12 @@ const startIcon = L.divIcon({
   iconAnchor: [15, 15],
 });
 
-const stopIcon = (n: number, state: "next" | "done" | "future", color: string) => {
+const stopIcon = (n: number, state: "next" | "done" | "future", color: string, highlighted = false) => {
   const bg = state === "done" ? "hsl(142 70% 45%)" : state === "next" ? color : "hsl(220 14% 65%)";
-  const ring = state === "next" ? `0 0 0 5px ${color}33, 0 0 0 9px ${color}1a` : "none";
-  const size = state === "next" ? 42 : 34;
+  const baseRing = state === "next" ? `0 0 0 5px ${color}33, 0 0 0 9px ${color}1a` : "";
+  const hlRing = highlighted ? `0 0 0 4px hsl(48 96% 53%), 0 0 0 8px hsl(48 96% 53% / 0.35)` : "";
+  const ring = [baseRing, hlRing].filter(Boolean).join(", ") || "none";
+  const size = highlighted ? 46 : state === "next" ? 42 : 34;
   return L.divIcon({
     className: "",
     html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:${state === "next" ? 16 : 13}px;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,.35), ${ring};">${state === "done" ? "✓" : n}</div>`,
