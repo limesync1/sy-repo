@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   useEmployees, useCreateEmployee,
-  useUpdateEmployee, useDeleteEmployee,
+  useUpdateEmployee, useDeleteEmployee, useResetEmployeePassword,
 } from "@/hooks/useEmployees";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,11 +10,14 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Mail, Phone, Briefcase, UserPlus, X,
-  Trash2, Power, PowerOff, CheckCircle2,
+  Trash2, Power, PowerOff, CheckCircle2, Pencil, KeyRound,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
 import { cn } from "@/lib/utils";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from "@/components/ui/dialog";
 
 interface Props {
   businessId: string;
@@ -271,6 +274,12 @@ const EmployeeRow = ({
   const linked = !!employee.user_id;
   const [uploading, setUploading] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editName, setEditName] = useState(employee.name || "");
+  const [editEmail, setEditEmail] = useState(employee.email || "");
+  const [editPhone, setEditPhone] = useState(employee.phone || "");
+  const [editTitle, setEditTitle] = useState(employee.title || "");
+  const resetPw = useResetEmployeePassword();
   const fallbackColor = employee.color || "#64748b";
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -286,8 +295,11 @@ const EmployeeRow = ({
     }
     setUploading(true);
     try {
+      // RLS kræver at første mappe == auth.uid()
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Du er ikke logget ind");
       const ext = file.name.split(".").pop() || "png";
-      const path = `employees/${employee.id}-${Date.now()}.${ext}`;
+      const path = `${user.id}/employees/${employee.id}-${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from("business-assets").upload(path, file, {
         cacheControl: "3600",
         upsert: true,
