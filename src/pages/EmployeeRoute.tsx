@@ -285,7 +285,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const completedCount = sortedStops.filter((s) => s.status === "completed").length;
   const allDone = sortedStops.length > 0 && completedCount === sortedStops.length;
   const progress = sortedStops.length > 0 ? (completedCount / sortedStops.length) * 100 : 0;
-  const themeColor = route?.color || "hsl(184 90% 42%)";
+  // Brug Serviceydere accent (teal) som primær handlings-farve i kort-UI'et.
+  // route.color beholdes til badges/rute-identifikation i kalenderen.
+  const themeColor = "hsl(184 90% 32%)";
+  const routeBadgeColor = route?.color || "hsl(184 90% 32%)";
 
   /* Fanfare ved dagsfærdig */
   useEffect(() => {
