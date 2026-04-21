@@ -729,3 +729,141 @@ const PlanningSection = ({
     </div>
   );
 };
+
+/* ────────────────────────────────────────────
+   AssigneePicker — vælg én eller flere medarbejdere på opgaven.
+   • Klik på chip = tilføj/fjern.
+   • Crown-ikon = sæt som lead (primær).
+   • Provision fordeles automatisk ligeligt ved completion (50/50, 33/33/33...).
+   ──────────────────────────────────────────── */
+
+type EmployeeOption = {
+  id: string;
+  name: string;
+  color?: string | null;
+  avatar_url?: string | null;
+};
+
+const AssigneePicker = ({
+  employees,
+  assigneeIds,
+  leadId,
+  onChange,
+}: {
+  employees: EmployeeOption[];
+  assigneeIds: string[];
+  leadId: string | null;
+  onChange: (ids: string[], lead: string | null) => void;
+}) => {
+  const toggle = (id: string) => {
+    if (assigneeIds.includes(id)) {
+      const next = assigneeIds.filter((x) => x !== id);
+      const nextLead = leadId === id ? (next[0] ?? null) : leadId;
+      onChange(next, nextLead);
+    } else {
+      const next = [...assigneeIds, id];
+      const nextLead = leadId ?? next[0];
+      onChange(next, nextLead);
+    }
+  };
+
+  const setAsLead = (id: string) => {
+    if (!assigneeIds.includes(id)) return;
+    onChange(assigneeIds, id);
+  };
+
+  if (employees.length === 0) {
+    return (
+      <p className="text-xs text-muted-foreground italic">
+        Ingen aktive medarbejdere. Opret medarbejdere under Admin → Medarbejdere.
+      </p>
+    );
+  }
+
+  const sharePct = assigneeIds.length > 0 ? Math.round(100 / assigneeIds.length) : 0;
+
+  return (
+    <div className="space-y-2.5">
+      {/* Valgte medarbejdere som chips med lead-toggle */}
+      {assigneeIds.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {assigneeIds.map((id) => {
+            const emp = employees.find((e) => e.id === id);
+            if (!emp) return null;
+            const isLead = id === leadId;
+            return (
+              <div
+                key={id}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-md border bg-card pl-1.5 pr-0.5 py-0.5 text-xs",
+                  isLead && "border-foreground/40",
+                )}
+              >
+                <span
+                  className="h-2 w-2 rounded-full shrink-0"
+                  style={{ background: emp.color || "hsl(var(--muted-foreground))" }}
+                />
+                <span className="font-medium truncate max-w-[120px]">{emp.name}</span>
+                <button
+                  type="button"
+                  onClick={() => setAsLead(id)}
+                  className={cn(
+                    "h-5 w-5 inline-flex items-center justify-center rounded transition-colors",
+                    isLead
+                      ? "text-amber-500"
+                      : "text-muted-foreground/40 hover:text-amber-500 hover:bg-secondary",
+                  )}
+                  title={isLead ? "Lead (primær)" : "Sæt som lead"}
+                  aria-label={isLead ? "Lead" : "Sæt som lead"}
+                >
+                  <Crown className="h-3 w-3" fill={isLead ? "currentColor" : "none"} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggle(id)}
+                  className="h-5 w-5 inline-flex items-center justify-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  aria-label={`Fjern ${emp.name}`}
+                >
+                  <XIcon className="h-3 w-3" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Tilføj-knapper for medarbejdere der ikke er valgt */}
+      <div className="flex flex-wrap gap-1.5">
+        {employees
+          .filter((e) => !assigneeIds.includes(e.id))
+          .map((emp) => (
+            <button
+              key={emp.id}
+              type="button"
+              onClick={() => toggle(emp.id)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-dashed bg-background px-2 py-1 text-xs hover:border-foreground/40 hover:bg-accent/5 transition-colors"
+            >
+              <span
+                className="h-2 w-2 rounded-full"
+                style={{ background: emp.color || "hsl(var(--muted-foreground))" }}
+              />
+              <span className="font-medium">+ {emp.name}</span>
+            </button>
+          ))}
+      </div>
+
+      {/* Info om provisionsdeling */}
+      {assigneeIds.length > 1 && (
+        <p className="text-[11px] text-muted-foreground bg-secondary/40 rounded-md px-2.5 py-1.5">
+          Provision fordeles ligeligt: <strong className="text-foreground">{sharePct}%</strong> til hver
+          medarbejder ved færdigmelding.
+        </p>
+      )}
+      {assigneeIds.length === 0 && (
+        <p className="text-[11px] text-muted-foreground italic">
+          Ingen medarbejdere tildelt — opgaven vil ikke vises i nogen medarbejder-app.
+        </p>
+      )}
+    </div>
+  );
+};
