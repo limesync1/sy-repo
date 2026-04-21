@@ -50,6 +50,8 @@ type Props = {
 
   /** Skjul hint-tekst under hvert felt (kompakt brug). */
   hideHints?: boolean;
+  /** Layout: "stack" (default, label over felt vertikalt) eller "row" (3 kolonner side-om-side). */
+  layout?: "stack" | "row";
 };
 
 export const DurationSlotPicker = ({
@@ -63,6 +65,7 @@ export const DurationSlotPicker = ({
   dateLabel = "Foreslået dato",
   dateHint,
   hideHints = false,
+  layout = "stack",
 }: Props) => {
   const [slotOpen, setSlotOpen] = useState(false);
   const [durOpen, setDurOpen] = useState(false);
@@ -80,6 +83,198 @@ export const DurationSlotPicker = ({
   const dateLabelText = date
     ? format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da })
     : "Vælg dato";
+
+  // Kompakt label-stil til row-layout.
+  const fieldLabelCls =
+    layout === "row"
+      ? "text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+      : "";
+
+  const dateField = onDateChange ? (
+    <div className="space-y-1.5">
+      <Label className={fieldLabelCls}>{dateLabel}</Label>
+      <DatePickerField value={date || ""} onChange={onDateChange} />
+      <span className="sr-only">{dateLabelText}</span>
+    </div>
+  ) : null;
+
+  const timeSlotField = (
+    <div className="space-y-1.5">
+      <Label className={fieldLabelCls}>Tidsrum</Label>
+      <Popover open={slotOpen} onOpenChange={setSlotOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            className={cn(
+              "w-full justify-start text-left font-normal h-9 bg-background",
+              "hover:bg-accent/10 hover:text-foreground hover:border-accent/40",
+              !selectedSlot && "text-muted-foreground",
+            )}
+          >
+            <Clock className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
+            {selectedSlot ? (
+              <span className="truncate">
+                <span className="font-medium tabular-nums">{selectedSlot.short}</span>
+                {layout === "stack" && (
+                  <span className="text-muted-foreground ml-2">· {selectedSlot.label}</span>
+                )}
+              </span>
+            ) : (
+              <span>Vælg tidsrum</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[280px] p-2" align="start">
+          <div className="space-y-1">
+            {TIME_SLOTS.map((s) => {
+              const active = s.value === timeSlot;
+              return (
+                <button
+                  key={s.value}
+                  type="button"
+                  onClick={() => { onTimeSlotChange(s.value); setSlotOpen(false); }}
+                  className={cn(
+                    "w-full flex items-center gap-3 rounded-md px-2.5 py-1.5 text-sm text-left transition-colors",
+                    active ? "bg-accent/15 text-foreground" : "hover:bg-accent/10",
+                  )}
+                >
+                  <span className="font-semibold tabular-nums w-12 text-foreground">{s.short}</span>
+                  <span className="text-muted-foreground flex-1">{s.label}</span>
+                </button>
+              );
+            })}
+            {timeSlot && (
+              <>
+                <div className="border-t my-1" />
+                <button
+                  type="button"
+                  onClick={() => { onTimeSlotChange(""); setSlotOpen(false); }}
+                  className="w-full text-left rounded-md px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-accent/10"
+                >
+                  Ryd tidsrum
+                </button>
+              </>
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+
+  const durationField = (
+    <div className="space-y-1.5">
+      <Label className={fieldLabelCls}>Estimeret varighed</Label>
+      <Popover open={durOpen} onOpenChange={setDurOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            className={cn(
+              "w-full justify-start text-left font-normal h-9 bg-background",
+              "hover:bg-accent/10 hover:text-foreground hover:border-accent/40",
+              totalMin === 0 && "text-muted-foreground",
+            )}
+          >
+            <Hourglass className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
+            <span className="font-medium truncate">{durationLabel}</span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[280px] p-3" align="start">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 font-semibold">
+            Hurtigvalg
+          </p>
+          <div className="grid grid-cols-4 gap-1.5 mb-3">
+            {DURATION_PRESETS.map((p) => {
+              const active = p.hours === durationHours && p.minutes === durationMinutes;
+              return (
+                <button
+                  key={p.label}
+                  type="button"
+                  onClick={() => onDurationChange(p.hours, p.minutes)}
+                  className={cn(
+                    "h-8 rounded-md text-xs font-medium border transition-colors",
+                    active
+                      ? "bg-foreground text-background border-foreground"
+                      : "bg-background hover:bg-accent/10 hover:border-accent/40",
+                  )}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 font-semibold">
+            Brugerdefineret
+          </p>
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <Input
+                type="number"
+                min={0}
+                max={23}
+                value={durationHours}
+                onChange={(e) =>
+                  onDurationChange(
+                    Math.max(0, Math.min(23, Number(e.target.value) || 0)),
+                    durationMinutes,
+                  )
+                }
+                className="h-9 text-center tabular-nums"
+                aria-label="Timer"
+              />
+              <p className="text-[10px] text-center text-muted-foreground mt-1">timer</p>
+            </div>
+            <span className="text-muted-foreground pb-5">:</span>
+            <div className="flex-1">
+              <Input
+                type="number"
+                min={0}
+                max={59}
+                step={5}
+                value={durationMinutes}
+                onChange={(e) =>
+                  onDurationChange(
+                    durationHours,
+                    Math.max(0, Math.min(59, Number(e.target.value) || 0)),
+                  )
+                }
+                className="h-9 text-center tabular-nums"
+                aria-label="Minutter"
+              />
+              <p className="text-[10px] text-center text-muted-foreground mt-1">min</p>
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+
+  // Row-layout: dato + tidsrum + varighed side om side i ét grid + samlet hint.
+  if (layout === "row") {
+    return (
+      <div className="space-y-2">
+        <div
+          className={cn(
+            "grid gap-2.5",
+            onDateChange ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2",
+          )}
+        >
+          {dateField}
+          {timeSlotField}
+          {durationField}
+        </div>
+        {!hideHints && (
+          <p className="text-[11px] text-muted-foreground">
+            {onDateChange
+              ? (dateHint || "Foreslået dato, ønsket tidsrum og estimeret varighed — kunden kan bekræfte eller ændre.")
+              : "Ønsket tidsrum og estimeret varighed — bruges til at planlægge ruten."}
+          </p>
+        )}
+        <CalendarIcon className="hidden" aria-hidden />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
