@@ -378,6 +378,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               {collapsed ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
               <span className="flex-1 text-left">
                 Næste stop {nextStopIdx + 1} af {sortedStops.length}
+                {isAtNextStop && <span className="ml-2 text-primary font-semibold">· Du er fremme</span>}
               </span>
               {directions && (
                 <span className="font-medium">
@@ -388,6 +389,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {!collapsed && (
               <div className="p-4 space-y-3">
+                {!routeStarted && (
+                  <Button onClick={handleStartRoute} size="lg" className="w-full gap-2">
+                    <Play className="h-5 w-5" /> Start rute
+                  </Button>
+                )}
                 <div className="flex items-start gap-3">
                   <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm shrink-0">
                     {nextStopIdx + 1}
@@ -402,6 +408,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     )}
                     {nextStop.service_summary && stripPrices(nextStop.service_summary) && (
                       <p className="text-sm mt-1 line-clamp-2">{stripPrices(nextStop.service_summary)}</p>
+                    )}
+                    {distanceToNextM != null && (
+                      <p className="text-[11px] text-muted-foreground mt-1 tabular-nums">
+                        {distanceToNextM < 1000 ? `${Math.round(distanceToNextM)} m` : `${(distanceToNextM/1000).toFixed(1)} km`} til stoppet
+                      </p>
                     )}
                   </div>
                 </div>
@@ -427,7 +438,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <Button
                   onClick={() => handleComplete(nextStop)}
                   size="lg"
-                  className="w-full gap-2"
+                  className={`w-full gap-2 ${isAtNextStop ? "ring-4 ring-primary/40 animate-pulse" : ""}`}
                   disabled={updateStatus.isPending}
                 >
                   {updateStatus.isPending ? (
@@ -435,7 +446,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   ) : (
                     <CheckCircle2 className="h-5 w-5" />
                   )}
-                  Markér som udført
+                  {isAtNextStop ? "Du er fremme — Markér som udført" : "Markér som udført"}
                 </Button>
               </div>
             )}
