@@ -266,7 +266,6 @@ const RoutePill = ({ route, onSelect, onSelectStop, onOptimize, optimizing, comp
 
   const stopCount = route.stops.length;
   const completedCount = route.stops.filter((s) => s.status === "completed").length;
-  const initialsFor = (n: string) => n.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("");
   const visibleEmployees = route.attachedEmployees.slice(0, 3);
   const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
 
@@ -312,15 +311,26 @@ const RoutePill = ({ route, onSelect, onSelectStop, onOptimize, optimizing, comp
         {/* Medarbejder-avatarer */}
         {visibleEmployees.length > 0 && (
           <div className="flex -space-x-1 shrink-0" title={route.attachedEmployees.map((e) => e.name).join(", ")}>
-            {visibleEmployees.map((emp) => (
-              <span
-                key={emp.id}
-                className="inline-flex items-center justify-center h-4 w-4 rounded-full text-[8px] font-bold ring-1 ring-background bg-secondary text-foreground tabular-nums"
-                title={emp.name}
-              >
-                {initialsFor(emp.name)}
-              </span>
-            ))}
+            {visibleEmployees.map((emp) =>
+              emp.avatar_url ? (
+                <img
+                  key={emp.id}
+                  src={emp.avatar_url}
+                  alt={emp.name}
+                  title={emp.name}
+                  loading="lazy"
+                  className="h-4 w-4 rounded-full object-cover ring-1 ring-background"
+                />
+              ) : (
+                <span
+                  key={emp.id}
+                  className="inline-block h-4 w-4 rounded-full ring-1 ring-background"
+                  style={{ background: emp.color || "#64748b" }}
+                  title={emp.name}
+                  aria-label={emp.name}
+                />
+              ),
+            )}
             {extraEmployees > 0 && (
               <span className="inline-flex items-center justify-center h-4 min-w-[1rem] px-0.5 rounded-full text-[8px] font-bold ring-1 ring-background bg-muted text-muted-foreground">
                 +{extraEmployees}
