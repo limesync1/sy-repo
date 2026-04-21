@@ -340,6 +340,7 @@ const EmployeeRow = ({
   };
 
   return (
+    <TooltipProvider delayDuration={200}>
     <Card className={`rounded-xl ${employee.is_active ? "" : "opacity-60"}`}>
       <CardContent className="p-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -441,7 +442,7 @@ const EmployeeRow = ({
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          <button
+          <Tooltip><TooltipTrigger asChild><button
             onClick={() => {
               setEditName(employee.name || "");
               setEditEmail(employee.email || "");
@@ -449,32 +450,20 @@ const EmployeeRow = ({
               setEditTitle(employee.title || "");
               setEditOpen(true);
             }}
-            title="Rediger"
             className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
           >
             <Pencil className="h-4 w-4" />
-          </button>
+          </button></TooltipTrigger><TooltipContent>Rediger oplysninger</TooltipContent></Tooltip>
           {linked && (
-            <button
-              onClick={() => {
-                if (!confirm(`Send nulstillings-email til ${employee.email}?`)) return;
-                resetPw.mutate(
-                  { employee_id: employee.id },
-                  {
-                    onSuccess: ({ emailSent }) =>
-                      toast.success(emailSent ? "Nulstillings-email sendt" : "Link genereret, men email kunne ikke sendes"),
-                    onError: (e: any) => toast.error(e.message || "Kunne ikke sende"),
-                  },
-                );
-              }}
-              title="Send nulstilling af adgangskode"
+            <Tooltip><TooltipTrigger asChild><button
+              onClick={() => setConfirmReset(true)}
               disabled={resetPw.isPending}
               className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors disabled:opacity-50"
             >
               <KeyRound className="h-4 w-4" />
-            </button>
+            </button></TooltipTrigger><TooltipContent>Send nulstilling af adgangskode</TooltipContent></Tooltip>
           )}
-          <button
+          <Tooltip><TooltipTrigger asChild><button
             onClick={() => {
               onUpdate.mutate(
                 { id: employee.id, business_id: businessId, is_active: !employee.is_active },
@@ -485,27 +474,16 @@ const EmployeeRow = ({
                 }
               );
             }}
-            title={employee.is_active ? "Deaktiver" : "Aktiver"}
             className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
           >
             {employee.is_active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
-          </button>
-          <button
-            onClick={() => {
-              if (!confirm(`Slet ${employee.name}? Dette kan ikke fortrydes.`)) return;
-              onRemove.mutate(
-                { id: employee.id, business_id: businessId },
-                {
-                  onSuccess: () => toast.success("Medarbejder slettet"),
-                  onError: (e: any) => toast.error(e.message),
-                }
-              );
-            }}
-            title="Slet"
+          </button></TooltipTrigger><TooltipContent>{employee.is_active ? "Deaktiver medarbejder" : "Aktivér medarbejder"}</TooltipContent></Tooltip>
+          <Tooltip><TooltipTrigger asChild><button
+            onClick={() => setConfirmDelete(true)}
             className="rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
           >
             <Trash2 className="h-4 w-4" />
-          </button>
+          </button></TooltipTrigger><TooltipContent>Slet medarbejder</TooltipContent></Tooltip>
         </div>
       </CardContent>
 
