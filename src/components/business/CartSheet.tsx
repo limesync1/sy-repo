@@ -462,41 +462,71 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                   <h4 className="text-sm font-semibold text-foreground">Service-adresse</h4>
                 </div>
                 <div className="space-y-2.5 pl-9">
-                  <p className="text-xs text-muted-foreground">Adressen hvor servicen skal udføres — bruges til ruteplanlægning.</p>
+                  <p className="text-xs text-muted-foreground">Søg adresse og vælg fra listen — verificeres automatisk.</p>
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Adresse (vej + nr.)</label>
-                    <Input value={address} onChange={(e) => onAddressChange(e.target.value)} placeholder="Hovedgaden 12" className="rounded-lg" />
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Adresse</label>
+                    <AddressAutocomplete
+                      value={{ address, zip_code: zipCode, city, latitude, longitude }}
+                      onChange={(v) => {
+                        setAddress(v.address);
+                        setZipCode(v.zip_code);
+                        setCity(v.city);
+                        setLatitude(v.latitude ?? null);
+                        setLongitude(v.longitude ?? null);
+                        // Sync legacy geo state for handleOrder validation
+                        if (v.latitude && v.longitude) {
+                          setGeo({ ok: true, display: `${v.address}, ${v.zip_code} ${v.city}`, lat: v.latitude, lng: v.longitude });
+                        } else {
+                          setGeo(null);
+                        }
+                      }}
+                    />
                   </div>
-                  <div className="grid grid-cols-[1fr_2fr] gap-2">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground">Postnr.</label>
-                      <Input value={zipCode} onChange={(e) => onZipChange(e.target.value)} placeholder="8600" className="rounded-lg" inputMode="numeric" maxLength={4} />
+                  {(zipCode || city) && (
+                    <div className="grid grid-cols-[1fr_2fr] gap-2">
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-muted-foreground">Postnr.</label>
+                        <Input value={zipCode} onChange={(e) => onZipChange(e.target.value)} placeholder="8600" className="rounded-lg" inputMode="numeric" maxLength={4} />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-muted-foreground">By</label>
+                        <Input value={city} onChange={(e) => onCityChange(e.target.value)} placeholder="Silkeborg" className="rounded-lg" />
+                      </div>
                     </div>
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground">By</label>
-                      <Input value={city} onChange={(e) => onCityChange(e.target.value)} placeholder="Silkeborg" className="rounded-lg" />
-                    </div>
-                  </div>
+                  )}
+                </div>
+              </section>
 
-                  {/* Auto-verify status (no manual button) */}
-                  <div className="min-h-[28px]">
-                    {verifying && (
-                      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground rounded-md bg-secondary px-2 py-1">
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Bekræfter adresse...
-                      </span>
-                    )}
-                    {!verifying && geo?.ok && (
-                      <span className="inline-flex items-center gap-1.5 text-xs text-accent rounded-md bg-accent/10 border border-accent/20 px-2 py-1 max-w-full">
-                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{geo.display}</span>
-                      </span>
-                    )}
-                    {!verifying && geo && !geo.ok && (
-                      <span className="inline-flex items-center gap-1.5 text-xs text-destructive rounded-md bg-destructive/10 border border-destructive/20 px-2 py-1">
-                        <AlertCircle className="h-3.5 w-3.5" /> Kunne ikke finde — tjek stavemåde og postnr.
-                      </span>
-                    )}
+              {/* CVR (valgfrit) — bruges til erhvervskunder */}
+              <section className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
+                    <Building2 className="h-3.5 w-3.5 text-accent" />
                   </div>
+                  <h4 className="text-sm font-semibold text-foreground">Bestiller du som virksomhed? <span className="text-xs font-normal text-muted-foreground">(valgfrit)</span></h4>
+                </div>
+                <div className="space-y-2 pl-9">
+                  <p className="text-xs text-muted-foreground">Indtast CVR-nummer — vi henter automatisk firmaoplysninger.</p>
+                  <CvrLookupField
+                    value={cvr}
+                    onChange={setCvr}
+                    onResult={(r: CvrResult | null) => {
+                      if (!r) return;
+                      setCompanyName(r.name);
+                      if (!name) setName(r.name);
+                      if (r.address) setAddress(r.address);
+                      if (r.zip_code) setZipCode(r.zip_code);
+                      if (r.city) setCity(r.city);
+                      if (r.phone && !phone) setPhone(r.phone);
+                      if (r.email && !email) setEmail(r.email);
+                      setGeo(null); setLatitude(null); setLongitude(null);
+                    }}
+                  />
+                  {(cvr.replace(/\D/g, "").length === 8 || companyName) && (
+                    <p className="text-[11px] text-muted-foreground italic">
+                      ℹ️ Bestillingen markeres som <strong className="text-foreground not-italic">erhvervskunde</strong>.
+                    </p>
+                  )}
                 </div>
               </section>
 
