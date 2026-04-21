@@ -228,6 +228,8 @@ const Planner = () => {
           label: s.customer_name || "Stop",
           sublabel: s.address || undefined,
           index: i + 1,
+          distanceToNextKm: s.distance_to_next_km != null ? Number(s.distance_to_next_km) : null,
+          travelTimeToNextMin: s.travel_time_to_next_min != null ? Number(s.travel_time_to_next_min) : null,
         }));
       if (colStops.length) list.push({ color: r.color, stops: colStops });
     }
