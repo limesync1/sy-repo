@@ -51,6 +51,10 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
   const wrapRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<number | null>(null);
 
+  // Visuel status: grøn når verificeret, rød når der er tekst men ingen valid adresse valgt.
+  const hasInput = query.trim().length > 0;
+  const invalid = hasInput && !verified && !loading && !open;
+
   // Hold query in sync if parent resets value
   useEffect(() => { setQuery(value.address || ""); setVerified(!!(value.latitude && value.longitude)); }, [value.address, value.latitude, value.longitude]);
 
@@ -128,12 +132,17 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
           onFocus={() => suggestions.length > 0 && setOpen(true)}
           onKeyDown={onKeyDown}
           placeholder={placeholder || "Begynd at skrive adresse…"}
-          className="h-9 pr-9"
+          className={cn(
+            "h-9 pr-9 transition-colors",
+            verified && "border-accent focus-visible:ring-accent/30",
+            invalid && "border-destructive focus-visible:ring-destructive/30",
+          )}
           autoComplete="off"
         />
         <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
           {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
             : verified ? <Check className="h-3.5 w-3.5 text-accent" />
+            : invalid ? <MapPin className="h-3.5 w-3.5 text-destructive" />
             : <MapPin className="h-3.5 w-3.5" />}
         </span>
       </div>

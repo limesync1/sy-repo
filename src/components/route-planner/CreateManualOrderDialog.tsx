@@ -65,6 +65,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [contactPerson, setContactPerson] = useState("");
   const [address, setAddress] = useState("");
   const [zipCode, setZipCode] = useState("");
   const [city, setCity] = useState("");
@@ -102,7 +103,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
     setItems((prev) => prev.map((i) => i.serviceId === id ? { ...i, ...patch } : i));
 
   const reset = () => {
-    setCustomerName(""); setCustomerEmail(""); setCustomerPhone("");
+    setCustomerName(""); setCustomerEmail(""); setCustomerPhone(""); setContactPerson("");
     setAddress(""); setZipCode(""); setCity("");
     setLatitude(null); setLongitude(null);
     setCvr(""); setCompanyName("");
@@ -157,6 +158,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
           longitude: lng,
           cvr: cvr.replace(/\D/g, "") || null,
           company_name: companyName.trim() || null,
+          notes: contactPerson.trim() ? `Kontaktperson: ${contactPerson.trim()}` : null,
           preferred_date: preferredDate || null,
           preferred_time_start: it.timeStart || null,
           preferred_time_end: it.timeEnd || null,
@@ -281,37 +283,64 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-secondary/20">
           {/* Kunde */}
-          <Section icon={<User className="h-3.5 w-3.5" />} title="Kunde" required>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Field label="Navn" required>
-                <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Fx Mette Hansen" className="h-9" />
-              </Field>
-              <Field label="Email" required>
-                <Input type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} placeholder="kunde@email.dk" className="h-9" />
-              </Field>
-              <Field label="Telefon">
-                <Input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-9" />
-              </Field>
-              <Field label="Adresse" hint="Søg — verificeres automatisk via DAWA">
-                <AddressAutocomplete
-                  value={{ address, zip_code: zipCode, city, latitude, longitude }}
-                  onChange={(v) => {
-                    setAddress(v.address);
-                    setZipCode(v.zip_code);
-                    setCity(v.city);
-                    setLatitude(v.latitude ?? null);
-                    setLongitude(v.longitude ?? null);
-                  }}
-                />
-              </Field>
-            </div>
-            {(zipCode || city) && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
-                <Field label="Postnr."><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-9" /></Field>
-                <div className="sm:col-span-2"><Field label="By"><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-9" /></Field></div>
-              </div>
-            )}
-          </Section>
+          {(() => {
+            const isBusiness = cvr.replace(/\D/g, "").length === 8 || !!companyName;
+            return (
+              <Section icon={<User className="h-3.5 w-3.5" />} title={isBusiness ? "Erhvervskunde" : "Kunde"} required>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Field label={isBusiness ? "Firmanavn" : "Navn"} required>
+                    <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder={isBusiness ? "Fx Hansen ApS" : "Fx Mette Hansen"} className="h-9" />
+                  </Field>
+                  <Field label="Email" required>
+                    <Input type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} placeholder="kunde@email.dk" className="h-9" />
+                  </Field>
+                  <Field label="Telefon">
+                    <Input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-9" />
+                  </Field>
+                  {isBusiness ? (
+                    <Field label="Kontaktperson">
+                      <Input value={contactPerson} onChange={(e) => setContactPerson(e.target.value)} placeholder="Fx Mette Hansen" className="h-9" />
+                    </Field>
+                  ) : (
+                    <Field label={"Adresse"}>
+                      <AddressAutocomplete
+                        value={{ address, zip_code: zipCode, city, latitude, longitude }}
+                        onChange={(v) => {
+                          setAddress(v.address);
+                          setZipCode(v.zip_code);
+                          setCity(v.city);
+                          setLatitude(v.latitude ?? null);
+                          setLongitude(v.longitude ?? null);
+                        }}
+                      />
+                    </Field>
+                  )}
+                </div>
+                {isBusiness && (
+                  <div className="mt-3">
+                    <Field label="Service-adresse">
+                      <AddressAutocomplete
+                        value={{ address, zip_code: zipCode, city, latitude, longitude }}
+                        onChange={(v) => {
+                          setAddress(v.address);
+                          setZipCode(v.zip_code);
+                          setCity(v.city);
+                          setLatitude(v.latitude ?? null);
+                          setLongitude(v.longitude ?? null);
+                        }}
+                      />
+                    </Field>
+                  </div>
+                )}
+                {(zipCode || city) && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+                    <Field label="Postnr."><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-9" /></Field>
+                    <div className="sm:col-span-2"><Field label="By"><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-9" /></Field></div>
+                  </div>
+                )}
+              </Section>
+            );
+          })()}
 
           {/* CVR (valgfrit) */}
           <Section icon={<Building2 className="h-3.5 w-3.5" />} title="Virksomhed (CVR)" hint="Valgfrit — auto-udfylder felter">
