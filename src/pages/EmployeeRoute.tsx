@@ -507,8 +507,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <Marker
                   key={s.id}
                   position={[Number(s.latitude), Number(s.longitude)]}
-                  icon={stopIcon(i + 1, state, themeColor)}
-                  eventHandlers={{ click: () => setSelectedId(s.id) }}
+                  icon={stopIcon(i + 1, state, themeColor, s.id === highlightedId)}
+                  eventHandlers={{ click: () => { setHighlightedId(s.id); setSelectedId(s.id); } }}
                 />
               );
             })}
@@ -523,6 +523,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {/* Detect manual user interaction to break follow */}
             <MapInteractionWatcher onInteract={breakFollow} />
+
+            {/* Smooth fly to a tapped stop in the list */}
+            {(() => {
+              const h = sortedStops.find((s) => s.id === highlightedId);
+              const t: [number, number] | null = h && h.latitude != null && h.longitude != null
+                ? [Number(h.latitude), Number(h.longitude)]
+                : null;
+              return <FlyToStop target={t} />;
+            })()}
           </MapContainer>
         )}
 
