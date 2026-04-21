@@ -240,6 +240,32 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
               </Tabs>
             )}
 
+            {/* Profilbillede */}
+            <div className="flex items-center gap-3">
+              <div className="relative h-14 w-14 shrink-0 group/avatar">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Profil" className="h-14 w-14 rounded-full object-cover border" />
+                ) : (
+                  <div className="h-14 w-14 rounded-full bg-accent/10 border flex items-center justify-center text-accent">
+                    {type === "business" ? <Building2 className="h-6 w-6" /> : <User className="h-6 w-6" />}
+                  </div>
+                )}
+                <label className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/60 text-background text-[10px] font-semibold opacity-0 group-hover/avatar:opacity-100 cursor-pointer transition-opacity" title="Skift profilbillede">
+                  {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : "Skift"}
+                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
+                </label>
+              </div>
+              <div className="text-xs text-muted-foreground flex-1">
+                <p className="font-medium text-foreground">Profilbillede</p>
+                <p>Hold over billedet for at skifte. Maks 5MB.</p>
+                {avatarUrl && (
+                  <button type="button" onClick={() => setAvatarUrl(null)} className="text-[11px] text-muted-foreground hover:text-destructive underline-offset-2 hover:underline mt-0.5">
+                    Fjern billede
+                  </button>
+                )}
+              </div>
+            </div>
+
             {type === "business" && (
               <div className="rounded-lg border bg-card p-3 space-y-3">
                 <div>
