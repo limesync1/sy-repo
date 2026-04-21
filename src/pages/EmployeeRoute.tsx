@@ -93,9 +93,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const [showList, setShowList] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
+  const [routeStarted, setRouteStarted] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(true);
+  /** Stop-id'er hvor vi allerede har afspillet ankomst-lyd (undgår spam). */
+  const arrivedAnnouncedRef = useRef<Set<string>>(new Set());
+  /** Har vi allerede spillet "dag færdig"-fanfaren? */
+  const finishedAnnouncedRef = useRef(false);
 
-  /* Geolocation */
+  /* Geolocation — start kun watchPosition når ruten er startet */
   useEffect(() => {
+    if (!routeStarted) return;
     if (!navigator.geolocation) return;
     const watchId = navigator.geolocation.watchPosition(
       (pos) => setUserPos([pos.coords.latitude, pos.coords.longitude]),
@@ -103,7 +110,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       { enableHighAccuracy: true, maximumAge: 30000, timeout: 10000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
-  }, []);
+  }, [routeStarted]);
 
   const route = data?.route as (Route & { businesses?: { name?: string } }) | undefined;
   const stops = data?.stops || [];
