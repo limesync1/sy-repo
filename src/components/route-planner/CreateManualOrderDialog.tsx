@@ -14,7 +14,6 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Loader2, Trash2, Send, ShoppingBag, User, MapPin, Calendar as CalendarIcon, MessageSquare, Package } from "lucide-react";
-import { Clock, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 import { roundPrice, buildPricingSnapshot } from "@/lib/service-pricing";
@@ -24,6 +23,7 @@ import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupFie
 import { Building2, BadgeCheck } from "lucide-react";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 import CustomerEmailAutocomplete from "./CustomerEmailAutocomplete";
+import { DurationTimePicker } from "@/components/shared/DurationTimePicker";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
 type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string };
@@ -497,45 +497,23 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                         </Select>
                       )}
 
-                      {/* Varighed + tidsvindue pr. service — bruges direkte i ruteplanlægning */}
-                      <div className="mt-2 grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-2 rounded-md bg-secondary/30 p-2">
-                        <div className="flex items-center gap-1.5">
-                          <Timer className="h-3 w-3 text-muted-foreground" />
-                          <Label className="text-[11px] text-muted-foreground">Varighed</Label>
-                          <Input
-                            type="number" min={5} max={480} step={5}
-                            value={it.durationMin}
-                            onChange={(e) => updateItem(it.serviceId, { durationMin: Math.max(5, parseInt(e.target.value) || 30) })}
-                            className="h-7 w-16 text-xs"
-                          />
-                          <span className="text-[11px] text-muted-foreground">min</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="h-3 w-3 text-muted-foreground" />
-                          <Label className="text-[11px] text-muted-foreground">Tidsrum</Label>
-                          <Input
-                            type="time"
-                            value={it.timeStart}
-                            onChange={(e) => updateItem(it.serviceId, { timeStart: e.target.value })}
-                            className="h-7 w-[90px] text-xs"
-                          />
-                          <span className="text-[11px] text-muted-foreground">–</span>
-                          <Input
-                            type="time"
-                            value={it.timeEnd}
-                            onChange={(e) => updateItem(it.serviceId, { timeEnd: e.target.value })}
-                            className="h-7 w-[90px] text-xs"
-                          />
-                          {(it.timeStart || it.timeEnd) && (
-                            <button
-                              type="button"
-                              onClick={() => updateItem(it.serviceId, { timeStart: "", timeEnd: "" })}
-                              className="text-[10px] text-muted-foreground hover:text-destructive ml-1"
-                            >
-                              Ryd
-                            </button>
-                          )}
-                        </div>
+                      {/* Varighed + tidsrum — samme UI som ejerens stop-modul */}
+                      <div className="mt-2 rounded-md bg-secondary/30 p-2.5">
+                        <DurationTimePicker
+                          compact
+                          durationHours={Math.floor((it.durationMin || 30) / 60)}
+                          durationMinutes={(it.durationMin || 30) % 60}
+                          onDurationChange={(h, m) =>
+                            updateItem(it.serviceId, {
+                              durationMin: Math.max(5, h * 60 + m),
+                            })
+                          }
+                          timeStart={it.timeStart}
+                          timeEnd={it.timeEnd}
+                          onTimeChange={(start, end) =>
+                            updateItem(it.serviceId, { timeStart: start, timeEnd: end })
+                          }
+                        />
                       </div>
 
                       <div className="mt-2 flex items-center justify-between pt-2 border-t border-border/60">
