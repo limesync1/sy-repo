@@ -390,7 +390,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-hidden">
-      {/* ─── Compact header — calendar pill style ─── */}
+      {/* ─── Compact header — kun synlig før rute starter eller ved færdig ─── */}
+      {(!routeStarted || allDone) && (
       <header className="relative shrink-0 z-30 bg-background border-b">
         <div className="flex items-center gap-2 px-3 py-2 bg-secondary/40">
           <Button asChild variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-background shrink-0">
@@ -437,52 +438,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             style={{ width: `${progress}%`, background: themeColor }}
           />
         </div>
-
-        {/* Maneuver banner — only when actively driving */}
-        {routeStarted && maneuver && nextStop && !allDone && (
-          <Card className="mx-3 mt-3 mb-2 overflow-hidden shadow-lg border-2" style={{ borderColor: `${themeColor}40` }}>
-            <div className="flex items-stretch">
-              <div
-                className="flex flex-col items-center justify-center w-24 shrink-0 text-background py-2"
-                style={{ background: themeColor }}
-              >
-                <ManeuverIcon
-                  type={maneuver.currentStep.maneuver.type}
-                  modifier={maneuver.currentStep.maneuver.modifier}
-                  className="h-10 w-10"
-                />
-                <span className="text-[10px] font-bold tracking-wide mt-1 tabular-nums">
-                  {formatKm(maneuver.distanceToManeuverM)}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0 px-3 py-2.5">
-                <p className="font-bold text-base leading-tight truncate">
-                  {maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
-                </p>
-                {maneuver.currentStep.name && (
-                  <p className="text-sm text-muted-foreground truncate mt-0.5">
-                    ad <span className="font-semibold text-foreground">{maneuver.currentStep.name}</span>
-                  </p>
-                )}
-                {maneuver.nextStep && (
-                  <div className="flex items-center gap-1.5 mt-1.5 pt-1.5 border-t text-[11px] text-muted-foreground">
-                    <span>Derefter:</span>
-                    <ManeuverIcon
-                      type={maneuver.nextStep.maneuver.type}
-                      modifier={maneuver.nextStep.maneuver.modifier}
-                      className="h-3.5 w-3.5"
-                    />
-                    <span className="truncate">
-                      {maneuverLabel(maneuver.nextStep.maneuver.type, maneuver.nextStep.maneuver.modifier)}
-                      {maneuver.nextStep.name && ` · ${maneuver.nextStep.name}`}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </Card>
-        )}
       </header>
+      )}
 
       {/* ─── Map fills everything ─── */}
       <div className="relative flex-1 min-h-0">
