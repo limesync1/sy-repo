@@ -36,8 +36,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
   const [durationHours, setDurationHours] = useState<number>(0);
   const [durationMinutes, setDurationMinutes] = useState<number>(30);
-  const [timeStart, setTimeStart] = useState<string>("");
-  const [timeEnd, setTimeEnd] = useState<string>("");
+  const [timeSlot, setTimeSlot] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -46,8 +45,9 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
     const totalMin = stop.duration_minutes || 30;
     setDurationHours(Math.floor(totalMin / 60));
     setDurationMinutes(totalMin % 60);
-    setTimeStart(stop.time_window_start?.slice(0, 5) || "");
-    setTimeEnd(stop.time_window_end?.slice(0, 5) || "");
+    const s = stop.time_window_start?.slice(0, 5) || "";
+    const e = stop.time_window_end?.slice(0, 5) || "";
+    setTimeSlot(s && e ? `${s}-${e}` : "");
     setNotes(stop.notes || "");
   }, [stop?.id]);
 
@@ -60,11 +60,12 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
   const handleSave = async () => {
     const totalMin = Math.max(5, durationHours * 60 + durationMinutes);
+    const [s, e] = timeSlot ? timeSlot.split("-") : [null, null];
     await updateStop.mutateAsync({
       id: stop.id,
       duration_minutes: totalMin,
-      time_window_start: timeStart || null,
-      time_window_end: timeEnd || null,
+      time_window_start: s || null,
+      time_window_end: e || null,
       notes: notes || null,
     } as any);
     toast.success("Ændringer gemt");
