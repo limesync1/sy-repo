@@ -463,8 +463,8 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
       const privIds = targets.filter(c => c.type === "private" && c.saved_id).map(c => c.saved_id!);
       const bizIds = targets.filter(c => c.type === "business" && c.saved_id).map(c => c.saved_id!);
       const promises: Promise<any>[] = [];
-      if (privIds.length) promises.push(supabase.from("private_customers").delete().in("id", privIds));
-      if (bizIds.length) promises.push(supabase.from("business_customers").delete().in("id", bizIds));
+      if (privIds.length) promises.push(Promise.resolve(supabase.from("private_customers").delete().in("id", privIds)));
+      if (bizIds.length) promises.push(Promise.resolve(supabase.from("business_customers").delete().in("id", bizIds)));
       const results = await Promise.all(promises);
       const firstError = results.find((r: any) => r?.error)?.error;
       if (firstError) throw firstError;
