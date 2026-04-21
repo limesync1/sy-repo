@@ -514,17 +514,28 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
       ) : (
         <div className="rounded-xl border border-border bg-card overflow-hidden divide-y divide-border">
           {filtered.map((c) => (
-            <button
-              key={c.email}
-              onClick={() => setSelectedEmail(c.email)}
-              className="w-full flex items-center gap-3 p-3.5 hover:bg-secondary/50 transition-colors text-left"
-            >
-              <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0 text-sm font-semibold text-accent">
-                {c.name.charAt(0).toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-[1.5fr_1fr_1fr] gap-2 items-center">
+            <div key={c.email} className="flex items-center gap-3 p-3.5 hover:bg-secondary/50 transition-colors">
+              <button
+                onClick={() => setSelectedEmail(c.email)}
+                className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0 text-sm font-semibold text-accent"
+                title="Se detaljer"
+              >
+                {c.type === "business" ? <Building2 className="h-4 w-4" /> : (c.name?.charAt(0).toUpperCase() || "?")}
+              </button>
+              <button
+                onClick={() => setSelectedEmail(c.email)}
+                className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-[1.5fr_1fr_1fr] gap-2 items-center text-left"
+              >
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate">{c.name}</p>
+                  <p className="text-sm font-semibold text-foreground truncate flex items-center gap-1.5">
+                    {c.type === "business" && c.company_name ? c.company_name : c.name}
+                    {c.type === "business" && (
+                      <Badge variant="outline" className="text-[10px] h-4 px-1 border-blue-300 text-blue-700 bg-blue-50">Erhverv</Badge>
+                    )}
+                    {c.type === "private" && (
+                      <Badge variant="outline" className="text-[10px] h-4 px-1 border-emerald-300 text-emerald-700 bg-emerald-50">Privat</Badge>
+                    )}
+                  </p>
                   <p className="text-xs text-muted-foreground truncate">{c.email}{c.phone ? ` · ${c.phone}` : ""}</p>
                 </div>
                 <div className="min-w-0 hidden sm:block">
@@ -532,7 +543,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                     <MapPin className="h-3 w-3 shrink-0" />
                     {c.city || c.address ? `${c.address || ""}${c.address && c.city ? ", " : ""}${c.city || ""}` : "—"}
                   </p>
-                  <p className="text-[11px] text-muted-foreground/70 mt-0.5">Sidst: {fmtDate(c.last_order_at)}</p>
+                  <p className="text-[11px] text-muted-foreground/70 mt-0.5">{c.last_order_at ? `Sidst: ${fmtDate(c.last_order_at)}` : "Ingen bestillinger endnu"}</p>
                 </div>
                 <div className="flex items-center justify-end gap-2">
                   {c.active_subs > 0 && (
@@ -547,14 +558,25 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                       {c.paused_subs} på pause
                     </Badge>
                   )}
-                  <Badge variant="secondary" className="text-[10px] h-5 px-1.5">
-                    {c.orders_count} ordrer
-                  </Badge>
-                  <span className="text-sm font-bold text-foreground tabular-nums w-24 text-right">{fmtKr(c.total_revenue)}</span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  {c.orders_count > 0 && (
+                    <Badge variant="secondary" className="text-[10px] h-5 px-1.5">
+                      {c.orders_count} ordrer
+                    </Badge>
+                  )}
+                  <span className="text-sm font-bold text-foreground tabular-nums w-24 text-right">{c.total_revenue > 0 ? fmtKr(c.total_revenue) : "—"}</span>
                 </div>
+              </button>
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  onClick={(e) => { e.stopPropagation(); openEditDialog(c); }}
+                  title="Rediger kunde"
+                  className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </div>
-            </button>
+            </div>
           ))}
         </div>
       )}
@@ -565,6 +587,15 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         email={selectedEmail}
         customer={filtered.find(c => c.email === selectedEmail) || null}
         onClose={() => setSelectedEmail(null)}
+      />
+
+      {/* Create / edit dialog */}
+      <CustomerEditDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        businessId={businessId}
+        businessName={businessName || ""}
+        initial={editing}
       />
     </div>
   );
