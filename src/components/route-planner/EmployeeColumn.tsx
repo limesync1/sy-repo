@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MapPin, Clock, Sparkles, Navigation, Loader2, Send, AlertCircle } from "lucide-react";
 import type { RouteStop } from "@/hooks/useRoutes";
+import { formatDurationMin } from "@/lib/duration-format";
 
 type Props = {
   routeId: string;
@@ -70,7 +71,7 @@ export const EmployeeColumn = ({
             )}
             {totalMin != null && totalMin > 0 && (
               <Badge variant="outline" className="text-[10px] h-4 px-1.5 gap-0.5">
-                <Clock className="h-2.5 w-2.5" />{Math.floor(totalMin / 60)}t {totalMin % 60}m
+                <Clock className="h-2.5 w-2.5" />{formatDurationMin(totalMin, { short: true })}
               </Badge>
             )}
           </div>
@@ -187,7 +188,7 @@ const SortableStopCard = ({
           )}
           <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
             <span className="flex items-center gap-0.5">
-              <Clock className="h-2.5 w-2.5" />{stop.duration_minutes}m
+              <Clock className="h-2.5 w-2.5" />{formatDurationMin(stop.duration_minutes, { short: true })}
             </span>
             {stop.time_window_start && (
               <span className="text-amber-700 font-medium">
