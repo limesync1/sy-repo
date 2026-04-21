@@ -265,6 +265,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       if (audioEnabled) playSuccessChime();
       toast.success(`${s.customer_name || "Stop"} markeret som udført`);
       setSelectedId(null);
+      // Annonceer næste stop hvis der er flere tilbage
+      const remaining = sortedStops.filter((x) => x.status !== "completed" && x.id !== s.id);
+      if (remaining.length > 0 && audioEnabled) {
+        const next = remaining[0];
+        setTimeout(() => speak(`Næste stop: ${next.customer_name || "ukendt kunde"}`), 900);
+      }
     } catch { /* */ }
   };
 
