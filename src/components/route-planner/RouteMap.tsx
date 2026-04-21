@@ -321,6 +321,28 @@ const RouteLayer = ({
           <Polyline positions={positions} pathOptions={{ color: route.color, weight: 5, opacity: 0.95, lineCap: "round", lineJoin: "round" }} />
         </>
       )}
+      {/* Usynlige ben-linjer (straight-line) ovenpå — bruges kun til hover-tooltip
+          pr. segment, fordi den fulde geometri ikke kan deles op uden waypoints. */}
+      {route.stops.length > 1 && route.stops.slice(0, -1).map((s, i) => {
+        const next = route.stops[i + 1];
+        const km = s.distanceToNextKm;
+        const min = s.travelTimeToNextMin;
+        if (km == null && min == null) return null;
+        const tooltipLines: string[] = [];
+        if (km != null) tooltipLines.push(`${km.toFixed(1)} km`);
+        if (min != null) tooltipLines.push(`${min} min`);
+        return (
+          <Polyline
+            key={`leg-${s.id}`}
+            positions={[[s.lat, s.lng], [next.lat, next.lng]]}
+            pathOptions={{ color: route.color, weight: 18, opacity: 0 }}
+          >
+            <Tooltip sticky direction="top" opacity={1}>
+              <span className="text-xs font-medium">{tooltipLines.join(" · ")}</span>
+            </Tooltip>
+          </Polyline>
+        );
+      })}
       {route.stops.map((s, i) => {
         const isSelected = selectedStopId === s.id;
         return (
