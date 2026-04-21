@@ -390,8 +390,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               </Section>
 
               {isLoading && <p className="text-xs text-muted-foreground italic">Indlæser ordredetaljer...</p>}
-            </div>
-          </ScrollArea>
+          </div>
 
           {/* Footer actions */}
           <SheetFooterBar>
