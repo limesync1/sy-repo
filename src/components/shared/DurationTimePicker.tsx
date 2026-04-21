@@ -4,7 +4,8 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Hourglass, Timer } from "lucide-react";
+import { Hourglass, Timer, Calendar as CalendarIcon } from "lucide-react";
+import { DatePickerField } from "@/components/route-planner/DatePickerField";
 
 type Props = {
   durationHours: number;
@@ -17,6 +18,11 @@ type Props = {
   compact?: boolean;
   /** Skjul tidsrumsfeltet hvis kun varighed skal vises. */
   hideTimeWindow?: boolean;
+  /** Valgfri foreslået dato (ISO yyyy-mm-dd). Vises som første felt hvis onDateChange er sat. */
+  date?: string;
+  onDateChange?: (date: string) => void;
+  dateLabel?: string;
+  dateHint?: string;
 };
 
 export const DurationTimePicker = ({
@@ -28,6 +34,10 @@ export const DurationTimePicker = ({
   onTimeChange,
   compact = false,
   hideTimeWindow = false,
+  date,
+  onDateChange,
+  dateLabel = "Foreslået dato",
+  dateHint,
 }: Props) => {
   const inputClass = compact ? "h-8 text-xs" : "h-9";
   const labelClass = compact
@@ -36,6 +46,22 @@ export const DurationTimePicker = ({
 
   return (
     <div className="space-y-3">
+      {/* Foreslået dato (valgfri) — vises kun hvis onDateChange er givet */}
+      {onDateChange && (
+        <div>
+          <Label className={labelClass}>
+            <CalendarIcon className="inline h-3 w-3 mr-1 -mt-0.5" />
+            {dateLabel}
+          </Label>
+          <div className="mt-1.5">
+            <DatePickerField value={date || ""} onChange={onDateChange} />
+          </div>
+          {dateHint && (
+            <p className="text-[10px] text-muted-foreground mt-1">{dateHint}</p>
+          )}
+        </div>
+      )}
+
       {/* Varighed: timer + minutter */}
       <div>
         <Label className={labelClass}>

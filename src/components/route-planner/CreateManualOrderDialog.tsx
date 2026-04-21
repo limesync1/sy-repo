@@ -13,11 +13,10 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Trash2, Send, ShoppingBag, User, MapPin, Calendar as CalendarIcon, MessageSquare, Package } from "lucide-react";
+import { Loader2, Trash2, Send, ShoppingBag, User, MessageSquare, Package } from "lucide-react";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 import { roundPrice, buildPricingSnapshot } from "@/lib/service-pricing";
-import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
 import { Building2, BadgeCheck } from "lucide-react";
@@ -422,11 +421,6 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
             )}
           </Section>
 
-          {/* Foreslået dato */}
-          <Section icon={<CalendarIcon className="h-3.5 w-3.5" />} title="Foreslået dato" hint="Valgfrit — kunden kan bekræfte eller ændre">
-            <DatePickerField value={preferredDate} onChange={setPreferredDate} />
-          </Section>
-
           {/* Services */}
           <Section icon={<Package className="h-3.5 w-3.5" />} title="Services" required hint={`${items.length} valgt`}>
             <Select value="" onValueChange={addService}>
@@ -441,7 +435,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
 
             {items.length > 0 && (
               <div className="mt-3 space-y-2">
-                {items.map((it) => {
+                {items.map((it, idx) => {
                   const intervals = it.service.interval_options && it.service.interval_options.length > 0 ? it.service.interval_options : ["engangskøb"];
                   return (
                     <Card key={it.serviceId} className="p-3 bg-background border-l-2 border-l-primary/40">
@@ -501,6 +495,14 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                       <div className="mt-2 rounded-md bg-secondary/30 p-2.5">
                         <DurationTimePicker
                           compact
+                          {...(idx === 0
+                            ? {
+                                date: preferredDate,
+                                onDateChange: setPreferredDate,
+                                dateLabel: "Foreslået dato",
+                                dateHint: "Valgfrit — kunden kan bekræfte eller ændre",
+                              }
+                            : {})}
                           durationHours={Math.floor((it.durationMin || 30) / 60)}
                           durationMinutes={(it.durationMin || 30) % 60}
                           onDurationChange={(h, m) =>
