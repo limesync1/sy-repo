@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import type { Business } from "@/hooks/useDatabase";
 import { useMemo } from "react";
+import { PageHeader, StatCard, EmptyState } from "@/components/admin/shared/AdminUI";
 
 interface Props {
   business: Business;
@@ -22,11 +23,11 @@ interface Props {
 }
 
 const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRating, reviewsCount, pendingOrders, recentOrders, onNavigate }: Props) => {
-  const stats = [
-    { label: "Omsætning", value: `${revenue.toLocaleString("da-DK")} kr`, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-500/10", ring: "ring-emerald-500/20", change: null },
-    { label: "Bestillinger", value: ordersCount, icon: Handshake, color: "text-blue-600", bg: "bg-blue-500/10", ring: "ring-blue-500/20", change: null },
-    { label: "Services", value: servicesCount, icon: Briefcase, color: "text-violet-600", bg: "bg-violet-500/10", ring: "ring-violet-500/20", change: null },
-    { label: "Bedømmelse", value: reviewsCount > 0 ? `${averageRating.toFixed(1)} ★` : "–", icon: Star, color: "text-amber-600", bg: "bg-amber-500/10", ring: "ring-amber-500/20", change: reviewsCount > 0 ? `${reviewsCount} anmeldelser` : null },
+  const stats: Array<{ label: string; value: React.ReactNode; icon: React.ReactNode; tone: "emerald" | "blue" | "violet" | "amber"; hint?: string | null }> = [
+    { label: "Omsætning", value: `${revenue.toLocaleString("da-DK")} kr`, icon: <DollarSign />, tone: "emerald", hint: null },
+    { label: "Bestillinger", value: ordersCount, icon: <Handshake />, tone: "blue", hint: null },
+    { label: "Services", value: servicesCount, icon: <Briefcase />, tone: "violet", hint: null },
+    { label: "Bedømmelse", value: reviewsCount > 0 ? `${averageRating.toFixed(1)} ★` : "–", icon: <Star />, tone: "amber", hint: reviewsCount > 0 ? `${reviewsCount} anmeldelser` : null },
   ];
 
   const statusLabels: Record<string, string> = {
@@ -63,35 +64,27 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
 
   return (
     <div className="space-y-6">
-      {/* Welcome header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-foreground">Velkommen tilbage 👋</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Her er et overblik over <span className="font-medium text-foreground">{business.name}</span>.</p>
-        </div>
-        {business.slug && (
+      <PageHeader
+        title="Overblik"
+        description={<>Her er status for <span className="font-medium text-foreground">{business.name}</span>.</>}
+        action={business.slug ? (
           <a href={`/biz/${business.slug}`} target="_blank" rel="noopener noreferrer"
             className="hidden sm:flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors">
             Se din side <ArrowRight className="h-3 w-3" />
           </a>
-        )}
-      </div>
+        ) : null}
+      />
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.label} className="rounded-xl border-border shadow-sm hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{stat.label}</p>
-                <div className={`rounded-lg p-1.5 ${stat.bg} ring-1 ${stat.ring}`}>
-                  <stat.icon className={`h-3.5 w-3.5 ${stat.color}`} />
-                </div>
-              </div>
-              <p className="mt-2 text-2xl font-bold text-foreground tracking-tight">{stat.value}</p>
-              {stat.change && <p className="mt-0.5 text-xs text-muted-foreground">{stat.change}</p>}
-            </CardContent>
-          </Card>
+          <StatCard
+            key={stat.label}
+            label={stat.label}
+            value={stat.value}
+            icon={stat.icon}
+            tone={stat.tone}
+            hint={stat.hint}
+          />
         ))}
       </div>
 
@@ -196,15 +189,11 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
             </div>
           </Card>
         ) : (
-          <Card className="rounded-xl border-dashed border-border">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary">
-                <TrendingUp className="h-6 w-6 text-muted-foreground/30" />
-              </div>
-              <p className="text-sm font-medium text-foreground">Ingen bestillinger endnu</p>
-              <p className="mt-0.5 text-sm text-muted-foreground">Bestillinger vil vises her når de kommer ind.</p>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={<TrendingUp />}
+            title="Ingen bestillinger endnu"
+            description="Bestillinger vil vises her når de kommer ind."
+          />
         )}
       </div>
     </div>

@@ -15,6 +15,7 @@ import {
   Play, Pause,
 } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
+import { PageHeader } from "@/components/admin/shared/AdminUI";
 import {
   buildPricingSnapshot,
   getSmartStep,
@@ -764,14 +765,10 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
-      <div>
-        <h2 className="text-base font-semibold text-foreground">Aftaler</h2>
-        <p className="mt-0.5 text-sm text-muted-foreground">
-          {orders?.length || 0} aftaler i alt
-          {upcomingSubs.length > 0 && ` · ${upcomingSubs.length} kommende services`}
-        </p>
-      </div>
+      <PageHeader
+        title="Aftaler"
+        description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende services` : ""}`}
+      />
 
       {/* Upcoming services alert */}
       {upcomingSubs.length > 0 && (

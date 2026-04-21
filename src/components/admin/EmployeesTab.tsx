@@ -23,6 +23,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { PageHeader, PrimaryButton, FieldLabel, SectionCard, EmptyState } from "@/components/admin/shared/AdminUI";
 
 interface Props {
   businessId: string;
@@ -75,19 +76,16 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 
   if (!routePlanningEnabled) {
     return (
-      <div className="max-w-3xl">
-        <Card className="rounded-xl border-dashed">
-          <CardContent className="p-8 text-center">
-            <Briefcase className="mx-auto mb-3 h-10 w-10 text-muted-foreground/50" />
-            <h3 className="text-base font-semibold text-foreground mb-1.5">
-              Aktivér ruteplanlægning først
-            </h3>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              For at oprette medarbejder-konti skal du først aktivere
-              ruteplanlægning under Indstillinger → Ruteplanlægning.
-            </p>
-          </CardContent>
-        </Card>
+      <div className="max-w-3xl space-y-6">
+        <PageHeader
+          title="Medarbejdere"
+          description="Tilføj medarbejdere — der oprettes automatisk en konto, og de modtager login-oplysninger på email."
+        />
+        <EmptyState
+          icon={<Briefcase />}
+          title="Aktivér ruteplanlægning først"
+          description="For at oprette medarbejder-konti skal du først aktivere ruteplanlægning under Indstillinger → Ruteplanlægning."
+        />
       </div>
     );
   }
@@ -97,46 +95,29 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">Medarbejdere</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Tilføj medarbejdere — der oprettes automatisk en konto, og de modtager
-            login-oplysninger på email.
-          </p>
-        </div>
-        {!showForm && (
-          <Button
-            onClick={() => setShowForm(true)}
-            className="h-9 rounded-lg bg-foreground text-background hover:bg-foreground/90 text-sm font-medium px-4 shadow-sm"
-          >
-            <UserPlus className="mr-1.5 h-4 w-4" />
+      <PageHeader
+        title="Medarbejdere"
+        description="Tilføj medarbejdere — der oprettes automatisk en konto, og de modtager login-oplysninger på email."
+        action={!showForm ? (
+          <PrimaryButton onClick={() => setShowForm(true)} icon={<UserPlus />}>
             Tilføj medarbejder
-          </Button>
-        )}
-      </div>
+          </PrimaryButton>
+        ) : null}
+      />
 
       {/* Create Form */}
       {showForm && (
-        <Card className="rounded-xl border-accent/30 shadow-sm">
-          <CardContent className="p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <UserPlus className="h-4 w-4 text-accent" />
-                Ny medarbejder
-              </h3>
-              <button
-                onClick={resetForm}
-                className="rounded-md p-1 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+        <SectionCard
+          title={<><UserPlus /> Ny medarbejder</>}
+          action={
+            <button onClick={resetForm} className="rounded-md p-1 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
+              <X className="h-4 w-4" />
+            </button>
+          }
+        >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Navn *
-                </label>
+                <FieldLabel required>Navn</FieldLabel>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -145,9 +126,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Email *
-                </label>
+                <FieldLabel required>Email</FieldLabel>
                 <Input
                   type="email"
                   value={email}
@@ -157,9 +136,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Telefon
-                </label>
+                <FieldLabel>Telefon</FieldLabel>
                 <Input
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -168,9 +145,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Titel / rolle
-                </label>
+                <FieldLabel>Titel / rolle</FieldLabel>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -187,17 +162,11 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
               <Button variant="ghost" onClick={resetForm} className="h-9 text-sm">
                 Annuller
               </Button>
-              <Button
-                onClick={handleCreate}
-                disabled={create.isPending}
-                className="h-9 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 text-sm font-semibold px-5"
-              >
-                <UserPlus className="mr-1.5 h-4 w-4" />
+              <PrimaryButton onClick={handleCreate} disabled={create.isPending} icon={<UserPlus />}>
                 {create.isPending ? "Opretter..." : "Opret medarbejder"}
-              </Button>
+              </PrimaryButton>
             </div>
-          </CardContent>
-        </Card>
+        </SectionCard>
       )}
 
       {isLoading && <p className="text-sm text-muted-foreground">Indlæser…</p>}
@@ -244,25 +213,16 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 
       {/* Empty state */}
       {!isLoading && (employees?.length === 0) && !showForm && (
-        <Card className="rounded-xl border-dashed">
-          <CardContent className="p-8 text-center">
-            <UserPlus className="mx-auto mb-3 h-10 w-10 text-muted-foreground/50" />
-            <h3 className="text-base font-semibold text-foreground mb-1.5">
-              Ingen medarbejdere endnu
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
-              Tilføj din første medarbejder — de modtager en email med deres
-              login-oplysninger og adgang til ruteplanlæggeren.
-            </p>
-            <Button
-              onClick={() => setShowForm(true)}
-              className="h-9 rounded-lg bg-foreground text-background hover:bg-foreground/90 text-sm font-medium px-4"
-            >
-              <UserPlus className="mr-1.5 h-4 w-4" />
+        <EmptyState
+          icon={<UserPlus />}
+          title="Ingen medarbejdere endnu"
+          description="Tilføj din første medarbejder — de modtager en email med deres login-oplysninger og adgang til ruteplanlæggeren."
+          action={
+            <PrimaryButton onClick={() => setShowForm(true)} icon={<UserPlus />}>
               Tilføj første medarbejder
-            </Button>
-          </CardContent>
-        </Card>
+            </PrimaryButton>
+          }
+        />
       )}
     </div>
   );
