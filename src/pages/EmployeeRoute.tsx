@@ -119,8 +119,12 @@ const FollowUser = ({
 }: { active: boolean; userPos: [number, number] | null }) => {
   const map = useMap();
   const initRef = useRef(false);
+  // Sidste position vi rent faktisk panorerede til — bruges til at undgå
+  // mikro-pan ved GPS-jitter (typisk ±2-5 m), som ellers giver et "glitch"-look
+  // hvor kortet hopper frem og tilbage flere gange i sekundet.
+  const lastPannedRef = useRef<[number, number] | null>(null);
   useEffect(() => {
-    if (!active) { initRef.current = false; return; }
+    if (!active) { initRef.current = false; lastPannedRef.current = null; return; }
     if (!userPos) return;
     // Tæt på vejen — så man tydeligt kan se hvilken vej/sidevej man er på.
     // 18.5 svarer ca. til Google Maps' navigationsmode på mobil.
@@ -129,9 +133,22 @@ const FollowUser = ({
       // First lock: snap immediately so the user sees themselves centered.
       map.setView(userPos, targetZoom, { animate: true, duration: 0.4 });
       initRef.current = true;
+      lastPannedRef.current = userPos;
     } else {
-      // Subsequent updates: smooth pan only, no zoom changes (avoids the "jumpy" feel).
-      map.panTo(userPos, { animate: true, duration: 0.9, easeLinearity: 0.25 });
+      // Subsequent updates: ignorér GPS-jitter under 6 m — det er mest støj
+      // og fører til at en igangværende pan-animation bliver afbrudt og
+      // genstartet hvert tick = visuel "glitch" frem og tilbage.
+      const last = lastPannedRef.current;
+      const movedM = last
+        ? haversineMeters(last[0], last[1], userPos[0], userPos[1])
+        : Infinity;
+      if (movedM < 6) return;
+      // Stop evt. igangværende animation så vi ikke "kæmper" mod en gammel pan.
+      // (Leaflet's panTo cancellerer ellers mid-flight og giver et hop.)
+      // @ts-ignore — _stop er Leaflet-internt, men bredt understøttet.
+      if (typeof (map as any)._stop === "function") (map as any)._stop();
+      map.panTo(userPos, { animate: true, duration: 0.6, easeLinearity: 0.25, noMoveStart: true } as any);
+      lastPannedRef.current = userPos;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, userPos?.[0], userPos?.[1], map]);
@@ -208,9 +225,33 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   >(null);
   const trafficSpokenRef = useRef<string | null>(null);
 
-  /* Geolocation watcher — kun aktiv når rute kører */
+  /* Geolocation permission — husk på tværs af sessioner.
+   * Browseren persisterer selv "granted/denied" pr. origin, men hvis
+   * tilstanden er "granted" ønsker vi at starte watcheren med det samme,
+   * så vi har en position klar når brugeren trykker "Start rute" — uden
+   * at vise endnu en prompt. */
+  const [geoPermission, setGeoPermission] = useState<"granted" | "denied" | "prompt" | "unknown">("unknown");
   useEffect(() => {
-    if (!routeStarted) return;
+    if (!("permissions" in navigator)) { setGeoPermission("unknown"); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const status = await (navigator.permissions as any).query({ name: "geolocation" });
+        if (cancelled) return;
+        setGeoPermission(status.state);
+        status.onchange = () => setGeoPermission(status.state);
+      } catch {
+        setGeoPermission("unknown");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  /* Geolocation watcher — aktiv når rute kører ELLER når brugeren allerede
+   * har givet lov (så positionen er klar uden ny prompt). */
+  useEffect(() => {
+    const shouldWatch = routeStarted || geoPermission === "granted";
+    if (!shouldWatch) return;
     if (!navigator.geolocation) return;
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
@@ -223,7 +264,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [routeStarted]);
+  }, [routeStarted, geoPermission]);
 
   /* Bryd follow ved manuel kortinteraktion */
   const breakFollow = () => { if (followMode) setFollowMode(false); };
@@ -1214,12 +1255,25 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 const MapInteractionWatcher = ({ onInteract }: { onInteract: () => void }) => {
   const map = useMap();
   useEffect(() => {
-    const handler = () => onInteract();
+    // Vi vil KUN bryde follow-mode ved ægte brugerinput — ikke når vores
+    // egen kode kalder panTo/setView, og ikke når layoutet ændrer sig
+    // (f.eks. når et bottom-sheet åbner og kortet får invalidateSize).
+    // Tidligere lyttede vi på "zoomstart"/"dragstart" generelt, hvilket
+    // betød at programmatiske kortbevægelser også slog follow fra og gav
+    // et "glitch"-look når moduler kom ind over kortet.
+    const handler = (e: any) => {
+      // Leaflet sætter originalEvent når interaktionen kommer fra DOM.
+      if (e?.originalEvent) onInteract();
+    };
     map.on("dragstart", handler);
     map.on("zoomstart", handler);
+    map.on("mousedown", handler);
+    map.on("touchstart", handler);
     return () => {
       map.off("dragstart", handler);
       map.off("zoomstart", handler);
+      map.off("mousedown", handler);
+      map.off("touchstart", handler);
     };
   }, [map, onInteract]);
   return null;
