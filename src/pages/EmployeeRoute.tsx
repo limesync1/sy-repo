@@ -574,7 +574,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* Bottom card — matches RoutePlanner card aesthetics */}
         {allDone ? (
           <div className="absolute bottom-0 inset-x-0 z-10 p-3">
-            <div className="rounded-2xl bg-background border border-border shadow-2xl p-4 flex items-center gap-3">
+            <Card className="p-4 flex items-center gap-3 shadow-2xl">
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/15 text-accent shrink-0">
                 <CheckCircle2 className="h-7 w-7" />
               </span>
@@ -592,7 +592,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               >
                 Til oversigt
               </Button>
-            </div>
+            </Card>
           </div>
         ) : nextStop && (
           <div className="absolute bottom-0 inset-x-0 z-10 p-3 pointer-events-none">
