@@ -347,36 +347,93 @@ const StatusBadge = ({ status }: { status: string }) => {
   return <Badge variant="outline" className={`text-[10px] h-5 px-1.5 ${m.className}`}>{m.label}</Badge>;
 };
 
-interface Props { businessId: string }
+interface Props { businessId: string; businessName?: string }
 
-const CustomersTab = ({ businessId }: Props) => {
+const CustomersTab = ({ businessId, businessName }: Props) => {
   const { data: customers = [], isLoading } = useCustomers(businessId);
   const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"all" | "private" | "business">("all");
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<EditableCustomer | null>(null);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return customers;
+    let list = customers;
+    if (typeFilter !== "all") {
+      list = list.filter(c => c.type === typeFilter);
+    }
+    if (!search.trim()) return list;
     const q = search.toLowerCase();
-    return customers.filter(c =>
+    return list.filter(c =>
       c.name.toLowerCase().includes(q) ||
       c.email.toLowerCase().includes(q) ||
       (c.phone || "").toLowerCase().includes(q) ||
       (c.address || "").toLowerCase().includes(q) ||
+      (c.company_name || "").toLowerCase().includes(q) ||
+      (c.cvr || "").toLowerCase().includes(q) ||
       (c.city || "").toLowerCase().includes(q)
     );
-  }, [customers, search]);
+  }, [customers, search, typeFilter]);
 
   const stats = useMemo(() => {
     const totalRev = customers.reduce((s, c) => s + c.total_revenue, 0);
     const recurring = customers.filter(c => c.active_subs > 0).length;
-    return { totalRev, recurring, total: customers.length };
+    const privateCount = customers.filter(c => c.type === "private").length;
+    const businessCount = customers.filter(c => c.type === "business").length;
+    return { totalRev, recurring, total: customers.length, privateCount, businessCount };
   }, [customers]);
+
+  const openCreateDialog = () => {
+    setEditing(null);
+    setEditDialogOpen(true);
+  };
+
+  const openEditDialog = (c: Customer) => {
+    if (!c.saved_id || !c.type || c.type === "unknown") {
+      // Tillad redigering også af ikke-gemte (fra ordrer) — opret ny kartotek-entry
+      setEditing({
+        type: c.cvr || c.company_name ? "business" : "private",
+        name: c.name,
+        company_name: c.company_name || undefined,
+        cvr: c.cvr || undefined,
+        contact_name: c.contact_name || undefined,
+        email: c.email,
+        phone: c.phone,
+        address: c.address,
+        zip_code: c.zip_code,
+        city: c.city,
+        notes: c.notes,
+      });
+    } else {
+      setEditing({
+        id: c.saved_id,
+        type: c.type,
+        name: c.name,
+        company_name: c.company_name || undefined,
+        cvr: c.cvr || undefined,
+        contact_name: c.contact_name || undefined,
+        email: c.email,
+        phone: c.phone,
+        address: c.address,
+        zip_code: c.zip_code,
+        city: c.city,
+        notes: c.notes,
+      });
+    }
+    setEditDialogOpen(true);
+  };
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">Kunder</h2>
-        <p className="text-sm text-muted-foreground">Alle dine kunder, deres bestillinger, abonnementer og rutehistorik.</p>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Kunder</h2>
+          <p className="text-sm text-muted-foreground">Alle dine kunder, deres bestillinger, abonnementer og rutehistorik.</p>
+        </div>
+        <Button onClick={openCreateDialog} className="h-9 rounded-lg bg-foreground text-background hover:bg-foreground/90 text-sm font-medium px-4 shadow-sm">
+          <UserPlus className="mr-1.5 h-4 w-4" />
+          Tilføj kunde
+        </Button>
       </div>
 
       {/* Stats */}
