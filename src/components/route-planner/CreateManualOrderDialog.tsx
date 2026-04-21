@@ -23,6 +23,7 @@ import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
 import { Building2, BadgeCheck } from "lucide-react";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
+import CustomerEmailAutocomplete from "./CustomerEmailAutocomplete";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
 type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string };
@@ -292,7 +293,30 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
                     <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder={isBusiness ? "Fx Hansen ApS" : "Fx Mette Hansen"} className="h-9" />
                   </Field>
                   <Field label="Email" required>
-                    <Input type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} placeholder="kunde@email.dk" className="h-9" />
+                    <CustomerEmailAutocomplete
+                      businessId={businessId}
+                      value={customerEmail}
+                      onChange={setCustomerEmail}
+                      onSelect={(c) => {
+                        setCustomerEmail(c.customer_email);
+                        if (c.company_name) setCompanyName(c.company_name);
+                        if (c.cvr) setCvr(c.cvr);
+                        // Hvis kunden er erhverv, behold company_name som "navn"-feltets værdi
+                        setCustomerName(c.company_name || c.customer_name || "");
+                        if (c.company_name && c.customer_name && c.company_name !== c.customer_name) {
+                          setContactPerson(c.customer_name);
+                        }
+                        if (c.customer_phone) setCustomerPhone(c.customer_phone);
+                        if (c.address) setAddress(c.address);
+                        if (c.zip_code) setZipCode(c.zip_code);
+                        if (c.city) setCity(c.city);
+                        setLatitude(c.latitude ?? null);
+                        setLongitude(c.longitude ?? null);
+                        toast.success("Kundeoplysninger udfyldt");
+                      }}
+                      placeholder="kunde@email.dk"
+                      className="h-9"
+                    />
                   </Field>
                   <Field label="Telefon">
                     <Input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-9" />
