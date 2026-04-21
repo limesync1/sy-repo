@@ -181,7 +181,7 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
             )}
             <Badge variant="secondary" className="h-4 text-[10px] px-1.5 gap-0.5">
               <Hourglass className="h-2.5 w-2.5" />
-              ~{estimatedMin}m
+              ~{formatDurationMin(estimatedMin, { short: true })}
             </Badge>
             {job.preferred_route_name && (
               <Badge variant="outline" className="h-4 text-[10px] px-1.5 gap-0.5 border-accent/40 text-accent bg-accent/5">
