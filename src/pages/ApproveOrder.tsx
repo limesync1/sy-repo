@@ -178,7 +178,7 @@ const ApproveOrder = () => {
         ) : order ? (
           <div className="space-y-4">
             <div className="text-center mb-2">
-              <Badge variant="secondary" className="bg-amber-100 text-amber-900 hover:bg-amber-100 border-amber-200">
+              <Badge variant="secondary" className="bg-accent/10 text-accent hover:bg-accent/10">
                 Afventer din godkendelse
               </Badge>
               <h1 className="mt-3 text-2xl md:text-3xl font-bold text-foreground">
