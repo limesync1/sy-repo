@@ -329,29 +329,113 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return eta.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
   }, [directions?.duration_s]);
 
-  /* Trafik-overvågning: sammenlign aktuel ETA med baseline for samme stop. */
+  /* Trafik-overvågning — robust mod GPS-jitter, omkørsel og korte ture.
+   *
+   * Vi vil kun vise "trafik" når den ekstra ventetid med stor sandsynlighed
+   * skyldes faktisk forsinkelse — ikke at brugeren har bevæget sig væk fra
+   * stoppet (omkørsel/forkert vej) eller at GPS-fixet hopper.
+   *
+   * Regler:
+   *   1. Saml mindst 3 målinger over ≥30 sek før vi låser baseline.
+   *   2. Baseline = mediandurationen blandt målingerne.
+   *   3. Trafik kun når dist-til-stop er nogenlunde uændret (±15 %).
+   *   4. Ekstra tid skal være ≥3 min OG ≥30 % over baseline OG turen
+   *      skal i forvejen være ≥10 min — undgår 1138 %-skud på små ture.
+   *   5. Kvalitativ severity: let / moderat / tæt — ingen procenter i UI.
+   *   6. Auto-clear når delta falder under 90 sek.
+   */
   useEffect(() => {
     if (!routeStarted || !nextStop || !directions?.duration_s) return;
-    const cur = directions.duration_s;
-    const base = baselineDurationRef.current;
-    if (!base || base.stopId !== nextStop.id) {
-      baselineDurationRef.current = { stopId: nextStop.id, durationS: cur };
+    const curDur = directions.duration_s;
+    const curDist = directions.distance_m ?? 0;
+    const now = Date.now();
+
+    let state = baselineRef.current;
+    if (!state || state.stopId !== nextStop.id) {
+      state = {
+        stopId: nextStop.id,
+        samples: [],
+        baseDurationS: null,
+        baseDistanceM: null,
+        lockedAt: null,
+      };
+      baselineRef.current = state;
+      setTrafficAlert(null);
+    }
+
+    // Indsæt sample, behold de seneste ~12.
+    state.samples.push({ durationS: curDur, distanceM: curDist, t: now });
+    if (state.samples.length > 12) state.samples.shift();
+
+    // Lås baseline når vi har nok stabile data.
+    if (!state.lockedAt && state.samples.length >= 3) {
+      const oldest = state.samples[0];
+      if (now - oldest.t >= 30_000) {
+        const sortedDur = [...state.samples].map((s) => s.durationS).sort((a, b) => a - b);
+        const sortedDist = [...state.samples].map((s) => s.distanceM).sort((a, b) => a - b);
+        state.baseDurationS = sortedDur[Math.floor(sortedDur.length / 2)];
+        state.baseDistanceM = sortedDist[Math.floor(sortedDist.length / 2)];
+        state.lockedAt = now;
+      }
+    }
+
+    if (!state.lockedAt || state.baseDurationS == null || state.baseDistanceM == null) return;
+
+    // Tillad at baseline ned-justeres naturligt når man nærmer sig stoppet.
+    if (curDur < state.baseDurationS && curDist < state.baseDistanceM) {
+      state.baseDurationS = curDur;
+      state.baseDistanceM = curDist;
+    }
+
+    const baseDur = state.baseDurationS;
+    const baseDist = state.baseDistanceM;
+    const distRatio = baseDist > 0 ? curDist / baseDist : 1;
+
+    // Hvis distancen er steget markant, er det IKKE trafik — det er omkørsel/væk fra stop.
+    if (distRatio > 1.15) {
       setTrafficAlert(null);
       return;
     }
-    // Forventet "naturlig" reduktion idet du nærmer dig: tag den lavest sete.
-    if (cur < base.durationS) {
-      baselineDurationRef.current = { stopId: nextStop.id, durationS: cur };
-    }
-    const expected = baselineDurationRef.current.durationS;
-    const delta = cur - expected;
-    const deltaPct = (delta / Math.max(expected, 60)) * 100;
-    if (deltaPct >= 20 && delta >= 120) {
-      setTrafficAlert({ deltaPct: Math.round(deltaPct), addedMin: Math.round(delta / 60) });
-    } else if (deltaPct < 10) {
+
+    const deltaSec = curDur - baseDur;
+    const deltaMin = deltaSec / 60;
+    const deltaPct = (deltaSec / Math.max(baseDur, 60)) * 100;
+
+    // Auto-clear ved lav delta.
+    if (deltaSec < 90) {
       setTrafficAlert(null);
+      return;
     }
-  }, [directions?.duration_s, nextStop?.id, routeStarted]);
+
+    // Krav til faktisk visning: kun ved længere ture og rimelig procent-stigning.
+    const baseDurMin = baseDur / 60;
+    const significant =
+      baseDurMin >= 10 && // kun ved ture på 10+ min — 1 min ekstra på en 3-min-tur er meningsløst
+      deltaMin >= 3 &&
+      deltaPct >= 30 &&
+      deltaPct <= 200; // hvis det er over 200% er det helt sikkert et datafix-issue, ikke trafik
+
+    if (!significant) return;
+
+    let severity: "let" | "moderat" | "tæt";
+    if (deltaMin < 5) severity = "let";
+    else if (deltaMin < 12) severity = "moderat";
+    else severity = "tæt";
+
+    setTrafficAlert({ addedMin: Math.round(deltaMin), severity });
+  }, [directions?.duration_s, directions?.distance_m, nextStop?.id, routeStarted]);
+
+  /* Stemmeadvarsel ved trafik — kun én gang pr. stop pr. severity-niveau */
+  useEffect(() => {
+    if (!trafficAlert || !audioEnabled || !routeStarted || !nextStop) return;
+    const key = `${nextStop.id}-${trafficAlert.severity}`;
+    if (trafficSpokenRef.current === key) return;
+    trafficSpokenRef.current = key;
+    const sevText =
+      trafficAlert.severity === "let" ? "lidt trafik" :
+      trafficAlert.severity === "moderat" ? "moderat trafik" : "tæt trafik";
+    speak(`Bemærk: ${sevText} forude. Forsinkelse på cirka ${trafficAlert.addedMin} minutter.`);
+  }, [trafficAlert?.severity, trafficAlert?.addedMin, audioEnabled, routeStarted, nextStop?.id]);
 
   /* Turn-by-turn */
   const maneuver = useCurrentManeuver(directions?.steps, userPos);
