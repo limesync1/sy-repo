@@ -157,6 +157,26 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   const { data: directions } = useDirections(legWaypoints);
 
+  /** Afstand i meter fra brugerens GPS til næste stop (null hvis ukendt). */
+  const distanceToNextM: number | null = useMemo(() => {
+    if (!userPos || !nextStop || nextStop.latitude == null || nextStop.longitude == null) return null;
+    return haversineMeters(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
+  }, [userPos, nextStop?.id, nextStop?.latitude, nextStop?.longitude]);
+
+  /** Geofence-tærskel: GPS-præcision i byen er 20-50m, så 75m giver en pålidelig "du er fremme"-zone. */
+  const ARRIVAL_THRESHOLD_M = 75;
+  const isAtNextStop = distanceToNextM != null && distanceToNextM <= ARRIVAL_THRESHOLD_M;
+
+  /* Spil ankomst-chime + tale én gang pr. stop når geofence udløses. */
+  useEffect(() => {
+    if (!isAtNextStop || !nextStop || !audioEnabled) return;
+    if (arrivedAnnouncedRef.current.has(nextStop.id)) return;
+    arrivedAnnouncedRef.current.add(nextStop.id);
+    playArrivalChime();
+    const name = nextStop.customer_name || "stoppet";
+    setTimeout(() => speak(`Du er ankommet til ${name}`), 600);
+  }, [isAtNextStop, nextStop?.id, audioEnabled]);
+
   const legLine: [number, number][] = useMemo(() => {
     if (!directions?.geometry?.coordinates) return [];
     return directions.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
