@@ -1,5 +1,5 @@
 // EmployeeAvatars — kompakt stak af medarbejder-avatars med tooltips.
-// Bruges på opgavekort i RouteStopsPanel og samlet på rute-niveau i kalenderen.
+// Bruges på aftalekort i RouteStopsPanel og samlet på rute-niveau i kalenderen.
 
 import { cn } from "@/lib/utils";
 

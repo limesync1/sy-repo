@@ -247,7 +247,7 @@ export const RouteEditSheet = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Slet rute?</AlertDialogTitle>
             <AlertDialogDescription>
-              Ruten og dens {stopCount} stop slettes. Opgaverne vender tilbage til opgavepoolen.
+              Ruten og dens {stopCount} stop slettes. Aftalerne vender tilbage til aftalepoolen.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

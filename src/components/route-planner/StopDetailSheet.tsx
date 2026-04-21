@@ -34,7 +34,7 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   routeColor?: string;
   sequenceLabel?: number;
-  /** Når true vises kun read-only view (bruges når man åbner en opgave fra opgavepoolen). */
+  /** Når true vises kun read-only view (bruges når man åbner en aftale fra aftalepoolen). */
   readOnly?: boolean;
 };
 
@@ -180,7 +180,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
           </SheetHeader>
 
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-secondary/20">
-              {/* Medarbejdere på opgaven (pr-stop tildeling) — vises øverst for hurtig tildeling */}
+              {/* Medarbejdere på aftalen (pr-stop tildeling) — vises øverst for hurtig tildeling */}
               {!readOnly && (
                 <Section
                   icon={<Users className="h-3.5 w-3.5" />}
@@ -478,7 +478,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
             <AlertDialogTitle>Fjern stop fra ruten?</AlertDialogTitle>
             <AlertDialogDescription>
               Stoppet for <strong>{stop.customer_name}</strong> bliver fjernet fra denne rute og ryger
-              tilbage i opgavepoolen, så du kan planlægge det igen senere.
+              tilbage i aftalepoolen, så du kan planlægge det igen senere.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -548,7 +548,7 @@ const TimeSpentSection = ({
       >
         <p className="text-xs text-muted-foreground italic">
           Når medarbejdere har checket ind/ud på dette stop vises deres tider her.
-          Hver medarbejder lærer sit eget tempo — næste opgave hos samme kunde får et personligt estimat.
+          Hver medarbejder lærer sit eget tempo — næste aftale hos samme kunde får et personligt estimat.
         </p>
       </Section>
     );
@@ -829,7 +829,7 @@ const PlanningSection = ({
 };
 
 /* ────────────────────────────────────────────
-   AssigneePicker — vælg én eller flere medarbejdere på opgaven.
+   AssigneePicker — vælg én eller flere medarbejdere på aftalen.
    • Klik på chip = tilføj/fjern.
    • Crown-ikon = sæt som lead (primær).
    • Provision fordeles automatisk ligeligt ved completion (50/50, 33/33/33...).
@@ -959,7 +959,7 @@ const AssigneePicker = ({
       )}
       {assigneeIds.length === 0 && (
         <p className="text-[11px] text-muted-foreground italic">
-          Ingen medarbejdere tildelt — opgaven vil ikke vises i nogen medarbejder-app.
+          Ingen medarbejdere tildelt — aftalen vil ikke vises i nogen medarbejder-app.
         </p>
       )}
     </div>

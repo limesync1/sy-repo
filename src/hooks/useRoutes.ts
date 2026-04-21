@@ -64,11 +64,11 @@ export type RouteStop = {
   travel_time_to_next_min: number | null;
   /** Lead/primary employee — synced from route_stop_assignees by trigger. */
   assigned_employee_id: string | null;
-  /** Hvor mange medarbejdere opgaven kræver (1+). Default 1. */
+  /** Hvor mange medarbejdere aftalen kræver (1+). Default 1. */
   required_staff?: number;
   /** Alle tildelte medarbejdere (joinet ind i useStopsForRoutes). */
   assignee_ids?: string[];
-  /** Lead-medarbejder på opgaven (kan være forskellig fra assigned_employee_id ved race). */
+  /** Lead-medarbejder på aftalen (kan være forskellig fra assigned_employee_id ved race). */
   lead_employee_id?: string | null;
 };
 
@@ -1016,7 +1016,7 @@ export const useAutoAssignStops = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
     },
-    onError: (e: any) => toast.error(e.message || "Kunne ikke fordele opgaver"),
+    onError: (e: any) => toast.error(e.message || "Kunne ikke fordele aftaler"),
   });
 };
 

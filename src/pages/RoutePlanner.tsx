@@ -126,7 +126,7 @@ const Planner = () => {
     return null;
   };
 
-  /** Tæller (uden filter) hvor mange opgaver der ligger uden for ±3 dage-vinduet
+  /** Tæller (uden filter) hvor mange aftaler der ligger uden for ±3 dage-vinduet
       omkring den valgte dag. Vises som hint ifm. auto-fordel knap. */
   const outsideWindowCount = useMemo(() => {
     const target = parseISO(date).getTime();
@@ -135,12 +135,12 @@ const Planner = () => {
       const ed = effectiveJobDate(j);
       if (!ed) return false;
       const diffDays = (parseISO(ed).getTime() - target) / dayMs;
-      // udeladt = fremtidig opgave længere end 3 dage frem
+      // udeladt = fremtidig aftale længere end 3 dage frem
       return diffDays > 3;
     }).length;
   }, [unassigned, date]);
 
-  /** Pr. valgt dag: vis opgaver der er
+  /** Pr. valgt dag: vis aftaler der er
       - uden dato (fleksible)
       - forsinkede (effectiveDate ≤ valgt dag)
       - inden for ±3 dage omkring valgt dag */
@@ -364,7 +364,7 @@ const Planner = () => {
       return;
     }
 
-    // Træk en opgave fra opgavepool → eksisterende rute (kalender-pille)
+    // Træk en aftale fra aftalepool → eksisterende rute (kalender-pille)
     if (activeData?.type === "job" && overData?.type === "route") {
       const job = activeData.job;
       const targetRouteId: string = overData.routeId;
@@ -382,19 +382,19 @@ const Planner = () => {
           longitude: job.longitude,
           service_summary: (job.order_items || [])
             .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
-            .join(", ") || "Opgave",
+            .join(", ") || "Aftale",
           duration_minutes: Number(job.estimated_duration_minutes) || 30,
           time_window_start: job.preferred_time_start || null,
           time_window_end: job.preferred_time_end || null,
         });
-        toast.success("Opgave tilføjet til ruten");
+        toast.success("Aftale tilføjet til ruten");
       } catch (err: any) {
-        toast.error(err.message || "Kunne ikke tilføje opgave");
+        toast.error(err.message || "Kunne ikke tilføje aftale");
       }
       return;
     }
 
-    // Træk en opgave fra opgavepool → tom dag (opret ny rute + læg opgave på)
+    // Træk en aftale fra aftalepool → tom dag (opret ny rute + læg aftale på)
     if (activeData?.type === "job" && overData?.type === "day") {
       const job = activeData.job;
       const newDate: string = overData.date;
@@ -420,7 +420,7 @@ const Planner = () => {
           longitude: job.longitude,
           service_summary: (job.order_items || [])
             .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
-            .join(", ") || "Opgave",
+            .join(", ") || "Aftale",
           duration_minutes: Number(job.estimated_duration_minutes) || 30,
           time_window_start: job.preferred_time_start || null,
           time_window_end: job.preferred_time_end || null,
@@ -474,7 +474,7 @@ const Planner = () => {
       .filter((x) => !!x.date) as { job: any; date: string }[];
 
     if (jobsWithDate.length === 0) {
-      toast.info("Ingen ledige opgaver med ønsket dato at fordele");
+      toast.info("Ingen ledige aftaler med ønsket dato at fordele");
       return;
     }
 
@@ -530,7 +530,7 @@ const Planner = () => {
             longitude: job.longitude,
             service_summary: (job.order_items || [])
               .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
-              .join(", ") || "Opgave",
+              .join(", ") || "Aftale",
             duration_minutes: Number(job.estimated_duration_minutes) || 30,
             time_window_start: job.preferred_time_start || null,
             time_window_end: job.preferred_time_end || null,
@@ -540,12 +540,12 @@ const Planner = () => {
       }
 
       toast.success(
-        `${totalAssigned} opgaver fordelt på ${byDate.size} dage` +
+        `${totalAssigned} aftaler fordelt på ${byDate.size} dage` +
         (routesCreated > 0 ? ` (${routesCreated} nye ruter oprettet)` : ""),
         { description: "Klik på en rute og 'Optimér' for bedste rækkefølge." },
       );
     } catch (e: any) {
-      toast.error(e.message || "Kunne ikke auto-fordele opgaver");
+      toast.error(e.message || "Kunne ikke auto-fordele aftaler");
     } finally {
       setDistributing(false);
     }
@@ -618,7 +618,7 @@ const Planner = () => {
                   <DialogHeader>
                     <DialogTitle>Opret ny rute</DialogTitle>
                     <DialogDescription>
-                      Ruten starter fra virksomhedens adresse. Du kan tilkoble medarbejdere og opgaver bagefter.
+                      Ruten starter fra virksomhedens adresse. Du kan tilkoble medarbejdere og aftaler bagefter.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
@@ -698,14 +698,14 @@ const Planner = () => {
 
         <div className="flex-1 overflow-hidden p-3" style={{ height: "calc(100vh - 50px)" }}>
             <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg">
-              {/* Sidebar: Opgavepool */}
+              {/* Sidebar: Aftalepool */}
               <ResizablePanel defaultSize={20} minSize={14} maxSize={36} className="overflow-hidden">
                 <Card className="flex flex-col h-full overflow-hidden">
                   <div className="p-3 border-b bg-secondary/30 space-y-2">
                     <div className="flex items-center justify-between">
                       <h2 className="font-semibold text-sm flex items-center gap-1.5">
                         <Inbox className="h-4 w-4 text-primary" />
-                        Opgavepool
+                        Aftalepool
                       </h2>
                       <Badge variant="secondary" className="tabular-nums">
                         {filteredUnassigned.length}
@@ -718,7 +718,7 @@ const Planner = () => {
                     )}
                     {outsideWindowCount > 0 && (
                       <p className="text-[10px] text-foreground bg-accent/5 border border-accent/20 rounded px-2 py-1 leading-snug">
-                        +{outsideWindowCount} opgave{outsideWindowCount === 1 ? "" : "r"} senere på måneden — brug 'Auto-fordel' for at lægge dem på den ønskede dato.
+                        +{outsideWindowCount} aftale{outsideWindowCount === 1 ? "" : "r"} senere på måneden — brug 'Auto-fordel' for at lægge dem på den ønskede dato.
                       </p>
                     )}
                     <Button
@@ -727,7 +727,7 @@ const Planner = () => {
                       className="w-full h-7 text-xs gap-1"
                       onClick={handleAutoDistribute}
                       disabled={distributing || unassigned.length === 0}
-                      title="Opretter ruter på hver kundes ønskede dato og lægger opgaverne der. Gælder ALLE ledige opgaver — ikke kun dem du ser."
+                      title="Opretter ruter på hver kundes ønskede dato og lægger aftalerne der. Gælder ALLE ledige aftaler — ikke kun dem du ser."
                     >
                       {distributing ? <Loader2 className="h-3 w-3 animate-spin" /> : <CalendarIcon className="h-3 w-3" />}
                       Auto-fordel pr. ønsket dato
@@ -779,10 +779,10 @@ const Planner = () => {
                         </div>
                         <p className="text-xs text-muted-foreground italic">
                           {search
-                            ? "Ingen opgaver matcher søgningen"
+                            ? "Ingen aftaler matcher søgningen"
                             : calendarRoutesRaw.length === 0
-                              ? "Opret en rute først, så kan du trække opgaver herfra og ind i kalenderen"
-                              : "Alle opgaver er planlagt 🎉"}
+                              ? "Opret en rute først, så kan du trække aftaler herfra og ind i kalenderen"
+                              : "Alle aftaler er planlagt 🎉"}
                         </p>
                         {search && (
                           <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => setSearch("")}>
@@ -841,7 +841,7 @@ const Planner = () => {
               <AlertDialogTitle>Slet rute?</AlertDialogTitle>
               <AlertDialogDescription>
                 <strong>{routeToDelete?.name}</strong> og alle dens stops slettes permanent.
-                Tilkoblede medarbejdere fjernes fra ruten, og opgaverne ryger tilbage i opgavepoolen.
+                Tilkoblede medarbejdere fjernes fra ruten, og aftalerne ryger tilbage i aftalepoolen.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -891,7 +891,7 @@ const Planner = () => {
           onOpenChange={(o) => !o && setSelectedStopId(null)}
         />
 
-        {/* Klik på en opgave i opgavepoolen åbner samme detalje-sheet i read-only */}
+        {/* Klik på en aftale i aftalepoolen åbner samme detalje-sheet i read-only */}
         <StopDetailSheet
           readOnly
           stop={
