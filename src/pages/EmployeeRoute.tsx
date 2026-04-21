@@ -285,6 +285,25 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return eta.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
   }, [directions?.duration_s]);
 
+  /* ─── Turn-by-turn: find current maneuver based on user GPS ─── */
+  const maneuver = useCurrentManeuver(directions?.steps, userPos);
+  const lastSpokenStepRef = useRef<string | null>(null);
+
+  // Speak the next maneuver once when it changes (and when we get close enough).
+  useEffect(() => {
+    if (!audioEnabled || !maneuver || !routeStarted) return;
+    const stepKey = `${maneuver.stepIndex}-${maneuver.currentStep.maneuver.type}-${maneuver.currentStep.name}`;
+    if (lastSpokenStepRef.current === stepKey) return;
+    if (maneuver.distanceToManeuverM > 250) return; // only announce when within 250m
+    lastSpokenStepRef.current = stepKey;
+    const street = maneuver.currentStep.name ? ` ad ${maneuver.currentStep.name}` : "";
+    const action = maneuverLabel(
+      maneuver.currentStep.maneuver.type,
+      maneuver.currentStep.maneuver.modifier,
+    );
+    speak(`Om ${Math.round(maneuver.distanceToManeuverM)} meter, ${action.toLowerCase()}${street}`);
+  }, [maneuver?.stepIndex, maneuver?.distanceToManeuverM, audioEnabled, routeStarted]);
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center text-muted-foreground">
