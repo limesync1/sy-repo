@@ -39,6 +39,7 @@ Deno.serve(async (req) => {
   )
 
   // Find order by token
+  // Tokenet sidder kun på forælder-ordren — godkendelse cascader til alle børn.
   const { data: order, error: fetchErr } = await supabase
     .from('orders')
     .select('*, businesses(id, name, email, phone)')
@@ -56,20 +57,54 @@ Deno.serve(async (req) => {
 
   const newStatus = decision === 'accepted' ? 'confirmed' : 'cancelled'
 
-  // Mark order processed: clear approval flag (token stays for audit), set status & customer_response
-  const { error: updateErr } = await supabase
+  // Find alle ordrer i samme gruppe — forælderen + alle børn deler parent_order_id.
+  // Hvis ordren ikke har en parent (gammel data), opdaterer vi kun den selv.
+  const groupId = order.parent_order_id || order.id
+  const { data: groupOrders } = await supabase
     .from('orders')
-    .update({
-      status: newStatus,
-      customer_response: decision,
-      requires_customer_approval: false,
-      notes: customerMessage
-        ? [order.notes, `[Kundens svar]: ${customerMessage}`].filter(Boolean).join('\n\n')
-        : order.notes,
-    })
-    .eq('id', order.id)
+    .select('id, notes')
+    .or(`id.eq.${groupId},parent_order_id.eq.${groupId}`)
 
-  if (updateErr) return json({ error: 'update_failed', detail: updateErr.message }, 500)
+  const ids = (groupOrders && groupOrders.length > 0)
+    ? groupOrders.map((o) => o.id)
+    : [order.id]
+
+  // Mark all orders in group processed.
+  const noteSuffix = customerMessage ? `\n\n[Kundens svar]: ${customerMessage}` : ''
+  if (noteSuffix) {
+    // Bevar eksisterende notes pr. ordre — opdater én ad gangen så vi ikke overskriver
+    for (const o of (groupOrders || [{ id: order.id, notes: order.notes }])) {
+      const newNotes = [o.notes, `[Kundens svar]: ${customerMessage}`].filter(Boolean).join('\n\n')
+      await supabase
+        .from('orders')
+        .update({
+          status: newStatus,
+          customer_response: decision,
+          requires_customer_approval: false,
+          notes: newNotes,
+        })
+        .eq('id', o.id)
+    }
+  } else {
+    const { error: updateErr } = await supabase
+      .from('orders')
+      .update({
+        status: newStatus,
+        customer_response: decision,
+        requires_customer_approval: false,
+      })
+      .in('id', ids)
+    if (updateErr) return json({ error: 'update_failed', detail: updateErr.message }, 500)
+  }
+
+  // Aktivér eventuelle pending-abonnementer for denne gruppe når kunden accepterer
+  if (decision === 'accepted') {
+    await supabase
+      .from('subscriptions')
+      .update({ status: 'active' })
+      .in('order_id', ids)
+      .eq('status', 'pending')
+  }
 
   // Notify the business owner — fire and forget
   const biz: any = order.businesses
