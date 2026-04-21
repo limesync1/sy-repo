@@ -48,15 +48,23 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
   const [loading, setLoading] = useState(false);
   const [verified, setVerified] = useState(!!(value.latitude && value.longitude));
   const [activeIdx, setActiveIdx] = useState(-1);
+  // "dirty" markerer om brugeren har skrevet i feltet siden mount/seed.
+  // Vi viser kun den røde "ikke-verificeret" tilstand efter brugerinput,
+  // så pre-udfyldte adresser fra databasen ikke fejlagtigt markeres som ugyldige.
+  const [dirty, setDirty] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<number | null>(null);
 
   // Visuel status: grøn når verificeret, rød når der er tekst men ingen valid adresse valgt.
   const hasInput = query.trim().length > 0;
-  const invalid = hasInput && !verified && !loading && !open;
+  const invalid = dirty && hasInput && !verified && !loading && !open;
 
   // Hold query in sync if parent resets value
-  useEffect(() => { setQuery(value.address || ""); setVerified(!!(value.latitude && value.longitude)); }, [value.address, value.latitude, value.longitude]);
+  useEffect(() => {
+    setQuery(value.address || "");
+    setVerified(!!(value.latitude && value.longitude));
+    setDirty(false);
+  }, [value.address, value.latitude, value.longitude]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -91,6 +99,7 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
 
   const handleInput = (q: string) => {
     setQuery(q);
+    setDirty(true);
     setVerified(false);
     onVerified?.(false);
     onChange({ ...value, address: q, latitude: null, longitude: null });

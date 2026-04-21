@@ -202,10 +202,6 @@ export const RouteEditSheet = ({
             >
               <DatePickerField value={date} onChange={setDate} />
             </Section>
-
-            <p className="text-[11px] text-muted-foreground italic px-1">
-              Medarbejdere tildeles nu pr. opgave i panelet til højre. Klik på personikonet ved siden af et stop for at tilkoble eller fjerne medarbejdere.
-            </p>
           </div>
 
           {/* Footer actions */}
