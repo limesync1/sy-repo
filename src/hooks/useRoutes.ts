@@ -953,7 +953,27 @@ export const useMyDayRoutes = (date: string) => {
         .in("id", routeIds)
         .eq("route_date", date);
       if (error) throw error;
-      return (data || []) as unknown as Route[];
+      const routes = (data || []) as unknown as Route[];
+      if (routes.length === 0) return routes;
+      // Skjul ruter hvor medarbejderen ikke har nogen tildelte (eller utildelte) stops.
+      // Ellers vises tomme "0/0"-kort.
+      const todayRouteIds = routes.map((r) => r.id);
+      const { data: myAssign } = await supabase
+        .from("route_stop_assignees")
+        .select("stop_id")
+        .eq("employee_id", emp.id);
+      const myStopIds = new Set((myAssign || []).map((a: any) => a.stop_id));
+      const { data: stops } = await supabase
+        .from("route_stops")
+        .select("id, route_id, assigned_employee_id")
+        .in("route_id", todayRouteIds);
+      const visibleRouteIds = new Set<string>();
+      (stops || []).forEach((s: any) => {
+        if (myStopIds.has(s.id) || !s.assigned_employee_id) {
+          visibleRouteIds.add(s.route_id);
+        }
+      });
+      return routes.filter((r) => visibleRouteIds.has(r.id));
     },
   });
 };
