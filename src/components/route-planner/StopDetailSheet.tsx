@@ -1,5 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
-import { useOrderForStop, useUpdateStop, useDeleteStop, type RouteStop } from "@/hooks/useRoutes";
+import { useOrderForStop, useUpdateStop, useDeleteStop, useSetStopAssignees, type RouteStop } from "@/hooks/useRoutes";
+import { useEmployees } from "@/hooks/useEmployees";
+import { useMyBusiness } from "@/hooks/useDatabase";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +18,7 @@ import {
 import {
   MapPin, Phone, Mail, Clock, Trash2, Save,
   AlertCircle, Banknote, FileText, Repeat, PauseCircle,
-  Timer, Hourglass, User, Package, CalendarClock,
+  Timer, Hourglass, User, Package, CalendarClock, Users, Crown, X as XIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -39,12 +41,21 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const { data: order, isLoading } = useOrderForStop(stop?.order_id);
   const updateStop = useUpdateStop();
   const deleteStop = useDeleteStop();
+  const setAssignees = useSetStopAssignees();
+  const { data: business } = useMyBusiness();
+  const { data: allEmployees = [] } = useEmployees(business?.id);
+  const activeEmployees = useMemo(
+    () => (allEmployees as any[]).filter((e) => e.is_active),
+    [allEmployees],
+  );
 
   const [durationHours, setDurationHours] = useState<number>(0);
   const [durationMinutes, setDurationMinutes] = useState<number>(30);
   const [timeSlot, setTimeSlot] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
+  const [leadId, setLeadId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!stop) return;
@@ -55,6 +66,8 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
     const e = stop.time_window_end?.slice(0, 5) || "";
     setTimeSlot(s && e ? `${s}-${e}` : "");
     setNotes(stop.notes || "");
+    setAssigneeIds(stop.assignee_ids ?? (stop.assigned_employee_id ? [stop.assigned_employee_id] : []));
+    setLeadId(stop.lead_employee_id ?? stop.assigned_employee_id ?? null);
   }, [stop?.id]);
 
   const items = useMemo(() => (order as any)?.order_items || [], [order]);
