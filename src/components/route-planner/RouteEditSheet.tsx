@@ -203,58 +203,9 @@ export const RouteEditSheet = ({
               <DatePickerField value={date} onChange={setDate} />
             </Section>
 
-            {/* Medarbejdere */}
-            <Section
-              icon={<Users className="h-3.5 w-3.5" />}
-              title="Medarbejdere"
-              hint={`${attachedEmployees.length} på ruten`}
-            >
-              {attachedEmployees.length === 0 ? (
-                <p className="text-xs text-muted-foreground italic">
-                  Ingen medarbejdere tilkoblet endnu — vælg fra listen nedenfor.
-                </p>
-              ) : (
-                <div className="flex flex-wrap gap-1.5">
-                  {attachedEmployees.map((e) => (
-                    <Badge key={e.id} variant="secondary" className="gap-1.5 pr-1 py-1">
-                      {e.name}
-                      <button
-                        type="button"
-                        onClick={() => detach.mutate({ route_id: route.id, employee_id: e.id })}
-                        className="h-4 w-4 inline-flex items-center justify-center rounded hover:bg-destructive/20 hover:text-destructive"
-                        aria-label={`Fjern ${e.name}`}
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-              {unattached.length > 0 ? (
-                <div className="space-y-1 pt-3 mt-3 border-t">
-                  <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                    <UserPlus className="h-3 w-3" />Tilkobl medarbejder
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {unattached.map((e) => (
-                      <Button
-                        key={e.id}
-                        size="sm"
-                        variant="outline"
-                        className="h-7 text-xs"
-                        onClick={() => attach.mutate({ route_id: route.id, employee_id: e.id })}
-                      >
-                        + {e.name}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              ) : attachedEmployees.length === 0 ? (
-                <p className="text-[11px] text-muted-foreground italic mt-3 pt-3 border-t">
-                  Ingen aktive medarbejdere fundet. Opret medarbejdere under Admin → Medarbejdere.
-                </p>
-              ) : null}
-            </Section>
+            <p className="text-[11px] text-muted-foreground italic px-1">
+              Medarbejdere tildeles nu pr. opgave i panelet til højre. Klik på personikonet ved siden af et stop for at tilkoble eller fjerne medarbejdere.
+            </p>
           </div>
 
           {/* Footer actions */}
