@@ -1236,16 +1236,15 @@ const SettingsTab = ({ business }: { business: any }) => {
 
   return (
     <div className="max-w-3xl space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">Indstillinger</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">Administrer din virksomheds profil og oplysninger.</p>
-        </div>
-        <Button onClick={save} disabled={updateBiz.isPending || !hasChanges}
-          className="h-9 rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:bg-muted disabled:text-muted-foreground text-sm font-medium px-5 shadow-sm">
-          {updateBiz.isPending ? "Gemmer..." : "Gem ændringer"}
-        </Button>
-      </div>
+      <PageHeader
+        title="Indstillinger"
+        description="Administrer din virksomheds profil og oplysninger."
+        action={
+          <PrimaryButton onClick={save} disabled={updateBiz.isPending || !hasChanges}>
+            {updateBiz.isPending ? "Gemmer..." : "Gem ændringer"}
+          </PrimaryButton>
+        }
+      />
 
       {/* CVR Lookup */}
       <Card className="rounded-xl border-accent/20 bg-gradient-to-b from-accent/[0.03] to-transparent shadow-sm">
