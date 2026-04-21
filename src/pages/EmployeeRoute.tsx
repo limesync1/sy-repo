@@ -767,7 +767,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             </div>
 
             {/* Maneuver banner — floating top center */}
-            {maneuver && nextStop && (
+            {showManeuverBanner && maneuver && nextStop && (
               <div className="absolute top-[68px] left-3 right-3 z-[1000] pointer-events-none">
                 <Card className="overflow-hidden shadow-2xl rounded-2xl pointer-events-auto bg-background border">
                   <div className="flex items-stretch">
@@ -828,7 +828,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 chip: "hsl(38 100% 90%)",
               };
               return (
-                <div className={`absolute ${maneuver ? "top-[200px]" : "top-[68px]"} left-3 right-3 z-[1000] pointer-events-none`}>
+                <div className={`absolute ${showManeuverBanner ? "top-[200px]" : "top-[68px]"} left-3 right-3 z-[1000] pointer-events-none`}>
                   <div
                     className="pointer-events-auto rounded-2xl shadow-2xl overflow-hidden border animate-in fade-in slide-in-from-top-2 duration-300"
                     style={{ background: tone.bg, borderColor: tone.border }}
