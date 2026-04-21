@@ -520,6 +520,94 @@ const DURATION_PRESETS: { hours: number; minutes: number; label: string }[] = [
   { hours: 4, minutes: 0, label: "4 timer" },
 ];
 
+/* ────────────────────────────────────────────
+   TimeSpentSection — viser faktisk brugt tid pr. medarbejder
+   på dette stop. Bruges af virksomhedsejeren.
+   ──────────────────────────────────────────── */
+const fmtMinutes = (mins: number | null | undefined) => {
+  if (mins == null || mins <= 0) return "—";
+  const h = Math.floor(mins / 60);
+  const m = Math.round(mins % 60);
+  if (h === 0) return `${m} min`;
+  if (m === 0) return `${h} t`;
+  return `${h} t ${m} min`;
+};
+
+const TimeSpentSection = ({
+  entries, employees,
+}: {
+  entries: any[];
+  employees: any[];
+}) => {
+  if (!entries || entries.length === 0) {
+    return (
+      <Section
+        icon={<TimerReset className="h-3.5 w-3.5" />}
+        title="Faktisk tid brugt"
+        hint="Endnu ingen registrering"
+      >
+        <p className="text-xs text-muted-foreground italic">
+          Når medarbejdere har checket ind/ud på dette stop vises deres tider her.
+          Hver medarbejder lærer sit eget tempo — næste opgave hos samme kunde får et personligt estimat.
+        </p>
+      </Section>
+    );
+  }
+
+  const empMap = new Map(employees.map((e) => [e.id, e]));
+  const completed = entries.filter((e) => e.duration_minutes != null && e.duration_minutes > 0);
+  const inProgress = entries.filter((e) => e.duration_minutes == null);
+  const teamMin = completed.length > 0 ? Math.max(...completed.map((e) => e.duration_minutes)) : null;
+
+  return (
+    <Section
+      icon={<TimerReset className="h-3.5 w-3.5" />}
+      title="Faktisk tid brugt"
+      hint={teamMin != null ? `Team: ${fmtMinutes(teamMin)}` : `${inProgress.length} i gang`}
+    >
+      <div className="rounded-lg border divide-y bg-background">
+        {entries.map((e) => {
+          const emp = empMap.get(e.employee_id);
+          const inProg = e.duration_minutes == null;
+          return (
+            <div key={e.id} className="flex items-center gap-2.5 px-3 py-2">
+              {emp?.avatar_url ? (
+                <img
+                  src={emp.avatar_url}
+                  alt={emp.name}
+                  className="h-7 w-7 rounded-full object-cover ring-1 ring-border"
+                />
+              ) : (
+                <span
+                  className="h-7 w-7 rounded-full ring-1 ring-border inline-flex items-center justify-center text-[11px] font-semibold text-white"
+                  style={{ background: emp?.color || "hsl(var(--muted))" }}
+                >
+                  {(emp?.name || "?").trim().split(/\s+/).slice(0, 2).map((p: string) => p[0]).join("").toUpperCase()}
+                </span>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{emp?.name || "Ukendt medarbejder"}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {format(parseISO(e.started_at), "HH:mm", { locale: da })}
+                  {e.ended_at ? ` – ${format(parseISO(e.ended_at), "HH:mm", { locale: da })}` : " · i gang"}
+                  {e.is_team_fallback && " · team-fallback"}
+                </p>
+              </div>
+              <span className={cn("text-sm font-semibold tabular-nums", inProg ? "text-blue-600" : "text-foreground")}>
+                {inProg ? "—" : fmtMinutes(e.duration_minutes)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <p className="text-[11px] text-muted-foreground mt-2">
+        Hver medarbejder lærer sit eget tempo — næste gang denne kunde booker servicen, får dén tildelte medarbejder
+        et personligt estimat baseret på sin egen historik.
+      </p>
+    </Section>
+  );
+};
+
 type PlanningProps = {
   timeSlot: string;
   setTimeSlot: (v: string) => void;
