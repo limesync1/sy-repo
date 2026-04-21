@@ -1154,53 +1154,51 @@ const StopListPanel = ({
       aria-hidden={false}
     >
       <div
-        className="pointer-events-auto mx-auto w-full max-w-3xl bg-background border-t-2 shadow-2xl rounded-t-2xl transition-transform duration-300 ease-out"
+        className="pointer-events-auto mx-auto w-full max-w-3xl bg-background/98 backdrop-blur shadow-2xl rounded-t-2xl transition-transform duration-300 ease-out border-t border-border"
         style={{
-          transform: open ? "translateY(0)" : "translateY(calc(100% - 56px))",
-          maxHeight: "70vh",
-          borderTopColor: themeColor,
+          transform: open ? "translateY(0)" : "translateY(calc(100% - 38px))",
+          maxHeight: "60vh",
         }}
       >
+        {/* Kompakt rail — kun 38px høj når lukket */}
         <button
           type="button"
           onClick={onToggle}
-          className="w-full flex items-center gap-3 px-4 h-[56px] border-b bg-secondary/30 hover:bg-secondary/50 transition-colors rounded-t-2xl relative"
+          className="w-full flex items-center gap-2 px-3 h-[38px] hover:bg-secondary/40 transition-colors rounded-t-2xl relative"
           aria-expanded={open}
         >
-          <span className="h-1 w-10 rounded-full bg-muted-foreground/30 absolute left-1/2 -translate-x-1/2 top-1.5" />
-          <List className="h-4 w-4 text-muted-foreground mt-1" />
-          <div className="flex-1 flex items-center gap-2 mt-1">
-            <span className="font-semibold text-sm">Alle stop</span>
-            <Badge variant="secondary" className="tabular-nums text-[10px] h-4 px-1.5">
-              {done}/{total}
-            </Badge>
-          </div>
-          {/* Mini progress dots — kalender-stil */}
-          <div className="flex gap-0.5 items-center mt-1">
-            {stops.slice(0, Math.min(stops.length, 12)).map((s, i) => (
+          <span className="h-0.5 w-8 rounded-full bg-muted-foreground/25 absolute left-1/2 -translate-x-1/2 top-1" />
+          <List className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-[11px] font-semibold text-foreground/80">Alle stop</span>
+          <Badge variant="secondary" className="tabular-nums text-[9px] h-3.5 px-1 font-bold">
+            {done}/{total}
+          </Badge>
+          {/* Mini progress dots — kompakt */}
+          <div className="flex-1 flex gap-0.5 items-center justify-end overflow-hidden">
+            {stops.slice(0, 10).map((s) => (
               <span
                 key={s.id}
-                className="h-1.5 w-1.5 rounded-full"
+                className="h-1 w-1 rounded-full shrink-0"
                 style={{
                   background:
                     s.status === "completed"
                       ? "hsl(142 70% 45%)"
                       : s.id === nextStopId
                         ? themeColor
-                        : "hsl(220 14% 80%)",
+                        : "hsl(220 14% 82%)",
                 }}
               />
             ))}
-            {stops.length > 12 && (
-              <span className="text-[9px] text-muted-foreground tabular-nums ml-0.5">+{stops.length - 12}</span>
+            {stops.length > 10 && (
+              <span className="text-[8px] text-muted-foreground tabular-nums ml-0.5">+{stops.length - 10}</span>
             )}
           </div>
-          {open ? <ChevronDown className="h-4 w-4 mt-1 ml-1" /> : <ChevronUp className="h-4 w-4 mt-1 ml-1" />}
+          {open ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />}
         </button>
 
         <div
-          className="overflow-y-auto p-2 space-y-1"
-          style={{ maxHeight: "calc(70vh - 56px)" }}
+          className="overflow-y-auto p-2 space-y-1 border-t"
+          style={{ maxHeight: "calc(60vh - 38px)" }}
         >
           {stops.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-6">Ingen stop på denne rute.</p>
