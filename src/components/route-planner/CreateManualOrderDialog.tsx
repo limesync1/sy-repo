@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServices } from "@/hooks/useDatabase";
 import { Button } from "@/components/ui/button";
@@ -56,9 +56,22 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   businessId: string;
   businessName: string;
+  /** Forudfylder kundefelter ved åbning (fx hvis du opretter kunden først). */
+  initialCustomer?: {
+    customer_name?: string;
+    customer_email?: string;
+    customer_phone?: string | null;
+    address?: string | null;
+    zip_code?: string | null;
+    city?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    cvr?: string | null;
+    company_name?: string | null;
+  } | null;
 }
 
-const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName }: Props) => {
+const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName, initialCustomer }: Props) => {
   const { data: services = [] } = useServices(businessId);
   const activeServices = useMemo(() => (services as any[]).filter((s) => s.is_active !== false) as Service[], [services]);
 
