@@ -435,7 +435,60 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     setEditDialogOpen(true);
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    const eligible = filtered.filter(c => c.saved_id);
+    if (selectedIds.size === eligible.length && eligible.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(eligible.map(c => c.saved_id!)));
+    }
+  };
+
+  const selectedCustomers = useMemo(
+    () => filtered.filter(c => c.saved_id && selectedIds.has(c.saved_id)),
+    [filtered, selectedIds]
+  );
+
+  const handleDelete = async (targets: Customer[]) => {
+    setDeleting(true);
+    try {
+      const privIds = targets.filter(c => c.type === "private" && c.saved_id).map(c => c.saved_id!);
+      const bizIds = targets.filter(c => c.type === "business" && c.saved_id).map(c => c.saved_id!);
+      const promises: Promise<any>[] = [];
+      if (privIds.length) promises.push(supabase.from("private_customers").delete().in("id", privIds));
+      if (bizIds.length) promises.push(supabase.from("business_customers").delete().in("id", bizIds));
+      const results = await Promise.all(promises);
+      const firstError = results.find((r: any) => r?.error)?.error;
+      if (firstError) throw firstError;
+      qc.invalidateQueries({ queryKey: ["customers", businessId] });
+      qc.invalidateQueries({ queryKey: ["saved-customers", businessId] });
+      toast.success(targets.length === 1 ? "Kunde slettet" : `${targets.length} kunder slettet`);
+      setSelectedIds(new Set());
+      setConfirmDelete(null);
+    } catch (e: any) {
+      toast.error(e.message || "Kunne ikke slette");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const openCreateOrderForCustomer = (c: Customer) => {
+    openEditDialog(c);
+  };
+
+  const eligibleSelectable = filtered.filter(c => c.saved_id);
+  const allSelected = eligibleSelectable.length > 0 && selectedIds.size === eligibleSelectable.length;
+
   return (
+    <TooltipProvider delayDuration={200}>
     <div className="space-y-4">
       <PageHeader
         title="Kunder"
