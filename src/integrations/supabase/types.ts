@@ -1162,6 +1162,48 @@ export type Database = {
           },
         ]
       }
+      service_employee_durations: {
+        Row: {
+          avg_minutes: number
+          business_id: string
+          created_at: string
+          customer_email: string
+          employee_id: string
+          id: string
+          last_completed_at: string | null
+          last_minutes: number | null
+          sample_count: number
+          service_id: string
+          updated_at: string
+        }
+        Insert: {
+          avg_minutes: number
+          business_id: string
+          created_at?: string
+          customer_email: string
+          employee_id: string
+          id?: string
+          last_completed_at?: string | null
+          last_minutes?: number | null
+          sample_count?: number
+          service_id: string
+          updated_at?: string
+        }
+        Update: {
+          avg_minutes?: number
+          business_id?: string
+          created_at?: string
+          customer_email?: string
+          employee_id?: string
+          id?: string
+          last_completed_at?: string | null
+          last_minutes?: number | null
+          sample_count?: number
+          service_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           base_price: number | null
