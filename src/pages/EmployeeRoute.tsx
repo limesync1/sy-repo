@@ -291,6 +291,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         >
           <List className="h-4 w-4" />
         </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-background hover:bg-background/10 h-9 w-9 p-0"
+          onClick={() => setAudioEnabled((v) => !v)}
+          aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
+          title={audioEnabled ? "Lyd til" : "Lyd fra"}
+        >
+          {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+        </Button>
       </header>
 
       {/* Map fills remaining space */}
