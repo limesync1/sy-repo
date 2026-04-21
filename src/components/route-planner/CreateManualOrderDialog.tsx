@@ -287,7 +287,25 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
               <Field label="Telefon">
                 <Input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-9" />
               </Field>
+              <Field label="Adresse" hint="Søg — verificeres automatisk via DAWA">
+                <AddressAutocomplete
+                  value={{ address, zip_code: zipCode, city, latitude, longitude }}
+                  onChange={(v) => {
+                    setAddress(v.address);
+                    setZipCode(v.zip_code);
+                    setCity(v.city);
+                    setLatitude(v.latitude ?? null);
+                    setLongitude(v.longitude ?? null);
+                  }}
+                />
+              </Field>
             </div>
+            {(zipCode || city) && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+                <Field label="Postnr."><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-9" /></Field>
+                <div className="sm:col-span-2"><Field label="By"><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-9" /></Field></div>
+              </div>
+            )}
           </Section>
 
           {/* CVR (valgfrit) */}
@@ -308,34 +326,13 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
               }}
             />
             {(cvr.replace(/\D/g, "").length === 8 || companyName) && (
-              <p className="mt-2 text-[11px] text-muted-foreground italic">
-                ℹ️ Bestillingen markeres som <strong className="text-foreground not-italic">erhvervskunde</strong>.
-              </p>
+              <div className="mt-2.5 flex items-center gap-2 rounded-md border border-accent/30 bg-accent/5 px-2.5 py-1.5">
+                <BadgeCheck className="h-3.5 w-3.5 text-accent shrink-0" />
+                <p className="text-[11px] text-foreground">
+                  Bestillingen markeres som <strong>erhvervskunde</strong>.
+                </p>
+              </div>
             )}
-          </Section>
-
-          {/* Adresse — DAWA autocomplete */}
-          <Section icon={<MapPin className="h-3.5 w-3.5" />} title="Adresse" hint="Søg og vælg — verificeres automatisk">
-            <div className="space-y-3">
-              <Field label="Vej, nr. og by">
-                <AddressAutocomplete
-                  value={{ address, zip_code: zipCode, city, latitude, longitude }}
-                  onChange={(v) => {
-                    setAddress(v.address);
-                    setZipCode(v.zip_code);
-                    setCity(v.city);
-                    setLatitude(v.latitude ?? null);
-                    setLongitude(v.longitude ?? null);
-                  }}
-                />
-              </Field>
-              {(zipCode || city) && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <Field label="Postnr."><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-9" /></Field>
-                  <div className="sm:col-span-2"><Field label="By"><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-9" /></Field></div>
-                </div>
-              )}
-            </div>
           </Section>
 
           {/* Foreslået dato */}
