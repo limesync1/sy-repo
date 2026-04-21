@@ -614,6 +614,9 @@ export const useUpdateStopStatus = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-stops"] });
       qc.invalidateQueries({ queryKey: ["my-day-stops"] });
+      qc.invalidateQueries({ queryKey: ["my-day-routes"] });
+      qc.invalidateQueries({ queryKey: ["my-route-data"] });
+      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke opdatere stop"),
   });
