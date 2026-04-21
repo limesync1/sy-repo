@@ -93,13 +93,21 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   };
 
   const customerEmail = (order as any)?.customer_email;
-  const orderStatus = (order as any)?.status;
   const orderNotes = (order as any)?.notes as string | null;
-  const orderCreatedAt = (order as any)?.created_at;
-  const preferredDate = (order as any)?.preferred_date;
-  const preferredStart = (order as any)?.preferred_time_start?.slice(0, 5);
-  const preferredEnd = (order as any)?.preferred_time_end?.slice(0, 5);
   const hasCoords = stop.latitude != null && stop.longitude != null;
+
+  // Saml fuld adresse — stop.address indeholder ofte kun gaden,
+  // så vi tilføjer postnr/by fra ordren hvis det mangler.
+  const orderZip = (order as any)?.zip_code as string | null;
+  const orderCity = (order as any)?.city as string | null;
+  const orderAddress = (order as any)?.address as string | null;
+  const fullAddress = (() => {
+    const street = stop.address || orderAddress || "";
+    const cityLine = [orderZip, orderCity].filter(Boolean).join(" ");
+    if (!street && !cityLine) return null;
+    if (street && cityLine && !street.includes(cityLine)) return `${street}, ${cityLine}`;
+    return street || cityLine;
+  })();
 
   // Detect any active subscription (recurring) and any paused state
   const activeSub = subscriptions.find((s) => s.status === "active");
