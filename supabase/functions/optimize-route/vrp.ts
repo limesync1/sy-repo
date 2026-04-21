@@ -286,9 +286,23 @@ function twoOpt(
 
 // ============== Main ==============
 export async function solveVRP(
-  employees: EmployeeCtx[],
-  stops: Stop[],
+  employeesIn: EmployeeCtx[],
+  stopsIn: Stop[],
 ): Promise<{ plan: RoutePlan; provider: "mapbox" | "osrm" | "haversine" }> {
+  // === DETERMINISME ===
+  // Algoritmen er i sig selv deterministisk, men resultatet afhænger af
+  // *rækkefølgen* på input (greedy insertion vælger første stop først, osv).
+  // For at samme rute ALTID giver samme resultat — uanset hvordan DB returnerer
+  // rækken — sorterer vi input kanonisk på ID før vi kører.
+  const employees = [...employeesIn].sort((a, b) => a.id.localeCompare(b.id));
+  const stops = [...stopsIn]
+    .map((s) => ({
+      ...s,
+      // Sortér også pinned_assignees så input-hash er stabil
+      pinned_assignees: [...s.pinned_assignees].sort(),
+    }))
+    .sort((a, b) => a.id.localeCompare(b.id));
+
   const empStarts: LatLng[] = employees.map((e) => ({ lat: e.start_lat, lng: e.start_lng }));
   const empEnds: LatLng[] = employees.map((e) => ({ lat: e.end_lat, lng: e.end_lng }));
   const stopCoords: LatLng[] = stops.map((s) => ({ lat: s.latitude, lng: s.longitude }));
