@@ -5,14 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Search, User, Mail, Phone, MapPin, Package, Repeat, Calendar,
   Route as RouteIcon, TrendingUp, Star, Clock, ChevronRight, ExternalLink, Pause,
+  UserPlus, Building2, Pencil,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { INTERVAL_LABELS } from "@/types/service";
 import { Link } from "react-router-dom";
+import CustomerEditDialog, { type EditableCustomer } from "./CustomerEditDialog";
 
 type Customer = {
   email: string;
@@ -28,6 +32,14 @@ type Customer = {
   paused_subs: number;
   last_order_at: string;
   first_order_at: string;
+  /** "private" | "business" | "unknown" — kun sat hvis kunden findes i kartoteket */
+  type?: "private" | "business" | "unknown";
+  /** Saved-customer-id hvis findes (til redigering) */
+  saved_id?: string | null;
+  company_name?: string | null;
+  cvr?: string | null;
+  contact_name?: string | null;
+  notes?: string | null;
 };
 
 type OrderRow = {
