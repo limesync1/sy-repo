@@ -49,7 +49,8 @@ const stopIcon = (n: number, state: "next" | "done" | "future", color: string, h
   const ring = state === "next"
     ? `0 0 0 4px hsl(184 90% 32% / 0.18), 0 0 0 9px hsl(184 90% 32% / 0.08)`
     : "none";
-  const hlRing = highlighted ? `, 0 0 0 4px hsl(45 100% 55%), 0 0 0 8px hsl(45 100% 55% / 0.30)` : "";
+  // Highlighted: brug Serviceydere accent-ring i stedet for gul, så det matcher branden.
+  const hlRing = highlighted ? `, 0 0 0 4px hsl(184 90% 32%), 0 0 0 8px hsl(184 90% 32% / 0.25)` : "";
   const size = highlighted ? 44 : state === "next" ? 42 : 34;
   const fontSize = state === "next" ? 15 : 12;
   const inner =
