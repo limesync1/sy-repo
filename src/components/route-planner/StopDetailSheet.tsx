@@ -87,6 +87,17 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
       time_window_end: e || null,
       notes: notes || null,
     } as any);
+    // Sync assignees hvis ændret
+    const currentIds = (stop.assignee_ids ?? []).slice().sort().join(",");
+    const newIds = assigneeIds.slice().sort().join(",");
+    const currentLead = stop.lead_employee_id ?? null;
+    if (currentIds !== newIds || currentLead !== leadId) {
+      await setAssignees.mutateAsync({
+        stop_id: stop.id,
+        employee_ids: assigneeIds,
+        lead_id: leadId,
+      });
+    }
     toast.success("Ændringer gemt");
   };
 
