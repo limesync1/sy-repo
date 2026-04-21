@@ -13,11 +13,10 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Trash2, Send, ShoppingBag, User, MapPin, Calendar as CalendarIcon, MessageSquare, Package } from "lucide-react";
+import { Loader2, Trash2, Send, ShoppingBag, User, MessageSquare, Package } from "lucide-react";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 import { roundPrice, buildPricingSnapshot } from "@/lib/service-pricing";
-import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
 import { Building2, BadgeCheck } from "lucide-react";
