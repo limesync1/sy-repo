@@ -5,14 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Search, User, Mail, Phone, MapPin, Package, Repeat, Calendar,
   Route as RouteIcon, TrendingUp, Star, Clock, ChevronRight, ExternalLink, Pause,
+  UserPlus, Building2, Pencil,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { INTERVAL_LABELS } from "@/types/service";
 import { Link } from "react-router-dom";
+import CustomerEditDialog, { type EditableCustomer } from "./CustomerEditDialog";
 
 type Customer = {
   email: string;
@@ -28,6 +32,14 @@ type Customer = {
   paused_subs: number;
   last_order_at: string;
   first_order_at: string;
+  /** "private" | "business" | "unknown" — kun sat hvis kunden findes i kartoteket */
+  type?: "private" | "business" | "unknown";
+  /** Saved-customer-id hvis findes (til redigering) */
+  saved_id?: string | null;
+  company_name?: string | null;
+  cvr?: string | null;
+  contact_name?: string | null;
+  notes?: string | null;
 };
 
 type OrderRow = {
@@ -70,33 +82,46 @@ type ReviewRow = {
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
 const fmtDate = (d: string | null) => d ? format(parseISO(d), "d. MMM yyyy", { locale: da }) : "—";
 
-/** Aggregate orders by customer email — same email = same customer even if not registered */
+/** Aggregate orders by customer email + merge med privat/erhvervs-kartoteket */
 const useCustomers = (businessId: string) => {
   return useQuery({
     queryKey: ["customers", businessId],
     queryFn: async (): Promise<Customer[]> => {
-      const { data: orders, error } = await supabase
-        .from("orders")
-        .select("id, customer_name, customer_email, customer_phone, customer_id, address, zip_code, city, total_amount, created_at")
-        .eq("business_id", businessId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-
-      const { data: subs } = await supabase
-        .from("subscriptions")
-        .select("customer_id, status")
-        .eq("business_id", businessId);
+      const [ordersRes, subsRes, privRes, bizRes] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("id, customer_name, customer_email, customer_phone, customer_id, address, zip_code, city, total_amount, created_at, company_name, cvr")
+          .eq("business_id", businessId)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("subscriptions")
+          .select("customer_id, status")
+          .eq("business_id", businessId),
+        supabase
+          .from("private_customers")
+          .select("id, name, email, phone, address, zip_code, city, notes")
+          .eq("business_id", businessId),
+        supabase
+          .from("business_customers")
+          .select("id, company_name, cvr, contact_name, email, phone, address, zip_code, city, notes")
+          .eq("business_id", businessId),
+      ]);
+      if (ordersRes.error) throw ordersRes.error;
+      const orders = ordersRes.data || [];
+      const subs = subsRes.data || [];
+      const privCustomers = privRes.data || [];
+      const bizCustomers = bizRes.data || [];
 
       const activeByCustomer = new Map<string, number>();
       const pausedByCustomer = new Map<string, number>();
-      (subs || []).forEach(s => {
+      subs.forEach(s => {
         if (!s.customer_id) return;
         if (s.status === "active") activeByCustomer.set(s.customer_id, (activeByCustomer.get(s.customer_id) || 0) + 1);
         if (s.status === "paused") pausedByCustomer.set(s.customer_id, (pausedByCustomer.get(s.customer_id) || 0) + 1);
       });
 
       const grouped = new Map<string, Customer>();
-      (orders || []).forEach(o => {
+      orders.forEach(o => {
         const key = o.customer_email.toLowerCase();
         const existing = grouped.get(key);
         if (existing) {
@@ -109,6 +134,8 @@ const useCustomers = (businessId: string) => {
             if (o.address) existing.address = o.address;
             if (o.zip_code) existing.zip_code = o.zip_code;
             if (o.city) existing.city = o.city;
+            if (o.company_name) existing.company_name = o.company_name;
+            if (o.cvr) existing.cvr = o.cvr;
           }
           if (o.created_at < existing.first_order_at) existing.first_order_at = o.created_at;
         } else {
@@ -126,6 +153,85 @@ const useCustomers = (businessId: string) => {
             paused_subs: o.customer_id ? (pausedByCustomer.get(o.customer_id) || 0) : 0,
             last_order_at: o.created_at,
             first_order_at: o.created_at,
+            company_name: o.company_name,
+            cvr: o.cvr,
+            type: o.company_name || o.cvr ? "business" : "unknown",
+          });
+        }
+      });
+
+      // Merge privat-kartotek
+      privCustomers.forEach(p => {
+        const key = (p.email || "").toLowerCase();
+        const existing = grouped.get(key);
+        if (existing) {
+          existing.type = "private";
+          existing.saved_id = p.id;
+          if (!existing.name && p.name) existing.name = p.name;
+          if (!existing.phone && p.phone) existing.phone = p.phone;
+          if (!existing.address && p.address) existing.address = p.address;
+          if (!existing.zip_code && p.zip_code) existing.zip_code = p.zip_code;
+          if (!existing.city && p.city) existing.city = p.city;
+          existing.notes = p.notes;
+        } else {
+          grouped.set(key, {
+            email: p.email,
+            name: p.name,
+            phone: p.phone,
+            address: p.address,
+            zip_code: p.zip_code,
+            city: p.city,
+            customer_id: null,
+            total_revenue: 0,
+            orders_count: 0,
+            active_subs: 0,
+            paused_subs: 0,
+            last_order_at: "",
+            first_order_at: "",
+            type: "private",
+            saved_id: p.id,
+            notes: p.notes,
+          });
+        }
+      });
+
+      // Merge erhvervs-kartotek
+      bizCustomers.forEach(b => {
+        const key = (b.email || "").toLowerCase();
+        const existing = grouped.get(key);
+        if (existing) {
+          existing.type = "business";
+          existing.saved_id = b.id;
+          existing.company_name = b.company_name;
+          existing.cvr = b.cvr;
+          existing.contact_name = b.contact_name;
+          if (!existing.name && (b.contact_name || b.company_name)) existing.name = b.contact_name || b.company_name;
+          if (!existing.phone && b.phone) existing.phone = b.phone;
+          if (!existing.address && b.address) existing.address = b.address;
+          if (!existing.zip_code && b.zip_code) existing.zip_code = b.zip_code;
+          if (!existing.city && b.city) existing.city = b.city;
+          existing.notes = b.notes;
+        } else {
+          grouped.set(key, {
+            email: b.email,
+            name: b.contact_name || b.company_name,
+            phone: b.phone,
+            address: b.address,
+            zip_code: b.zip_code,
+            city: b.city,
+            customer_id: null,
+            total_revenue: 0,
+            orders_count: 0,
+            active_subs: 0,
+            paused_subs: 0,
+            last_order_at: "",
+            first_order_at: "",
+            type: "business",
+            saved_id: b.id,
+            company_name: b.company_name,
+            cvr: b.cvr,
+            contact_name: b.contact_name,
+            notes: b.notes,
           });
         }
       });
@@ -241,36 +347,93 @@ const StatusBadge = ({ status }: { status: string }) => {
   return <Badge variant="outline" className={`text-[10px] h-5 px-1.5 ${m.className}`}>{m.label}</Badge>;
 };
 
-interface Props { businessId: string }
+interface Props { businessId: string; businessName?: string }
 
-const CustomersTab = ({ businessId }: Props) => {
+const CustomersTab = ({ businessId, businessName }: Props) => {
   const { data: customers = [], isLoading } = useCustomers(businessId);
   const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"all" | "private" | "business">("all");
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<EditableCustomer | null>(null);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return customers;
+    let list = customers;
+    if (typeFilter !== "all") {
+      list = list.filter(c => c.type === typeFilter);
+    }
+    if (!search.trim()) return list;
     const q = search.toLowerCase();
-    return customers.filter(c =>
+    return list.filter(c =>
       c.name.toLowerCase().includes(q) ||
       c.email.toLowerCase().includes(q) ||
       (c.phone || "").toLowerCase().includes(q) ||
       (c.address || "").toLowerCase().includes(q) ||
+      (c.company_name || "").toLowerCase().includes(q) ||
+      (c.cvr || "").toLowerCase().includes(q) ||
       (c.city || "").toLowerCase().includes(q)
     );
-  }, [customers, search]);
+  }, [customers, search, typeFilter]);
 
   const stats = useMemo(() => {
     const totalRev = customers.reduce((s, c) => s + c.total_revenue, 0);
     const recurring = customers.filter(c => c.active_subs > 0).length;
-    return { totalRev, recurring, total: customers.length };
+    const privateCount = customers.filter(c => c.type === "private").length;
+    const businessCount = customers.filter(c => c.type === "business").length;
+    return { totalRev, recurring, total: customers.length, privateCount, businessCount };
   }, [customers]);
+
+  const openCreateDialog = () => {
+    setEditing(null);
+    setEditDialogOpen(true);
+  };
+
+  const openEditDialog = (c: Customer) => {
+    if (!c.saved_id || !c.type || c.type === "unknown") {
+      // Tillad redigering også af ikke-gemte (fra ordrer) — opret ny kartotek-entry
+      setEditing({
+        type: c.cvr || c.company_name ? "business" : "private",
+        name: c.name,
+        company_name: c.company_name || undefined,
+        cvr: c.cvr || undefined,
+        contact_name: c.contact_name || undefined,
+        email: c.email,
+        phone: c.phone,
+        address: c.address,
+        zip_code: c.zip_code,
+        city: c.city,
+        notes: c.notes,
+      });
+    } else {
+      setEditing({
+        id: c.saved_id,
+        type: c.type,
+        name: c.name,
+        company_name: c.company_name || undefined,
+        cvr: c.cvr || undefined,
+        contact_name: c.contact_name || undefined,
+        email: c.email,
+        phone: c.phone,
+        address: c.address,
+        zip_code: c.zip_code,
+        city: c.city,
+        notes: c.notes,
+      });
+    }
+    setEditDialogOpen(true);
+  };
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">Kunder</h2>
-        <p className="text-sm text-muted-foreground">Alle dine kunder, deres bestillinger, abonnementer og rutehistorik.</p>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Kunder</h2>
+          <p className="text-sm text-muted-foreground">Alle dine kunder, deres bestillinger, abonnementer og rutehistorik.</p>
+        </div>
+        <Button onClick={openCreateDialog} className="h-9 rounded-lg bg-foreground text-background hover:bg-foreground/90 text-sm font-medium px-4 shadow-sm">
+          <UserPlus className="mr-1.5 h-4 w-4" />
+          Tilføj kunde
+        </Button>
       </div>
 
       {/* Stats */}
@@ -311,14 +474,26 @@ const CustomersTab = ({ businessId }: Props) => {
       </div>
 
       {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Søg på navn, email, telefon eller by..."
-          className="pl-9 rounded-xl"
-        />
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[240px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Søg navn, email, firma, CVR eller by..."
+            className="pl-9 rounded-xl"
+          />
+        </div>
+        <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as any)}>
+          <SelectTrigger className="w-[180px] rounded-xl">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Alle kunder ({stats.total})</SelectItem>
+            <SelectItem value="private">Privatkunder ({stats.privateCount})</SelectItem>
+            <SelectItem value="business">Erhvervskunder ({stats.businessCount})</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* List */}
@@ -339,17 +514,28 @@ const CustomersTab = ({ businessId }: Props) => {
       ) : (
         <div className="rounded-xl border border-border bg-card overflow-hidden divide-y divide-border">
           {filtered.map((c) => (
-            <button
-              key={c.email}
-              onClick={() => setSelectedEmail(c.email)}
-              className="w-full flex items-center gap-3 p-3.5 hover:bg-secondary/50 transition-colors text-left"
-            >
-              <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0 text-sm font-semibold text-accent">
-                {c.name.charAt(0).toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-[1.5fr_1fr_1fr] gap-2 items-center">
+            <div key={c.email} className="flex items-center gap-3 p-3.5 hover:bg-secondary/50 transition-colors">
+              <button
+                onClick={() => setSelectedEmail(c.email)}
+                className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0 text-sm font-semibold text-accent"
+                title="Se detaljer"
+              >
+                {c.type === "business" ? <Building2 className="h-4 w-4" /> : (c.name?.charAt(0).toUpperCase() || "?")}
+              </button>
+              <button
+                onClick={() => setSelectedEmail(c.email)}
+                className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-[1.5fr_1fr_1fr] gap-2 items-center text-left"
+              >
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate">{c.name}</p>
+                  <p className="text-sm font-semibold text-foreground truncate flex items-center gap-1.5">
+                    {c.type === "business" && c.company_name ? c.company_name : c.name}
+                    {c.type === "business" && (
+                      <Badge variant="outline" className="text-[10px] h-4 px-1 border-blue-300 text-blue-700 bg-blue-50">Erhverv</Badge>
+                    )}
+                    {c.type === "private" && (
+                      <Badge variant="outline" className="text-[10px] h-4 px-1 border-emerald-300 text-emerald-700 bg-emerald-50">Privat</Badge>
+                    )}
+                  </p>
                   <p className="text-xs text-muted-foreground truncate">{c.email}{c.phone ? ` · ${c.phone}` : ""}</p>
                 </div>
                 <div className="min-w-0 hidden sm:block">
@@ -357,7 +543,7 @@ const CustomersTab = ({ businessId }: Props) => {
                     <MapPin className="h-3 w-3 shrink-0" />
                     {c.city || c.address ? `${c.address || ""}${c.address && c.city ? ", " : ""}${c.city || ""}` : "—"}
                   </p>
-                  <p className="text-[11px] text-muted-foreground/70 mt-0.5">Sidst: {fmtDate(c.last_order_at)}</p>
+                  <p className="text-[11px] text-muted-foreground/70 mt-0.5">{c.last_order_at ? `Sidst: ${fmtDate(c.last_order_at)}` : "Ingen bestillinger endnu"}</p>
                 </div>
                 <div className="flex items-center justify-end gap-2">
                   {c.active_subs > 0 && (
@@ -372,14 +558,25 @@ const CustomersTab = ({ businessId }: Props) => {
                       {c.paused_subs} på pause
                     </Badge>
                   )}
-                  <Badge variant="secondary" className="text-[10px] h-5 px-1.5">
-                    {c.orders_count} ordrer
-                  </Badge>
-                  <span className="text-sm font-bold text-foreground tabular-nums w-24 text-right">{fmtKr(c.total_revenue)}</span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  {c.orders_count > 0 && (
+                    <Badge variant="secondary" className="text-[10px] h-5 px-1.5">
+                      {c.orders_count} ordrer
+                    </Badge>
+                  )}
+                  <span className="text-sm font-bold text-foreground tabular-nums w-24 text-right">{c.total_revenue > 0 ? fmtKr(c.total_revenue) : "—"}</span>
                 </div>
+              </button>
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  onClick={(e) => { e.stopPropagation(); openEditDialog(c); }}
+                  title="Rediger kunde"
+                  className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </div>
-            </button>
+            </div>
           ))}
         </div>
       )}
@@ -390,6 +587,15 @@ const CustomersTab = ({ businessId }: Props) => {
         email={selectedEmail}
         customer={filtered.find(c => c.email === selectedEmail) || null}
         onClose={() => setSelectedEmail(null)}
+      />
+
+      {/* Create / edit dialog */}
+      <CustomerEditDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        businessId={businessId}
+        businessName={businessName || ""}
+        initial={editing}
       />
     </div>
   );

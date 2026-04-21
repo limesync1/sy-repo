@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServices } from "@/hooks/useDatabase";
 import { Button } from "@/components/ui/button";
@@ -56,9 +56,22 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   businessId: string;
   businessName: string;
+  /** Forudfylder kundefelter ved åbning (fx hvis du opretter kunden først). */
+  initialCustomer?: {
+    customer_name?: string;
+    customer_email?: string;
+    customer_phone?: string | null;
+    address?: string | null;
+    zip_code?: string | null;
+    city?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    cvr?: string | null;
+    company_name?: string | null;
+  } | null;
 }
 
-const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName }: Props) => {
+const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName, initialCustomer }: Props) => {
   const { data: services = [] } = useServices(businessId);
   const activeServices = useMemo(() => (services as any[]).filter((s) => s.is_active !== false) as Service[], [services]);
 
@@ -80,6 +93,22 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
   // Cart
   const [items, setItems] = useState<BuilderItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  // Forudfyld fra initialCustomer når dialogen åbner
+  useEffect(() => {
+    if (!open || !initialCustomer) return;
+    if (initialCustomer.customer_name) setCustomerName(initialCustomer.customer_name);
+    if (initialCustomer.customer_email) setCustomerEmail(initialCustomer.customer_email);
+    if (initialCustomer.customer_phone) setCustomerPhone(initialCustomer.customer_phone);
+    if (initialCustomer.address) setAddress(initialCustomer.address);
+    if (initialCustomer.zip_code) setZipCode(initialCustomer.zip_code);
+    if (initialCustomer.city) setCity(initialCustomer.city);
+    if (initialCustomer.latitude != null) setLatitude(initialCustomer.latitude);
+    if (initialCustomer.longitude != null) setLongitude(initialCustomer.longitude);
+    if (initialCustomer.cvr) setCvr(initialCustomer.cvr);
+    if (initialCustomer.company_name) setCompanyName(initialCustomer.company_name);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const totalAmount = useMemo(() => roundPrice(items.reduce((s, it) => s + calcItemTotal(it), 0)), [items]);
 
