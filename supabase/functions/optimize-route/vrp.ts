@@ -23,6 +23,9 @@ import type {
 const SLOT_MIN = 15;
 const SOFT_PENALTY_PER_MIN = 2;
 const WAIT_PENALTY_PER_MIN = 0.3;
+/** Vægt på km i den samlede cost-funktion. Højere = ruten "straffes" mere
+ *  for at køre langt → giver bedre geografisk klynge-effekt. */
+const KM_COST_WEIGHT = 1.5;
 const ceilSnap = (m: number) => Math.ceil(m / SLOT_MIN) * SLOT_MIN;
 
 type IRoute = ScheduledStop[];
@@ -83,7 +86,7 @@ function scheduleRoute(
     if (finish > hardEnd) return { feasible: false, cost: Infinity, km: 0, durMin: 0, softViolations: 0 };
 
     const wait = Math.max(0, arrival - (cursor + travelMin));
-    cost += travelMin + wait * WAIT_PENALTY_PER_MIN;
+    cost += travelMin + tKm * KM_COST_WEIGHT + wait * WAIT_PENALTY_PER_MIN;
 
     if (stop.preferred_start_min != null && arrival < stop.preferred_start_min) {
       const diff = stop.preferred_start_min - arrival;
@@ -107,10 +110,13 @@ function scheduleRoute(
     r.travel_km_to_next = null;
   }
 
-  // Sidste leg: hjem
+  // Sidste leg: hjem — tæller med i totalKm (og derved i cost hvis vi ikke
+  // tilføjer den her). Vi inkluderer også returkørslen i cost så der er
+  // pres på at slutte tæt på medarbejderens base.
   if (route.length > 0) {
     const homeKm = travel.km(prevIdx, empEndIdx);
     totalKm += homeKm;
+    cost += homeKm * KM_COST_WEIGHT;
   }
 
   // Sæt travel-til-næste på hver stop (i → i+1)
@@ -176,6 +182,10 @@ function tryInsertCheapest(
 }
 
 // ============== Inter-employee swap pass ==============
+// Flytter ét stop fra medarbejder A til den optimale position hos medarbejder B.
+// Vi accepterer kun flytningen hvis den GLOBALE cost (sum over A+B) falder
+// målbart. Den gamle implementering havde en bug hvor `bestKmB` blev brugt
+// dobbelt i regnestykket — derfor blev rigtige forbedringer ofte forkastet.
 function interEmployeeSwap(
   routes: Map<string, IRoute>,
   employees: EmployeeCtx[],
@@ -195,13 +205,15 @@ function interEmployeeSwap(
 
       const metaA = empMeta.get(empA.id)!;
       const baseA = scheduleRoute(empA, routeA, stops, travel, metaA.startIdx, metaA.endIdx, stopIdx);
+      if (!baseA.feasible) continue;
 
       for (const empB of employees) {
         if (empB.id === empA.id) continue;
         const routeB = routes.get(empB.id)!;
         const metaB = empMeta.get(empB.id)!;
         const baseB = scheduleRoute(empB, routeB, stops, travel, metaB.startIdx, metaB.endIdx, stopIdx);
-        const baselineCost = baseA.cost + baseB.cost + (baseA.km + baseB.km) * 0.5;
+        if (!baseB.feasible) continue;
+        const baselineCost = baseA.cost + baseB.cost;
 
         // Fjern stop fra A
         const newA = [...routeA.slice(0, i), ...routeA.slice(i + 1)];
@@ -211,7 +223,6 @@ function interEmployeeSwap(
         // Find bedste position i B
         let bestPos = -1;
         let bestCostB = Infinity;
-        let bestKmB = Infinity;
         for (let p = 0; p <= routeB.length; p++) {
           const trial: IRoute = [
             ...routeB.slice(0, p),
@@ -220,19 +231,17 @@ function interEmployeeSwap(
           ];
           const ev = scheduleRoute(empB, trial, stops, travel, metaB.startIdx, metaB.endIdx, stopIdx);
           if (!ev.feasible) continue;
-          const c = ev.cost + ev.km * 0.5;
-          if (c < bestCostB) {
-            bestCostB = c;
-            bestKmB = ev.km;
+          if (ev.cost < bestCostB) {
+            bestCostB = ev.cost;
             bestPos = p;
           }
         }
         if (bestPos < 0) continue;
 
-        const newCost = evA.cost + bestCostB - bestKmB * 0.5 + (evA.km + bestKmB) * 0.5
-          + bestKmB * 0.5; // simpler: total = (evA.cost + evA.km*0.5) + (bestCostB)
-        const totalNew = (evA.cost + evA.km * 0.5) + bestCostB;
-        if (totalNew + 1 < baselineCost) {
+        const totalNew = evA.cost + bestCostB;
+        // Kræv mindst 1 cost-enhed forbedring så vi ikke flipper frem og tilbage
+        // pga. afrundinger.
+        if (totalNew + 0.5 < baselineCost) {
           // Anvend swap
           const stopRecord = routeA[i];
           routes.set(empA.id, newA);
@@ -274,7 +283,9 @@ function twoOpt(
         ...route.slice(j + 1),
       ];
       const ev = scheduleRoute(emp, trial, stops, travel, meta.startIdx, meta.endIdx, stopIdx);
-      if (ev.feasible && ev.km + 0.05 < baseline.km) {
+      // Cost-baseret accept (km + tid + ventetid + soft-vinduer) — ren km-sammenligning
+      // forkastede tit gode swaps der overholdt et tidsvindue bedre.
+      if (ev.feasible && ev.cost + 0.5 < baseline.cost) {
         for (let k = 0; k < trial.length; k++) route[k] = trial[k];
         improved = true;
         return true;
@@ -282,6 +293,37 @@ function twoOpt(
     }
   }
   return improved;
+}
+
+// ============== Relocate pr. medarbejder ==============
+// Tager et stop ud og prøver at sætte det ind på enhver anden position i samme
+// rute. Fanger "kører frem og tilbage" mønstre som 2-opt ikke kan fjerne fordi
+// de ikke involverer reversering af et segment.
+function relocateInRoute(
+  emp: EmployeeCtx,
+  route: IRoute,
+  stops: Stop[],
+  travel: ReturnType<typeof makeTravelers>,
+  meta: { startIdx: number; endIdx: number },
+  stopIdx: (id: string) => number,
+): boolean {
+  if (route.length < 3) return false;
+  const baseline = scheduleRoute(emp, route, stops, travel, meta.startIdx, meta.endIdx, stopIdx);
+  if (!baseline.feasible) return false;
+  for (let i = 0; i < route.length; i++) {
+    const removed = route[i];
+    const without: IRoute = [...route.slice(0, i), ...route.slice(i + 1)];
+    for (let j = 0; j <= without.length; j++) {
+      if (j === i) continue;
+      const trial: IRoute = [...without.slice(0, j), removed, ...without.slice(j)];
+      const ev = scheduleRoute(emp, trial, stops, travel, meta.startIdx, meta.endIdx, stopIdx);
+      if (ev.feasible && ev.cost + 0.5 < baseline.cost) {
+        for (let k = 0; k < trial.length; k++) route[k] = trial[k];
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 // ============== Main ==============
@@ -401,27 +443,36 @@ export async function solveVRP(
     }
   }
 
-  // Forbedring 1: 2-opt pr. medarbejder
-  for (const emp of employees) {
-    const route = routes.get(emp.id)!;
-    let safety = 20;
-    while (safety-- > 0 && twoOpt(emp, route, stops, travel, empMeta.get(emp.id)!, stopIdxOf)) {
-      // gentag
+  // Iterativ forbedring: kør 2-opt + relocate + inter-swap indtil ingen
+  // af dem længere kan finde forbedring. Sikrer at swap mellem medarbejdere
+  // og lokal omrokering arbejder sammen i stedet for sekventielt.
+  let outer = 8; // max ydre iterationer (typisk 2-3 nok)
+  let anyImproved = true;
+  while (outer-- > 0 && anyImproved) {
+    anyImproved = false;
+
+    // 2-opt pr. medarbejder
+    for (const emp of employees) {
+      const route = routes.get(emp.id)!;
+      let safety = 30;
+      while (safety-- > 0 && twoOpt(emp, route, stops, travel, empMeta.get(emp.id)!, stopIdxOf)) {
+        anyImproved = true;
+      }
     }
-  }
 
-  // Forbedring 2: inter-employee swap (pinned + multi-staff stops bevares)
-  let safety = 30;
-  while (safety-- > 0 && interEmployeeSwap(routes, employees, stops, travel, empMeta, stopIdxOf, pinned)) {
-    // gentag
-  }
+    // Relocate pr. medarbejder (fanger frem-og-tilbage-mønstre)
+    for (const emp of employees) {
+      const route = routes.get(emp.id)!;
+      let safety = 30;
+      while (safety-- > 0 && relocateInRoute(emp, route, stops, travel, empMeta.get(emp.id)!, stopIdxOf)) {
+        anyImproved = true;
+      }
+    }
 
-  // Forbedring 3: 2-opt igen efter swap
-  for (const emp of employees) {
-    const route = routes.get(emp.id)!;
-    let s = 20;
-    while (s-- > 0 && twoOpt(emp, route, stops, travel, empMeta.get(emp.id)!, stopIdxOf)) {
-      // gentag
+    // Inter-employee swap
+    let safety = 50;
+    while (safety-- > 0 && interEmployeeSwap(routes, employees, stops, travel, empMeta, stopIdxOf, pinned)) {
+      anyImproved = true;
     }
   }
 
