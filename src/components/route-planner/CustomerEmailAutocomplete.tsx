@@ -42,22 +42,64 @@ const CustomerEmailAutocomplete = ({ businessId, value, onChange, onSelect, plac
     let cancelled = false;
     setLoading(true);
     (async () => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("customer_name, customer_email, customer_phone, address, zip_code, city, latitude, longitude, cvr, company_name, created_at")
-        .eq("business_id", businessId)
-        .order("created_at", { ascending: false })
-        .limit(1000);
+      // Hent fra alle 3 kilder parallelt: tidligere ordrer + privat-kartotek + erhvervs-kartotek
+      const [ordersRes, privRes, bizRes] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("customer_name, customer_email, customer_phone, address, zip_code, city, latitude, longitude, cvr, company_name, created_at")
+          .eq("business_id", businessId)
+          .order("created_at", { ascending: false })
+          .limit(1000),
+        supabase
+          .from("private_customers")
+          .select("name, email, phone, address, zip_code, city, latitude, longitude, updated_at")
+          .eq("business_id", businessId),
+        supabase
+          .from("business_customers")
+          .select("company_name, contact_name, cvr, email, phone, address, zip_code, city, latitude, longitude, updated_at")
+          .eq("business_id", businessId),
+      ]);
       if (cancelled) return;
-      if (error) {
-        console.error("Could not load customer suggestions:", error);
-        setLoading(false);
-        return;
-      }
-      // Dedupliker pr. email — behold den nyeste ordre's data
+
       const seen = new Set<string>();
       const uniq: ExistingCustomer[] = [];
-      for (const row of data || []) {
+
+      // Prioriter eksplicit oprettede kunder (frisk data) først
+      for (const row of bizRes.data || []) {
+        const key = (row.email || "").toLowerCase().trim();
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        uniq.push({
+          customer_name: row.contact_name || row.company_name || "",
+          customer_email: key,
+          customer_phone: row.phone,
+          address: row.address,
+          zip_code: row.zip_code,
+          city: row.city,
+          latitude: row.latitude as number | null,
+          longitude: row.longitude as number | null,
+          cvr: row.cvr,
+          company_name: row.company_name,
+        });
+      }
+      for (const row of privRes.data || []) {
+        const key = (row.email || "").toLowerCase().trim();
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        uniq.push({
+          customer_name: row.name || "",
+          customer_email: key,
+          customer_phone: row.phone,
+          address: row.address,
+          zip_code: row.zip_code,
+          city: row.city,
+          latitude: row.latitude as number | null,
+          longitude: row.longitude as number | null,
+          cvr: null,
+          company_name: null,
+        });
+      }
+      for (const row of ordersRes.data || []) {
         const key = (row.customer_email || "").toLowerCase().trim();
         if (!key || seen.has(key)) continue;
         seen.add(key);
