@@ -180,6 +180,31 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
           </SheetHeader>
 
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-secondary/20">
+              {/* Medarbejdere på opgaven (pr-stop tildeling) — vises øverst for hurtig tildeling */}
+              {!readOnly && (
+                <Section
+                  icon={<Users className="h-3.5 w-3.5" />}
+                  title="Medarbejdere"
+                  hint={
+                    assigneeIds.length === 0
+                      ? "Ingen tildelt"
+                      : assigneeIds.length === 1
+                        ? "1 medarbejder"
+                        : `${assigneeIds.length} medarbejdere · ligedeling ${Math.round(100 / assigneeIds.length)}%`
+                  }
+                >
+                  <AssigneePicker
+                    employees={activeEmployees}
+                    assigneeIds={assigneeIds}
+                    leadId={leadId}
+                    onChange={(ids, lead) => {
+                      setAssigneeIds(ids);
+                      setLeadId(lead);
+                    }}
+                  />
+                </Section>
+              )}
+
               {/* Customer */}
               <Section icon={<User className="h-3.5 w-3.5" />} title="Kunde">
                 <div className="space-y-1.5 text-sm">
