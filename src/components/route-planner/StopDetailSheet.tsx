@@ -45,6 +45,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const setAssignees = useSetStopAssignees();
   const { data: myBusiness } = useMyBusiness();
   const { data: allEmployees = [] } = useEmployees(myBusiness?.id);
+  const { data: timeEntries = [] } = useStopTimeEntries(stop?.id ? [stop.id] : []);
   const activeEmployees = useMemo(
     () => (allEmployees as any[]).filter((e) => e.is_active),
     [allEmployees],
