@@ -675,7 +675,7 @@ const Planner = () => {
                 <TooltipContent side="bottom" className="text-xs">
                   <div className="space-y-1">
                     <p className="font-semibold mb-1">Tastatur-genveje</p>
-                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">←</kbd> <kbd className="px-1 rounded bg-secondary text-[10px]">→</kbd> Skift dag</p>
+                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">←</kbd> <kbd className="px-1 rounded bg-secondary text-[10px]">→</kbd> Skift {view === "week" ? "uge" : "måned"}</p>
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">T</kbd> I dag</p>
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">N</kbd> Ny rute</p>
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">Esc</kbd> Luk panel</p>
