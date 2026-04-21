@@ -491,29 +491,32 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                         </Select>
                       )}
 
-                      {/* Varighed + tidsrum — samme UI som ejerens stop-modul */}
-                      <div className="mt-2 rounded-md bg-secondary/30 p-2.5">
-                        <DurationTimePicker
-                          compact
+                      {/* Varighed + tidsrum — samme popover-UI som ejerens stop-modul */}
+                      <div className="mt-2 rounded-md bg-secondary/30 p-3">
+                        <DurationSlotPicker
                           {...(idx === 0
                             ? {
                                 date: preferredDate,
                                 onDateChange: setPreferredDate,
                                 dateLabel: "Foreslået dato",
-                                dateHint: "Valgfrit — kunden kan bekræfte eller ændre",
+                                dateHint: "Valgfrit — kunden kan bekræfte eller ændre.",
                               }
                             : {})}
+                          timeSlot={
+                            it.timeStart && it.timeEnd
+                              ? `${it.timeStart}-${it.timeEnd}`
+                              : ""
+                          }
+                          onTimeSlotChange={(v) => {
+                            const [s, e] = v ? v.split("-") : ["", ""];
+                            updateItem(it.serviceId, { timeStart: s, timeEnd: e });
+                          }}
                           durationHours={Math.floor((it.durationMin || 30) / 60)}
                           durationMinutes={(it.durationMin || 30) % 60}
                           onDurationChange={(h, m) =>
                             updateItem(it.serviceId, {
                               durationMin: Math.max(5, h * 60 + m),
                             })
-                          }
-                          timeStart={it.timeStart}
-                          timeEnd={it.timeEnd}
-                          onTimeChange={(start, end) =>
-                            updateItem(it.serviceId, { timeStart: start, timeEnd: end })
                           }
                         />
                       </div>
