@@ -21,12 +21,12 @@ interface DawaSuggestion {
   forslagstekst: string;
   type: string;
   data: {
-    vejnavn: string;
-    husnr: string;
+    vejnavn?: string;
+    husnr?: string;
     etage?: string;
     dør?: string;
-    postnr: string;
-    postnrnavn: string;
+    postnr?: string;
+    postnrnavn?: string;
     x?: number; // longitude
     y?: number; // latitude
     id?: string;
@@ -69,11 +69,15 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
       setLoading(true);
       try {
         // DAWA "autocomplete" — fuzzy + tolerant, returnerer adgangsadresser med koordinater
-        const url = `https://api.dataforsyningen.dk/autocomplete?q=${encodeURIComponent(q)}&type=adresse&caretpos=${q.length}&fuzzy=&per_side=8`;
+        // type=adgangsadresse → kun komplette adresser med vejnavn + husnr + postnr (ingen "tomme" forslag)
+        const url = `https://api.dataforsyningen.dk/autocomplete?q=${encodeURIComponent(q)}&type=adgangsadresse&caretpos=${q.length}&fuzzy=&per_side=8`;
         const resp = await fetch(url);
         if (resp.ok) {
           const data = await resp.json();
-          setSuggestions(Array.isArray(data) ? data : []);
+          // Filtrér uberørte suggestions uden husnr (typen "vejnavn") så vi aldrig viser "undefined undefined"
+          const list = Array.isArray(data) ? data : [];
+          const usable = list.filter((s: DawaSuggestion) => s?.data?.vejnavn && s?.data?.husnr && s?.data?.postnr);
+          setSuggestions(usable);
           setOpen(true);
           setActiveIdx(-1);
         }
@@ -91,7 +95,8 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
 
   const pick = (s: DawaSuggestion) => {
     const d = s.data;
-    const street = `${d.vejnavn} ${d.husnr}${d.etage ? ", " + d.etage + "." : ""}${d.dør ? d.dør : ""}`.trim();
+    if (!d.vejnavn || !d.husnr) return; // safety net
+    const street = `${d.vejnavn} ${d.husnr}${d.etage ? ", " + d.etage + "." : ""}${d.dør ? " " + d.dør : ""}`.trim();
     setQuery(street);
     setOpen(false);
     setSuggestions([]);
@@ -151,10 +156,10 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
                   <span className="flex-1 leading-tight">
                     <span className="block font-medium text-foreground">
                       {s.data.vejnavn} {s.data.husnr}
-                      {s.data.etage ? `, ${s.data.etage}.` : ""}{s.data.dør || ""}
+                      {s.data.etage ? `, ${s.data.etage}.` : ""}{s.data.dør ? ` ${s.data.dør}` : ""}
                     </span>
                     <span className="block text-xs text-muted-foreground">
-                      {s.data.postnr} {s.data.postnrnavn}
+                      {s.data.postnr || ""} {s.data.postnrnavn || ""}
                     </span>
                   </span>
                 </button>
