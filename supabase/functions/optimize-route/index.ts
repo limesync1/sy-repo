@@ -368,7 +368,12 @@ Deno.serve(async (req) => {
       total_distance_km: plan.total_km,
       total_duration_minutes: plan.total_minutes,
       optimization_summary: ai?.summary ?? null,
-      optimization_suggestions: ai?.suggestions ?? [],
+      // Gem som object så vi også kan persistere fingerprint sammen med items.
+      // (Læses bagudkompatibelt nedenfor: hvis kolonnen er et array, bruges det direkte.)
+      optimization_suggestions: {
+        items: ai?.suggestions ?? [],
+        _input_fingerprint: inputFingerprint,
+      },
     }).eq("id", routeId);
 
     return new Response(JSON.stringify({
