@@ -636,22 +636,32 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {/* Traffic / forsinkelse alert — animeret når ETA stiger */}
             {trafficAlert && (
               <div className={`absolute ${maneuver ? "top-[200px]" : "top-[68px]"} left-3 right-3 z-[1000] pointer-events-none`}>
-                <div className="pointer-events-auto rounded-xl shadow-2xl overflow-hidden bg-orange-50 border border-orange-300 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div
+                  className="pointer-events-auto rounded-2xl shadow-2xl overflow-hidden border animate-in fade-in slide-in-from-top-2 duration-300"
+                  style={{
+                    background: "hsl(38 100% 96%)",
+                    borderColor: "hsl(38 100% 70%)",
+                  }}
+                >
                   <div className="flex items-center gap-2.5 px-3 py-2.5">
-                    <div className="h-9 w-9 rounded-full bg-orange-500 text-white flex items-center justify-center shrink-0 animate-pulse">
+                    <div
+                      className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
+                      style={{ background: "hsl(28 95% 50%)", color: "white" }}
+                    >
                       <TrafficCone className="h-5 w-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-orange-900 leading-tight">
+                      <p className="text-sm font-bold leading-tight" style={{ color: "hsl(28 80% 20%)" }}>
                         Trafik på ruten
                       </p>
-                      <p className="text-[11px] text-orange-800 leading-tight mt-0.5">
+                      <p className="text-[11px] leading-tight mt-0.5" style={{ color: "hsl(28 60% 30%)" }}>
                         +{trafficAlert.addedMin} min ekstra ({trafficAlert.deltaPct}% længere)
                       </p>
                     </div>
                     <button
                       onClick={() => setTrafficAlert(null)}
-                      className="text-orange-600 hover:text-orange-900 text-xs font-semibold px-2 py-1 rounded shrink-0"
+                      className="text-xs font-bold px-2.5 py-1 rounded-lg shrink-0 transition-colors"
+                      style={{ color: "hsl(28 80% 20%)", background: "hsl(38 100% 88%)" }}
                       aria-label="Luk advarsel"
                     >
                       OK
