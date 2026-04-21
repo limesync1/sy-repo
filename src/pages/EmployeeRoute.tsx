@@ -538,7 +538,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         )}
 
         {/* ─── Floating right-side controls ─── */}
-        <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
+        <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
           {routeStarted && (
             <Button
               size="icon"
@@ -556,7 +556,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Pre-start CTA: big start button at the bottom ─── */}
         {!routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-0 inset-x-0 z-10 p-3">
+          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3">
             <Card className="overflow-hidden shadow-2xl">
               <div className="px-4 py-3 bg-secondary/40 border-b flex items-center gap-3">
                 <span
@@ -596,7 +596,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-0 inset-x-0 z-10 p-3 pointer-events-none">
+          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pointer-events-none">
             <Card className="overflow-hidden shadow-2xl pointer-events-auto rounded-2xl">
               <button
                 type="button"
@@ -701,7 +701,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Done state ─── */}
         {allDone && (
-          <div className="absolute bottom-0 inset-x-0 z-10 p-3">
+          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3">
             <Card className="overflow-hidden shadow-2xl rounded-2xl">
               <div className="p-5 text-center space-y-3">
                 <div className="h-16 w-16 mx-auto rounded-full bg-green-100 text-green-700 flex items-center justify-center">
@@ -860,7 +860,7 @@ const StopListPanel = ({
 
   return (
     <div
-      className="absolute left-0 right-0 bottom-0 z-20 pointer-events-none"
+      className="absolute left-0 right-0 bottom-0 z-[1100] pointer-events-none"
       aria-hidden={false}
     >
       <div
