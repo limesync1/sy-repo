@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, ScaleControl, ZoomControl, LayersControl } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Tooltip, useMap, ScaleControl, ZoomControl, LayersControl } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +26,10 @@ export type MapStop = {
   sublabel?: string;
   color?: string;
   index?: number;
+  /** Distance til næste stop i km (vises i hover-tooltip på linjen efter dette stop). */
+  distanceToNextKm?: number | null;
+  /** Køretid til næste stop i minutter (vises i hover-tooltip). */
+  travelTimeToNextMin?: number | null;
 };
 
 export type MapRoute = {
