@@ -836,4 +836,116 @@ const MapInteractionWatcher = ({ onInteract }: { onInteract: () => void }) => {
   return null;
 };
 
+/* ─── Collapsible bottom stop-list with live status & map sync ─── */
+const StopListPanel = ({
+  open, onToggle, stops, nextStopId, highlightedId, themeColor, onSelectStop, onOpenDetails,
+}: {
+  open: boolean;
+  onToggle: () => void;
+  stops: RouteStop[];
+  nextStopId?: string;
+  highlightedId: string | null;
+  themeColor: string;
+  onSelectStop: (s: RouteStop) => void;
+  onOpenDetails: (s: RouteStop) => void;
+}) => {
+  const total = stops.length;
+  const done = stops.filter((s) => s.status === "completed").length;
+
+  const statusMeta = (s: RouteStop): { label: string; dot: string; text: string } => {
+    if (s.status === "completed") return { label: "Færdig", dot: "hsl(142 70% 45%)", text: "hsl(142 70% 30%)" };
+    if (s.id === nextStopId) return { label: "I gang", dot: themeColor, text: themeColor };
+    return { label: "Klar", dot: "hsl(220 14% 65%)", text: "hsl(220 14% 45%)" };
+  };
+
+  return (
+    <div
+      className="absolute left-0 right-0 bottom-0 z-20 pointer-events-none"
+      aria-hidden={false}
+    >
+      <div
+        className="pointer-events-auto mx-auto w-full max-w-3xl bg-background border-t shadow-2xl rounded-t-2xl transition-transform duration-300 ease-out"
+        style={{ transform: open ? "translateY(0)" : "translateY(calc(100% - 52px))", maxHeight: "65vh" }}
+      >
+        <button
+          type="button"
+          onClick={onToggle}
+          className="w-full flex items-center gap-3 px-4 h-[52px] border-b bg-secondary/40 hover:bg-secondary/60 transition-colors rounded-t-2xl"
+          aria-expanded={open}
+        >
+          <span className="h-1.5 w-10 rounded-full bg-muted-foreground/40 absolute left-1/2 -translate-x-1/2 -top-3" />
+          <List className="h-4 w-4 text-muted-foreground" />
+          <span className="font-semibold text-sm">Alle stop</span>
+          <Badge variant="outline" className="tabular-nums text-[10px]">
+            {done}/{total}
+          </Badge>
+          <span className="flex-1" />
+          {open ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+        </button>
+
+        <div
+          className="overflow-y-auto p-2 space-y-1.5"
+          style={{ maxHeight: "calc(65vh - 52px)" }}
+        >
+          {stops.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-6">Ingen stop på denne rute.</p>
+          )}
+          {stops.map((s, i) => {
+            const isHl = s.id === highlightedId;
+            const isDone = s.status === "completed";
+            const isNext = s.id === nextStopId;
+            const meta = statusMeta(s);
+            return (
+              <button
+                key={s.id}
+                onClick={() => onSelectStop(s)}
+                onDoubleClick={() => onOpenDetails(s)}
+                className={`w-full text-left p-2.5 rounded-xl border flex items-start gap-2.5 transition-all hover:bg-muted ${
+                  isHl ? "ring-2 ring-offset-1" : ""
+                } ${isDone ? "opacity-70" : ""}`}
+                style={{
+                  borderColor: isNext ? themeColor : undefined,
+                  background: isNext ? `${themeColor}10` : undefined,
+                  ...(isHl ? { ["--tw-ring-color" as any]: themeColor } : {}),
+                }}
+              >
+                <span
+                  className="flex h-7 w-7 items-center justify-center rounded-full font-semibold text-[11px] shrink-0 text-background"
+                  style={{ background: isDone ? "hsl(142 70% 45%)" : isNext ? themeColor : "hsl(220 14% 65%)" }}
+                >
+                  {isDone ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className={`font-medium text-sm truncate ${isDone ? "line-through" : ""}`}>
+                    {s.customer_name || "Stop"}
+                  </p>
+                  {s.address && (
+                    <p className="text-[11px] text-muted-foreground truncate">{s.address}</p>
+                  )}
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span
+                      className={`inline-block h-1.5 w-1.5 rounded-full ${isNext ? "animate-pulse" : ""}`}
+                      style={{ background: meta.dot }}
+                    />
+                    <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: meta.text }}>
+                      {meta.label}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onOpenDetails(s); }}
+                  className="text-[11px] font-semibold text-muted-foreground hover:text-foreground shrink-0 px-2 py-1 rounded-md hover:bg-secondary"
+                >
+                  Detaljer
+                </button>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default EmployeeRoute;
