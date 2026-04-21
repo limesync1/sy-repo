@@ -480,20 +480,24 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
           </Section>
         </div>
 
-        {/* Sticky footer med total + CTA */}
-        <DialogFooter className="border-t bg-background px-5 py-3 shrink-0 sm:items-center sm:justify-between gap-2">
-          <div className="flex items-baseline gap-2">
-            <span className="text-[11px] text-muted-foreground uppercase tracking-wide">I alt</span>
-            <span className="text-xl font-bold tabular-nums">{fmt(totalAmount)}</span>
+        {/* Footer — matcher SheetFooterBar i StopDetailSheet/RouteEditSheet */}
+        <SheetFooterBar>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-baseline gap-2">
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">I alt</span>
+              <span className="text-xl font-bold tabular-nums">{fmt(totalAmount)}</span>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+                Annullér
+              </Button>
+              <Button onClick={handleSubmit} disabled={submitting || items.length === 0}>
+                {submitting ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
+                Send til godkendelse
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting} size="sm">Annullér</Button>
-            <Button onClick={handleSubmit} disabled={submitting || items.length === 0} size="sm">
-              {submitting ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
-              Send til godkendelse
-            </Button>
-          </div>
-        </DialogFooter>
+        </SheetFooterBar>
       </DialogContent>
     </Dialog>
   );
