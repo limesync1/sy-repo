@@ -26,40 +26,70 @@ import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuv
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
   className: "",
-  html: `<div style="width:30px;height:30px;border-radius:50%;background:hsl(222 47% 11%);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:9px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,.3);">START</div>`,
-  iconSize: [30, 30],
-  iconAnchor: [15, 15],
+  html: `
+    <div style="position:relative;width:38px;height:46px;">
+      <div style="position:absolute;top:0;left:0;width:38px;height:38px;border-radius:50%;background:hsl(0 0% 13%);display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,.25);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-9-9 18-2-7-7-2z"/></svg>
+      </div>
+      <div style="position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid hsl(0 0% 13%);"></div>
+    </div>`,
+  iconSize: [38, 46],
+  iconAnchor: [19, 44],
 });
 
 const stopIcon = (n: number, state: "next" | "done" | "future", color: string, highlighted = false) => {
-  const bg = state === "done" ? "hsl(142 70% 45%)" : state === "next" ? color : "hsl(220 14% 65%)";
-  const baseRing = state === "next" ? `0 0 0 5px ${color}33, 0 0 0 9px ${color}1a` : "";
-  const hlRing = highlighted ? `0 0 0 4px hsl(48 96% 53%), 0 0 0 8px hsl(48 96% 53% / 0.35)` : "";
-  const ring = [baseRing, hlRing].filter(Boolean).join(", ") || "none";
-  const size = highlighted ? 46 : state === "next" ? 42 : 34;
+  // Serviceydere-stil: pin-form (afrundet teardrop) i stedet for ren cirkel
+  const bg =
+    state === "done"
+      ? "hsl(142 70% 45%)"
+      : state === "next"
+        ? "hsl(184 90% 32%)" // accent (Serviceydere teal)
+        : "hsl(0 0% 13%)";   // foreground (mørk neutral)
+  const opacity = state === "future" ? 0.85 : 1;
+  const ring = state === "next"
+    ? `0 0 0 4px hsl(184 90% 32% / 0.18), 0 0 0 9px hsl(184 90% 32% / 0.08)`
+    : "none";
+  const hlRing = highlighted ? `, 0 0 0 4px hsl(45 100% 55%), 0 0 0 8px hsl(45 100% 55% / 0.30)` : "";
+  const size = highlighted ? 44 : state === "next" ? 42 : 34;
+  const fontSize = state === "next" ? 15 : 12;
+  const inner =
+    state === "done"
+      ? `<svg width="${Math.round(size * 0.5)}" height="${Math.round(size * 0.5)}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+      : `<span style="color:white;font-weight:800;font-size:${fontSize}px;line-height:1;font-feature-settings:'tnum';">${n}</span>`;
   return L.divIcon({
     className: "",
-    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:${state === "next" ? 16 : 13}px;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,.35), ${ring};">${state === "done" ? "✓" : n}</div>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
+    html: `
+      <div style="position:relative;width:${size}px;height:${Math.round(size * 1.18)}px;opacity:${opacity};">
+        <div style="
+          width:${size}px;height:${size}px;border-radius:50% 50% 50% 50% / 55% 55% 45% 45%;
+          background:${bg};
+          display:flex;align-items:center;justify-content:center;
+          border:2.5px solid white;
+          box-shadow:0 4px 12px rgba(0,0,0,.28)${hlRing};
+          ${ring !== "none" ? `outline-offset:0;box-shadow:0 4px 12px rgba(0,0,0,.28), ${ring}${hlRing};` : ""}
+        ">${inner}</div>
+        <div style="position:absolute;left:50%;top:${size - 4}px;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid ${bg};filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));"></div>
+      </div>`,
+    iconSize: [size, Math.round(size * 1.18)],
+    iconAnchor: [size / 2, Math.round(size * 1.15)],
   });
 };
 
-/** Google Maps-style blue navigation puck with directional cone. */
+/** Serviceydere-stil navigation puck (teal accent). */
 const navPuckIcon = (rotation: number) => L.divIcon({
   className: "",
   html: `
-    <div style="position:relative;width:60px;height:60px;transform:rotate(${rotation}deg);transform-origin:center;">
-      <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-bottom:32px solid rgba(59,130,246,0.55);"></div>
-      <div style="position:absolute;top:18px;left:18px;width:24px;height:24px;border-radius:50%;background:hsl(217 91% 60%);border:4px solid white;box-shadow:0 2px 8px rgba(0,0,0,.4);"></div>
+    <div style="position:relative;width:64px;height:64px;transform:rotate(${rotation}deg);transform-origin:center;">
+      <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:34px solid hsl(184 90% 32% / 0.45);"></div>
+      <div style="position:absolute;top:18px;left:18px;width:28px;height:28px;border-radius:50%;background:hsl(184 90% 32%);border:4px solid white;box-shadow:0 4px 14px hsl(184 90% 32% / 0.5), 0 2px 6px rgba(0,0,0,.25);"></div>
     </div>`,
-  iconSize: [60, 60],
-  iconAnchor: [30, 30],
+  iconSize: [64, 64],
+  iconAnchor: [32, 32],
 });
 
 const userDotIcon = L.divIcon({
   className: "",
-  html: `<div style="width:18px;height:18px;border-radius:50%;background:hsl(217 91% 60%);border:3px solid white;box-shadow:0 0 0 6px rgba(59,130,246,.25),0 2px 6px rgba(0,0,0,.3);"></div>`,
+  html: `<div style="width:18px;height:18px;border-radius:50%;background:hsl(184 90% 32%);border:3px solid white;box-shadow:0 0 0 7px hsl(184 90% 32% / 0.22),0 2px 6px rgba(0,0,0,.25);"></div>`,
   iconSize: [18, 18],
   iconAnchor: [9, 9],
 });
