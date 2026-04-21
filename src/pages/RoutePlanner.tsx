@@ -629,9 +629,9 @@ const Planner = () => {
                     />
                   </DialogHeader>
 
-                  <div className="px-5 py-4 space-y-3 bg-secondary/20">
+                  <div className="px-5 py-3 space-y-2.5 bg-secondary/20">
                     <Section icon={<Tag className="h-3.5 w-3.5" />} title="Detaljer">
-                      <div className="space-y-3">
+                      <div className="space-y-2.5">
                         <Field label="Navn (valgfrit)">
                           <Input
                             id="route-name"
@@ -639,7 +639,7 @@ const Planner = () => {
                             value={newRouteName}
                             onChange={(e) => setNewRouteName(e.target.value)}
                             onKeyDown={(e) => { if (e.key === "Enter") handleCreateRoute(); }}
-                            className="h-9"
+                            className="h-8"
                             autoFocus
                           />
                         </Field>
@@ -654,14 +654,14 @@ const Planner = () => {
                       title="Farve"
                       hint={ROUTE_COLORS.find((c) => c.value === newRouteColor)?.name || "Brugerdefineret"}
                     >
-                      <div className="grid grid-cols-6 gap-2">
+                      <div className="grid grid-cols-12 gap-1.5">
                         {ROUTE_COLORS.map((c) => (
                           <button
                             key={c.value}
                             type="button"
                             onClick={() => setNewRouteColor(c.value)}
                             title={c.name}
-                            className={`relative aspect-square rounded-md transition-all hover:scale-105 ring-offset-2 ring-offset-background ${newRouteColor === c.value ? "ring-2 ring-foreground shadow-sm" : "hover:ring-1 hover:ring-foreground/30"}`}
+                            className={`relative aspect-square rounded transition-all hover:scale-110 ring-offset-1 ring-offset-background ${newRouteColor === c.value ? "ring-2 ring-foreground shadow-sm" : "hover:ring-1 hover:ring-foreground/30"}`}
                             style={{ background: c.value }}
                             aria-label={`Vælg farve ${c.name}`}
                           />
