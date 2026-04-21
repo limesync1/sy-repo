@@ -203,7 +203,7 @@ const Planner = () => {
       const emp = activeEmployees.find((e: any) => e.id === link.employee_id);
       if (!emp) continue;
       const arr = empByRoute.get(link.route_id) || [];
-      arr.push({ id: emp.id, name: emp.name });
+      arr.push({ id: emp.id, name: emp.name, avatar_url: (emp as any).avatar_url, color: (emp as any).color });
       empByRoute.set(link.route_id, arr);
     }
     return calendarRoutesRaw.map((r) => {
