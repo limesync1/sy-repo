@@ -312,18 +312,16 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                       </span>
                       <span className="text-base font-bold">{Math.round(totalAmount)} kr</span>
                     </div>
-                  </section>
-                  <Separator />
-                </>
+                </Section>
               )}
 
               {/* Subscription details (if recurring) */}
               {(activeSub || pausedSub) && (
-                <>
-                  <section>
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1">
-                      <Repeat className="h-3 w-3" />Abonnement
-                    </h3>
+                <Section
+                  icon={<Repeat className="h-3.5 w-3.5" />}
+                  title="Abonnement"
+                  hint={pausedSub ? "På pause" : "Aktiv"}
+                >
                     <div className={`rounded-lg border px-3 py-2 text-sm space-y-1 ${pausedSub ? "bg-orange-50 border-orange-200" : "bg-secondary/40"}`}>
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Status</span>
@@ -360,46 +358,44 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                         </div>
                       )}
                     </div>
-                  </section>
-                  <Separator />
-                </>
+                </Section>
               )}
 
               {/* Customer's notes from order */}
               {orderNotes && (
-                <>
-                  <section>
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1">
-                      <FileText className="h-3 w-3" />Note fra kunden
-                    </h3>
-                    <p className="text-sm bg-secondary/50 rounded-lg px-3 py-2 whitespace-pre-wrap">
-                      {orderNotes}
-                    </p>
-                  </section>
-                  <Separator />
-                </>
+                <Section icon={<FileText className="h-3.5 w-3.5" />} title="Note fra kunden">
+                  <p className="text-sm bg-secondary/40 rounded-md px-3 py-2 whitespace-pre-wrap">
+                    {orderNotes}
+                  </p>
+                </Section>
               )}
 
               {/* Planning */}
-              <PlanningSection
-                timeSlot={timeSlot}
-                setTimeSlot={setTimeSlot}
-                durationHours={durationHours}
-                setDurationHours={setDurationHours}
-                durationMinutes={durationMinutes}
-                setDurationMinutes={setDurationMinutes}
-                notes={notes}
-                setNotes={setNotes}
-                plannedArrival={stop.planned_arrival}
-                distanceToNextKm={stop.distance_to_next_km}
-              />
+              <Section
+                icon={<CalendarClock className="h-3.5 w-3.5" />}
+                title="Planlægning"
+                hint="Tidsrum, varighed & note"
+              >
+                <PlanningSection
+                  timeSlot={timeSlot}
+                  setTimeSlot={setTimeSlot}
+                  durationHours={durationHours}
+                  setDurationHours={setDurationHours}
+                  durationMinutes={durationMinutes}
+                  setDurationMinutes={setDurationMinutes}
+                  notes={notes}
+                  setNotes={setNotes}
+                  plannedArrival={stop.planned_arrival}
+                  distanceToNextKm={stop.distance_to_next_km}
+                />
+              </Section>
 
               {isLoading && <p className="text-xs text-muted-foreground italic">Indlæser ordredetaljer...</p>}
             </div>
           </ScrollArea>
 
-          {/* Footer actions — match RouteEditSheet stil */}
-          <div className="border-t p-4 shrink-0 bg-card">
+          {/* Footer actions */}
+          <SheetFooterBar>
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -417,7 +413,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 Gem
               </Button>
             </div>
-          </div>
+          </SheetFooterBar>
         </SheetContent>
       </Sheet>
 
