@@ -1128,76 +1128,22 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
       {/* ─── Stop detail sheet ─── */}
       <Sheet open={!!selectedId} onOpenChange={(o) => !o && setSelectedId(null)}>
-        <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Stop-detaljer</SheetTitle>
-            <SheetDescription>Information og handlinger for valgt stop.</SheetDescription>
-          </SheetHeader>
+        <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto p-0">
           {(() => {
             const s = sortedStops.find((x) => x.id === selectedId);
             if (!s) return null;
-            const isDone = s.status === "completed";
             const idx = sortedStops.indexOf(s);
             return (
-              <div className="space-y-4 mt-4">
-                <div className="flex items-start gap-3">
-                  <span
-                    className="flex h-11 w-11 items-center justify-center rounded-full font-semibold text-background shrink-0"
-                    style={{ background: isDone ? "hsl(142 70% 45%)" : themeColor }}
-                  >
-                    {isDone ? <CheckCircle2 className="h-5 w-5" /> : idx + 1}
-                  </span>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold">{s.customer_name || "Stop"}</h3>
-                      <Badge variant={isDone ? "secondary" : "outline"} className="text-[10px]">{s.status}</Badge>
-                    </div>
-                    {s.address && (
-                      <p className="text-sm text-muted-foreground flex items-start gap-1 mt-1">
-                        <MapPin className="h-3.5 w-3.5 mt-0.5" />{s.address}
-                      </p>
-                    )}
-                    {s.service_summary && stripPrices(s.service_summary) && (
-                      <p className="text-sm mt-2">{stripPrices(s.service_summary)}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <Button onClick={() => handleNavigate(s)} variant="outline" className="gap-1">
-                    <Navigation className="h-4 w-4" /> Naviger
-                  </Button>
-                  {s.customer_phone ? (
-                    <Button asChild variant="outline" className="gap-1">
-                      <a href={`tel:${s.customer_phone}`}><Phone className="h-4 w-4" /> Ring</a>
-                    </Button>
-                  ) : (
-                    <Button variant="outline" disabled className="gap-1">
-                      <Phone className="h-4 w-4" /> Ring
-                    </Button>
-                  )}
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Note (synlig for virksomheden)</label>
-                  <Textarea
-                    placeholder="Tilføj note..."
-                    value={noteDraft[s.id] ?? s.notes ?? ""}
-                    onChange={(e) => setNoteDraft((d) => ({ ...d, [s.id]: e.target.value }))}
-                    rows={3}
-                  />
-                </div>
-
-                {!isDone ? (
-                  <Button onClick={() => handleComplete(s)} className="w-full gap-2" size="lg" disabled={updateStatus.isPending}>
-                    <CheckCircle2 className="h-5 w-5" /> Markér som udført
-                  </Button>
-                ) : (
-                  <Button onClick={() => handleUndo(s)} variant="outline" className="w-full">
-                    Fortryd udført
-                  </Button>
-                )}
-              </div>
+              <StopDetailsContent
+                stop={s}
+                index={idx}
+                themeColor={themeColor}
+                noteDraft={noteDraft[s.id] ?? s.notes ?? ""}
+                onNoteChange={(v) => setNoteDraft((d) => ({ ...d, [s.id]: v }))}
+                onComplete={() => handleComplete(s)}
+                onUndo={() => handleUndo(s)}
+                isPending={updateStatus.isPending}
+              />
             );
           })()}
         </SheetContent>
