@@ -389,7 +389,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
           <Button
             size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-background"
-            onClick={() => setShowList(true)} aria-label="Vis liste"
+            onClick={() => setListOpen((v) => !v)} aria-label="Vis liste"
           >
             <List className="h-4 w-4" />
           </Button>
