@@ -681,7 +681,6 @@ const PlanningSection = ({
             Synlig for medarbejderen i medarbejder-appen.
           </p>
         </div>
-      </div>
-    </section>
+    </div>
   );
 };
