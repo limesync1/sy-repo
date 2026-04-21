@@ -762,31 +762,53 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
           <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pointer-events-none">
-            <Card className="overflow-hidden shadow-2xl pointer-events-auto rounded-2xl">
+            <Card
+              className="overflow-hidden shadow-2xl pointer-events-auto rounded-2xl border-t-2"
+              style={{ borderTopColor: themeColor }}
+            >
+              {/* Segmented progress — kalender-stil dots på toppen */}
+              <div className="flex gap-0.5 px-3 pt-2 bg-secondary/30">
+                {sortedStops.map((s, i) => (
+                  <div
+                    key={s.id}
+                    className="flex-1 h-1 rounded-full transition-all"
+                    style={{
+                      background:
+                        s.status === "completed"
+                          ? "hsl(142 70% 45%)"
+                          : i === nextStopIdx
+                            ? themeColor
+                            : "hsl(220 14% 88%)",
+                    }}
+                  />
+                ))}
+              </div>
               <button
                 type="button"
-                className="w-full flex items-center gap-2 px-3 py-2.5 bg-secondary/40 hover:bg-secondary/60 transition-colors border-b"
+                className="w-full flex items-center gap-2 px-3 py-2.5 bg-secondary/30 hover:bg-secondary/50 transition-colors border-b"
                 onClick={() => setCollapsed((c) => !c)}
               >
                 <span
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-background text-xs font-bold shrink-0"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-background text-xs font-bold shrink-0 shadow-sm"
                   style={{ background: themeColor }}
                 >
                   {nextStopIdx + 1}
                 </span>
-                <span className="flex-1 text-left text-sm min-w-0">
-                  <span className="font-semibold truncate">{nextStop.customer_name || "Stop"}</span>
-                  <span className="text-muted-foreground text-xs ml-1.5">
-                    · {nextStopIdx + 1}/{sortedStops.length}
-                  </span>
-                </span>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="font-semibold text-sm truncate leading-tight">
+                    {nextStop.customer_name || "Stop"}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground tabular-nums">
+                    Stop {nextStopIdx + 1} af {sortedStops.length}
+                  </p>
+                </div>
                 {isAtNextStop ? (
-                  <Badge className="bg-accent text-accent-foreground gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-accent-foreground animate-pulse" />
+                  <Badge className="gap-1 text-[10px] h-5 px-2 border-0" style={{ background: "hsl(142 70% 95%)", color: "hsl(142 70% 25%)" }}>
+                    <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: "hsl(142 70% 45%)" }} />
                     Fremme
                   </Badge>
                 ) : distanceToNextM != null ? (
-                  <Badge variant="outline" className="tabular-nums">
+                  <Badge variant="outline" className="tabular-nums text-[10px] h-5 px-2">
                     {formatKm(distanceToNextM)}
                   </Badge>
                 ) : null}
@@ -795,48 +817,61 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
               {!collapsed && (
                 <div className="p-3 space-y-3">
-                  <div className="rounded-xl bg-secondary/40 border p-3 space-y-2">
-                    {nextStop.address && (
-                      <p className="text-sm flex items-start gap-1.5">
-                        <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
-                        <span>{nextStop.address}</span>
-                      </p>
-                    )}
-                    {nextStop.service_summary && stripPrices(nextStop.service_summary) && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {stripPrices(nextStop.service_summary)}
-                      </p>
-                    )}
-                    {(directions || etaLabel) && (
-                      <div className="flex items-center gap-3 pt-2 border-t text-xs tabular-nums">
-                        {directions && (
-                          <span className="text-muted-foreground flex items-center gap-1">
-                            <Clock className="h-3 w-3" /> {formatMin(directions.duration_s)}
-                          </span>
-                        )}
-                        {etaLabel && (
-                          <span className="font-semibold" style={{ color: themeColor }}>
-                            <Flag className="inline h-3 w-3 mr-1" /> Ankomst {etaLabel}
-                          </span>
-                        )}
+                  {/* Adresse + service */}
+                  {(nextStop.address || (nextStop.service_summary && stripPrices(nextStop.service_summary))) && (
+                    <div className="rounded-xl bg-secondary/30 p-2.5 space-y-1.5">
+                      {nextStop.address && (
+                        <p className="text-[13px] flex items-start gap-1.5 leading-tight">
+                          <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+                          <span className="font-medium">{nextStop.address}</span>
+                        </p>
+                      )}
+                      {nextStop.service_summary && stripPrices(nextStop.service_summary) && (
+                        <p className="text-[12px] text-muted-foreground line-clamp-2 pl-5">
+                          {stripPrices(nextStop.service_summary)}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Info-grid: km, tid, ETA — kalender-stil */}
+                  {(directions || etaLabel) && (
+                    <div className="grid grid-cols-3 divide-x rounded-xl border bg-background overflow-hidden">
+                      <div className="px-2 py-1.5 text-center">
+                        <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
+                        <p className="text-[13px] font-bold tabular-nums mt-0.5">
+                          {directions?.distance_m != null ? formatKm(directions.distance_m) : "—"}
+                        </p>
                       </div>
-                    )}
-                  </div>
+                      <div className="px-2 py-1.5 text-center">
+                        <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Tid</p>
+                        <p className="text-[13px] font-bold tabular-nums mt-0.5">
+                          {directions?.duration_s != null ? formatMin(directions.duration_s) : "—"}
+                        </p>
+                      </div>
+                      <div className="px-2 py-1.5 text-center">
+                        <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Ankomst</p>
+                        <p className="text-[13px] font-bold tabular-nums mt-0.5" style={{ color: themeColor }}>
+                          {etaLabel || "—"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-3 gap-2">
-                    <Button onClick={() => handleNavigate(nextStop)} variant="outline" size="sm" className="gap-1 h-10">
-                      <Navigation className="h-4 w-4" /> Maps
+                    <Button onClick={() => handleNavigate(nextStop)} variant="outline" size="sm" className="gap-1 h-9 rounded-lg text-xs">
+                      <Navigation className="h-3.5 w-3.5" /> Maps
                     </Button>
                     {nextStop.customer_phone ? (
-                      <Button asChild variant="outline" size="sm" className="gap-1 h-10">
-                        <a href={`tel:${nextStop.customer_phone}`}><Phone className="h-4 w-4" /> Ring</a>
+                      <Button asChild variant="outline" size="sm" className="gap-1 h-9 rounded-lg text-xs">
+                        <a href={`tel:${nextStop.customer_phone}`}><Phone className="h-3.5 w-3.5" /> Ring</a>
                       </Button>
                     ) : (
-                      <Button variant="outline" size="sm" disabled className="gap-1 h-10">
-                        <Phone className="h-4 w-4" /> Ring
+                      <Button variant="outline" size="sm" disabled className="gap-1 h-9 rounded-lg text-xs">
+                        <Phone className="h-3.5 w-3.5" /> Ring
                       </Button>
                     )}
-                    <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" size="sm" className="h-10">
+                    <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" size="sm" className="h-9 rounded-lg text-xs">
                       Detaljer
                     </Button>
                   </div>
@@ -844,7 +879,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <Button
                     onClick={() => handleComplete(nextStop)}
                     size="lg"
-                    className={`w-full gap-2 h-14 text-base font-bold ${isAtNextStop ? "ring-4 ring-offset-2" : ""}`}
+                    className={`w-full gap-2 h-13 text-base font-bold rounded-xl shadow-lg hover:shadow-xl transition-all ${isAtNextStop ? "ring-4 ring-offset-2 animate-pulse" : ""}`}
                     style={{
                       background: isAtNextStop ? "hsl(142 70% 45%)" : themeColor,
                       ...(isAtNextStop ? { ["--tw-ring-color" as any]: "hsl(142 70% 45% / 0.4)" } : {}),
