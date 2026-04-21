@@ -392,13 +392,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {allDone ? (
           <div className="absolute bottom-0 inset-x-0 z-10 p-4 bg-background border-t shadow-2xl">
             <div className="flex items-center gap-3">
-              <CheckCircle2 className="h-8 w-8 text-primary" />
-              <div className="flex-1">
-                <p className="font-semibold">Rute færdig! 🎉</p>
-                <p className="text-xs text-muted-foreground">Alle stop er markeret som udført.</p>
+              <CheckCircle2 className="h-10 w-10 text-primary shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-base">Rute færdig! 🎉</p>
+                <p className="text-xs text-muted-foreground">
+                  Alle stop udført
+                  {autoReturn != null && autoReturn > 0 && ` · sender dig til oversigt om ${autoReturn}s`}
+                </p>
               </div>
-              <Button asChild variant="outline" size="sm">
-                <Link to="/medarbejder">Tilbage</Link>
+              <Button
+                size="lg"
+                onClick={() => { setAutoReturn(null); navigate("/medarbejder"); }}
+                className="gap-2"
+              >
+                Til oversigt
               </Button>
             </div>
           </div>
