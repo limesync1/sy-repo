@@ -458,20 +458,16 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
           <ServiceRow key={s.id} service={s} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
         ))}
         {(!filtered || filtered.length === 0) && !showForm && (
-          <Card className="rounded-xl border-dashed border-border">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <div className="mb-3 rounded-xl bg-muted p-2.5">
-                <Wrench className="h-6 w-6 text-muted-foreground/40" />
-              </div>
-              <p className="text-sm font-medium text-foreground">
-                {filterCategory ? `Ingen services i "${filterCategory}"` : "Ingen services endnu"}
-              </p>
-              <p className="mt-0.5 text-sm text-muted-foreground">Tilføj din første service for at komme i gang.</p>
-              <Button onClick={() => setShowForm(true)} size="sm" className="mt-3 h-8 gap-1.5 rounded-lg text-sm bg-foreground text-background hover:bg-foreground/90">
-                <Plus className="h-3.5 w-3.5" /> Tilføj service
-              </Button>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={<Wrench />}
+            title={filterCategory ? `Ingen services i "${filterCategory}"` : "Ingen services endnu"}
+            description="Tilføj din første service for at komme i gang."
+            action={
+              <PrimaryButton onClick={() => setShowForm(true)} icon={<Plus />}>
+                Tilføj service
+              </PrimaryButton>
+            }
+          />
         )}
       </div>
     </div>
