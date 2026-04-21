@@ -21,6 +21,7 @@ import EmployeeApp from "./pages/EmployeeApp";
 import EmployeeRoute from "./pages/EmployeeRoute";
 import EmployeeRoutePrint from "./pages/EmployeeRoutePrint";
 import NotFound from "./pages/NotFound";
+import ApproveOrder from "./pages/ApproveOrder";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
               <Route path="/virksomheder" element={<Search />} />
               <Route path="/tilbud" element={<RequestQuote />} />
               <Route path="/afmeld" element={<Unsubscribe />} />
+              <Route path="/godkend-bestilling/:orderId" element={<ApproveOrder />} />
               <Route path="/v/:slug" element={<DynamicBusinessPage />} />
               <Route path="/demo" element={<BusinessPage />} />
 
