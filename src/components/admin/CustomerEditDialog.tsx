@@ -119,6 +119,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
         city: city.trim() || null,
         latitude, longitude,
         notes: notes.trim() || null,
+        avatar_url: avatarUrl,
       };
       let savedRow: any;
       if (type === "private") {
