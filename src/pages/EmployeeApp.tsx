@@ -2,14 +2,15 @@ import { useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyDayRoutes, useMyDayStops, type RouteStop } from "@/hooks/useRoutes";
+import { useMyWorkday, useStartWorkday, useEndWorkday } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Calendar as CalendarIcon, LogOut, Play, Printer, MapPin, Clock, CheckCircle2,
-  ChevronLeft, ChevronRight, Route as RouteIcon, Navigation,
+  ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
 } from "lucide-react";
-import { format, addDays, parseISO, isToday } from "date-fns";
+import { format, addDays, parseISO, isToday, formatDistanceStrict } from "date-fns";
 import { da } from "date-fns/locale";
 import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import L from "leaflet";
@@ -97,6 +98,9 @@ const EmployeeApp = () => {
   const [date, setDate] = useState(todayStr());
   const { data: routes = [], isLoading: routesLoading } = useMyDayRoutes(date);
   const { data: stops = [], isLoading: stopsLoading } = useMyDayStops(date);
+  const { data: workday } = useMyWorkday(date);
+  const startDay = useStartWorkday();
+  const endDay = useEndWorkday();
 
   if (loading) {
     return (
@@ -118,6 +122,11 @@ const EmployeeApp = () => {
   const completedStops = stops.filter((s) => s.status === "completed").length;
   const dateObj = parseISO(date);
   const isCurrentDay = isToday(dateObj);
+  const dayStarted = !!workday?.started_at && !workday?.ended_at;
+  const dayEnded = !!workday?.ended_at;
+  const elapsedLabel = workday?.started_at && !workday?.ended_at
+    ? formatDistanceStrict(new Date(workday.started_at), new Date(), { locale: da, unit: "minute" })
+    : null;
 
   return (
     <div className="min-h-screen bg-secondary/40">
@@ -195,6 +204,50 @@ const EmployeeApp = () => {
       </header>
 
       <main className="container mx-auto px-4 py-5 space-y-4 max-w-3xl pb-16">
+        {/* Start dag / Stop dag — kun for i dag */}
+        {isCurrentDay && (
+          <Card className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+              <Clock className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold">
+                {dayEnded ? "Arbejdsdag afsluttet" : dayStarted ? "Arbejdsdag i gang" : "Arbejdsdag ikke startet"}
+              </p>
+              <p className="text-xs text-muted-foreground tabular-nums">
+                {workday?.started_at && (
+                  <>Start {format(new Date(workday.started_at), "HH:mm")}</>
+                )}
+                {workday?.ended_at && (
+                  <> · Slut {format(new Date(workday.ended_at), "HH:mm")} · {workday.duration_minutes ?? 0} min</>
+                )}
+                {elapsedLabel && !dayEnded && <> · {elapsedLabel}</>}
+              </p>
+            </div>
+            {!dayStarted && !dayEnded && (
+              <Button
+                size="sm"
+                onClick={() => startDay.mutate(date)}
+                disabled={startDay.isPending}
+                className="gap-1.5"
+              >
+                <PlayCircle className="h-4 w-4" /> Start dag
+              </Button>
+            )}
+            {dayStarted && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => endDay.mutate(date)}
+                disabled={endDay.isPending}
+                className="gap-1.5"
+              >
+                <StopCircle className="h-4 w-4" /> Stop dag
+              </Button>
+            )}
+          </Card>
+        )}
+
         {(routesLoading || stopsLoading) && (
           <Card className="p-8 text-center text-muted-foreground">
             <Loader />

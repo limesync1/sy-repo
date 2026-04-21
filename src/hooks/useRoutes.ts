@@ -85,6 +85,195 @@ export type StopAssignee = {
   is_lead: boolean;
 };
 
+/* ─── Tidsregistrering pr. stop (per medarbejder) ─── */
+export type StopTimeEntry = {
+  id: string;
+  stop_id: string;
+  employee_id: string;
+  started_at: string;
+  ended_at: string | null;
+  duration_minutes: number | null;
+  is_team_fallback: boolean;
+  notes: string | null;
+};
+
+export const useStopTimeEntries = (stopIds: string[]) => {
+  return useQuery({
+    queryKey: ["stop-time-entries", stopIds.sort().join(",")],
+    enabled: stopIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("stop_time_entries")
+        .select("*")
+        .in("stop_id", stopIds);
+      if (error) throw error;
+      return (data || []) as StopTimeEntry[];
+    },
+  });
+};
+
+/** Start arbejde på et stop. Hvis ingen employeeId angives bruges fallback (team-mode). */
+export const useStartStopTime = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      stop_id, employee_id, is_team_fallback,
+    }: { stop_id: string; employee_id: string; is_team_fallback?: boolean }) => {
+      // Tjek om der allerede er en åben entry — hvis ja, returnér den
+      const { data: existing } = await supabase
+        .from("stop_time_entries")
+        .select("*")
+        .eq("stop_id", stop_id)
+        .eq("employee_id", employee_id)
+        .is("ended_at", null)
+        .maybeSingle();
+      if (existing) return existing as StopTimeEntry;
+
+      const { data, error } = await supabase
+        .from("stop_time_entries")
+        .insert({
+          stop_id,
+          employee_id,
+          started_at: new Date().toISOString(),
+          is_team_fallback: !!is_team_fallback,
+        })
+        .select("*")
+        .single();
+      if (error) throw error;
+      return data as StopTimeEntry;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["stop-time-entries"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke starte tidsregistrering"),
+  });
+};
+
+export const useEndStopTime = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      stop_id, employee_id,
+    }: { stop_id: string; employee_id: string }) => {
+      const { data, error } = await supabase
+        .from("stop_time_entries")
+        .update({ ended_at: new Date().toISOString() })
+        .eq("stop_id", stop_id)
+        .eq("employee_id", employee_id)
+        .is("ended_at", null)
+        .select("*")
+        .maybeSingle();
+      if (error) throw error;
+      return data as StopTimeEntry | null;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["stop-time-entries"] });
+      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke afslutte tidsregistrering"),
+  });
+};
+
+/* ─── Arbejdsdage (Start dag / Stop dag) ─── */
+export type EmployeeWorkday = {
+  id: string;
+  employee_id: string;
+  workday_date: string;
+  started_at: string;
+  ended_at: string | null;
+  duration_minutes: number | null;
+};
+
+/** Hent dagens åbne arbejdsdag for den loggede medarbejder. */
+export const useMyWorkday = (date: string) => {
+  return useQuery({
+    queryKey: ["my-workday", date],
+    queryFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return null;
+      const { data: emp } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("user_id", user.user.id)
+        .maybeSingle();
+      if (!emp) return null;
+      const { data, error } = await supabase
+        .from("employee_workdays")
+        .select("*")
+        .eq("employee_id", emp.id)
+        .eq("workday_date", date)
+        .maybeSingle();
+      if (error) throw error;
+      return (data ?? null) as EmployeeWorkday | null;
+    },
+  });
+};
+
+export const useStartWorkday = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (date: string) => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("Ikke logget ind");
+      const { data: emp } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("user_id", user.user.id)
+        .maybeSingle();
+      if (!emp) throw new Error("Du er ikke registreret som medarbejder");
+
+      const { data, error } = await supabase
+        .from("employee_workdays")
+        .upsert(
+          {
+            employee_id: emp.id,
+            workday_date: date,
+            started_at: new Date().toISOString(),
+            ended_at: null,
+          },
+          { onConflict: "employee_id,workday_date" },
+        )
+        .select("*")
+        .single();
+      if (error) throw error;
+      return data as EmployeeWorkday;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my-workday"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke starte arbejdsdag"),
+  });
+};
+
+export const useEndWorkday = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (date: string) => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("Ikke logget ind");
+      const { data: emp } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("user_id", user.user.id)
+        .maybeSingle();
+      if (!emp) throw new Error("Ikke medarbejder");
+      const { data, error } = await supabase
+        .from("employee_workdays")
+        .update({ ended_at: new Date().toISOString() })
+        .eq("employee_id", emp.id)
+        .eq("workday_date", date)
+        .select("*")
+        .maybeSingle();
+      if (error) throw error;
+      return data as EmployeeWorkday | null;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my-workday"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke afslutte arbejdsdag"),
+  });
+};
+
 /* ─── Routes for a date ─── */
 export const useRoutesForDate = (businessId: string | undefined, date: string) => {
   return useQuery({

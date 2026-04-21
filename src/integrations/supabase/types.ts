@@ -341,6 +341,50 @@ export type Database = {
           },
         ]
       }
+      employee_workdays: {
+        Row: {
+          created_at: string
+          duration_minutes: number | null
+          employee_id: string
+          ended_at: string | null
+          id: string
+          notes: string | null
+          started_at: string
+          updated_at: string
+          workday_date: string
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes?: number | null
+          employee_id: string
+          ended_at?: string | null
+          id?: string
+          notes?: string | null
+          started_at?: string
+          updated_at?: string
+          workday_date: string
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number | null
+          employee_id?: string
+          ended_at?: string | null
+          id?: string
+          notes?: string | null
+          started_at?: string
+          updated_at?: string
+          workday_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_workdays_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           avatar_url: string | null
@@ -1176,6 +1220,60 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stop_time_entries: {
+        Row: {
+          created_at: string
+          duration_minutes: number | null
+          employee_id: string
+          ended_at: string | null
+          id: string
+          is_team_fallback: boolean
+          notes: string | null
+          started_at: string
+          stop_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes?: number | null
+          employee_id: string
+          ended_at?: string | null
+          id?: string
+          is_team_fallback?: boolean
+          notes?: string | null
+          started_at?: string
+          stop_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number | null
+          employee_id?: string
+          ended_at?: string | null
+          id?: string
+          is_team_fallback?: boolean
+          notes?: string | null
+          started_at?: string
+          stop_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stop_time_entries_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stop_time_entries_stop_id_fkey"
+            columns: ["stop_id"]
+            isOneToOne: false
+            referencedRelation: "route_stops"
             referencedColumns: ["id"]
           },
         ]
