@@ -23,6 +23,9 @@ import type {
 const SLOT_MIN = 15;
 const SOFT_PENALTY_PER_MIN = 2;
 const WAIT_PENALTY_PER_MIN = 0.3;
+/** Vægt på km i den samlede cost-funktion. Højere = ruten "straffes" mere
+ *  for at køre langt → giver bedre geografisk klynge-effekt. */
+const KM_COST_WEIGHT = 1.5;
 const ceilSnap = (m: number) => Math.ceil(m / SLOT_MIN) * SLOT_MIN;
 
 type IRoute = ScheduledStop[];
@@ -83,7 +86,7 @@ function scheduleRoute(
     if (finish > hardEnd) return { feasible: false, cost: Infinity, km: 0, durMin: 0, softViolations: 0 };
 
     const wait = Math.max(0, arrival - (cursor + travelMin));
-    cost += travelMin + wait * WAIT_PENALTY_PER_MIN;
+    cost += travelMin + tKm * KM_COST_WEIGHT + wait * WAIT_PENALTY_PER_MIN;
 
     if (stop.preferred_start_min != null && arrival < stop.preferred_start_min) {
       const diff = stop.preferred_start_min - arrival;
@@ -107,10 +110,13 @@ function scheduleRoute(
     r.travel_km_to_next = null;
   }
 
-  // Sidste leg: hjem
+  // Sidste leg: hjem — tæller med i totalKm (og derved i cost hvis vi ikke
+  // tilføjer den her). Vi inkluderer også returkørslen i cost så der er
+  // pres på at slutte tæt på medarbejderens base.
   if (route.length > 0) {
     const homeKm = travel.km(prevIdx, empEndIdx);
     totalKm += homeKm;
+    cost += homeKm * KM_COST_WEIGHT;
   }
 
   // Sæt travel-til-næste på hver stop (i → i+1)
