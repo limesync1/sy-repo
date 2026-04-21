@@ -8,10 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2, Loader2, AlertCircle, User, MapPin, ShoppingBag, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Building2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 import { cn } from "@/lib/utils";
+import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
+import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
 
 /** Calculate next service date based on interval, anchored to today. */
 const calculateNextServiceDate = (interval: string): string => {
@@ -48,6 +51,10 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
   const [address, setAddress] = useState("");
   const [zipCode, setZipCode] = useState("");
   const [city, setCity] = useState("");
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [cvr, setCvr] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [geo, setGeo] = useState<{ ok: boolean; display?: string; lat?: number; lng?: number } | null>(null);
