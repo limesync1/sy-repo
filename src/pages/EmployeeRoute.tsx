@@ -184,8 +184,19 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const arrivedAnnouncedRef = useRef<Set<string>>(new Set());
   const finishedAnnouncedRef = useRef(false);
   const lastSpokenStepRef = useRef<string | null>(null);
-  const baselineDurationRef = useRef<{ stopId: string; durationS: number } | null>(null);
-  const [trafficAlert, setTrafficAlert] = useState<{ deltaPct: number; addedMin: number } | null>(null);
+  // Trafik-baseline kræver flere stabile målinger inden vi låser et "normalt" estimat.
+  const baselineRef = useRef<{
+    stopId: string;
+    samples: { durationS: number; distanceM: number; t: number }[];
+    baseDurationS: number | null;
+    baseDistanceM: number | null;
+    lockedAt: number | null;
+  } | null>(null);
+  const [trafficAlert, setTrafficAlert] = useState<
+    | { addedMin: number; severity: "let" | "moderat" | "tæt" }
+    | null
+  >(null);
+  const trafficSpokenRef = useRef<string | null>(null);
 
   /* Geolocation watcher — kun aktiv når rute kører */
   useEffect(() => {
@@ -318,29 +329,113 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return eta.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
   }, [directions?.duration_s]);
 
-  /* Trafik-overvågning: sammenlign aktuel ETA med baseline for samme stop. */
+  /* Trafik-overvågning — robust mod GPS-jitter, omkørsel og korte ture.
+   *
+   * Vi vil kun vise "trafik" når den ekstra ventetid med stor sandsynlighed
+   * skyldes faktisk forsinkelse — ikke at brugeren har bevæget sig væk fra
+   * stoppet (omkørsel/forkert vej) eller at GPS-fixet hopper.
+   *
+   * Regler:
+   *   1. Saml mindst 3 målinger over ≥30 sek før vi låser baseline.
+   *   2. Baseline = mediandurationen blandt målingerne.
+   *   3. Trafik kun når dist-til-stop er nogenlunde uændret (±15 %).
+   *   4. Ekstra tid skal være ≥3 min OG ≥30 % over baseline OG turen
+   *      skal i forvejen være ≥10 min — undgår 1138 %-skud på små ture.
+   *   5. Kvalitativ severity: let / moderat / tæt — ingen procenter i UI.
+   *   6. Auto-clear når delta falder under 90 sek.
+   */
   useEffect(() => {
     if (!routeStarted || !nextStop || !directions?.duration_s) return;
-    const cur = directions.duration_s;
-    const base = baselineDurationRef.current;
-    if (!base || base.stopId !== nextStop.id) {
-      baselineDurationRef.current = { stopId: nextStop.id, durationS: cur };
+    const curDur = directions.duration_s;
+    const curDist = directions.distance_m ?? 0;
+    const now = Date.now();
+
+    let state = baselineRef.current;
+    if (!state || state.stopId !== nextStop.id) {
+      state = {
+        stopId: nextStop.id,
+        samples: [],
+        baseDurationS: null,
+        baseDistanceM: null,
+        lockedAt: null,
+      };
+      baselineRef.current = state;
+      setTrafficAlert(null);
+    }
+
+    // Indsæt sample, behold de seneste ~12.
+    state.samples.push({ durationS: curDur, distanceM: curDist, t: now });
+    if (state.samples.length > 12) state.samples.shift();
+
+    // Lås baseline når vi har nok stabile data.
+    if (!state.lockedAt && state.samples.length >= 3) {
+      const oldest = state.samples[0];
+      if (now - oldest.t >= 30_000) {
+        const sortedDur = [...state.samples].map((s) => s.durationS).sort((a, b) => a - b);
+        const sortedDist = [...state.samples].map((s) => s.distanceM).sort((a, b) => a - b);
+        state.baseDurationS = sortedDur[Math.floor(sortedDur.length / 2)];
+        state.baseDistanceM = sortedDist[Math.floor(sortedDist.length / 2)];
+        state.lockedAt = now;
+      }
+    }
+
+    if (!state.lockedAt || state.baseDurationS == null || state.baseDistanceM == null) return;
+
+    // Tillad at baseline ned-justeres naturligt når man nærmer sig stoppet.
+    if (curDur < state.baseDurationS && curDist < state.baseDistanceM) {
+      state.baseDurationS = curDur;
+      state.baseDistanceM = curDist;
+    }
+
+    const baseDur = state.baseDurationS;
+    const baseDist = state.baseDistanceM;
+    const distRatio = baseDist > 0 ? curDist / baseDist : 1;
+
+    // Hvis distancen er steget markant, er det IKKE trafik — det er omkørsel/væk fra stop.
+    if (distRatio > 1.15) {
       setTrafficAlert(null);
       return;
     }
-    // Forventet "naturlig" reduktion idet du nærmer dig: tag den lavest sete.
-    if (cur < base.durationS) {
-      baselineDurationRef.current = { stopId: nextStop.id, durationS: cur };
-    }
-    const expected = baselineDurationRef.current.durationS;
-    const delta = cur - expected;
-    const deltaPct = (delta / Math.max(expected, 60)) * 100;
-    if (deltaPct >= 20 && delta >= 120) {
-      setTrafficAlert({ deltaPct: Math.round(deltaPct), addedMin: Math.round(delta / 60) });
-    } else if (deltaPct < 10) {
+
+    const deltaSec = curDur - baseDur;
+    const deltaMin = deltaSec / 60;
+    const deltaPct = (deltaSec / Math.max(baseDur, 60)) * 100;
+
+    // Auto-clear ved lav delta.
+    if (deltaSec < 90) {
       setTrafficAlert(null);
+      return;
     }
-  }, [directions?.duration_s, nextStop?.id, routeStarted]);
+
+    // Krav til faktisk visning: kun ved længere ture og rimelig procent-stigning.
+    const baseDurMin = baseDur / 60;
+    const significant =
+      baseDurMin >= 10 && // kun ved ture på 10+ min — 1 min ekstra på en 3-min-tur er meningsløst
+      deltaMin >= 3 &&
+      deltaPct >= 30 &&
+      deltaPct <= 200; // hvis det er over 200% er det helt sikkert et datafix-issue, ikke trafik
+
+    if (!significant) return;
+
+    let severity: "let" | "moderat" | "tæt";
+    if (deltaMin < 5) severity = "let";
+    else if (deltaMin < 12) severity = "moderat";
+    else severity = "tæt";
+
+    setTrafficAlert({ addedMin: Math.round(deltaMin), severity });
+  }, [directions?.duration_s, directions?.distance_m, nextStop?.id, routeStarted]);
+
+  /* Stemmeadvarsel ved trafik — kun én gang pr. stop pr. severity-niveau */
+  useEffect(() => {
+    if (!trafficAlert || !audioEnabled || !routeStarted || !nextStop) return;
+    const key = `${nextStop.id}-${trafficAlert.severity}`;
+    if (trafficSpokenRef.current === key) return;
+    trafficSpokenRef.current = key;
+    const sevText =
+      trafficAlert.severity === "let" ? "lidt trafik" :
+      trafficAlert.severity === "moderat" ? "moderat trafik" : "tæt trafik";
+    speak(`Bemærk: ${sevText} forude. Forsinkelse på cirka ${trafficAlert.addedMin} minutter.`);
+  }, [trafficAlert?.severity, trafficAlert?.addedMin, audioEnabled, routeStarted, nextStop?.id]);
 
   /* Turn-by-turn */
   const maneuver = useCurrentManeuver(directions?.steps, userPos);
@@ -666,43 +761,69 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               </div>
             )}
 
-            {/* Traffic / forsinkelse alert — animeret når ETA stiger */}
-            {trafficAlert && (
-              <div className={`absolute ${maneuver ? "top-[200px]" : "top-[68px]"} left-3 right-3 z-[1000] pointer-events-none`}>
-                <div
-                  className="pointer-events-auto rounded-2xl shadow-2xl overflow-hidden border animate-in fade-in slide-in-from-top-2 duration-300"
-                  style={{
-                    background: "hsl(38 100% 96%)",
-                    borderColor: "hsl(38 100% 70%)",
-                  }}
-                >
-                  <div className="flex items-center gap-2.5 px-3 py-2.5">
-                    <div
-                      className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
-                      style={{ background: "hsl(28 95% 50%)", color: "white" }}
-                    >
-                      <TrafficCone className="h-5 w-5" />
+            {/* Trafik-banner — Serviceydere amber, kvalitativ severity */}
+            {trafficAlert && (() => {
+              const sev = trafficAlert.severity;
+              const sevLabel = sev === "let" ? "Let trafik" : sev === "moderat" ? "Moderat trafik" : "Tæt trafik";
+              const sevDots = sev === "let" ? 1 : sev === "moderat" ? 2 : 3;
+              // Farver matcher Serviceydere palette: blød amber for advarsel
+              const tone = {
+                bg: "hsl(38 100% 97%)",
+                border: "hsl(38 90% 78%)",
+                accent: sev === "tæt" ? "hsl(20 90% 50%)" : sev === "moderat" ? "hsl(28 92% 52%)" : "hsl(38 95% 55%)",
+                text: "hsl(28 70% 22%)",
+                sub: "hsl(28 45% 38%)",
+                chip: "hsl(38 100% 90%)",
+              };
+              return (
+                <div className={`absolute ${maneuver ? "top-[200px]" : "top-[68px]"} left-3 right-3 z-[1000] pointer-events-none`}>
+                  <div
+                    className="pointer-events-auto rounded-2xl shadow-2xl overflow-hidden border animate-in fade-in slide-in-from-top-2 duration-300"
+                    style={{ background: tone.bg, borderColor: tone.border }}
+                  >
+                    <div className="flex items-center gap-3 px-3 py-2.5">
+                      <div
+                        className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
+                        style={{ background: tone.accent, color: "white" }}
+                      >
+                        <TrafficCone className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-bold leading-tight" style={{ color: tone.text }}>
+                            {sevLabel}
+                          </p>
+                          {/* Severity dots */}
+                          <span className="flex items-center gap-0.5 ml-0.5">
+                            {[0, 1, 2].map((i) => (
+                              <span
+                                key={i}
+                                className="h-1.5 w-1.5 rounded-full transition-opacity"
+                                style={{
+                                  background: tone.accent,
+                                  opacity: i < sevDots ? 1 : 0.25,
+                                }}
+                              />
+                            ))}
+                          </span>
+                        </div>
+                        <p className="text-[11px] leading-tight mt-0.5 tabular-nums" style={{ color: tone.sub }}>
+                          Forsinker ankomst med ca. {trafficAlert.addedMin} min
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setTrafficAlert(null)}
+                        className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg shrink-0 transition-opacity hover:opacity-80"
+                        style={{ color: tone.text, background: tone.chip }}
+                        aria-label="Luk advarsel"
+                      >
+                        OK
+                      </button>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold leading-tight" style={{ color: "hsl(28 80% 20%)" }}>
-                        Trafik på ruten
-                      </p>
-                      <p className="text-[11px] leading-tight mt-0.5" style={{ color: "hsl(28 60% 30%)" }}>
-                        +{trafficAlert.addedMin} min ekstra ({trafficAlert.deltaPct}% længere)
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setTrafficAlert(null)}
-                      className="text-xs font-bold px-2.5 py-1 rounded-lg shrink-0 transition-colors"
-                      style={{ color: "hsl(28 80% 20%)", background: "hsl(38 100% 88%)" }}
-                      aria-label="Luk advarsel"
-                    >
-                      OK
-                    </button>
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </>
         )}
 
