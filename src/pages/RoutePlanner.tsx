@@ -937,15 +937,6 @@ const Planner = () => {
           route={editingRoute}
           open={!!editingRoute}
           onOpenChange={(o) => !o && setEditingRoute(null)}
-          attachedEmployees={
-            editingRoute
-              ? (calendarRouteLinks
-                  .filter((l) => l.route_id === editingRoute.id)
-                  .map((l) => activeEmployees.find((e: any) => e.id === l.employee_id))
-                  .filter(Boolean) as any).map((e: any) => ({ id: e.id, name: e.name }))
-              : []
-          }
-          availableEmployees={activeEmployees.map((e: any) => ({ id: e.id, name: e.name }))}
           stopCount={editingRoute ? (calendarStops.filter((s) => s.route_id === editingRoute.id).length) : 0}
         />
 
@@ -956,6 +947,9 @@ const Planner = () => {
           onOpenChange={(o) => !o && setEditingRoute(null)}
           stops={editingRoute ? calendarStops.filter((s) => s.route_id === editingRoute.id) : []}
           onSelectStop={(s) => setSelectedStopId(s.id)}
+          employees={activeEmployees.map((e: any) => ({
+            id: e.id, name: e.name, avatar_url: e.avatar_url, color: e.color,
+          }))}
         />
       </div>
     </DndContext>
