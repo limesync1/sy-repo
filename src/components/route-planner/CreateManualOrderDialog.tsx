@@ -130,39 +130,51 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
       const lat = latitude;
       const lng = longitude;
 
-      // Build approval token + expiry
+      // Build approval token + expiry — ÉN token deles af alle child-ordrer
       const tokenBytes = new Uint8Array(32);
       crypto.getRandomValues(tokenBytes);
       const token = Array.from(tokenBytes).map((b) => b.toString(16).padStart(2, "0")).join("");
       const expires = new Date(); expires.setDate(expires.getDate() + 7);
-      const orderId = crypto.randomUUID();
 
-      // Insert order
-      const { error: orderErr } = await supabase.from("orders").insert({
-        id: orderId,
-        business_id: businessId,
-        customer_name: customerName.trim(),
-        customer_email: customerEmail.trim().toLowerCase(),
-        customer_phone: customerPhone.trim() || null,
-        address: address.trim() || null,
-        zip_code: zipCode.trim() || null,
-        city: city.trim() || null,
-        latitude: lat,
-        longitude: lng,
-        cvr: cvr.replace(/\D/g, "") || null,
-        company_name: companyName.trim() || null,
-        preferred_date: preferredDate || null,
-        total_amount: totalAmount,
-        status: "pending",
-        business_message: businessMessage.trim() || null,
-        approval_token: token,
-        approval_expires_at: expires.toISOString(),
-        requires_customer_approval: true,
+      // Én ordre pr. service. Første ordre = forælder; alle peger på dens id via parent_order_id.
+      const parentOrderId = crypto.randomUUID();
+      const childOrderIds = items.map((_, i) => i === 0 ? parentOrderId : crypto.randomUUID());
+
+      const orderRows = items.map((it, idx) => {
+        const total = roundPrice(calcItemTotal(it));
+        const isParent = idx === 0;
+        return {
+          id: childOrderIds[idx],
+          parent_order_id: parentOrderId, // forælderen peger også på sig selv → simpel gruppering
+          business_id: businessId,
+          customer_name: customerName.trim(),
+          customer_email: customerEmail.trim().toLowerCase(),
+          customer_phone: customerPhone.trim() || null,
+          address: address.trim() || null,
+          zip_code: zipCode.trim() || null,
+          city: city.trim() || null,
+          latitude: lat,
+          longitude: lng,
+          cvr: cvr.replace(/\D/g, "") || null,
+          company_name: companyName.trim() || null,
+          preferred_date: preferredDate || null,
+          preferred_time_start: it.timeStart || null,
+          preferred_time_end: it.timeEnd || null,
+          estimated_duration_minutes: it.durationMin || 30,
+          total_amount: total,
+          status: "pending" as const,
+          business_message: isParent ? (businessMessage.trim() || null) : null,
+          // Kun forælderen får token — godkendelse cascader til børn via edge function.
+          approval_token: isParent ? token : null,
+          approval_expires_at: isParent ? expires.toISOString() : null,
+          requires_customer_approval: true,
+        };
       });
+      const { error: orderErr } = await supabase.from("orders").insert(orderRows as any);
       if (orderErr) throw orderErr;
 
-      // Insert order items
-      const orderItems = items.map((it) => {
+      // Indsæt ét order_item pr. ordre
+      const orderItems = items.map((it, idx) => {
         const total = roundPrice(calcItemTotal(it));
         const stepDetails = (it.service.calculator_steps || []).map((s) => ({
           id: s.id, label: s.label, value: it.stepValues[s.id] || 0, unit: s.unit,
@@ -173,7 +185,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
           ? `${it.hours} timer`
           : it.service.pricing_type === "fast_pris" ? "Fast pris" : "";
         return {
-          order_id: orderId,
+          order_id: childOrderIds[idx],
           service_id: it.serviceId,
           service_name: it.service.name,
           quantity: 1,
@@ -182,6 +194,8 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
           details: {
             description,
             interval: it.interval,
+            durationMin: it.durationMin || 30,
+            timeWindow: it.timeStart && it.timeEnd ? { start: it.timeStart, end: it.timeEnd } : undefined,
             stepDetails: it.service.pricing_type === "prisberegner" ? stepDetails : undefined,
             pricingSnapshot: buildPricingSnapshot(it.service as any),
           },
@@ -191,7 +205,8 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
       if (itemsErr) throw itemsErr;
 
       // Send approval email
-      const approvalUrl = `${window.location.origin}/godkend-bestilling/${orderId}?token=${token}`;
+      // Mailen peger på forælder-ordren — edge function godkender hele gruppen.
+      const approvalUrl = `${window.location.origin}/godkend-bestilling/${parentOrderId}?token=${token}`;
       const { data: biz } = await supabase
         .from("businesses")
         .select("name, phone, email")
