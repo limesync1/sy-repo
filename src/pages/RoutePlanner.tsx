@@ -615,31 +615,45 @@ const Planner = () => {
                     <Plus className="h-3.5 w-3.5" />Opret rute
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Opret ny rute</DialogTitle>
-                    <DialogDescription>
-                      Ruten starter fra virksomhedens adresse. Du kan tilkoble medarbejdere og aftaler bagefter.
-                    </DialogDescription>
+                <DialogContent className="max-w-md p-0 gap-0 overflow-hidden flex flex-col">
+                  <DialogHeader className="px-5 py-4 border-b shrink-0 space-y-0">
+                    <SheetHeaderBlock
+                      icon={<RouteIcon className="h-4 w-4" />}
+                      accent={newRouteColor}
+                      title={<DialogTitle className="text-base">Opret ny rute</DialogTitle>}
+                      description={
+                        <DialogDescription className="text-xs leading-snug">
+                          Ruten starter fra virksomhedens adresse. Du kan tilkoble medarbejdere og aftaler bagefter.
+                        </DialogDescription>
+                      }
+                    />
                   </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="route-name">Navn (valgfrit)</Label>
-                      <Input
-                        id="route-name"
-                        placeholder="fx Nord, Aarhus C, Mandag-team..."
-                        value={newRouteName}
-                        onChange={(e) => setNewRouteName(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === "Enter") handleCreateRoute(); }}
-                        autoFocus
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Dato</Label>
-                      <DatePickerField value={newRouteDate} onChange={setNewRouteDate} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Farve</Label>
+
+                  <div className="px-5 py-4 space-y-3 bg-secondary/20">
+                    <Section icon={<Tag className="h-3.5 w-3.5" />} title="Detaljer">
+                      <div className="space-y-3">
+                        <Field label="Navn (valgfrit)">
+                          <Input
+                            id="route-name"
+                            placeholder="fx Nord, Aarhus C, Mandag-team..."
+                            value={newRouteName}
+                            onChange={(e) => setNewRouteName(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === "Enter") handleCreateRoute(); }}
+                            className="h-9"
+                            autoFocus
+                          />
+                        </Field>
+                        <Field label="Dato" required>
+                          <DatePickerField value={newRouteDate} onChange={setNewRouteDate} />
+                        </Field>
+                      </div>
+                    </Section>
+
+                    <Section
+                      icon={<Palette className="h-3.5 w-3.5" />}
+                      title="Farve"
+                      hint={ROUTE_COLORS.find((c) => c.value === newRouteColor)?.name || "Brugerdefineret"}
+                    >
                       <div className="grid grid-cols-6 gap-2">
                         {ROUTE_COLORS.map((c) => (
                           <button
@@ -647,24 +661,26 @@ const Planner = () => {
                             type="button"
                             onClick={() => setNewRouteColor(c.value)}
                             title={c.name}
-                            className={`relative aspect-square rounded-lg transition-all hover:scale-105 ring-offset-2 ring-offset-background ${newRouteColor === c.value ? "ring-2 ring-foreground shadow-md" : "hover:ring-1 hover:ring-foreground/30"}`}
+                            className={`relative aspect-square rounded-md transition-all hover:scale-105 ring-offset-2 ring-offset-background ${newRouteColor === c.value ? "ring-2 ring-foreground shadow-sm" : "hover:ring-1 hover:ring-foreground/30"}`}
                             style={{ background: c.value }}
                             aria-label={`Vælg farve ${c.name}`}
                           />
                         ))}
                       </div>
-                      <p className="text-[11px] text-muted-foreground">
-                        Valgt: <span className="font-medium text-foreground">{ROUTE_COLORS.find((c) => c.value === newRouteColor)?.name || "Brugerdefineret"}</span>
-                      </p>
-                    </div>
+                    </Section>
                   </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setCreateOpen(false)}>Annullér</Button>
-                    <Button onClick={handleCreateRoute} disabled={createRoute.isPending}>
-                      {createRoute.isPending && <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />}
-                      Opret rute
-                    </Button>
-                  </DialogFooter>
+
+                  <SheetFooterBar>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={createRoute.isPending}>
+                        Annullér
+                      </Button>
+                      <Button onClick={handleCreateRoute} disabled={createRoute.isPending}>
+                        {createRoute.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+                        Opret rute
+                      </Button>
+                    </div>
+                  </SheetFooterBar>
                 </DialogContent>
               </Dialog>
 
