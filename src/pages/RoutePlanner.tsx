@@ -792,7 +792,11 @@ const Planner = () => {
                       </div>
                     )}
                     {filteredUnassigned.map((job: any) => (
-                      <UnassignedJobCard key={job.id} job={job} />
+                      <UnassignedJobCard
+                        key={job.id}
+                        job={job}
+                        onClick={() => setSelectedJob(job)}
+                      />
                     ))}
                   </div>
                 </Card>
