@@ -79,17 +79,36 @@ const FitTo = ({ points, enabled }: { points: [number, number][]; enabled: boole
   return null;
 };
 
-/** Google-Maps-like live follow: locks camera tightly on the user. */
+/** Google-Maps-like live follow: smoothly glides camera to the user (no bounds jumping). */
 const FollowUser = ({
   active, userPos,
 }: { active: boolean; userPos: [number, number] | null }) => {
   const map = useMap();
+  const initRef = useRef(false);
   useEffect(() => {
-    if (!active || !userPos) return;
-    const targetZoom = Math.max(map.getZoom(), 17);
-    map.setView(userPos, targetZoom, { animate: true, duration: 0.6 });
+    if (!active) { initRef.current = false; return; }
+    if (!userPos) return;
+    const targetZoom = 17;
+    if (!initRef.current) {
+      // First lock: snap immediately so the user sees themselves centered.
+      map.setView(userPos, targetZoom, { animate: true, duration: 0.4 });
+      initRef.current = true;
+    } else {
+      // Subsequent updates: smooth pan only, no zoom changes (avoids the "jumpy" feel).
+      map.panTo(userPos, { animate: true, duration: 0.9, easeLinearity: 0.25 });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, userPos?.[0], userPos?.[1], map]);
+  return null;
+};
+
+/** Pans (with light zoom) to a stop when the user taps it in the list. */
+const FlyToStop = ({ target }: { target: [number, number] | null }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (!target) return;
+    map.flyTo(target, Math.max(map.getZoom(), 16), { animate: true, duration: 0.7 });
+  }, [target, map]);
   return null;
 };
 
