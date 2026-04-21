@@ -235,16 +235,16 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v && !submitting) onOpenChange(v); else if (v) onOpenChange(v); }}>
       <DialogContent className="max-w-3xl max-h-[92vh] flex flex-col p-0 gap-0 overflow-hidden">
-        <DialogHeader className="px-5 py-3.5 border-b bg-background shrink-0">
-          <DialogTitle className="flex items-center gap-2 text-base">
-            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10">
-              <ShoppingBag className="h-3.5 w-3.5 text-primary" />
-            </span>
-            Opret bestilling for kunde
-          </DialogTitle>
-          <DialogDescription className="text-xs">
-            Vælg services fra dit katalog og udfyld kundens oplysninger. Kunden modtager en mail med et godkendelses-link — bestillingen aktiveres først når de godkender.
-          </DialogDescription>
+        <DialogHeader className="px-5 py-4 border-b bg-background shrink-0 space-y-0">
+          <SheetHeaderBlock
+            icon={<ShoppingBag className="h-4 w-4" />}
+            title={<DialogTitle className="text-base">Opret bestilling for kunde</DialogTitle>}
+            description={
+              <DialogDescription className="text-xs leading-snug">
+                Vælg services fra dit katalog og udfyld kundens oplysninger. Kunden modtager en mail med et godkendelses-link — bestillingen aktiveres først når de godkender.
+              </DialogDescription>
+            }
+          />
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-secondary/20">
