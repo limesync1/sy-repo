@@ -522,23 +522,26 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       {/* ─── Compact header — kun synlig før rute starter eller ved færdig ─── */}
       {(!routeStarted || allDone) && (
       <header className="relative shrink-0 z-30 bg-background border-b">
-        <div className="flex items-center gap-2 px-3 py-2 bg-secondary/40">
-          <Button asChild variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-background shrink-0">
+        <div className="flex items-center gap-2 px-3 py-2.5 bg-background">
+          <Button asChild variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-secondary shrink-0">
             <Link to="/medarbejder" aria-label="Tilbage"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
 
-          <div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-background text-xs font-semibold shrink-0 max-w-[55%]"
-            style={{ background: routeBadgeColor }}
-          >
+          {/* Header-pille: neutral foreground (Serviceydere primary) med farvet dot der signalerer rute-identitet */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary text-foreground text-xs font-semibold shrink-0 max-w-[55%] border">
+            <span
+              className="h-2 w-2 rounded-full shrink-0"
+              style={{ background: routeBadgeColor }}
+              aria-hidden
+            />
             <span className="truncate">{route.name || "Rute"}</span>
-            <span className="px-1.5 py-0.5 rounded-full bg-background/25 tabular-nums text-[10px]">
+            <span className="px-1.5 py-0.5 rounded-full bg-background tabular-nums text-[10px] border">
               {completedCount}/{sortedStops.length}
             </span>
           </div>
 
           {etaLabel && nextStop && (
-            <Badge variant="outline" className="tabular-nums hidden sm:inline-flex bg-background/70">
+            <Badge variant="outline" className="tabular-nums hidden sm:inline-flex bg-background">
               <Clock className="h-3 w-3 mr-1" /> {etaLabel}
             </Badge>
           )}
@@ -546,13 +549,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           <div className="flex-1" />
 
           <Button
-            size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-background"
+            size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-secondary"
             onClick={() => setListOpen((v) => !v)} aria-label="Vis liste"
           >
             <List className="h-4 w-4" />
           </Button>
           <Button
-            size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-background"
+            size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-secondary"
             onClick={() => setAudioEnabled((v) => !v)}
             aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
           >
@@ -561,7 +564,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         </div>
 
         {/* Progress bar — route color */}
-        <div className="h-1 w-full bg-secondary">
+        <div className="h-1 w-full bg-secondary" aria-hidden>
           <div
             className="h-full transition-all duration-500 ease-out"
             style={{ width: `${progress}%`, background: themeColor }}
