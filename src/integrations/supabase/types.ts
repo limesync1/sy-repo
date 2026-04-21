@@ -17,6 +17,7 @@ export type Database = {
       business_customers: {
         Row: {
           address: string | null
+          avatar_url: string | null
           business_id: string
           city: string | null
           company_name: string
@@ -34,6 +35,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          avatar_url?: string | null
           business_id: string
           city?: string | null
           company_name: string
@@ -51,6 +53,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          avatar_url?: string | null
           business_id?: string
           city?: string | null
           company_name?: string
@@ -619,6 +622,7 @@ export type Database = {
       private_customers: {
         Row: {
           address: string | null
+          avatar_url: string | null
           business_id: string
           city: string | null
           created_at: string
@@ -634,6 +638,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          avatar_url?: string | null
           business_id: string
           city?: string | null
           created_at?: string
@@ -649,6 +654,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          avatar_url?: string | null
           business_id?: string
           city?: string | null
           created_at?: string
