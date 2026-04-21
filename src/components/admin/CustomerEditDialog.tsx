@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
-import { Building2, User, Loader2, Save, ShoppingBag } from "lucide-react";
+import { Building2, User, Loader2, Save, ShoppingBag, Camera, X } from "lucide-react";
 import { toast } from "sonner";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 
@@ -35,6 +35,7 @@ export interface EditableCustomer {
   latitude?: number | null;
   longitude?: number | null;
   notes?: string | null;
+  avatar_url?: string | null;
 }
 
 interface Props {
@@ -60,15 +61,39 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   const [latitude, setLatitude] = useState<number | null>(initial?.latitude ?? null);
   const [longitude, setLongitude] = useState<number | null>(initial?.longitude ?? null);
   const [notes, setNotes] = useState(initial?.notes || "");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(initial?.avatar_url ?? null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedCustomer, setSavedCustomer] = useState<EditableCustomer | null>(null);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+
+  // Sync state when `initial` changes (e.g. user opens dialog for different customer)
+  useEffect(() => {
+    if (!open) return;
+    setType(initial?.type || "private");
+    setName(initial?.name || "");
+    setCompanyName(initial?.company_name || "");
+    setCvr(initial?.cvr || "");
+    setContactName(initial?.contact_name || "");
+    setEmail(initial?.email || "");
+    setPhone(initial?.phone || "");
+    setAddress(initial?.address || "");
+    setZipCode(initial?.zip_code || "");
+    setCity(initial?.city || "");
+    setLatitude(initial?.latitude ?? null);
+    setLongitude(initial?.longitude ?? null);
+    setNotes(initial?.notes || "");
+    setAvatarUrl(initial?.avatar_url ?? null);
+    setSavedCustomer(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initial?.id]);
 
   const reset = () => {
     setType("private");
     setName(""); setCompanyName(""); setCvr(""); setContactName("");
     setEmail(""); setPhone(""); setAddress(""); setZipCode(""); setCity("");
     setLatitude(null); setLongitude(null); setNotes("");
+    setAvatarUrl(null);
     setSavedCustomer(null);
   };
 
