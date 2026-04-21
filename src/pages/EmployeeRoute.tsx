@@ -471,14 +471,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {/* Route line */}
             {legLine.length > 1 && (
               <>
-                {/* Outer glow */}
+                {/* Outer white casing for contrast */}
                 <Polyline
                   positions={legLine}
-                  pathOptions={{ color: "white", weight: 11, opacity: 0.8 }}
+                  pathOptions={{ color: "white", weight: 14, opacity: 0.95, lineCap: "round", lineJoin: "round" }}
                 />
+                {/* Soft outer glow */}
                 <Polyline
                   positions={legLine}
-                  pathOptions={{ color: themeColor, weight: 7, opacity: 0.95 }}
+                  pathOptions={{ color: themeColor, weight: 12, opacity: 0.25, lineCap: "round", lineJoin: "round" }}
+                />
+                {/* Core route */}
+                <Polyline
+                  positions={legLine}
+                  pathOptions={{ color: themeColor, weight: 7, opacity: 1, lineCap: "round", lineJoin: "round" }}
                 />
               </>
             )}
