@@ -559,7 +559,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {allDone ? (
           <div className="absolute bottom-0 inset-x-0 z-10 p-3">
             <div className="rounded-2xl bg-background border border-border shadow-2xl p-4 flex items-center gap-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500/15 text-green-600 shrink-0">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/15 text-accent shrink-0">
                 <CheckCircle2 className="h-7 w-7" />
               </span>
               <div className="flex-1 min-w-0">
@@ -597,8 +597,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <span className="font-semibold">Næste stop</span>
                   <span className="text-muted-foreground"> · {nextStopIdx + 1} af {sortedStops.length}</span>
                   {isAtNextStop && (
-                    <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-semibold text-green-600">
-                      <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                    <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-semibold text-accent">
+                      <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
                       Fremme
                     </span>
                   )}
