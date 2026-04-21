@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   MapPin, Phone, Mail, Clock, Trash2, Save,
-  AlertCircle, Calendar as CalendarIcon, Banknote, FileText, Repeat, PauseCircle, Hash,
+  AlertCircle, Banknote, FileText, Repeat, PauseCircle,
   Timer, Hourglass,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
