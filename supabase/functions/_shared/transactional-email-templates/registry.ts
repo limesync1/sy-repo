@@ -17,6 +17,7 @@ import { template as subscriptionUpdate } from './subscription-update.tsx'
 import { template as employeeWelcome } from './employee-invitation.tsx'
 import { template as routeAssigned } from './route-assigned.tsx'
 import { template as manualOrderApproval } from './manual-order-approval.tsx'
+import { template as employeePasswordReset } from './employee-password-reset.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'welcome': welcome,
@@ -27,4 +28,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'employee-welcome': employeeWelcome,
   'route-assigned': routeAssigned,
   'manual-order-approval': manualOrderApproval,
+  'employee-password-reset': employeePasswordReset,
 }
