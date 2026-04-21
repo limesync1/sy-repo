@@ -13,10 +13,11 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus, Trash2, Send, Check, ShoppingBag, User, MapPin, Calendar } from "lucide-react";
+import { Loader2, Trash2, Send, ShoppingBag, User, MapPin, Calendar as CalendarIcon, MessageSquare, Package } from "lucide-react";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 import { roundPrice, buildPricingSnapshot } from "@/lib/service-pricing";
+import { DatePickerField } from "@/components/route-planner/DatePickerField";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
 type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string };
@@ -58,7 +59,6 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
   const [zipCode, setZipCode] = useState("");
   const [city, setCity] = useState("");
   const [preferredDate, setPreferredDate] = useState("");
-  const [preferredTime, setPreferredTime] = useState("");
   const [businessMessage, setBusinessMessage] = useState("");
 
   // Cart
@@ -84,7 +84,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
   const reset = () => {
     setCustomerName(""); setCustomerEmail(""); setCustomerPhone("");
     setAddress(""); setZipCode(""); setCity("");
-    setPreferredDate(""); setPreferredTime(""); setBusinessMessage("");
+    setPreferredDate(""); setBusinessMessage("");
     setItems([]);
   };
 
@@ -136,7 +136,6 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
         latitude: lat,
         longitude: lng,
         preferred_date: preferredDate || null,
-        preferred_time_start: preferredTime || null,
         total_amount: totalAmount,
         status: "pending",
         business_message: businessMessage.trim() || null,
@@ -200,9 +199,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
             address: address.trim()
               ? `${address.trim()}${zipCode.trim() || city.trim() ? `, ${[zipCode.trim(), city.trim()].filter(Boolean).join(" ")}` : ""}`
               : undefined,
-            preferredDate: preferredDate
-              ? `${preferredDate}${preferredTime ? ` kl. ${preferredTime}` : ""}`
-              : undefined,
+            preferredDate: preferredDate || undefined,
             totalAmount,
             items: items.map((it) => ({
               name: it.service.name,
@@ -233,52 +230,53 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v && !submitting) onOpenChange(v); else if (v) onOpenChange(v); }}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ShoppingBag className="h-5 w-5 text-accent" />
+      <DialogContent className="max-w-3xl max-h-[92vh] flex flex-col p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-5 py-3.5 border-b bg-background shrink-0">
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10">
+              <ShoppingBag className="h-3.5 w-3.5 text-primary" />
+            </span>
             Opret bestilling for kunde
           </DialogTitle>
-          <DialogDescription>
-            Udfyld kundens oplysninger og vælg services. Kunden modtager en mail med en godkendelses-knap, og bestillingen aktiveres først når de godkender.
+          <DialogDescription className="text-xs">
+            Vælg services fra dit katalog og udfyld kundens oplysninger. Kunden modtager en mail med et godkendelses-link — bestillingen aktiveres først når de godkender.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 py-2">
-          {/* Customer */}
-          <div>
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5"><User className="h-4 w-4 text-muted-foreground" /> Kundens oplysninger</h3>
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-secondary/20">
+          {/* Kunde */}
+          <Section icon={<User className="h-3.5 w-3.5" />} title="Kunde" required>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5"><Label htmlFor="cn">Navn *</Label><Input id="cn" value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Fx Mette Hansen" /></div>
-              <div className="space-y-1.5"><Label htmlFor="ce">Email *</Label><Input id="ce" type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} placeholder="kunde@email.dk" /></div>
-              <div className="space-y-1.5"><Label htmlFor="cp">Telefon</Label><Input id="cp" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="+45 22 33 44 55" /></div>
+              <Field label="Navn" required>
+                <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Fx Mette Hansen" className="h-9" />
+              </Field>
+              <Field label="Email" required>
+                <Input type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} placeholder="kunde@email.dk" className="h-9" />
+              </Field>
+              <Field label="Telefon">
+                <Input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-9" />
+              </Field>
             </div>
-          </div>
+          </Section>
 
-          {/* Service location */}
-          <div>
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5"><MapPin className="h-4 w-4 text-muted-foreground" /> Adresse (valgfrit)</h3>
+          {/* Adresse */}
+          <Section icon={<MapPin className="h-3.5 w-3.5" />} title="Adresse" hint="Valgfrit — bruges til ruteplanlægning">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="sm:col-span-3 space-y-1.5"><Label>Adresse</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Vejnavn 12, 2.tv" /></div>
-              <div className="space-y-1.5"><Label>Postnr.</Label><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} placeholder="2200" /></div>
-              <div className="sm:col-span-2 space-y-1.5"><Label>By</Label><Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="København N" /></div>
+              <div className="sm:col-span-3"><Field label="Vejnavn"><Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Vesterbrogade 12, 2.tv" className="h-9" /></Field></div>
+              <Field label="Postnr."><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} placeholder="2200" className="h-9" /></Field>
+              <div className="sm:col-span-2"><Field label="By"><Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="København N" className="h-9" /></Field></div>
             </div>
-          </div>
+          </Section>
 
-          {/* Preferred date */}
-          <div>
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5"><Calendar className="h-4 w-4 text-muted-foreground" /> Foreslået tidspunkt (valgfrit)</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5"><Label>Dato</Label><Input type="date" value={preferredDate} onChange={(e) => setPreferredDate(e.target.value)} /></div>
-              <div className="space-y-1.5"><Label>Tid</Label><Input type="time" value={preferredTime} onChange={(e) => setPreferredTime(e.target.value)} /></div>
-            </div>
-          </div>
+          {/* Foreslået dato */}
+          <Section icon={<CalendarIcon className="h-3.5 w-3.5" />} title="Foreslået dato" hint="Valgfrit — kunden kan bekræfte eller ændre">
+            <DatePickerField value={preferredDate} onChange={setPreferredDate} />
+          </Section>
 
           {/* Services */}
-          <div>
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5"><Plus className="h-4 w-4 text-muted-foreground" /> Tilføj services *</h3>
+          <Section icon={<Package className="h-3.5 w-3.5" />} title="Services" required hint={`${items.length} valgt`}>
             <Select value="" onValueChange={addService}>
-              <SelectTrigger><SelectValue placeholder="Vælg en service fra dit katalog…" /></SelectTrigger>
+              <SelectTrigger className="h-9 bg-background"><SelectValue placeholder="Tilføj service fra dit katalog…" /></SelectTrigger>
               <SelectContent>
                 {activeServices.length === 0 && <SelectItem value="__none" disabled>Ingen services oprettet endnu</SelectItem>}
                 {activeServices.filter((s) => !items.some((i) => i.serviceId === s.id)).map((s) => (
@@ -292,39 +290,45 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
                 {items.map((it) => {
                   const intervals = it.service.interval_options && it.service.interval_options.length > 0 ? it.service.interval_options : ["engangskøb"];
                   return (
-                    <Card key={it.serviceId} className="p-3">
+                    <Card key={it.serviceId} className="p-3 bg-background border-l-2 border-l-primary/40">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-sm">{it.service.name}</p>
-                          <Badge variant="outline" className="mt-0.5 text-[10px]">
+                          <p className="font-semibold text-sm leading-tight">{it.service.name}</p>
+                          <Badge variant="outline" className="mt-1 text-[10px] font-normal">
                             {it.service.pricing_type === "fast_pris" ? "Fast pris" : it.service.pricing_type === "timepris" ? "Timepris" : "Prisberegner"}
                           </Badge>
                         </div>
-                        <button onClick={() => removeItem(it.serviceId)} className="text-muted-foreground hover:text-destructive p-1">
+                        <button
+                          onClick={() => removeItem(it.serviceId)}
+                          className="text-muted-foreground hover:text-destructive transition-colors p-1 -m-1 rounded"
+                          aria-label={`Fjern ${it.service.name}`}
+                        >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
 
                       {it.service.pricing_type === "timepris" && (
-                        <div className="flex items-center gap-2 mb-2">
-                          <Label className="text-xs">Timer:</Label>
-                          <Input type="number" min={0.5} max={24} step={0.5} value={it.hours}
+                        <div className="flex items-center gap-2 mb-2 text-xs">
+                          <Label className="text-xs text-muted-foreground">Timer</Label>
+                          <Input
+                            type="number" min={0.5} max={24} step={0.5} value={it.hours}
                             onChange={(e) => updateItem(it.serviceId, { hours: Math.max(0.5, parseFloat(e.target.value) || 0.5) })}
-                            className="h-7 w-20" />
-                          <span className="text-xs text-muted-foreground">× {it.service.base_price} kr</span>
+                            className="h-7 w-20"
+                          />
+                          <span className="text-muted-foreground">× {it.service.base_price} kr</span>
                         </div>
                       )}
 
                       {it.service.pricing_type === "prisberegner" && (it.service.calculator_steps?.length ?? 0) > 0 && (
-                        <div className="space-y-1.5 mb-2 rounded-lg bg-secondary/30 p-2">
+                        <div className="space-y-1.5 mb-2 rounded-md bg-secondary/40 p-2">
                           {[...(it.service.calculator_steps || [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).map((step) => (
                             <div key={step.id} className="flex items-center gap-2 text-xs">
-                              <span className="flex-1">{step.label} <span className="text-muted-foreground">({step.price_per_unit} kr/{step.unit})</span></span>
+                              <span className="flex-1 truncate">{step.label} <span className="text-muted-foreground">({step.price_per_unit} kr/{step.unit})</span></span>
                               <Input type="number" min={Number(step.min_value ?? 0)} max={Number(step.max_value ?? 9999)}
                                 value={it.stepValues[step.id] ?? 0}
                                 onChange={(e) => updateItem(it.serviceId, { stepValues: { ...it.stepValues, [step.id]: Math.max(0, parseFloat(e.target.value) || 0) } })}
                                 className="h-7 w-20" />
-                              <span className="text-muted-foreground w-8">{step.unit}</span>
+                              <span className="text-muted-foreground w-8 text-right">{step.unit}</span>
                             </div>
                           ))}
                         </div>
@@ -332,47 +336,85 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
 
                       {intervals.length > 1 && (
                         <Select value={it.interval} onValueChange={(v) => updateItem(it.serviceId, { interval: v })}>
-                          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             {intervals.map((iv) => <SelectItem key={iv} value={iv} className="text-xs">{INTERVAL_LABELS[iv] || iv}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       )}
 
-                      <div className="mt-2 flex items-center justify-between pt-2 border-t">
-                        <span className="text-xs text-muted-foreground">Subtotal</span>
+                      <div className="mt-2 flex items-center justify-between pt-2 border-t border-border/60">
+                        <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Subtotal</span>
                         <span className="font-bold text-sm tabular-nums">{fmt(roundPrice(calcItemTotal(it)))}</span>
                       </div>
                     </Card>
                   );
                 })}
-
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <span className="font-semibold">I alt</span>
-                  <span className="text-xl font-bold tabular-nums">{fmt(totalAmount)}</span>
-                </div>
               </div>
             )}
-          </div>
+          </Section>
 
-          {/* Optional message */}
-          <div className="space-y-1.5">
-            <Label htmlFor="bm">Besked til kunden (valgfrit)</Label>
-            <Textarea id="bm" value={businessMessage} onChange={(e) => setBusinessMessage(e.target.value.slice(0, 500))}
-              placeholder="Fx: Hej Mette, her er det vi snakkede om i telefonen…" rows={2} />
-          </div>
+          {/* Besked */}
+          <Section icon={<MessageSquare className="h-3.5 w-3.5" />} title="Besked til kunden" hint="Valgfrit — vises i mailen">
+            <Textarea
+              value={businessMessage}
+              onChange={(e) => setBusinessMessage(e.target.value.slice(0, 500))}
+              placeholder="Fx: Hej Mette, her er det vi snakkede om i telefonen…"
+              rows={2}
+              className="bg-background resize-none"
+            />
+            <p className="text-[10px] text-muted-foreground text-right mt-1">{businessMessage.length}/500</p>
+          </Section>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>Annullér</Button>
-          <Button onClick={handleSubmit} disabled={submitting || items.length === 0}>
-            {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
-            Send til kunde for godkendelse
-          </Button>
+        {/* Sticky footer med total + CTA */}
+        <DialogFooter className="border-t bg-background px-5 py-3 shrink-0 sm:items-center sm:justify-between gap-2">
+          <div className="flex items-baseline gap-2">
+            <span className="text-[11px] text-muted-foreground uppercase tracking-wide">I alt</span>
+            <span className="text-xl font-bold tabular-nums">{fmt(totalAmount)}</span>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting} size="sm">Annullér</Button>
+            <Button onClick={handleSubmit} disabled={submitting || items.length === 0} size="sm">
+              {submitting ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
+              Send til godkendelse
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
+
+/* ───────── Small layout helpers ───────── */
+
+const Section = ({
+  icon, title, hint, required, children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  hint?: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) => (
+  <div className="bg-background rounded-lg border p-3.5">
+    <div className="flex items-center gap-1.5 mb-2.5">
+      <span className="text-muted-foreground">{icon}</span>
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">{title}</h3>
+      {required && <span className="text-[10px] text-destructive">*</span>}
+      {hint && <span className="ml-auto text-[10px] text-muted-foreground">{hint}</span>}
+    </div>
+    {children}
+  </div>
+);
+
+const Field = ({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) => (
+  <div className="space-y-1">
+    <Label className="text-[11px] text-muted-foreground font-medium">
+      {label}{required && <span className="text-destructive ml-0.5">*</span>}
+    </Label>
+    {children}
+  </div>
+);
 
 export default CreateManualOrderDialog;
