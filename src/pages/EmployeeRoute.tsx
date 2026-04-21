@@ -761,43 +761,69 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               </div>
             )}
 
-            {/* Traffic / forsinkelse alert — animeret når ETA stiger */}
-            {trafficAlert && (
-              <div className={`absolute ${maneuver ? "top-[200px]" : "top-[68px]"} left-3 right-3 z-[1000] pointer-events-none`}>
-                <div
-                  className="pointer-events-auto rounded-2xl shadow-2xl overflow-hidden border animate-in fade-in slide-in-from-top-2 duration-300"
-                  style={{
-                    background: "hsl(38 100% 96%)",
-                    borderColor: "hsl(38 100% 70%)",
-                  }}
-                >
-                  <div className="flex items-center gap-2.5 px-3 py-2.5">
-                    <div
-                      className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
-                      style={{ background: "hsl(28 95% 50%)", color: "white" }}
-                    >
-                      <TrafficCone className="h-5 w-5" />
+            {/* Trafik-banner — Serviceydere amber, kvalitativ severity */}
+            {trafficAlert && (() => {
+              const sev = trafficAlert.severity;
+              const sevLabel = sev === "let" ? "Let trafik" : sev === "moderat" ? "Moderat trafik" : "Tæt trafik";
+              const sevDots = sev === "let" ? 1 : sev === "moderat" ? 2 : 3;
+              // Farver matcher Serviceydere palette: blød amber for advarsel
+              const tone = {
+                bg: "hsl(38 100% 97%)",
+                border: "hsl(38 90% 78%)",
+                accent: sev === "tæt" ? "hsl(20 90% 50%)" : sev === "moderat" ? "hsl(28 92% 52%)" : "hsl(38 95% 55%)",
+                text: "hsl(28 70% 22%)",
+                sub: "hsl(28 45% 38%)",
+                chip: "hsl(38 100% 90%)",
+              };
+              return (
+                <div className={`absolute ${maneuver ? "top-[200px]" : "top-[68px]"} left-3 right-3 z-[1000] pointer-events-none`}>
+                  <div
+                    className="pointer-events-auto rounded-2xl shadow-2xl overflow-hidden border animate-in fade-in slide-in-from-top-2 duration-300"
+                    style={{ background: tone.bg, borderColor: tone.border }}
+                  >
+                    <div className="flex items-center gap-3 px-3 py-2.5">
+                      <div
+                        className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
+                        style={{ background: tone.accent, color: "white" }}
+                      >
+                        <TrafficCone className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-bold leading-tight" style={{ color: tone.text }}>
+                            {sevLabel}
+                          </p>
+                          {/* Severity dots */}
+                          <span className="flex items-center gap-0.5 ml-0.5">
+                            {[0, 1, 2].map((i) => (
+                              <span
+                                key={i}
+                                className="h-1.5 w-1.5 rounded-full transition-opacity"
+                                style={{
+                                  background: tone.accent,
+                                  opacity: i < sevDots ? 1 : 0.25,
+                                }}
+                              />
+                            ))}
+                          </span>
+                        </div>
+                        <p className="text-[11px] leading-tight mt-0.5 tabular-nums" style={{ color: tone.sub }}>
+                          Forsinker ankomst med ca. {trafficAlert.addedMin} min
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setTrafficAlert(null)}
+                        className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg shrink-0 transition-opacity hover:opacity-80"
+                        style={{ color: tone.text, background: tone.chip }}
+                        aria-label="Luk advarsel"
+                      >
+                        OK
+                      </button>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold leading-tight" style={{ color: "hsl(28 80% 20%)" }}>
-                        Trafik på ruten
-                      </p>
-                      <p className="text-[11px] leading-tight mt-0.5" style={{ color: "hsl(28 60% 30%)" }}>
-                        +{trafficAlert.addedMin} min ekstra ({trafficAlert.deltaPct}% længere)
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setTrafficAlert(null)}
-                      className="text-xs font-bold px-2.5 py-1 rounded-lg shrink-0 transition-colors"
-                      style={{ color: "hsl(28 80% 20%)", background: "hsl(38 100% 88%)" }}
-                      aria-label="Luk advarsel"
-                    >
-                      OK
-                    </button>
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </>
         )}
 
