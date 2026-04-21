@@ -1074,7 +1074,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Done state ─── */}
         {allDone && (
-          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3">
+          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pb-[50px]">
             <Card
               className="overflow-hidden shadow-2xl rounded-2xl border-t-2"
               style={{ borderTopColor: "hsl(142 70% 45%)" }}
