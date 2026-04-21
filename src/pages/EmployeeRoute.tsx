@@ -88,6 +88,7 @@ const EmployeeRoute = () => {
 const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void }) => {
   const { data, isLoading } = useMyRouteData(routeId);
   const updateStatus = useUpdateStopStatus();
+  const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState<Record<string, string>>({});
   const [showList, setShowList] = useState(false);
@@ -95,6 +96,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [routeStarted, setRouteStarted] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(true);
+  const [autoReturn, setAutoReturn] = useState<number | null>(null);
   /** Stop-id'er hvor vi allerede har afspillet ankomst-lyd (undgår spam). */
   const arrivedAnnouncedRef = useRef<Set<string>>(new Set());
   /** Har vi allerede spillet "dag færdig"-fanfaren? */
