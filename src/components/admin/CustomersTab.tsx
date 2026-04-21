@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -7,10 +7,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Search, User, Mail, Phone, MapPin, Package, Repeat, Calendar,
   Route as RouteIcon, TrendingUp, Star, Clock, ChevronRight, ExternalLink, Pause,
-  UserPlus, Building2, Pencil,
+  UserPlus, Building2, Pencil, Trash2, ShoppingBag, Send,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -18,6 +24,7 @@ import { INTERVAL_LABELS } from "@/types/service";
 import { Link } from "react-router-dom";
 import CustomerEditDialog, { type EditableCustomer } from "./CustomerEditDialog";
 import { PageHeader, PrimaryButton, StatCard, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
+import { toast } from "sonner";
 
 type Customer = {
   email: string;
@@ -351,12 +358,16 @@ const StatusBadge = ({ status }: { status: string }) => {
 interface Props { businessId: string; businessName?: string }
 
 const CustomersTab = ({ businessId, businessName }: Props) => {
+  const qc = useQueryClient();
   const { data: customers = [], isLoading } = useCustomers(businessId);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "private" | "business">("all");
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editing, setEditing] = useState<EditableCustomer | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; targets: Customer[] } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const filtered = useMemo(() => {
     let list = customers;
@@ -424,7 +435,60 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     setEditDialogOpen(true);
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    const eligible = filtered.filter(c => c.saved_id);
+    if (selectedIds.size === eligible.length && eligible.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(eligible.map(c => c.saved_id!)));
+    }
+  };
+
+  const selectedCustomers = useMemo(
+    () => filtered.filter(c => c.saved_id && selectedIds.has(c.saved_id)),
+    [filtered, selectedIds]
+  );
+
+  const handleDelete = async (targets: Customer[]) => {
+    setDeleting(true);
+    try {
+      const privIds = targets.filter(c => c.type === "private" && c.saved_id).map(c => c.saved_id!);
+      const bizIds = targets.filter(c => c.type === "business" && c.saved_id).map(c => c.saved_id!);
+      const promises: Promise<any>[] = [];
+      if (privIds.length) promises.push(Promise.resolve(supabase.from("private_customers").delete().in("id", privIds)));
+      if (bizIds.length) promises.push(Promise.resolve(supabase.from("business_customers").delete().in("id", bizIds)));
+      const results = await Promise.all(promises);
+      const firstError = results.find((r: any) => r?.error)?.error;
+      if (firstError) throw firstError;
+      qc.invalidateQueries({ queryKey: ["customers", businessId] });
+      qc.invalidateQueries({ queryKey: ["saved-customers", businessId] });
+      toast.success(targets.length === 1 ? "Kunde slettet" : `${targets.length} kunder slettet`);
+      setSelectedIds(new Set());
+      setConfirmDelete(null);
+    } catch (e: any) {
+      toast.error(e.message || "Kunne ikke slette");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const openCreateOrderForCustomer = (c: Customer) => {
+    openEditDialog(c);
+  };
+
+  const eligibleSelectable = filtered.filter(c => c.saved_id);
+  const allSelected = eligibleSelectable.length > 0 && selectedIds.size === eligibleSelectable.length;
+
   return (
+    <TooltipProvider delayDuration={200}>
     <div className="space-y-4">
       <PageHeader
         title="Kunder"
@@ -458,6 +522,28 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         </Select>
       </div>
 
+      {/* Bulk actions bar */}
+      {selectedCustomers.length > 0 && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent/5 px-4 py-2.5">
+          <div className="text-sm text-foreground">
+            <span className="font-semibold">{selectedCustomers.length}</span> kunde{selectedCustomers.length === 1 ? "" : "r"} valgt
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())} className="h-8 text-xs">
+              Fravælg alle
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfirmDelete({ open: true, targets: selectedCustomers })}
+              className="h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30"
+            >
+              <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Slet valgte
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* List */}
       {isLoading ? (
         <div className="text-center py-12 text-muted-foreground">Indlæser kunder...</div>
@@ -472,8 +558,25 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         />
       ) : (
         <div className="rounded-xl border border-border bg-card overflow-hidden divide-y divide-border">
+          {/* Header with select-all */}
+          {eligibleSelectable.length > 0 && (
+            <div className="flex items-center gap-3 px-3.5 py-2 bg-secondary/40 text-xs font-medium text-muted-foreground">
+              <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Vælg alle" />
+              <span>{allSelected ? "Alle valgt" : `Vælg alle (${eligibleSelectable.length})`}</span>
+            </div>
+          )}
           {filtered.map((c) => (
             <div key={c.email} className="flex items-center gap-3 p-3.5 hover:bg-secondary/50 transition-colors">
+              {c.saved_id ? (
+                <Checkbox
+                  checked={selectedIds.has(c.saved_id)}
+                  onCheckedChange={() => toggleSelect(c.saved_id!)}
+                  aria-label={`Vælg ${c.name}`}
+                  className="shrink-0"
+                />
+              ) : (
+                <div className="w-4 shrink-0" />
+              )}
               <button
                 onClick={() => setSelectedEmail(c.email)}
                 className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0 text-sm font-semibold text-accent"
@@ -526,13 +629,26 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                 </div>
               </button>
               <div className="flex items-center gap-1 shrink-0">
-                <button
+                <Tooltip><TooltipTrigger asChild><button
+                  onClick={(e) => { e.stopPropagation(); openCreateOrderForCustomer(c); }}
+                  className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                >
+                  <ShoppingBag className="h-4 w-4" />
+                </button></TooltipTrigger><TooltipContent>Opret bestilling</TooltipContent></Tooltip>
+                <Tooltip><TooltipTrigger asChild><button
                   onClick={(e) => { e.stopPropagation(); openEditDialog(c); }}
-                  title="Rediger kunde"
                   className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
                 >
                   <Pencil className="h-4 w-4" />
-                </button>
+                </button></TooltipTrigger><TooltipContent>Rediger kunde</TooltipContent></Tooltip>
+                {c.saved_id && (
+                  <Tooltip><TooltipTrigger asChild><button
+                    onClick={(e) => { e.stopPropagation(); setConfirmDelete({ open: true, targets: [c] }); }}
+                    className="rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button></TooltipTrigger><TooltipContent>Slet kunde</TooltipContent></Tooltip>
+                )}
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </div>
             </div>
@@ -556,7 +672,33 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         businessName={businessName || ""}
         initial={editing}
       />
+
+      {/* Confirm delete */}
+      <AlertDialog open={!!confirmDelete?.open} onOpenChange={(v) => !v && setConfirmDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Slet {confirmDelete?.targets.length === 1 ? "kunde" : `${confirmDelete?.targets.length} kunder`}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Kundeoplysninger fjernes fra dit kartotek. Tidligere bestillinger og abonnementer bevares,
+              men kunden vil ikke længere fremgå af kundelisten.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Annullér</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => confirmDelete && handleDelete(confirmDelete.targets)}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Sletter..." : "Slet"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+    </TooltipProvider>
   );
 };
 

@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
-import { Building2, User, Loader2, Save, ShoppingBag, Camera, X } from "lucide-react";
+import { Building2, User, Loader2, Save, ShoppingBag, Camera, X, Upload } from "lucide-react";
 import { toast } from "sonner";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 
@@ -66,6 +66,45 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   const [saving, setSaving] = useState(false);
   const [savedCustomer, setSavedCustomer] = useState<EditableCustomer | null>(null);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+
+  // Geocode address — used after CVR autofill so adressefeltet ikke vises som "ikke fundet"
+  const geocodeCurrentAddress = async (addr: string, zip: string, ci: string) => {
+    if (!addr.trim() || !zip.trim() || !ci.trim()) return;
+    try {
+      const { data } = await supabase.functions.invoke("geocode-address", {
+        body: { address: addr, zip_code: zip, city: ci },
+      });
+      if (data?.found && data.latitude && data.longitude) {
+        setLatitude(data.latitude);
+        setLongitude(data.longitude);
+      }
+    } catch { /* non-fatal */ }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast.error("Kun billedfiler er tilladt"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Billedet må max være 5MB"); return; }
+    setUploadingAvatar(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Du er ikke logget ind");
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${user.id}/customers/${initial?.id || crypto.randomUUID()}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("business-assets").upload(path, file, {
+        cacheControl: "3600", upsert: true,
+      });
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from("business-assets").getPublicUrl(path);
+      setAvatarUrl(publicUrl);
+      toast.success("Billede klar — husk at gemme");
+    } catch (err: any) {
+      toast.error(err.message || "Upload fejlede");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   // Sync state when `initial` changes (e.g. user opens dialog for different customer)
   useEffect(() => {
@@ -201,6 +240,32 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
               </Tabs>
             )}
 
+            {/* Profilbillede */}
+            <div className="flex items-center gap-3">
+              <div className="relative h-14 w-14 shrink-0 group/avatar">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Profil" className="h-14 w-14 rounded-full object-cover border" />
+                ) : (
+                  <div className="h-14 w-14 rounded-full bg-accent/10 border flex items-center justify-center text-accent">
+                    {type === "business" ? <Building2 className="h-6 w-6" /> : <User className="h-6 w-6" />}
+                  </div>
+                )}
+                <label className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/60 text-background text-[10px] font-semibold opacity-0 group-hover/avatar:opacity-100 cursor-pointer transition-opacity" title="Skift profilbillede">
+                  {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : "Skift"}
+                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
+                </label>
+              </div>
+              <div className="text-xs text-muted-foreground flex-1">
+                <p className="font-medium text-foreground">Profilbillede</p>
+                <p>Hold over billedet for at skifte. Maks 5MB.</p>
+                {avatarUrl && (
+                  <button type="button" onClick={() => setAvatarUrl(null)} className="text-[11px] text-muted-foreground hover:text-destructive underline-offset-2 hover:underline mt-0.5">
+                    Fjern billede
+                  </button>
+                )}
+              </div>
+            </div>
+
             {type === "business" && (
               <div className="rounded-lg border bg-card p-3 space-y-3">
                 <div>
@@ -216,7 +281,11 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                       if (r.city) setCity(r.city);
                       if (r.phone && !phone) setPhone(r.phone);
                       if (r.email && !email) setEmail(r.email);
+                      // Geocode den nye adresse straks så den ikke vises som "ikke fundet"
                       setLatitude(null); setLongitude(null);
+                      if (r.address && r.zip_code && r.city) {
+                        setTimeout(() => geocodeCurrentAddress(r.address!, r.zip_code!, r.city!), 50);
+                      }
                     }}
                   />
                 </div>

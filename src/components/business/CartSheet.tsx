@@ -540,7 +540,14 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                       if (r.city) setCity(r.city);
                       if (r.phone && !phone) setPhone(r.phone);
                       if (r.email && !email) setEmail(r.email);
-                      setGeo(null); setLatitude(null); setLongitude(null);
+                      // Geocode den nye adresse straks så feltet ikke vises som "ikke verificeret"
+                      setLatitude(null); setLongitude(null);
+                      setGeo(null);
+                      if (r.address && r.zip_code && r.city) {
+                        // Auto-verify-effekt vil tage over når state er sat,
+                        // men vi triggrer det også eksplicit for hurtigere feedback.
+                        setTimeout(() => { verifyAddress(true); }, 50);
+                      }
                     }}
                   />
                   {(cvr.replace(/\D/g, "").length === 8 || companyName) && (
