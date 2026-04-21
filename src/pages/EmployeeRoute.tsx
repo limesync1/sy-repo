@@ -122,7 +122,9 @@ const FollowUser = ({
   useEffect(() => {
     if (!active) { initRef.current = false; return; }
     if (!userPos) return;
-    const targetZoom = 17.5;
+    // Tæt på vejen — så man tydeligt kan se hvilken vej/sidevej man er på.
+    // 18.5 svarer ca. til Google Maps' navigationsmode på mobil.
+    const targetZoom = 18.5;
     if (!initRef.current) {
       // First lock: snap immediately so the user sees themselves centered.
       map.setView(userPos, targetZoom, { animate: true, duration: 0.4 });
