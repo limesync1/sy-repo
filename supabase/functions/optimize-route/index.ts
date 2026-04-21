@@ -233,6 +233,75 @@ Deno.serve(async (req) => {
       }
     }
 
+    // === INPUT-FINGERAFTRYK ===
+    // Beregn en stabil hash over alt der kan påvirke optimerings-resultatet.
+    // Hvis denne hash matcher den vi gemte sidst → ruten er allerede optimal
+    // for det aktuelle input, og vi skipper hele VRP-kørslen. Det betyder at
+    // gentagne klik på "Optimér" uden ændringer ikke spilder tid eller giver
+    // forskellige resultater.
+    const fingerprintPayload = {
+      stops: validStops
+        .map((s) => ({
+          id: s.id,
+          lat: Number(s.latitude.toFixed(6)),
+          lng: Number(s.longitude.toFixed(6)),
+          dur: s.duration_minutes,
+          hs: s.hard_start_min,
+          he: s.hard_end_min,
+          ps: s.preferred_start_min,
+          pe: s.preferred_end_min,
+          rs: s.required_staff,
+          pa: [...s.pinned_assignees].sort(),
+        }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+      employees: employees
+        .map((e) => ({
+          id: e.id,
+          sl: Number(e.start_lat.toFixed(6)),
+          sg: Number(e.start_lng.toFixed(6)),
+          ws: e.work_start_min,
+          we: e.work_end_min,
+        }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+      startFromHome: !!route.start_from_home,
+      planStart: planStartMin,
+      respectPinned,
+    };
+    const fpStr = JSON.stringify(fingerprintPayload);
+    // Stabil 32-bit hash (FNV-1a) — tilstrækkeligt til at detektere ændringer
+    let h = 0x811c9dc5;
+    for (let i = 0; i < fpStr.length; i++) {
+      h ^= fpStr.charCodeAt(i);
+      h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+    }
+    const inputFingerprint = `fp_${h.toString(16)}_${validStops.length}s_${employees.length}e`;
+
+    // Tjek om vi har et identisk fingerprint fra sidste optimering
+    const existingSuggestions = (route as any).optimization_suggestions;
+    const lastFingerprint = Array.isArray(existingSuggestions)
+      ? null
+      : existingSuggestions?._input_fingerprint ?? null;
+
+    if (lastFingerprint === inputFingerprint && route.optimized_at) {
+      // Intet er ændret siden sidste optimering — returnér tidligere resultat
+      return new Response(JSON.stringify({
+        ok: true,
+        already_optimal: true,
+        reasoning: "Ruten er allerede optimeret. Ingen ændringer detekteret siden sidste kørsel.",
+        summary: route.optimization_summary ?? null,
+        suggestions: Array.isArray(existingSuggestions)
+          ? existingSuggestions
+          : (existingSuggestions?.items ?? []),
+        reordered: 0,
+        total_km: Number(route.total_distance_km ?? 0),
+        total_minutes: Number(route.total_duration_minutes ?? 0),
+        provider: "cached",
+        unassigned: 0,
+        soft_violations: 0,
+        employees: employees.length,
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // === Kør VRP ===
     const { plan, provider } = await solveVRP(employees, validStops);
 
@@ -299,7 +368,12 @@ Deno.serve(async (req) => {
       total_distance_km: plan.total_km,
       total_duration_minutes: plan.total_minutes,
       optimization_summary: ai?.summary ?? null,
-      optimization_suggestions: ai?.suggestions ?? [],
+      // Gem som object så vi også kan persistere fingerprint sammen med items.
+      // (Læses bagudkompatibelt nedenfor: hvis kolonnen er et array, bruges det direkte.)
+      optimization_suggestions: {
+        items: ai?.suggestions ?? [],
+        _input_fingerprint: inputFingerprint,
+      },
     }).eq("id", routeId);
 
     return new Response(JSON.stringify({

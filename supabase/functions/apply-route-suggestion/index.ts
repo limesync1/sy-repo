@@ -71,8 +71,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    const suggestions = Array.isArray(route.optimization_suggestions) ? route.optimization_suggestions : [];
-    const suggestion = suggestions.find((s: any) => s.id === suggestionId);
+    // Bagudkompatibilitet: optimization_suggestions kan være enten et rent array
+    // (gammelt format) eller et object { items: [...], _input_fingerprint: "..." }
+    // (nyt format der også gemmer fingerprint så vi kan skippe dobbelt-optimering).
+    const rawSugg = (route as any).optimization_suggestions;
+    const suggestionsArr: any[] = Array.isArray(rawSugg)
+      ? rawSugg
+      : (Array.isArray(rawSugg?.items) ? rawSugg.items : []);
+    const fingerprint = !Array.isArray(rawSugg) ? rawSugg?._input_fingerprint ?? null : null;
+    const suggestion = suggestionsArr.find((s: any) => s.id === suggestionId);
     if (!suggestion) {
       return new Response(JSON.stringify({ ok: false, error: "Forslag ikke fundet (måske allerede anvendt)" }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -114,10 +121,13 @@ Deno.serve(async (req) => {
       is_lead: true,
     });
 
-    // Fjern det anvendte forslag fra listen
-    const remaining = suggestions.filter((s: any) => s.id !== suggestionId);
+    // Fjern det anvendte forslag fra listen.
+    // VIGTIGT: Når et forslag anvendes, ændrer vi assignees → input-fingerprint
+    // bliver invalid. Vi nulstiller derfor fingerprint så næste klik på "Optimér"
+    // reelt kører igen (i stedet for at returnere "allerede optimal").
+    const remaining = suggestionsArr.filter((s: any) => s.id !== suggestionId);
     await supabase.from("routes").update({
-      optimization_suggestions: remaining,
+      optimization_suggestions: { items: remaining, _input_fingerprint: null },
     }).eq("id", routeId);
 
     return new Response(JSON.stringify({ ok: true, applied: suggestion }), {
