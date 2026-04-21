@@ -14,6 +14,7 @@ import { INTERVAL_LABELS } from "@/types/service";
 import { cn } from "@/lib/utils";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
+import { DurationTimePicker } from "@/components/shared/DurationTimePicker";
 
 /** Calculate next service date based on interval, anchored to today. */
 const calculateNextServiceDate = (interval: string): string => {
@@ -59,6 +60,23 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [geo, setGeo] = useState<{ ok: boolean; display?: string; lat?: number; lng?: number } | null>(null);
+
+  // Pr. service-linje: anslået varighed + ønsket tidsrum.
+  // Bruges til at give virksomheden et brugbart forhåndsestimat når de planlægger.
+  type LinePref = {
+    durationHours: number;
+    durationMinutes: number;
+    timeStart: string;
+    timeEnd: string;
+  };
+  const [linePrefs, setLinePrefs] = useState<Record<string, LinePref>>({});
+  const getLinePref = (serviceId: string): LinePref =>
+    linePrefs[serviceId] || { durationHours: 0, durationMinutes: 30, timeStart: "", timeEnd: "" };
+  const updateLinePref = (serviceId: string, patch: Partial<LinePref>) =>
+    setLinePrefs((prev) => ({
+      ...prev,
+      [serviceId]: { ...getLinePref(serviceId), ...patch },
+    }));
 
   // Auto-fyld navn/email/tlf fra brugerens profil når de åbner checkout
   useEffect(() => {
@@ -146,6 +164,8 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
         for (let i = 0; i < group.items.length; i++) {
           const item = group.items[i];
           const lineTotal = item.total * item.quantity;
+          const pref = getLinePref(item.serviceId);
+          const totalMin = Math.max(15, pref.durationHours * 60 + pref.durationMinutes);
           await createOrder.mutateAsync({
             order: {
               id: childIds[i],
@@ -162,9 +182,9 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
               cvr: customerType === "business" ? (cvr.replace(/\D/g, "") || null) : null,
               company_name: customerType === "business" ? (companyName.trim() || null) : null,
               preferred_date: null,
-              preferred_time_start: null,
-              preferred_time_end: null,
-              estimated_duration_minutes: 30,
+              preferred_time_start: pref.timeStart || null,
+              preferred_time_end: pref.timeEnd || null,
+              estimated_duration_minutes: totalMin,
               total_amount: lineTotal,
               customer_id: user?.id || null,
             },
