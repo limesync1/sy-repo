@@ -94,6 +94,22 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   const [items, setItems] = useState<BuilderItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
+  // Forudfyld fra initialCustomer når dialogen åbner
+  useEffect(() => {
+    if (!open || !initialCustomer) return;
+    if (initialCustomer.customer_name) setCustomerName(initialCustomer.customer_name);
+    if (initialCustomer.customer_email) setCustomerEmail(initialCustomer.customer_email);
+    if (initialCustomer.customer_phone) setCustomerPhone(initialCustomer.customer_phone);
+    if (initialCustomer.address) setAddress(initialCustomer.address);
+    if (initialCustomer.zip_code) setZipCode(initialCustomer.zip_code);
+    if (initialCustomer.city) setCity(initialCustomer.city);
+    if (initialCustomer.latitude != null) setLatitude(initialCustomer.latitude);
+    if (initialCustomer.longitude != null) setLongitude(initialCustomer.longitude);
+    if (initialCustomer.cvr) setCvr(initialCustomer.cvr);
+    if (initialCustomer.company_name) setCompanyName(initialCustomer.company_name);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   const totalAmount = useMemo(() => roundPrice(items.reduce((s, it) => s + calcItemTotal(it), 0)), [items]);
 
   const addService = (serviceId: string) => {
