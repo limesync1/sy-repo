@@ -830,7 +830,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 chip: "hsl(38 100% 90%)",
               };
               return (
-                <div className={`absolute ${showManeuverBanner ? "top-[200px]" : "top-[68px]"} left-3 right-3 z-[1000] pointer-events-none`}>
+                <div className={`absolute ${showManeuverBanner ? "top-[200px]" : "top-[68px]"} left-3 right-[68px] z-[1000] pointer-events-none`}>
                   <div
                     className="pointer-events-auto rounded-2xl shadow-2xl overflow-hidden border animate-in fade-in slide-in-from-top-2 duration-300"
                     style={{ background: tone.bg, borderColor: tone.border }}
