@@ -9,6 +9,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   DndContext, PointerSensor, useSensor, useSensors,
   closestCenter, type DragEndEvent,
 } from "@dnd-kit/core";
@@ -16,17 +19,22 @@ import {
   SortableContext, verticalListSortingStrategy, useSortable, arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, MapPin, Clock, Trash2, Inbox, ExternalLink, Loader2 } from "lucide-react";
+import {
+  GripVertical, MapPin, Clock, Trash2, Inbox, ExternalLink, Loader2,
+  Crown, UserPlus, Check,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
-  useReorderStops, useDeleteStop, type RouteStop, type Route,
+  useReorderStops, useDeleteStop, useSetStopAssignees,
+  type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { formatDurationMin } from "@/lib/duration-format";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { EmployeeAvatars, type EmpAvatar } from "./EmployeeAvatars";
 
 type Props = {
   route: Route | null;
@@ -34,11 +42,14 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelectStop: (stop: RouteStop) => void;
+  /** Aktive medarbejdere for virksomheden — bruges til inline assignee-picker. */
+  employees: EmpAvatar[];
 };
 
-export const RouteStopsPanel = ({ route, stops, open, onOpenChange, onSelectStop }: Props) => {
+export const RouteStopsPanel = ({ route, stops, open, onOpenChange, onSelectStop, employees }: Props) => {
   const reorder = useReorderStops();
   const deleteStop = useDeleteStop();
+  const setAssignees = useSetStopAssignees();
   const [confirmDelete, setConfirmDelete] = useState<RouteStop | null>(null);
 
   // Lokal sorteret liste — opdateres når DB-data ændrer sig
