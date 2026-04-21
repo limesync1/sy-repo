@@ -463,6 +463,22 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
 
                           <p className="text-right text-sm font-bold text-foreground mt-2">{item.total} kr</p>
                         </div>
+                        {/* Anslået varighed + tidsrum — samme UI som ejerens stop-modul */}
+                        <div className="border-t bg-secondary/20 px-3.5 py-2.5">
+                          <DurationTimePicker
+                            durationHours={getLinePref(item.serviceId).durationHours}
+                            durationMinutes={getLinePref(item.serviceId).durationMinutes}
+                            onDurationChange={(h, m) =>
+                              updateLinePref(item.serviceId, { durationHours: h, durationMinutes: m })
+                            }
+                            timeStart={getLinePref(item.serviceId).timeStart}
+                            timeEnd={getLinePref(item.serviceId).timeEnd}
+                            onTimeChange={(s, e) =>
+                              updateLinePref(item.serviceId, { timeStart: s, timeEnd: e })
+                            }
+                            compact
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
