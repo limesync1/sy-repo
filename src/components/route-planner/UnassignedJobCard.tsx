@@ -7,6 +7,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { da } from "date-fns/locale";
+import { formatDurationMin } from "@/lib/duration-format";
 
 type OrderItem = {
   service_name: string;
@@ -34,6 +35,7 @@ type Props = {
     preferred_route_name?: string | null;
     order_items?: OrderItem[] | null;
   };
+  onClick?: () => void;
 };
 
 const INTERVAL_LABELS: Record<string, string> = {
@@ -65,7 +67,7 @@ const getUrgency = (d?: string | null) => {
   return { label: format(date, "d. MMM", { locale: da }), className: "border-border text-muted-foreground bg-secondary/40" };
 };
 
-export const UnassignedJobCard = ({ job }: Props) => {
+export const UnassignedJobCard = ({ job, onClick }: Props) => {
   const [expanded, setExpanded] = useState(false);
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `job-${job.id}`,
@@ -74,8 +76,9 @@ export const UnassignedJobCard = ({ job }: Props) => {
 
   const items = job.order_items || [];
   const itemCount = items.length;
-  const fullAddress = [job.address, [job.zip_code, job.city].filter(Boolean).join(" ")]
-    .filter(Boolean).join(", ");
+  // Vis hele adressen: gade, postnummer og by samlet
+  const cityLine = [job.zip_code, job.city].filter(Boolean).join(" ");
+  const fullAddress = [job.address, cityLine].filter(Boolean).join(", ");
 
   // Foretrukken kilde til varighed: eksplicit estimeret felt fra ordren.
   // Falder tilbage til tidsvindue, derefter 30 min default.
