@@ -33,7 +33,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const updateStop = useUpdateStop();
   const deleteStop = useDeleteStop();
 
-  const [duration, setDuration] = useState<number>(30);
   const [durationHours, setDurationHours] = useState<number>(0);
   const [durationMinutes, setDurationMinutes] = useState<number>(30);
   const [timeStart, setTimeStart] = useState<string>("");
@@ -44,7 +43,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   useEffect(() => {
     if (!stop) return;
     const totalMin = stop.duration_minutes || 30;
-    setDuration(totalMin);
     setDurationHours(Math.floor(totalMin / 60));
     setDurationMinutes(totalMin % 60);
     setTimeStart(stop.time_window_start?.slice(0, 5) || "");
