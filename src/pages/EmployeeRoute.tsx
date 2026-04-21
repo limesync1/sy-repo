@@ -76,26 +76,22 @@ const FollowUser = ({
   active,
   userPos,
   nextStop,
+  heading,
 }: {
   active: boolean;
   userPos: [number, number] | null;
   nextStop: RouteStop | undefined;
+  heading: number | null;
 }) => {
   const map = useMap();
   useEffect(() => {
     if (!active || !userPos) return;
-    const nextLat = nextStop?.latitude != null ? Number(nextStop.latitude) : null;
-    const nextLng = nextStop?.longitude != null ? Number(nextStop.longitude) : null;
-    if (nextLat != null && nextLng != null) {
-      const bounds = L.latLngBounds([
-        L.latLng(userPos[0], userPos[1]),
-        L.latLng(nextLat, nextLng),
-      ]);
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16, animate: true });
-      return;
-    }
-    map.setView(userPos, Math.max(map.getZoom(), 16), { animate: true });
-  }, [active, userPos?.[0], userPos?.[1], nextStop?.id, map]);
+    // Always lock the camera tight on the driver — like Google Maps navigation.
+    // We use a high zoom (17) and pan softly to follow movement.
+    const targetZoom = Math.max(map.getZoom(), 17);
+    map.setView(userPos, targetZoom, { animate: true, duration: 0.5 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, userPos?.[0], userPos?.[1], heading, map]);
   return null;
 };
 
