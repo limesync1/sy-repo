@@ -39,7 +39,7 @@ import {
   Loader2, MapIcon, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
   ShoppingBag,
 } from "lucide-react";
-import { format, addDays, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
+import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import {
@@ -567,22 +567,35 @@ const Planner = () => {
             </Tabs>
 
             <div className="flex items-center gap-1.5">
-              <Button variant="outline" size="icon" className="h-7 w-7"
-                onClick={() => setDate(format(addDays(parseISO(date), -1), "yyyy-MM-dd"))}>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() =>
+                  setDate(format(view === "week" ? addWeeks(parseISO(date), -1) : addMonths(parseISO(date), -1), "yyyy-MM-dd"))
+                }
+                aria-label={view === "week" ? "Forrige uge" : "Forrige måned"}
+              >
                 <ChevronLeft className="h-3.5 w-3.5" />
               </Button>
-              <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-[150px] h-7" />
-              <Button variant="outline" size="icon" className="h-7 w-7"
-                onClick={() => setDate(format(addDays(parseISO(date), 1), "yyyy-MM-dd"))}>
+              <span className="text-xs font-medium capitalize min-w-[110px] text-center tabular-nums">
+                {view === "week"
+                  ? `Uge ${format(parseISO(date), "I", { locale: da })} · ${format(parseISO(date), "MMM yyyy", { locale: da })}`
+                  : format(parseISO(date), "MMMM yyyy", { locale: da })}
+              </span>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() =>
+                  setDate(format(view === "week" ? addWeeks(parseISO(date), 1) : addMonths(parseISO(date), 1), "yyyy-MM-dd"))
+                }
+                aria-label={view === "week" ? "Næste uge" : "Næste måned"}
+              >
                 <ChevronRight className="h-3.5 w-3.5" />
               </Button>
               <Button variant="outline" size="sm" className="h-7" onClick={() => setDate(todayStr())}>I dag</Button>
             </div>
-
-            <span className="text-xs text-muted-foreground capitalize">
-              {format(parseISO(date), "EEEE d. MMMM", { locale: da })}
-            </span>
 
             <div className="ml-auto flex items-center gap-1.5">
               <Dialog open={createOpen} onOpenChange={setCreateOpen}>
