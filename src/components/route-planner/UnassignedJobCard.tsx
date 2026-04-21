@@ -100,14 +100,23 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
       style={{ opacity: isDragging ? 0.4 : 1 }}
       className="group rounded-lg border bg-card hover:border-primary/60 hover:shadow-md transition-all overflow-hidden"
     >
-      {/* Drag handle row */}
-      <div
-        {...listeners}
-        {...attributes}
-        className="flex items-start gap-2 p-2.5 cursor-grab active:cursor-grabbing"
-      >
-        <GripVertical className="h-4 w-4 text-muted-foreground/50 mt-0.5 shrink-0 group-hover:text-primary/70 transition-colors" />
-        <div className="flex-1 min-w-0 space-y-1.5">
+      {/* Top row: drag handle + clickable content */}
+      <div className="flex items-start gap-2 p-2.5">
+        {/* Kun grip-håndtaget initierer drag — så kortet selv kan klikkes */}
+        <button
+          type="button"
+          {...listeners}
+          {...attributes}
+          aria-label="Træk for at flytte"
+          className="shrink-0 mt-0.5 text-muted-foreground/50 hover:text-primary/70 cursor-grab active:cursor-grabbing"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onClick}
+          className="flex-1 min-w-0 space-y-1.5 text-left cursor-pointer"
+        >
           {/* Header: name + price */}
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-1.5 min-w-0 flex-1">
@@ -181,7 +190,7 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
               </Badge>
             )}
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Expandable details */}
