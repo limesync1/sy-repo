@@ -499,11 +499,7 @@ const PlanningSection = ({
         : `${durationHours} t ${durationMinutes} min`;
 
   return (
-    <section>
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-        Planlægning
-      </h3>
-      <div className="space-y-4">
+    <div className="space-y-4">
         {/* Tidsrum */}
         <div className="space-y-2">
           <Label>Tidsrum</Label>
