@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import {
   useReorderStops, useDeleteStop, type RouteStop, type Route,
 } from "@/hooks/useRoutes";
+import { formatDurationMin } from "@/lib/duration-format";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -235,7 +236,7 @@ const SortableStopRow = ({ stop, index, color, onSelect, onRemove }: RowProps) =
           )}
           <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5 tabular-nums">
             <span className="inline-flex items-center gap-0.5">
-              <Clock className="h-2.5 w-2.5" />{stop.duration_minutes} min
+              <Clock className="h-2.5 w-2.5" />{formatDurationMin(stop.duration_minutes, { short: true })}
             </span>
             {stop.time_window_start && (
               <Badge variant="outline" className="h-3.5 px-1 text-[9px]">
