@@ -1206,8 +1206,9 @@ const StopListPanel = ({
     };
     if (s.id === nextStopId) return {
       label: "Næste",
-      bg: `${themeColor}1a`,
-      text: themeColor,
+      // Light teal background with dark teal text for clear contrast
+      bg: "hsl(184 70% 92%)",
+      text: "hsl(184 90% 22%)",
       dot: themeColor,
     };
     return {
@@ -1296,7 +1297,7 @@ const StopListPanel = ({
                 } ${isDone ? "opacity-60" : ""}`}
                 style={{
                   borderColor: isNext ? themeColor : undefined,
-                  background: isNext ? `${themeColor}08` : undefined,
+                  background: isNext ? "hsl(184 70% 97%)" : undefined,
                   borderLeftWidth: isNext ? 3 : 1,
                   borderLeftColor: isNext ? themeColor : isDone ? "hsl(142 70% 45%)" : "hsl(220 14% 90%)",
                   ...(isHl ? { ["--tw-ring-color" as any]: themeColor } : {}),
