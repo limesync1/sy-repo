@@ -4,7 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData, useDirections, useUpdateStopStatus, useOrderForStop, type RouteStop, type Route } from "@/hooks/useRoutes";
 import { useStartStopTime, useEndStopTime } from "@/hooks/useRoutes";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
