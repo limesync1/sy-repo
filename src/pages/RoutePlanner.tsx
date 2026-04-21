@@ -382,6 +382,9 @@ const Planner = () => {
           service_summary: (job.order_items || [])
             .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
             .join(", ") || "Opgave",
+          duration_minutes: Number(job.estimated_duration_minutes) || 30,
+          time_window_start: job.preferred_time_start || null,
+          time_window_end: job.preferred_time_end || null,
         });
         toast.success("Opgave tilføjet til ruten");
       } catch (err: any) {
