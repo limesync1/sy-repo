@@ -1231,12 +1231,25 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 const MapInteractionWatcher = ({ onInteract }: { onInteract: () => void }) => {
   const map = useMap();
   useEffect(() => {
-    const handler = () => onInteract();
+    // Vi vil KUN bryde follow-mode ved ægte brugerinput — ikke når vores
+    // egen kode kalder panTo/setView, og ikke når layoutet ændrer sig
+    // (f.eks. når et bottom-sheet åbner og kortet får invalidateSize).
+    // Tidligere lyttede vi på "zoomstart"/"dragstart" generelt, hvilket
+    // betød at programmatiske kortbevægelser også slog follow fra og gav
+    // et "glitch"-look når moduler kom ind over kortet.
+    const handler = (e: any) => {
+      // Leaflet sætter originalEvent når interaktionen kommer fra DOM.
+      if (e?.originalEvent) onInteract();
+    };
     map.on("dragstart", handler);
     map.on("zoomstart", handler);
+    map.on("mousedown", handler);
+    map.on("touchstart", handler);
     return () => {
       map.off("dragstart", handler);
       map.off("zoomstart", handler);
+      map.off("mousedown", handler);
+      map.off("touchstart", handler);
     };
   }, [map, onInteract]);
   return null;
