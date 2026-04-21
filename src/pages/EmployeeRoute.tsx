@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
-  ChevronUp, ChevronDown, Printer, Play, Volume2, VolumeX, Timer,
+  ChevronUp, ChevronDown, Printer, Play, Volume2, VolumeX, Crosshair, Map as MapIcon,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, Tooltip, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -19,6 +19,8 @@ import { bearingDegrees, haversineMeters } from "@/lib/geo-distance";
 import {
   unlockAudio, playArrivalChime, playSuccessChime, playCompleteFanfare, speak,
 } from "@/lib/employee-audio";
+import { ManeuverIcon, maneuverLabel } from "@/components/employee-route/ManeuverIcon";
+import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuver";
 
 /* ── Icons ──────────────────────────────────────────────────────── */
 const startIcon = L.divIcon({
