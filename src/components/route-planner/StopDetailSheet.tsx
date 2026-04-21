@@ -17,13 +17,14 @@ import {
 import {
   MapPin, Phone, Mail, Clock, Trash2, Save,
   AlertCircle, Banknote, FileText, Repeat, PauseCircle,
-  Timer, Hourglass,
+  Timer, Hourglass, User, Package, CalendarClock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { INTERVAL_LABELS } from "@/types/service";
+import { Section, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 
 type Props = {
   stop: RouteStop | null;
