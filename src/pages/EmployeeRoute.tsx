@@ -902,9 +902,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Done state ─── */}
         {allDone && (
           <div className="absolute bottom-0 inset-x-0 z-[1000] p-3">
-            <Card className="overflow-hidden shadow-2xl rounded-2xl">
+            <Card
+              className="overflow-hidden shadow-2xl rounded-2xl border-t-2"
+              style={{ borderTopColor: "hsl(142 70% 45%)" }}
+            >
               <div className="p-5 text-center space-y-3">
-                <div className="h-16 w-16 mx-auto rounded-full bg-green-100 text-green-700 flex items-center justify-center">
+                <div
+                  className="h-16 w-16 mx-auto rounded-2xl flex items-center justify-center shadow-lg"
+                  style={{ background: "hsl(142 70% 95%)", color: "hsl(142 70% 30%)" }}
+                >
                   <CheckCircle2 className="h-9 w-9" />
                 </div>
                 <div>
@@ -914,9 +920,28 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     {autoReturn != null && autoReturn > 0 && ` · oversigt om ${autoReturn}s`}
                   </p>
                 </div>
+                {/* Mini-stats */}
+                <div className="grid grid-cols-3 divide-x rounded-xl border bg-secondary/30 overflow-hidden">
+                  <div className="px-2 py-2">
+                    <p className="text-[9px] uppercase text-muted-foreground font-semibold">Stop</p>
+                    <p className="text-sm font-bold tabular-nums">{sortedStops.length}</p>
+                  </div>
+                  <div className="px-2 py-2">
+                    <p className="text-[9px] uppercase text-muted-foreground font-semibold">Distance</p>
+                    <p className="text-sm font-bold tabular-nums">
+                      {route.total_distance_km != null ? `${route.total_distance_km.toFixed(1)} km` : "—"}
+                    </p>
+                  </div>
+                  <div className="px-2 py-2">
+                    <p className="text-[9px] uppercase text-muted-foreground font-semibold">Tid</p>
+                    <p className="text-sm font-bold tabular-nums">
+                      {route.total_duration_minutes != null ? `${route.total_duration_minutes} min` : "—"}
+                    </p>
+                  </div>
+                </div>
                 <Button
                   size="lg"
-                  className="w-full gap-2 h-12"
+                  className="w-full gap-2 h-12 rounded-xl"
                   onClick={() => { setAutoReturn(null); navigate("/medarbejder"); }}
                 >
                   Til oversigt
