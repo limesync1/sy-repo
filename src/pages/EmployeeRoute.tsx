@@ -224,6 +224,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const handleComplete = async (s: RouteStop) => {
     try {
       await updateStatus.mutateAsync({ id: s.id, status: "completed", notes: noteDraft[s.id] });
+      if (audioEnabled) playSuccessChime();
       toast.success(`${s.customer_name || "Stop"} markeret som udført`);
       setSelectedId(null);
     } catch { /* */ }
@@ -238,6 +239,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   const completedCount = sortedStops.filter((s) => s.status === "completed").length;
   const allDone = sortedStops.length > 0 && completedCount === sortedStops.length;
+
+  /* Spil fanfare én gang når dagen er færdig. */
+  useEffect(() => {
+    if (!allDone || finishedAnnouncedRef.current || !audioEnabled) return;
+    finishedAnnouncedRef.current = true;
+    playCompleteFanfare();
+    setTimeout(() => speak("Godt arbejde. Alle stop er klaret."), 800);
+  }, [allDone, audioEnabled]);
+
+  const handleStartRoute = () => {
+    unlockAudio();
+    setRouteStarted(true);
+    toast.success("Rute startet — god tur!");
+  };
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
