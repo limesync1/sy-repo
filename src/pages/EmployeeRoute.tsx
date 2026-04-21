@@ -349,7 +349,21 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     unlockAudio();
     setRouteStarted(true);
     setFollowMode(true);
+    setCollapsed(true); // collapse bottom card so map is fully visible while driving
     toast.success("Rute startet — god tur!");
+    // Get an immediate GPS fix so the camera snaps to the user right away
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserPos([pos.coords.latitude, pos.coords.longitude]);
+          if (typeof pos.coords.heading === "number" && !Number.isNaN(pos.coords.heading)) {
+            setUserHeading(pos.coords.heading);
+          }
+        },
+        () => { /* silent */ },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 },
+      );
+    }
   };
 
   return (
@@ -493,7 +507,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             />
 
             <FitTo points={fitPoints} />
-              <FollowUser active={routeStarted && followMode} userPos={userPos} nextStop={nextStop} />
+              <FollowUser active={routeStarted && followMode} userPos={userPos} nextStop={nextStop} heading={derivedHeading} />
 
             {/* Start marker */}
             {startCoord && <Marker position={startCoord} icon={startIcon} />}
