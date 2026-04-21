@@ -1284,9 +1284,9 @@ const StopListPanel = ({
       aria-hidden={false}
     >
       <div
-        className="pointer-events-auto mx-auto w-full max-w-3xl bg-background/98 backdrop-blur shadow-2xl rounded-t-2xl transition-transform duration-300 ease-out border-t border-border"
+        className="pointer-events-auto mx-auto w-full max-w-3xl bg-background shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)] rounded-t-2xl transition-transform duration-300 ease-out border-t border-x border-border"
         style={{
-          transform: open ? "translateY(0)" : "translateY(calc(100% - 38px))",
+          transform: open ? "translateY(0)" : "translateY(calc(100% - 42px))",
           maxHeight: "60vh",
         }}
       >
@@ -1294,10 +1294,10 @@ const StopListPanel = ({
         <button
           type="button"
           onClick={onToggle}
-          className="w-full flex items-center gap-2 px-3 h-[38px] hover:bg-secondary/40 transition-colors rounded-t-2xl relative"
+          className="w-full flex items-center gap-2 px-3 h-[42px] hover:bg-secondary/60 active:bg-secondary transition-colors rounded-t-2xl relative"
           aria-expanded={open}
         >
-          <span className="h-0.5 w-8 rounded-full bg-muted-foreground/25 absolute left-1/2 -translate-x-1/2 top-1" />
+          <span className="h-1 w-9 rounded-full bg-muted-foreground/30 absolute left-1/2 -translate-x-1/2 top-1.5" />
           <List className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="text-[11px] font-semibold text-foreground/80">Alle stop</span>
           <Badge variant="secondary" className="tabular-nums text-[9px] h-3.5 px-1 font-bold">
