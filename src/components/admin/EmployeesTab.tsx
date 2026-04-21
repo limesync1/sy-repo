@@ -436,6 +436,39 @@ const EmployeeRow = ({
         <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={() => {
+              setEditName(employee.name || "");
+              setEditEmail(employee.email || "");
+              setEditPhone(employee.phone || "");
+              setEditTitle(employee.title || "");
+              setEditOpen(true);
+            }}
+            title="Rediger"
+            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+          {linked && (
+            <button
+              onClick={() => {
+                if (!confirm(`Send nulstillings-email til ${employee.email}?`)) return;
+                resetPw.mutate(
+                  { employee_id: employee.id },
+                  {
+                    onSuccess: ({ emailSent }) =>
+                      toast.success(emailSent ? "Nulstillings-email sendt" : "Link genereret, men email kunne ikke sendes"),
+                    onError: (e: any) => toast.error(e.message || "Kunne ikke sende"),
+                  },
+                );
+              }}
+              title="Send nulstilling af adgangskode"
+              disabled={resetPw.isPending}
+              className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors disabled:opacity-50"
+            >
+              <KeyRound className="h-4 w-4" />
+            </button>
+          )}
+          <button
+            onClick={() => {
               onUpdate.mutate(
                 { id: employee.id, business_id: businessId, is_active: !employee.is_active },
                 {
@@ -468,6 +501,78 @@ const EmployeeRow = ({
           </button>
         </div>
       </CardContent>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-4 w-4 text-accent" />
+              Rediger medarbejder
+            </DialogTitle>
+            <DialogDescription>
+              Opdater oplysninger for {employee.name}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Navn</label>
+              <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-10" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
+              <Input
+                type="email"
+                value={editEmail}
+                onChange={(e) => setEditEmail(e.target.value)}
+                className="h-10"
+              />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Email opdateres på medarbejder-profilen, men ændrer ikke login-emailen.
+              </p>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Telefon</label>
+              <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-10" />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Titel</label>
+              <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="h-10" />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => setEditOpen(false)}>Annuller</Button>
+            <Button
+              onClick={() => {
+                if (!editName.trim() || !editEmail.trim()) {
+                  toast.error("Navn og email er påkrævet");
+                  return;
+                }
+                onUpdate.mutate(
+                  {
+                    id: employee.id,
+                    business_id: businessId,
+                    name: editName.trim(),
+                    email: editEmail.trim().toLowerCase(),
+                    phone: editPhone.trim() || null,
+                    title: editTitle.trim() || null,
+                  } as any,
+                  {
+                    onSuccess: () => {
+                      toast.success("Medarbejder opdateret");
+                      setEditOpen(false);
+                    },
+                    onError: (e: any) => toast.error(e.message || "Kunne ikke opdatere"),
+                  },
+                );
+              }}
+              disabled={onUpdate.isPending}
+              className="bg-accent text-accent-foreground hover:bg-accent/90"
+            >
+              {onUpdate.isPending ? "Gemmer..." : "Gem ændringer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
