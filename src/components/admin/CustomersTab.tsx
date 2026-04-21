@@ -17,6 +17,7 @@ import { da } from "date-fns/locale";
 import { INTERVAL_LABELS } from "@/types/service";
 import { Link } from "react-router-dom";
 import CustomerEditDialog, { type EditableCustomer } from "./CustomerEditDialog";
+import { PageHeader, PrimaryButton, StatCard, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
 
 type Customer = {
   email: string;
@@ -425,67 +426,28 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Kunder</h2>
-          <p className="text-sm text-muted-foreground">Alle dine kunder, deres bestillinger, abonnementer og rutehistorik.</p>
-        </div>
-        <Button onClick={openCreateDialog} className="h-9 rounded-lg bg-foreground text-background hover:bg-foreground/90 text-sm font-medium px-4 shadow-sm">
-          <UserPlus className="mr-1.5 h-4 w-4" />
-          Tilføj kunde
-        </Button>
-      </div>
+      <PageHeader
+        title="Kunder"
+        description="Alle dine kunder, deres bestillinger, abonnementer og rutehistorik."
+        action={
+          <PrimaryButton onClick={openCreateDialog} icon={<UserPlus />}>
+            Tilføj kunde
+          </PrimaryButton>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center">
-              <User className="h-5 w-5 text-accent" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Kunder i alt</p>
-              <p className="text-xl font-bold text-foreground">{stats.total}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-              <Repeat className="h-5 w-5 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Med abonnement</p>
-              <p className="text-xl font-bold text-foreground">{stats.recurring}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-amber-50 flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-amber-600" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Samlet omsætning</p>
-              <p className="text-xl font-bold text-foreground">{fmtKr(stats.totalRev)}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard label="Kunder i alt" value={stats.total} icon={<User />} tone="accent" />
+        <StatCard label="Med abonnement" value={stats.recurring} icon={<Repeat />} tone="emerald" />
+        <StatCard label="Samlet omsætning" value={fmtKr(stats.totalRev)} icon={<TrendingUp />} tone="amber" />
       </div>
 
       {/* Search */}
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Søg navn, email, firma, CVR eller by..."
-            className="pl-9 rounded-xl"
-          />
-        </div>
+        <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, firma, CVR eller by..." />
         <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as any)}>
-          <SelectTrigger className="w-[180px] rounded-xl">
+          <SelectTrigger className="w-[180px] rounded-lg h-10">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -500,17 +462,14 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
       {isLoading ? (
         <div className="text-center py-12 text-muted-foreground">Indlæser kunder...</div>
       ) : filtered.length === 0 ? (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <User className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-sm font-medium text-foreground">
-              {customers.length === 0 ? "Ingen kunder endnu" : "Ingen kunder matcher søgningen"}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {customers.length === 0 ? "Når du modtager bestillinger dukker kunder op her automatisk." : "Prøv et andet søgeord."}
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={<User />}
+          title={customers.length === 0 ? "Ingen kunder endnu" : "Ingen kunder matcher søgningen"}
+          description={customers.length === 0 ? "Tilføj din første kunde, eller vent til der kommer bestillinger ind." : "Prøv et andet søgeord."}
+          action={customers.length === 0 ? (
+            <PrimaryButton onClick={openCreateDialog} icon={<UserPlus />}>Tilføj kunde</PrimaryButton>
+          ) : undefined}
+        />
       ) : (
         <div className="rounded-xl border border-border bg-card overflow-hidden divide-y divide-border">
           {filtered.map((c) => (

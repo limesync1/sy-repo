@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, MessageSquare } from "lucide-react";
+import { PageHeader, EmptyState } from "@/components/admin/shared/AdminUI";
 
 interface Props {
   reviews: any[];
@@ -21,13 +22,11 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">Anmeldelser</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">{reviews.length} anmeldelser i alt</p>
-        </div>
-        {reviews.length > 0 && (
-          <div className="flex items-center gap-2.5 rounded-xl border border-border bg-card px-4 py-2.5 shadow-sm">
+      <PageHeader
+        title="Anmeldelser"
+        description={`${reviews.length} anmeldelser i alt`}
+        action={reviews.length > 0 ? (
+          <div className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-4 py-2 shadow-sm h-9">
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star key={star} className={`h-4 w-4 ${star <= Math.round(avgRating) ? "fill-amber-400 text-amber-400" : "text-border"}`} />
@@ -35,8 +34,8 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
             </div>
             <span className="text-base font-bold text-foreground tabular-nums">{avgRating.toFixed(1)}</span>
           </div>
-        )}
-      </div>
+        ) : null}
+      />
 
       {/* Rating breakdown */}
       {reviews.length > 0 && (
@@ -108,15 +107,11 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
           </Card>
         ))}
         {reviews.length === 0 && (
-          <Card className="rounded-xl border-dashed border-border">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary">
-                <Star className="h-7 w-7 text-muted-foreground/25" />
-              </div>
-              <p className="text-sm font-medium text-foreground">Ingen anmeldelser endnu</p>
-              <p className="mt-1 text-sm text-muted-foreground max-w-xs text-center">Anmeldelser vises her når kunder bedømmer din virksomhed.</p>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={<Star />}
+            title="Ingen anmeldelser endnu"
+            description="Anmeldelser vises her når kunder bedømmer din virksomhed."
+          />
         )}
       </div>
     </div>
