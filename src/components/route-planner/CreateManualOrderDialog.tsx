@@ -18,6 +18,9 @@ import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 import { roundPrice, buildPricingSnapshot } from "@/lib/service-pricing";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
+import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
+import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
+import { Building2 } from "lucide-react";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
 type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string };
@@ -58,6 +61,10 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
   const [address, setAddress] = useState("");
   const [zipCode, setZipCode] = useState("");
   const [city, setCity] = useState("");
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [cvr, setCvr] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [preferredDate, setPreferredDate] = useState("");
   const [businessMessage, setBusinessMessage] = useState("");
 
@@ -84,6 +91,8 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
   const reset = () => {
     setCustomerName(""); setCustomerEmail(""); setCustomerPhone("");
     setAddress(""); setZipCode(""); setCity("");
+    setLatitude(null); setLongitude(null);
+    setCvr(""); setCompanyName("");
     setPreferredDate(""); setBusinessMessage("");
     setItems([]);
   };
@@ -104,17 +113,9 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
 
     setSubmitting(true);
     try {
-      // Try to geocode if address present
-      let lat: number | null = null;
-      let lng: number | null = null;
-      if (address.trim() && (zipCode.trim() || city.trim())) {
-        try {
-          const { data: geo } = await supabase.functions.invoke("geocode-address", {
-            body: { address: address.trim(), zip_code: zipCode.trim(), city: city.trim() },
-          });
-          if (geo?.found) { lat = geo.latitude; lng = geo.longitude; }
-        } catch { /* non-blocking */ }
-      }
+      // Adressen er allerede verificeret + geokodet via DAWA-autocomplete
+      const lat = latitude;
+      const lng = longitude;
 
       // Build approval token + expiry
       const tokenBytes = new Uint8Array(32);
@@ -135,6 +136,8 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
         city: city.trim() || null,
         latitude: lat,
         longitude: lng,
+        cvr: cvr.replace(/\D/g, "") || null,
+        company_name: companyName.trim() || null,
         preferred_date: preferredDate || null,
         total_amount: totalAmount,
         status: "pending",
