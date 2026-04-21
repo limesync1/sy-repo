@@ -804,48 +804,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         </SheetContent>
       </Sheet>
 
-      {/* ─── Full list sheet ─── */}
-      <Sheet open={showList} onOpenChange={setShowList}>
-        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Alle stop</SheetTitle>
-            <SheetDescription>Alle dine stop på denne rute i rækkefølge.</SheetDescription>
-          </SheetHeader>
-          <div className="mt-4 space-y-2">
-            {sortedStops.map((s, i) => {
-              const isDone = s.status === "completed";
-              const isNext = s.id === nextStop?.id;
-              return (
-                <button
-                  key={s.id}
-                  onClick={() => { setSelectedId(s.id); setShowList(false); }}
-                  className={`w-full text-left p-3 rounded-xl border flex items-start gap-3 transition-colors hover:bg-muted ${isNext ? "border-2" : ""} ${isDone ? "opacity-60" : ""}`}
-                  style={isNext ? { borderColor: themeColor, background: `${themeColor}10` } : undefined}
-                >
-                  <span
-                    className="flex h-8 w-8 items-center justify-center rounded-full font-semibold text-xs shrink-0 text-background"
-                    style={{ background: isDone ? "hsl(142 70% 45%)" : isNext ? themeColor : "hsl(220 14% 65%)" }}
-                  >
-                    {isDone ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{s.customer_name || "Stop"}</p>
-                    {s.address && <p className="text-xs text-muted-foreground truncate">{s.address}</p>}
-                    {s.service_summary && stripPrices(s.service_summary) && (
-                      <p className="text-xs mt-1 line-clamp-1">{stripPrices(s.service_summary)}</p>
-                    )}
-                  </div>
-                  {isNext && (
-                    <Badge className="text-[10px] shrink-0 text-background" style={{ background: themeColor }}>
-                      Næste
-                    </Badge>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </SheetContent>
-      </Sheet>
+      {/* ─── Persistent collapsible bottom stop-list ─── */}
+      <StopListPanel
+        open={listOpen}
+        onToggle={() => setListOpen((v) => !v)}
+        stops={sortedStops}
+        nextStopId={nextStop?.id}
+        highlightedId={highlightedId}
+        themeColor={themeColor}
+        onSelectStop={(s) => {
+          setHighlightedId(s.id);
+          if (s.latitude != null && s.longitude != null) setFollowMode(false);
+        }}
+        onOpenDetails={(s) => setSelectedId(s.id)}
+      />
     </div>
   );
 };
