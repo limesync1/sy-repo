@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData, useDirections, useUpdateStopStatus, type RouteStop, type Route } from "@/hooks/useRoutes";
@@ -8,13 +8,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
-  ChevronUp, ChevronDown, Printer,
+  ChevronUp, ChevronDown, Printer, Play, Volume2, VolumeX,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { toast } from "sonner";
 import { stripPrices } from "@/lib/employee-display";
+import { haversineMeters } from "@/lib/geo-distance";
+import {
+  unlockAudio, playArrivalChime, playSuccessChime, playCompleteFanfare, speak,
+} from "@/lib/employee-audio";
 
 /* ── Icons ──────────────────────────────────────────────────────── */
 const startIcon = L.divIcon({
@@ -89,9 +93,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const [showList, setShowList] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
+  const [routeStarted, setRouteStarted] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(true);
+  /** Stop-id'er hvor vi allerede har afspillet ankomst-lyd (undgår spam). */
+  const arrivedAnnouncedRef = useRef<Set<string>>(new Set());
+  /** Har vi allerede spillet "dag færdig"-fanfaren? */
+  const finishedAnnouncedRef = useRef(false);
 
-  /* Geolocation */
+  /* Geolocation — start kun watchPosition når ruten er startet */
   useEffect(() => {
+    if (!routeStarted) return;
     if (!navigator.geolocation) return;
     const watchId = navigator.geolocation.watchPosition(
       (pos) => setUserPos([pos.coords.latitude, pos.coords.longitude]),
@@ -99,7 +110,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       { enableHighAccuracy: true, maximumAge: 30000, timeout: 10000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
-  }, []);
+  }, [routeStarted]);
 
   const route = data?.route as (Route & { businesses?: { name?: string } }) | undefined;
   const stops = data?.stops || [];
@@ -146,6 +157,26 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   const { data: directions } = useDirections(legWaypoints);
 
+  /** Afstand i meter fra brugerens GPS til næste stop (null hvis ukendt). */
+  const distanceToNextM: number | null = useMemo(() => {
+    if (!userPos || !nextStop || nextStop.latitude == null || nextStop.longitude == null) return null;
+    return haversineMeters(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
+  }, [userPos, nextStop?.id, nextStop?.latitude, nextStop?.longitude]);
+
+  /** Geofence-tærskel: GPS-præcision i byen er 20-50m, så 75m giver en pålidelig "du er fremme"-zone. */
+  const ARRIVAL_THRESHOLD_M = 75;
+  const isAtNextStop = distanceToNextM != null && distanceToNextM <= ARRIVAL_THRESHOLD_M;
+
+  /* Spil ankomst-chime + tale én gang pr. stop når geofence udløses. */
+  useEffect(() => {
+    if (!isAtNextStop || !nextStop || !audioEnabled) return;
+    if (arrivedAnnouncedRef.current.has(nextStop.id)) return;
+    arrivedAnnouncedRef.current.add(nextStop.id);
+    playArrivalChime();
+    const name = nextStop.customer_name || "stoppet";
+    setTimeout(() => speak(`Du er ankommet til ${name}`), 600);
+  }, [isAtNextStop, nextStop?.id, audioEnabled]);
+
   const legLine: [number, number][] = useMemo(() => {
     if (!directions?.geometry?.coordinates) return [];
     return directions.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
@@ -166,6 +197,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     }
     return allPoints;
   }, [legLine, nextStop, legOrigin, allPoints]);
+
+  const completedCount = sortedStops.filter((s) => s.status === "completed").length;
+  const allDone = sortedStops.length > 0 && completedCount === sortedStops.length;
+
+  /* Spil fanfare én gang når dagen er færdig. */
+  useEffect(() => {
+    if (!allDone || finishedAnnouncedRef.current || !audioEnabled) return;
+    finishedAnnouncedRef.current = true;
+    playCompleteFanfare();
+    setTimeout(() => speak("Godt arbejde. Alle stop er klaret."), 800);
+  }, [allDone, audioEnabled]);
 
   if (isLoading) {
     return (
@@ -193,6 +235,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const handleComplete = async (s: RouteStop) => {
     try {
       await updateStatus.mutateAsync({ id: s.id, status: "completed", notes: noteDraft[s.id] });
+      if (audioEnabled) playSuccessChime();
       toast.success(`${s.customer_name || "Stop"} markeret som udført`);
       setSelectedId(null);
     } catch { /* */ }
@@ -205,8 +248,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     } catch { /* */ }
   };
 
-  const completedCount = sortedStops.filter((s) => s.status === "completed").length;
-  const allDone = sortedStops.length > 0 && completedCount === sortedStops.length;
+  const handleStartRoute = () => {
+    unlockAudio();
+    setRouteStarted(true);
+    toast.success("Rute startet — god tur!");
+  };
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
@@ -244,6 +290,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           aria-label="Vis liste"
         >
           <List className="h-4 w-4" />
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-background hover:bg-background/10 h-9 w-9 p-0"
+          onClick={() => setAudioEnabled((v) => !v)}
+          aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
+          title={audioEnabled ? "Lyd til" : "Lyd fra"}
+        >
+          {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
         </Button>
       </header>
 
@@ -322,6 +378,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               {collapsed ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
               <span className="flex-1 text-left">
                 Næste stop {nextStopIdx + 1} af {sortedStops.length}
+                {isAtNextStop && <span className="ml-2 text-primary font-semibold">· Du er fremme</span>}
               </span>
               {directions && (
                 <span className="font-medium">
@@ -332,6 +389,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {!collapsed && (
               <div className="p-4 space-y-3">
+                {!routeStarted && (
+                  <Button onClick={handleStartRoute} size="lg" className="w-full gap-2">
+                    <Play className="h-5 w-5" /> Start rute
+                  </Button>
+                )}
                 <div className="flex items-start gap-3">
                   <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm shrink-0">
                     {nextStopIdx + 1}
@@ -346,6 +408,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     )}
                     {nextStop.service_summary && stripPrices(nextStop.service_summary) && (
                       <p className="text-sm mt-1 line-clamp-2">{stripPrices(nextStop.service_summary)}</p>
+                    )}
+                    {distanceToNextM != null && (
+                      <p className="text-[11px] text-muted-foreground mt-1 tabular-nums">
+                        {distanceToNextM < 1000 ? `${Math.round(distanceToNextM)} m` : `${(distanceToNextM/1000).toFixed(1)} km`} til stoppet
+                      </p>
                     )}
                   </div>
                 </div>
@@ -371,7 +438,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <Button
                   onClick={() => handleComplete(nextStop)}
                   size="lg"
-                  className="w-full gap-2"
+                  className={`w-full gap-2 ${isAtNextStop ? "ring-4 ring-primary/40 animate-pulse" : ""}`}
                   disabled={updateStatus.isPending}
                 >
                   {updateStatus.isPending ? (
@@ -379,7 +446,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   ) : (
                     <CheckCircle2 className="h-5 w-5" />
                   )}
-                  Markér som udført
+                  {isAtNextStop ? "Du er fremme — Markér som udført" : "Markér som udført"}
                 </Button>
               </div>
             )}

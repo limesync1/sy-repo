@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   MapPin, Phone, Mail, Clock, Trash2, Save,
-  AlertCircle, Calendar as CalendarIcon, Banknote, FileText, Repeat, PauseCircle, Hash,
+  AlertCircle, Banknote, FileText, Repeat, PauseCircle,
   Timer, Hourglass,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -93,13 +93,21 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   };
 
   const customerEmail = (order as any)?.customer_email;
-  const orderStatus = (order as any)?.status;
   const orderNotes = (order as any)?.notes as string | null;
-  const orderCreatedAt = (order as any)?.created_at;
-  const preferredDate = (order as any)?.preferred_date;
-  const preferredStart = (order as any)?.preferred_time_start?.slice(0, 5);
-  const preferredEnd = (order as any)?.preferred_time_end?.slice(0, 5);
   const hasCoords = stop.latitude != null && stop.longitude != null;
+
+  // Saml fuld adresse — stop.address indeholder ofte kun gaden,
+  // så vi tilføjer postnr/by fra ordren hvis det mangler.
+  const orderZip = (order as any)?.zip_code as string | null;
+  const orderCity = (order as any)?.city as string | null;
+  const orderAddress = (order as any)?.address as string | null;
+  const fullAddress = (() => {
+    const street = stop.address || orderAddress || "";
+    const cityLine = [orderZip, orderCity].filter(Boolean).join(" ");
+    if (!street && !cityLine) return null;
+    if (street && cityLine && !street.includes(cityLine)) return `${street}, ${cityLine}`;
+    return street || cityLine;
+  })();
 
   // Detect any active subscription (recurring) and any paused state
   const activeSub = subscriptions.find((s) => s.status === "active");
@@ -144,13 +152,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                       </Badge>
                     </span>
                   )}
-                  {orderStatus && (
-                    <span>
-                      <Badge variant="outline" className="text-[10px] capitalize">
-                        Ordre: {orderStatus}
-                      </Badge>
-                    </span>
-                  )}
                   {!hasCoords && (
                     <span>
                       <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
@@ -176,10 +177,10 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               <section>
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Kunde</h3>
                 <div className="space-y-1.5 text-sm">
-                  {stop.address && (
+                  {fullAddress && (
                     <div className="flex items-start gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                      <span>{stop.address}</span>
+                      <span>{fullAddress}</span>
                     </div>
                   )}
                   {stop.customer_phone && (
@@ -198,31 +199,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               </section>
 
               <Separator />
-
-              {/* Customer's preferred time */}
-              {(preferredDate || preferredStart) && (
-                <>
-                  <section>
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Kundens ønske</h3>
-                    <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm">
-                      <div className="flex items-center gap-2 text-amber-900">
-                        <CalendarIcon className="h-4 w-4 shrink-0" />
-                        {preferredDate && (
-                          <span className="font-medium">
-                            {format(parseISO(preferredDate), "EEE d. MMM", { locale: da })}
-                          </span>
-                        )}
-                        {preferredStart && (
-                          <span className="text-amber-700">
-                            {preferredStart}{preferredEnd ? ` – ${preferredEnd}` : ""}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </section>
-                  <Separator />
-                </>
-              )}
 
               {/* Order items */}
               {items.length > 0 && (
@@ -380,6 +356,22 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                           </span>
                         </div>
                       )}
+                      {(activeSub || pausedSub)!.service_name && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Ydelse</span>
+                          <span className="font-medium truncate ml-2">
+                            {(activeSub || pausedSub)!.service_name}
+                          </span>
+                        </div>
+                      )}
+                      {Number((activeSub || pausedSub)!.total_price) > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Pris pr. besøg</span>
+                          <span className="font-medium tabular-nums">
+                            {Math.round(Number((activeSub || pausedSub)!.total_price))} kr
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </section>
                   <Separator />
@@ -399,12 +391,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                   </section>
                   <Separator />
                 </>
-              )}
-
-              {orderCreatedAt && (
-                <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                  <Hash className="h-3 w-3" />Bestilt {format(parseISO(orderCreatedAt), "d. MMM yyyy 'kl.' HH:mm", { locale: da })}
-                </p>
               )}
 
               {/* Planning */}
