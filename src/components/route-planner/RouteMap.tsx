@@ -89,11 +89,16 @@ const dotIcon = (color: string) =>
 const useRouteGeometries = (routes: MapRoute[]) => {
   const [geometries, setGeometries] = useState<Map<string, [number, number][]>>(new Map());
 
-  // Build a stable signature per route from its coordinates
+  // Build a stable signature per route from its color + ordered coordinates.
+  // Including color prevents two different routes that happen to share stops
+  // from polluting each other's cache entry.
   const signatures = useMemo(
     () =>
       routes.map((r) => ({
-        sig: r.stops.map((s) => `${s.lat.toFixed(5)},${s.lng.toFixed(5)}`).join("|"),
+        sig:
+          r.color +
+          "::" +
+          r.stops.map((s) => `${s.lat.toFixed(5)},${s.lng.toFixed(5)}`).join("|"),
         color: r.color,
         stops: r.stops,
       })),
@@ -103,35 +108,75 @@ const useRouteGeometries = (routes: MapRoute[]) => {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const next = new Map(geometries);
-      let changed = false;
-
+      // Process routes one by one and commit each into state immediately so
+      // that parallel calls (multiple routes on screen) cannot overwrite
+      // each other via a stale `next` snapshot.
       for (const { sig, stops } of signatures) {
         if (!sig || stops.length < 2) continue;
-        if (next.has(sig)) continue;
+        // Use a functional check to avoid stale-state reads
+        let alreadyCached = false;
+        setGeometries((prev) => {
+          if (prev.has(sig)) alreadyCached = true;
+          return prev;
+        });
+        if (alreadyCached) continue;
 
-        try {
-          const { data, error } = await supabase.functions.invoke("route-directions", {
-            body: { waypoints: stops.map((s) => ({ lat: s.lat, lng: s.lng })) },
-          });
-          if (cancelled) return;
-          if (!error && data?.geometry?.coordinates) {
-            const coords: [number, number][] = data.geometry.coordinates.map(
-              ([lng, lat]: [number, number]) => [lat, lng],
-            );
-            next.set(sig, coords);
-            changed = true;
-          } else {
-            // Fallback to straight line
-            next.set(sig, stops.map((s) => [s.lat, s.lng] as [number, number]));
-            changed = true;
+        // Mapbox tillader maks 25 waypoints. Hvis ruten har flere stop,
+        // splitter vi i chunks og syr geometrien sammen så linjen ikke
+        // pludselig stopper midt i ruten.
+        const CHUNK = 25;
+        const chunks: typeof stops[] = [];
+        if (stops.length <= CHUNK) {
+          chunks.push(stops);
+        } else {
+          for (let i = 0; i < stops.length - 1; i += CHUNK - 1) {
+            chunks.push(stops.slice(i, i + CHUNK));
           }
-        } catch {
-          next.set(sig, stops.map((s) => [s.lat, s.lng] as [number, number]));
-          changed = true;
         }
+
+        const merged: [number, number][] = [];
+        let anyOk = false;
+        for (const chunk of chunks) {
+          try {
+            const { data, error } = await supabase.functions.invoke("route-directions", {
+              body: { waypoints: chunk.map((s) => ({ lat: s.lat, lng: s.lng })) },
+            });
+            if (cancelled) return;
+            if (!error && data?.geometry?.coordinates?.length) {
+              const coords: [number, number][] = data.geometry.coordinates.map(
+                ([lng, lat]: [number, number]) => [lat, lng],
+              );
+              // Undgå dublet-punkt mellem to chunks
+              if (merged.length > 0 && coords.length > 0) coords.shift();
+              merged.push(...coords);
+              anyOk = true;
+            } else {
+              // Per-chunk fallback: lige linjer kun mellem dette chunks stops,
+              // så ruten stadig er kontinuerlig.
+              const fallback = chunk.map((s) => [s.lat, s.lng] as [number, number]);
+              if (merged.length > 0 && fallback.length > 0) fallback.shift();
+              merged.push(...fallback);
+            }
+          } catch {
+            const fallback = chunk.map((s) => [s.lat, s.lng] as [number, number]);
+            if (merged.length > 0 && fallback.length > 0) fallback.shift();
+            merged.push(...fallback);
+          }
+        }
+
+        if (cancelled) return;
+        if (merged.length > 1) {
+          setGeometries((prev) => {
+            if (prev.has(sig)) return prev;
+            const next = new Map(prev);
+            next.set(sig, merged);
+            return next;
+          });
+        }
+        // Hvis intet lykkedes overhovedet, lad RouteLayer falde tilbage til
+        // sin egen lige-linje rendering (der altid er kontinuerlig).
+        void anyOk;
       }
-      if (changed && !cancelled) setGeometries(next);
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -269,7 +314,10 @@ const RouteMap = ({ routes, unassigned = [], height = "100%", selectedStopId, on
 
         {/* Route polylines (driving) + numbered pins */}
         {routes.map((r, ri) => {
-          const sig = r.stops.map((s) => `${s.lat.toFixed(5)},${s.lng.toFixed(5)}`).join("|");
+          const sig =
+            r.color +
+            "::" +
+            r.stops.map((s) => `${s.lat.toFixed(5)},${s.lng.toFixed(5)}`).join("|");
           const geom = getGeom(sig);
           return (
             <RouteLayer
