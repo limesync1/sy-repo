@@ -1113,6 +1113,20 @@ export const useDirections = (
         geometry: { type: "LineString"; coordinates: [number, number][] };
         distance_m: number | null;
         duration_s: number | null;
+        steps?: Array<{
+          distance_m: number;
+          duration_s: number;
+          name: string;
+          maneuver: {
+            type: string;
+            modifier?: string;
+            instruction?: string;
+            bearing_after?: number;
+            bearing_before?: number;
+            location: [number, number];
+          };
+          geometry?: { type: "LineString"; coordinates: [number, number][] };
+        }>;
       };
     },
   });
