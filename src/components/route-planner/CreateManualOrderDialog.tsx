@@ -103,7 +103,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
     setItems((prev) => prev.map((i) => i.serviceId === id ? { ...i, ...patch } : i));
 
   const reset = () => {
-    setCustomerName(""); setCustomerEmail(""); setCustomerPhone("");
+    setCustomerName(""); setCustomerEmail(""); setCustomerPhone(""); setContactPerson("");
     setAddress(""); setZipCode(""); setCity("");
     setLatitude(null); setLongitude(null);
     setCvr(""); setCompanyName("");
