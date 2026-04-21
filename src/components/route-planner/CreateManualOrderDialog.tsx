@@ -158,6 +158,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
           longitude: lng,
           cvr: cvr.replace(/\D/g, "") || null,
           company_name: companyName.trim() || null,
+          notes: contactPerson.trim() ? `Kontaktperson: ${contactPerson.trim()}` : null,
           preferred_date: preferredDate || null,
           preferred_time_start: it.timeStart || null,
           preferred_time_end: it.timeEnd || null,
