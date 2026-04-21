@@ -82,33 +82,46 @@ type ReviewRow = {
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
 const fmtDate = (d: string | null) => d ? format(parseISO(d), "d. MMM yyyy", { locale: da }) : "—";
 
-/** Aggregate orders by customer email — same email = same customer even if not registered */
+/** Aggregate orders by customer email + merge med privat/erhvervs-kartoteket */
 const useCustomers = (businessId: string) => {
   return useQuery({
     queryKey: ["customers", businessId],
     queryFn: async (): Promise<Customer[]> => {
-      const { data: orders, error } = await supabase
-        .from("orders")
-        .select("id, customer_name, customer_email, customer_phone, customer_id, address, zip_code, city, total_amount, created_at")
-        .eq("business_id", businessId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-
-      const { data: subs } = await supabase
-        .from("subscriptions")
-        .select("customer_id, status")
-        .eq("business_id", businessId);
+      const [ordersRes, subsRes, privRes, bizRes] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("id, customer_name, customer_email, customer_phone, customer_id, address, zip_code, city, total_amount, created_at, company_name, cvr")
+          .eq("business_id", businessId)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("subscriptions")
+          .select("customer_id, status")
+          .eq("business_id", businessId),
+        supabase
+          .from("private_customers")
+          .select("id, name, email, phone, address, zip_code, city, notes")
+          .eq("business_id", businessId),
+        supabase
+          .from("business_customers")
+          .select("id, company_name, cvr, contact_name, email, phone, address, zip_code, city, notes")
+          .eq("business_id", businessId),
+      ]);
+      if (ordersRes.error) throw ordersRes.error;
+      const orders = ordersRes.data || [];
+      const subs = subsRes.data || [];
+      const privCustomers = privRes.data || [];
+      const bizCustomers = bizRes.data || [];
 
       const activeByCustomer = new Map<string, number>();
       const pausedByCustomer = new Map<string, number>();
-      (subs || []).forEach(s => {
+      subs.forEach(s => {
         if (!s.customer_id) return;
         if (s.status === "active") activeByCustomer.set(s.customer_id, (activeByCustomer.get(s.customer_id) || 0) + 1);
         if (s.status === "paused") pausedByCustomer.set(s.customer_id, (pausedByCustomer.get(s.customer_id) || 0) + 1);
       });
 
       const grouped = new Map<string, Customer>();
-      (orders || []).forEach(o => {
+      orders.forEach(o => {
         const key = o.customer_email.toLowerCase();
         const existing = grouped.get(key);
         if (existing) {
@@ -121,6 +134,8 @@ const useCustomers = (businessId: string) => {
             if (o.address) existing.address = o.address;
             if (o.zip_code) existing.zip_code = o.zip_code;
             if (o.city) existing.city = o.city;
+            if (o.company_name) existing.company_name = o.company_name;
+            if (o.cvr) existing.cvr = o.cvr;
           }
           if (o.created_at < existing.first_order_at) existing.first_order_at = o.created_at;
         } else {
@@ -138,6 +153,85 @@ const useCustomers = (businessId: string) => {
             paused_subs: o.customer_id ? (pausedByCustomer.get(o.customer_id) || 0) : 0,
             last_order_at: o.created_at,
             first_order_at: o.created_at,
+            company_name: o.company_name,
+            cvr: o.cvr,
+            type: o.company_name || o.cvr ? "business" : "unknown",
+          });
+        }
+      });
+
+      // Merge privat-kartotek
+      privCustomers.forEach(p => {
+        const key = (p.email || "").toLowerCase();
+        const existing = grouped.get(key);
+        if (existing) {
+          existing.type = "private";
+          existing.saved_id = p.id;
+          if (!existing.name && p.name) existing.name = p.name;
+          if (!existing.phone && p.phone) existing.phone = p.phone;
+          if (!existing.address && p.address) existing.address = p.address;
+          if (!existing.zip_code && p.zip_code) existing.zip_code = p.zip_code;
+          if (!existing.city && p.city) existing.city = p.city;
+          existing.notes = p.notes;
+        } else {
+          grouped.set(key, {
+            email: p.email,
+            name: p.name,
+            phone: p.phone,
+            address: p.address,
+            zip_code: p.zip_code,
+            city: p.city,
+            customer_id: null,
+            total_revenue: 0,
+            orders_count: 0,
+            active_subs: 0,
+            paused_subs: 0,
+            last_order_at: "",
+            first_order_at: "",
+            type: "private",
+            saved_id: p.id,
+            notes: p.notes,
+          });
+        }
+      });
+
+      // Merge erhvervs-kartotek
+      bizCustomers.forEach(b => {
+        const key = (b.email || "").toLowerCase();
+        const existing = grouped.get(key);
+        if (existing) {
+          existing.type = "business";
+          existing.saved_id = b.id;
+          existing.company_name = b.company_name;
+          existing.cvr = b.cvr;
+          existing.contact_name = b.contact_name;
+          if (!existing.name && (b.contact_name || b.company_name)) existing.name = b.contact_name || b.company_name;
+          if (!existing.phone && b.phone) existing.phone = b.phone;
+          if (!existing.address && b.address) existing.address = b.address;
+          if (!existing.zip_code && b.zip_code) existing.zip_code = b.zip_code;
+          if (!existing.city && b.city) existing.city = b.city;
+          existing.notes = b.notes;
+        } else {
+          grouped.set(key, {
+            email: b.email,
+            name: b.contact_name || b.company_name,
+            phone: b.phone,
+            address: b.address,
+            zip_code: b.zip_code,
+            city: b.city,
+            customer_id: null,
+            total_revenue: 0,
+            orders_count: 0,
+            active_subs: 0,
+            paused_subs: 0,
+            last_order_at: "",
+            first_order_at: "",
+            type: "business",
+            saved_id: b.id,
+            company_name: b.company_name,
+            cvr: b.cvr,
+            contact_name: b.contact_name,
+            notes: b.notes,
           });
         }
       });
