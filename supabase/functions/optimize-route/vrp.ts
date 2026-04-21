@@ -182,6 +182,10 @@ function tryInsertCheapest(
 }
 
 // ============== Inter-employee swap pass ==============
+// Flytter ét stop fra medarbejder A til den optimale position hos medarbejder B.
+// Vi accepterer kun flytningen hvis den GLOBALE cost (sum over A+B) falder
+// målbart. Den gamle implementering havde en bug hvor `bestKmB` blev brugt
+// dobbelt i regnestykket — derfor blev rigtige forbedringer ofte forkastet.
 function interEmployeeSwap(
   routes: Map<string, IRoute>,
   employees: EmployeeCtx[],
@@ -201,13 +205,15 @@ function interEmployeeSwap(
 
       const metaA = empMeta.get(empA.id)!;
       const baseA = scheduleRoute(empA, routeA, stops, travel, metaA.startIdx, metaA.endIdx, stopIdx);
+      if (!baseA.feasible) continue;
 
       for (const empB of employees) {
         if (empB.id === empA.id) continue;
         const routeB = routes.get(empB.id)!;
         const metaB = empMeta.get(empB.id)!;
         const baseB = scheduleRoute(empB, routeB, stops, travel, metaB.startIdx, metaB.endIdx, stopIdx);
-        const baselineCost = baseA.cost + baseB.cost + (baseA.km + baseB.km) * 0.5;
+        if (!baseB.feasible) continue;
+        const baselineCost = baseA.cost + baseB.cost;
 
         // Fjern stop fra A
         const newA = [...routeA.slice(0, i), ...routeA.slice(i + 1)];
@@ -217,7 +223,6 @@ function interEmployeeSwap(
         // Find bedste position i B
         let bestPos = -1;
         let bestCostB = Infinity;
-        let bestKmB = Infinity;
         for (let p = 0; p <= routeB.length; p++) {
           const trial: IRoute = [
             ...routeB.slice(0, p),
@@ -226,19 +231,17 @@ function interEmployeeSwap(
           ];
           const ev = scheduleRoute(empB, trial, stops, travel, metaB.startIdx, metaB.endIdx, stopIdx);
           if (!ev.feasible) continue;
-          const c = ev.cost + ev.km * 0.5;
-          if (c < bestCostB) {
-            bestCostB = c;
-            bestKmB = ev.km;
+          if (ev.cost < bestCostB) {
+            bestCostB = ev.cost;
             bestPos = p;
           }
         }
         if (bestPos < 0) continue;
 
-        const newCost = evA.cost + bestCostB - bestKmB * 0.5 + (evA.km + bestKmB) * 0.5
-          + bestKmB * 0.5; // simpler: total = (evA.cost + evA.km*0.5) + (bestCostB)
-        const totalNew = (evA.cost + evA.km * 0.5) + bestCostB;
-        if (totalNew + 1 < baselineCost) {
+        const totalNew = evA.cost + bestCostB;
+        // Kræv mindst 1 cost-enhed forbedring så vi ikke flipper frem og tilbage
+        // pga. afrundinger.
+        if (totalNew + 0.5 < baselineCost) {
           // Anvend swap
           const stopRecord = routeA[i];
           routes.set(empA.id, newA);
