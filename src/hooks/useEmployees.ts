@@ -91,3 +91,25 @@ export const useDeleteEmployee = () => {
     },
   });
 };
+
+/* ─── Send password reset email to an employee ─── */
+export const useResetEmployeePassword = () => {
+  return useMutation({
+    mutationFn: async (input: { employee_id: string }) => {
+      const { data, error } = await supabase.functions.invoke("reset-employee-password", {
+        body: { employee_id: input.employee_id },
+      });
+      if (error) {
+        const ctx: any = (error as any).context;
+        let serverMsg: string | undefined;
+        try {
+          const body = await ctx?.json?.();
+          serverMsg = body?.error;
+        } catch { /* ignore */ }
+        throw new Error(serverMsg || error.message || "Kunne ikke sende nulstillingsmail");
+      }
+      if (data?.error) throw new Error(data.error);
+      return data as { ok: true; emailSent: boolean };
+    },
+  });
+};
