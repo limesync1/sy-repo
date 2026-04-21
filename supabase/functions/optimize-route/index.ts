@@ -31,7 +31,14 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const routeId = typeof body?.route_id === "string" ? body.route_id.trim() : "";
-    const accessToken = typeof body?.access_token === "string" ? body.access_token.trim() : "";
+    // Foretræk Authorization-headeren (sat automatisk af supabase.functions.invoke).
+    // Falder tilbage til body.access_token for bagudkompatibilitet.
+    const authHeader = req.headers.get("Authorization") || req.headers.get("authorization") || "";
+    const headerToken = authHeader.toLowerCase().startsWith("bearer ")
+      ? authHeader.slice(7).trim()
+      : "";
+    const bodyToken = typeof body?.access_token === "string" ? body.access_token.trim() : "";
+    const accessToken = headerToken || bodyToken;
     // Hvis true: tillader VRP at omfordele alle stops (selv manuelt tildelte) for max gevinst.
     // Default: true — det er standard adfærd ved klik på "Optimer".
     const respectPinned = body?.respect_pinned === true;
@@ -42,7 +49,7 @@ Deno.serve(async (req) => {
       });
     }
     if (!accessToken) {
-      return new Response(JSON.stringify({ ok: false, error: "access_token required" }), {
+      return new Response(JSON.stringify({ ok: false, error: "Du skal være logget ind" }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

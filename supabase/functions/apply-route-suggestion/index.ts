@@ -16,10 +16,20 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const routeId = typeof body?.route_id === "string" ? body.route_id.trim() : "";
     const suggestionId = typeof body?.suggestion_id === "string" ? body.suggestion_id.trim() : "";
-    const accessToken = typeof body?.access_token === "string" ? body.access_token.trim() : "";
+    const authHeader = req.headers.get("Authorization") || req.headers.get("authorization") || "";
+    const headerToken = authHeader.toLowerCase().startsWith("bearer ")
+      ? authHeader.slice(7).trim()
+      : "";
+    const bodyToken = typeof body?.access_token === "string" ? body.access_token.trim() : "";
+    const accessToken = headerToken || bodyToken;
 
-    if (!routeId || !suggestionId || !accessToken) {
-      return new Response(JSON.stringify({ ok: false, error: "route_id, suggestion_id, access_token required" }), {
+    if (!routeId || !suggestionId) {
+      return new Response(JSON.stringify({ ok: false, error: "route_id og suggestion_id påkrævet" }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!accessToken) {
+      return new Response(JSON.stringify({ ok: false, error: "Du skal være logget ind" }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
