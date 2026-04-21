@@ -770,7 +770,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {/* Maneuver banner — floating top center */}
             {showManeuverBanner && maneuver && nextStop && (
-              <div className="absolute top-[68px] left-3 right-3 z-[1000] pointer-events-none">
+              <div className="absolute top-[68px] left-3 right-[68px] z-[1000] pointer-events-none">
                 <Card className="overflow-hidden shadow-2xl rounded-2xl pointer-events-auto bg-background border">
                   <div className="flex items-stretch">
                     <div
