@@ -255,7 +255,11 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                       if (r.city) setCity(r.city);
                       if (r.phone && !phone) setPhone(r.phone);
                       if (r.email && !email) setEmail(r.email);
+                      // Geocode den nye adresse straks så den ikke vises som "ikke fundet"
                       setLatitude(null); setLongitude(null);
+                      if (r.address && r.zip_code && r.city) {
+                        setTimeout(() => geocodeCurrentAddress(r.address!, r.zip_code!, r.city!), 50);
+                      }
                     }}
                   />
                 </div>
