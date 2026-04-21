@@ -628,23 +628,22 @@ export const useOptimizeRoute = () => {
     // mutationKey lader os bruge useIsMutating() pr. routeId i UI
     mutationKey: ["optimize-route"],
     mutationFn: async (routeId: string) => {
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
+      // Sørg for et FRISKT access token — undgår "Unauthorized" når sessionen
+      // er tæt på at udløbe. functions.invoke sender selv Bearer-headeren.
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error("Du skal være logget ind for at optimere ruten");
+      }
+      // Refresh hvis token er <60s fra at udløbe.
+      const expiresAt = sessionData.session.expires_at ?? 0;
+      if (expiresAt && expiresAt * 1000 - Date.now() < 60_000) {
+        await supabase.auth.refreshSession();
+      }
 
-      const accessToken = sessionData.session?.access_token;
-      if (!accessToken) throw new Error("Du skal være logget ind for at optimere ruten");
-
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/optimize-route`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
-        body: JSON.stringify({ route_id: routeId, access_token: accessToken }),
+      const { data, error } = await supabase.functions.invoke("optimize-route", {
+        body: { route_id: routeId },
       });
-
-      const data = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(data?.error || "Kunne ikke optimere ruten");
+      if (error) throw new Error(error.message || "Kunne ikke optimere ruten");
       if (!data?.ok) throw new Error(data?.error || "Kunne ikke optimere ruten");
 
       return data as {
