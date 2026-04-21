@@ -284,10 +284,10 @@ const Planner = () => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "ArrowLeft") {
         e.preventDefault();
-        setDate((d) => format(addDays(parseISO(d), -1), "yyyy-MM-dd"));
+        setDate((d) => format(view === "week" ? addWeeks(parseISO(d), -1) : addMonths(parseISO(d), -1), "yyyy-MM-dd"));
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        setDate((d) => format(addDays(parseISO(d), 1), "yyyy-MM-dd"));
+        setDate((d) => format(view === "week" ? addWeeks(parseISO(d), 1) : addMonths(parseISO(d), 1), "yyyy-MM-dd"));
       } else if (e.key.toLowerCase() === "t") {
         setDate(todayStr());
       } else if (e.key.toLowerCase() === "n") {
@@ -298,7 +298,7 @@ const Planner = () => {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selectedStopId]);
+  }, [selectedStopId, view]);
 
   /* Når create-dialog åbnes, foreslå en ledig farve for den valgte dato */
   useEffect(() => {
