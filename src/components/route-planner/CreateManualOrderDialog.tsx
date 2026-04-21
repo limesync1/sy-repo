@@ -429,35 +429,4 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
   );
 };
 
-/* ───────── Small layout helpers ───────── */
-
-const Section = ({
-  icon, title, hint, required, children,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  hint?: string;
-  required?: boolean;
-  children: React.ReactNode;
-}) => (
-  <div className="bg-background rounded-lg border p-3.5">
-    <div className="flex items-center gap-1.5 mb-2.5">
-      <span className="text-muted-foreground">{icon}</span>
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">{title}</h3>
-      {required && <span className="text-[10px] text-destructive">*</span>}
-      {hint && <span className="ml-auto text-[10px] text-muted-foreground">{hint}</span>}
-    </div>
-    {children}
-  </div>
-);
-
-const Field = ({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) => (
-  <div className="space-y-1">
-    <Label className="text-[11px] text-muted-foreground font-medium">
-      {label}{required && <span className="text-destructive ml-0.5">*</span>}
-    </Label>
-    {children}
-  </div>
-);
-
 export default CreateManualOrderDialog;
