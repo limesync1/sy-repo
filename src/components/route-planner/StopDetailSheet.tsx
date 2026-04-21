@@ -409,23 +409,22 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 <div className="space-y-3">
                   <div>
                     <label className="text-xs text-muted-foreground mb-1 block">Tidsrum for besøget</label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="time"
-                        value={timeStart}
-                        onChange={(e) => setTimeStart(e.target.value)}
-                        className="h-9"
-                        aria-label="Starttidspunkt"
-                      />
-                      <span className="text-muted-foreground">–</span>
-                      <Input
-                        type="time"
-                        value={timeEnd}
-                        onChange={(e) => setTimeEnd(e.target.value)}
-                        className="h-9"
-                        aria-label="Sluttidspunkt"
-                      />
-                    </div>
+                    <Select
+                      value={timeSlot || "none"}
+                      onValueChange={(v) => setTimeSlot(v === "none" ? "" : v)}
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Vælg tidsrum" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Intet tidsrum</SelectItem>
+                        <SelectItem value="06:00-08:00">06–08 · Tidlig morgen</SelectItem>
+                        <SelectItem value="08:00-12:00">08–12 · Formiddag</SelectItem>
+                        <SelectItem value="12:00-16:00">12–16 · Eftermiddag</SelectItem>
+                        <SelectItem value="16:00-20:00">16–20 · Aften</SelectItem>
+                        <SelectItem value="08:00-16:00">08–16 · Hele dagen</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <label className="text-xs text-muted-foreground mb-1 block">Estimeret varighed</label>
