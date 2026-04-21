@@ -198,7 +198,7 @@ const Planner = () => {
       arr.push(s);
       stopsByRoute.set(s.route_id, arr);
     }
-    const empByRoute = new Map<string, { id: string; name: string }[]>();
+    const empByRoute = new Map<string, { id: string; name: string; avatar_url?: string | null; color?: string | null }[]>();
     for (const link of calendarRouteLinks) {
       const emp = activeEmployees.find((e: any) => e.id === link.employee_id);
       if (!emp) continue;
