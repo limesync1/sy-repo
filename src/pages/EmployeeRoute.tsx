@@ -304,6 +304,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           <p className="text-[11px] opacity-80 truncate">
             {completedCount}/{sortedStops.length} færdige
             {directions && nextStop && ` · ${formatMin(directions.duration_s)} til næste`}
+            {etaLabel && nextStop && ` · ankomst ${etaLabel}`}
           </p>
         </div>
         <Button
