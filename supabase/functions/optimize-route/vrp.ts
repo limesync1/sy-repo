@@ -283,7 +283,9 @@ function twoOpt(
         ...route.slice(j + 1),
       ];
       const ev = scheduleRoute(emp, trial, stops, travel, meta.startIdx, meta.endIdx, stopIdx);
-      if (ev.feasible && ev.km + 0.05 < baseline.km) {
+      // Cost-baseret accept (km + tid + ventetid + soft-vinduer) — ren km-sammenligning
+      // forkastede tit gode swaps der overholdt et tidsvindue bedre.
+      if (ev.feasible && ev.cost + 0.5 < baseline.cost) {
         for (let k = 0; k < trial.length; k++) route[k] = trial[k];
         improved = true;
         return true;
@@ -291,6 +293,37 @@ function twoOpt(
     }
   }
   return improved;
+}
+
+// ============== Relocate pr. medarbejder ==============
+// Tager et stop ud og prøver at sætte det ind på enhver anden position i samme
+// rute. Fanger "kører frem og tilbage" mønstre som 2-opt ikke kan fjerne fordi
+// de ikke involverer reversering af et segment.
+function relocateInRoute(
+  emp: EmployeeCtx,
+  route: IRoute,
+  stops: Stop[],
+  travel: ReturnType<typeof makeTravelers>,
+  meta: { startIdx: number; endIdx: number },
+  stopIdx: (id: string) => number,
+): boolean {
+  if (route.length < 3) return false;
+  const baseline = scheduleRoute(emp, route, stops, travel, meta.startIdx, meta.endIdx, stopIdx);
+  if (!baseline.feasible) return false;
+  for (let i = 0; i < route.length; i++) {
+    const removed = route[i];
+    const without: IRoute = [...route.slice(0, i), ...route.slice(i + 1)];
+    for (let j = 0; j <= without.length; j++) {
+      if (j === i) continue;
+      const trial: IRoute = [...without.slice(0, j), removed, ...without.slice(j)];
+      const ev = scheduleRoute(emp, trial, stops, travel, meta.startIdx, meta.endIdx, stopIdx);
+      if (ev.feasible && ev.cost + 0.5 < baseline.cost) {
+        for (let k = 0; k < trial.length; k++) route[k] = trial[k];
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 // ============== Main ==============
