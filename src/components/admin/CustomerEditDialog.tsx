@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
-import { Building2, User, Loader2, Save, ShoppingBag, Camera, X } from "lucide-react";
+import { Building2, User, Loader2, Save, ShoppingBag, Camera, X, Upload } from "lucide-react";
 import { toast } from "sonner";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 
@@ -66,6 +66,45 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   const [saving, setSaving] = useState(false);
   const [savedCustomer, setSavedCustomer] = useState<EditableCustomer | null>(null);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+
+  // Geocode address — used after CVR autofill so adressefeltet ikke vises som "ikke fundet"
+  const geocodeCurrentAddress = async (addr: string, zip: string, ci: string) => {
+    if (!addr.trim() || !zip.trim() || !ci.trim()) return;
+    try {
+      const { data } = await supabase.functions.invoke("geocode-address", {
+        body: { address: addr, zip_code: zip, city: ci },
+      });
+      if (data?.found && data.latitude && data.longitude) {
+        setLatitude(data.latitude);
+        setLongitude(data.longitude);
+      }
+    } catch { /* non-fatal */ }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast.error("Kun billedfiler er tilladt"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Billedet må max være 5MB"); return; }
+    setUploadingAvatar(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Du er ikke logget ind");
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${user.id}/customers/${initial?.id || crypto.randomUUID()}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("business-assets").upload(path, file, {
+        cacheControl: "3600", upsert: true,
+      });
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from("business-assets").getPublicUrl(path);
+      setAvatarUrl(publicUrl);
+      toast.success("Billede klar — husk at gemme");
+    } catch (err: any) {
+      toast.error(err.message || "Upload fejlede");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   // Sync state when `initial` changes (e.g. user opens dialog for different customer)
   useEffect(() => {
