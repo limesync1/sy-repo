@@ -358,52 +358,124 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
-      {/* Top header */}
-      <header className="bg-foreground text-background flex items-center gap-2 px-3 py-2 shrink-0 z-20 shadow">
-        <Button
-          asChild
-          variant="ghost"
-          size="icon"
-          className="text-background hover:bg-background/10 h-9 w-9"
-        >
-          <Link to="/medarbejder" aria-label="Tilbage"><ArrowLeft className="h-4 w-4" /></Link>
-        </Button>
-        <div className="flex-1 min-w-0">
-          <h1 className="font-semibold text-sm truncate">{route.name || "Rute"}</h1>
-          <p className="text-[11px] opacity-80 truncate">
-            {completedCount}/{sortedStops.length} færdige
-            {directions && nextStop && ` · ${formatMin(directions.duration_s)} til næste`}
-            {etaLabel && nextStop && ` · ankomst ${etaLabel}`}
-          </p>
+      {/* Top header — brand bar with route color stripe */}
+      <header className="relative shrink-0 z-20 bg-foreground text-background shadow-lg">
+        {/* Route color accent stripe */}
+        <div className="h-1 w-full" style={{ background: route.color || "hsl(184 90% 42%)" }} />
+        <div className="flex items-center gap-2 px-3 py-2.5">
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="text-background hover:bg-background/10 h-9 w-9 rounded-full"
+          >
+            <Link to="/medarbejder" aria-label="Tilbage"><ArrowLeft className="h-4 w-4" /></Link>
+          </Button>
+          <div className="flex-1 min-w-0">
+            <h1 className="font-semibold text-sm truncate leading-tight">{route.name || "Rute"}</h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-[11px] opacity-80 tabular-nums">
+                {completedCount} af {sortedStops.length} færdige
+              </span>
+              {etaLabel && nextStop && (
+                <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-md bg-background/15 tabular-nums">
+                  ETA {etaLabel}
+                </span>
+              )}
+            </div>
+          </div>
+          <Button
+            asChild
+            size="sm"
+            variant="ghost"
+            className="text-background hover:bg-background/10 h-9 w-9 p-0 rounded-full"
+            aria-label="Udskriv liste"
+          >
+            <Link to={`/medarbejder/rute/${route.id}/print`}><Printer className="h-4 w-4" /></Link>
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-background hover:bg-background/10 h-9 w-9 p-0 rounded-full"
+            onClick={() => setShowList(true)}
+            aria-label="Vis liste"
+          >
+            <List className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-background hover:bg-background/10 h-9 w-9 p-0 rounded-full"
+            onClick={() => setAudioEnabled((v) => !v)}
+            aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
+            title={audioEnabled ? "Lyd til" : "Lyd fra"}
+          >
+            {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </Button>
         </div>
-        <Button
-          asChild
-          size="sm"
-          variant="ghost"
-          className="text-background hover:bg-background/10 h-9 w-9 p-0"
-          aria-label="Udskriv liste"
-        >
-          <Link to={`/medarbejder/rute/${route.id}/print`}><Printer className="h-4 w-4" /></Link>
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="text-background hover:bg-background/10 h-9 w-9 p-0"
-          onClick={() => setShowList(true)}
-          aria-label="Vis liste"
-        >
-          <List className="h-4 w-4" />
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="text-background hover:bg-background/10 h-9 w-9 p-0"
-          onClick={() => setAudioEnabled((v) => !v)}
-          aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
-          title={audioEnabled ? "Lyd til" : "Lyd fra"}
-        >
-          {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-        </Button>
+        {/* Progress bar */}
+        <div className="h-1 w-full bg-background/15">
+          <div
+            className="h-full transition-all duration-500 ease-out"
+            style={{
+              width: sortedStops.length > 0 ? `${(completedCount / sortedStops.length) * 100}%` : "0%",
+              background: "hsl(142 70% 55%)",
+            }}
+          />
+        </div>
+
+        {/* Turn-by-turn maneuver banner — appears when route is started and we have steps */}
+        {routeStarted && maneuver && nextStop && (
+          <div className="px-3 pt-3 pb-3 bg-foreground">
+            <div className="rounded-2xl bg-background text-foreground shadow-xl border border-border overflow-hidden">
+              <div className="flex items-stretch">
+                <div
+                  className="flex items-center justify-center w-20 shrink-0 text-background"
+                  style={{ background: route.color || "hsl(184 90% 42%)" }}
+                >
+                  <ManeuverIcon
+                    type={maneuver.currentStep.maneuver.type}
+                    modifier={maneuver.currentStep.maneuver.modifier}
+                    className="h-9 w-9"
+                  />
+                </div>
+                <div className="flex-1 min-w-0 px-3 py-2.5">
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
+                    Om {formatKm(maneuver.distanceToManeuverM)}
+                  </p>
+                  <p className="font-semibold text-base leading-tight truncate">
+                    {maneuverLabel(
+                      maneuver.currentStep.maneuver.type,
+                      maneuver.currentStep.maneuver.modifier,
+                    )}
+                  </p>
+                  {maneuver.currentStep.name && (
+                    <p className="text-sm text-muted-foreground truncate mt-0.5">
+                      ad <span className="font-medium text-foreground">{maneuver.currentStep.name}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+              {maneuver.nextStep && (
+                <div className="flex items-center gap-2 px-3 py-2 border-t bg-muted/40 text-xs">
+                  <span className="text-muted-foreground">Derefter</span>
+                  <ManeuverIcon
+                    type={maneuver.nextStep.maneuver.type}
+                    modifier={maneuver.nextStep.maneuver.modifier}
+                    className="h-4 w-4 text-foreground"
+                  />
+                  <span className="font-medium truncate flex-1">
+                    {maneuverLabel(
+                      maneuver.nextStep.maneuver.type,
+                      maneuver.nextStep.maneuver.modifier,
+                    )}
+                    {maneuver.nextStep.name && ` · ${maneuver.nextStep.name}`}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Map fills remaining space */}
