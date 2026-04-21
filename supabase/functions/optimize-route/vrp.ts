@@ -443,27 +443,36 @@ export async function solveVRP(
     }
   }
 
-  // Forbedring 1: 2-opt pr. medarbejder
-  for (const emp of employees) {
-    const route = routes.get(emp.id)!;
-    let safety = 20;
-    while (safety-- > 0 && twoOpt(emp, route, stops, travel, empMeta.get(emp.id)!, stopIdxOf)) {
-      // gentag
+  // Iterativ forbedring: kør 2-opt + relocate + inter-swap indtil ingen
+  // af dem længere kan finde forbedring. Sikrer at swap mellem medarbejdere
+  // og lokal omrokering arbejder sammen i stedet for sekventielt.
+  let outer = 8; // max ydre iterationer (typisk 2-3 nok)
+  let anyImproved = true;
+  while (outer-- > 0 && anyImproved) {
+    anyImproved = false;
+
+    // 2-opt pr. medarbejder
+    for (const emp of employees) {
+      const route = routes.get(emp.id)!;
+      let safety = 30;
+      while (safety-- > 0 && twoOpt(emp, route, stops, travel, empMeta.get(emp.id)!, stopIdxOf)) {
+        anyImproved = true;
+      }
     }
-  }
 
-  // Forbedring 2: inter-employee swap (pinned + multi-staff stops bevares)
-  let safety = 30;
-  while (safety-- > 0 && interEmployeeSwap(routes, employees, stops, travel, empMeta, stopIdxOf, pinned)) {
-    // gentag
-  }
+    // Relocate pr. medarbejder (fanger frem-og-tilbage-mønstre)
+    for (const emp of employees) {
+      const route = routes.get(emp.id)!;
+      let safety = 30;
+      while (safety-- > 0 && relocateInRoute(emp, route, stops, travel, empMeta.get(emp.id)!, stopIdxOf)) {
+        anyImproved = true;
+      }
+    }
 
-  // Forbedring 3: 2-opt igen efter swap
-  for (const emp of employees) {
-    const route = routes.get(emp.id)!;
-    let s = 20;
-    while (s-- > 0 && twoOpt(emp, route, stops, travel, empMeta.get(emp.id)!, stopIdxOf)) {
-      // gentag
+    // Inter-employee swap
+    let safety = 50;
+    while (safety-- > 0 && interEmployeeSwap(routes, employees, stops, travel, empMeta, stopIdxOf, pinned)) {
+      anyImproved = true;
     }
   }
 
