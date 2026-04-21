@@ -49,7 +49,8 @@ const stopIcon = (n: number, state: "next" | "done" | "future", color: string, h
   const ring = state === "next"
     ? `0 0 0 4px hsl(184 90% 32% / 0.18), 0 0 0 9px hsl(184 90% 32% / 0.08)`
     : "none";
-  const hlRing = highlighted ? `, 0 0 0 4px hsl(45 100% 55%), 0 0 0 8px hsl(45 100% 55% / 0.30)` : "";
+  // Highlighted: brug Serviceydere accent-ring i stedet for gul, så det matcher branden.
+  const hlRing = highlighted ? `, 0 0 0 4px hsl(184 90% 32%), 0 0 0 8px hsl(184 90% 32% / 0.25)` : "";
   const size = highlighted ? 44 : state === "next" ? 42 : 34;
   const fontSize = state === "next" ? 15 : 12;
   const inner =
@@ -521,23 +522,26 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       {/* ─── Compact header — kun synlig før rute starter eller ved færdig ─── */}
       {(!routeStarted || allDone) && (
       <header className="relative shrink-0 z-30 bg-background border-b">
-        <div className="flex items-center gap-2 px-3 py-2 bg-secondary/40">
-          <Button asChild variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-background shrink-0">
+        <div className="flex items-center gap-2 px-3 py-2.5 bg-background">
+          <Button asChild variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-secondary shrink-0">
             <Link to="/medarbejder" aria-label="Tilbage"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
 
-          <div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-background text-xs font-semibold shrink-0 max-w-[55%]"
-            style={{ background: routeBadgeColor }}
-          >
+          {/* Header-pille: neutral foreground (Serviceydere primary) med farvet dot der signalerer rute-identitet */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary text-foreground text-xs font-semibold shrink-0 max-w-[55%] border">
+            <span
+              className="h-2 w-2 rounded-full shrink-0"
+              style={{ background: routeBadgeColor }}
+              aria-hidden
+            />
             <span className="truncate">{route.name || "Rute"}</span>
-            <span className="px-1.5 py-0.5 rounded-full bg-background/25 tabular-nums text-[10px]">
+            <span className="px-1.5 py-0.5 rounded-full bg-background tabular-nums text-[10px] border">
               {completedCount}/{sortedStops.length}
             </span>
           </div>
 
           {etaLabel && nextStop && (
-            <Badge variant="outline" className="tabular-nums hidden sm:inline-flex bg-background/70">
+            <Badge variant="outline" className="tabular-nums hidden sm:inline-flex bg-background">
               <Clock className="h-3 w-3 mr-1" /> {etaLabel}
             </Badge>
           )}
@@ -545,13 +549,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           <div className="flex-1" />
 
           <Button
-            size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-background"
+            size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-secondary"
             onClick={() => setListOpen((v) => !v)} aria-label="Vis liste"
           >
             <List className="h-4 w-4" />
           </Button>
           <Button
-            size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-background"
+            size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-secondary"
             onClick={() => setAudioEnabled((v) => !v)}
             aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
           >
@@ -560,7 +564,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         </div>
 
         {/* Progress bar — route color */}
-        <div className="h-1 w-full bg-secondary">
+        <div className="h-1 w-full bg-secondary" aria-hidden>
           <div
             className="h-full transition-all duration-500 ease-out"
             style={{ width: `${progress}%`, background: themeColor }}
@@ -660,7 +664,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <Button
               size="icon" variant="secondary"
               onClick={() => setListOpen((v) => !v)}
-              className="h-11 w-11 rounded-full shadow-lg bg-background/95 backdrop-blur"
+              className="h-11 w-11 rounded-full shadow-lg bg-background hover:bg-secondary border border-border"
               aria-label="Vis liste"
             >
               <List className="h-5 w-5" />
@@ -670,7 +674,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <Button
               size="icon" variant="secondary"
               onClick={() => setAudioEnabled((v) => !v)}
-              className="h-11 w-11 rounded-full shadow-lg bg-background/95 backdrop-blur"
+              className="h-11 w-11 rounded-full shadow-lg bg-background hover:bg-secondary border border-border"
               aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
             >
               {audioEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
@@ -681,7 +685,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               size="icon"
               variant={followMode ? "default" : "secondary"}
               onClick={() => setFollowMode((v) => !v)}
-              className="h-11 w-11 rounded-full shadow-lg backdrop-blur"
+              className={`h-11 w-11 rounded-full shadow-lg border ${followMode ? "border-transparent text-background hover:opacity-90" : "bg-background hover:bg-secondary border-border"}`}
               style={followMode ? { background: themeColor } : undefined}
               aria-label={followMode ? "Slå live-følg fra" : "Slå live-følg til"}
               title={followMode ? "Følger din position" : "Recentrer"}
@@ -700,24 +704,29 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 asChild
                 size="icon"
                 variant="secondary"
-                className="h-11 w-11 rounded-full shadow-lg bg-background/95 backdrop-blur"
+                className="h-11 w-11 rounded-full shadow-lg bg-background hover:bg-secondary border border-border"
               >
                 <Link to="/medarbejder" aria-label="Tilbage">
                   <ArrowLeft className="h-5 w-5" />
                 </Link>
               </Button>
-              <div
-                className="flex items-center gap-2 px-3 h-11 rounded-full text-background text-xs font-semibold shadow-lg backdrop-blur"
-                style={{ background: themeColor }}
-              >
-                <span className="tabular-nums">{completedCount}/{sortedStops.length}</span>
+              {/* Compact progress pill — neutral bg, kun farvet dot for rute-id (matcher Serviceydere brand) */}
+              <div className="flex items-center gap-2 pl-2 pr-3 h-11 rounded-full bg-background border border-border shadow-lg">
+                <span
+                  className="h-2 w-2 rounded-full shrink-0"
+                  style={{ background: routeBadgeColor }}
+                  aria-hidden
+                />
+                <span className="text-xs font-bold text-foreground tabular-nums">
+                  {completedCount}<span className="text-muted-foreground font-medium">/{sortedStops.length}</span>
+                </span>
               </div>
             </div>
 
             {/* Maneuver banner — floating top center */}
             {maneuver && nextStop && (
               <div className="absolute top-[68px] left-3 right-3 z-[1000] pointer-events-none">
-                <Card className="overflow-hidden shadow-2xl rounded-2xl pointer-events-auto bg-background/98 backdrop-blur border-0">
+                <Card className="overflow-hidden shadow-2xl rounded-2xl pointer-events-auto bg-background border">
                   <div className="flex items-stretch">
                     <div
                       className="flex flex-col items-center justify-center w-24 shrink-0 text-background py-3"
@@ -829,7 +838,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Pre-start CTA: big start button at the bottom ─── */}
         {!routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3">
+          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pb-[50px]">
             <Card
               className="overflow-hidden shadow-2xl rounded-2xl border-t-2"
               style={{ borderTopColor: themeColor }}
@@ -925,7 +934,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pointer-events-none">
+          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pb-[50px] pointer-events-none">
             <Card
               className="overflow-hidden shadow-2xl pointer-events-auto rounded-2xl border-t-2"
               style={{ borderTopColor: themeColor }}
@@ -1065,7 +1074,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Done state ─── */}
         {allDone && (
-          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3">
+          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pb-[50px]">
             <Card
               className="overflow-hidden shadow-2xl rounded-2xl border-t-2"
               style={{ borderTopColor: "hsl(142 70% 45%)" }}
@@ -1275,9 +1284,9 @@ const StopListPanel = ({
       aria-hidden={false}
     >
       <div
-        className="pointer-events-auto mx-auto w-full max-w-3xl bg-background/98 backdrop-blur shadow-2xl rounded-t-2xl transition-transform duration-300 ease-out border-t border-border"
+        className="pointer-events-auto mx-auto w-full max-w-3xl bg-background shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)] rounded-t-2xl transition-transform duration-300 ease-out border-t border-x border-border"
         style={{
-          transform: open ? "translateY(0)" : "translateY(calc(100% - 38px))",
+          transform: open ? "translateY(0)" : "translateY(calc(100% - 42px))",
           maxHeight: "60vh",
         }}
       >
@@ -1285,10 +1294,10 @@ const StopListPanel = ({
         <button
           type="button"
           onClick={onToggle}
-          className="w-full flex items-center gap-2 px-3 h-[38px] hover:bg-secondary/40 transition-colors rounded-t-2xl relative"
+          className="w-full flex items-center gap-2 px-3 h-[42px] hover:bg-secondary/60 active:bg-secondary transition-colors rounded-t-2xl relative"
           aria-expanded={open}
         >
-          <span className="h-0.5 w-8 rounded-full bg-muted-foreground/25 absolute left-1/2 -translate-x-1/2 top-1" />
+          <span className="h-1 w-9 rounded-full bg-muted-foreground/30 absolute left-1/2 -translate-x-1/2 top-1.5" />
           <List className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="text-[11px] font-semibold text-foreground/80">Alle stop</span>
           <Badge variant="secondary" className="tabular-nums text-[9px] h-3.5 px-1 font-bold">
