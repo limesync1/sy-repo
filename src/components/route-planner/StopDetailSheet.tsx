@@ -60,11 +60,12 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   if (!stop) return null;
 
   const handleSave = async () => {
+    const totalMin = Math.max(5, durationHours * 60 + durationMinutes);
     await updateStop.mutateAsync({
       id: stop.id,
-      duration_minutes: duration,
-      time_window_start: winStart || null,
-      time_window_end: winEnd || null,
+      duration_minutes: totalMin,
+      time_window_start: timeStart || null,
+      time_window_end: timeEnd || null,
       notes: notes || null,
     } as any);
     toast.success("Ændringer gemt");
