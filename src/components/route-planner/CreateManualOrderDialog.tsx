@@ -65,6 +65,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [contactPerson, setContactPerson] = useState("");
   const [address, setAddress] = useState("");
   const [zipCode, setZipCode] = useState("");
   const [city, setCity] = useState("");
