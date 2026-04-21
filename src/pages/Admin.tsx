@@ -23,6 +23,7 @@ import ReviewsTab from "@/components/admin/ReviewsTab";
 import AftaleTab from "@/components/admin/AftaleTab";
 import EmployeesTab from "@/components/admin/EmployeesTab";
 import CustomersTab from "@/components/admin/CustomersTab";
+import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 
 /* ─── Constants ─── */
 const CATEGORIES = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS", "Elektriker", "Sikkerhed"];
@@ -418,17 +419,15 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-base font-semibold text-foreground">Services</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            {services?.length || 0} services · {Object.values(orderCountByService).reduce((a, b) => a + b, 0)} bestillinger i alt
-          </p>
-        </div>
-        <Button onClick={() => setShowForm(true)} size="sm" className="h-8 gap-1.5 rounded-lg text-sm bg-foreground text-background hover:bg-foreground/90">
-          <Plus className="h-3.5 w-3.5" /> Tilføj service
-        </Button>
-      </div>
+      <PageHeader
+        title="Services"
+        description={`${services?.length || 0} services · ${Object.values(orderCountByService).reduce((a, b) => a + b, 0)} bestillinger i alt`}
+        action={
+          <PrimaryButton onClick={() => setShowForm(true)} icon={<Plus />}>
+            Tilføj service
+          </PrimaryButton>
+        }
+      />
 
       {/* Category filter chips */}
       {uniqueCategories.length > 1 && (
