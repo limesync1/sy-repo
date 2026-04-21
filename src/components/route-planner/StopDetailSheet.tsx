@@ -34,16 +34,21 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const deleteStop = useDeleteStop();
 
   const [duration, setDuration] = useState<number>(30);
-  const [winStart, setWinStart] = useState<string>("");
-  const [winEnd, setWinEnd] = useState<string>("");
+  const [durationHours, setDurationHours] = useState<number>(0);
+  const [durationMinutes, setDurationMinutes] = useState<number>(30);
+  const [timeStart, setTimeStart] = useState<string>("");
+  const [timeEnd, setTimeEnd] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (!stop) return;
-    setDuration(stop.duration_minutes || 30);
-    setWinStart(stop.time_window_start?.slice(0, 5) || "");
-    setWinEnd(stop.time_window_end?.slice(0, 5) || "");
+    const totalMin = stop.duration_minutes || 30;
+    setDuration(totalMin);
+    setDurationHours(Math.floor(totalMin / 60));
+    setDurationMinutes(totalMin % 60);
+    setTimeStart(stop.time_window_start?.slice(0, 5) || "");
+    setTimeEnd(stop.time_window_end?.slice(0, 5) || "");
     setNotes(stop.notes || "");
   }, [stop?.id]);
 
