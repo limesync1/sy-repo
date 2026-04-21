@@ -14,6 +14,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Loader2, Trash2, Send, ShoppingBag, User, MapPin, Calendar as CalendarIcon, MessageSquare, Package } from "lucide-react";
+import { Clock, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 import { roundPrice, buildPricingSnapshot } from "@/lib/service-pricing";
@@ -32,6 +33,11 @@ interface BuilderItem {
   hours: number;
   stepValues: Record<string, number>;
   interval: string;
+  /** Anslået varighed pr. besøg (minutter). Default 30. */
+  durationMin: number;
+  /** Valgfrit blødt tidsvindue HH:MM (lokal tid). */
+  timeStart: string;
+  timeEnd: string;
 }
 
 const fmt = (n: number) =>
@@ -81,7 +87,13 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
     const stepValues: Record<string, number> = {};
     (svc.calculator_steps || []).forEach((s) => { stepValues[s.id] = Number(s.default_value ?? s.min_value ?? 0); });
     const intervals = svc.interval_options && svc.interval_options.length > 0 ? svc.interval_options : ["engangskøb"];
-    setItems((prev) => [...prev, { serviceId, service: svc, hours: 1, stepValues, interval: intervals[0] }]);
+    setItems((prev) => [
+      ...prev,
+      {
+        serviceId, service: svc, hours: 1, stepValues, interval: intervals[0],
+        durationMin: 30, timeStart: "", timeEnd: "",
+      },
+    ]);
   };
 
   const removeItem = (id: string) => setItems((prev) => prev.filter((i) => i.serviceId !== id));
