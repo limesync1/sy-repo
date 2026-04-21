@@ -704,24 +704,29 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 asChild
                 size="icon"
                 variant="secondary"
-                className="h-11 w-11 rounded-full shadow-lg bg-background/95 backdrop-blur"
+                className="h-11 w-11 rounded-full shadow-lg bg-background hover:bg-secondary border border-border"
               >
                 <Link to="/medarbejder" aria-label="Tilbage">
                   <ArrowLeft className="h-5 w-5" />
                 </Link>
               </Button>
-              <div
-                className="flex items-center gap-2 px-3 h-11 rounded-full text-background text-xs font-semibold shadow-lg backdrop-blur"
-                style={{ background: themeColor }}
-              >
-                <span className="tabular-nums">{completedCount}/{sortedStops.length}</span>
+              {/* Compact progress pill — neutral bg, kun farvet dot for rute-id (matcher Serviceydere brand) */}
+              <div className="flex items-center gap-2 pl-2 pr-3 h-11 rounded-full bg-background border border-border shadow-lg">
+                <span
+                  className="h-2 w-2 rounded-full shrink-0"
+                  style={{ background: routeBadgeColor }}
+                  aria-hidden
+                />
+                <span className="text-xs font-bold text-foreground tabular-nums">
+                  {completedCount}<span className="text-muted-foreground font-medium">/{sortedStops.length}</span>
+                </span>
               </div>
             </div>
 
             {/* Maneuver banner — floating top center */}
             {maneuver && nextStop && (
               <div className="absolute top-[68px] left-3 right-3 z-[1000] pointer-events-none">
-                <Card className="overflow-hidden shadow-2xl rounded-2xl pointer-events-auto bg-background/98 backdrop-blur border-0">
+                <Card className="overflow-hidden shadow-2xl rounded-2xl pointer-events-auto bg-background border">
                   <div className="flex items-stretch">
                     <div
                       className="flex flex-col items-center justify-center w-24 shrink-0 text-background py-3"
