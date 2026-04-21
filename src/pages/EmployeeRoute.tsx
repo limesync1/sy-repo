@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
   ChevronUp, ChevronDown, Printer, Play, Volume2, VolumeX, Crosshair,
@@ -368,54 +369,59 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
-      {/* Top header — brand bar with route color stripe */}
-      <header className="relative shrink-0 z-20 bg-foreground text-background shadow-lg">
-        {/* Route color accent stripe */}
-        <div className="h-1 w-full" style={{ background: route.color || "hsl(184 90% 42%)" }} />
-        <div className="flex items-center gap-2 px-3 py-2.5">
+      {/* Top header — light card style matching the planner calendar */}
+      <header className="relative shrink-0 z-20 bg-background border-b">
+        <div className="flex items-center gap-2 px-3 py-2.5 bg-secondary/30">
           <Button
             asChild
             variant="ghost"
             size="icon"
-            className="text-background hover:bg-background/10 h-9 w-9 rounded-full"
+            className="h-9 w-9 rounded-full hover:bg-background"
           >
             <Link to="/medarbejder" aria-label="Tilbage"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
-          <div className="flex-1 min-w-0">
-            <h1 className="font-semibold text-sm truncate leading-tight">{route.name || "Rute"}</h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-[11px] opacity-80 tabular-nums">
-                {completedCount} af {sortedStops.length} færdige
-              </span>
-              {etaLabel && nextStop && (
-                <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-md bg-background/15 tabular-nums">
-                  ETA {etaLabel}
-                </span>
-              )}
-            </div>
+
+          {/* Route pill — same look as calendar route pills */}
+          <div
+            className="flex items-center gap-2 px-2.5 py-1 rounded-full text-background text-xs font-semibold shrink-0 max-w-[55%]"
+            style={{ background: route.color || "hsl(184 90% 42%)" }}
+          >
+            <span className="truncate">{route.name || "Rute"}</span>
+            <span className="px-1.5 py-0.5 rounded-full bg-background/20 tabular-nums text-[10px]">
+              {completedCount}/{sortedStops.length}
+            </span>
           </div>
+
+          {etaLabel && nextStop && (
+            <Badge variant="secondary" className="tabular-nums hidden sm:inline-flex">
+              <Clock className="h-3 w-3 mr-1" /> ETA {etaLabel}
+            </Badge>
+          )}
+
+          <div className="flex-1" />
+
           <Button
             asChild
-            size="sm"
+            size="icon"
             variant="ghost"
-            className="text-background hover:bg-background/10 h-9 w-9 p-0 rounded-full"
+            className="h-9 w-9 rounded-full hover:bg-background"
             aria-label="Udskriv liste"
           >
             <Link to={`/medarbejder/rute/${route.id}/print`}><Printer className="h-4 w-4" /></Link>
           </Button>
           <Button
-            size="sm"
+            size="icon"
             variant="ghost"
-            className="text-background hover:bg-background/10 h-9 w-9 p-0 rounded-full"
+            className="h-9 w-9 rounded-full hover:bg-background"
             onClick={() => setShowList(true)}
             aria-label="Vis liste"
           >
             <List className="h-4 w-4" />
           </Button>
           <Button
-            size="sm"
+            size="icon"
             variant="ghost"
-            className="text-background hover:bg-background/10 h-9 w-9 p-0 rounded-full"
+            className="h-9 w-9 rounded-full hover:bg-background"
             onClick={() => setAudioEnabled((v) => !v)}
             aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
             title={audioEnabled ? "Lyd til" : "Lyd fra"}
@@ -423,21 +429,21 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </Button>
         </div>
-        {/* Progress bar */}
-        <div className="h-1 w-full bg-background/15">
+        {/* Progress bar — uses route color */}
+        <div className="h-1 w-full bg-secondary">
           <div
             className="h-full transition-all duration-500 ease-out"
             style={{
               width: sortedStops.length > 0 ? `${(completedCount / sortedStops.length) * 100}%` : "0%",
-              background: "hsl(142 70% 55%)",
+              background: route.color || "hsl(184 90% 42%)",
             }}
           />
         </div>
 
-        {/* Turn-by-turn maneuver banner — appears when route is started and we have steps */}
+        {/* Turn-by-turn maneuver banner — Card-style matching the planner */}
         {routeStarted && maneuver && nextStop && (
-          <div className="px-3 pt-3 pb-3 bg-foreground">
-            <div className="rounded-2xl bg-background text-foreground shadow-xl border border-border overflow-hidden">
+          <div className="px-3 pt-3 pb-3">
+            <Card className="overflow-hidden shadow-md">
               <div className="flex items-stretch">
                 <div
                   className="flex items-center justify-center w-20 shrink-0 text-background"
@@ -450,7 +456,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   />
                 </div>
                 <div className="flex-1 min-w-0 px-3 py-2.5">
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
                     Om {formatKm(maneuver.distanceToManeuverM)}
                   </p>
                   <p className="font-semibold text-base leading-tight truncate">
@@ -467,7 +473,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 </div>
               </div>
               {maneuver.nextStep && (
-                <div className="flex items-center gap-2 px-3 py-2 border-t bg-muted/40 text-xs">
+                <div className="flex items-center gap-2 px-3 py-2 border-t bg-secondary/30 text-xs">
                   <span className="text-muted-foreground">Derefter</span>
                   <ManeuverIcon
                     type={maneuver.nextStep.maneuver.type}
@@ -483,7 +489,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   </span>
                 </div>
               )}
-            </div>
+            </Card>
           </div>
         )}
       </header>
