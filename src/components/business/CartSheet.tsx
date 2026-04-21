@@ -132,6 +132,8 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
             city,
             latitude: coords.lat,
             longitude: coords.lng,
+            cvr: cvr.replace(/\D/g, "") || null,
+            company_name: companyName.trim() || null,
             preferred_date: null,
             preferred_time_start: null,
             preferred_time_end: null,
