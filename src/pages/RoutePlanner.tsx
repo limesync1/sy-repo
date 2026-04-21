@@ -37,6 +37,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon, ArrowLeft,
   Loader2, MapIcon, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
+  ShoppingBag,
 } from "lucide-react";
 import { format, addDays, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { da } from "date-fns/locale";
@@ -53,6 +54,7 @@ import { RouteEditSheet, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor }
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
 import { supabase } from "@/integrations/supabase/client";
+import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -73,7 +75,7 @@ const Planner = () => {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
   const [geocoding, setGeocoding] = useState(false);
-  const [showMap, setShowMap] = useState(false);
+  const [createOrderOpen, setCreateOrderOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
   const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
@@ -288,8 +290,6 @@ const Planner = () => {
         setDate((d) => format(addDays(parseISO(d), 1), "yyyy-MM-dd"));
       } else if (e.key.toLowerCase() === "t") {
         setDate(todayStr());
-      } else if (e.key.toLowerCase() === "m") {
-        setShowMap((v) => !v);
       } else if (e.key.toLowerCase() === "n") {
         setCreateOpen(true);
       } else if (e.key === "Escape" && selectedStopId) {
@@ -645,12 +645,12 @@ const Planner = () => {
               </Dialog>
 
               <Button
-                variant={showMap ? "default" : "ghost"}
+                variant="default"
                 size="sm"
                 className="h-7"
-                onClick={() => setShowMap((v) => !v)}
+                onClick={() => setCreateOrderOpen(true)}
               >
-                <MapIcon className="h-3.5 w-3.5 mr-1" />{showMap ? "Skjul kort" : "Vis kort"}
+                <ShoppingBag className="h-3.5 w-3.5 mr-1" />Opret bestilling
               </Button>
 
               <Tooltip>
@@ -665,7 +665,6 @@ const Planner = () => {
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">←</kbd> <kbd className="px-1 rounded bg-secondary text-[10px]">→</kbd> Skift dag</p>
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">T</kbd> I dag</p>
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">N</kbd> Ny rute</p>
-                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">M</kbd> Vis/skjul kort</p>
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">Esc</kbd> Luk panel</p>
                   </div>
                 </TooltipContent>
@@ -798,28 +797,15 @@ const Planner = () => {
             </ResizablePanelGroup>
         </div>
 
-        {/* Kort — slide-in fra højre, samme stil som rute-redigering */}
-        <Sheet open={showMap} onOpenChange={setShowMap}>
-          <SheetContent side="right" className="w-full sm:max-w-2xl flex flex-col p-0">
-            <SheetHeader className="px-4 py-3 border-b shrink-0">
-              <SheetTitle className="flex items-center gap-2 text-base">
-                <MapIcon className="h-4 w-4 text-primary" />Kort
-              </SheetTitle>
-              <SheetDescription className="text-xs">
-                {mapRoutes.reduce((acc, r) => acc + r.stops.length, 0)} planlagte stops · {unassignedMapStops.length} ledige opgaver
-              </SheetDescription>
-            </SheetHeader>
-            <div className="flex-1 min-h-0">
-              <RouteMap
-                routes={mapRoutes}
-                unassigned={unassignedMapStops}
-                selectedStopId={selectedStopId}
-                onStopClick={setSelectedStopId}
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
-
+        {/* Manuel ordre-oprettelse — kunde modtager mail med godkendelseslink */}
+        {businessId && (
+          <CreateManualOrderDialog
+            open={createOrderOpen}
+            onOpenChange={setCreateOrderOpen}
+            businessId={businessId}
+            businessName={business?.name || ""}
+          />
+        )}
 
         {/* Slet rute bekræftelse */}
         <AlertDialog open={!!routeToDelete} onOpenChange={(o) => !o && setRouteToDelete(null)}>

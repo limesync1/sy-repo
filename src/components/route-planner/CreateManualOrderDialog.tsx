@@ -172,7 +172,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
           },
         };
       });
-      const { error: itemsErr } = await supabase.from("order_items").insert(orderItems);
+      const { error: itemsErr } = await supabase.from("order_items").insert(orderItems as any);
       if (itemsErr) throw itemsErr;
 
       // Send approval email
