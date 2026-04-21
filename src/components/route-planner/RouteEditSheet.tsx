@@ -13,12 +13,14 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Loader2, Sparkles, Trash2, UserPlus, X, Save, Check } from "lucide-react";
+import { Palette, CalendarDays, Users, Pencil } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useUpdateRoute, useDeleteRoute, useOptimizeRoute, useAddRouteEmployee, useRemoveRouteEmployee, type Route } from "@/hooks/useRoutes";
 import { DatePickerField } from "./DatePickerField";
+import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 
 export type RouteEmployeeOption = { id: string; name: string };
 
