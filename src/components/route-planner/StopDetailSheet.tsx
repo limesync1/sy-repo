@@ -17,13 +17,14 @@ import {
 import {
   MapPin, Phone, Mail, Clock, Trash2, Save,
   AlertCircle, Banknote, FileText, Repeat, PauseCircle,
-  Timer, Hourglass,
+  Timer, Hourglass, User, Package, CalendarClock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { INTERVAL_LABELS } from "@/types/service";
+import { Section, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 
 type Props = {
   stop: RouteStop | null;
@@ -120,62 +121,48 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent className="sm:max-w-lg w-full p-0 flex flex-col">
-          <SheetHeader className="px-5 py-4 border-b shrink-0">
-            <div className="flex items-start gap-3">
-              {sequenceLabel && (
-                <span
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-white text-sm font-bold shrink-0"
-                  style={{ background: routeColor || "hsl(var(--primary))" }}
-                >
-                  {sequenceLabel}
-                </span>
-              )}
-              <div className="flex-1 min-w-0">
-                <SheetTitle className="text-left text-base">{stop.customer_name || "Stop"}</SheetTitle>
-                <SheetDescription className="text-left text-xs">
+          <SheetHeader className="px-5 py-4 border-b shrink-0 space-y-0">
+            <SheetHeaderBlock
+              accent={routeColor}
+              badge={sequenceLabel ?? <MapPin className="h-4 w-4" />}
+              title={<SheetTitle className="text-base">{stop.customer_name || "Stop"}</SheetTitle>}
+              description={
+                <SheetDescription className="text-xs">
                   {business?.name ? <>Bestilling hos <strong>{business.name}</strong></> : "Detaljer for dette stop"}
                 </SheetDescription>
-                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                  {statusBadge()}
-                  {pausedSub && (
-                    <span>
-                      <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
-                        <PauseCircle className="h-2.5 w-2.5" />Abonnement på pause
-                      </Badge>
-                    </span>
-                  )}
-                  {recurringInterval && recurringInterval !== "engangskøb" && (
-                    <span>
-                      <Badge variant="secondary" className="gap-1 text-[10px]">
-                        <Repeat className="h-2.5 w-2.5" />
-                        {INTERVAL_LABELS[recurringInterval] || recurringInterval}
-                      </Badge>
-                    </span>
-                  )}
-                  {!hasCoords && (
-                    <span>
-                      <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
-                        <AlertCircle className="h-2.5 w-2.5" />Mangler GPS
-                      </Badge>
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
+              }
+            >
+              {statusBadge()}
+              {pausedSub && (
+                <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
+                  <PauseCircle className="h-2.5 w-2.5" />Abonnement på pause
+                </Badge>
+              )}
+              {recurringInterval && recurringInterval !== "engangskøb" && (
+                <Badge variant="secondary" className="gap-1 text-[10px]">
+                  <Repeat className="h-2.5 w-2.5" />
+                  {INTERVAL_LABELS[recurringInterval] || recurringInterval}
+                </Badge>
+              )}
+              {!hasCoords && (
+                <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
+                  <AlertCircle className="h-2.5 w-2.5" />Mangler GPS
+                </Badge>
+              )}
+            </SheetHeaderBlock>
           </SheetHeader>
 
           <ScrollArea className="flex-1">
-            <div className="px-5 py-4 space-y-5">
-              {/* Quick actions */}
+            <div className="px-5 py-4 space-y-3 bg-secondary/20 min-h-full">
+              {/* Quick action */}
               {stop.customer_phone && (
-                <Button asChild variant="outline" className="w-full gap-1.5 h-9">
+                <Button asChild variant="outline" className="w-full gap-1.5 h-9 bg-background">
                   <a href={`tel:${stop.customer_phone}`}><Phone className="h-4 w-4" />Ring til kunde</a>
                 </Button>
               )}
 
               {/* Customer */}
-              <section>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Kunde</h3>
+              <Section icon={<User className="h-3.5 w-3.5" />} title="Kunde">
                 <div className="space-y-1.5 text-sm">
                   {fullAddress && (
                     <div className="flex items-start gap-2">
@@ -196,15 +183,15 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                     </div>
                   )}
                 </div>
-              </section>
-
-              <Separator />
+              </Section>
 
               {/* Order items */}
               {items.length > 0 && (
-                <>
-                  <section>
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Bestilte ydelser</h3>
+                <Section
+                  icon={<Package className="h-3.5 w-3.5" />}
+                  title="Bestilte ydelser"
+                  hint={`${items.length} ${items.length === 1 ? "ydelse" : "ydelser"}`}
+                >
                     <div className="rounded-lg border divide-y">
                       {items.map((item: any, i: number) => {
                         const d = item.details || {};
@@ -325,18 +312,16 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                       </span>
                       <span className="text-base font-bold">{Math.round(totalAmount)} kr</span>
                     </div>
-                  </section>
-                  <Separator />
-                </>
+                </Section>
               )}
 
               {/* Subscription details (if recurring) */}
               {(activeSub || pausedSub) && (
-                <>
-                  <section>
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1">
-                      <Repeat className="h-3 w-3" />Abonnement
-                    </h3>
+                <Section
+                  icon={<Repeat className="h-3.5 w-3.5" />}
+                  title="Abonnement"
+                  hint={pausedSub ? "På pause" : "Aktiv"}
+                >
                     <div className={`rounded-lg border px-3 py-2 text-sm space-y-1 ${pausedSub ? "bg-orange-50 border-orange-200" : "bg-secondary/40"}`}>
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Status</span>
@@ -373,46 +358,44 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                         </div>
                       )}
                     </div>
-                  </section>
-                  <Separator />
-                </>
+                </Section>
               )}
 
               {/* Customer's notes from order */}
               {orderNotes && (
-                <>
-                  <section>
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1">
-                      <FileText className="h-3 w-3" />Note fra kunden
-                    </h3>
-                    <p className="text-sm bg-secondary/50 rounded-lg px-3 py-2 whitespace-pre-wrap">
-                      {orderNotes}
-                    </p>
-                  </section>
-                  <Separator />
-                </>
+                <Section icon={<FileText className="h-3.5 w-3.5" />} title="Note fra kunden">
+                  <p className="text-sm bg-secondary/40 rounded-md px-3 py-2 whitespace-pre-wrap">
+                    {orderNotes}
+                  </p>
+                </Section>
               )}
 
               {/* Planning */}
-              <PlanningSection
-                timeSlot={timeSlot}
-                setTimeSlot={setTimeSlot}
-                durationHours={durationHours}
-                setDurationHours={setDurationHours}
-                durationMinutes={durationMinutes}
-                setDurationMinutes={setDurationMinutes}
-                notes={notes}
-                setNotes={setNotes}
-                plannedArrival={stop.planned_arrival}
-                distanceToNextKm={stop.distance_to_next_km}
-              />
+              <Section
+                icon={<CalendarClock className="h-3.5 w-3.5" />}
+                title="Planlægning"
+                hint="Tidsrum, varighed & note"
+              >
+                <PlanningSection
+                  timeSlot={timeSlot}
+                  setTimeSlot={setTimeSlot}
+                  durationHours={durationHours}
+                  setDurationHours={setDurationHours}
+                  durationMinutes={durationMinutes}
+                  setDurationMinutes={setDurationMinutes}
+                  notes={notes}
+                  setNotes={setNotes}
+                  plannedArrival={stop.planned_arrival}
+                  distanceToNextKm={stop.distance_to_next_km}
+                />
+              </Section>
 
               {isLoading && <p className="text-xs text-muted-foreground italic">Indlæser ordredetaljer...</p>}
             </div>
           </ScrollArea>
 
-          {/* Footer actions — match RouteEditSheet stil */}
-          <div className="border-t p-4 shrink-0 bg-card">
+          {/* Footer actions */}
+          <SheetFooterBar>
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -430,7 +413,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 Gem
               </Button>
             </div>
-          </div>
+          </SheetFooterBar>
         </SheetContent>
       </Sheet>
 
@@ -516,11 +499,7 @@ const PlanningSection = ({
         : `${durationHours} t ${durationMinutes} min`;
 
   return (
-    <section>
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-        Planlægning
-      </h3>
-      <div className="space-y-4">
+    <div className="space-y-4">
         {/* Tidsrum */}
         <div className="space-y-2">
           <Label>Tidsrum</Label>
@@ -702,7 +681,6 @@ const PlanningSection = ({
             Synlig for medarbejderen i medarbejder-appen.
           </p>
         </div>
-      </div>
-    </section>
+    </div>
   );
 };

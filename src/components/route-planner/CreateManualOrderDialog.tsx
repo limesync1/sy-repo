@@ -21,6 +21,7 @@ import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
 import { Building2 } from "lucide-react";
+import { Section, Field, SheetHeaderBlock } from "./SheetSection";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
 type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string };
@@ -234,16 +235,16 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v && !submitting) onOpenChange(v); else if (v) onOpenChange(v); }}>
       <DialogContent className="max-w-3xl max-h-[92vh] flex flex-col p-0 gap-0 overflow-hidden">
-        <DialogHeader className="px-5 py-3.5 border-b bg-background shrink-0">
-          <DialogTitle className="flex items-center gap-2 text-base">
-            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10">
-              <ShoppingBag className="h-3.5 w-3.5 text-primary" />
-            </span>
-            Opret bestilling for kunde
-          </DialogTitle>
-          <DialogDescription className="text-xs">
-            Vælg services fra dit katalog og udfyld kundens oplysninger. Kunden modtager en mail med et godkendelses-link — bestillingen aktiveres først når de godkender.
-          </DialogDescription>
+        <DialogHeader className="px-5 py-4 border-b bg-background shrink-0 space-y-0">
+          <SheetHeaderBlock
+            icon={<ShoppingBag className="h-4 w-4" />}
+            title={<DialogTitle className="text-base">Opret bestilling for kunde</DialogTitle>}
+            description={
+              <DialogDescription className="text-xs leading-snug">
+                Vælg services fra dit katalog og udfyld kundens oplysninger. Kunden modtager en mail med et godkendelses-link — bestillingen aktiveres først når de godkender.
+              </DialogDescription>
+            }
+          />
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-secondary/20">
@@ -427,36 +428,5 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
     </Dialog>
   );
 };
-
-/* ───────── Small layout helpers ───────── */
-
-const Section = ({
-  icon, title, hint, required, children,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  hint?: string;
-  required?: boolean;
-  children: React.ReactNode;
-}) => (
-  <div className="bg-background rounded-lg border p-3.5">
-    <div className="flex items-center gap-1.5 mb-2.5">
-      <span className="text-muted-foreground">{icon}</span>
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">{title}</h3>
-      {required && <span className="text-[10px] text-destructive">*</span>}
-      {hint && <span className="ml-auto text-[10px] text-muted-foreground">{hint}</span>}
-    </div>
-    {children}
-  </div>
-);
-
-const Field = ({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) => (
-  <div className="space-y-1">
-    <Label className="text-[11px] text-muted-foreground font-medium">
-      {label}{required && <span className="text-destructive ml-0.5">*</span>}
-    </Label>
-    {children}
-  </div>
-);
 
 export default CreateManualOrderDialog;
