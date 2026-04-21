@@ -154,6 +154,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const arrivedAnnouncedRef = useRef<Set<string>>(new Set());
   const finishedAnnouncedRef = useRef(false);
   const lastSpokenStepRef = useRef<string | null>(null);
+  const baselineDurationRef = useRef<{ stopId: string; durationS: number } | null>(null);
+  const [trafficAlert, setTrafficAlert] = useState<{ deltaPct: number; addedMin: number } | null>(null);
 
   /* Geolocation watcher — kun aktiv når rute kører */
   useEffect(() => {
