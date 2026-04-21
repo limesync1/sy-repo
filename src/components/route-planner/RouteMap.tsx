@@ -314,7 +314,10 @@ const RouteMap = ({ routes, unassigned = [], height = "100%", selectedStopId, on
 
         {/* Route polylines (driving) + numbered pins */}
         {routes.map((r, ri) => {
-          const sig = r.stops.map((s) => `${s.lat.toFixed(5)},${s.lng.toFixed(5)}`).join("|");
+          const sig =
+            r.color +
+            "::" +
+            r.stops.map((s) => `${s.lat.toFixed(5)},${s.lng.toFixed(5)}`).join("|");
           const geom = getGeom(sig);
           return (
             <RouteLayer
