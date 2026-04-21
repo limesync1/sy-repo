@@ -480,15 +480,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <Button
                   onClick={() => handleComplete(nextStop)}
                   size="lg"
-                  className={`w-full gap-2 ${isAtNextStop ? "ring-4 ring-primary/40 animate-pulse" : ""}`}
+                  className={`w-full gap-2 h-14 text-base ${isAtNextStop ? "ring-4 ring-primary/50 animate-pulse" : ""}`}
                   disabled={updateStatus.isPending}
                 >
                   {updateStatus.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
-                    <CheckCircle2 className="h-5 w-5" />
+                    <CheckCircle2 className="h-6 w-6" />
                   )}
-                  {isAtNextStop ? "Du er fremme — Markér som udført" : "Markér som udført"}
+                  {isAtNextStop ? "Du er fremme — markér udført" : "Markér som udført"}
                 </Button>
               </div>
             )}
