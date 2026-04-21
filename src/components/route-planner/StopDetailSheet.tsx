@@ -414,31 +414,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 </Section>
               )}
 
-              {/* Medarbejdere på opgaven (pr-stop tildeling) */}
-              {!readOnly && (
-                <Section
-                  icon={<Users className="h-3.5 w-3.5" />}
-                  title="Medarbejdere"
-                  hint={
-                    assigneeIds.length === 0
-                      ? "Ingen tildelt"
-                      : assigneeIds.length === 1
-                        ? "1 medarbejder"
-                        : `${assigneeIds.length} medarbejdere · ligedeling ${Math.round(100 / assigneeIds.length)}%`
-                  }
-                >
-                  <AssigneePicker
-                    employees={activeEmployees}
-                    assigneeIds={assigneeIds}
-                    leadId={leadId}
-                    onChange={(ids, lead) => {
-                      setAssigneeIds(ids);
-                      setLeadId(lead);
-                    }}
-                  />
-                </Section>
-              )}
-
               {/* Planning */}
               {!readOnly && (
                 <TimeSpentSection
