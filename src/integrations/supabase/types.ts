@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      business_customers: {
+        Row: {
+          address: string | null
+          business_id: string
+          city: string | null
+          company_name: string
+          contact_name: string | null
+          created_at: string
+          cvr: string | null
+          email: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          notes: string | null
+          phone: string | null
+          updated_at: string
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          business_id: string
+          city?: string | null
+          company_name: string
+          contact_name?: string | null
+          created_at?: string
+          cvr?: string | null
+          email: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          business_id?: string
+          city?: string | null
+          company_name?: string
+          contact_name?: string | null
+          created_at?: string
+          cvr?: string | null
+          email?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_customers_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       businesses: {
         Row: {
           address: string | null
@@ -550,6 +612,62 @@ export type Database = {
             columns: ["parent_order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      private_customers: {
+        Row: {
+          address: string | null
+          business_id: string
+          city: string | null
+          created_at: string
+          email: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          business_id: string
+          city?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          business_id?: string
+          city?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "private_customers_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
         ]
