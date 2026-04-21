@@ -225,9 +225,33 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   >(null);
   const trafficSpokenRef = useRef<string | null>(null);
 
-  /* Geolocation watcher — kun aktiv når rute kører */
+  /* Geolocation permission — husk på tværs af sessioner.
+   * Browseren persisterer selv "granted/denied" pr. origin, men hvis
+   * tilstanden er "granted" ønsker vi at starte watcheren med det samme,
+   * så vi har en position klar når brugeren trykker "Start rute" — uden
+   * at vise endnu en prompt. */
+  const [geoPermission, setGeoPermission] = useState<"granted" | "denied" | "prompt" | "unknown">("unknown");
   useEffect(() => {
-    if (!routeStarted) return;
+    if (!("permissions" in navigator)) { setGeoPermission("unknown"); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const status = await (navigator.permissions as any).query({ name: "geolocation" });
+        if (cancelled) return;
+        setGeoPermission(status.state);
+        status.onchange = () => setGeoPermission(status.state);
+      } catch {
+        setGeoPermission("unknown");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  /* Geolocation watcher — aktiv når rute kører ELLER når brugeren allerede
+   * har givet lov (så positionen er klar uden ny prompt). */
+  useEffect(() => {
+    const shouldWatch = routeStarted || geoPermission === "granted";
+    if (!shouldWatch) return;
     if (!navigator.geolocation) return;
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
@@ -240,7 +264,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [routeStarted]);
+  }, [routeStarted, geoPermission]);
 
   /* Bryd follow ved manuel kortinteraktion */
   const breakFollow = () => { if (followMode) setFollowMode(false); };
