@@ -969,7 +969,8 @@ export const useMyDayRoutes = (date: string) => {
         .in("route_id", todayRouteIds);
       const visibleRouteIds = new Set<string>();
       (stops || []).forEach((s: any) => {
-        if (myStopIds.has(s.id) || !s.assigned_employee_id) {
+        const belongsToEmployee = myStopIds.has(s.id) || s.assigned_employee_id === emp.id;
+        if (belongsToEmployee || !s.assigned_employee_id) {
           visibleRouteIds.add(s.route_id);
         }
       });
@@ -1015,8 +1016,11 @@ export const useMyDayStops = (date: string) => {
         .in("route_id", todayIds)
         .order("sequence", { ascending: true });
       if (error) throw error;
-      // Filtrer: vis stops jeg er på, eller utildelte stops på en rute jeg er på
-      const filtered = (data || []).filter((s: any) => myStopIds.has(s.id) || !s.assigned_employee_id);
+      // Filtrer: vis stops jeg er på, også legacy direkte assigned_employee_id, eller utildelte stops på en rute jeg er på
+      const filtered = (data || []).filter((s: any) => {
+        const belongsToEmployee = myStopIds.has(s.id) || s.assigned_employee_id === emp.id;
+        return belongsToEmployee || !s.assigned_employee_id;
+      });
       return filtered as RouteStop[];
     },
   });
@@ -1054,9 +1058,10 @@ export const useMyRouteData = (routeId: string | undefined) => {
         .select("*")
         .eq("route_id", routeId!)
         .order("sequence", { ascending: true });
-      const stops = (rawStops || []).filter((s: any) =>
-        myStopIds.has(s.id) || !s.assigned_employee_id,
-      );
+      const stops = (rawStops || []).filter((s: any) => {
+        const belongsToEmployee = myStopIds.has(s.id) || s.assigned_employee_id === emp.id;
+        return belongsToEmployee || !s.assigned_employee_id;
+      });
 
       return {
         route: route as unknown as Route & { businesses?: { name?: string; phone?: string } },
