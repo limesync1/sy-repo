@@ -77,10 +77,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkout, user]);
 
-  // Reset verification whenever address changes
-  const onAddressChange = (v: string) => { setAddress(v); setGeo(null); };
-  const onZipChange = (v: string) => { setZipCode(v); setGeo(null); };
-  const onCityChange = (v: string) => { setCity(v); setGeo(null); };
+  // (zip/city håndteres nu udelukkende via AddressAutocomplete)
 
   const verifyAddress = async (silent = false): Promise<{ lat?: number; lng?: number } | null> => {
     if (!address.trim() || !zipCode.trim() || !city.trim()) {
@@ -154,7 +151,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
               id: childIds[i],
               parent_order_id: parentOrderId,
               business_id: businessId === "unknown" ? undefined : businessId,
-              customer_name: name,
+              customer_name: customerType === "business" && companyName ? companyName : name,
               customer_email: email,
               customer_phone: phone,
               address,
@@ -162,8 +159,8 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
               city,
               latitude: coords.lat,
               longitude: coords.lng,
-              cvr: cvr.replace(/\D/g, "") || null,
-              company_name: companyName.trim() || null,
+              cvr: customerType === "business" ? (cvr.replace(/\D/g, "") || null) : null,
+              company_name: customerType === "business" ? (companyName.trim() || null) : null,
               preferred_date: null,
               preferred_time_start: null,
               preferred_time_end: null,
