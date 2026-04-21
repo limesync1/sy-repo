@@ -198,6 +198,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return allPoints;
   }, [legLine, nextStop, legOrigin, allPoints]);
 
+  const completedCount = sortedStops.filter((s) => s.status === "completed").length;
+  const allDone = sortedStops.length > 0 && completedCount === sortedStops.length;
+
+  /* Spil fanfare én gang når dagen er færdig. */
+  useEffect(() => {
+    if (!allDone || finishedAnnouncedRef.current || !audioEnabled) return;
+    finishedAnnouncedRef.current = true;
+    playCompleteFanfare();
+    setTimeout(() => speak("Godt arbejde. Alle stop er klaret."), 800);
+  }, [allDone, audioEnabled]);
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center text-muted-foreground">
@@ -236,17 +247,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       toast.success("Markering fortrudt");
     } catch { /* */ }
   };
-
-  const completedCount = sortedStops.filter((s) => s.status === "completed").length;
-  const allDone = sortedStops.length > 0 && completedCount === sortedStops.length;
-
-  /* Spil fanfare én gang når dagen er færdig. */
-  useEffect(() => {
-    if (!allDone || finishedAnnouncedRef.current || !audioEnabled) return;
-    finishedAnnouncedRef.current = true;
-    playCompleteFanfare();
-    setTimeout(() => speak("Godt arbejde. Alle stop er klaret."), 800);
-  }, [allDone, audioEnabled]);
 
   const handleStartRoute = () => {
     unlockAudio();
