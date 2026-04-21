@@ -140,7 +140,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState<Record<string, string>>({});
-  const [showList, setShowList] = useState(false);
+  const [listOpen, setListOpen] = useState(false);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [userHeading, setUserHeading] = useState<number | null>(null);
