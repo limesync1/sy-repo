@@ -10,12 +10,12 @@ import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
   ChevronUp, ChevronDown, Printer, Play, Volume2, VolumeX, Timer,
 } from "lucide-react";
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polyline, Tooltip, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { toast } from "sonner";
 import { stripPrices } from "@/lib/employee-display";
-import { haversineMeters } from "@/lib/geo-distance";
+import { bearingDegrees, haversineMeters } from "@/lib/geo-distance";
 import {
   unlockAudio, playArrivalChime, playSuccessChime, playCompleteFanfare, speak,
 } from "@/lib/employee-audio";
@@ -46,6 +46,13 @@ const userIcon = L.divIcon({
   iconAnchor: [9, 9],
 });
 
+const headingIcon = (rotation: number) => L.divIcon({
+  className: "",
+  html: `<div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;transform:rotate(${rotation}deg);"><div style="width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-bottom:24px solid hsl(184 90% 42%);filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));"></div></div>`,
+  iconSize: [34, 34],
+  iconAnchor: [17, 17],
+});
+
 /* ── Helpers ────────────────────────────────────────────────────── */
 const FitTo = ({ points }: { points: [number, number][] }) => {
   const map = useMap();
@@ -60,6 +67,33 @@ const FitTo = ({ points }: { points: [number, number][] }) => {
     }
     setTimeout(() => map.invalidateSize(), 100);
   }, [points, map]);
+  return null;
+};
+
+const FollowUser = ({
+  active,
+  userPos,
+  nextStop,
+}: {
+  active: boolean;
+  userPos: [number, number] | null;
+  nextStop: RouteStop | undefined;
+}) => {
+  const map = useMap();
+  useEffect(() => {
+    if (!active || !userPos) return;
+    const nextLat = nextStop?.latitude != null ? Number(nextStop.latitude) : null;
+    const nextLng = nextStop?.longitude != null ? Number(nextStop.longitude) : null;
+    if (nextLat != null && nextLng != null) {
+      const bounds = L.latLngBounds([
+        L.latLng(userPos[0], userPos[1]),
+        L.latLng(nextLat, nextLng),
+      ]);
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16, animate: true });
+      return;
+    }
+    map.setView(userPos, Math.max(map.getZoom(), 16), { animate: true });
+  }, [active, userPos?.[0], userPos?.[1], nextStop?.id, map]);
   return null;
 };
 
@@ -94,7 +128,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const [showList, setShowList] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
+  const [userHeading, setUserHeading] = useState<number | null>(null);
   const [routeStarted, setRouteStarted] = useState(false);
+  const [followMode, setFollowMode] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [autoReturn, setAutoReturn] = useState<number | null>(null);
   /** Stop-id'er hvor vi allerede har afspillet ankomst-lyd (undgår spam). */
@@ -107,7 +143,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     if (!routeStarted) return;
     if (!navigator.geolocation) return;
     const watchId = navigator.geolocation.watchPosition(
-      (pos) => setUserPos([pos.coords.latitude, pos.coords.longitude]),
+      (pos) => {
+        setUserPos([pos.coords.latitude, pos.coords.longitude]);
+        if (typeof pos.coords.heading === "number" && !Number.isNaN(pos.coords.heading)) {
+          setUserHeading(pos.coords.heading);
+        }
+      },
       () => { /* silent */ },
       { enableHighAccuracy: true, maximumAge: 30000, timeout: 10000 },
     );
@@ -183,6 +224,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     if (!directions?.geometry?.coordinates) return [];
     return directions.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
   }, [directions]);
+
+  const derivedHeading = useMemo(() => {
+    if (userHeading != null) return userHeading;
+    if (!userPos || !nextStop || nextStop.latitude == null || nextStop.longitude == null) return null;
+    return bearingDegrees(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
+  }, [userHeading, userPos, nextStop?.id, nextStop?.latitude, nextStop?.longitude]);
 
   const allPoints: [number, number][] = useMemo(() => {
     const pts: [number, number][] = [];
@@ -284,6 +331,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const handleStartRoute = () => {
     unlockAudio();
     setRouteStarted(true);
+    setFollowMode(true);
     toast.success("Rute startet — god tur!");
   };
 
@@ -344,7 +392,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             Ingen koordinater tilgængelige. Brug listevisningen i stedet.
           </div>
         ) : (
-          <MapContainer
+            <MapContainer
             center={allPoints[0]}
             zoom={12}
             style={{ height: "100%", width: "100%" }}
@@ -356,6 +404,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             />
 
             <FitTo points={fitPoints} />
+              <FollowUser active={routeStarted && followMode} userPos={userPos} nextStop={nextStop} />
 
             {/* Start marker */}
             {startCoord && <Marker position={startCoord} icon={startIcon} />}
@@ -365,11 +414,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <Polyline
                 positions={legLine}
                 pathOptions={{ color: "hsl(184 90% 42%)", weight: 6, opacity: 0.85 }}
-              />
+                >
+                  {directions && (
+                    <Tooltip sticky direction="top" opacity={1}>
+                      <span className="text-xs font-medium">
+                        {formatKm(directions.distance_m)} · {formatMin(directions.duration_s)}
+                      </span>
+                    </Tooltip>
+                  )}
+                </Polyline>
             )}
 
             {/* User position */}
             {userPos && <Marker position={userPos} icon={userIcon} />}
+              {userPos && derivedHeading != null && <Marker position={userPos} icon={headingIcon(derivedHeading)} />}
 
             {/* Stops */}
             {sortedStops.map((s, i) => {
@@ -436,6 +494,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     <Play className="h-5 w-5" /> Start rute
                   </Button>
                 )}
+                {routeStarted && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button onClick={() => setFollowMode(true)} variant={followMode ? "default" : "outline"} size="sm">
+                      Følg live
+                    </Button>
+                    <Button onClick={() => setFollowMode(false)} variant={!followMode ? "default" : "outline"} size="sm">
+                      Fri udforskning
+                    </Button>
+                  </div>
+                )}
                 <div className="flex items-start gap-3">
                   <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm shrink-0">
                     {nextStopIdx + 1}
@@ -454,6 +522,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     {distanceToNextM != null && (
                       <p className="text-[11px] text-muted-foreground mt-1 tabular-nums">
                         {distanceToNextM < 1000 ? `${Math.round(distanceToNextM)} m` : `${(distanceToNextM/1000).toFixed(1)} km`} til stoppet
+                      </p>
+                    )}
+                    {etaLabel && (
+                      <p className="text-[11px] text-primary mt-1 tabular-nums">
+                        Forventet ankomst {etaLabel}
                       </p>
                     )}
                   </div>
