@@ -569,16 +569,16 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                   </h4>
                 </div>
                 <div className="space-y-2.5 pl-9">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">E-mail</label>
+                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="din@email.dk" className="rounded-lg" />
+                  </div>
                   {customerType === "private" && (
                     <div>
                       <label className="mb-1 block text-xs font-medium text-muted-foreground">Fulde navn</label>
                       <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Dit navn" className="rounded-lg" />
                     </div>
                   )}
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-muted-foreground">E-mail</label>
-                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="din@email.dk" className="rounded-lg" />
-                  </div>
                   <div>
                     <label className="mb-1 block text-xs font-medium text-muted-foreground">Telefon</label>
                     <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 00 00 00 00" className="rounded-lg" />
