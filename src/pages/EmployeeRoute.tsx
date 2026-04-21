@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMyRouteData, useDirections, useUpdateStopStatus, type RouteStop, type Route } from "@/hooks/useRoutes";
+import { useMyRouteData, useDirections, useUpdateStopStatus, useOrderForStop, type RouteStop, type Route } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
   ChevronUp, ChevronDown, Play, Volume2, VolumeX, Crosshair, Flag, AlertTriangle, TrafficCone,
+  ClipboardList, Info, MessageSquare,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -1127,76 +1128,22 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
       {/* ─── Stop detail sheet ─── */}
       <Sheet open={!!selectedId} onOpenChange={(o) => !o && setSelectedId(null)}>
-        <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Stop-detaljer</SheetTitle>
-            <SheetDescription>Information og handlinger for valgt stop.</SheetDescription>
-          </SheetHeader>
+        <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto p-0">
           {(() => {
             const s = sortedStops.find((x) => x.id === selectedId);
             if (!s) return null;
-            const isDone = s.status === "completed";
             const idx = sortedStops.indexOf(s);
             return (
-              <div className="space-y-4 mt-4">
-                <div className="flex items-start gap-3">
-                  <span
-                    className="flex h-11 w-11 items-center justify-center rounded-full font-semibold text-background shrink-0"
-                    style={{ background: isDone ? "hsl(142 70% 45%)" : themeColor }}
-                  >
-                    {isDone ? <CheckCircle2 className="h-5 w-5" /> : idx + 1}
-                  </span>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold">{s.customer_name || "Stop"}</h3>
-                      <Badge variant={isDone ? "secondary" : "outline"} className="text-[10px]">{s.status}</Badge>
-                    </div>
-                    {s.address && (
-                      <p className="text-sm text-muted-foreground flex items-start gap-1 mt-1">
-                        <MapPin className="h-3.5 w-3.5 mt-0.5" />{s.address}
-                      </p>
-                    )}
-                    {s.service_summary && stripPrices(s.service_summary) && (
-                      <p className="text-sm mt-2">{stripPrices(s.service_summary)}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <Button onClick={() => handleNavigate(s)} variant="outline" className="gap-1">
-                    <Navigation className="h-4 w-4" /> Naviger
-                  </Button>
-                  {s.customer_phone ? (
-                    <Button asChild variant="outline" className="gap-1">
-                      <a href={`tel:${s.customer_phone}`}><Phone className="h-4 w-4" /> Ring</a>
-                    </Button>
-                  ) : (
-                    <Button variant="outline" disabled className="gap-1">
-                      <Phone className="h-4 w-4" /> Ring
-                    </Button>
-                  )}
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Note (synlig for virksomheden)</label>
-                  <Textarea
-                    placeholder="Tilføj note..."
-                    value={noteDraft[s.id] ?? s.notes ?? ""}
-                    onChange={(e) => setNoteDraft((d) => ({ ...d, [s.id]: e.target.value }))}
-                    rows={3}
-                  />
-                </div>
-
-                {!isDone ? (
-                  <Button onClick={() => handleComplete(s)} className="w-full gap-2" size="lg" disabled={updateStatus.isPending}>
-                    <CheckCircle2 className="h-5 w-5" /> Markér som udført
-                  </Button>
-                ) : (
-                  <Button onClick={() => handleUndo(s)} variant="outline" className="w-full">
-                    Fortryd udført
-                  </Button>
-                )}
-              </div>
+              <StopDetailsContent
+                stop={s}
+                index={idx}
+                themeColor={themeColor}
+                noteDraft={noteDraft[s.id] ?? s.notes ?? ""}
+                onNoteChange={(v) => setNoteDraft((d) => ({ ...d, [s.id]: v }))}
+                onComplete={() => handleComplete(s)}
+                onUndo={() => handleUndo(s)}
+                isPending={updateStatus.isPending}
+              />
             );
           })()}
         </SheetContent>
@@ -1407,6 +1354,293 @@ const StopListPanel = ({
             );
           })}
         </div>
+      </div>
+    </div>
+  );
+};
+
+/* ─── Stop-detaljer: viser fuld adresse, opgaver, kunde-info ─── */
+const StopDetailsContent = ({
+  stop, index, themeColor, noteDraft, onNoteChange, onComplete, onUndo, isPending,
+}: {
+  stop: RouteStop;
+  index: number;
+  themeColor: string;
+  noteDraft: string;
+  onNoteChange: (v: string) => void;
+  onComplete: () => void;
+  onUndo: () => void;
+  isPending: boolean;
+}) => {
+  const { data: order, isLoading: loadingOrder } = useOrderForStop(stop.order_id);
+  const isDone = stop.status === "completed";
+
+  // Fuld adresse: vej + postnummer + by (auto-strip dubletter hvis address allerede indeholder zip)
+  const fullAddress = useMemo(() => {
+    const parts: string[] = [];
+    const street = stop.address || order?.address || null;
+    const zip = order?.zip_code || null;
+    const city = order?.city || null;
+    if (street) parts.push(street);
+    const zipCity = [zip, city].filter(Boolean).join(" ");
+    // Hvis street allerede slutter på zip eller city, så tilføj ikke igen
+    if (zipCity && (!street || !street.toLowerCase().includes(zipCity.toLowerCase()))) {
+      parts.push(zipCity);
+    }
+    return parts.join(", ");
+  }, [stop.address, order?.address, order?.zip_code, order?.city]);
+
+  const addressForMaps = encodeURIComponent(fullAddress || stop.address || "");
+
+  // Saml opgaverne fra order_items — hver linje viser hvad der konkret skal udføres.
+  type TaskLine = {
+    name: string;
+    quantity: number;
+    unit?: string | null;
+    description?: string | null;
+    subcategory?: string | null;
+    selections: Array<{ label: string; value: string }>;
+  };
+
+  const tasks: TaskLine[] = useMemo(() => {
+    const items = (order?.order_items || []) as any[];
+    return items.map((it) => {
+      const svc = it.services || {};
+      const details = it.details || {};
+      const selections: Array<{ label: string; value: string }> = [];
+      // details kan være { steps: [{label, value, unit}] } fra prisberegner
+      // eller { interval: "weekly" } fra abonnement
+      if (Array.isArray(details.steps)) {
+        for (const step of details.steps) {
+          if (step?.label != null && step?.value != null) {
+            selections.push({
+              label: String(step.label),
+              value: `${step.value}${step.unit ? ` ${step.unit}` : ""}`,
+            });
+          }
+        }
+      }
+      if (details.interval) {
+        const intervalMap: Record<string, string> = {
+          weekly: "Hver uge",
+          biweekly: "Hver 2. uge",
+          monthly: "Hver måned",
+          quarterly: "Hver 3. måned",
+        };
+        selections.push({
+          label: "Frekvens",
+          value: intervalMap[details.interval] || String(details.interval),
+        });
+      }
+      return {
+        name: it.service_name || svc.name || "Opgave",
+        quantity: it.quantity ?? 1,
+        unit: svc.unit,
+        description: svc.description,
+        subcategory: svc.subcategory,
+        selections,
+      };
+    });
+  }, [order?.order_items]);
+
+  // Hvis der ingen order_items er, fall back til at vise service_summary fra stoppet (uden priser)
+  const fallbackSummary = !tasks.length && stop.service_summary ? stripPrices(stop.service_summary) : null;
+
+  // Note fra kunden: orders.notes (kundens egen besked til virksomheden)
+  const customerNote: string | null = (order as any)?.notes || null;
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Header med rute-pille og navn */}
+      <div
+        className="px-5 pt-5 pb-4 border-b"
+        style={{
+          background: isDone ? "linear-gradient(180deg, hsl(142 70% 96%), transparent)" : "linear-gradient(180deg, hsl(184 90% 96%), transparent)",
+        }}
+      >
+        <div className="flex items-start gap-3">
+          <span
+            className="flex h-12 w-12 items-center justify-center rounded-2xl text-background font-bold text-base shrink-0 shadow-sm"
+            style={{ background: isDone ? "hsl(142 70% 45%)" : themeColor }}
+          >
+            {isDone ? <CheckCircle2 className="h-6 w-6" /> : index + 1}
+          </span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-bold text-lg leading-tight truncate">{stop.customer_name || "Stop"}</h3>
+              <Badge
+                variant="secondary"
+                className="text-[10px] uppercase tracking-wide font-bold border-0"
+                style={{
+                  background: isDone ? "hsl(142 70% 90%)" : "hsl(184 90% 90%)",
+                  color: isDone ? "hsl(142 70% 25%)" : "hsl(184 90% 25%)",
+                }}
+              >
+                {isDone ? "Færdig" : "Klar"}
+              </Badge>
+            </div>
+            {fullAddress && (
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${addressForMaps}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm text-foreground/80 hover:text-foreground underline-offset-2 hover:underline flex items-start gap-1.5 mt-1.5 leading-snug"
+              >
+                <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+                <span>{fullAddress}</span>
+              </a>
+            )}
+            {stop.duration_minutes > 0 && (
+              <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-1 tabular-nums">
+                <Clock className="h-3 w-3" /> Estimeret tid: ~{stop.duration_minutes} min
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-5 space-y-4">
+          {/* Opgave-sektion */}
+          <section>
+            <div className="flex items-center gap-2 mb-2">
+              <ClipboardList className="h-4 w-4 text-muted-foreground" />
+              <h4 className="text-[11px] uppercase tracking-wide font-bold text-muted-foreground">
+                Opgave hos kunden
+              </h4>
+            </div>
+            {loadingOrder && tasks.length === 0 && !fallbackSummary ? (
+              <div className="rounded-xl border bg-secondary/30 p-3 flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Henter opgavedetaljer…
+              </div>
+            ) : tasks.length > 0 ? (
+              <div className="space-y-2">
+                {tasks.map((t, i) => (
+                  <div key={i} className="rounded-xl border bg-card p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm leading-tight">{t.name}</p>
+                        {t.subcategory && (
+                          <p className="text-[11px] text-muted-foreground mt-0.5">{t.subcategory}</p>
+                        )}
+                      </div>
+                      {t.quantity > 1 && (
+                        <Badge variant="outline" className="tabular-nums text-[10px] shrink-0">
+                          × {t.quantity}{t.unit ? ` ${t.unit}` : ""}
+                        </Badge>
+                      )}
+                    </div>
+                    {t.description && (
+                      <p className="text-[12px] text-foreground/75 mt-2 leading-relaxed">
+                        {t.description}
+                      </p>
+                    )}
+                    {t.selections.length > 0 && (
+                      <div className="mt-2.5 grid grid-cols-2 gap-1.5">
+                        {t.selections.map((sel, k) => (
+                          <div
+                            key={k}
+                            className="flex items-center justify-between gap-2 rounded-lg bg-secondary/50 px-2 py-1.5"
+                          >
+                            <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold truncate">
+                              {sel.label}
+                            </span>
+                            <span className="text-[12px] font-bold tabular-nums truncate">
+                              {sel.value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : fallbackSummary ? (
+              <div className="rounded-xl border bg-card p-3">
+                <p className="text-sm leading-relaxed">{fallbackSummary}</p>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed bg-secondary/20 p-3 text-center">
+                <p className="text-[12px] text-muted-foreground">Ingen detaljer på denne opgave</p>
+              </div>
+            )}
+          </section>
+
+          {/* Kundens besked */}
+          {customerNote && customerNote.trim() && (
+            <section>
+              <div className="flex items-center gap-2 mb-2">
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                <h4 className="text-[11px] uppercase tracking-wide font-bold text-muted-foreground">
+                  Besked fra kunden
+                </h4>
+              </div>
+              <div
+                className="rounded-xl border-l-4 bg-secondary/40 p-3"
+                style={{ borderLeftColor: themeColor }}
+              >
+                <p className="text-sm leading-relaxed whitespace-pre-line">{customerNote}</p>
+              </div>
+            </section>
+          )}
+
+          {/* Kontakt */}
+          {stop.customer_phone && (
+            <section>
+              <div className="flex items-center gap-2 mb-2">
+                <Info className="h-4 w-4 text-muted-foreground" />
+                <h4 className="text-[11px] uppercase tracking-wide font-bold text-muted-foreground">
+                  Kontakt
+                </h4>
+              </div>
+              <Button asChild variant="outline" className="w-full gap-2 h-11 rounded-xl justify-start font-medium">
+                <a href={`tel:${stop.customer_phone}`}>
+                  <Phone className="h-4 w-4" /> Ring til {stop.customer_name || "kunden"}
+                  <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+                    {stop.customer_phone}
+                  </span>
+                </a>
+              </Button>
+            </section>
+          )}
+
+          {/* Note */}
+          <section>
+            <label className="text-[11px] uppercase tracking-wide font-bold text-muted-foreground mb-2 flex items-center gap-2">
+              <ClipboardList className="h-4 w-4" /> Din note
+              <span className="text-[10px] font-medium normal-case tracking-normal text-muted-foreground/80">
+                (synlig for virksomheden)
+              </span>
+            </label>
+            <Textarea
+              placeholder="Tilføj en note om besøget…"
+              value={noteDraft}
+              onChange={(e) => onNoteChange(e.target.value)}
+              rows={3}
+              className="resize-none rounded-xl"
+            />
+          </section>
+        </div>
+      </div>
+
+      {/* Sticky footer action */}
+      <div className="border-t bg-background/95 backdrop-blur p-4 shrink-0">
+        {!isDone ? (
+          <Button
+            onClick={onComplete}
+            className="w-full gap-2 h-12 text-base font-bold rounded-xl shadow-lg"
+            size="lg"
+            disabled={isPending}
+            style={{ background: themeColor }}
+          >
+            {isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
+            Markér som udført
+          </Button>
+        ) : (
+          <Button onClick={onUndo} variant="outline" className="w-full h-12 rounded-xl">
+            Fortryd udført
+          </Button>
+        )}
       </div>
     </div>
   );
