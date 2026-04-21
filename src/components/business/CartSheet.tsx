@@ -467,33 +467,108 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
           /* ── Checkout view ── */
           <div className="flex flex-1 flex-col min-h-0">
             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
-              {/* Contact form */}
+              {/* Privat / Erhverv toggle — matcher CustomerEditDialog stil */}
+              <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-secondary/50 border border-border">
+                <button
+                  type="button"
+                  onClick={() => setCustomerType("private")}
+                  className={cn(
+                    "flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-all",
+                    customerType === "private"
+                      ? "bg-card text-foreground shadow-sm border border-border"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <UserRound className="h-4 w-4" /> Privat
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCustomerType("business")}
+                  className={cn(
+                    "flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-all",
+                    customerType === "business"
+                      ? "bg-card text-foreground shadow-sm border border-border"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Building2 className="h-4 w-4" /> Erhverv
+                </button>
+              </div>
+
+              {/* CVR-opslag — kun erhverv */}
+              {customerType === "business" && (
+                <section className="space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
+                      <Building2 className="h-3.5 w-3.5 text-accent" />
+                    </div>
+                    <h4 className="text-sm font-semibold text-foreground">Virksomhed</h4>
+                  </div>
+                  <div className="space-y-2.5 pl-9">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground">CVR-nummer</label>
+                      <CvrLookupField
+                        value={cvr}
+                        onChange={setCvr}
+                        onResult={(r: CvrResult | null) => {
+                          if (!r) return;
+                          setCompanyName(r.name);
+                          if (!name) setName(r.name);
+                          if (r.address) setAddress(r.address);
+                          if (r.zip_code) setZipCode(r.zip_code);
+                          if (r.city) setCity(r.city);
+                          if (r.phone && !phone) setPhone(r.phone);
+                          if (r.email && !email) setEmail(r.email);
+                          // Behold ikke gamle koordinater ved ny adresse — geocode på ny
+                          setLatitude(null); setLongitude(null);
+                          setGeo(null);
+                          if (r.address && r.zip_code && r.city) {
+                            setTimeout(() => { verifyAddress(true); }, 50);
+                          }
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground">Firmanavn</label>
+                      <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Indtastes automatisk via CVR" className="rounded-lg" />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground">Kontaktperson</label>
+                      <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Fulde navn" className="rounded-lg" />
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* Kontakt-oplysninger */}
               <section className="space-y-3">
                 <div className="flex items-center gap-2">
                   <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
                     <User className="h-3.5 w-3.5 text-accent" />
                   </div>
-                  <h4 className="text-sm font-semibold text-foreground">Dine oplysninger</h4>
+                  <h4 className="text-sm font-semibold text-foreground">
+                    {customerType === "business" ? "Kontakt" : "Dine oplysninger"}
+                  </h4>
                 </div>
                 <div className="space-y-2.5 pl-9">
+                  {customerType === "private" && (
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground">Fulde navn</label>
+                      <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Dit navn" className="rounded-lg" />
+                    </div>
+                  )}
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Fulde navn</label>
-                    <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Dit navn" className="rounded-lg" />
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">E-mail</label>
+                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="din@email.dk" className="rounded-lg" />
                   </div>
-                  <div className="grid grid-cols-1 gap-2.5">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground">E-mail</label>
-                      <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="din@email.dk" className="rounded-lg" />
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground">Telefon</label>
-                      <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 00 00 00 00" className="rounded-lg" />
-                    </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Telefon</label>
+                    <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 00 00 00 00" className="rounded-lg" />
                   </div>
                 </div>
               </section>
 
-              {/* Service address */}
+              {/* Service-adresse */}
               <section className="space-y-3">
                 <div className="flex items-center gap-2">
                   <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
@@ -502,136 +577,67 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                   <h4 className="text-sm font-semibold text-foreground">Service-adresse</h4>
                 </div>
                 <div className="space-y-2.5 pl-9">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Adresse</label>
-                    <AddressAutocomplete
-                      value={{ address, zip_code: zipCode, city, latitude, longitude }}
-                      onChange={(v) => {
-                        setAddress(v.address);
-                        setZipCode(v.zip_code);
-                        setCity(v.city);
-                        setLatitude(v.latitude ?? null);
-                        setLongitude(v.longitude ?? null);
-                        // Sync legacy geo state for handleOrder validation
-                        if (v.latitude && v.longitude) {
-                          setGeo({ ok: true, display: `${v.address}, ${v.zip_code} ${v.city}`, lat: v.latitude, lng: v.longitude });
-                        } else {
-                          setGeo(null);
-                        }
-                      }}
-                    />
-                  </div>
-                  {(zipCode || city) && (
-                    <div className="grid grid-cols-[1fr_2fr] gap-2">
-                      <div>
-                        <label className="mb-1 block text-xs font-medium text-muted-foreground">Postnr.</label>
-                        <Input value={zipCode} onChange={(e) => onZipChange(e.target.value)} placeholder="8600" className="rounded-lg" inputMode="numeric" maxLength={4} />
-                      </div>
-                      <div>
-                        <label className="mb-1 block text-xs font-medium text-muted-foreground">By</label>
-                        <Input value={city} onChange={(e) => onCityChange(e.target.value)} placeholder="Silkeborg" className="rounded-lg" />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </section>
-
-              {/* CVR (valgfrit) — bruges til erhvervskunder */}
-              <section className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
-                    <Building2 className="h-3.5 w-3.5 text-accent" />
-                  </div>
-                  <h4 className="text-sm font-semibold text-foreground">Bestiller du som virksomhed? <span className="text-xs font-normal text-muted-foreground">(valgfrit)</span></h4>
-                </div>
-                <div className="space-y-2 pl-9">
-                  <p className="text-xs text-muted-foreground">Indtast CVR-nummer — vi henter automatisk firmaoplysninger.</p>
-                  <CvrLookupField
-                    value={cvr}
-                    onChange={setCvr}
-                    onResult={(r: CvrResult | null) => {
-                      if (!r) return;
-                      setCompanyName(r.name);
-                      if (!name) setName(r.name);
-                      if (r.address) setAddress(r.address);
-                      if (r.zip_code) setZipCode(r.zip_code);
-                      if (r.city) setCity(r.city);
-                      if (r.phone && !phone) setPhone(r.phone);
-                      if (r.email && !email) setEmail(r.email);
-                      // Geocode den nye adresse straks så feltet ikke vises som "ikke verificeret"
-                      setLatitude(null); setLongitude(null);
-                      setGeo(null);
-                      if (r.address && r.zip_code && r.city) {
-                        // Auto-verify-effekt vil tage over når state er sat,
-                        // men vi triggrer det også eksplicit for hurtigere feedback.
-                        setTimeout(() => { verifyAddress(true); }, 50);
+                  <AddressAutocomplete
+                    value={{ address, zip_code: zipCode, city, latitude, longitude }}
+                    onChange={(v) => {
+                      setAddress(v.address);
+                      setZipCode(v.zip_code);
+                      setCity(v.city);
+                      setLatitude(v.latitude ?? null);
+                      setLongitude(v.longitude ?? null);
+                      if (v.latitude && v.longitude) {
+                        setGeo({ ok: true, display: `${v.address}, ${v.zip_code} ${v.city}`, lat: v.latitude, lng: v.longitude });
+                      } else {
+                        setGeo(null);
                       }
                     }}
                   />
-                  {(cvr.replace(/\D/g, "").length === 8 || companyName) && (
-                    <p className="text-[11px] text-muted-foreground italic">
-                      ℹ️ Bestillingen markeres som <strong className="text-foreground not-italic">erhvervskunde</strong>.
-                    </p>
+                  {address && zipCode && city && geo?.ok && (
+                    <div className="flex items-center gap-2 text-[11px] text-foreground/70">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
+                      <span>Adresse verificeret</span>
+                    </div>
                   )}
                 </div>
               </section>
 
-              {/* Service-intervaller vises i kurv-listen ovenfor — virksomheden planlægger besøgsdatoer i deres kalender. */}
-
-              {/* Order summary */}
-              <div className="rounded-xl border border-border overflow-hidden">
-                <div className="px-4 py-2.5 bg-muted/40 border-b border-border">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bestillingsopsummering</h4>
+              {/* Kompakt order summary — kun totaler pr. virksomhed */}
+              <div className="rounded-xl border border-border overflow-hidden bg-card">
+                <div className="px-4 py-2.5 bg-secondary/40 border-b border-border flex items-center gap-2">
+                  <ShoppingBag className="h-3.5 w-3.5 text-muted-foreground" />
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Opsummering</h4>
                 </div>
-
                 {Object.entries(groupedByBusiness).map(([bizId, group]) => {
                   const bizTotal = group.items.reduce((acc, i) => acc + i.total * i.quantity, 0);
                   return (
-                    <div key={bizId} className="border-b border-border last:border-b-0">
-                      <div className="flex items-center gap-2 px-4 py-2 bg-muted/20">
-                        {group.businessLogoUrl && (
-                          <img src={group.businessLogoUrl} alt="" className="h-5 w-5 rounded object-contain bg-secondary p-0.5" />
+                    <div key={bizId} className="px-4 py-2.5 border-b border-border/60 last:border-b-0">
+                      <div className="flex items-center gap-2">
+                        {group.businessLogoUrl ? (
+                          <img src={group.businessLogoUrl} alt="" className="h-5 w-5 rounded object-contain bg-secondary p-0.5 border border-border" />
+                        ) : (
+                          <div className="h-5 w-5 rounded bg-secondary flex items-center justify-center"><Store className="h-3 w-3 text-muted-foreground" /></div>
                         )}
-                        <span className="text-xs font-semibold text-foreground flex-1">{group.businessName}</span>
+                        <span className="text-xs font-semibold text-foreground flex-1 truncate">{group.businessName}</span>
                         <span className="text-xs font-bold text-foreground">{bizTotal} kr</span>
                       </div>
-                      {group.items.map((item) => (
-                        <div key={item.serviceId} className="px-4 py-2 border-t border-border/50">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-foreground">{item.serviceName}</span>
-                            <span className="font-semibold text-foreground">{item.total} kr</span>
-                          </div>
-                          {item.interval && item.interval !== "engangskøb" && (
-                            <span className="text-[11px] text-accent">{INTERVAL_LABELS[item.interval]}</span>
-                          )}
-                          {item.stepDetails?.map((sd, i) => (
-                            <div key={i} className="flex justify-between text-xs text-muted-foreground pl-2 mt-0.5">
-                              <span>{sd.label}: {sd.value} {sd.unit}</span>
-                              <span>{sd.subtotal} kr</span>
-                            </div>
-                          ))}
-                        </div>
-                      ))}
+                      <div className="mt-1 pl-7 text-[11px] text-muted-foreground">
+                        {group.items.length} {group.items.length === 1 ? "service" : "services"}
+                      </div>
                     </div>
                   );
                 })}
-
-                <div className="px-4 py-2.5 flex justify-between bg-muted/30 border-t border-border">
-                  <span className="text-sm font-bold text-foreground">Total</span>
-                  <span className="text-sm font-bold text-foreground">{total} kr</span>
-                </div>
               </div>
 
-              {/* Info notices */}
+              {/* Info-noter */}
               <div className="space-y-2">
                 <div className="flex items-start gap-2.5 text-xs text-foreground/80 bg-accent/5 rounded-xl px-3.5 py-3 border border-accent/20">
                   <Sparkles className="h-4 w-4 text-accent shrink-0 mt-0.5" />
                   <span>Bestillingen sendes til virksomheden for godkendelse. Du modtager besked når de har svaret.</span>
                 </div>
-                {user && items.some(i => i.interval && i.interval !== "engangskøb") && (
+                {items.some(i => i.interval && i.interval !== "engangskøb") && (
                   <div className="flex items-start gap-2.5 text-xs text-foreground/80 bg-accent/5 rounded-xl px-3.5 py-3 border border-accent/20">
                     <CalendarClock className="h-4 w-4 text-accent shrink-0 mt-0.5" />
-                    <span>Tilbagevendende services oprettes automatisk i dit kundepanel efter godkendelse.</span>
+                    <span>Tilbagevendende services planlægges automatisk efter godkendelse.</span>
                   </div>
                 )}
               </div>
