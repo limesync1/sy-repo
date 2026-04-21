@@ -237,7 +237,7 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
         .select(`
           id, customer_name, customer_phone, customer_email, total_amount, status, notes,
           address, zip_code, city, latitude, longitude, created_at,
-          preferred_date, preferred_time_start, preferred_time_end, next_service_date,
+          preferred_date, preferred_time_start, preferred_time_end, estimated_duration_minutes, next_service_date,
           order_items ( service_name, quantity, total_price, details )
         `)
         .eq("business_id", businessId!)
