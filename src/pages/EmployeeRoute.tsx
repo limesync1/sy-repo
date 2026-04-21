@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
-  ChevronUp, ChevronDown, Printer, Play, Volume2, VolumeX,
+  ChevronUp, ChevronDown, Printer, Play, Volume2, VolumeX, Timer,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -88,6 +88,7 @@ const EmployeeRoute = () => {
 const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void }) => {
   const { data, isLoading } = useMyRouteData(routeId);
   const updateStatus = useUpdateStopStatus();
+  const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState<Record<string, string>>({});
   const [showList, setShowList] = useState(false);
@@ -95,6 +96,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [routeStarted, setRouteStarted] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(true);
+  const [autoReturn, setAutoReturn] = useState<number | null>(null);
   /** Stop-id'er hvor vi allerede har afspillet ankomst-lyd (undgår spam). */
   const arrivedAnnouncedRef = useRef<Set<string>>(new Set());
   /** Har vi allerede spillet "dag færdig"-fanfaren? */
@@ -209,6 +211,31 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     setTimeout(() => speak("Godt arbejde. Alle stop er klaret."), 800);
   }, [allDone, audioEnabled]);
 
+  /* Auto-redirect til oversigt 8 sek. efter dagen er færdig (kan annulleres). */
+  useEffect(() => {
+    if (!allDone) return;
+    setAutoReturn(8);
+    const tick = setInterval(() => {
+      setAutoReturn((n) => {
+        if (n == null) return null;
+        if (n <= 1) {
+          clearInterval(tick);
+          navigate("/medarbejder");
+          return 0;
+        }
+        return n - 1;
+      });
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [allDone, navigate]);
+
+  /** Estimeret ankomsttid kl. HH:MM ud fra køretid + nuværende tid. */
+  const etaLabel: string | null = useMemo(() => {
+    if (!directions?.duration_s) return null;
+    const eta = new Date(Date.now() + directions.duration_s * 1000);
+    return eta.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+  }, [directions?.duration_s]);
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center text-muted-foreground">
@@ -238,6 +265,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       if (audioEnabled) playSuccessChime();
       toast.success(`${s.customer_name || "Stop"} markeret som udført`);
       setSelectedId(null);
+      // Annonceer næste stop hvis der er flere tilbage
+      const remaining = sortedStops.filter((x) => x.status !== "completed" && x.id !== s.id);
+      if (remaining.length > 0 && audioEnabled) {
+        const next = remaining[0];
+        setTimeout(() => speak(`Næste stop: ${next.customer_name || "ukendt kunde"}`), 900);
+      }
     } catch { /* */ }
   };
 
@@ -271,6 +304,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           <p className="text-[11px] opacity-80 truncate">
             {completedCount}/{sortedStops.length} færdige
             {directions && nextStop && ` · ${formatMin(directions.duration_s)} til næste`}
+            {etaLabel && nextStop && ` · ankomst ${etaLabel}`}
           </p>
         </div>
         <Button
@@ -358,13 +392,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {allDone ? (
           <div className="absolute bottom-0 inset-x-0 z-10 p-4 bg-background border-t shadow-2xl">
             <div className="flex items-center gap-3">
-              <CheckCircle2 className="h-8 w-8 text-primary" />
-              <div className="flex-1">
-                <p className="font-semibold">Rute færdig! 🎉</p>
-                <p className="text-xs text-muted-foreground">Alle stop er markeret som udført.</p>
+              <CheckCircle2 className="h-10 w-10 text-primary shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-base">Rute færdig! 🎉</p>
+                <p className="text-xs text-muted-foreground">
+                  Alle stop udført
+                  {autoReturn != null && autoReturn > 0 && ` · sender dig til oversigt om ${autoReturn}s`}
+                </p>
               </div>
-              <Button asChild variant="outline" size="sm">
-                <Link to="/medarbejder">Tilbage</Link>
+              <Button
+                size="lg"
+                onClick={() => { setAutoReturn(null); navigate("/medarbejder"); }}
+                className="gap-2"
+              >
+                Til oversigt
               </Button>
             </div>
           </div>
@@ -383,6 +424,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               {directions && (
                 <span className="font-medium">
                   {formatKm(directions.distance_m)} · {formatMin(directions.duration_s)}
+                  {etaLabel && <span className="ml-1 text-primary">→ {etaLabel}</span>}
                 </span>
               )}
             </button>
@@ -438,15 +480,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <Button
                   onClick={() => handleComplete(nextStop)}
                   size="lg"
-                  className={`w-full gap-2 ${isAtNextStop ? "ring-4 ring-primary/40 animate-pulse" : ""}`}
+                  className={`w-full gap-2 h-14 text-base ${isAtNextStop ? "ring-4 ring-primary/50 animate-pulse" : ""}`}
                   disabled={updateStatus.isPending}
                 >
                   {updateStatus.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
-                    <CheckCircle2 className="h-5 w-5" />
+                    <CheckCircle2 className="h-6 w-6" />
                   )}
-                  {isAtNextStop ? "Du er fremme — Markér som udført" : "Markér som udført"}
+                  {isAtNextStop ? "Du er fremme — markér udført" : "Markér som udført"}
                 </Button>
               </div>
             )}
