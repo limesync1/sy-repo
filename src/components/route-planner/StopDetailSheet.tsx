@@ -364,29 +364,32 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               )}
 
               {/* Planning */}
-              <Section
-                icon={<CalendarClock className="h-3.5 w-3.5" />}
-                title="Planlægning"
-                hint="Tidsrum, varighed & note"
-              >
-                <PlanningSection
-                  timeSlot={timeSlot}
-                  setTimeSlot={setTimeSlot}
-                  durationHours={durationHours}
-                  setDurationHours={setDurationHours}
-                  durationMinutes={durationMinutes}
-                  setDurationMinutes={setDurationMinutes}
-                  notes={notes}
-                  setNotes={setNotes}
-                  plannedArrival={stop.planned_arrival}
-                  distanceToNextKm={stop.distance_to_next_km}
-                />
-              </Section>
+              {!readOnly && (
+                <Section
+                  icon={<CalendarClock className="h-3.5 w-3.5" />}
+                  title="Planlægning"
+                  hint="Tidsrum, varighed & note"
+                >
+                  <PlanningSection
+                    timeSlot={timeSlot}
+                    setTimeSlot={setTimeSlot}
+                    durationHours={durationHours}
+                    setDurationHours={setDurationHours}
+                    durationMinutes={durationMinutes}
+                    setDurationMinutes={setDurationMinutes}
+                    notes={notes}
+                    setNotes={setNotes}
+                    plannedArrival={stop.planned_arrival}
+                    distanceToNextKm={stop.distance_to_next_km}
+                  />
+                </Section>
+              )}
 
               {isLoading && <p className="text-xs text-muted-foreground italic">Indlæser ordredetaljer...</p>}
           </div>
 
           {/* Footer actions */}
+          {!readOnly && (
           <SheetFooterBar>
             <div className="flex gap-2">
               <Button
@@ -406,6 +409,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               </Button>
             </div>
           </SheetFooterBar>
+          )}
         </SheetContent>
       </Sheet>
 
