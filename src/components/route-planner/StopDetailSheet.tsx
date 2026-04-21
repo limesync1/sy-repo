@@ -31,9 +31,11 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   routeColor?: string;
   sequenceLabel?: number;
+  /** Når true vises kun read-only view (bruges når man åbner en opgave fra opgavepoolen). */
+  readOnly?: boolean;
 };
 
-export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequenceLabel }: Props) => {
+export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequenceLabel, readOnly }: Props) => {
   const { data: order, isLoading } = useOrderForStop(stop?.order_id);
   const updateStop = useUpdateStop();
   const deleteStop = useDeleteStop();
