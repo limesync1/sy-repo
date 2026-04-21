@@ -153,17 +153,16 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
           </SheetHeader>
 
           <ScrollArea className="flex-1">
-            <div className="px-5 py-4 space-y-5">
-              {/* Quick actions */}
+            <div className="px-5 py-4 space-y-3 bg-secondary/20 min-h-full">
+              {/* Quick action */}
               {stop.customer_phone && (
-                <Button asChild variant="outline" className="w-full gap-1.5 h-9">
+                <Button asChild variant="outline" className="w-full gap-1.5 h-9 bg-background">
                   <a href={`tel:${stop.customer_phone}`}><Phone className="h-4 w-4" />Ring til kunde</a>
                 </Button>
               )}
 
               {/* Customer */}
-              <section>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Kunde</h3>
+              <Section icon={<User className="h-3.5 w-3.5" />} title="Kunde">
                 <div className="space-y-1.5 text-sm">
                   {fullAddress && (
                     <div className="flex items-start gap-2">
@@ -184,15 +183,15 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                     </div>
                   )}
                 </div>
-              </section>
-
-              <Separator />
+              </Section>
 
               {/* Order items */}
               {items.length > 0 && (
-                <>
-                  <section>
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Bestilte ydelser</h3>
+                <Section
+                  icon={<Package className="h-3.5 w-3.5" />}
+                  title="Bestilte ydelser"
+                  hint={`${items.length} ${items.length === 1 ? "ydelse" : "ydelser"}`}
+                >
                     <div className="rounded-lg border divide-y">
                       {items.map((item: any, i: number) => {
                         const d = item.details || {};
