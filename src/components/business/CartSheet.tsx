@@ -44,6 +44,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [checkout, setCheckout] = useState(false);
+  const [customerType, setCustomerType] = useState<"private" | "business">("private");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -54,9 +55,27 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
   const [longitude, setLongitude] = useState<number | null>(null);
   const [cvr, setCvr] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [contactName, setContactName] = useState("");
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [geo, setGeo] = useState<{ ok: boolean; display?: string; lat?: number; lng?: number } | null>(null);
+
+  // Auto-fyld navn/email/tlf fra brugerens profil når de åbner checkout
+  useEffect(() => {
+    if (!checkout || !user) return;
+    if (name && email) return;
+    (async () => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name, phone")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!email && user.email) setEmail(user.email);
+      if (!name && profile?.display_name) setName(profile.display_name);
+      if (!phone && profile?.phone) setPhone(profile.phone);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkout, user]);
 
   // Reset verification whenever address changes
   const onAddressChange = (v: string) => { setAddress(v); setGeo(null); };
