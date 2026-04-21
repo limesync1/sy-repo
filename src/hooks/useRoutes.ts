@@ -671,17 +671,15 @@ export const useApplyRouteSuggestion = () => {
   return useMutation({
     mutationFn: async ({ routeId, suggestionId }: { routeId: string; suggestionId: string }) => {
       const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData.session?.access_token;
-      if (!accessToken) throw new Error("Du skal være logget ind");
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/apply-route-suggestion`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
-        body: JSON.stringify({ route_id: routeId, suggestion_id: suggestionId, access_token: accessToken }),
+      if (!sessionData.session) throw new Error("Du skal være logget ind");
+      const expiresAt = sessionData.session.expires_at ?? 0;
+      if (expiresAt && expiresAt * 1000 - Date.now() < 60_000) {
+        await supabase.auth.refreshSession();
+      }
+      const { data, error } = await supabase.functions.invoke("apply-route-suggestion", {
+        body: { route_id: routeId, suggestion_id: suggestionId },
       });
-      const data = await response.json().catch(() => null);
+      if (error) throw new Error(error.message || "Kunne ikke anvende forslag");
       if (!data?.ok) throw new Error(data?.error || "Kunne ikke anvende forslag");
       return data;
     },
