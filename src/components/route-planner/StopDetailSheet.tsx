@@ -177,10 +177,10 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               <section>
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Kunde</h3>
                 <div className="space-y-1.5 text-sm">
-                  {stop.address && (
+                  {fullAddress && (
                     <div className="flex items-start gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                      <span>{stop.address}</span>
+                      <span>{fullAddress}</span>
                     </div>
                   )}
                   {stop.customer_phone && (
@@ -199,31 +199,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               </section>
 
               <Separator />
-
-              {/* Customer's preferred time */}
-              {(preferredDate || preferredStart) && (
-                <>
-                  <section>
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Kundens ønske</h3>
-                    <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm">
-                      <div className="flex items-center gap-2 text-amber-900">
-                        <CalendarIcon className="h-4 w-4 shrink-0" />
-                        {preferredDate && (
-                          <span className="font-medium">
-                            {format(parseISO(preferredDate), "EEE d. MMM", { locale: da })}
-                          </span>
-                        )}
-                        {preferredStart && (
-                          <span className="text-amber-700">
-                            {preferredStart}{preferredEnd ? ` – ${preferredEnd}` : ""}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </section>
-                  <Separator />
-                </>
-              )}
 
               {/* Order items */}
               {items.length > 0 && (
