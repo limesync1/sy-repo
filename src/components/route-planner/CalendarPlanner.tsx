@@ -202,7 +202,7 @@ export const CalendarPlanner = ({ routeDate, columns, selectedStopId, onSelectSt
           <h3 className="text-base font-semibold">Ingen ruter for denne dag</h3>
           <p className="text-sm text-muted-foreground">
             Klik på <span className="font-medium text-foreground">"Opret rute"</span> i toppen for at planlægge en arbejdsdag.
-            Du kan tilkoble medarbejdere og trække opgaver ind i kalenderen.
+            Du kan tilkoble medarbejdere og trække aftaler ind i kalenderen.
           </p>
         </div>
       </Card>
@@ -351,7 +351,7 @@ const ColumnHeader = ({ col }: { col: CalendarColumn }) => {
             )}
             {col.onAutoAssign && col.attachedEmployees.length >= 2 && (
               <DropdownMenuItem onClick={col.onAutoAssign} disabled={col.autoAssigning}>
-                <Wand2 className="h-3.5 w-3.5 mr-2" />Fordel opgaver
+                <Wand2 className="h-3.5 w-3.5 mr-2" />Fordel aftaler
               </DropdownMenuItem>
             )}
             {col.onDeleteRoute && (
@@ -532,7 +532,7 @@ const CalendarColumnView = ({
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-3 pointer-events-none">
           <div className="border-2 border-dashed border-border rounded-md p-3 text-center">
             <p className="text-[10px] text-muted-foreground italic">
-              Træk opgaver herind ↓
+              Træk aftaler herind ↓
             </p>
           </div>
         </div>

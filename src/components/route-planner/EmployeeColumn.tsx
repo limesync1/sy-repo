@@ -108,7 +108,7 @@ export const EmployeeColumn = ({
         <SortableContext items={sortedIds} strategy={verticalListSortingStrategy}>
           {stops.length === 0 && (
             <div className="text-xs text-muted-foreground italic text-center py-8 border-2 border-dashed rounded-md">
-              Slip opgaver her
+              Slip aftaler her
             </div>
           )}
           {sortedStops.map((s, i) => (

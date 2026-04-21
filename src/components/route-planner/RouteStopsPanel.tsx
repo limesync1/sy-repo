@@ -80,7 +80,7 @@ export const RouteStopsPanel = ({ route, stops, open, onOpenChange, onSelectStop
   const handleDelete = async (stop: RouteStop) => {
     try {
       await deleteStop.mutateAsync(stop.id);
-      toast.success("Stop fjernet — opgaven ryger tilbage i opgavepoolen");
+      toast.success("Stop fjernet — aftalen ryger tilbage i aftalepoolen");
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke fjerne stop");
     }
@@ -125,7 +125,7 @@ export const RouteStopsPanel = ({ route, stops, open, onOpenChange, onSelectStop
                   <Inbox className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <p className="text-xs text-muted-foreground italic">
-                  Ingen stops endnu. Træk opgaver fra opgavepoolen ind på ruten.
+                  Ingen stops endnu. Træk aftaler fra aftalepoolen ind på ruten.
                 </p>
               </div>
             ) : (
@@ -166,7 +166,7 @@ export const RouteStopsPanel = ({ route, stops, open, onOpenChange, onSelectStop
             <AlertDialogTitle>Fjern stop fra ruten?</AlertDialogTitle>
             <AlertDialogDescription>
               <strong>{confirmDelete?.customer_name}</strong> fjernes fra ruten.
-              Hvis stoppet kommer fra en ordre, ryger den tilbage i opgavepoolen.
+              Hvis stoppet kommer fra en ordre, ryger den tilbage i aftalepoolen.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

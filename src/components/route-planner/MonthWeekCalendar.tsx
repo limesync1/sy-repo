@@ -3,9 +3,9 @@
 // - Ugenumre vises i venstre side (ISO-uger)
 // - Hver rute vises som farvet pille på sin route_date
 // - Drag rute → ny dato (onMoveRoute)
-// - Drag opgave fra opgavepool → ind på en rute eller tom dag
+// - Drag aftale fra aftalepool → ind på en rute eller tom dag
 // - Klik rute → åbner rute-sheet (onSelectRoute)
-// - Klik opgave → åbner stop-sheet (onSelectStop)
+// - Klik aftale → åbner stop-sheet (onSelectStop)
 
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
@@ -36,7 +36,7 @@ type Props = {
   onCreateRoute: (date: string) => void;
   onOptimizeRoute: (routeId: string) => void;
   optimizingRouteId?: string | null;
-  /** Sat til 'job' når brugeren trækker en opgave fra opgavepoolen — får drop-targets til at lyse op. */
+  /** Sat til 'job' når brugeren trækker en aftale fra aftalepoolen — får drop-targets til at lyse op. */
   draggingType?: "job" | "route" | null;
 };
 
@@ -170,7 +170,7 @@ const DayCell = ({
         "border-r last:border-r-0 relative group flex flex-col gap-1 p-1.5 transition-colors",
         compact ? "min-h-[110px]" : "min-h-[160px]",
         !inMonth && "bg-secondary/10",
-        // Når en opgave eller rute trækkes — gør dage subtilt mere indbydende
+        // Når en aftale eller rute trækkes — gør dage subtilt mere indbydende
         isDragActive && inMonth && !isOver && "ring-1 ring-accent/30 ring-inset",
         // Når man hovrer over en dag — tydeligt highlight
         isOver && "bg-accent/15 ring-2 ring-accent ring-inset shadow-inner",
@@ -213,7 +213,7 @@ const DayCell = ({
           />
         ))}
 
-        {/* "Slip her" overlay på tomme dage når en opgave trækkes */}
+        {/* "Slip her" overlay på tomme dage når en aftale trækkes */}
         {isJobDragActive && emptyDay && inMonth && (
           <div
             className={cn(
@@ -234,7 +234,7 @@ const DayCell = ({
   );
 };
 
-/* ─── Rute-pille (drag + drop target for opgaver) ─── */
+/* ─── Rute-pille (drag + drop target for aftaler) ─── */
 type RoutePillProps = {
   route: CalendarRoute;
   onSelect: () => void;
@@ -252,7 +252,7 @@ const RoutePill = ({ route, onSelect, onSelectStop, onOptimize, optimizing, comp
     data: { type: "route", route },
   });
 
-  // Drop-zone: opgaver kan slippes på pillen for at blive tilføjet til ruten
+  // Drop-zone: aftaler kan slippes på pillen for at blive tilføjet til ruten
   const { setNodeRef: setDropRef, isOver } = useDroppable({
     id: `route-drop:${route.id}`,
     data: { type: "route", routeId: route.id, date: route.route_date },
@@ -277,7 +277,7 @@ const RoutePill = ({ route, onSelect, onSelectStop, onOptimize, optimizing, comp
         "relative rounded-md border-l-4 cursor-pointer transition-all overflow-hidden bg-card hover:shadow-sm",
         "border border-border/60",
         isDragging && "opacity-40",
-        // Når en opgave er ved at blive sluppet på pillen — markér tydeligt
+        // Når en aftale er ved at blive sluppet på pillen — markér tydeligt
         jobDragActive && !isOver && "ring-1 shadow-sm",
         isOver && "ring-2 ring-accent shadow-md scale-[1.02]",
       )}
