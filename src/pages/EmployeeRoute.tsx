@@ -285,6 +285,30 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return eta.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
   }, [directions?.duration_s]);
 
+  /* Trafik-overvågning: sammenlign aktuel ETA med baseline for samme stop. */
+  useEffect(() => {
+    if (!routeStarted || !nextStop || !directions?.duration_s) return;
+    const cur = directions.duration_s;
+    const base = baselineDurationRef.current;
+    if (!base || base.stopId !== nextStop.id) {
+      baselineDurationRef.current = { stopId: nextStop.id, durationS: cur };
+      setTrafficAlert(null);
+      return;
+    }
+    // Forventet "naturlig" reduktion idet du nærmer dig: tag den lavest sete.
+    if (cur < base.durationS) {
+      baselineDurationRef.current = { stopId: nextStop.id, durationS: cur };
+    }
+    const expected = baselineDurationRef.current.durationS;
+    const delta = cur - expected;
+    const deltaPct = (delta / Math.max(expected, 60)) * 100;
+    if (deltaPct >= 20 && delta >= 120) {
+      setTrafficAlert({ deltaPct: Math.round(deltaPct), addedMin: Math.round(delta / 60) });
+    } else if (deltaPct < 10) {
+      setTrafficAlert(null);
+    }
+  }, [directions?.duration_s, nextStop?.id, routeStarted]);
+
   /* Turn-by-turn */
   const maneuver = useCurrentManeuver(directions?.steps, userPos);
   useEffect(() => {
