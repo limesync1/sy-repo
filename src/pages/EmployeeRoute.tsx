@@ -424,6 +424,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               {directions && (
                 <span className="font-medium">
                   {formatKm(directions.distance_m)} · {formatMin(directions.duration_s)}
+                  {etaLabel && <span className="ml-1 text-primary">→ {etaLabel}</span>}
                 </span>
               )}
             </button>
