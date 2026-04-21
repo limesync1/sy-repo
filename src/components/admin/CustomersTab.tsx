@@ -474,14 +474,26 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
       </div>
 
       {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Søg på navn, email, telefon eller by..."
-          className="pl-9 rounded-xl"
-        />
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[240px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Søg navn, email, firma, CVR eller by..."
+            className="pl-9 rounded-xl"
+          />
+        </div>
+        <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as any)}>
+          <SelectTrigger className="w-[180px] rounded-xl">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Alle kunder ({stats.total})</SelectItem>
+            <SelectItem value="private">Privatkunder ({stats.privateCount})</SelectItem>
+            <SelectItem value="business">Erhvervskunder ({stats.businessCount})</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* List */}
