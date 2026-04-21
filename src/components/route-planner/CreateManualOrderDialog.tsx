@@ -217,14 +217,14 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
         body: {
           templateName: "manual-order-approval",
           recipientEmail: customerEmail.trim().toLowerCase(),
-          idempotencyKey: `manual-order-${orderId}`,
+          idempotencyKey: `manual-order-${parentOrderId}`,
           templateData: {
             customerName: customerName.trim(),
             businessName: biz?.name || businessName,
             businessPhone: biz?.phone,
             businessEmail: biz?.email,
             businessMessage: businessMessage.trim() || undefined,
-            orderId,
+            orderId: parentOrderId,
             approvalUrl,
             expiresInDays: 7,
             address: address.trim()
