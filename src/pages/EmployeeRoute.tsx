@@ -9,9 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
-  ChevronUp, ChevronDown, Printer, Play, Volume2, VolumeX, Crosshair,
+  ChevronUp, ChevronDown, Play, Volume2, VolumeX, Crosshair, Flag,
 } from "lucide-react";
-import { MapContainer, TileLayer, Marker, Polyline, Tooltip, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { toast } from "sonner";
@@ -23,83 +23,80 @@ import {
 import { ManeuverIcon, maneuverLabel } from "@/components/employee-route/ManeuverIcon";
 import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuver";
 
-/* ── Icons ──────────────────────────────────────────────────────── */
+/* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
   className: "",
-  html: `<div style="width:36px;height:36px;border-radius:50%;background:hsl(222 47% 11%);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:11px;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,.35);">START</div>`,
-  iconSize: [36, 36],
-  iconAnchor: [18, 18],
+  html: `<div style="width:30px;height:30px;border-radius:50%;background:hsl(222 47% 11%);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:9px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,.3);">START</div>`,
+  iconSize: [30, 30],
+  iconAnchor: [15, 15],
 });
 
-const stopIcon = (n: number, state: "next" | "done" | "future") => {
-  const bg = state === "done" ? "hsl(142 70% 45%)" : state === "next" ? "hsl(184 90% 42%)" : "hsl(220 14% 65%)";
-  const ring = state === "next" ? "0 0 0 4px hsl(184 90% 42% / 0.3)" : "none";
+const stopIcon = (n: number, state: "next" | "done" | "future", color: string) => {
+  const bg = state === "done" ? "hsl(142 70% 45%)" : state === "next" ? color : "hsl(220 14% 65%)";
+  const ring = state === "next" ? `0 0 0 5px ${color}33, 0 0 0 9px ${color}1a` : "none";
+  const size = state === "next" ? 42 : 34;
   return L.divIcon({
     className: "",
-    html: `<div style="width:38px;height:38px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:15px;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,.35), ${ring};">${state === "done" ? "✓" : n}</div>`,
-    iconSize: [38, 38],
-    iconAnchor: [19, 19],
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:${state === "next" ? 16 : 13}px;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,.35), ${ring};">${state === "done" ? "✓" : n}</div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
   });
 };
 
-const userIcon = L.divIcon({
+/** Google Maps-style blue navigation puck with directional cone. */
+const navPuckIcon = (rotation: number) => L.divIcon({
   className: "",
-  html: `<div style="width:18px;height:18px;border-radius:50%;background:#3b82f6;border:3px solid white;box-shadow:0 0 0 4px rgba(59,130,246,.3),0 2px 6px rgba(0,0,0,.3);"></div>`,
+  html: `
+    <div style="position:relative;width:60px;height:60px;transform:rotate(${rotation}deg);transform-origin:center;">
+      <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-bottom:32px solid rgba(59,130,246,0.55);"></div>
+      <div style="position:absolute;top:18px;left:18px;width:24px;height:24px;border-radius:50%;background:hsl(217 91% 60%);border:4px solid white;box-shadow:0 2px 8px rgba(0,0,0,.4);"></div>
+    </div>`,
+  iconSize: [60, 60],
+  iconAnchor: [30, 30],
+});
+
+const userDotIcon = L.divIcon({
+  className: "",
+  html: `<div style="width:18px;height:18px;border-radius:50%;background:hsl(217 91% 60%);border:3px solid white;box-shadow:0 0 0 6px rgba(59,130,246,.25),0 2px 6px rgba(0,0,0,.3);"></div>`,
   iconSize: [18, 18],
   iconAnchor: [9, 9],
 });
 
-const headingIcon = (rotation: number) => L.divIcon({
-  className: "",
-  html: `<div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;transform:rotate(${rotation}deg);"><div style="width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-bottom:24px solid hsl(184 90% 42%);filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));"></div></div>`,
-  iconSize: [34, 34],
-  iconAnchor: [17, 17],
-});
-
-/* ── Helpers ────────────────────────────────────────────────────── */
-const FitTo = ({ points }: { points: [number, number][] }) => {
+/* ── Helpers ────────────────────────────────────────────────── */
+const FitTo = ({ points, enabled }: { points: [number, number][]; enabled: boolean }) => {
   const map = useMap();
   useEffect(() => {
-    if (points.length === 0) return;
+    if (!enabled || points.length === 0) return;
     if (points.length === 1) {
-      map.setView(points[0], 15);
+      map.setView(points[0], 15, { animate: true });
     } else {
       map.fitBounds(L.latLngBounds(points.map((p) => L.latLng(p[0], p[1]))), {
-        padding: [60, 60], maxZoom: 15,
+        padding: [80, 80], maxZoom: 15, animate: true,
       });
     }
     setTimeout(() => map.invalidateSize(), 100);
-  }, [points, map]);
+  }, [points, map, enabled]);
   return null;
 };
 
+/** Google-Maps-like live follow: locks camera tightly on the user. */
 const FollowUser = ({
-  active,
-  userPos,
-  nextStop,
-  heading,
-}: {
-  active: boolean;
-  userPos: [number, number] | null;
-  nextStop: RouteStop | undefined;
-  heading: number | null;
-}) => {
+  active, userPos,
+}: { active: boolean; userPos: [number, number] | null }) => {
   const map = useMap();
   useEffect(() => {
     if (!active || !userPos) return;
-    // Always lock the camera tight on the driver — like Google Maps navigation.
-    // We use a high zoom (17) and pan softly to follow movement.
     const targetZoom = Math.max(map.getZoom(), 17);
-    map.setView(userPos, targetZoom, { animate: true, duration: 0.5 });
+    map.setView(userPos, targetZoom, { animate: true, duration: 0.6 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, userPos?.[0], userPos?.[1], heading, map]);
+  }, [active, userPos?.[0], userPos?.[1], map]);
   return null;
 };
 
 const formatKm = (m: number | null) => (m == null ? "—" : m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`);
 const formatMin = (s: number | null) => (s == null ? "—" : s < 60 ? "<1 min" : `${Math.round(s / 60)} min`);
 
-/* ── Outer wrapper handles auth/loading; Inner has all data hooks ── */
+/* ─────────────────────────────────────────────────────────── */
 const EmployeeRoute = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -132,12 +129,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const [followMode, setFollowMode] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [autoReturn, setAutoReturn] = useState<number | null>(null);
-  /** Stop-id'er hvor vi allerede har afspillet ankomst-lyd (undgår spam). */
   const arrivedAnnouncedRef = useRef<Set<string>>(new Set());
-  /** Har vi allerede spillet "dag færdig"-fanfaren? */
   const finishedAnnouncedRef = useRef(false);
+  const lastSpokenStepRef = useRef<string | null>(null);
 
-  /* Geolocation — start kun watchPosition når ruten er startet */
+  /* Geolocation watcher — kun aktiv når rute kører */
   useEffect(() => {
     if (!routeStarted) return;
     if (!navigator.geolocation) return;
@@ -148,19 +144,19 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           setUserHeading(pos.coords.heading);
         }
       },
-      () => { /* silent */ },
-      { enableHighAccuracy: true, maximumAge: 30000, timeout: 10000 },
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
   }, [routeStarted]);
 
+  /* Bryd follow ved manuel kortinteraktion */
+  const breakFollow = () => { if (followMode) setFollowMode(false); };
+
   const route = data?.route as (Route & { businesses?: { name?: string } }) | undefined;
   const stops = data?.stops || [];
 
-  const sortedStops = useMemo(
-    () => [...stops].sort((a, b) => a.sequence - b.sequence),
-    [stops],
-  );
+  const sortedStops = useMemo(() => [...stops].sort((a, b) => a.sequence - b.sequence), [stops]);
   const validStops = useMemo(
     () => sortedStops.filter((s) => s.latitude != null && s.longitude != null),
     [sortedStops],
@@ -176,10 +172,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   }, [route]);
 
   const lastCompleted = useMemo(
-    () =>
-      [...sortedStops]
-        .reverse()
-        .find((s) => s.status === "completed" && s.latitude != null && s.longitude != null),
+    () => [...sortedStops].reverse().find((s) => s.status === "completed" && s.latitude != null && s.longitude != null),
     [sortedStops],
   );
 
@@ -199,17 +192,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   const { data: directions } = useDirections(legWaypoints);
 
-  /** Afstand i meter fra brugerens GPS til næste stop (null hvis ukendt). */
   const distanceToNextM: number | null = useMemo(() => {
     if (!userPos || !nextStop || nextStop.latitude == null || nextStop.longitude == null) return null;
     return haversineMeters(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
   }, [userPos, nextStop?.id, nextStop?.latitude, nextStop?.longitude]);
 
-  /** Geofence-tærskel: GPS-præcision i byen er 20-50m, så 75m giver en pålidelig "du er fremme"-zone. */
   const ARRIVAL_THRESHOLD_M = 75;
   const isAtNextStop = distanceToNextM != null && distanceToNextM <= ARRIVAL_THRESHOLD_M;
 
-  /* Spil ankomst-chime + tale én gang pr. stop når geofence udløses. */
+  /* Ankomstlyd */
   useEffect(() => {
     if (!isAtNextStop || !nextStop || !audioEnabled) return;
     if (arrivedAnnouncedRef.current.has(nextStop.id)) return;
@@ -237,19 +228,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return pts;
   }, [startCoord, validStops]);
 
-  const fitPoints: [number, number][] = useMemo(() => {
-    if (legLine.length > 1) return [legLine[0], legLine[legLine.length - 1]];
-    if (nextStop && nextStop.latitude != null && nextStop.longitude != null) {
-      const p: [number, number] = [Number(nextStop.latitude), Number(nextStop.longitude)];
-      return legOrigin ? [[legOrigin.lat, legOrigin.lng], p] : [p];
-    }
-    return allPoints;
-  }, [legLine, nextStop, legOrigin, allPoints]);
-
   const completedCount = sortedStops.filter((s) => s.status === "completed").length;
   const allDone = sortedStops.length > 0 && completedCount === sortedStops.length;
+  const progress = sortedStops.length > 0 ? (completedCount / sortedStops.length) * 100 : 0;
+  const themeColor = route?.color || "hsl(184 90% 42%)";
 
-  /* Spil fanfare én gang når dagen er færdig. */
+  /* Fanfare ved dagsfærdig */
   useEffect(() => {
     if (!allDone || finishedAnnouncedRef.current || !audioEnabled) return;
     finishedAnnouncedRef.current = true;
@@ -257,47 +241,36 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     setTimeout(() => speak("Godt arbejde. Alle stop er klaret."), 800);
   }, [allDone, audioEnabled]);
 
-  /* Auto-redirect til oversigt 8 sek. efter dagen er færdig (kan annulleres). */
+  /* Auto-redirect når alt er færdigt */
   useEffect(() => {
     if (!allDone) return;
     setAutoReturn(8);
     const tick = setInterval(() => {
       setAutoReturn((n) => {
         if (n == null) return null;
-        if (n <= 1) {
-          clearInterval(tick);
-          navigate("/medarbejder");
-          return 0;
-        }
+        if (n <= 1) { clearInterval(tick); navigate("/medarbejder"); return 0; }
         return n - 1;
       });
     }, 1000);
     return () => clearInterval(tick);
   }, [allDone, navigate]);
 
-  /** Estimeret ankomsttid kl. HH:MM ud fra køretid + nuværende tid. */
   const etaLabel: string | null = useMemo(() => {
     if (!directions?.duration_s) return null;
     const eta = new Date(Date.now() + directions.duration_s * 1000);
     return eta.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
   }, [directions?.duration_s]);
 
-  /* ─── Turn-by-turn: find current maneuver based on user GPS ─── */
+  /* Turn-by-turn */
   const maneuver = useCurrentManeuver(directions?.steps, userPos);
-  const lastSpokenStepRef = useRef<string | null>(null);
-
-  // Speak the next maneuver once when it changes (and when we get close enough).
   useEffect(() => {
     if (!audioEnabled || !maneuver || !routeStarted) return;
     const stepKey = `${maneuver.stepIndex}-${maneuver.currentStep.maneuver.type}-${maneuver.currentStep.name}`;
     if (lastSpokenStepRef.current === stepKey) return;
-    if (maneuver.distanceToManeuverM > 250) return; // only announce when within 250m
+    if (maneuver.distanceToManeuverM > 250) return;
     lastSpokenStepRef.current = stepKey;
     const street = maneuver.currentStep.name ? ` ad ${maneuver.currentStep.name}` : "";
-    const action = maneuverLabel(
-      maneuver.currentStep.maneuver.type,
-      maneuver.currentStep.maneuver.modifier,
-    );
+    const action = maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier);
     speak(`Om ${Math.round(maneuver.distanceToManeuverM)} meter, ${action.toLowerCase()}${street}`);
   }, [maneuver?.stepIndex, maneuver?.distanceToManeuverM, audioEnabled, routeStarted]);
 
@@ -320,8 +293,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const handleNavigate = (s: RouteStop) => {
     const dest = s.address || (s.latitude && s.longitude ? `${s.latitude},${s.longitude}` : s.customer_name || "");
     if (!dest) return;
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=driving`;
-    window.open(url, "_blank");
+    window.open(
+      `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=driving`,
+      "_blank",
+    );
   };
 
   const handleComplete = async (s: RouteStop) => {
@@ -330,29 +305,27 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       if (audioEnabled) playSuccessChime();
       toast.success(`${s.customer_name || "Stop"} markeret som udført`);
       setSelectedId(null);
-      // Annonceer næste stop hvis der er flere tilbage
       const remaining = sortedStops.filter((x) => x.status !== "completed" && x.id !== s.id);
       if (remaining.length > 0 && audioEnabled) {
         const next = remaining[0];
         setTimeout(() => speak(`Næste stop: ${next.customer_name || "ukendt kunde"}`), 900);
       }
-    } catch { /* */ }
+    } catch {}
   };
 
   const handleUndo = async (s: RouteStop) => {
     try {
       await updateStatus.mutateAsync({ id: s.id, status: "pending" });
       toast.success("Markering fortrudt");
-    } catch { /* */ }
+    } catch {}
   };
 
   const handleStartRoute = () => {
     unlockAudio();
     setRouteStarted(true);
     setFollowMode(true);
-    setCollapsed(true); // collapse bottom card so map is fully visible while driving
+    setCollapsed(true);
     toast.success("Rute startet — god tur!");
-    // Get an immediate GPS fix so the camera snaps to the user right away
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -361,184 +334,151 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             setUserHeading(pos.coords.heading);
           }
         },
-        () => { /* silent */ },
+        () => {},
         { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 },
       );
     }
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background">
-      {/* Top header — light card style matching the planner calendar */}
-      <header className="relative shrink-0 z-20 bg-background border-b">
-        <div className="flex items-center gap-2 px-3 py-2.5 bg-secondary/30">
-          <Button
-            asChild
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 rounded-full hover:bg-background"
-          >
+    <div className="fixed inset-0 flex flex-col bg-background overflow-hidden">
+      {/* ─── Compact header — calendar pill style ─── */}
+      <header className="relative shrink-0 z-30 bg-background border-b">
+        <div className="flex items-center gap-2 px-3 py-2 bg-secondary/40">
+          <Button asChild variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-background shrink-0">
             <Link to="/medarbejder" aria-label="Tilbage"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
 
-          {/* Route pill — same look as calendar route pills */}
           <div
-            className="flex items-center gap-2 px-2.5 py-1 rounded-full text-background text-xs font-semibold shrink-0 max-w-[55%]"
-            style={{ background: route.color || "hsl(184 90% 42%)" }}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-background text-xs font-semibold shrink-0 max-w-[55%]"
+            style={{ background: themeColor }}
           >
             <span className="truncate">{route.name || "Rute"}</span>
-            <span className="px-1.5 py-0.5 rounded-full bg-background/20 tabular-nums text-[10px]">
+            <span className="px-1.5 py-0.5 rounded-full bg-background/25 tabular-nums text-[10px]">
               {completedCount}/{sortedStops.length}
             </span>
           </div>
 
           {etaLabel && nextStop && (
-            <Badge variant="secondary" className="tabular-nums hidden sm:inline-flex">
-              <Clock className="h-3 w-3 mr-1" /> ETA {etaLabel}
+            <Badge variant="outline" className="tabular-nums hidden sm:inline-flex bg-background/70">
+              <Clock className="h-3 w-3 mr-1" /> {etaLabel}
             </Badge>
           )}
 
           <div className="flex-1" />
 
           <Button
-            asChild
-            size="icon"
-            variant="ghost"
-            className="h-9 w-9 rounded-full hover:bg-background"
-            aria-label="Udskriv liste"
-          >
-            <Link to={`/medarbejder/rute/${route.id}/print`}><Printer className="h-4 w-4" /></Link>
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-9 w-9 rounded-full hover:bg-background"
-            onClick={() => setShowList(true)}
-            aria-label="Vis liste"
+            size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-background"
+            onClick={() => setShowList(true)} aria-label="Vis liste"
           >
             <List className="h-4 w-4" />
           </Button>
           <Button
-            size="icon"
-            variant="ghost"
-            className="h-9 w-9 rounded-full hover:bg-background"
+            size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-background"
             onClick={() => setAudioEnabled((v) => !v)}
             aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
-            title={audioEnabled ? "Lyd til" : "Lyd fra"}
           >
             {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </Button>
         </div>
-        {/* Progress bar — uses route color */}
+
+        {/* Progress bar — route color */}
         <div className="h-1 w-full bg-secondary">
           <div
             className="h-full transition-all duration-500 ease-out"
-            style={{
-              width: sortedStops.length > 0 ? `${(completedCount / sortedStops.length) * 100}%` : "0%",
-              background: route.color || "hsl(184 90% 42%)",
-            }}
+            style={{ width: `${progress}%`, background: themeColor }}
           />
         </div>
 
-        {/* Turn-by-turn maneuver banner — Card-style matching the planner */}
-        {routeStarted && maneuver && nextStop && (
-          <div className="px-3 pt-3 pb-3">
-            <Card className="overflow-hidden shadow-md">
-              <div className="flex items-stretch">
-                <div
-                  className="flex items-center justify-center w-20 shrink-0 text-background"
-                  style={{ background: route.color || "hsl(184 90% 42%)" }}
-                >
-                  <ManeuverIcon
-                    type={maneuver.currentStep.maneuver.type}
-                    modifier={maneuver.currentStep.maneuver.modifier}
-                    className="h-9 w-9"
-                  />
-                </div>
-                <div className="flex-1 min-w-0 px-3 py-2.5">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
-                    Om {formatKm(maneuver.distanceToManeuverM)}
-                  </p>
-                  <p className="font-semibold text-base leading-tight truncate">
-                    {maneuverLabel(
-                      maneuver.currentStep.maneuver.type,
-                      maneuver.currentStep.maneuver.modifier,
-                    )}
-                  </p>
-                  {maneuver.currentStep.name && (
-                    <p className="text-sm text-muted-foreground truncate mt-0.5">
-                      ad <span className="font-medium text-foreground">{maneuver.currentStep.name}</span>
-                    </p>
-                  )}
-                </div>
+        {/* Maneuver banner — only when actively driving */}
+        {routeStarted && maneuver && nextStop && !allDone && (
+          <Card className="mx-3 mt-3 mb-2 overflow-hidden shadow-lg border-2" style={{ borderColor: `${themeColor}40` }}>
+            <div className="flex items-stretch">
+              <div
+                className="flex flex-col items-center justify-center w-24 shrink-0 text-background py-2"
+                style={{ background: themeColor }}
+              >
+                <ManeuverIcon
+                  type={maneuver.currentStep.maneuver.type}
+                  modifier={maneuver.currentStep.maneuver.modifier}
+                  className="h-10 w-10"
+                />
+                <span className="text-[10px] font-bold tracking-wide mt-1 tabular-nums">
+                  {formatKm(maneuver.distanceToManeuverM)}
+                </span>
               </div>
-              {maneuver.nextStep && (
-                <div className="flex items-center gap-2 px-3 py-2 border-t bg-secondary/30 text-xs">
-                  <span className="text-muted-foreground">Derefter</span>
-                  <ManeuverIcon
-                    type={maneuver.nextStep.maneuver.type}
-                    modifier={maneuver.nextStep.maneuver.modifier}
-                    className="h-4 w-4 text-foreground"
-                  />
-                  <span className="font-medium truncate flex-1">
-                    {maneuverLabel(
-                      maneuver.nextStep.maneuver.type,
-                      maneuver.nextStep.maneuver.modifier,
-                    )}
-                    {maneuver.nextStep.name && ` · ${maneuver.nextStep.name}`}
-                  </span>
-                </div>
-              )}
-            </Card>
-          </div>
+              <div className="flex-1 min-w-0 px-3 py-2.5">
+                <p className="font-bold text-base leading-tight truncate">
+                  {maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
+                </p>
+                {maneuver.currentStep.name && (
+                  <p className="text-sm text-muted-foreground truncate mt-0.5">
+                    ad <span className="font-semibold text-foreground">{maneuver.currentStep.name}</span>
+                  </p>
+                )}
+                {maneuver.nextStep && (
+                  <div className="flex items-center gap-1.5 mt-1.5 pt-1.5 border-t text-[11px] text-muted-foreground">
+                    <span>Derefter:</span>
+                    <ManeuverIcon
+                      type={maneuver.nextStep.maneuver.type}
+                      modifier={maneuver.nextStep.maneuver.modifier}
+                      className="h-3.5 w-3.5"
+                    />
+                    <span className="truncate">
+                      {maneuverLabel(maneuver.nextStep.maneuver.type, maneuver.nextStep.maneuver.modifier)}
+                      {maneuver.nextStep.name && ` · ${maneuver.nextStep.name}`}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
         )}
       </header>
 
-      {/* Map fills remaining space */}
+      {/* ─── Map fills everything ─── */}
       <div className="relative flex-1 min-h-0">
         {allPoints.length === 0 ? (
           <div className="h-full flex items-center justify-center text-muted-foreground p-6 text-center">
             Ingen koordinater tilgængelige. Brug listevisningen i stedet.
           </div>
         ) : (
-            <MapContainer
-            center={allPoints[0]}
-            zoom={12}
+          <MapContainer
+            center={userPos || allPoints[0]}
+            zoom={13}
             style={{ height: "100%", width: "100%" }}
             scrollWheelZoom
+            zoomControl={false}
+            attributionControl={false}
           >
             <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="&copy; OpenStreetMap"
+              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+              attribution='&copy; OpenStreetMap &copy; CARTO'
             />
 
-            <FitTo points={fitPoints} />
-              <FollowUser active={routeStarted && followMode} userPos={userPos} nextStop={nextStop} heading={derivedHeading} />
+            {/* Fit overview when not started */}
+            <FitTo points={allPoints} enabled={!routeStarted} />
+            {/* Live follow when driving */}
+            <FollowUser active={routeStarted && followMode} userPos={userPos} />
 
-            {/* Start marker */}
             {startCoord && <Marker position={startCoord} icon={startIcon} />}
 
-            {/* Active leg polyline */}
+            {/* Route line */}
             {legLine.length > 1 && (
-              <Polyline
-                positions={legLine}
-                pathOptions={{ color: "hsl(184 90% 42%)", weight: 6, opacity: 0.85 }}
-                >
-                  {directions && (
-                    <Tooltip sticky direction="top" opacity={1}>
-                      <span className="text-xs font-medium">
-                        {formatKm(directions.distance_m)} · {formatMin(directions.duration_s)}
-                      </span>
-                    </Tooltip>
-                  )}
-                </Polyline>
+              <>
+                {/* Outer glow */}
+                <Polyline
+                  positions={legLine}
+                  pathOptions={{ color: "white", weight: 11, opacity: 0.8 }}
+                />
+                <Polyline
+                  positions={legLine}
+                  pathOptions={{ color: themeColor, weight: 7, opacity: 0.95 }}
+                />
+              </>
             )}
 
-            {/* User position */}
-            {userPos && <Marker position={userPos} icon={userIcon} />}
-              {userPos && derivedHeading != null && <Marker position={userPos} icon={headingIcon(derivedHeading)} />}
-
-            {/* Stops */}
+            {/* Other stops */}
             {sortedStops.map((s, i) => {
               if (s.latitude == null || s.longitude == null) return null;
               const state: "next" | "done" | "future" =
@@ -547,134 +487,149 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <Marker
                   key={s.id}
                   position={[Number(s.latitude), Number(s.longitude)]}
-                  icon={stopIcon(i + 1, state)}
+                  icon={stopIcon(i + 1, state, themeColor)}
                   eventHandlers={{ click: () => setSelectedId(s.id) }}
                 />
               );
             })}
+
+            {/* User position — Google Maps puck when driving */}
+            {userPos && routeStarted && derivedHeading != null && (
+              <Marker position={userPos} icon={navPuckIcon(derivedHeading)} />
+            )}
+            {userPos && (!routeStarted || derivedHeading == null) && (
+              <Marker position={userPos} icon={userDotIcon} />
+            )}
+
+            {/* Detect manual user interaction to break follow */}
+            <MapInteractionWatcher onInteract={breakFollow} />
           </MapContainer>
         )}
 
-        {/* Floating recenter / follow toggle — only when route is started */}
-        {routeStarted && !allDone && (
-          <div className="absolute right-3 z-10" style={{ bottom: collapsed ? "5.5rem" : "16rem" }}>
+        {/* ─── Floating right-side controls ─── */}
+        <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
+          {routeStarted && (
             <Button
               size="icon"
               variant={followMode ? "default" : "secondary"}
               onClick={() => setFollowMode((v) => !v)}
               className="h-11 w-11 rounded-full shadow-lg"
+              style={followMode ? { background: themeColor } : undefined}
               aria-label={followMode ? "Slå live-følg fra" : "Slå live-følg til"}
-              title={followMode ? "Følger din position" : "Fri udforskning"}
+              title={followMode ? "Følger din position" : "Recentrer"}
             >
               <Crosshair className="h-5 w-5" />
             </Button>
+          )}
+        </div>
+
+        {/* ─── Pre-start CTA: big start button at the bottom ─── */}
+        {!routeStarted && !allDone && nextStop && (
+          <div className="absolute bottom-0 inset-x-0 z-10 p-3">
+            <Card className="overflow-hidden shadow-2xl">
+              <div className="px-4 py-3 bg-secondary/40 border-b flex items-center gap-3">
+                <span
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-background text-sm font-bold shrink-0"
+                  style={{ background: themeColor }}
+                >
+                  {nextStopIdx + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">
+                    Klar til at starte
+                  </p>
+                  <p className="font-semibold truncate">{nextStop.customer_name || "Stop"}</p>
+                </div>
+                {sortedStops.length > 1 && (
+                  <Badge variant="outline" className="shrink-0">
+                    {sortedStops.length} stop
+                  </Badge>
+                )}
+              </div>
+              <div className="p-3">
+                <Button
+                  onClick={handleStartRoute}
+                  size="lg"
+                  className="w-full gap-2 h-14 text-base font-bold"
+                  style={{ background: themeColor }}
+                >
+                  <Play className="h-5 w-5" /> Start rute
+                </Button>
+                <p className="text-[11px] text-muted-foreground text-center mt-2">
+                  Vi zoomer ind på din position og følger dig live, ligesom Google Maps.
+                </p>
+              </div>
+            </Card>
           </div>
         )}
 
-        {/* Bottom card — matches RoutePlanner card aesthetics */}
-        {allDone ? (
-          <div className="absolute bottom-0 inset-x-0 z-10 p-3">
-            <Card className="p-4 flex items-center gap-3 shadow-2xl">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/15 text-accent shrink-0">
-                <CheckCircle2 className="h-7 w-7" />
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-base">Rute færdig 🎉</p>
-                <p className="text-xs text-muted-foreground">
-                  Alle {sortedStops.length} stop udført
-                  {autoReturn != null && autoReturn > 0 && ` · oversigt om ${autoReturn}s`}
-                </p>
-              </div>
-              <Button
-                size="lg"
-                onClick={() => { setAutoReturn(null); navigate("/medarbejder"); }}
-                className="gap-2"
-              >
-                Til oversigt
-              </Button>
-            </Card>
-          </div>
-        ) : nextStop && (
+        {/* ─── Active driving card ─── */}
+        {routeStarted && !allDone && nextStop && (
           <div className="absolute bottom-0 inset-x-0 z-10 p-3 pointer-events-none">
-            <Card className="overflow-hidden shadow-2xl pointer-events-auto">
-              {/* Header strip — same look as DayCell header in calendar */}
+            <Card className="overflow-hidden shadow-2xl pointer-events-auto rounded-2xl">
               <button
                 type="button"
-                className="w-full flex items-center gap-2 px-3 py-2 bg-secondary/30 hover:bg-secondary/50 transition-colors border-b"
+                className="w-full flex items-center gap-2 px-3 py-2.5 bg-secondary/40 hover:bg-secondary/60 transition-colors border-b"
                 onClick={() => setCollapsed((c) => !c)}
               >
                 <span
                   className="flex h-7 w-7 items-center justify-center rounded-full text-background text-xs font-bold shrink-0"
-                  style={{ background: route.color || "hsl(184 90% 42%)" }}
+                  style={{ background: themeColor }}
                 >
                   {nextStopIdx + 1}
                 </span>
-                <span className="flex-1 text-left text-sm">
-                  <span className="font-semibold">Næste stop</span>
-                  <span className="text-muted-foreground"> · {nextStopIdx + 1} af {sortedStops.length}</span>
-                  {isAtNextStop && (
-                    <Badge className="ml-2 bg-accent text-accent-foreground hover:bg-accent">
-                      <span className="h-1.5 w-1.5 rounded-full bg-accent-foreground mr-1 animate-pulse" />
-                      Fremme
-                    </Badge>
-                  )}
+                <span className="flex-1 text-left text-sm min-w-0">
+                  <span className="font-semibold truncate">{nextStop.customer_name || "Stop"}</span>
+                  <span className="text-muted-foreground text-xs ml-1.5">
+                    · {nextStopIdx + 1}/{sortedStops.length}
+                  </span>
                 </span>
-                {directions && (
-                  <Badge variant="outline" className="tabular-nums hidden sm:inline-flex">
-                    {formatKm(directions.distance_m)} · {formatMin(directions.duration_s)}
+                {isAtNextStop ? (
+                  <Badge className="bg-accent text-accent-foreground gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-accent-foreground animate-pulse" />
+                    Fremme
                   </Badge>
-                )}
-                {collapsed ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                ) : distanceToNextM != null ? (
+                  <Badge variant="outline" className="tabular-nums">
+                    {formatKm(distanceToNextM)}
+                  </Badge>
+                ) : null}
+                {collapsed ? <ChevronUp className="h-4 w-4 text-muted-foreground ml-1" /> : <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" />}
               </button>
 
               {!collapsed && (
                 <div className="p-3 space-y-3">
-                  {!routeStarted ? (
-                    <Button onClick={handleStartRoute} size="lg" className="w-full gap-2 h-14 text-base">
-                      <Play className="h-5 w-5" /> Start rute
-                    </Button>
-                  ) : null}
-
-                  {/* Customer card — secondary background like calendar pills */}
-                  <div className="rounded-lg bg-secondary/30 border p-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="font-semibold text-base truncate flex-1">{nextStop.customer_name || "Stop"}</p>
-                      {distanceToNextM != null && (
-                        <Badge variant="secondary" className="shrink-0 tabular-nums">
-                          {distanceToNextM < 1000 ? `${Math.round(distanceToNextM)} m` : `${(distanceToNextM/1000).toFixed(1)} km`}
-                        </Badge>
-                      )}
-                    </div>
+                  <div className="rounded-xl bg-secondary/40 border p-3 space-y-2">
                     {nextStop.address && (
-                      <p className="text-sm text-muted-foreground flex items-start gap-1 mt-1">
-                        <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                        <span className="truncate">{nextStop.address}</span>
+                      <p className="text-sm flex items-start gap-1.5">
+                        <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
+                        <span>{nextStop.address}</span>
                       </p>
                     )}
                     {nextStop.service_summary && stripPrices(nextStop.service_summary) && (
-                      <p className="text-sm mt-2 line-clamp-2">{stripPrices(nextStop.service_summary)}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {stripPrices(nextStop.service_summary)}
+                      </p>
                     )}
                     {(directions || etaLabel) && (
-                      <div className="flex items-center gap-3 mt-2 pt-2 border-t text-[11px] tabular-nums">
+                      <div className="flex items-center gap-3 pt-2 border-t text-xs tabular-nums">
                         {directions && (
-                          <span className="text-muted-foreground">
-                            <Clock className="inline h-3 w-3 mr-1" />
-                            {formatMin(directions.duration_s)}
+                          <span className="text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" /> {formatMin(directions.duration_s)}
                           </span>
                         )}
                         {etaLabel && (
-                          <span className="font-medium" style={{ color: route.color || "hsl(184 90% 42%)" }}>
-                            Ankomst {etaLabel}
+                          <span className="font-semibold" style={{ color: themeColor }}>
+                            <Flag className="inline h-3 w-3 mr-1" /> Ankomst {etaLabel}
                           </span>
                         )}
                       </div>
                     )}
                   </div>
 
-                  {/* Quick actions */}
                   <div className="grid grid-cols-3 gap-2">
                     <Button onClick={() => handleNavigate(nextStop)} variant="outline" size="sm" className="gap-1 h-10">
-                      <Navigation className="h-4 w-4" /> Naviger
+                      <Navigation className="h-4 w-4" /> Maps
                     </Button>
                     {nextStop.customer_phone ? (
                       <Button asChild variant="outline" size="sm" className="gap-1 h-10">
@@ -690,11 +645,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     </Button>
                   </div>
 
-                  {/* Big complete CTA */}
                   <Button
                     onClick={() => handleComplete(nextStop)}
                     size="lg"
-                    className={`w-full gap-2 h-14 text-base font-semibold ${isAtNextStop ? "ring-4 ring-primary/40 animate-pulse" : ""}`}
+                    className={`w-full gap-2 h-14 text-base font-bold ${isAtNextStop ? "ring-4 ring-offset-2" : ""}`}
+                    style={{
+                      background: isAtNextStop ? "hsl(142 70% 45%)" : themeColor,
+                      ...(isAtNextStop ? { ["--tw-ring-color" as any]: "hsl(142 70% 45% / 0.4)" } : {}),
+                    }}
                     disabled={updateStatus.isPending}
                   >
                     {updateStatus.isPending ? (
@@ -709,9 +667,36 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             </Card>
           </div>
         )}
+
+        {/* ─── Done state ─── */}
+        {allDone && (
+          <div className="absolute bottom-0 inset-x-0 z-10 p-3">
+            <Card className="overflow-hidden shadow-2xl rounded-2xl">
+              <div className="p-5 text-center space-y-3">
+                <div className="h-16 w-16 mx-auto rounded-full bg-green-100 text-green-700 flex items-center justify-center">
+                  <CheckCircle2 className="h-9 w-9" />
+                </div>
+                <div>
+                  <p className="font-bold text-lg">Rute færdig 🎉</p>
+                  <p className="text-sm text-muted-foreground">
+                    Alle {sortedStops.length} stop udført
+                    {autoReturn != null && autoReturn > 0 && ` · oversigt om ${autoReturn}s`}
+                  </p>
+                </div>
+                <Button
+                  size="lg"
+                  className="w-full gap-2 h-12"
+                  onClick={() => { setAutoReturn(null); navigate("/medarbejder"); }}
+                >
+                  Til oversigt
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
 
-      {/* Stop detail sheet */}
+      {/* ─── Stop detail sheet ─── */}
       <Sheet open={!!selectedId} onOpenChange={(o) => !o && setSelectedId(null)}>
         <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
           <SheetHeader>
@@ -726,7 +711,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             return (
               <div className="space-y-4 mt-4">
                 <div className="flex items-start gap-3">
-                  <span className={`flex h-10 w-10 items-center justify-center rounded-full font-semibold text-sm shrink-0 ${isDone ? "bg-green-600 text-white" : "bg-primary text-primary-foreground"}`}>
+                  <span
+                    className="flex h-11 w-11 items-center justify-center rounded-full font-semibold text-background shrink-0"
+                    style={{ background: isDone ? "hsl(142 70% 45%)" : themeColor }}
+                  >
                     {isDone ? <CheckCircle2 className="h-5 w-5" /> : idx + 1}
                   </span>
                   <div className="flex-1">
@@ -739,11 +727,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                         <MapPin className="h-3.5 w-3.5 mt-0.5" />{s.address}
                       </p>
                     )}
-                    {s.service_summary && stripPrices(s.service_summary) && <p className="text-sm mt-2">{stripPrices(s.service_summary)}</p>}
-                    {s.planned_arrival && (
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-2">
-                        <Clock className="h-3 w-3" /> Planlagt {new Date(s.planned_arrival).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
-                      </p>
+                    {s.service_summary && stripPrices(s.service_summary) && (
+                      <p className="text-sm mt-2">{stripPrices(s.service_summary)}</p>
                     )}
                   </div>
                 </div>
@@ -774,12 +759,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 </div>
 
                 {!isDone ? (
-                  <Button
-                    onClick={() => handleComplete(s)}
-                    className="w-full gap-2"
-                    size="lg"
-                    disabled={updateStatus.isPending}
-                  >
+                  <Button onClick={() => handleComplete(s)} className="w-full gap-2" size="lg" disabled={updateStatus.isPending}>
                     <CheckCircle2 className="h-5 w-5" /> Markér som udført
                   </Button>
                 ) : (
@@ -793,7 +773,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         </SheetContent>
       </Sheet>
 
-      {/* Full list sheet */}
+      {/* ─── Full list sheet ─── */}
       <Sheet open={showList} onOpenChange={setShowList}>
         <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
           <SheetHeader>
@@ -808,17 +788,27 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <button
                   key={s.id}
                   onClick={() => { setSelectedId(s.id); setShowList(false); }}
-                  className={`w-full text-left p-3 rounded-lg border flex items-start gap-3 transition-colors hover:bg-muted ${isNext ? "border-primary bg-primary/5" : ""} ${isDone ? "opacity-60" : ""}`}
+                  className={`w-full text-left p-3 rounded-xl border flex items-start gap-3 transition-colors hover:bg-muted ${isNext ? "border-2" : ""} ${isDone ? "opacity-60" : ""}`}
+                  style={isNext ? { borderColor: themeColor, background: `${themeColor}10` } : undefined}
                 >
-                  <span className={`flex h-8 w-8 items-center justify-center rounded-full font-semibold text-xs shrink-0 ${isDone ? "bg-green-600 text-white" : isNext ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                  <span
+                    className="flex h-8 w-8 items-center justify-center rounded-full font-semibold text-xs shrink-0 text-background"
+                    style={{ background: isDone ? "hsl(142 70% 45%)" : isNext ? themeColor : "hsl(220 14% 65%)" }}
+                  >
                     {isDone ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{s.customer_name || "Stop"}</p>
                     {s.address && <p className="text-xs text-muted-foreground truncate">{s.address}</p>}
-                    {s.service_summary && stripPrices(s.service_summary) && <p className="text-xs mt-1 line-clamp-1">{stripPrices(s.service_summary)}</p>}
+                    {s.service_summary && stripPrices(s.service_summary) && (
+                      <p className="text-xs mt-1 line-clamp-1">{stripPrices(s.service_summary)}</p>
+                    )}
                   </div>
-                  {isNext && <Badge variant="default" className="text-[10px] shrink-0">Næste</Badge>}
+                  {isNext && (
+                    <Badge className="text-[10px] shrink-0 text-background" style={{ background: themeColor }}>
+                      Næste
+                    </Badge>
+                  )}
                 </button>
               );
             })}
@@ -827,6 +817,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       </Sheet>
     </div>
   );
+};
+
+const MapInteractionWatcher = ({ onInteract }: { onInteract: () => void }) => {
+  const map = useMap();
+  useEffect(() => {
+    const handler = () => onInteract();
+    map.on("dragstart", handler);
+    map.on("zoomstart", handler);
+    return () => {
+      map.off("dragstart", handler);
+      map.off("zoomstart", handler);
+    };
+  }, [map, onInteract]);
+  return null;
 };
 
 export default EmployeeRoute;

@@ -1,18 +1,96 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyDayRoutes, useMyDayStops, type RouteStop } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   Calendar as CalendarIcon, LogOut, Play, Printer, MapPin, Clock, CheckCircle2,
+  ChevronLeft, ChevronRight, Route as RouteIcon, Navigation,
 } from "lucide-react";
-import { format, addDays, parseISO } from "date-fns";
+import { format, addDays, parseISO, isToday } from "date-fns";
 import { da } from "date-fns/locale";
+import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
+
+const miniStopIcon = (n: number, color: string, done: boolean) =>
+  L.divIcon({
+    className: "",
+    html: `<div style="width:22px;height:22px;border-radius:50%;background:${done ? "hsl(142 70% 45%)" : color};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:10px;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3);">${done ? "✓" : n}</div>`,
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+  });
+
+const startIcon = L.divIcon({
+  className: "",
+  html: `<div style="width:14px;height:14px;border-radius:50%;background:hsl(222 47% 11%);border:3px solid white;box-shadow:0 1px 4px rgba(0,0,0,.4);"></div>`,
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
+});
+
+const RouteMiniMap = ({
+  stops,
+  startCoord,
+  color,
+}: {
+  stops: RouteStop[];
+  startCoord: [number, number] | null;
+  color: string;
+}) => {
+  const valid = stops.filter((s) => s.latitude != null && s.longitude != null);
+  const points: [number, number][] = useMemo(() => {
+    const arr: [number, number][] = [];
+    if (startCoord) arr.push(startCoord);
+    for (const s of valid) arr.push([Number(s.latitude), Number(s.longitude)]);
+    return arr;
+  }, [valid, startCoord]);
+
+  if (points.length === 0) {
+    return (
+      <div className="h-40 bg-secondary/40 flex items-center justify-center text-xs text-muted-foreground">
+        <MapPin className="h-4 w-4 mr-1" /> Ingen kortdata
+      </div>
+    );
+  }
+
+  const bounds = L.latLngBounds(points.map((p) => L.latLng(p[0], p[1])));
+
+  return (
+    <div className="h-44 w-full relative">
+      <MapContainer
+        bounds={bounds}
+        boundsOptions={{ padding: [20, 20] }}
+        zoom={11}
+        style={{ height: "100%", width: "100%" }}
+        scrollWheelZoom={false}
+        dragging={false}
+        doubleClickZoom={false}
+        zoomControl={false}
+        attributionControl={false}
+      >
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        {startCoord && <Marker position={startCoord} icon={startIcon} />}
+        {points.length > 1 && (
+          <Polyline
+            positions={points}
+            pathOptions={{ color, weight: 4, opacity: 0.85 }}
+          />
+        )}
+        {valid.map((s, i) => (
+          <Marker
+            key={s.id}
+            position={[Number(s.latitude), Number(s.longitude)]}
+            icon={miniStopIcon(i + 1, color, s.status === "completed")}
+          />
+        ))}
+      </MapContainer>
+    </div>
+  );
+};
 
 const EmployeeApp = () => {
   const { user, loading, signOut } = useAuth();
@@ -38,73 +116,101 @@ const EmployeeApp = () => {
 
   const totalStops = stops.length;
   const completedStops = stops.filter((s) => s.status === "completed").length;
+  const dateObj = parseISO(date);
+  const isCurrentDay = isToday(dateObj);
 
   return (
-    <div className="min-h-screen bg-secondary/40 pb-12">
-      <header className="bg-foreground text-background sticky top-0 z-30 shadow">
-        <div className="container mx-auto px-4 py-3 flex items-center gap-3">
+    <div className="min-h-screen bg-secondary/40">
+      {/* ── Header — planner-calendar styled ── */}
+      <header className="bg-background border-b sticky top-0 z-30">
+        <div className="container mx-auto px-4 py-3 max-w-3xl flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0">
+            <RouteIcon className="h-5 w-5" />
+          </div>
           <div className="flex-1 min-w-0">
-            <h1 className="font-semibold text-lg">Min dag</h1>
-            <p className="text-xs opacity-80 truncate">
-              {format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da })}
-              {totalStops > 0 && ` · ${completedStops}/${totalStops} færdige`}
+            <h1 className="font-semibold text-base leading-tight">Min dag</h1>
+            <p className="text-xs text-muted-foreground truncate">
+              {totalStops > 0
+                ? `${completedStops} af ${totalStops} stop færdige`
+                : "Ingen stop planlagt"}
             </p>
           </div>
           <Button
             variant="ghost"
-            size="icon"
+            size="sm"
             onClick={signOut}
-            className="text-background hover:bg-background/10"
-            aria-label="Log ud"
+            className="gap-1.5"
           >
             <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">Log ud</span>
           </Button>
         </div>
-        <div className="container mx-auto px-4 pb-3 flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setDate(format(addDays(parseISO(date), -1), "yyyy-MM-dd"))}
-            className="text-background hover:bg-background/10"
-          >
-            ←
-          </Button>
-          <CalendarIcon className="h-4 w-4 opacity-80" />
-          <Input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="h-8 text-foreground bg-background w-[160px]"
-          />
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setDate(format(addDays(parseISO(date), 1), "yyyy-MM-dd"))}
-            className="text-background hover:bg-background/10"
-          >
-            →
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setDate(todayStr())}
-            className="text-background hover:bg-background/10 ml-auto"
-          >
-            I dag
-          </Button>
+
+        {/* Day picker bar — calendar-pill style */}
+        <div className="container mx-auto px-4 pb-3 max-w-3xl">
+          <div className="flex items-center gap-1 bg-secondary/50 rounded-xl p-1">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 rounded-lg"
+              onClick={() => setDate(format(addDays(dateObj, -1), "yyyy-MM-dd"))}
+              aria-label="Forrige dag"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex-1 text-center">
+              <p className="text-sm font-semibold capitalize leading-tight">
+                {format(dateObj, "EEEE", { locale: da })}
+                {isCurrentDay && (
+                  <Badge variant="default" className="ml-2 text-[10px] h-4 px-1.5">
+                    I dag
+                  </Badge>
+                )}
+              </p>
+              <p className="text-xs text-muted-foreground tabular-nums">
+                {format(dateObj, "d. MMMM yyyy", { locale: da })}
+              </p>
+            </div>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 rounded-lg"
+              onClick={() => setDate(format(addDays(dateObj, 1), "yyyy-MM-dd"))}
+              aria-label="Næste dag"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            {!isCurrentDay && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setDate(todayStr())}
+                className="h-8 ml-1 text-xs"
+              >
+                I dag
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 space-y-4 max-w-2xl">
+      <main className="container mx-auto px-4 py-5 space-y-4 max-w-3xl pb-16">
         {(routesLoading || stopsLoading) && (
-          <p className="text-center text-muted-foreground">Indlæser ruter...</p>
+          <Card className="p-8 text-center text-muted-foreground">
+            <Loader />
+            <p className="text-sm mt-2">Indlæser dine ruter...</p>
+          </Card>
         )}
 
         {!routesLoading && !stopsLoading && routes.length === 0 && (
-          <Card className="p-10 text-center text-muted-foreground">
-            <CalendarIcon className="h-12 w-12 mx-auto mb-3 opacity-40" />
-            <p className="text-base font-medium mb-1">Ingen ruter på denne dag</p>
-            <p className="text-sm">Du har ingen tildelte stop endnu.</p>
+          <Card className="p-10 text-center">
+            <div className="h-16 w-16 rounded-2xl bg-secondary mx-auto flex items-center justify-center mb-4">
+              <CalendarIcon className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <p className="text-base font-semibold mb-1">Ingen ruter denne dag</p>
+            <p className="text-sm text-muted-foreground">
+              Du har ingen tildelte stop. Skift dato for at se andre dage.
+            </p>
           </Card>
         )}
 
@@ -114,81 +220,130 @@ const EmployeeApp = () => {
           const total = myStops.length;
           const allDone = total > 0 && done === total;
           const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+          const color = r.color || "hsl(184 90% 42%)";
+          const startCoord: [number, number] | null =
+            r.start_latitude != null && r.start_longitude != null
+              ? [Number(r.start_latitude), Number(r.start_longitude)]
+              : null;
+          const startTime = r.planned_start_time?.slice(0, 5) || "08:00";
 
           return (
-            <Card key={r.id} className="overflow-hidden">
-              <div className="p-5 border-b">
-                <div className="flex items-start gap-3">
-                  <div className="flex-1 min-w-0">
-                    <h2 className="font-semibold text-lg truncate">
-                      {r.name || `Rute ${format(parseISO(r.route_date), "d. MMM", { locale: da })}`}
-                    </h2>
-                    <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground flex-wrap">
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5" />
-                        {r.planned_start_time?.slice(0, 5) || "08:00"}
-                      </span>
-                      {r.start_address && (
-                        <span className="flex items-center gap-1 truncate max-w-[260px]">
-                          <MapPin className="h-3.5 w-3.5" />
-                          {r.start_address}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <Badge variant={allDone ? "secondary" : "outline"} className="shrink-0">
-                    {done}/{total}
-                  </Badge>
+            <Card key={r.id} className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              {/* Header strip — calendar pill look with route color */}
+              <div
+                className="px-4 py-2.5 flex items-center gap-2 text-background"
+                style={{ background: color }}
+              >
+                <RouteIcon className="h-4 w-4" />
+                <span className="font-semibold text-sm flex-1 truncate">
+                  {r.name || `Rute ${format(parseISO(r.route_date), "d. MMM", { locale: da })}`}
+                </span>
+                <span className="text-xs bg-background/20 px-2 py-0.5 rounded-full tabular-nums font-semibold">
+                  {done}/{total}
+                </span>
+              </div>
+
+              {/* Map preview */}
+              <RouteMiniMap stops={myStops} startCoord={startCoord} color={color} />
+
+              {/* Body */}
+              <div className="p-4 space-y-3">
+                <div className="flex items-center gap-3 text-sm flex-wrap">
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5" />
+                    Start <span className="font-medium text-foreground tabular-nums">{startTime}</span>
+                  </span>
+                  {r.total_duration_minutes != null && r.total_duration_minutes > 0 && (
+                    <span className="text-muted-foreground tabular-nums">
+                      ~{Math.round(r.total_duration_minutes / 60)}t {r.total_duration_minutes % 60}min
+                    </span>
+                  )}
+                  {r.total_distance_km != null && r.total_distance_km > 0 && (
+                    <span className="text-muted-foreground tabular-nums">
+                      {r.total_distance_km.toFixed(1)} km
+                    </span>
+                  )}
                 </div>
+
+                {r.start_address && (
+                  <p className="text-xs text-muted-foreground flex items-start gap-1">
+                    <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                    <span className="truncate">{r.start_address}</span>
+                  </p>
+                )}
 
                 {/* Progress bar */}
-                <div className="h-1.5 w-full bg-muted rounded-full mt-4 overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all"
-                    style={{ width: `${progress}%` }}
-                  />
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Fremskridt</span>
+                    <span className="font-semibold tabular-nums">{progress}%</span>
+                  </div>
+                  <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                    <div
+                      className="h-full transition-all duration-500"
+                      style={{ width: `${progress}%`, background: color }}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="p-4 grid grid-cols-2 gap-2">
-                <Button
-                  asChild
-                  size="lg"
-                  className="gap-2 h-12"
-                  disabled={total === 0}
-                >
-                  <Link to={`/medarbejder/rute/${r.id}`}>
-                    <Play className="h-4 w-4" />
-                    {allDone ? "Genåbn rute" : done > 0 ? "Fortsæt rute" : "Start rute"}
-                  </Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="gap-2 h-12">
-                  <Link to={`/medarbejder/rute/${r.id}/print`}>
-                    <Printer className="h-4 w-4" />
-                    Udskriv liste
-                  </Link>
-                </Button>
-              </div>
-
-              {total > 0 && (
-                <div className="px-5 pb-4 -mt-1">
-                  <ul className="text-xs text-muted-foreground space-y-1">
-                    {myStops.slice(0, 3).map((s) => (
-                      <li key={s.id} className="flex items-center gap-2">
-                        {s.status === "completed" ? (
-                          <CheckCircle2 className="h-3 w-3 text-primary shrink-0" />
-                        ) : (
-                          <span className="h-3 w-3 rounded-full border border-muted-foreground/40 shrink-0" />
-                        )}
-                        <span className="truncate">{s.customer_name || "Stop"}</span>
-                      </li>
+                {/* Stop preview list */}
+                {total > 0 && (
+                  <div className="space-y-1 pt-1">
+                    {myStops.slice(0, 4).map((s, i) => (
+                      <div key={s.id} className="flex items-center gap-2 text-xs">
+                        <span
+                          className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold shrink-0 ${
+                            s.status === "completed"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-secondary text-muted-foreground"
+                          }`}
+                        >
+                          {s.status === "completed" ? <CheckCircle2 className="h-3 w-3" /> : i + 1}
+                        </span>
+                        <span
+                          className={`truncate flex-1 ${s.status === "completed" ? "line-through text-muted-foreground" : ""}`}
+                        >
+                          {s.customer_name || "Stop"}
+                        </span>
+                      </div>
                     ))}
-                    {myStops.length > 3 && (
-                      <li className="pl-5">+{myStops.length - 3} flere stop</li>
+                    {myStops.length > 4 && (
+                      <p className="text-[11px] text-muted-foreground pl-7">
+                        +{myStops.length - 4} flere stop
+                      </p>
                     )}
-                  </ul>
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div className="flex gap-2 pt-1">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="flex-1 gap-2 h-12 font-semibold"
+                    disabled={total === 0}
+                    style={!allDone && total > 0 ? { background: color } : undefined}
+                  >
+                    <Link to={`/medarbejder/rute/${r.id}`}>
+                      {allDone ? (
+                        <><CheckCircle2 className="h-5 w-5" /> Genåbn</>
+                      ) : done > 0 ? (
+                        <><Navigation className="h-5 w-5" /> Fortsæt rute</>
+                      ) : (
+                        <><Play className="h-5 w-5" /> Start rute</>
+                      )}
+                    </Link>
+                  </Button>
+                  <Button asChild size="lg" variant="outline" className="h-12 px-3">
+                    <Link
+                      to={`/medarbejder/rute/${r.id}/print`}
+                      aria-label="Udskriv liste"
+                    >
+                      <Printer className="h-4 w-4" />
+                    </Link>
+                  </Button>
                 </div>
-              )}
+              </div>
             </Card>
           );
         })}
@@ -196,5 +351,11 @@ const EmployeeApp = () => {
     </div>
   );
 };
+
+const Loader = () => (
+  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-secondary">
+    <div className="h-4 w-4 rounded-full border-2 border-muted-foreground border-t-transparent animate-spin" />
+  </div>
+);
 
 export default EmployeeApp;
