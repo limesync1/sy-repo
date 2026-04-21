@@ -423,6 +423,8 @@ export type Database = {
           address: string | null
           adjusted_amount: number | null
           adjusted_details: Json | null
+          approval_expires_at: string | null
+          approval_token: string | null
           business_id: string | null
           business_message: string | null
           business_response: string | null
@@ -442,6 +444,7 @@ export type Database = {
           preferred_date: string | null
           preferred_time_end: string | null
           preferred_time_start: string | null
+          requires_customer_approval: boolean
           status: Database["public"]["Enums"]["order_status"]
           total_amount: number
           updated_at: string
@@ -451,6 +454,8 @@ export type Database = {
           address?: string | null
           adjusted_amount?: number | null
           adjusted_details?: Json | null
+          approval_expires_at?: string | null
+          approval_token?: string | null
           business_id?: string | null
           business_message?: string | null
           business_response?: string | null
@@ -470,6 +475,7 @@ export type Database = {
           preferred_date?: string | null
           preferred_time_end?: string | null
           preferred_time_start?: string | null
+          requires_customer_approval?: boolean
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
           updated_at?: string
@@ -479,6 +485,8 @@ export type Database = {
           address?: string | null
           adjusted_amount?: number | null
           adjusted_details?: Json | null
+          approval_expires_at?: string | null
+          approval_token?: string | null
           business_id?: string | null
           business_message?: string | null
           business_response?: string | null
@@ -498,6 +506,7 @@ export type Database = {
           preferred_date?: string | null
           preferred_time_end?: string | null
           preferred_time_start?: string | null
+          requires_customer_approval?: boolean
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
           updated_at?: string
