@@ -14,16 +14,51 @@ async function mapboxDirections(coords: LatLng[], token: string) {
   const coordStr = coords.map((c) => `${c.lng},${c.lat}`).join(";");
   const url =
     `https://api.mapbox.com/directions/v5/mapbox/driving-traffic/${coordStr}` +
-    `?geometries=geojson&overview=full&steps=false&access_token=${token}`;
+    `?geometries=geojson&overview=full&steps=true&language=da&voice_instructions=true&banner_instructions=true&access_token=${token}`;
   const r = await fetch(url);
   if (!r.ok) return null;
   const json = await r.json();
   const route = json?.routes?.[0];
   if (!route) return null;
+  // Flatten steps across legs into a single ordered list with maneuver info
+  type Step = {
+    distance_m: number;
+    duration_s: number;
+    name: string;
+    maneuver: {
+      type: string;
+      modifier?: string;
+      instruction?: string;
+      bearing_after?: number;
+      bearing_before?: number;
+      location: [number, number];
+    };
+    geometry?: { type: "LineString"; coordinates: [number, number][] };
+  };
+  const steps: Step[] = [];
+  for (const leg of (route.legs || [])) {
+    for (const s of (leg.steps || [])) {
+      steps.push({
+        distance_m: s.distance,
+        duration_s: s.duration,
+        name: s.name || "",
+        maneuver: {
+          type: s.maneuver?.type || "",
+          modifier: s.maneuver?.modifier,
+          instruction: s.maneuver?.instruction,
+          bearing_after: s.maneuver?.bearing_after,
+          bearing_before: s.maneuver?.bearing_before,
+          location: s.maneuver?.location,
+        },
+        geometry: s.geometry,
+      });
+    }
+  }
   return {
     geometry: route.geometry, // GeoJSON LineString
     distance_m: route.distance,
     duration_s: route.duration,
+    steps,
     provider: "mapbox" as const,
   };
 }
