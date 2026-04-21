@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData, useDirections, useUpdateStopStatus, type RouteStop, type Route } from "@/hooks/useRoutes";
@@ -8,13 +8,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
-  ChevronUp, ChevronDown, Printer,
+  ChevronUp, ChevronDown, Printer, Play, Volume2, VolumeX,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { toast } from "sonner";
 import { stripPrices } from "@/lib/employee-display";
+import { haversineMeters } from "@/lib/geo-distance";
+import {
+  unlockAudio, playArrivalChime, playSuccessChime, playCompleteFanfare, speak,
+} from "@/lib/employee-audio";
 
 /* ── Icons ──────────────────────────────────────────────────────── */
 const startIcon = L.divIcon({
