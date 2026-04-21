@@ -441,6 +441,8 @@ export const useAddStop = () => {
       longitude?: number | null;
       service_summary?: string | null;
       duration_minutes?: number;
+      time_window_start?: string | null;
+      time_window_end?: string | null;
       assigned_employee_id?: string | null;
     }) => {
       const { data, error } = await supabase
@@ -457,6 +459,8 @@ export const useAddStop = () => {
           longitude: payload.longitude ?? null,
           service_summary: payload.service_summary ?? null,
           duration_minutes: payload.duration_minutes ?? 30,
+          time_window_start: payload.time_window_start ?? null,
+          time_window_end: payload.time_window_end ?? null,
           assigned_employee_id: payload.assigned_employee_id ?? null,
         })
         .select("*")
