@@ -408,22 +408,53 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Planlægning</h3>
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Estimeret varighed (min)</label>
-                    <Input
-                      type="number"
-                      min={5}
-                      step={5}
-                      value={duration}
-                      onChange={(e) => setDuration(Number(e.target.value))}
-                      className="h-9"
-                    />
+                    <label className="text-xs text-muted-foreground mb-1 block">Tidsrum for besøget</label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="time"
+                        value={timeStart}
+                        onChange={(e) => setTimeStart(e.target.value)}
+                        className="h-9"
+                        aria-label="Starttidspunkt"
+                      />
+                      <span className="text-muted-foreground">–</span>
+                      <Input
+                        type="time"
+                        value={timeEnd}
+                        onChange={(e) => setTimeEnd(e.target.value)}
+                        className="h-9"
+                        aria-label="Sluttidspunkt"
+                      />
+                    </div>
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Tidsvindue (kunden skal være hjemme)</label>
+                    <label className="text-xs text-muted-foreground mb-1 block">Estimeret varighed</label>
                     <div className="flex items-center gap-2">
-                      <Input type="time" value={winStart} onChange={(e) => setWinStart(e.target.value)} className="h-9" />
-                      <span className="text-muted-foreground">–</span>
-                      <Input type="time" value={winEnd} onChange={(e) => setWinEnd(e.target.value)} className="h-9" />
+                      <div className="flex-1 flex items-center gap-1.5">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={23}
+                          value={durationHours}
+                          onChange={(e) => setDurationHours(Math.max(0, Number(e.target.value) || 0))}
+                          className="h-9"
+                          aria-label="Timer"
+                        />
+                        <span className="text-xs text-muted-foreground">timer</span>
+                      </div>
+                      <div className="flex-1 flex items-center gap-1.5">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={59}
+                          step={5}
+                          value={durationMinutes}
+                          onChange={(e) => setDurationMinutes(Math.max(0, Math.min(59, Number(e.target.value) || 0)))}
+                          className="h-9"
+                          aria-label="Minutter"
+                        />
+                        <span className="text-xs text-muted-foreground">min</span>
+                      </div>
                     </div>
                   </div>
                   {stop.planned_arrival && (
