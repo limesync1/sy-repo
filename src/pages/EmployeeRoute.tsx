@@ -1087,10 +1087,32 @@ const StopListPanel = ({
   const total = stops.length;
   const done = stops.filter((s) => s.status === "completed").length;
 
-  const statusMeta = (s: RouteStop): { label: string; dot: string; text: string } => {
-    if (s.status === "completed") return { label: "Færdig", dot: "hsl(142 70% 45%)", text: "hsl(142 70% 30%)" };
-    if (s.id === nextStopId) return { label: "I gang", dot: themeColor, text: themeColor };
-    return { label: "Klar", dot: "hsl(220 14% 65%)", text: "hsl(220 14% 45%)" };
+  const statusMeta = (s: RouteStop): { label: string; bg: string; text: string; dot: string } => {
+    if (s.status === "completed") return {
+      label: "Færdig",
+      bg: "hsl(142 70% 95%)",
+      text: "hsl(142 70% 25%)",
+      dot: "hsl(142 70% 45%)",
+    };
+    if (s.id === nextStopId) return {
+      label: "Næste",
+      bg: `${themeColor}1a`,
+      text: themeColor,
+      dot: themeColor,
+    };
+    return {
+      label: "Klar",
+      bg: "hsl(220 14% 95%)",
+      text: "hsl(220 14% 35%)",
+      dot: "hsl(220 14% 65%)",
+    };
+  };
+
+  const formatPlannedTime = (iso: string | null | undefined): string | null => {
+    if (!iso) return null;
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
   };
 
   return (
@@ -1099,28 +1121,53 @@ const StopListPanel = ({
       aria-hidden={false}
     >
       <div
-        className="pointer-events-auto mx-auto w-full max-w-3xl bg-background border-t shadow-2xl rounded-t-2xl transition-transform duration-300 ease-out"
-        style={{ transform: open ? "translateY(0)" : "translateY(calc(100% - 52px))", maxHeight: "65vh" }}
+        className="pointer-events-auto mx-auto w-full max-w-3xl bg-background border-t-2 shadow-2xl rounded-t-2xl transition-transform duration-300 ease-out"
+        style={{
+          transform: open ? "translateY(0)" : "translateY(calc(100% - 56px))",
+          maxHeight: "70vh",
+          borderTopColor: themeColor,
+        }}
       >
         <button
           type="button"
           onClick={onToggle}
-          className="w-full flex items-center gap-3 px-4 h-[52px] border-b bg-secondary/40 hover:bg-secondary/60 transition-colors rounded-t-2xl"
+          className="w-full flex items-center gap-3 px-4 h-[56px] border-b bg-secondary/30 hover:bg-secondary/50 transition-colors rounded-t-2xl relative"
           aria-expanded={open}
         >
-          <span className="h-1.5 w-10 rounded-full bg-muted-foreground/40 absolute left-1/2 -translate-x-1/2 -top-3" />
-          <List className="h-4 w-4 text-muted-foreground" />
-          <span className="font-semibold text-sm">Alle stop</span>
-          <Badge variant="outline" className="tabular-nums text-[10px]">
-            {done}/{total}
-          </Badge>
-          <span className="flex-1" />
-          {open ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+          <span className="h-1 w-10 rounded-full bg-muted-foreground/30 absolute left-1/2 -translate-x-1/2 top-1.5" />
+          <List className="h-4 w-4 text-muted-foreground mt-1" />
+          <div className="flex-1 flex items-center gap-2 mt-1">
+            <span className="font-semibold text-sm">Alle stop</span>
+            <Badge variant="secondary" className="tabular-nums text-[10px] h-4 px-1.5">
+              {done}/{total}
+            </Badge>
+          </div>
+          {/* Mini progress dots — kalender-stil */}
+          <div className="flex gap-0.5 items-center mt-1">
+            {stops.slice(0, Math.min(stops.length, 12)).map((s, i) => (
+              <span
+                key={s.id}
+                className="h-1.5 w-1.5 rounded-full"
+                style={{
+                  background:
+                    s.status === "completed"
+                      ? "hsl(142 70% 45%)"
+                      : s.id === nextStopId
+                        ? themeColor
+                        : "hsl(220 14% 80%)",
+                }}
+              />
+            ))}
+            {stops.length > 12 && (
+              <span className="text-[9px] text-muted-foreground tabular-nums ml-0.5">+{stops.length - 12}</span>
+            )}
+          </div>
+          {open ? <ChevronDown className="h-4 w-4 mt-1 ml-1" /> : <ChevronUp className="h-4 w-4 mt-1 ml-1" />}
         </button>
 
         <div
-          className="overflow-y-auto p-2 space-y-1.5"
-          style={{ maxHeight: "calc(65vh - 52px)" }}
+          className="overflow-y-auto p-2 space-y-1"
+          style={{ maxHeight: "calc(70vh - 56px)" }}
         >
           {stops.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-6">Ingen stop på denne rute.</p>
@@ -1130,47 +1177,68 @@ const StopListPanel = ({
             const isDone = s.status === "completed";
             const isNext = s.id === nextStopId;
             const meta = statusMeta(s);
+            const plannedTime = formatPlannedTime(s.planned_arrival);
             return (
               <button
                 key={s.id}
                 onClick={() => onSelectStop(s)}
                 onDoubleClick={() => onOpenDetails(s)}
-                className={`w-full text-left p-2.5 rounded-xl border flex items-start gap-2.5 transition-all hover:bg-muted ${
+                className={`w-full text-left p-2.5 rounded-xl border flex items-stretch gap-2.5 transition-all hover:bg-muted/50 hover:shadow-sm ${
                   isHl ? "ring-2 ring-offset-1" : ""
-                } ${isDone ? "opacity-70" : ""}`}
+                } ${isDone ? "opacity-60" : ""}`}
                 style={{
                   borderColor: isNext ? themeColor : undefined,
-                  background: isNext ? `${themeColor}10` : undefined,
+                  background: isNext ? `${themeColor}08` : undefined,
+                  borderLeftWidth: isNext ? 3 : 1,
+                  borderLeftColor: isNext ? themeColor : isDone ? "hsl(142 70% 45%)" : "hsl(220 14% 90%)",
                   ...(isHl ? { ["--tw-ring-color" as any]: themeColor } : {}),
                 }}
               >
-                <span
-                  className="flex h-7 w-7 items-center justify-center rounded-full font-semibold text-[11px] shrink-0 text-background"
-                  style={{ background: isDone ? "hsl(142 70% 45%)" : isNext ? themeColor : "hsl(220 14% 65%)" }}
-                >
-                  {isDone ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className={`font-medium text-sm truncate ${isDone ? "line-through" : ""}`}>
-                    {s.customer_name || "Stop"}
-                  </p>
-                  {s.address && (
-                    <p className="text-[11px] text-muted-foreground truncate">{s.address}</p>
-                  )}
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span
-                      className={`inline-block h-1.5 w-1.5 rounded-full ${isNext ? "animate-pulse" : ""}`}
-                      style={{ background: meta.dot }}
-                    />
-                    <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: meta.text }}>
-                      {meta.label}
+                {/* Tids-kolonne — kalender-stil */}
+                <div className="flex flex-col items-center justify-start pt-0.5 w-10 shrink-0">
+                  <span
+                    className="flex h-8 w-8 items-center justify-center rounded-lg font-bold text-[12px] shrink-0 text-background shadow-sm"
+                    style={{ background: isDone ? "hsl(142 70% 45%)" : isNext ? themeColor : "hsl(220 14% 65%)" }}
+                  >
+                    {isDone ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
+                  </span>
+                  {plannedTime && (
+                    <span className="text-[9px] text-muted-foreground tabular-nums font-semibold mt-1">
+                      {plannedTime}
                     </span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className={`font-semibold text-sm truncate ${isDone ? "line-through text-muted-foreground" : ""}`}>
+                      {s.customer_name || "Stop"}
+                    </p>
+                    <Badge
+                      className="text-[9px] h-4 px-1.5 border-0 font-bold uppercase tracking-wide gap-1"
+                      style={{ background: meta.bg, color: meta.text }}
+                    >
+                      <span
+                        className={`h-1 w-1 rounded-full ${isNext ? "animate-pulse" : ""}`}
+                        style={{ background: meta.dot }}
+                      />
+                      {meta.label}
+                    </Badge>
                   </div>
+                  {s.address && (
+                    <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
+                      <MapPin className="h-2.5 w-2.5 shrink-0" />{s.address}
+                    </p>
+                  )}
+                  {s.duration_minutes > 0 && (
+                    <p className="text-[10px] text-muted-foreground tabular-nums mt-0.5 flex items-center gap-1">
+                      <Clock className="h-2.5 w-2.5" />~{s.duration_minutes} min
+                    </p>
+                  )}
                 </div>
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onOpenDetails(s); }}
-                  className="text-[11px] font-semibold text-muted-foreground hover:text-foreground shrink-0 px-2 py-1 rounded-md hover:bg-secondary"
+                  className="text-[10px] font-semibold text-muted-foreground hover:text-foreground shrink-0 px-2 py-1 rounded-md hover:bg-secondary self-center"
                 >
                   Detaljer
                 </button>
