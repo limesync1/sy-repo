@@ -152,13 +152,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                       </Badge>
                     </span>
                   )}
-                  {orderStatus && (
-                    <span>
-                      <Badge variant="outline" className="text-[10px] capitalize">
-                        Ordre: {orderStatus}
-                      </Badge>
-                    </span>
-                  )}
                   {!hasCoords && (
                     <span>
                       <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
