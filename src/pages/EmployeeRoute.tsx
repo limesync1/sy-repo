@@ -184,8 +184,19 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const arrivedAnnouncedRef = useRef<Set<string>>(new Set());
   const finishedAnnouncedRef = useRef(false);
   const lastSpokenStepRef = useRef<string | null>(null);
-  const baselineDurationRef = useRef<{ stopId: string; durationS: number } | null>(null);
-  const [trafficAlert, setTrafficAlert] = useState<{ deltaPct: number; addedMin: number } | null>(null);
+  // Trafik-baseline kræver flere stabile målinger inden vi låser et "normalt" estimat.
+  const baselineRef = useRef<{
+    stopId: string;
+    samples: { durationS: number; distanceM: number; t: number }[];
+    baseDurationS: number | null;
+    baseDistanceM: number | null;
+    lockedAt: number | null;
+  } | null>(null);
+  const [trafficAlert, setTrafficAlert] = useState<
+    | { addedMin: number; severity: "let" | "moderat" | "tæt" }
+    | null
+  >(null);
+  const trafficSpokenRef = useRef<string | null>(null);
 
   /* Geolocation watcher — kun aktiv når rute kører */
   useEffect(() => {
