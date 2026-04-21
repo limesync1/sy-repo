@@ -119,8 +119,12 @@ const FollowUser = ({
 }: { active: boolean; userPos: [number, number] | null }) => {
   const map = useMap();
   const initRef = useRef(false);
+  // Sidste position vi rent faktisk panorerede til — bruges til at undgå
+  // mikro-pan ved GPS-jitter (typisk ±2-5 m), som ellers giver et "glitch"-look
+  // hvor kortet hopper frem og tilbage flere gange i sekundet.
+  const lastPannedRef = useRef<[number, number] | null>(null);
   useEffect(() => {
-    if (!active) { initRef.current = false; return; }
+    if (!active) { initRef.current = false; lastPannedRef.current = null; return; }
     if (!userPos) return;
     // Tæt på vejen — så man tydeligt kan se hvilken vej/sidevej man er på.
     // 18.5 svarer ca. til Google Maps' navigationsmode på mobil.
@@ -129,9 +133,22 @@ const FollowUser = ({
       // First lock: snap immediately so the user sees themselves centered.
       map.setView(userPos, targetZoom, { animate: true, duration: 0.4 });
       initRef.current = true;
+      lastPannedRef.current = userPos;
     } else {
-      // Subsequent updates: smooth pan only, no zoom changes (avoids the "jumpy" feel).
-      map.panTo(userPos, { animate: true, duration: 0.9, easeLinearity: 0.25 });
+      // Subsequent updates: ignorér GPS-jitter under 6 m — det er mest støj
+      // og fører til at en igangværende pan-animation bliver afbrudt og
+      // genstartet hvert tick = visuel "glitch" frem og tilbage.
+      const last = lastPannedRef.current;
+      const movedM = last
+        ? haversineMeters(last[0], last[1], userPos[0], userPos[1])
+        : Infinity;
+      if (movedM < 6) return;
+      // Stop evt. igangværende animation så vi ikke "kæmper" mod en gammel pan.
+      // (Leaflet's panTo cancellerer ellers mid-flight og giver et hop.)
+      // @ts-ignore — _stop er Leaflet-internt, men bredt understøttet.
+      if (typeof (map as any)._stop === "function") (map as any)._stop();
+      map.panTo(userPos, { animate: true, duration: 0.6, easeLinearity: 0.25, noMoveStart: true } as any);
+      lastPannedRef.current = userPos;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, userPos?.[0], userPos?.[1], map]);
