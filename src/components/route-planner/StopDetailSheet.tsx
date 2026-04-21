@@ -356,6 +356,22 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                           </span>
                         </div>
                       )}
+                      {(activeSub || pausedSub)!.service_name && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Ydelse</span>
+                          <span className="font-medium truncate ml-2">
+                            {(activeSub || pausedSub)!.service_name}
+                          </span>
+                        </div>
+                      )}
+                      {Number((activeSub || pausedSub)!.total_price) > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Pris pr. besøg</span>
+                          <span className="font-medium tabular-nums">
+                            {Math.round(Number((activeSub || pausedSub)!.total_price))} kr
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </section>
                   <Separator />
@@ -375,12 +391,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                   </section>
                   <Separator />
                 </>
-              )}
-
-              {orderCreatedAt && (
-                <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                  <Hash className="h-3 w-3" />Bestilt {format(parseISO(orderCreatedAt), "d. MMM yyyy 'kl.' HH:mm", { locale: da })}
-                </p>
               )}
 
               {/* Planning */}
