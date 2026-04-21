@@ -664,7 +664,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <Button
               size="icon" variant="secondary"
               onClick={() => setListOpen((v) => !v)}
-              className="h-11 w-11 rounded-full shadow-lg bg-background/95 backdrop-blur"
+              className="h-11 w-11 rounded-full shadow-lg bg-background hover:bg-secondary border border-border"
               aria-label="Vis liste"
             >
               <List className="h-5 w-5" />
@@ -674,7 +674,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <Button
               size="icon" variant="secondary"
               onClick={() => setAudioEnabled((v) => !v)}
-              className="h-11 w-11 rounded-full shadow-lg bg-background/95 backdrop-blur"
+              className="h-11 w-11 rounded-full shadow-lg bg-background hover:bg-secondary border border-border"
               aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
             >
               {audioEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
@@ -685,7 +685,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               size="icon"
               variant={followMode ? "default" : "secondary"}
               onClick={() => setFollowMode((v) => !v)}
-              className="h-11 w-11 rounded-full shadow-lg backdrop-blur"
+              className={`h-11 w-11 rounded-full shadow-lg border ${followMode ? "border-transparent text-background hover:opacity-90" : "bg-background hover:bg-secondary border-border"}`}
               style={followMode ? { background: themeColor } : undefined}
               aria-label={followMode ? "Slå live-følg fra" : "Slå live-følg til"}
               title={followMode ? "Følger din position" : "Recentrer"}
