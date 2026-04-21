@@ -129,7 +129,11 @@ const ApproveOrder = () => {
 
   return (
     <div className="min-h-screen bg-secondary/30">
-      <SEO title="Godkend bestilling — Serviceydere" canonicalPath="/godkend-bestilling" />
+      <SEO
+        title="Godkend bestilling — Serviceydere"
+        description="Gennemgå og godkend bestillingen din leverandør har sendt til dig på Serviceydere."
+        canonicalPath="/godkend-bestilling"
+      />
       <SiteNav />
       <main className="mx-auto max-w-2xl px-4 sm:px-6 py-8 md:py-12">
         {loading ? (
@@ -146,9 +150,9 @@ const ApproveOrder = () => {
           </Card>
         ) : done ? (
           <Card className="p-8 text-center">
-            <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${done === "accepted" ? "bg-emerald-100" : "bg-secondary"}`}>
+            <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${done === "accepted" ? "bg-accent/15" : "bg-secondary"}`}>
               {done === "accepted"
-                ? <CheckCircle2 className="h-8 w-8 text-emerald-600" strokeWidth={2.5} />
+                ? <CheckCircle2 className="h-8 w-8 text-accent" strokeWidth={2.5} />
                 : <X className="h-8 w-8 text-muted-foreground" strokeWidth={2.5} />}
             </div>
             <h1 className="text-2xl font-bold text-foreground mb-2">
@@ -163,7 +167,7 @@ const ApproveOrder = () => {
           </Card>
         ) : order && !order.requires_customer_approval ? (
           <Card className="p-8 text-center">
-            <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600 mb-3" />
+            <CheckCircle2 className="mx-auto h-10 w-10 text-accent mb-3" />
             <h1 className="text-xl font-bold text-foreground mb-2">Bestillingen er allerede behandlet</h1>
             <p className="text-sm text-muted-foreground mb-6">
               Denne bestilling er enten allerede godkendt, afvist eller udløbet.
@@ -174,7 +178,7 @@ const ApproveOrder = () => {
         ) : order ? (
           <div className="space-y-4">
             <div className="text-center mb-2">
-              <Badge variant="secondary" className="bg-amber-100 text-amber-900 hover:bg-amber-100">
+              <Badge variant="secondary" className="bg-amber-100 text-amber-900 hover:bg-amber-100 border-amber-200">
                 Afventer din godkendelse
               </Badge>
               <h1 className="mt-3 text-2xl md:text-3xl font-bold text-foreground">
@@ -318,7 +322,7 @@ const ApproveOrder = () => {
                   <X className="h-4 w-4 mr-2" /> Afvis bestilling
                 </Button>
                 <Button
-                  className="flex-1 h-12 bg-emerald-600 hover:bg-emerald-700 text-white"
+                  className="flex-1 h-12 bg-foreground hover:bg-foreground/90 text-background"
                   onClick={() => submit("accepted")}
                   disabled={!!submitting}
                 >
