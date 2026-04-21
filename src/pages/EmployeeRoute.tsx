@@ -186,6 +186,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const arrivedAnnouncedRef = useRef<Set<string>>(new Set());
   const finishedAnnouncedRef = useRef(false);
   const lastSpokenStepRef = useRef<string | null>(null);
+  // Sticky step pointer — sikrer at turn-by-turn aldrig går baglæns ved GPS-jitter.
+  const minStepIndexRef = useRef<{ stopId: string | null; idx: number }>({ stopId: null, idx: 0 });
+  const [minStepIndex, setMinStepIndex] = useState(0);
+  // Stabil rute-origin: kun opdateret når brugeren har bevæget sig markant.
+  // Ellers ville useDirections refetche hver eneste GPS-tick → maneuver-banner ville flimre.
+  const stableOriginRef = useRef<{ lat: number; lng: number } | null>(null);
   // Trafik-baseline kræver flere stabile målinger inden vi låser et "normalt" estimat.
   const baselineRef = useRef<{
     stopId: string;
@@ -243,8 +249,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     [sortedStops],
   );
 
-  const legOrigin: { lat: number; lng: number } | null = userPos
-    ? { lat: userPos[0], lng: userPos[1] }
+  // Opdater stabil origin kun når brugeren har bevæget sig >120 m (eller første gang).
+  // Det betyder at vi ikke spammer route-directions endpoint, og at "steps"-listen
+  // forbliver stabil mellem GPS-ticks — så banneret ikke flimrer.
+  if (userPos) {
+    const prev = stableOriginRef.current;
+    if (
+      !prev ||
+      haversineMeters(prev.lat, prev.lng, userPos[0], userPos[1]) > 120
+    ) {
+      stableOriginRef.current = { lat: userPos[0], lng: userPos[1] };
+    }
+  }
+  const legOrigin: { lat: number; lng: number } | null = stableOriginRef.current
+    ? stableOriginRef.current
     : lastCompleted
       ? { lat: Number(lastCompleted.latitude), lng: Number(lastCompleted.longitude) }
       : startCoord
@@ -440,7 +458,31 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   }, [trafficAlert?.severity, trafficAlert?.addedMin, audioEnabled, routeStarted, nextStop?.id]);
 
   /* Turn-by-turn */
-  const maneuver = useCurrentManeuver(directions?.steps, userPos);
+  const maneuver = useCurrentManeuver(directions?.steps, userPos, minStepIndex);
+  // Fastlås step-pointer: når useCurrentManeuver vælger et nyt højere step,
+  // gemmer vi det så vi aldrig går tilbage. Reset når næste stop ændrer sig.
+  useEffect(() => {
+    if (!nextStop) return;
+    const cur = minStepIndexRef.current;
+    if (cur.stopId !== nextStop.id) {
+      minStepIndexRef.current = { stopId: nextStop.id, idx: 0 };
+      setMinStepIndex(0);
+    }
+  }, [nextStop?.id]);
+  useEffect(() => {
+    if (!maneuver) return;
+    if (maneuver.stepIndex > minStepIndexRef.current.idx) {
+      minStepIndexRef.current.idx = maneuver.stepIndex;
+      setMinStepIndex(maneuver.stepIndex);
+    }
+  }, [maneuver?.stepIndex]);
+  // Banneret skal kun vises når der reelt er en kommende manøvre tæt på.
+  // Når man cykler langt mellem to drej skal banneret IKKE blokere skærmen.
+  // Vi viser det når næste manøvre er <800 m væk, OG den ikke er en "depart"
+  // (kør ud) som kun giver mening de første sekunder af turen.
+  const showManeuverBanner = !!maneuver
+    && maneuver.distanceToManeuverM <= 800
+    && (maneuver.currentStep.maneuver.type || "").toLowerCase() !== "depart";
   useEffect(() => {
     if (!audioEnabled || !maneuver || !routeStarted) return;
     const stepKey = `${maneuver.stepIndex}-${maneuver.currentStep.maneuver.type}-${maneuver.currentStep.name}`;
@@ -725,7 +767,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             </div>
 
             {/* Maneuver banner — floating top center */}
-            {maneuver && nextStop && (
+            {showManeuverBanner && maneuver && nextStop && (
               <div className="absolute top-[68px] left-3 right-3 z-[1000] pointer-events-none">
                 <Card className="overflow-hidden shadow-2xl rounded-2xl pointer-events-auto bg-background border">
                   <div className="flex items-stretch">
@@ -786,7 +828,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 chip: "hsl(38 100% 90%)",
               };
               return (
-                <div className={`absolute ${maneuver ? "top-[200px]" : "top-[68px]"} left-3 right-3 z-[1000] pointer-events-none`}>
+                <div className={`absolute ${showManeuverBanner ? "top-[200px]" : "top-[68px]"} left-3 right-3 z-[1000] pointer-events-none`}>
                   <div
                     className="pointer-events-auto rounded-2xl shadow-2xl overflow-hidden border animate-in fade-in slide-in-from-top-2 duration-300"
                     style={{ background: tone.bg, borderColor: tone.border }}
