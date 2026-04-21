@@ -416,6 +416,14 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
               {/* Planning */}
               {!readOnly && (
+                <TimeSpentSection
+                  entries={timeEntries}
+                  employees={activeEmployees}
+                />
+              )}
+
+              {/* Planning */}
+              {!readOnly && (
                 <Section
                   icon={<CalendarClock className="h-3.5 w-3.5" />}
                   title="Planlægning"
