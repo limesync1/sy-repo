@@ -213,7 +213,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
         .eq("id", businessId)
         .maybeSingle();
 
-      await supabase.functions.invoke("send-transactional-email", {
+      const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
         body: {
           templateName: "manual-order-approval",
           recipientEmail: customerEmail.trim().toLowerCase(),
@@ -248,8 +248,13 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName 
           },
         },
       });
+      if (mailErr) {
+        console.error("Mail send failed:", mailErr);
+        toast.error("Bestilling oprettet, men godkendelsesmailen kunne ikke sendes. Kontakt support.");
+      } else {
+        toast.success("Bestilling oprettet — kunden har modtaget en mail med godkendelseslink");
+      }
 
-      toast.success("Bestilling oprettet — kunden har modtaget en mail med godkendelseslink");
       reset();
       onOpenChange(false);
     } catch (e: any) {
