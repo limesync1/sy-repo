@@ -358,12 +358,16 @@ const StatusBadge = ({ status }: { status: string }) => {
 interface Props { businessId: string; businessName?: string }
 
 const CustomersTab = ({ businessId, businessName }: Props) => {
+  const qc = useQueryClient();
   const { data: customers = [], isLoading } = useCustomers(businessId);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "private" | "business">("all");
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editing, setEditing] = useState<EditableCustomer | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; targets: Customer[] } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const filtered = useMemo(() => {
     let list = customers;
