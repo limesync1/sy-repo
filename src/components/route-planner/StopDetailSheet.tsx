@@ -33,17 +33,20 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const updateStop = useUpdateStop();
   const deleteStop = useDeleteStop();
 
-  const [duration, setDuration] = useState<number>(30);
-  const [winStart, setWinStart] = useState<string>("");
-  const [winEnd, setWinEnd] = useState<string>("");
+  const [durationHours, setDurationHours] = useState<number>(0);
+  const [durationMinutes, setDurationMinutes] = useState<number>(30);
+  const [timeStart, setTimeStart] = useState<string>("");
+  const [timeEnd, setTimeEnd] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (!stop) return;
-    setDuration(stop.duration_minutes || 30);
-    setWinStart(stop.time_window_start?.slice(0, 5) || "");
-    setWinEnd(stop.time_window_end?.slice(0, 5) || "");
+    const totalMin = stop.duration_minutes || 30;
+    setDurationHours(Math.floor(totalMin / 60));
+    setDurationMinutes(totalMin % 60);
+    setTimeStart(stop.time_window_start?.slice(0, 5) || "");
+    setTimeEnd(stop.time_window_end?.slice(0, 5) || "");
     setNotes(stop.notes || "");
   }, [stop?.id]);
 
@@ -55,11 +58,12 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   if (!stop) return null;
 
   const handleSave = async () => {
+    const totalMin = Math.max(5, durationHours * 60 + durationMinutes);
     await updateStop.mutateAsync({
       id: stop.id,
-      duration_minutes: duration,
-      time_window_start: winStart || null,
-      time_window_end: winEnd || null,
+      duration_minutes: totalMin,
+      time_window_start: timeStart || null,
+      time_window_end: timeEnd || null,
       notes: notes || null,
     } as any);
     toast.success("Ændringer gemt");
@@ -402,22 +406,53 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Planlægning</h3>
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Estimeret varighed (min)</label>
-                    <Input
-                      type="number"
-                      min={5}
-                      step={5}
-                      value={duration}
-                      onChange={(e) => setDuration(Number(e.target.value))}
-                      className="h-9"
-                    />
+                    <label className="text-xs text-muted-foreground mb-1 block">Tidsrum for besøget</label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="time"
+                        value={timeStart}
+                        onChange={(e) => setTimeStart(e.target.value)}
+                        className="h-9"
+                        aria-label="Starttidspunkt"
+                      />
+                      <span className="text-muted-foreground">–</span>
+                      <Input
+                        type="time"
+                        value={timeEnd}
+                        onChange={(e) => setTimeEnd(e.target.value)}
+                        className="h-9"
+                        aria-label="Sluttidspunkt"
+                      />
+                    </div>
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Tidsvindue (kunden skal være hjemme)</label>
+                    <label className="text-xs text-muted-foreground mb-1 block">Estimeret varighed</label>
                     <div className="flex items-center gap-2">
-                      <Input type="time" value={winStart} onChange={(e) => setWinStart(e.target.value)} className="h-9" />
-                      <span className="text-muted-foreground">–</span>
-                      <Input type="time" value={winEnd} onChange={(e) => setWinEnd(e.target.value)} className="h-9" />
+                      <div className="flex-1 flex items-center gap-1.5">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={23}
+                          value={durationHours}
+                          onChange={(e) => setDurationHours(Math.max(0, Number(e.target.value) || 0))}
+                          className="h-9"
+                          aria-label="Timer"
+                        />
+                        <span className="text-xs text-muted-foreground">timer</span>
+                      </div>
+                      <div className="flex-1 flex items-center gap-1.5">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={59}
+                          step={5}
+                          value={durationMinutes}
+                          onChange={(e) => setDurationMinutes(Math.max(0, Math.min(59, Number(e.target.value) || 0)))}
+                          className="h-9"
+                          aria-label="Minutter"
+                        />
+                        <span className="text-xs text-muted-foreground">min</span>
+                      </div>
                     </div>
                   </div>
                   {stop.planned_arrival && (
