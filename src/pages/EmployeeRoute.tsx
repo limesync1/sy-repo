@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
   ChevronUp, ChevronDown, Printer, Play, Volume2, VolumeX, Crosshair,
@@ -76,26 +77,22 @@ const FollowUser = ({
   active,
   userPos,
   nextStop,
+  heading,
 }: {
   active: boolean;
   userPos: [number, number] | null;
   nextStop: RouteStop | undefined;
+  heading: number | null;
 }) => {
   const map = useMap();
   useEffect(() => {
     if (!active || !userPos) return;
-    const nextLat = nextStop?.latitude != null ? Number(nextStop.latitude) : null;
-    const nextLng = nextStop?.longitude != null ? Number(nextStop.longitude) : null;
-    if (nextLat != null && nextLng != null) {
-      const bounds = L.latLngBounds([
-        L.latLng(userPos[0], userPos[1]),
-        L.latLng(nextLat, nextLng),
-      ]);
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16, animate: true });
-      return;
-    }
-    map.setView(userPos, Math.max(map.getZoom(), 16), { animate: true });
-  }, [active, userPos?.[0], userPos?.[1], nextStop?.id, map]);
+    // Always lock the camera tight on the driver — like Google Maps navigation.
+    // We use a high zoom (17) and pan softly to follow movement.
+    const targetZoom = Math.max(map.getZoom(), 17);
+    map.setView(userPos, targetZoom, { animate: true, duration: 0.5 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, userPos?.[0], userPos?.[1], heading, map]);
   return null;
 };
 
@@ -353,59 +350,78 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     unlockAudio();
     setRouteStarted(true);
     setFollowMode(true);
+    setCollapsed(true); // collapse bottom card so map is fully visible while driving
     toast.success("Rute startet — god tur!");
+    // Get an immediate GPS fix so the camera snaps to the user right away
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserPos([pos.coords.latitude, pos.coords.longitude]);
+          if (typeof pos.coords.heading === "number" && !Number.isNaN(pos.coords.heading)) {
+            setUserHeading(pos.coords.heading);
+          }
+        },
+        () => { /* silent */ },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 },
+      );
+    }
   };
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
-      {/* Top header — brand bar with route color stripe */}
-      <header className="relative shrink-0 z-20 bg-foreground text-background shadow-lg">
-        {/* Route color accent stripe */}
-        <div className="h-1 w-full" style={{ background: route.color || "hsl(184 90% 42%)" }} />
-        <div className="flex items-center gap-2 px-3 py-2.5">
+      {/* Top header — light card style matching the planner calendar */}
+      <header className="relative shrink-0 z-20 bg-background border-b">
+        <div className="flex items-center gap-2 px-3 py-2.5 bg-secondary/30">
           <Button
             asChild
             variant="ghost"
             size="icon"
-            className="text-background hover:bg-background/10 h-9 w-9 rounded-full"
+            className="h-9 w-9 rounded-full hover:bg-background"
           >
             <Link to="/medarbejder" aria-label="Tilbage"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
-          <div className="flex-1 min-w-0">
-            <h1 className="font-semibold text-sm truncate leading-tight">{route.name || "Rute"}</h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-[11px] opacity-80 tabular-nums">
-                {completedCount} af {sortedStops.length} færdige
-              </span>
-              {etaLabel && nextStop && (
-                <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-md bg-background/15 tabular-nums">
-                  ETA {etaLabel}
-                </span>
-              )}
-            </div>
+
+          {/* Route pill — same look as calendar route pills */}
+          <div
+            className="flex items-center gap-2 px-2.5 py-1 rounded-full text-background text-xs font-semibold shrink-0 max-w-[55%]"
+            style={{ background: route.color || "hsl(184 90% 42%)" }}
+          >
+            <span className="truncate">{route.name || "Rute"}</span>
+            <span className="px-1.5 py-0.5 rounded-full bg-background/20 tabular-nums text-[10px]">
+              {completedCount}/{sortedStops.length}
+            </span>
           </div>
+
+          {etaLabel && nextStop && (
+            <Badge variant="secondary" className="tabular-nums hidden sm:inline-flex">
+              <Clock className="h-3 w-3 mr-1" /> ETA {etaLabel}
+            </Badge>
+          )}
+
+          <div className="flex-1" />
+
           <Button
             asChild
-            size="sm"
+            size="icon"
             variant="ghost"
-            className="text-background hover:bg-background/10 h-9 w-9 p-0 rounded-full"
+            className="h-9 w-9 rounded-full hover:bg-background"
             aria-label="Udskriv liste"
           >
             <Link to={`/medarbejder/rute/${route.id}/print`}><Printer className="h-4 w-4" /></Link>
           </Button>
           <Button
-            size="sm"
+            size="icon"
             variant="ghost"
-            className="text-background hover:bg-background/10 h-9 w-9 p-0 rounded-full"
+            className="h-9 w-9 rounded-full hover:bg-background"
             onClick={() => setShowList(true)}
             aria-label="Vis liste"
           >
             <List className="h-4 w-4" />
           </Button>
           <Button
-            size="sm"
+            size="icon"
             variant="ghost"
-            className="text-background hover:bg-background/10 h-9 w-9 p-0 rounded-full"
+            className="h-9 w-9 rounded-full hover:bg-background"
             onClick={() => setAudioEnabled((v) => !v)}
             aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
             title={audioEnabled ? "Lyd til" : "Lyd fra"}
@@ -413,21 +429,21 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </Button>
         </div>
-        {/* Progress bar */}
-        <div className="h-1 w-full bg-background/15">
+        {/* Progress bar — uses route color */}
+        <div className="h-1 w-full bg-secondary">
           <div
             className="h-full transition-all duration-500 ease-out"
             style={{
               width: sortedStops.length > 0 ? `${(completedCount / sortedStops.length) * 100}%` : "0%",
-              background: "hsl(142 70% 55%)",
+              background: route.color || "hsl(184 90% 42%)",
             }}
           />
         </div>
 
-        {/* Turn-by-turn maneuver banner — appears when route is started and we have steps */}
+        {/* Turn-by-turn maneuver banner — Card-style matching the planner */}
         {routeStarted && maneuver && nextStop && (
-          <div className="px-3 pt-3 pb-3 bg-foreground">
-            <div className="rounded-2xl bg-background text-foreground shadow-xl border border-border overflow-hidden">
+          <div className="px-3 pt-3 pb-3">
+            <Card className="overflow-hidden shadow-md">
               <div className="flex items-stretch">
                 <div
                   className="flex items-center justify-center w-20 shrink-0 text-background"
@@ -440,7 +456,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   />
                 </div>
                 <div className="flex-1 min-w-0 px-3 py-2.5">
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
                     Om {formatKm(maneuver.distanceToManeuverM)}
                   </p>
                   <p className="font-semibold text-base leading-tight truncate">
@@ -457,7 +473,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 </div>
               </div>
               {maneuver.nextStep && (
-                <div className="flex items-center gap-2 px-3 py-2 border-t bg-muted/40 text-xs">
+                <div className="flex items-center gap-2 px-3 py-2 border-t bg-secondary/30 text-xs">
                   <span className="text-muted-foreground">Derefter</span>
                   <ManeuverIcon
                     type={maneuver.nextStep.maneuver.type}
@@ -473,7 +489,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   </span>
                 </div>
               )}
-            </div>
+            </Card>
           </div>
         )}
       </header>
@@ -497,7 +513,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             />
 
             <FitTo points={fitPoints} />
-              <FollowUser active={routeStarted && followMode} userPos={userPos} nextStop={nextStop} />
+              <FollowUser active={routeStarted && followMode} userPos={userPos} nextStop={nextStop} heading={derivedHeading} />
 
             {/* Start marker */}
             {startCoord && <Marker position={startCoord} icon={startIcon} />}
@@ -558,7 +574,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* Bottom card — matches RoutePlanner card aesthetics */}
         {allDone ? (
           <div className="absolute bottom-0 inset-x-0 z-10 p-3">
-            <div className="rounded-2xl bg-background border border-border shadow-2xl p-4 flex items-center gap-3">
+            <Card className="p-4 flex items-center gap-3 shadow-2xl">
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/15 text-accent shrink-0">
                 <CheckCircle2 className="h-7 w-7" />
               </span>
@@ -576,15 +592,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               >
                 Til oversigt
               </Button>
-            </div>
+            </Card>
           </div>
         ) : nextStop && (
           <div className="absolute bottom-0 inset-x-0 z-10 p-3 pointer-events-none">
-            <div className="rounded-2xl bg-background border border-border shadow-2xl overflow-hidden pointer-events-auto">
-              {/* Header strip — clickable to collapse */}
+            <Card className="overflow-hidden shadow-2xl pointer-events-auto">
+              {/* Header strip — same look as DayCell header in calendar */}
               <button
                 type="button"
-                className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-muted/40 transition-colors border-b"
+                className="w-full flex items-center gap-2 px-3 py-2 bg-secondary/30 hover:bg-secondary/50 transition-colors border-b"
                 onClick={() => setCollapsed((c) => !c)}
               >
                 <span
@@ -597,30 +613,30 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <span className="font-semibold">Næste stop</span>
                   <span className="text-muted-foreground"> · {nextStopIdx + 1} af {sortedStops.length}</span>
                   {isAtNextStop && (
-                    <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-semibold text-accent">
-                      <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+                    <Badge className="ml-2 bg-accent text-accent-foreground hover:bg-accent">
+                      <span className="h-1.5 w-1.5 rounded-full bg-accent-foreground mr-1 animate-pulse" />
                       Fremme
-                    </span>
+                    </Badge>
                   )}
                 </span>
                 {directions && (
-                  <span className="text-xs font-medium tabular-nums text-muted-foreground hidden sm:inline">
+                  <Badge variant="outline" className="tabular-nums hidden sm:inline-flex">
                     {formatKm(directions.distance_m)} · {formatMin(directions.duration_s)}
-                  </span>
+                  </Badge>
                 )}
                 {collapsed ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
               </button>
 
               {!collapsed && (
-                <div className="p-4 space-y-3">
+                <div className="p-3 space-y-3">
                   {!routeStarted ? (
                     <Button onClick={handleStartRoute} size="lg" className="w-full gap-2 h-14 text-base">
                       <Play className="h-5 w-5" /> Start rute
                     </Button>
                   ) : null}
 
-                  {/* Customer card */}
-                  <div className="rounded-xl border bg-muted/30 p-3">
+                  {/* Customer card — secondary background like calendar pills */}
+                  <div className="rounded-lg bg-secondary/30 border p-3">
                     <div className="flex items-start justify-between gap-2">
                       <p className="font-semibold text-base truncate flex-1">{nextStop.customer_name || "Stop"}</p>
                       {distanceToNextM != null && (
@@ -690,7 +706,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   </Button>
                 </div>
               )}
-            </div>
+            </Card>
           </div>
         )}
       </div>
