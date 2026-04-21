@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
-  ChevronUp, ChevronDown, Play, Volume2, VolumeX, Crosshair, Flag,
+  ChevronUp, ChevronDown, Play, Volume2, VolumeX, Crosshair, Flag, AlertTriangle, TrafficCone,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -90,7 +90,7 @@ const FollowUser = ({
   useEffect(() => {
     if (!active) { initRef.current = false; return; }
     if (!userPos) return;
-    const targetZoom = 17;
+    const targetZoom = 17.5;
     if (!initRef.current) {
       // First lock: snap immediately so the user sees themselves centered.
       map.setView(userPos, targetZoom, { animate: true, duration: 0.4 });
@@ -154,6 +154,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const arrivedAnnouncedRef = useRef<Set<string>>(new Set());
   const finishedAnnouncedRef = useRef(false);
   const lastSpokenStepRef = useRef<string | null>(null);
+  const baselineDurationRef = useRef<{ stopId: string; durationS: number } | null>(null);
+  const [trafficAlert, setTrafficAlert] = useState<{ deltaPct: number; addedMin: number } | null>(null);
 
   /* Geolocation watcher — kun aktiv når rute kører */
   useEffect(() => {
@@ -283,6 +285,30 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return eta.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
   }, [directions?.duration_s]);
 
+  /* Trafik-overvågning: sammenlign aktuel ETA med baseline for samme stop. */
+  useEffect(() => {
+    if (!routeStarted || !nextStop || !directions?.duration_s) return;
+    const cur = directions.duration_s;
+    const base = baselineDurationRef.current;
+    if (!base || base.stopId !== nextStop.id) {
+      baselineDurationRef.current = { stopId: nextStop.id, durationS: cur };
+      setTrafficAlert(null);
+      return;
+    }
+    // Forventet "naturlig" reduktion idet du nærmer dig: tag den lavest sete.
+    if (cur < base.durationS) {
+      baselineDurationRef.current = { stopId: nextStop.id, durationS: cur };
+    }
+    const expected = baselineDurationRef.current.durationS;
+    const delta = cur - expected;
+    const deltaPct = (delta / Math.max(expected, 60)) * 100;
+    if (deltaPct >= 20 && delta >= 120) {
+      setTrafficAlert({ deltaPct: Math.round(deltaPct), addedMin: Math.round(delta / 60) });
+    } else if (deltaPct < 10) {
+      setTrafficAlert(null);
+    }
+  }, [directions?.duration_s, nextStop?.id, routeStarted]);
+
   /* Turn-by-turn */
   const maneuver = useCurrentManeuver(directions?.steps, userPos);
   useEffect(() => {
@@ -364,7 +390,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-hidden">
-      {/* ─── Compact header — calendar pill style ─── */}
+      {/* ─── Compact header — kun synlig før rute starter eller ved færdig ─── */}
+      {(!routeStarted || allDone) && (
       <header className="relative shrink-0 z-30 bg-background border-b">
         <div className="flex items-center gap-2 px-3 py-2 bg-secondary/40">
           <Button asChild variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-background shrink-0">
@@ -411,52 +438,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             style={{ width: `${progress}%`, background: themeColor }}
           />
         </div>
-
-        {/* Maneuver banner — only when actively driving */}
-        {routeStarted && maneuver && nextStop && !allDone && (
-          <Card className="mx-3 mt-3 mb-2 overflow-hidden shadow-lg border-2" style={{ borderColor: `${themeColor}40` }}>
-            <div className="flex items-stretch">
-              <div
-                className="flex flex-col items-center justify-center w-24 shrink-0 text-background py-2"
-                style={{ background: themeColor }}
-              >
-                <ManeuverIcon
-                  type={maneuver.currentStep.maneuver.type}
-                  modifier={maneuver.currentStep.maneuver.modifier}
-                  className="h-10 w-10"
-                />
-                <span className="text-[10px] font-bold tracking-wide mt-1 tabular-nums">
-                  {formatKm(maneuver.distanceToManeuverM)}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0 px-3 py-2.5">
-                <p className="font-bold text-base leading-tight truncate">
-                  {maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
-                </p>
-                {maneuver.currentStep.name && (
-                  <p className="text-sm text-muted-foreground truncate mt-0.5">
-                    ad <span className="font-semibold text-foreground">{maneuver.currentStep.name}</span>
-                  </p>
-                )}
-                {maneuver.nextStep && (
-                  <div className="flex items-center gap-1.5 mt-1.5 pt-1.5 border-t text-[11px] text-muted-foreground">
-                    <span>Derefter:</span>
-                    <ManeuverIcon
-                      type={maneuver.nextStep.maneuver.type}
-                      modifier={maneuver.nextStep.maneuver.modifier}
-                      className="h-3.5 w-3.5"
-                    />
-                    <span className="truncate">
-                      {maneuverLabel(maneuver.nextStep.maneuver.type, maneuver.nextStep.maneuver.modifier)}
-                      {maneuver.nextStep.name && ` · ${maneuver.nextStep.name}`}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </Card>
-        )}
       </header>
+      )}
 
       {/* ─── Map fills everything ─── */}
       <div className="relative flex-1 min-h-0">
@@ -488,14 +471,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {/* Route line */}
             {legLine.length > 1 && (
               <>
-                {/* Outer glow */}
+                {/* Outer white casing for contrast */}
                 <Polyline
                   positions={legLine}
-                  pathOptions={{ color: "white", weight: 11, opacity: 0.8 }}
+                  pathOptions={{ color: "white", weight: 14, opacity: 0.95, lineCap: "round", lineJoin: "round" }}
                 />
+                {/* Soft outer glow */}
                 <Polyline
                   positions={legLine}
-                  pathOptions={{ color: themeColor, weight: 7, opacity: 0.95 }}
+                  pathOptions={{ color: themeColor, weight: 12, opacity: 0.25, lineCap: "round", lineJoin: "round" }}
+                />
+                {/* Core route */}
+                <Polyline
+                  positions={legLine}
+                  pathOptions={{ color: themeColor, weight: 7, opacity: 1, lineCap: "round", lineJoin: "round" }}
                 />
               </>
             )}
@@ -539,12 +528,32 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Floating right-side controls ─── */}
         <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
+          {routeStarted && !allDone && (
+            <Button
+              size="icon" variant="secondary"
+              onClick={() => setListOpen((v) => !v)}
+              className="h-11 w-11 rounded-full shadow-lg bg-background/95 backdrop-blur"
+              aria-label="Vis liste"
+            >
+              <List className="h-5 w-5" />
+            </Button>
+          )}
+          {routeStarted && !allDone && (
+            <Button
+              size="icon" variant="secondary"
+              onClick={() => setAudioEnabled((v) => !v)}
+              className="h-11 w-11 rounded-full shadow-lg bg-background/95 backdrop-blur"
+              aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
+            >
+              {audioEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+            </Button>
+          )}
           {routeStarted && (
             <Button
               size="icon"
               variant={followMode ? "default" : "secondary"}
               onClick={() => setFollowMode((v) => !v)}
-              className="h-11 w-11 rounded-full shadow-lg"
+              className="h-11 w-11 rounded-full shadow-lg backdrop-blur"
               style={followMode ? { background: themeColor } : undefined}
               aria-label={followMode ? "Slå live-følg fra" : "Slå live-følg til"}
               title={followMode ? "Følger din position" : "Recentrer"}
@@ -553,6 +562,106 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             </Button>
           )}
         </div>
+
+        {/* ─── Fullscreen drive mode: floating top overlays (back pill + maneuver banner + traffic alert) ─── */}
+        {routeStarted && !allDone && (
+          <>
+            {/* Back pill — top-left */}
+            <div className="absolute top-3 left-3 z-[1000] flex items-center gap-2">
+              <Button
+                asChild
+                size="icon"
+                variant="secondary"
+                className="h-11 w-11 rounded-full shadow-lg bg-background/95 backdrop-blur"
+              >
+                <Link to="/medarbejder" aria-label="Tilbage">
+                  <ArrowLeft className="h-5 w-5" />
+                </Link>
+              </Button>
+              <div
+                className="flex items-center gap-2 px-3 h-11 rounded-full text-background text-xs font-semibold shadow-lg backdrop-blur"
+                style={{ background: themeColor }}
+              >
+                <span className="tabular-nums">{completedCount}/{sortedStops.length}</span>
+              </div>
+            </div>
+
+            {/* Maneuver banner — floating top center */}
+            {maneuver && nextStop && (
+              <div className="absolute top-[68px] left-3 right-3 z-[1000] pointer-events-none">
+                <Card className="overflow-hidden shadow-2xl rounded-2xl pointer-events-auto bg-background/98 backdrop-blur border-0">
+                  <div className="flex items-stretch">
+                    <div
+                      className="flex flex-col items-center justify-center w-24 shrink-0 text-background py-3"
+                      style={{ background: themeColor }}
+                    >
+                      <ManeuverIcon
+                        type={maneuver.currentStep.maneuver.type}
+                        modifier={maneuver.currentStep.maneuver.modifier}
+                        className="h-11 w-11"
+                      />
+                      <span className="text-[11px] font-bold tracking-wide mt-1 tabular-nums">
+                        {formatKm(maneuver.distanceToManeuverM)}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0 px-3 py-3">
+                      <p className="font-bold text-base leading-tight truncate">
+                        {maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
+                      </p>
+                      {maneuver.currentStep.name && (
+                        <p className="text-sm text-muted-foreground truncate mt-0.5">
+                          ad <span className="font-semibold text-foreground">{maneuver.currentStep.name}</span>
+                        </p>
+                      )}
+                      {maneuver.nextStep && (
+                        <div className="flex items-center gap-1.5 mt-1.5 pt-1.5 border-t text-[11px] text-muted-foreground">
+                          <span>Derefter:</span>
+                          <ManeuverIcon
+                            type={maneuver.nextStep.maneuver.type}
+                            modifier={maneuver.nextStep.maneuver.modifier}
+                            className="h-3.5 w-3.5"
+                          />
+                          <span className="truncate">
+                            {maneuverLabel(maneuver.nextStep.maneuver.type, maneuver.nextStep.maneuver.modifier)}
+                            {maneuver.nextStep.name && ` · ${maneuver.nextStep.name}`}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            )}
+
+            {/* Traffic / forsinkelse alert — animeret når ETA stiger */}
+            {trafficAlert && (
+              <div className={`absolute ${maneuver ? "top-[200px]" : "top-[68px]"} left-3 right-3 z-[1000] pointer-events-none`}>
+                <div className="pointer-events-auto rounded-xl shadow-2xl overflow-hidden bg-orange-50 border border-orange-300 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="flex items-center gap-2.5 px-3 py-2.5">
+                    <div className="h-9 w-9 rounded-full bg-orange-500 text-white flex items-center justify-center shrink-0 animate-pulse">
+                      <TrafficCone className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-orange-900 leading-tight">
+                        Trafik på ruten
+                      </p>
+                      <p className="text-[11px] text-orange-800 leading-tight mt-0.5">
+                        +{trafficAlert.addedMin} min ekstra ({trafficAlert.deltaPct}% længere)
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setTrafficAlert(null)}
+                      className="text-orange-600 hover:text-orange-900 text-xs font-semibold px-2 py-1 rounded shrink-0"
+                      aria-label="Luk advarsel"
+                    >
+                      OK
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
 
         {/* ─── Pre-start CTA: big start button at the bottom ─── */}
         {!routeStarted && !allDone && nextStop && (
