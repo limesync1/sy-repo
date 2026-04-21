@@ -214,7 +214,9 @@ export const RouteEditSheet = ({
               hint={`${attachedEmployees.length} på ruten`}
             >
               {attachedEmployees.length === 0 ? (
-                <p className="text-xs text-muted-foreground italic">Ingen medarbejdere tilkoblet endnu.</p>
+                <p className="text-xs text-muted-foreground italic">
+                  Ingen medarbejdere tilkoblet endnu — vælg fra listen nedenfor.
+                </p>
               ) : (
                 <div className="flex flex-wrap gap-1.5">
                   {attachedEmployees.map((e) => (
@@ -232,7 +234,7 @@ export const RouteEditSheet = ({
                   ))}
                 </div>
               )}
-              {unattached.length > 0 && (
+              {unattached.length > 0 ? (
                 <div className="space-y-1 pt-3 mt-3 border-t">
                   <p className="text-[11px] text-muted-foreground flex items-center gap-1">
                     <UserPlus className="h-3 w-3" />Tilkobl medarbejder
@@ -251,7 +253,11 @@ export const RouteEditSheet = ({
                     ))}
                   </div>
                 </div>
-              )}
+              ) : attachedEmployees.length === 0 ? (
+                <p className="text-[11px] text-muted-foreground italic mt-3 pt-3 border-t">
+                  Ingen aktive medarbejdere fundet. Opret medarbejdere under Admin → Medarbejdere.
+                </p>
+              ) : null}
             </Section>
           </div>
 
