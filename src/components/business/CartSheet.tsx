@@ -121,42 +121,62 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
       for (const [businessId, group] of Object.entries(groupedByBusiness)) {
         const bizTotal = group.items.reduce((acc, i) => acc + i.total * i.quantity, 0);
 
-        const orderResult = await createOrder.mutateAsync({
-          order: {
-            business_id: businessId === "unknown" ? undefined : businessId,
-            customer_name: name,
-            customer_email: email,
-            customer_phone: phone,
-            address,
-            zip_code: zipCode,
-            city,
-            latitude: coords.lat,
-            longitude: coords.lng,
-            cvr: cvr.replace(/\D/g, "") || null,
-            company_name: companyName.trim() || null,
-            preferred_date: null,
-            preferred_time_start: null,
-            preferred_time_end: null,
-            total_amount: bizTotal,
-            customer_id: user?.id || null,
-          },
-          items: group.items.map((item) => ({
-            service_id: item.serviceId,
-            service_name: item.serviceName,
-            quantity: item.quantity,
-            unit_price: item.total,
-            total_price: item.total * item.quantity,
-            details: {
-              description: item.details,
-              interval: item.interval,
-              stepDetails: item.stepDetails,
-              pricingSnapshot: item.pricingSnapshot,
+        // Én ordre pr. service-linje. Første ordres id bruges som parent_order_id
+        // for hele gruppen — det giver hver service sit eget kort i opgavepoolen
+        // og samtidig en sammenhæng der bevares til kvittering, mail og admin.
+        const parentOrderId = crypto.randomUUID();
+        const childIds = group.items.map((_, i) => i === 0 ? parentOrderId : crypto.randomUUID());
+
+        // Opret alle ordrer (én pr. service)
+        for (let i = 0; i < group.items.length; i++) {
+          const item = group.items[i];
+          const lineTotal = item.total * item.quantity;
+          await createOrder.mutateAsync({
+            order: {
+              id: childIds[i],
+              parent_order_id: parentOrderId,
+              business_id: businessId === "unknown" ? undefined : businessId,
+              customer_name: name,
+              customer_email: email,
+              customer_phone: phone,
+              address,
+              zip_code: zipCode,
+              city,
+              latitude: coords.lat,
+              longitude: coords.lng,
+              cvr: cvr.replace(/\D/g, "") || null,
+              company_name: companyName.trim() || null,
+              preferred_date: null,
+              preferred_time_start: null,
+              preferred_time_end: null,
+              estimated_duration_minutes: 30,
+              total_amount: lineTotal,
+              customer_id: user?.id || null,
             },
-          })),
-        });
+            items: [
+              {
+                service_id: item.serviceId,
+                service_name: item.serviceName,
+                quantity: item.quantity,
+                unit_price: item.total,
+                total_price: lineTotal,
+                details: {
+                  description: item.details,
+                  interval: item.interval,
+                  stepDetails: item.stepDetails,
+                  pricingSnapshot: item.pricingSnapshot,
+                },
+              },
+            ],
+          });
+        }
+
+        // Brug forælder-id'et til kvitteringsmail + abonnementer-link
+        const orderResult = { id: parentOrderId };
 
         if (user && businessId !== "unknown") {
-          for (const item of group.items) {
+          for (let i = 0; i < group.items.length; i++) {
+            const item = group.items[i];
             if (item.interval && item.interval !== "engangskøb") {
               // Næste service-dato beregnes fra i dag — virksomhedsejer planlægger derefter i kalenderen.
               const nextDate = calculateNextServiceDate(item.interval);
@@ -167,7 +187,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                 service_name: item.serviceName,
                 interval: item.interval,
                 total_price: item.total,
-                order_id: orderResult.id,
+                order_id: childIds[i],
                 next_service_date: nextDate,
                 // Abonnementet aktiveres først når virksomheden godkender ordren
                 status: "pending",

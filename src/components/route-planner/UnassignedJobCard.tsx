@@ -29,6 +29,7 @@ type Props = {
     preferred_date?: string | null;
     preferred_time_start?: string | null;
     preferred_time_end?: string | null;
+    estimated_duration_minutes?: number | null;
     notes?: string | null;
     preferred_route_name?: string | null;
     order_items?: OrderItem[] | null;
@@ -76,9 +77,12 @@ export const UnassignedJobCard = ({ job }: Props) => {
   const fullAddress = [job.address, [job.zip_code, job.city].filter(Boolean).join(" ")]
     .filter(Boolean).join(", ");
 
-  // Estimate duration: 30 min default, or from preferred window
+  // Foretrukken kilde til varighed: eksplicit estimeret felt fra ordren.
+  // Falder tilbage til tidsvindue, derefter 30 min default.
   let estimatedMin = 30;
-  if (job.preferred_time_start && job.preferred_time_end) {
+  if (job.estimated_duration_minutes && job.estimated_duration_minutes > 0) {
+    estimatedMin = job.estimated_duration_minutes;
+  } else if (job.preferred_time_start && job.preferred_time_end) {
     const [sh, sm] = job.preferred_time_start.split(":").map(Number);
     const [eh, em] = job.preferred_time_end.split(":").map(Number);
     estimatedMin = (eh * 60 + em) - (sh * 60 + sm);

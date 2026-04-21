@@ -237,7 +237,7 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
         .select(`
           id, customer_name, customer_phone, customer_email, total_amount, status, notes,
           address, zip_code, city, latitude, longitude, created_at,
-          preferred_date, preferred_time_start, preferred_time_end, next_service_date,
+          preferred_date, preferred_time_start, preferred_time_end, estimated_duration_minutes, next_service_date,
           order_items ( service_name, quantity, total_price, details )
         `)
         .eq("business_id", businessId!)
@@ -441,6 +441,8 @@ export const useAddStop = () => {
       longitude?: number | null;
       service_summary?: string | null;
       duration_minutes?: number;
+      time_window_start?: string | null;
+      time_window_end?: string | null;
       assigned_employee_id?: string | null;
     }) => {
       const { data, error } = await supabase
@@ -457,6 +459,8 @@ export const useAddStop = () => {
           longitude: payload.longitude ?? null,
           service_summary: payload.service_summary ?? null,
           duration_minutes: payload.duration_minutes ?? 30,
+          time_window_start: payload.time_window_start ?? null,
+          time_window_end: payload.time_window_end ?? null,
           assigned_employee_id: payload.assigned_employee_id ?? null,
         })
         .select("*")
