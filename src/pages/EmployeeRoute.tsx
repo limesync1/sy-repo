@@ -342,6 +342,25 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     setTimeout(() => speak(`Du er ankommet til ${name}`), 600);
   }, [isAtNextStop, nextStop?.id, audioEnabled]);
 
+  /* Auto check-in når medarbejder ankommer til stop (geofence) */
+  useEffect(() => {
+    if (!isAtNextStop || !nextStop) return;
+    (async () => {
+      try {
+        const { data: u } = await supabase.auth.getUser();
+        if (!u.user) return;
+        const { data: emp } = await supabase
+          .from("employees")
+          .select("id")
+          .eq("user_id", u.user.id)
+          .maybeSingle();
+        if (!emp) return;
+        await startStopTime.mutateAsync({ stop_id: nextStop.id, employee_id: emp.id });
+      } catch { /* non-fatal */ }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAtNextStop, nextStop?.id]);
+
   const legLine: [number, number][] = useMemo(() => {
     if (!directions?.geometry?.coordinates) return [];
     return directions.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
