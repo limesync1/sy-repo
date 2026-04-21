@@ -491,15 +491,17 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                         </Select>
                       )}
 
-                      {/* Varighed + tidsrum — samme popover-UI som ejerens stop-modul */}
-                      <div className="mt-2 rounded-md bg-secondary/30 p-3">
+                      {/* Varighed + tidsrum + (på første kort) foreslået dato — kompakt 3-kolonne layout */}
+                      <div className="mt-2 rounded-md bg-secondary/30 p-2.5">
                         <DurationSlotPicker
+                          layout="row"
                           {...(idx === 0
                             ? {
                                 date: preferredDate,
                                 onDateChange: setPreferredDate,
                                 dateLabel: "Foreslået dato",
-                                dateHint: "Valgfrit — kunden kan bekræfte eller ændre.",
+                                dateHint:
+                                  "Foreslået dato, ønsket tidsrum og estimeret varighed — kunden kan bekræfte eller ændre.",
                               }
                             : {})}
                           timeSlot={
