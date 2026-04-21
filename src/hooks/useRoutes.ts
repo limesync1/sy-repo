@@ -955,8 +955,6 @@ export const useMyDayRoutes = (date: string) => {
       if (error) throw error;
       const routes = (data || []) as unknown as Route[];
       if (routes.length === 0) return routes;
-      // Skjul ruter hvor medarbejderen ikke har nogen tildelte (eller utildelte) stops.
-      // Ellers vises tomme "0/0"-kort.
       const todayRouteIds = routes.map((r) => r.id);
       const { data: myAssign } = await supabase
         .from("route_stop_assignees")
@@ -967,11 +965,21 @@ export const useMyDayRoutes = (date: string) => {
         .from("route_stops")
         .select("id, route_id, assigned_employee_id")
         .in("route_id", todayRouteIds);
-      const visibleRouteIds = new Set<string>();
+      const routeStopCounts = new Map<string, number>();
+      const routeVisibleCounts = new Map<string, number>();
       (stops || []).forEach((s: any) => {
+        routeStopCounts.set(s.route_id, (routeStopCounts.get(s.route_id) || 0) + 1);
         const belongsToEmployee = myStopIds.has(s.id) || s.assigned_employee_id === emp.id;
         if (belongsToEmployee || !s.assigned_employee_id) {
-          visibleRouteIds.add(s.route_id);
+          routeVisibleCounts.set(s.route_id, (routeVisibleCounts.get(s.route_id) || 0) + 1);
+        }
+      });
+      const visibleRouteIds = new Set<string>();
+      routes.forEach((r) => {
+        const totalStops = routeStopCounts.get(r.id) || 0;
+        const visibleStops = routeVisibleCounts.get(r.id) || 0;
+        if (totalStops > 0 && (visibleStops > 0 || myStopIds.size === 0)) {
+          visibleRouteIds.add(r.id);
         }
       });
       return routes.filter((r) => visibleRouteIds.has(r.id));
@@ -1016,10 +1024,20 @@ export const useMyDayStops = (date: string) => {
         .in("route_id", todayIds)
         .order("sequence", { ascending: true });
       if (error) throw error;
-      // Filtrer: vis stops jeg er på, også legacy direkte assigned_employee_id, eller utildelte stops på en rute jeg er på
+      const byRoute = new Map<string, any[]>();
+      (data || []).forEach((s: any) => {
+        const arr = byRoute.get(s.route_id) || [];
+        arr.push(s);
+        byRoute.set(s.route_id, arr);
+      });
       const filtered = (data || []).filter((s: any) => {
         const belongsToEmployee = myStopIds.has(s.id) || s.assigned_employee_id === emp.id;
-        return belongsToEmployee || !s.assigned_employee_id;
+        if (belongsToEmployee || !s.assigned_employee_id) return true;
+        const routeStops = byRoute.get(s.route_id) || [];
+        const routeHasMySpecificStops = routeStops.some((routeStop: any) =>
+          myStopIds.has(routeStop.id) || routeStop.assigned_employee_id === emp.id,
+        );
+        return !routeHasMySpecificStops;
       });
       return filtered as RouteStop[];
     },
@@ -1058,9 +1076,12 @@ export const useMyRouteData = (routeId: string | undefined) => {
         .select("*")
         .eq("route_id", routeId!)
         .order("sequence", { ascending: true });
+      const routeHasMySpecificStops = (rawStops || []).some((s: any) =>
+        myStopIds.has(s.id) || s.assigned_employee_id === emp.id,
+      );
       const stops = (rawStops || []).filter((s: any) => {
         const belongsToEmployee = myStopIds.has(s.id) || s.assigned_employee_id === emp.id;
-        return belongsToEmployee || !s.assigned_employee_id;
+        return belongsToEmployee || !s.assigned_employee_id || !routeHasMySpecificStops;
       });
 
       return {
