@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -152,8 +151,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
             </SheetHeaderBlock>
           </SheetHeader>
 
-          <ScrollArea className="flex-1">
-            <div className="px-5 py-4 space-y-3 bg-secondary/20 min-h-full">
+          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-secondary/20">
               {/* Quick action */}
               {stop.customer_phone && (
                 <Button asChild variant="outline" className="w-full gap-1.5 h-9 bg-background">
@@ -391,8 +389,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               </Section>
 
               {isLoading && <p className="text-xs text-muted-foreground italic">Indlæser ordredetaljer...</p>}
-            </div>
-          </ScrollArea>
+          </div>
 
           {/* Footer actions */}
           <SheetFooterBar>
