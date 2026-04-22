@@ -56,6 +56,14 @@ const DynamicBusinessContent = () => {
     [activeCategory, categoryEntries]
   );
 
+  const pairedCompactCategoryRows = useMemo(() => {
+    const pairs: typeof compactCategoryEntries[] = [];
+    for (let i = 0; i < compactCategoryEntries.length; i += 2) {
+      pairs.push(compactCategoryEntries.slice(i, i + 2));
+    }
+    return pairs;
+  }, [compactCategoryEntries]);
+
   const fullWidthCategoryEntries = useMemo(
     () => categoryEntries.filter((entry) => activeCategory || entry.total > 1),
     [activeCategory, categoryEntries]
@@ -339,32 +347,36 @@ const DynamicBusinessContent = () => {
                   ))}
 
                   {compactCategoryEntries.length > 0 && (
-                    <div className="grid gap-6 md:grid-cols-2">
-                      {compactCategoryEntries.map(({ cat, subs }) => {
-                        const [sub, items] = Object.entries(subs)[0];
-                        const service = items[0];
+                    <div className="space-y-6">
+                      {pairedCompactCategoryRows.map((row, rowIndex) => (
+                        <div key={`compact-row-${rowIndex}`} className="grid gap-6 md:grid-cols-2">
+                          {row.map(({ cat, subs }) => {
+                            const [sub, items] = Object.entries(subs)[0];
+                            const service = items[0];
 
-                        return (
-                          <div key={cat} className="rounded-2xl border border-border bg-card p-4 sm:p-5">
-                            <div className="mb-4 flex items-start justify-between gap-3">
-                              <div>
-                                <h3 className="text-lg font-bold text-foreground">{cat}</h3>
-                                {sub && (
-                                  <p className="mt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">{sub}</p>
-                                )}
+                            return (
+                              <div key={cat} className="rounded-[28px] border border-border bg-card p-4 sm:p-5">
+                                <div className="mb-4 flex items-start justify-between gap-3">
+                                  <div>
+                                    <h3 className="text-lg font-bold text-foreground">{cat}</h3>
+                                    {sub && (
+                                      <p className="mt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">{sub}</p>
+                                    )}
+                                  </div>
+                                  <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-muted-foreground">1 service</span>
+                                </div>
+
+                                <DynamicServiceCard
+                                  key={service.id}
+                                  service={service}
+                                  businessName={business.name}
+                                  businessLogoUrl={business.logo_url || undefined}
+                                />
                               </div>
-                              <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-muted-foreground">1 service</span>
-                            </div>
-
-                            <DynamicServiceCard
-                              key={service.id}
-                              service={service}
-                              businessName={business.name}
-                              businessLogoUrl={business.logo_url || undefined}
-                            />
-                          </div>
-                        );
-                      })}
+                            );
+                          })}
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

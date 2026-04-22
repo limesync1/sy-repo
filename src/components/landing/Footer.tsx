@@ -3,11 +3,11 @@ import { Link } from "react-router-dom";
 const Footer = () => {
   return (
     <footer className="border-t border-border bg-background">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
-        <div className="mb-8 grid gap-5 rounded-[32px] border border-border bg-secondary/60 p-5 shadow-sm sm:p-6 lg:grid-cols-[1.2fr_0.8fr_0.8fr] lg:items-center">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8">
+        <div className="mb-10 grid gap-5 rounded-[36px] border border-border bg-secondary p-6 shadow-sm sm:p-7 lg:grid-cols-[1.15fr_0.9fr_0.8fr] lg:items-center">
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kom videre</div>
-            <h3 className="mt-2 text-lg font-semibold text-foreground">Vælg næste skridt</h3>
+            <h3 className="mt-2 text-2xl font-semibold text-foreground">Vælg næste skridt</h3>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
             <Link to="/virksomheder" className="inline-flex items-center justify-center rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-foreground/90">

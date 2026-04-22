@@ -12,8 +12,8 @@ const GetQuotes = () => {
   return (
     <section className="bg-background py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="overflow-hidden rounded-[36px] border border-border bg-gradient-to-b from-secondary to-background px-5 py-8 shadow-sm sm:px-8 sm:py-10 md:px-12 md:py-12">
-          <div className="grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10">
+        <div className="overflow-hidden rounded-[36px] border border-border bg-secondary px-5 py-8 shadow-sm sm:px-8 sm:py-10 md:px-12 md:py-12">
+          <div className="grid items-start gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:gap-12">
             <div>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-foreground">
                 <Sparkles className="h-3 w-3" />
@@ -23,21 +23,27 @@ const GetQuotes = () => {
                 Få et skarpere udvalg med det samme.
               </h2>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-border bg-card p-3">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Input</div>
-                  <div className="mt-1 text-sm font-semibold text-foreground">Kort input</div>
-                  <div className="mt-1 text-xs leading-5 text-muted-foreground">Beskriv opgaven kort.</div>
+              <div className="mt-6 space-y-3">
+                <div className="flex items-start gap-3 rounded-2xl bg-card px-4 py-4">
+                  <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-foreground">1</div>
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">Beskriv kort opgaven</div>
+                    <div className="mt-1 text-sm text-muted-foreground">Du behøver ikke udfylde et langt flow for at komme i gang.</div>
+                  </div>
                 </div>
-                <div className="rounded-2xl border border-border bg-card p-3">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Sortering</div>
-                  <div className="mt-1 text-sm font-semibold text-foreground">Færre, bedre matches</div>
-                  <div className="mt-1 text-xs leading-5 text-muted-foreground">Prioriteret efter relevans.</div>
+                <div className="flex items-start gap-3 rounded-2xl bg-card px-4 py-4">
+                  <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-foreground">2</div>
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">De stærkeste matches ryger øverst</div>
+                    <div className="mt-1 text-sm text-muted-foreground">Pris, kvalitet og nærhed bliver vægtet sammen i stedet for hver for sig.</div>
+                  </div>
                 </div>
-                <div className="rounded-2xl border border-border bg-card p-3">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Resultat</div>
-                  <div className="mt-1 text-sm font-semibold text-foreground">Roligt overblik</div>
-                  <div className="mt-1 text-xs leading-5 text-muted-foreground">De bedste kandidater først.</div>
+                <div className="flex items-start gap-3 rounded-2xl bg-card px-4 py-4">
+                  <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-foreground">3</div>
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">Du vælger hurtigere</div>
+                    <div className="mt-1 text-sm text-muted-foreground">Mindre støj og færre dårlige klik, når kandidaterne allerede er sorteret.</div>
+                  </div>
                 </div>
               </div>
 
@@ -57,8 +63,9 @@ const GetQuotes = () => {
             </div>
 
             <div className="relative">
-              <div className="rounded-[32px] border border-border bg-background p-4 shadow-sm sm:p-5">
-                <div className="mb-4 flex items-center gap-2">
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_110px]">
+                <div className="rounded-[32px] border border-border bg-background p-4 shadow-sm sm:p-5">
+                  <div className="mb-4 flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent">
                     <Sparkles className="h-4 w-4" />
                   </div>
@@ -71,13 +78,13 @@ const GetQuotes = () => {
                   <span className="flex h-2 w-2 animate-pulse rounded-full bg-accent" />
                 </div>
 
-                <div className="space-y-2">
-                  {matches.map((m, i) => (
-                    <div
-                      key={m.name}
-                     className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3.5"
-                      style={{ animation: `fade-in 0.4s ease-out ${i * 120}ms both` }}
-                    >
+                  <div className="space-y-2">
+                    {matches.map((m, i) => (
+                      <div
+                        key={m.name}
+                        className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3.5"
+                        style={{ animation: `fade-in 0.4s ease-out ${i * 120}ms both` }}
+                      >
                       <div className={`flex h-10 w-10 items-center justify-center rounded-xl text-xs font-bold ${m.tone}`}>
                         {m.logo}
                       </div>
@@ -90,13 +97,29 @@ const GetQuotes = () => {
                         <div className="mt-0.5 text-[11px] text-muted-foreground/80">{m.eta}</div>
                       </div>
                       <div className="text-sm font-bold text-foreground">{m.price}</div>
-                    </div>
-                  ))}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-secondary py-2 text-xs font-medium text-muted-foreground">
+                    <Zap className="h-3 w-3 text-accent" />
+                    Viser først dem der mest sandsynligt passer
+                  </div>
                 </div>
 
-                <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-secondary py-2 text-xs font-medium text-muted-foreground">
-                  <Zap className="h-3 w-3 text-accent" />
-                  Viser først dem der mest sandsynligt passer
+                <div className="grid gap-3">
+                  <div className="rounded-[24px] border border-border bg-background px-4 py-4 text-center shadow-sm">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Filter</div>
+                    <div className="mt-2 text-sm font-semibold text-foreground">Kvalitet</div>
+                  </div>
+                  <div className="rounded-[24px] border border-border bg-background px-4 py-4 text-center shadow-sm">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Filter</div>
+                    <div className="mt-2 text-sm font-semibold text-foreground">Pris</div>
+                  </div>
+                  <div className="rounded-[24px] border border-border bg-background px-4 py-4 text-center shadow-sm">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Filter</div>
+                    <div className="mt-2 text-sm font-semibold text-foreground">Nærhed</div>
+                  </div>
                 </div>
               </div>
             </div>

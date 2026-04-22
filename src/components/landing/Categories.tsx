@@ -17,6 +17,8 @@ const categories = [
 
 const featuredCategories = categories.slice(0, 4);
 const moreCategories = categories.slice(4);
+const leadCategory = featuredCategories[0];
+const supportCategories = featuredCategories.slice(1);
 
 const Categories = () => {
   return (
@@ -33,28 +35,48 @@ const Categories = () => {
           </Link>
         </div>
 
-        <div className="hidden gap-5 md:grid lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-          <div className="grid gap-4 sm:grid-cols-2 sm:grid-rows-[minmax(200px,1fr)_minmax(200px,1fr)]">
-            {featuredCategories.map((cat) => (
-              <Link
-                key={cat.label}
-                to={`/search?category=${encodeURIComponent(cat.label)}`}
-                className="group flex min-h-[210px] flex-col justify-between overflow-hidden rounded-[28px] border border-border bg-card p-5 shadow-sm transition-all hover:border-foreground/20 hover:bg-secondary hover:shadow-md"
-              >
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary text-foreground transition-colors group-hover:bg-background">
-                  <cat.icon className="h-5 w-5" />
+        <div className="hidden gap-5 md:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+            <Link
+              to={`/search?category=${encodeURIComponent(leadCategory.label)}`}
+              className="group flex min-h-[430px] flex-col justify-between overflow-hidden rounded-[32px] border border-border bg-card p-6 shadow-sm transition-all hover:border-foreground/20 hover:shadow-md"
+            >
+              <div className="flex h-16 w-16 items-center justify-center rounded-[20px] bg-secondary text-foreground">
+                <leadCategory.icon className="h-6 w-6" />
+              </div>
+              <div className="space-y-3">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Mest valgt</div>
+                <div className="text-3xl font-semibold tracking-tight text-foreground">{leadCategory.label}</div>
+                <p className="max-w-[26ch] text-base leading-7 text-muted-foreground">{leadCategory.desc} med hurtig adgang til de mest relevante profiler.</p>
+                <div className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
+                  Udforsk kategori
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </div>
-                <div className="space-y-1.5">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kategori</div>
-                  <div className="text-xl font-semibold text-foreground">{cat.label}</div>
-                  <div className="max-w-[22ch] text-sm text-muted-foreground">{cat.desc}</div>
-                  <div className="inline-flex items-center gap-1 text-sm font-medium text-foreground">
-                    Se muligheder
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </div>
+            </Link>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+              {supportCategories.map((cat) => (
+                <Link
+                  key={cat.label}
+                  to={`/search?category=${encodeURIComponent(cat.label)}`}
+                  className="group flex min-h-[132px] flex-col justify-between overflow-hidden rounded-[28px] border border-border bg-card p-5 shadow-sm transition-all hover:border-foreground/20 hover:bg-secondary hover:shadow-md"
+                >
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary text-foreground transition-colors group-hover:bg-background">
+                    <cat.icon className="h-5 w-5" />
                   </div>
-                </div>
-              </Link>
-            ))}
+                  <div className="space-y-1.5">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kategori</div>
+                    <div className="text-lg font-semibold text-foreground">{cat.label}</div>
+                    <div className="max-w-[24ch] text-sm text-muted-foreground">{cat.desc}</div>
+                    <div className="inline-flex items-center gap-1 text-sm font-medium text-foreground">
+                      Se muligheder
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
 
           <div className="rounded-[28px] border border-border bg-secondary/60 p-5 shadow-sm">

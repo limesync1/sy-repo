@@ -20,7 +20,7 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section className="bg-secondary/60 py-14 md:py-18">
+    <section className="bg-background py-14 md:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-3 md:mb-10 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
@@ -29,16 +29,16 @@ const HowItWorks = () => {
               Fra behov til booking på få trin
             </h2>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-3 py-1.5 text-sm font-medium text-foreground">
             <Sparkles className="h-4 w-4 text-accent" />
             Få overblik på få klik
           </div>
         </div>
 
-        <div className="grid gap-px overflow-hidden rounded-[28px] border border-border bg-border md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-[minmax(0,0.82fr)_minmax(0,0.82fr)_minmax(0,0.82fr)]">
 
           {steps.map((step, i) => (
-            <div key={step.title} className="relative flex flex-col gap-5 bg-card p-6 md:min-h-[260px] md:p-7">
+            <div key={step.title} className="relative flex flex-col gap-5 rounded-[30px] border border-border bg-secondary/55 p-6 md:min-h-[260px] md:p-7">
               <div className="flex items-center justify-between gap-3">
                 <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-border bg-secondary shadow-sm">
                 <step.icon className="h-6 w-6 text-foreground" />
