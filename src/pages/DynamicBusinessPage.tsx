@@ -431,7 +431,7 @@ const DynamicBusinessContent = () => {
 
                 {/* Rating distribution */}
                 {reviewCount >= 3 && (
-                  <div className="mb-5 rounded-xl border border-border p-4 bg-secondary/20">
+                  <div className="mb-5 rounded-3xl border border-border bg-secondary/25 p-5 md:p-6">
                     <div className="flex items-center gap-6">
                       <div className="text-center">
                         <div className="text-3xl font-bold text-foreground">{avgRating}</div>
@@ -461,9 +461,9 @@ const DynamicBusinessContent = () => {
                   </div>
                 )}
 
-                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="grid gap-4 sm:grid-cols-2">
                   {reviews.map((r) => (
-                    <Card key={r.id} className="border-border">
+                    <Card key={r.id} className="rounded-2xl border-border bg-card/90 shadow-sm">
                       <CardContent className="p-4">
                         <div className="mb-2 flex items-center gap-2">
                           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/10 text-sm font-bold text-accent">
@@ -494,10 +494,10 @@ const DynamicBusinessContent = () => {
           </div>
 
           {/* ── Sidebar ── */}
-          <aside className="space-y-5 lg:sticky lg:top-20 lg:self-start">
+          <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
             {/* Bestil/Contact Card — primary CTA */}
-            <Card className="border-2 border-accent/20 overflow-hidden shadow-lg">
-              <div className="bg-gradient-to-br from-accent/10 to-accent/5 px-5 py-4 border-b border-accent/15">
+            <Card className="overflow-hidden rounded-3xl border border-accent/20 shadow-[0_26px_60px_-32px_hsl(var(--accent)/0.5)]">
+              <div className="border-b border-accent/15 bg-gradient-to-br from-accent/10 to-accent/5 px-5 py-5">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-accent" />
                   <h3 className="font-bold text-foreground">Klar til at bestille?</h3>
@@ -512,7 +512,7 @@ const DynamicBusinessContent = () => {
                   </Button>
                 )}
               </div>
-              <CardContent className="p-4 space-y-2">
+              <CardContent className="space-y-2 p-4">
                 {business.phone && (
                   <a href={`tel:${business.phone}`} className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium text-foreground transition-all hover:border-foreground/30 hover:bg-secondary active:scale-[0.99]">
                     <Phone className="h-4 w-4 text-muted-foreground" />
@@ -541,7 +541,7 @@ const DynamicBusinessContent = () => {
 
             {/* Opening Hours */}
             {openingHours.length > 0 && (
-              <Card className="border-border">
+              <Card className="rounded-3xl border-border bg-card/90">
                 <CardContent className="p-5">
                   <h3 className="mb-3 flex items-center gap-2 font-bold text-foreground">
                     <Clock className="h-4 w-4 text-accent" /> Åbningstider
@@ -565,8 +565,8 @@ const DynamicBusinessContent = () => {
             )}
 
             {/* Trust Badges */}
-            <Card className="border-border">
-              <CardContent className="p-4 space-y-3">
+            <Card className="rounded-3xl border-border bg-card/90">
+              <CardContent className="space-y-3 p-5">
                 {business.is_verified && (
                   <div className="flex items-center gap-3 text-sm text-foreground">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
