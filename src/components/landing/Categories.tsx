@@ -1,4 +1,4 @@
-import { ArrowRight, Sparkles, Wrench, Truck, TreePine, Paintbrush, Droplets, Zap, ShieldCheck, Hammer, Home as HomeIcon } from "lucide-react";
+import { ArrowRight, Wrench, Truck, TreePine, Paintbrush, Droplets, Zap, ShieldCheck, Hammer, Home as HomeIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import HorizontalScroller from "./HorizontalScroller";
 
@@ -19,14 +19,10 @@ const Categories = () => {
   return (
     <section className="bg-background py-12 md:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-foreground">
-              <Sparkles className="h-3.5 w-3.5 text-accent" />
-              Populære serviceområder
-            </div>
-            <h2 className="mt-4 text-2xl font-semibold tracking-tight text-foreground md:text-3xl">Start med det, du skal have løst.</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground md:text-base">De mest brugte kategorier først — resten kan du altid finde bagefter.</p>
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">Start med det, du skal have løst.</h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground md:text-base">De mest brugte kategorier først.</p>
           </div>
           <Link to="/virksomheder" className="inline-flex items-center gap-2 text-sm font-semibold text-foreground hover:opacity-70">
             Se alle virksomheder
