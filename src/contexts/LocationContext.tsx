@@ -5,7 +5,7 @@ export interface UserLocation {
   city: string | null;
   zip: string | null;
   region: string | null;
-  source: "ip" | "manual" | null;
+  source: "ip" | "manual" | "precise" | null;
 }
 
 interface LocationContextValue {
@@ -16,6 +16,8 @@ interface LocationContextValue {
   detected: boolean;
   /** Set location manually — usually from a postal-code input. */
   setManualZip: (zip: string, city?: string | null) => void;
+  /** Ask browser for a more precise location and reverse geocode it. */
+  detectPreciseLocation: () => Promise<boolean>;
   /** Clear all location data. */
   clear: () => void;
   /** Search radius in km — null means "Hele DK" (no radius filter). */
@@ -111,6 +113,57 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   const [detecting, setDetecting] = useState<boolean>(needsDetection);
   const [detected, setDetected] = useState<boolean>(!needsDetection);
 
+  const fetchJSON = useCallback(async (url: string, ms = 5000): Promise<any | null> => {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), ms);
+    try {
+      const r = await fetch(url, { signal: ctrl.signal, headers: { Accept: "application/json" } });
+      if (!r.ok) return null;
+      return await r.json();
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(t);
+    }
+  }, []);
+
+  const applyDetectedLocation = useCallback((city: string | null, zip: string | null, region: string | null, source: UserLocation["source"]) => {
+    if (!city && !zip) return false;
+    const next: UserLocation = { city, zip, region, source };
+    setLocation(next);
+    writeStored(next);
+    return true;
+  }, []);
+
+  const reverseGeocodeCoords = useCallback(async (latitude: number, longitude: number) => {
+    const nominatim = await fetchJSON(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=da`,
+      6000,
+    );
+
+    if (nominatim?.address) {
+      const address = nominatim.address;
+      const city = address.city || address.town || address.village || address.suburb || address.municipality || null;
+      const zip = address.postcode || null;
+      const region = address.state || address.region || null;
+      if (city || zip) return { city, zip, region };
+    }
+
+    const bdc = await fetchJSON(
+      `https://api-bdc.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=da`,
+      6000,
+    );
+    if (bdc) {
+      return {
+        city: bdc.locality || bdc.city || null,
+        zip: bdc.postcode || null,
+        region: bdc.principalSubdivision || null,
+      };
+    }
+
+    return null;
+  }, [fetchJSON]);
+
   // Auto-detect location. Strategy (silent, no permission prompts blocking UX):
   //   1) Reverse-geocode by IP via BigDataCloud (no key, finds small towns + zip).
   //   2) Fallback: ipwho.is then ipapi.co (city-level only).
@@ -129,29 +182,6 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
 
     let cancelled = false;
 
-    const fetchJSON = async (url: string, ms = 4000): Promise<any | null> => {
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), ms);
-      try {
-        const r = await fetch(url, { signal: ctrl.signal });
-        if (!r.ok) return null;
-        return await r.json();
-      } catch {
-        return null;
-      } finally {
-        clearTimeout(t);
-      }
-    };
-
-    const apply = (city: string | null, zip: string | null, region: string | null) => {
-      if (cancelled) return false;
-      if (!city && !zip) return false;
-      const next: UserLocation = { city, zip, region, source: "ip" };
-      setLocation(next);
-      writeStored(next);
-      return true;
-    };
-
     (async () => {
       try {
         // 1) BigDataCloud client-side IP geocode (no API key, gives city + postcode + locality)
@@ -169,19 +199,19 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
             null;
           const zip = bdc?.location?.postcode || null;
           const region = bdc?.location?.principalSubdivision || null;
-          if (apply(city, zip, region)) return;
+          if (!cancelled && applyDetectedLocation(city, zip, region, "ip")) return;
         }
 
         // 2) ipwho.is fallback
         const who = await fetchJSON("https://ipwho.is/?fields=city,postal,region,success");
         if (who?.success !== false) {
-          if (apply(who?.city || null, who?.postal || null, who?.region || null)) return;
+          if (!cancelled && applyDetectedLocation(who?.city || null, who?.postal || null, who?.region || null, "ip")) return;
         }
 
         // 3) ipapi.co fallback
         const ipa = await fetchJSON("https://ipapi.co/json/");
         if (ipa) {
-          apply(ipa?.city || null, ipa?.postal || null, ipa?.region || null);
+          if (!cancelled) applyDetectedLocation(ipa?.city || null, ipa?.postal || null, ipa?.region || null, "ip");
         }
       } finally {
         if (!cancelled) {
@@ -195,7 +225,34 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [applyDetectedLocation, fetchJSON, location.city, location.source, location.zip]);
+
+  const detectPreciseLocation = useCallback(async () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return false;
+
+    setDetecting(true);
+    setDetected(false);
+
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 1000 * 60 * 10,
+        });
+      });
+
+      const result = await reverseGeocodeCoords(position.coords.latitude, position.coords.longitude);
+      if (!result) return false;
+
+      return applyDetectedLocation(result.city, result.zip, result.region, "precise");
+    } catch {
+      return false;
+    } finally {
+      setDetecting(false);
+      setDetected(true);
+    }
+  }, [applyDetectedLocation, reverseGeocodeCoords]);
 
   const setManualZip = useCallback((zip: string, city?: string | null) => {
     const trimmed = zip.trim();
@@ -220,7 +277,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <LocationContext.Provider value={{ location, detecting, detected, setManualZip, clear, radiusKm, setRadiusKm }}>
+    <LocationContext.Provider value={{ location, detecting, detected, setManualZip, detectPreciseLocation, clear, radiusKm, setRadiusKm }}>
       {children}
     </LocationContext.Provider>
   );

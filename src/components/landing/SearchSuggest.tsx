@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, MapPin, Sparkles, Wrench, Truck, TreePine, Paintbrush, Droplets, Zap, ShieldCheck, Hammer, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useUserLocation } from "@/contexts/LocationContext";
 
 const CATEGORIES = [
   { label: "Rengøring", icon: Sparkles },
@@ -33,6 +34,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "" }: Props) => {
   const [activeIdx, setActiveIdx] = useState(-1);
   const navigate = useNavigate();
   const wrapRef = useRef<HTMLDivElement>(null);
+  const { location } = useUserLocation();
 
   // Fetch a small index of businesses + cities (cached 5 min)
   const { data: index } = useQuery({
@@ -132,6 +134,11 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "" }: Props) => {
   };
 
   const isHero = variant === "hero";
+  const nearLabel = location.city
+    ? location.zip
+      ? `${location.zip} ${location.city}`
+      : location.city
+    : null;
 
   return (
     <div ref={wrapRef} className="relative w-full max-w-2xl">
@@ -145,7 +152,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "" }: Props) => {
         </div>
         <input
           type="text"
-          placeholder="Søg efter service, virksomhed eller by…"
+          placeholder={nearLabel ? `Søg efter service nær ${nearLabel}…` : "Søg efter service, virksomhed eller by…"}
           value={q}
           onChange={(e) => { setQ(e.target.value); setOpen(true); setActiveIdx(-1); }}
           onFocus={() => setOpen(true)}
@@ -162,6 +169,13 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "" }: Props) => {
           </Button>
         </div>
       </div>
+
+      {nearLabel && !open && (
+        <div className="mt-2 flex items-center gap-2 px-2 text-xs text-muted-foreground">
+          <MapPin className="h-3.5 w-3.5 text-accent" />
+          Matcher søgning ud fra området omkring {nearLabel}
+        </div>
+      )}
 
       {/* Suggestions dropdown */}
       {open && suggestions.length > 0 && (
