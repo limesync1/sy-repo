@@ -321,25 +321,51 @@ const DynamicBusinessContent = () => {
                       {(hasMultipleCategories || Object.keys(subs).some(k => k !== "")) && (
                         <h3 className="mb-4 text-lg font-bold text-foreground">{cat}</h3>
                       )}
-                      <div className="space-y-6">
-                        {Object.entries(subs).map(([sub, items]) => (
-                          <div key={sub || "default"}>
-                            {sub && (
-                              <h4 className="mb-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{sub}</h4>
-                            )}
-                            <div className="grid gap-5 sm:grid-cols-2">
-                              {items.map((s) => (
-                                <DynamicServiceCard
-                                  key={s.id}
-                                  service={s}
-                                  businessName={business.name}
-                                  businessLogoUrl={business.logo_url || undefined}
-                                />
-                              ))}
+                      {Object.keys(subs).length >= 2 && Object.entries(subs).every(([, items]) => items.length === 1) ? (
+                        <div className="grid gap-6 md:grid-cols-2">
+                          {Object.entries(subs).map(([sub, items]) => {
+                            const service = items[0];
+
+                            return (
+                              <div key={sub || service.id} className="flex h-full flex-col rounded-2xl border border-border bg-card p-4 sm:p-5">
+                                {sub && (
+                                  <div className="mb-4">
+                                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{sub}</h4>
+                                  </div>
+                                )}
+                                <div className="flex-1">
+                                  <DynamicServiceCard
+                                    key={service.id}
+                                    service={service}
+                                    businessName={business.name}
+                                    businessLogoUrl={business.logo_url || undefined}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="space-y-6">
+                          {Object.entries(subs).map(([sub, items]) => (
+                            <div key={sub || "default"}>
+                              {sub && (
+                                <h4 className="mb-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{sub}</h4>
+                              )}
+                              <div className="grid gap-5 sm:grid-cols-2">
+                                {items.map((s) => (
+                                  <DynamicServiceCard
+                                    key={s.id}
+                                    service={s}
+                                    businessName={business.name}
+                                    businessLogoUrl={business.logo_url || undefined}
+                                  />
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
 
