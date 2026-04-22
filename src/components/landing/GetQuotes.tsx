@@ -10,10 +10,10 @@ const GetQuotes = () => {
   ];
 
   return (
-    <section className="bg-background py-12 md:py-16">
+    <section className="bg-background py-14 md:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-[36px] border border-border bg-secondary px-5 py-8 shadow-sm sm:px-8 sm:py-10 md:px-12 md:py-12">
-          <div className="grid items-start gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:gap-12">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] lg:gap-8">
+          <div className="rounded-[36px] border border-border bg-card p-6 shadow-sm sm:p-8">
             <div>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-foreground">
                 <Sparkles className="h-3 w-3" />
@@ -61,10 +61,11 @@ const GetQuotes = () => {
                 </Link>
               </div>
             </div>
+          </div>
 
-            <div className="relative">
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_110px]">
-                <div className="rounded-[32px] border border-border bg-background p-4 shadow-sm sm:p-5">
+          <div className="rounded-[36px] bg-secondary p-4 sm:p-5 lg:p-6">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_110px]">
+              <div className="rounded-[32px] border border-border bg-background p-4 shadow-sm sm:p-5">
                   <div className="mb-4 flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent">
                     <Sparkles className="h-4 w-4" />
@@ -105,21 +106,20 @@ const GetQuotes = () => {
                     <Zap className="h-3 w-3 text-accent" />
                     Viser først dem der mest sandsynligt passer
                   </div>
-                </div>
+              </div>
 
-                <div className="grid gap-3">
-                  <div className="rounded-[24px] border border-border bg-background px-4 py-4 text-center shadow-sm">
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Filter</div>
-                    <div className="mt-2 text-sm font-semibold text-foreground">Kvalitet</div>
-                  </div>
-                  <div className="rounded-[24px] border border-border bg-background px-4 py-4 text-center shadow-sm">
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Filter</div>
-                    <div className="mt-2 text-sm font-semibold text-foreground">Pris</div>
-                  </div>
-                  <div className="rounded-[24px] border border-border bg-background px-4 py-4 text-center shadow-sm">
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Filter</div>
-                    <div className="mt-2 text-sm font-semibold text-foreground">Nærhed</div>
-                  </div>
+              <div className="grid gap-3">
+                <div className="rounded-[24px] border border-border bg-background px-4 py-4 text-center shadow-sm">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Vægtning</div>
+                  <div className="mt-2 text-sm font-semibold text-foreground">Kvalitet</div>
+                </div>
+                <div className="rounded-[24px] border border-border bg-background px-4 py-4 text-center shadow-sm">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Vægtning</div>
+                  <div className="mt-2 text-sm font-semibold text-foreground">Pris</div>
+                </div>
+                <div className="rounded-[24px] border border-border bg-background px-4 py-4 text-center shadow-sm">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Vægtning</div>
+                  <div className="mt-2 text-sm font-semibold text-foreground">Nærhed</div>
                 </div>
               </div>
             </div>
