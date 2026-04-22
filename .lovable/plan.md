@@ -1,83 +1,60 @@
 
+Mål: gøre “Tilføj til bestilling”-knapperne synlige og stabile på virksomheders servicesider, så de altid ligger tydeligt i bunden af hvert servicekort og ikke bliver klippet væk af layoutet.
 
-## Hvad betyder "Mangler GPS"?
+1. Gennemgå og rette servicekortets højde-logik
+- Fjerne den kombination af `h-full`, `overflow-hidden`, `flex-1` og `mt-auto`, der sandsynligvis får CTA-sektionen til at blive skubbet uden for det synlige område i `DynamicServiceCard.tsx`.
+- Sikre at kortet bruger en mere robust struktur:
+  - top: billede + serviceinfo
+  - middle: konfiguration/prisfelter
+  - bottom: fast CTA-blok med pris og “Tilføj til bestilling”
+- Beholde knappen i bunden, men uden at den afhænger af en fejlbehæftet stræk-/fyld-logik.
 
-Badge'en vises på et stop når dets `latitude`/`longitude` mangler i databasen. Det betyder at adressen ikke er blevet verificeret/geokodet, så stoppet **kan ikke vises på kortet** og **kan ikke indgå i ruteoptimering** (afstand/køretid kan ikke beregnes). Det rammer typisk gamle/seedede ordrer — nye ordrer fra både kunder og virksomhedsejer geokodes nu automatisk via DAWA-autocomplete.
+2. Gøre CTA-sektionen visuelt tydeligere
+- Give bundsektionen en klar visuel adskillelse fra resten af kortet med bedre spacing, border-top eller separat baggrund.
+- Forstørre kontrasten på knappen og sikre at den ikke drukner i accentfarver eller svage overlays.
+- Sikre ensartet højde på CTA-området, så pris og knap altid fremstår som kortets primære handling.
 
-Jeg laver derudover to ting:
+3. Forbedre servicekortets brugervenlighed generelt
+- Stramme indholdet i kortet op, så tilpasningsdelen ikke fylder unødigt meget.
+- Begrænse tekstmængde og vertikal spacing, så brugeren hurtigere når ned til CTA’en.
+- Justere prisvisning, badges og stepper-felter, så kortet føles mere overskueligt og professionelt.
 
----
+4. Forbedre layoutet på virksomhedssiden omkring services
+- Justere grid/gap/sektion-spacing i `DynamicBusinessPage.tsx`, så servicekortene får bedre rytme og ikke virker for tunge.
+- Sikre at servicesektionen starter mere kompakt og tydeligt, så brugeren hurtigt ser handlingselementer.
+- Beholde eksisterende indhold og struktur, men optimere præsentationen omkring kortene.
 
-## 1. Tidsrum + estimeret varighed pr. service (i Opret bestilling-dialogen)
+5. Gennemgå bestillingsmodulet for konsistens
+- Finpudse `CartSheet.tsx`, så visuel stil og hierarki matcher de forbedrede servicekort.
+- Beholde det gode UX-mønster fra varighed/tidsrum-felterne og bruge samme tydelighed i pris, planlægning og næste handling.
+- Sikre at flowet fra “Tilføj til bestilling” til kurv føles mere sammenhængende.
 
-Tilføj felter pr. service-linje i `CreateManualOrderDialog`:
+6. Verificering efter ændringer
+- Kontrollere at knappen er synlig på desktop i almindelige servicekort, også når:
+  - servicen har billede
+  - servicen ikke har billede
+  - servicen er fast pris
+  - servicen er timepris
+  - servicen bruger prisberegner med flere steps
+- Kontrollere at knappen stadig fungerer korrekt, viser “Tilføjet!”-feedback og lægger varen i bestillingen.
+- Tjekke at kortene stadig ser rene ud på mindre skærmbredder.
 
-- **Estimeret varighed** (i minutter, default 30 — kan ændres pr. service)
-- **Tidsrum** (valgfrit `time_window_start`/`time_window_end`, fx 09:00–11:00) — bruges som blødt vindue i ruteoptimering
+Tekniske detaljer
+- Primære filer:
+  - `src/components/business/DynamicServiceCard.tsx`
+  - `src/pages/DynamicBusinessPage.tsx`
+  - `src/components/business/CartSheet.tsx`
+- Forventet hovedrettelse:
+  - omlægning af card-layout i stedet for kun kosmetiske tweaks
+  - justering af height/overflow/flex-struktur, så CTA ikke kan blive skjult
+- Designretning:
+  - mere kompakt
+  - tydeligere hierarki
+  - stærkere kontrast
+  - bund-CTA som fast, naturlig afslutning på hvert servicekort
 
-Disse værdier skrives videre til hver `route_stop` der oprettes når kunden godkender.
-
----
-
-## 2. Én ordre = ét stop pr. service i opgavepoolen
-
-I dag oprettes **én ordre med flere `order_items`** → ét stop i poolen, selvom ordren har 5 services. Det giver dårlig planlægning fordi:
-
-- Alle services bindes til samme stop, samme rute, samme medarbejder
-- Forskellige services har forskellig varighed/tidskrav
-- Kan ikke fordele services over flere dage eller flere medarbejdere
-
-### Ny model: én ordre pr. service
-
-Når en bestilling oprettes (manuelt af virksomhedsejer **eller** via normal kunde-checkout), splittes hver service ud i **sin egen `orders`-row** med ét tilhørende `order_items`. Hver ordre har:
-
-- Egen `total_amount` (kun den service)
-- Egen `preferred_date`, `time_window`, `duration_minutes`
-- Egen pending/confirmed-status
-- Sit eget kort i opgavepoolen → kan trækkes til hver sin rute/medarbejder
-
-Det matcher præcist `route_stops`-modellen (ét stop = én opgave hos én kunde) og rutekørsel-flow'et i medarbejder-appen (medarbejder ser én ydelse ad gangen pr. stop).
-
-### Sammenkædning på tværs af services
-
-For at det stadig giver mening for kunden og som "én bestilling":
-
-- Tilføj `parent_order_id` (uuid, nullable) til `orders` → peger på første ordre i gruppen
-- Alle børn-ordrer arver `parent_order_id` = forældrens id (forælderen har sit eget id som parent_order_id)
-- **Godkendelse**: kun forælderen får `approval_token` — ved godkendelse opdateres status på alle ordrer i gruppen i én transaktion (edge function loop)
-- **Mail**: én mail med alle services listet under hinanden (uændret oplevelse)
-- **Faktura/totaler**: virksomhedsejer ser dem grupperet i admin når `parent_order_id` er sat
-
-### Konsekvenser for eksisterende flows
-
-- **Opgavepool (`useUnassignedJobs`)**: ingen ændringer — den lister allerede pr. ordre, så hver service-ordre dukker op som sit eget kort
-- **Rutekørsel for medarbejder**: hver `route_stop` peger på én ordre med ét item → simplere visning i `EmployeeRoute.tsx`
-- **Abonnementer**: hver service-ordre får sit eget abonnement (uændret — én sub pr. service-id)
-- **Route optimization**: VRP'en behandler nu hver service som separat besøg (kan stadig grupperes på samme adresse hvis rækkefølgen tillader det)
-
----
-
-## Tekniske detaljer
-
-**DB-migration:**
-```sql
-ALTER TABLE public.orders
-  ADD COLUMN IF NOT EXISTS parent_order_id uuid REFERENCES public.orders(id) ON DELETE CASCADE;
-CREATE INDEX IF NOT EXISTS idx_orders_parent ON public.orders(parent_order_id);
-
-ALTER TABLE public.orders
-  ADD COLUMN IF NOT EXISTS estimated_duration_minutes integer;
-```
-(time-window-felterne `preferred_time_start`/`preferred_time_end` findes allerede.)
-
-**Filer der opdateres:**
-- `src/components/route-planner/CreateManualOrderDialog.tsx` — duration + tidsrum-felter pr. service-linje, splitter til N ordrer ved insert
-- `src/components/business/CartSheet.tsx` — splitter `group.items` til én ordre pr. service-linje (parent = første)
-- `src/hooks/useDatabase.ts` (`useCreateOrder`) — accepter parent-relationen
-- `supabase/functions/customer-approve-order/index.ts` — opdater alle ordrer i gruppen ved godkendelse
-- `supabase/functions/_shared/transactional-email-templates/manual-order-approval.tsx` — uændret, men modtager nu liste fra alle child-ordrer
-- `src/hooks/useRoutes.ts` (`useAddStop`) — propagér `duration_minutes` + `time_window` fra ordren ved drop på rute
-- `src/components/route-planner/UnassignedJobCard.tsx` — vis varighed når den er sat (ikke kun udledt fra time-window)
-
-**Ingen ændringer i:** `route_stops`-skemaet, employee-app, ruteoptimering, abonnement-cron-trigger.
-
+Acceptkriterier
+- “Tilføj til bestilling” er synlig i bunden af alle servicekort uden ekstra fejlscrol eller clipping.
+- Knap og prisoverslag er de mest tydelige elementer nederst i kortet.
+- Servicekortene føles enklere, mere professionelle og lettere at bruge.
+- Bestillingsmodulet matcher den forbedrede UX visuelt og funktionelt.
