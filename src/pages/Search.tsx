@@ -294,21 +294,21 @@ const SearchPage = () => {
       <SiteNav active="search" />
 
       {/* Search hero — full-width search */}
-      <section className="border-b border-border bg-background py-8 md:py-12">
+      <section className="border-b border-border bg-background py-4 md:py-6">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="surface-panel rounded-[2rem] border border-border p-6 text-center shadow-[0_24px_55px_-36px_hsl(var(--foreground)/0.26)] md:p-8">
-          <h1 className="mb-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
-            Find verificerede serviceydere
-          </h1>
-          <p className="mb-5 text-sm text-muted-foreground md:text-base">Søg på service, virksomhed eller by, og få et hurtigere overblik over relevante virksomheder nær dig.</p>
-          <div className="mx-auto flex justify-center">
-            <SearchSuggest variant="hero" defaultQuery={debouncedQuery} />
-          </div>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-            <span className="text-xs font-medium text-muted-foreground">Viser nær:</span>
-            <LocationChip />
-            <RadiusPicker />
-          </div>
+          <div className="surface-panel rounded-[1.5rem] border border-border p-4 text-center shadow-[0_18px_40px_-30px_hsl(var(--foreground)/0.22)] md:p-5">
+            <h1 className="mb-1 text-xl font-bold tracking-tight text-foreground sm:text-2xl md:text-3xl">
+              Find verificerede serviceydere
+            </h1>
+            <p className="mb-3 text-sm text-muted-foreground">Søg på service, virksomhed eller by.</p>
+            <div className="mx-auto flex justify-center">
+              <SearchSuggest variant="hero" defaultQuery={debouncedQuery} />
+            </div>
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">Viser nær:</span>
+              <LocationChip />
+              <RadiusPicker />
+            </div>
           </div>
         </div>
       </section>
@@ -340,7 +340,7 @@ const SearchPage = () => {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 md:py-7">
         {/* Results header */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-border bg-card p-4 shadow-sm">
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
