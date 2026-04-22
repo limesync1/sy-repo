@@ -1,68 +1,15 @@
-import { Menu, X, ShieldCheck, ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { ShieldCheck, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-home-new.jpg";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
 import LocationChip from "@/components/LocationChip";
+import SiteNav from "@/components/SiteNav";
 
 const HeroSection = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
-
   return (
     <header className="bg-background">
-      <nav className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-3.5">
-            <Link to="/" className="flex items-center" aria-label="Serviceydere forside">
-              <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-9 md:h-10" />
-            </Link>
-
-            <div className="hidden md:flex items-center gap-1">
-              <Link to="/virksomheder" className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground">
-                Find services
-              </Link>
-              <Link to="/tilbud" className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground">
-                Indhent 3 tilbud
-              </Link>
-              <Link to="/log-ind?mode=business" className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground">
-                Bliv udbyder
-              </Link>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Link to="/log-ind" className="hidden sm:inline-block">
-                <button className="rounded-full px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary">
-                  Log ind
-                </button>
-              </Link>
-              <Link to="/log-ind?signup=1" className="hidden sm:inline-block">
-                <button className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-foreground/90">
-                  Opret konto
-                </button>
-              </Link>
-              <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary md:hidden"
-                aria-label="Menu"
-              >
-                {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
-            </div>
-          </div>
-
-          {menuOpen && (
-            <div className="mb-3 rounded-2xl border border-border bg-card p-2 shadow-lg md:hidden">
-              <Link to="/virksomheder" className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Find services</Link>
-              <Link to="/tilbud" className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Indhent 3 tilbud</Link>
-              <Link to="/log-ind?mode=business" className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Bliv udbyder</Link>
-              <div className="my-1 h-px bg-border" />
-              <Link to="/log-ind" className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Log ind</Link>
-              <Link to="/log-ind?signup=1" className="block rounded-lg px-3 py-2 text-sm font-semibold text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Opret konto</Link>
-            </div>
-          )}
-        </div>
-      </nav>
+      <SiteNav />
 
       <div className="mx-auto max-w-7xl px-4 pb-10 pt-5 sm:px-6 lg:px-8 lg:pb-14 lg:pt-8">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(340px,0.95fr)] lg:items-start">

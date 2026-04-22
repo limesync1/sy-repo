@@ -11,7 +11,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useCart } from "@/contexts/CartContext";
-import { useAuth } from "@/contexts/AuthContext";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
 import CartSheet from "@/components/business/CartSheet";
 import SEO from "@/components/SEO";
@@ -105,7 +104,6 @@ const RequestQuote = () => {
   const [selectedBusiness, setSelectedBusiness] = useState<MatchedBusiness | null>(null);
   const [showAllServices, setShowAllServices] = useState(false);
   const { count } = useCart();
-  const { user } = useAuth();
   const { location, radiusKm } = useUserLocation();
 
   const handleFind = async (e: React.FormEvent) => {
@@ -207,11 +205,6 @@ const RequestQuote = () => {
         right={
           <>
             {count > 0 && <CartSheet />}
-            {user && (
-              <Link to="/min-konto" className="hidden sm:inline-block">
-                <Button size="sm" className="rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90">Mit panel</Button>
-              </Link>
-            )}
           </>
         }
       />
