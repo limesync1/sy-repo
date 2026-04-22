@@ -183,10 +183,10 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
   const showIntervals = intervals.length > 1 || (intervals.length === 1 && intervals[0] !== "engangskøb");
 
   return (
-    <Card className="overflow-hidden border-border group transition-all hover:shadow-lg hover:border-accent/20">
+    <Card className="group h-full overflow-hidden rounded-3xl border-border/80 bg-card transition-all hover:-translate-y-0.5 hover:border-accent/25 hover:shadow-[0_22px_50px_-28px_hsl(var(--foreground)/0.32)]">
       {/* Image or placeholder */}
       {service.image_url ? (
-        <div className="relative h-44 w-full overflow-hidden bg-secondary">
+        <div className="relative h-48 w-full overflow-hidden bg-secondary">
           <img
             src={service.image_url}
             alt={service.name}
@@ -199,7 +199,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           </Badge>
         </div>
       ) : (
-        <div className="relative flex h-24 w-full items-center justify-center bg-gradient-to-br from-secondary to-muted/50">
+        <div className="relative flex h-28 w-full items-center justify-center bg-gradient-to-br from-secondary to-muted/50">
           <ImageIcon className="h-8 w-8 text-muted-foreground/15" />
           <Badge variant="outline" className="absolute right-3 top-3 text-xs font-medium">
             {pricingLabels[service.pricing_type]}
@@ -207,43 +207,43 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
         </div>
       )}
 
-      <CardContent className="p-5">
+      <CardContent className="flex h-full flex-col p-5 sm:p-6">
         {/* Title & description */}
-        <div className="mb-4">
-          <h3 className="text-lg font-bold text-foreground leading-tight">{service.name}</h3>
+        <div className="mb-5">
+          <h3 className="text-xl font-bold leading-tight text-foreground">{service.name}</h3>
           {(service as any).subcategory && (
-            <span className="text-xs font-medium text-accent mt-0.5 inline-block">{(service as any).subcategory}</span>
+            <span className="mt-1 inline-flex rounded-full bg-accent/10 px-2.5 py-1 text-[11px] font-semibold text-accent">{(service as any).subcategory}</span>
           )}
           {service.description && (
-            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground line-clamp-2">{service.description}</p>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground line-clamp-3">{service.description}</p>
           )}
         </div>
 
         {/* Fast pris */}
         {service.pricing_type === "fast_pris" && (
-          <div className="mb-4 flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-foreground">{service.base_price}</span>
-            <span className="text-sm text-muted-foreground">kr</span>
+          <div className="mb-5 flex items-end gap-1.5">
+            <span className="text-3xl font-bold text-foreground">{service.base_price}</span>
+            <span className="pb-1 text-sm text-muted-foreground">kr</span>
           </div>
         )}
 
         {/* Timepris */}
         {service.pricing_type === "timepris" && (
-          <div className="mb-4 space-y-3">
+          <div className="mb-5 space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">{service.base_price} kr / time</span>
               <StepperInput value={hours} onChange={setHours} min={0.5} max={24} step={0.5} unit="t" />
             </div>
-            <div className="flex items-baseline gap-1 pt-1">
-              <span className="text-2xl font-bold text-foreground">{roundPrice(total)}</span>
-              <span className="text-sm text-muted-foreground">kr</span>
+            <div className="flex items-end gap-1.5 pt-1">
+              <span className="text-3xl font-bold text-foreground">{roundPrice(total)}</span>
+              <span className="pb-1 text-sm text-muted-foreground">kr</span>
             </div>
           </div>
         )}
 
         {/* Prisberegner */}
         {service.pricing_type === "prisberegner" && sortedSteps.length > 0 && (
-          <div className="mb-4 space-y-0 rounded-xl border border-border overflow-hidden">
+          <div className="mb-5 space-y-0 overflow-hidden rounded-2xl border border-border bg-secondary/20">
             {sortedSteps.map((step, idx) => {
               const stepTotal = (stepValues[step.id] || 0) * step.price_per_unit;
               return (
@@ -263,7 +263,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
                 </div>
               );
             })}
-            <div className="flex items-center justify-between bg-accent/5 px-4 py-3 border-t border-accent/20">
+            <div className="flex items-center justify-between border-t border-accent/20 bg-accent/5 px-4 py-3">
               <span className="text-sm font-semibold text-foreground">I alt</span>
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-bold text-foreground">{roundPrice(total)}</span>
@@ -275,7 +275,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
 
         {/* Interval selector */}
         {showIntervals && (
-          <div className="mb-4">
+          <div className="mb-5">
             <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Vælg interval</label>
             <div className="flex flex-wrap gap-1.5">
               {intervals.map((iv) => (
@@ -293,6 +293,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
         )}
 
         {/* Add button */}
+        <div className="mt-auto pt-2">
         <Button
           onClick={handleAdd}
           disabled={justAdded}
@@ -314,6 +315,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
             </>
           )}
         </Button>
+        </div>
       </CardContent>
     </Card>
   );

@@ -261,25 +261,32 @@ const DynamicBusinessContent = () => {
 
       {/* ── Body ── */}
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-8 py-8 md:gap-10 md:py-12 lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_380px]">
+        <div className="grid gap-8 py-8 md:gap-10 md:py-12 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
 
           {/* ── Main Column ── */}
           <div className="min-w-0 space-y-10">
 
             {/* About */}
             {business.description && (
-              <section aria-labelledby="about-heading">
-                <h2 id="about-heading" className="mb-3 text-lg font-bold text-foreground">Om {business.name}</h2>
-                <p className="max-w-2xl leading-relaxed text-muted-foreground whitespace-pre-line">{business.description}</p>
+              <section aria-labelledby="about-heading" className="rounded-3xl border border-border bg-secondary/25 p-6 md:p-7">
+                <div className="max-w-3xl">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Virksomhedsprofil</p>
+                  <h2 id="about-heading" className="mb-3 text-xl font-bold text-foreground md:text-2xl">Om {business.name}</h2>
+                  <p className="leading-7 text-muted-foreground whitespace-pre-line">{business.description}</p>
+                </div>
               </section>
             )}
 
             {/* Services */}
             {services && services.length > 0 && (
               <section id="services" aria-labelledby="services-heading">
-                <div className="mb-5 flex items-center justify-between">
-                  <h2 id="services-heading" className="text-xl font-bold text-foreground">Services</h2>
-                  <span className="text-sm text-muted-foreground">{serviceCount} {serviceCount === 1 ? "service" : "services"}</span>
+                <div className="mb-6 flex flex-col gap-3 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Book direkte</p>
+                    <h2 id="services-heading" className="text-2xl font-bold text-foreground">Services</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">Vælg den løsning, der passer bedst til opgaven.</p>
+                  </div>
+                  <span className="inline-flex w-fit items-center rounded-full bg-secondary px-3 py-1 text-sm font-medium text-muted-foreground">{serviceCount} {serviceCount === 1 ? "service" : "services"}</span>
                 </div>
 
                 {/* Category filter pills */}
@@ -327,9 +334,9 @@ const DynamicBusinessContent = () => {
                             const service = items[0];
 
                             return (
-                              <div key={sub || service.id} className="flex h-full flex-col rounded-2xl border border-border bg-card p-4 sm:p-5">
+                              <div key={sub || service.id} className="flex h-full flex-col gap-3">
                                 {sub && (
-                                  <div className="mb-4">
+                                  <div>
                                     <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{sub}</h4>
                                   </div>
                                 )}
@@ -376,8 +383,8 @@ const DynamicBusinessContent = () => {
                         const service = items[0];
 
                         return (
-                          <div key={cat} className="flex h-full flex-col rounded-2xl border border-border bg-card p-4 sm:p-5">
-                            <div className="mb-4 flex items-start justify-between gap-3">
+                          <div key={cat} className="flex h-full flex-col gap-3">
+                            <div className="flex items-start justify-between gap-3">
                               <div>
                                 <h3 className="text-lg font-bold text-foreground">{cat}</h3>
                                 {sub && (
@@ -424,7 +431,7 @@ const DynamicBusinessContent = () => {
 
                 {/* Rating distribution */}
                 {reviewCount >= 3 && (
-                  <div className="mb-5 rounded-xl border border-border p-4 bg-secondary/20">
+                  <div className="mb-5 rounded-3xl border border-border bg-secondary/25 p-5 md:p-6">
                     <div className="flex items-center gap-6">
                       <div className="text-center">
                         <div className="text-3xl font-bold text-foreground">{avgRating}</div>
@@ -454,9 +461,9 @@ const DynamicBusinessContent = () => {
                   </div>
                 )}
 
-                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="grid gap-4 sm:grid-cols-2">
                   {reviews.map((r) => (
-                    <Card key={r.id} className="border-border">
+                    <Card key={r.id} className="rounded-2xl border-border bg-card/90 shadow-sm">
                       <CardContent className="p-4">
                         <div className="mb-2 flex items-center gap-2">
                           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/10 text-sm font-bold text-accent">
@@ -487,10 +494,10 @@ const DynamicBusinessContent = () => {
           </div>
 
           {/* ── Sidebar ── */}
-          <aside className="space-y-5 lg:sticky lg:top-20 lg:self-start">
+          <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
             {/* Bestil/Contact Card — primary CTA */}
-            <Card className="border-2 border-accent/20 overflow-hidden shadow-lg">
-              <div className="bg-gradient-to-br from-accent/10 to-accent/5 px-5 py-4 border-b border-accent/15">
+            <Card className="overflow-hidden rounded-3xl border border-accent/20 shadow-[0_26px_60px_-32px_hsl(var(--accent)/0.5)]">
+              <div className="border-b border-accent/15 bg-gradient-to-br from-accent/10 to-accent/5 px-5 py-5">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-accent" />
                   <h3 className="font-bold text-foreground">Klar til at bestille?</h3>
@@ -505,7 +512,7 @@ const DynamicBusinessContent = () => {
                   </Button>
                 )}
               </div>
-              <CardContent className="p-4 space-y-2">
+              <CardContent className="space-y-2 p-4">
                 {business.phone && (
                   <a href={`tel:${business.phone}`} className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium text-foreground transition-all hover:border-foreground/30 hover:bg-secondary active:scale-[0.99]">
                     <Phone className="h-4 w-4 text-muted-foreground" />
@@ -534,7 +541,7 @@ const DynamicBusinessContent = () => {
 
             {/* Opening Hours */}
             {openingHours.length > 0 && (
-              <Card className="border-border">
+              <Card className="rounded-3xl border-border bg-card/90">
                 <CardContent className="p-5">
                   <h3 className="mb-3 flex items-center gap-2 font-bold text-foreground">
                     <Clock className="h-4 w-4 text-accent" /> Åbningstider
@@ -558,8 +565,8 @@ const DynamicBusinessContent = () => {
             )}
 
             {/* Trust Badges */}
-            <Card className="border-border">
-              <CardContent className="p-4 space-y-3">
+            <Card className="rounded-3xl border-border bg-card/90">
+              <CardContent className="space-y-3 p-5">
                 {business.is_verified && (
                   <div className="flex items-center gap-3 text-sm text-foreground">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
