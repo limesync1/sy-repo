@@ -4,7 +4,21 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Hourglass, Timer, Calendar as CalendarIcon } from "lucide-react";
+
+const DURATION_PRESETS = [
+  { hours: 0, minutes: 30, label: "30 min" },
+  { hours: 1, minutes: 0, label: "1 time" },
+  { hours: 1, minutes: 30, label: "1,5 time" },
+  { hours: 2, minutes: 0, label: "2 timer" },
+];
+
+const TIME_WINDOW_PRESETS = [
+  { start: "08:00", end: "12:00", label: "Formiddag" },
+  { start: "12:00", end: "16:00", label: "Eftermiddag" },
+  { start: "16:00", end: "20:00", label: "Aften" },
+];
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 
 type Props = {
@@ -63,11 +77,28 @@ export const DurationTimePicker = ({
       )}
 
       {/* Varighed: timer + minutter */}
-      <div>
+      <div className="rounded-[1rem] border border-border bg-card p-3">
         <Label className={labelClass}>
           <Hourglass className="inline h-3 w-3 mr-1 -mt-0.5" />
           Anslået varighed
         </Label>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {DURATION_PRESETS.map((preset) => {
+            const active = preset.hours === durationHours && preset.minutes === durationMinutes;
+            return (
+              <Button
+                key={preset.label}
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onDurationChange(preset.hours, preset.minutes)}
+                className={active ? "border-accent bg-accent text-accent-foreground hover:bg-accent/90" : "bg-background"}
+              >
+                {preset.label}
+              </Button>
+            );
+          })}
+        </div>
         <div className="flex gap-2 mt-1.5 items-end">
           <div className="flex-1">
             <Input
@@ -114,11 +145,28 @@ export const DurationTimePicker = ({
 
       {/* Tidsrum (valgfrit) */}
       {!hideTimeWindow && (
-        <div>
+        <div className="rounded-[1rem] border border-border bg-card p-3">
           <Label className={labelClass}>
             <Timer className="inline h-3 w-3 mr-1 -mt-0.5" />
             Ønsket tidsrum (valgfrit)
           </Label>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {TIME_WINDOW_PRESETS.map((preset) => {
+              const active = timeStart === preset.start && timeEnd === preset.end;
+              return (
+                <Button
+                  key={preset.label}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onTimeChange(preset.start, preset.end)}
+                  className={active ? "border-accent bg-accent text-accent-foreground hover:bg-accent/90" : "bg-background"}
+                >
+                  {preset.label}
+                </Button>
+              );
+            })}
+          </div>
           <div className="flex gap-2 items-center mt-1.5">
             <Input
               type="time"

@@ -426,7 +426,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                   {/* Items */}
                   <div className="space-y-2">
                     {group.items.map((item) => (
-                      <div key={item.serviceId} className="rounded-xl border border-border bg-card overflow-hidden">
+                      <div key={item.serviceId} className="overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-sm">
                         <div className="p-3.5">
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">
@@ -461,10 +461,24 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                             <p className="text-xs text-muted-foreground mt-1.5">{item.details}</p>
                           )}
 
-                          <p className="text-right text-sm font-bold text-foreground mt-2">{item.total} kr</p>
+                          <div className="mt-3 flex items-center justify-between rounded-xl bg-secondary/40 px-3 py-2">
+                            <div>
+                              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Pris</p>
+                              <p className="text-sm font-bold text-foreground">{item.total} kr</p>
+                            </div>
+                            <Badge variant="secondary" className="rounded-full bg-card text-xs font-medium text-foreground">
+                              {item.interval && item.interval !== "engangskøb"
+                                ? INTERVAL_LABELS[item.interval] || item.interval
+                                : "Engang"}
+                            </Badge>
+                          </div>
                         </div>
                         {/* Anslået varighed + tidsrum — samme UI som ejerens stop-modul */}
-                        <div className="border-t bg-secondary/20 px-3.5 py-2.5">
+                        <div className="border-t bg-secondary/20 px-3.5 py-3">
+                          <div className="mb-2">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Planlægning</p>
+                            <p className="text-xs text-muted-foreground">Hjælp virksomheden med at forstå varighed og ønsket tidsrum.</p>
+                          </div>
                           <DurationTimePicker
                             durationHours={getLinePref(item.serviceId).durationHours}
                             durationMinutes={getLinePref(item.serviceId).durationMinutes}
@@ -488,9 +502,12 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
 
             {/* Footer */}
             <div className="shrink-0 border-t border-border bg-card px-5 py-4">
-              <div className="mb-3 flex items-baseline justify-between">
+              <div className="mb-3 rounded-xl bg-secondary/40 px-3.5 py-3">
+                <div className="flex items-baseline justify-between">
                 <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total</span>
                 <span className="text-xl font-bold text-foreground">{total} kr</span>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">Du kan stadig tilpasse oplysninger og adresse i næste trin.</p>
               </div>
               <Button onClick={() => setCheckout(true)} size="lg" className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-semibold shadow-sm hover:shadow-md transition-all">
                 Gå til bestilling →
@@ -502,7 +519,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
           <div className="flex flex-1 flex-col min-h-0">
             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
               {/* Privat / Erhverv toggle — matcher CustomerEditDialog stil */}
-              <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-secondary/50 border border-border">
+              <div className="grid grid-cols-2 gap-2 rounded-xl border border-border bg-secondary/50 p-1">
                 <button
                   type="button"
                   onClick={() => setCustomerType("private")}
@@ -636,7 +653,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
               </section>
 
               {/* Kompakt order summary — kun totaler pr. virksomhed */}
-              <div className="rounded-xl border border-border overflow-hidden bg-card">
+              <div className="overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-sm">
                 <div className="px-4 py-2.5 bg-secondary/40 border-b border-border flex items-center gap-2">
                   <ShoppingBag className="h-3.5 w-3.5 text-muted-foreground" />
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Opsummering</h4>
@@ -678,10 +695,13 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
             </div>
 
             {/* Submit footer */}
-            <div className="shrink-0 border-t border-border bg-card px-5 py-4 space-y-2.5">
-              <div className="flex items-baseline justify-between">
-                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total at betale</span>
-                <span className="text-xl font-bold text-foreground">{total} kr</span>
+              <div className="shrink-0 border-t border-border bg-card px-5 py-4 space-y-2.5">
+              <div className="rounded-xl bg-secondary/40 px-3.5 py-3">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total at betale</span>
+                  <span className="text-xl font-bold text-foreground">{total} kr</span>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">Bestillingen sendes først til virksomheden for godkendelse.</p>
               </div>
               <Button
                 onClick={handleOrder}
