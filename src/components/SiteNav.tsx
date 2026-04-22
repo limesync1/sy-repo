@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, LogOut, ChevronDown, User, Briefcase, ShieldCheck, Truck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useMyBusiness } from "@/hooks/useDatabase";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -10,6 +9,7 @@ import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   active?: "search" | "quote" | "business" | null;
@@ -22,34 +22,74 @@ const NAV_ITEMS: { key: NonNullable<Props["active"]>; label: string; to: string 
   { key: "business", label: "Bliv udbyder", to: "/log-ind?mode=business" },
 ];
 
+const PANEL_PREFERENCE_KEY = "preferred-panel-route";
+
 const SiteNav = ({ active, right }: Props) => {
   const [open, setOpen] = useState(false);
+  const [selectedPanel, setSelectedPanel] = useState<string | null>(null);
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { data: isAdmin } = useIsAdmin();
   const { data: business } = useMyBusiness();
 
-  // Detect employee role
-  const { data: isEmployee } = useQuery({
-    queryKey: ["is-employee", user?.id],
+  const { data: userRoles = [] } = useQuery({
+    queryKey: ["user-roles", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("user_roles").select("role").eq("user_id", user!.id).eq("role", "employee").maybeSingle();
-      return !!data;
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user!.id);
+      if (error) throw error;
+      return (data || []).map((entry) => entry.role);
     },
   });
 
-  const roles: { label: string; to: string; icon: React.ComponentType<any>; current: boolean }[] = [];
-  if (user) {
-    roles.push({ label: "Kundepanel", to: "/min-konto", icon: User, current: pathname.startsWith("/min-konto") });
-    if (business) roles.push({ label: "Virksomhedspanel", to: "/virksomhed", icon: Briefcase, current: pathname.startsWith("/virksomhed") });
-    if (isEmployee) roles.push({ label: "Medarbejder-app", to: "/medarbejder", icon: Truck, current: pathname.startsWith("/medarbejder") });
-    if (isAdmin) roles.push({ label: "Platform admin", to: "/platform-admin", icon: ShieldCheck, current: pathname.startsWith("/platform-admin") });
-  }
+  const roles = useMemo(() => {
+    const items: { label: string; to: string; icon: React.ComponentType<any>; current: boolean }[] = [];
+    if (!user) return items;
+
+    items.push({ label: "Kundepanel", to: "/min-konto", icon: User, current: pathname.startsWith("/min-konto") });
+    if (userRoles.includes("business_owner") || business) {
+      items.push({ label: "Virksomhedspanel", to: "/virksomhed", icon: Briefcase, current: pathname.startsWith("/virksomhed") });
+    }
+    if (userRoles.includes("employee")) {
+      items.push({ label: "Medarbejder-app", to: "/medarbejder", icon: Truck, current: pathname.startsWith("/medarbejder") });
+    }
+    if (userRoles.includes("admin")) {
+      items.push({ label: "Platform admin", to: "/platform-admin", icon: ShieldCheck, current: pathname.startsWith("/platform-admin") });
+    }
+
+    return items;
+  }, [business, pathname, user, userRoles]);
+
   const showSwitcher = roles.length > 1;
   const currentRole = roles.find((r) => r.current) || roles[0];
+  const preferredRole = roles.find((role) => role.to === selectedPanel) || currentRole || roles[0] || null;
+
+  useEffect(() => {
+    if (!user) {
+      setSelectedPanel(null);
+      return;
+    }
+
+    const stored = typeof window !== "undefined" ? window.localStorage.getItem(PANEL_PREFERENCE_KEY) : null;
+    if (stored && roles.some((role) => role.to === stored)) {
+      setSelectedPanel(stored);
+      return;
+    }
+
+    if (currentRole?.to) {
+      setSelectedPanel(currentRole.to);
+    }
+  }, [currentRole?.to, roles, user]);
+
+  const handleSelectPanel = (to: string) => {
+    setSelectedPanel(to);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(PANEL_PREFERENCE_KEY, to);
+    }
+  };
 
   const isActive = (key: NonNullable<Props["active"]>) => {
     if (active !== undefined) return active === key;
@@ -60,6 +100,9 @@ const SiteNav = ({ active, right }: Props) => {
 
   const handleSignOut = async () => {
     await signOut();
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(PANEL_PREFERENCE_KEY);
+    }
     navigate("/");
   };
 
@@ -94,33 +137,47 @@ const SiteNav = ({ active, right }: Props) => {
           <div className="flex items-center gap-1.5 sm:gap-2">
             {right}
 
-            {/* Logged-in: role switcher OR avatar dropdown */}
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-border bg-card/90 px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
-                    {currentRole?.icon && <currentRole.icon className="h-4 w-4 text-muted-foreground" />}
-                    <span className="max-w-[140px] truncate">{currentRole?.label || "Min konto"}</span>
-                    <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  {showSwitcher && (
-                    <>
+              <>
+                {showSwitcher && preferredRole ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-border bg-card/90 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
+                        <preferredRole.icon className="h-4 w-4 text-muted-foreground" />
+                        <span className="max-w-[140px] truncate">{preferredRole.label}</span>
+                        <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
                       <DropdownMenuLabel className="text-xs text-muted-foreground">Skift visning</DropdownMenuLabel>
                       {roles.map((r) => (
-                        <DropdownMenuItem key={r.to} onClick={() => navigate(r.to)} className={r.current ? "bg-secondary" : ""}>
-                          <r.icon className="h-4 w-4 mr-2" />{r.label}
+                        <DropdownMenuItem key={r.to} onClick={() => handleSelectPanel(r.to)} className={preferredRole.to === r.to ? "bg-secondary" : ""}>
+                          <r.icon className="mr-2 h-4 w-4" />{r.label}
                         </DropdownMenuItem>
                       ))}
-                      <DropdownMenuSeparator />
-                    </>
-                  )}
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="h-4 w-4 mr-2" />Log ud
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : null}
+
+                {preferredRole && (
+                  <Button
+                    size="sm"
+                    onClick={() => navigate(preferredRole.to)}
+                    className="hidden rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90 sm:inline-flex"
+                  >
+                    Mit panel
+                  </Button>
+                )}
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleSignOut}
+                  className="hidden rounded-full sm:inline-flex"
+                >
+                  <LogOut className="mr-1.5 h-4 w-4" />Log ud
+                </Button>
+              </>
             ) : (
               <>
                 <Link to="/log-ind" className="hidden md:inline-block">
@@ -170,15 +227,24 @@ const SiteNav = ({ active, right }: Props) => {
                     {roles.map((r) => (
                       <button
                         key={r.to}
-                        onClick={() => { setOpen(false); navigate(r.to); }}
+                        onClick={() => handleSelectPanel(r.to)}
                         className={`flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium ${
-                          r.current ? "bg-secondary text-foreground" : "text-foreground hover:bg-secondary"
+                          preferredRole?.to === r.to ? "bg-secondary text-foreground" : "text-foreground hover:bg-secondary"
                         }`}
                       >
                         <r.icon className="h-4 w-4" />{r.label}
                       </button>
                     ))}
+                    <div className="my-1 h-px bg-border" />
                   </>
+                )}
+                {preferredRole && (
+                  <button
+                    onClick={() => { setOpen(false); navigate(preferredRole.to); }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
+                  >
+                    <preferredRole.icon className="h-4 w-4" />Mit panel
+                  </button>
                 )}
                 <button
                   onClick={() => { setOpen(false); handleSignOut(); }}
