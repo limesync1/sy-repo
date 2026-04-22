@@ -1,4 +1,4 @@
-import { Sparkles, Zap, ShieldCheck, ArrowRight, Clock, CheckCircle2 } from "lucide-react";
+import { Sparkles, Zap, ShieldCheck, ArrowRight, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -12,7 +12,7 @@ const GetQuotes = () => {
   return (
     <section className="bg-background py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-[28px] bg-foreground px-5 py-8 sm:px-8 sm:py-10 md:px-12 md:py-12">
+          <div className="overflow-hidden rounded-[28px] bg-foreground px-5 py-7 sm:px-8 sm:py-9 md:px-12 md:py-10">
           <div className="grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10">
             {/* Left */}
             <div>
