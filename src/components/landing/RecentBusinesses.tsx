@@ -27,9 +27,9 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
   return (
     <Link
       to={`/b/${biz.slug}`}
-      className="group flex w-[280px] shrink-0 flex-col gap-3 sm:w-[300px]"
+      className="group flex w-[286px] shrink-0 flex-col gap-3 sm:w-[310px]"
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-secondary">
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[24px] border border-border bg-secondary shadow-sm">
         {biz.cover_image_url ? (
           <img
             src={biz.cover_image_url}

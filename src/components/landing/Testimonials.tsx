@@ -32,20 +32,20 @@ const Testimonials = () => {
   if (!reviews || reviews.length === 0) return null;
 
   return (
-    <section className="bg-secondary py-12 md:py-16">
+    <section className="bg-secondary/60 py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 max-w-2xl">
-          <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Anmeldelser</div>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-foreground md:text-3xl">
             Kunderne siger det kort
           </h2>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">Ægte erfaringer, så du hurtigere kan vurdere kvaliteten.</p>
         </div>
 
         <HorizontalScroller>
           {reviews.map((r) => (
             <article
               key={r.id}
-              className="flex w-[320px] shrink-0 flex-col rounded-2xl bg-card p-6 shadow-sm sm:w-[380px]"
+              className="flex w-[320px] shrink-0 flex-col rounded-[24px] border border-border bg-card p-6 shadow-sm sm:w-[380px]"
             >
               <div className="mb-3 flex items-center gap-1">
                 {Array.from({ length: 5 }).map((_, idx) => (
