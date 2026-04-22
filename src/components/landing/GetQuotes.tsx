@@ -20,27 +20,24 @@ const GetQuotes = () => {
                 AI-drevet matching
               </span>
               <h2 className="mt-4 max-w-xl text-2xl font-bold tracking-tight text-background sm:text-3xl md:text-4xl">
-                Få de mest relevante valg først.
+                Få et skarpere udvalg med det samme.
               </h2>
-              <p className="mt-4 max-w-lg text-sm leading-7 text-background/75 sm:text-base">
-                I stedet for mange ligegyldige profiler bliver de mest relevante prioriteret med det samme.
-              </p>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
                   <div className="text-[11px] font-semibold uppercase tracking-wide text-background/60">Input</div>
                   <div className="mt-1 text-sm font-semibold text-background">Kort input</div>
-                  <div className="mt-1 text-xs leading-5 text-background/70">Ingen lange trin.</div>
+                  <div className="mt-1 text-xs leading-5 text-background/70">Beskriv opgaven kort.</div>
                 </div>
                 <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
                   <div className="text-[11px] font-semibold uppercase tracking-wide text-background/60">Sortering</div>
                   <div className="mt-1 text-sm font-semibold text-background">Færre, bedre matches</div>
-                  <div className="mt-1 text-xs leading-5 text-background/70">Udvalgt til opgaven.</div>
+                  <div className="mt-1 text-xs leading-5 text-background/70">Prioriteret efter relevans.</div>
                 </div>
                 <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
                   <div className="text-[11px] font-semibold uppercase tracking-wide text-background/60">Resultat</div>
                   <div className="mt-1 text-sm font-semibold text-background">Roligt overblik</div>
-                  <div className="mt-1 text-xs leading-5 text-background/70">Nemmere at vælge.</div>
+                  <div className="mt-1 text-xs leading-5 text-background/70">De bedste kandidater først.</div>
                 </div>
               </div>
 
