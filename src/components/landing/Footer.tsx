@@ -1,65 +1,117 @@
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="border-t border-border bg-background">
+    <footer className="border-t border-border bg-secondary/35">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8">
-        <div className="mb-10 grid gap-5 rounded-[40px] border border-border bg-foreground p-6 shadow-sm sm:p-7 lg:grid-cols-[1.15fr_0.9fr_0.8fr] lg:items-center">
-          <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-background/60">Kom videre</div>
-            <h3 className="mt-2 text-2xl font-semibold text-background">Vælg næste skridt</h3>
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
-            <Link to="/virksomheder" className="inline-flex items-center justify-center rounded-full bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-background/90">
-              Find services
-            </Link>
-            <Link to="/tilbud" className="inline-flex items-center justify-center rounded-full border border-background/20 bg-background/10 px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-background/20">
-              Få tilbud
-            </Link>
-          </div>
-          <div className="text-sm text-background/70 lg:text-right">
-            <div className="font-semibold text-background">Support</div>
-            <a href="mailto:kontakt@serviceydere.dk" className="mt-1 inline-block transition-colors hover:text-background">kontakt@serviceydere.dk</a>
+        <div className="overflow-hidden rounded-[40px] border border-border bg-background shadow-sm">
+          <div className="grid gap-px bg-border lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+            <div className="bg-foreground px-6 py-7 text-background sm:px-8 sm:py-8">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-background/60">
+                Klar til næste skridt
+              </div>
+              <h3 className="mt-3 max-w-sm text-3xl font-semibold tracking-tight text-background">
+                Start med søgning eller send opgaven ud med det samme.
+              </h3>
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Link
+                  to="/virksomheder"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-background px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-background/90"
+                >
+                  Find services
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  to="/tilbud"
+                  className="inline-flex items-center justify-center rounded-full border border-background/20 bg-background/10 px-5 py-3 text-sm font-semibold text-background transition-colors hover:bg-background/20"
+                >
+                  Få tilbud
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid gap-px bg-border sm:grid-cols-2">
+              <div className="bg-background px-6 py-6">
+                <h4 className="text-sm font-semibold text-foreground">
+                  Serviceydere
+                </h4>
+                <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                  <li>
+                    <Link
+                      to="/virksomheder"
+                      className="transition-colors hover:text-foreground"
+                    >
+                      Find services
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/tilbud"
+                      className="transition-colors hover:text-foreground"
+                    >
+                      Indhent tilbud
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/log-ind?mode=business"
+                      className="transition-colors hover:text-foreground"
+                    >
+                      Bliv udbyder
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+              <div className="bg-background px-6 py-6">
+                <h4 className="text-sm font-semibold text-foreground">
+                  Kontakt
+                </h4>
+                <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                  <li>
+                    <a
+                      href="mailto:kontakt@serviceydere.dk"
+                      className="transition-colors hover:text-foreground"
+                    >
+                      kontakt@serviceydere.dk
+                    </a>
+                  </li>
+                  <li>
+                    <span>Danmark</span>
+                  </li>
+                  <li>
+                    <Link
+                      to="/log-ind"
+                      className="transition-colors hover:text-foreground"
+                    >
+                      Log ind
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+              <div className="bg-background px-6 py-6 sm:col-span-2">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">
+                      Serviceydere
+                    </div>
+                    <div className="mt-1 text-sm text-muted-foreground">
+                      Overblik over lokale serviceydere i hele Danmark.
+                    </div>
+                  </div>
+                  <img
+                    src="/serviceydere-logo-dark.png"
+                    alt="Serviceydere"
+                    className="h-7 w-auto opacity-80"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-          <div className="grid grid-cols-2 gap-8 sm:gap-10 md:grid-cols-4">
-          <div>
-            <h4 className="mb-3 text-sm font-semibold text-foreground">Serviceydere</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/virksomheder" className="transition-colors hover:underline">Find services</Link></li>
-              <li><Link to="/tilbud" className="transition-colors hover:underline">Indhent tilbud</Link></li>
-              <li><Link to="/virksomheder" className="transition-colors hover:underline">Kategorier</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="mb-3 text-sm font-semibold text-foreground">For virksomheder</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/log-ind?mode=business" className="transition-colors hover:underline">Bliv udbyder</Link></li>
-              <li><Link to="/log-ind" className="transition-colors hover:underline">Log ind</Link></li>
-              <li><Link to="/virksomhed" className="transition-colors hover:underline">Virksomhedspanel</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="mb-3 text-sm font-semibold text-foreground">Support</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="mailto:kontakt@serviceydere.dk" className="transition-colors hover:underline">Kontakt os</a></li>
-              <li><span>Hjælpecenter</span></li>
-              <li><span>FAQ</span></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="mb-3 text-sm font-semibold text-foreground">Om os</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><span>Om Serviceydere</span></li>
-              <li><span>Privatlivspolitik</span></li>
-              <li><span>Vilkår</span></li>
-            </ul>
-          </div>
-        </div>
-        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 text-xs text-muted-foreground md:flex-row">
-          <div>© {new Date().getFullYear()} Serviceydere · Danmark</div>
-          <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-6 opacity-70" />
+        <div className="mt-6 text-xs text-muted-foreground">
+          © {new Date().getFullYear()} Serviceydere
         </div>
       </div>
     </footer>
