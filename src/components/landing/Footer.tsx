@@ -6,10 +6,8 @@ const Footer = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
         <div className="mb-8 grid gap-5 rounded-[28px] border border-border bg-secondary/50 p-5 sm:p-6 lg:grid-cols-[1.2fr_0.8fr_0.8fr] lg:items-center">
           <div>
-            <h3 className="text-lg font-semibold text-foreground">Klar til at gå videre?</h3>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-              Brug samme enkle flow som resten af forsiden og vælg den vej der passer bedst.
-            </p>
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kom videre</div>
+            <h3 className="mt-2 text-lg font-semibold text-foreground">Vælg næste skridt</h3>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
             <Link to="/virksomheder" className="inline-flex items-center justify-center rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-foreground/90">

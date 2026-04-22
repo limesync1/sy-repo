@@ -24,8 +24,8 @@ const Categories = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col gap-3 md:mb-8 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Start med det, du skal have løst</h2>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">De mest brugte kategorier først — resten lige ved hånden.</p>
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kategorier</div>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-foreground md:text-3xl">Vælg en retning og kom hurtigt videre</h2>
           </div>
           <Link to="/virksomheder" className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-semibold text-foreground hover:bg-secondary">
             Se alle virksomheder
@@ -60,7 +60,6 @@ const Categories = () => {
           <div className="rounded-2xl border border-border bg-card p-5">
             <div className="mb-4">
               <div className="text-sm font-semibold text-foreground">Flere kategorier</div>
-              <p className="mt-1 text-sm text-muted-foreground">Når du bare vil hurtigt videre.</p>
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
               {moreCategories.map((cat) => (
