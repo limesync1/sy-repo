@@ -142,12 +142,12 @@ const RecentBusinesses = () => {
   return (
     <section className="bg-background py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-end justify-between">
-          <div>
+        <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-2xl">
             <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-              Populære virksomheder
+              Virksomheder du kan booke med det samme
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">Verificerede serviceydere — klar til opgaven</p>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">Se virksomheder med gode anmeldelser, tydelige profiler og hurtig adgang til booking.</p>
           </div>
           <Link to="/virksomheder" className="text-sm font-semibold text-foreground underline-offset-4 hover:underline">
             Vis alle
