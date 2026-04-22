@@ -27,6 +27,12 @@
     --accent: 184 90% 32%;
     --accent-foreground: 0 0% 100%;
     --accent-soft: 184 70% 95%;
+    --feature-cool: 196 85% 94%;
+    --feature-cool-foreground: 195 70% 26%;
+    --feature-warm: 42 100% 93%;
+    --feature-warm-foreground: 28 72% 30%;
+    --feature-lilac: 270 100% 96%;
+    --feature-lilac-foreground: 268 44% 36%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
@@ -62,6 +68,12 @@
     --muted-foreground: 215 20.2% 65.1%;
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
+    --feature-cool: 195 40% 18%;
+    --feature-cool-foreground: 195 65% 82%;
+    --feature-warm: 30 35% 18%;
+    --feature-warm-foreground: 38 85% 84%;
+    --feature-lilac: 265 30% 18%;
+    --feature-lilac-foreground: 268 70% 85%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;

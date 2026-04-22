@@ -141,7 +141,7 @@ const DynamicBusinessContent = () => {
       <header className="relative border-b border-border bg-background">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4 md:pt-6">
           {/* Cover image with gradient */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-secondary via-secondary/60 to-accent/10">
+          <div className="relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,hsl(var(--feature-cool))_0%,hsl(var(--feature-lilac))_52%,hsl(var(--feature-warm))_100%)]">
             <div className={`relative w-full ${hasCover ? "aspect-[21/8] md:aspect-[21/7]" : "h-32 md:h-40"}`}>
               {hasCover && (
                 <>
@@ -268,7 +268,7 @@ const DynamicBusinessContent = () => {
 
             {/* About */}
             {business.description && (
-              <section aria-labelledby="about-heading" className="rounded-3xl border border-border bg-secondary/25 p-6 md:p-7">
+              <section aria-labelledby="about-heading" className="rounded-3xl border border-border bg-[linear-gradient(135deg,hsl(var(--feature-cool))_0%,hsl(var(--background))_100%)] p-6 md:p-7">
                 <div className="max-w-3xl">
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Virksomhedsprofil</p>
                   <h2 id="about-heading" className="mb-3 text-xl font-bold text-foreground md:text-2xl">Om {business.name}</h2>
@@ -391,7 +391,7 @@ const DynamicBusinessContent = () => {
                                   <p className="mt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">{sub}</p>
                                 )}
                               </div>
-                              <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-muted-foreground">1 service</span>
+                              <span className="rounded-full bg-[hsl(var(--feature-warm))] px-2.5 py-1 text-xs font-medium text-[hsl(var(--feature-warm-foreground))]">1 service</span>
                             </div>
 
                             <div className="flex-1">
@@ -431,7 +431,7 @@ const DynamicBusinessContent = () => {
 
                 {/* Rating distribution */}
                 {reviewCount >= 3 && (
-                  <div className="mb-5 rounded-3xl border border-border bg-secondary/25 p-5 md:p-6">
+                  <div className="mb-5 rounded-3xl border border-border bg-[linear-gradient(135deg,hsl(var(--feature-lilac))_0%,hsl(var(--background))_100%)] p-5 md:p-6">
                     <div className="flex items-center gap-6">
                       <div className="text-center">
                         <div className="text-3xl font-bold text-foreground">{avgRating}</div>
@@ -496,7 +496,7 @@ const DynamicBusinessContent = () => {
           {/* ── Sidebar ── */}
           <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
             {/* Bestil/Contact Card — primary CTA */}
-            <Card className="overflow-hidden rounded-3xl border border-accent/20 shadow-[0_26px_60px_-32px_hsl(var(--accent)/0.5)]">
+            <Card className="overflow-hidden rounded-3xl border border-accent/20 bg-[linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--feature-cool))_100%)] shadow-[0_26px_60px_-32px_hsl(var(--accent)/0.5)]">
               <div className="border-b border-accent/15 bg-gradient-to-br from-accent/10 to-accent/5 px-5 py-5">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-accent" />
@@ -541,7 +541,7 @@ const DynamicBusinessContent = () => {
 
             {/* Opening Hours */}
             {openingHours.length > 0 && (
-              <Card className="rounded-3xl border-border bg-card/90">
+              <Card className="rounded-3xl border-border bg-[linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--feature-warm))_100%)]">
                 <CardContent className="p-5">
                   <h3 className="mb-3 flex items-center gap-2 font-bold text-foreground">
                     <Clock className="h-4 w-4 text-accent" /> Åbningstider
@@ -565,7 +565,7 @@ const DynamicBusinessContent = () => {
             )}
 
             {/* Trust Badges */}
-            <Card className="rounded-3xl border-border bg-card/90">
+            <Card className="rounded-3xl border-border bg-[linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--feature-lilac))_100%)]">
               <CardContent className="space-y-3 p-5">
                 {business.is_verified && (
                   <div className="flex items-center gap-3 text-sm text-foreground">

@@ -186,7 +186,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
     <Card className="group h-full overflow-hidden rounded-3xl border-border/80 bg-card transition-all hover:-translate-y-0.5 hover:border-accent/25 hover:shadow-[0_22px_50px_-28px_hsl(var(--foreground)/0.32)]">
       {/* Image or placeholder */}
       {service.image_url ? (
-        <div className="relative h-48 w-full overflow-hidden bg-secondary">
+        <div className="relative h-48 w-full overflow-hidden bg-[linear-gradient(135deg,hsl(var(--feature-cool))_0%,hsl(var(--feature-lilac))_100%)]">
           <img
             src={service.image_url}
             alt={service.name}
@@ -199,7 +199,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           </Badge>
         </div>
       ) : (
-        <div className="relative flex h-28 w-full items-center justify-center bg-gradient-to-br from-secondary to-muted/50">
+        <div className="relative flex h-28 w-full items-center justify-center bg-[linear-gradient(135deg,hsl(var(--feature-cool))_0%,hsl(var(--feature-warm))_100%)]">
           <ImageIcon className="h-8 w-8 text-muted-foreground/15" />
           <Badge variant="outline" className="absolute right-3 top-3 text-xs font-medium">
             {pricingLabels[service.pricing_type]}
@@ -221,9 +221,9 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
 
         {/* Fast pris */}
         {service.pricing_type === "fast_pris" && (
-          <div className="mb-5 flex items-end gap-1.5">
-            <span className="text-3xl font-bold text-foreground">{service.base_price}</span>
-            <span className="pb-1 text-sm text-muted-foreground">kr</span>
+          <div className="mb-5 inline-flex w-fit items-end gap-1.5 rounded-2xl bg-[hsl(var(--feature-warm))] px-3 py-2">
+            <span className="text-3xl font-bold text-[hsl(var(--feature-warm-foreground))]">{service.base_price}</span>
+            <span className="pb-1 text-sm text-[hsl(var(--feature-warm-foreground))]/80">kr</span>
           </div>
         )}
 
@@ -234,9 +234,9 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
               <span className="text-sm text-muted-foreground">{service.base_price} kr / time</span>
               <StepperInput value={hours} onChange={setHours} min={0.5} max={24} step={0.5} unit="t" />
             </div>
-            <div className="flex items-end gap-1.5 pt-1">
-              <span className="text-3xl font-bold text-foreground">{roundPrice(total)}</span>
-              <span className="pb-1 text-sm text-muted-foreground">kr</span>
+            <div className="inline-flex items-end gap-1.5 rounded-2xl bg-[hsl(var(--feature-lilac))] px-3 py-2 pt-2">
+              <span className="text-3xl font-bold text-[hsl(var(--feature-lilac-foreground))]">{roundPrice(total)}</span>
+              <span className="pb-1 text-sm text-[hsl(var(--feature-lilac-foreground))]/80">kr</span>
             </div>
           </div>
         )}
