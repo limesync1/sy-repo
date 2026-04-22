@@ -1,127 +1,201 @@
-import { ArrowRight, Sparkles, Wrench, Truck, TreePine, Paintbrush, Droplets, Zap, ShieldCheck, Hammer, Home as HomeIcon } from "lucide-react";
+import {
+  ArrowRight,
+  Sparkles,
+  Wrench,
+  Truck,
+  TreePine,
+  Paintbrush,
+  Droplets,
+  Zap,
+  ShieldCheck,
+  Hammer,
+  Home as HomeIcon,
+} from "lucide-react";
 import { Link } from "react-router-dom";
-import HorizontalScroller from "./HorizontalScroller";
 
 const categories = [
-  { icon: Sparkles, label: "Rengøring", desc: "Privat & erhverv" },
-  { icon: Wrench, label: "Håndværker", desc: "Små og store opgaver" },
-  { icon: Truck, label: "Flyttehjælp", desc: "Flytning & tunge løft" },
-  { icon: TreePine, label: "Haveservice", desc: "Klipning, rydning, pleje" },
-  { icon: Paintbrush, label: "Maler", desc: "Inde og ude" },
-  { icon: Droplets, label: "VVS", desc: "Akut & planlagt" },
-  { icon: Zap, label: "Elektriker", desc: "Installation & reparation" },
-  { icon: ShieldCheck, label: "Sikkerhed", desc: "Låse, alarm, adgang" },
-  { icon: Hammer, label: "Tømrer", desc: "Montering & byg" },
-  { icon: HomeIcon, label: "Boligservice", desc: "Hjælp i hjemmet" },
+  {
+    icon: Sparkles,
+    label: "Rengøring",
+    desc: "Privat, erhverv og faste aftaler",
+    meta: "Mest søgt",
+  },
+  {
+    icon: Wrench,
+    label: "Håndværker",
+    desc: "Reparationer, montering og større projekter",
+    meta: "Bolig & erhverv",
+  },
+  {
+    icon: Truck,
+    label: "Flyttehjælp",
+    desc: "Flytning, bæring og transport",
+    meta: "Hurtig koordinering",
+  },
+  {
+    icon: TreePine,
+    label: "Haveservice",
+    desc: "Klipning, rydning og udendørs pleje",
+    meta: "Sæsonopgaver",
+  },
+  {
+    icon: Paintbrush,
+    label: "Maler",
+    desc: "Inde, ude og løbende vedligehold",
+    meta: "Synligt resultat",
+  },
+  {
+    icon: Droplets,
+    label: "VVS",
+    desc: "Akut hjælp og planlagte opgaver",
+    meta: "Akut & planlagt",
+  },
+  {
+    icon: Zap,
+    label: "Elektriker",
+    desc: "Installationer og fejlfinding",
+    meta: "Autoriserede valg",
+  },
+  {
+    icon: ShieldCheck,
+    label: "Sikkerhed",
+    desc: "Låse, alarm og adgangsløsninger",
+    meta: "Tryghed",
+  },
+  {
+    icon: Hammer,
+    label: "Tømrer",
+    desc: "Montering, byg og specialopgaver",
+    meta: "Småt og stort",
+  },
+  {
+    icon: HomeIcon,
+    label: "Boligservice",
+    desc: "Praktisk hjælp i hverdagen",
+    meta: "Til hjemmet",
+  },
 ];
 
-const featuredCategories = categories.slice(0, 4);
-const moreCategories = categories.slice(4);
-const leadCategory = featuredCategories[0];
-const supportCategories = featuredCategories.slice(1);
-
 const Categories = () => {
-  return (
-    <section className="bg-background py-12 md:py-16">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 flex flex-col gap-3 md:mb-8 md:flex-row md:items-end md:justify-between">
-          <div className="max-w-2xl">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kategorier</div>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-foreground md:text-3xl">Start dér hvor behovet er tydeligt</h2>
-          </div>
-          <Link to="/virksomheder" className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-semibold text-foreground hover:bg-secondary">
-            Se alle virksomheder
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
+  const lead = categories[0];
+  const topGrid = categories.slice(1, 5);
+  const bottomList = categories.slice(5);
 
-        <div className="hidden gap-5 md:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+  return (
+    <section className="bg-secondary/45 py-14 md:py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.2fr)] lg:gap-10">
+          <div className="lg:pr-4">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Kategorier
+            </div>
+            <h2 className="mt-3 max-w-sm text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+              Vælg indgangen efter opgaven, ikke efter støjen.
+            </h2>
+            <p className="mt-4 max-w-md text-base leading-7 text-muted-foreground">
+              De største behov står først, og resten ligger tæt nok på til, at
+              du hurtigt kan skifte retning uden at miste overblikket.
+            </p>
             <Link
-              to={`/search?category=${encodeURIComponent(leadCategory.label)}`}
-              className="group flex min-h-[430px] flex-col justify-between overflow-hidden rounded-[32px] border border-border bg-card p-6 shadow-sm transition-all hover:border-foreground/20 hover:shadow-md"
+              to="/virksomheder"
+              className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-foreground transition-opacity hover:opacity-80"
             >
-              <div className="flex h-16 w-16 items-center justify-center rounded-[20px] bg-secondary text-foreground">
-                <leadCategory.icon className="h-6 w-6" />
+              Se alle virksomheder
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="space-y-4">
+            <Link
+              to={`/search?category=${encodeURIComponent(lead.label)}`}
+              className="group grid overflow-hidden rounded-[36px] border border-border bg-background shadow-sm transition-all hover:shadow-md lg:grid-cols-[minmax(0,0.95fr)_minmax(260px,0.55fr)]"
+            >
+              <div className="flex flex-col justify-between px-6 py-6 sm:px-7 sm:py-7">
+                <div className="flex h-14 w-14 items-center justify-center rounded-[18px] bg-secondary text-foreground">
+                  <lead.icon className="h-6 w-6" />
+                </div>
+                <div className="mt-10">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Udvalgt kategori
+                  </div>
+                  <div className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+                    {lead.label}
+                  </div>
+                  <p className="mt-3 max-w-[30ch] text-base leading-7 text-muted-foreground">
+                    {lead.desc} med stærke profiler og hurtig sammenligning.
+                  </p>
+                </div>
               </div>
-              <div className="space-y-3">
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Mest valgt</div>
-                <div className="text-3xl font-semibold tracking-tight text-foreground">{leadCategory.label}</div>
-                <p className="max-w-[26ch] text-base leading-7 text-muted-foreground">{leadCategory.desc} med hurtig adgang til de mest relevante profiler.</p>
-                <div className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
-                  Udforsk kategori
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              <div className="grid gap-px bg-border">
+                <div className="bg-secondary px-6 py-5">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Bruges til
+                  </div>
+                  <div className="mt-2 text-sm font-semibold text-foreground">
+                    Engangsopgaver, faste besøg og større aftaler
+                  </div>
+                </div>
+                <div className="bg-background px-6 py-5">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Fordel
+                  </div>
+                  <div className="mt-2 flex items-center gap-2 text-sm font-semibold text-foreground">
+                    Gå direkte til relevante profiler
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </div>
                 </div>
               </div>
             </Link>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-              {supportCategories.map((cat) => (
+            <div className="grid gap-4 md:grid-cols-2">
+              {topGrid.map((cat) => (
                 <Link
                   key={cat.label}
                   to={`/search?category=${encodeURIComponent(cat.label)}`}
-                  className="group flex min-h-[132px] flex-col justify-between overflow-hidden rounded-[28px] border border-border bg-card p-5 shadow-sm transition-all hover:border-foreground/20 hover:bg-secondary hover:shadow-md"
+                  className="group rounded-[28px] border border-border bg-background px-5 py-5 shadow-sm transition-all hover:bg-card hover:shadow-md"
                 >
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary text-foreground transition-colors group-hover:bg-background">
-                    <cat.icon className="h-5 w-5" />
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-foreground">
+                      <cat.icon className="h-5 w-5" />
+                    </div>
+                    <span className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
+                      {cat.meta}
+                    </span>
                   </div>
-                  <div className="space-y-1.5">
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kategori</div>
-                    <div className="text-lg font-semibold text-foreground">{cat.label}</div>
-                    <div className="max-w-[24ch] text-sm text-muted-foreground">{cat.desc}</div>
-                    <div className="inline-flex items-center gap-1 text-sm font-medium text-foreground">
-                      Se muligheder
-                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  <div className="mt-8">
+                    <div className="text-lg font-semibold text-foreground">
+                      {cat.label}
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      {cat.desc}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            <div className="grid gap-px overflow-hidden rounded-[28px] border border-border bg-border bg-background shadow-sm sm:grid-cols-2 xl:grid-cols-3">
+              {bottomList.map((cat) => (
+                <Link
+                  key={cat.label}
+                  to={`/search?category=${encodeURIComponent(cat.label)}`}
+                  className="group flex items-center gap-3 bg-background px-4 py-4 transition-colors hover:bg-secondary"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-foreground transition-colors group-hover:bg-background">
+                    <cat.icon className="h-4.5 w-4.5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold text-foreground">
+                      {cat.label}
+                    </div>
+                    <div className="truncate text-xs text-muted-foreground">
+                      {cat.meta}
                     </div>
                   </div>
                 </Link>
               ))}
             </div>
           </div>
-
-          <div className="rounded-[28px] border border-border bg-secondary/60 p-5 shadow-sm">
-            <div className="mb-4">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Flere muligheder</div>
-              <div className="mt-2 text-lg font-semibold text-foreground">Populære kategorier lige ved hånden</div>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {moreCategories.map((cat) => (
-                <Link
-                  key={cat.label}
-                  to={`/search?category=${encodeURIComponent(cat.label)}`}
-                  className="group flex items-center gap-3 rounded-2xl border border-border bg-background px-3 py-3 transition-colors hover:bg-card"
-                >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground transition-colors group-hover:bg-card">
-                    <cat.icon className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold text-foreground">{cat.label}</div>
-                    <div className="truncate text-xs text-muted-foreground">{cat.desc}</div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="md:hidden">
-          <HorizontalScroller>
-            {categories.map((cat) => (
-            <Link
-              key={cat.label}
-              to={`/search?category=${encodeURIComponent(cat.label)}`}
-                className="group flex w-[208px] shrink-0 flex-col items-start gap-4 rounded-[24px] border border-border bg-card p-4 shadow-sm transition-all hover:border-foreground/20 hover:shadow-md"
-            >
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground transition-colors group-hover:bg-foreground group-hover:text-background">
-                <cat.icon className="h-5 w-5" />
-              </div>
-              <div>
-                  <div className="text-sm font-semibold text-foreground">{cat.label}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">{cat.desc}</div>
-              </div>
-            </Link>
-            ))}
-          </HorizontalScroller>
         </div>
       </div>
     </section>
