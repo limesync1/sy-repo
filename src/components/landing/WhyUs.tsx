@@ -29,12 +29,28 @@ const WhyUs = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start">
           <div className="rounded-2xl border border-border bg-card p-6 md:p-7">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-              En forside, der hjælper dig videre
-            </h2>
-            <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground md:text-base">
-              Fokus er flyttet fra pynt og fyld til hurtigere valg, bedre prioritering og mere ro på siden.
-            </p>
+            <div className="flex items-center justify-between border-b border-border pb-4">
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+                  Derfor virker siden bedre
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">Mindre støj, bedre signaler.</p>
+              </div>
+            </div>
+            <div className="mt-4 space-y-3">
+              <div className="rounded-xl bg-secondary/60 px-4 py-3">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Hurtigt overblik</div>
+                <div className="mt-1 text-sm font-semibold text-foreground">Det vigtigste er løftet frem med det samme.</div>
+              </div>
+              <div className="rounded-xl bg-secondary/60 px-4 py-3">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Mere tillid</div>
+                <div className="mt-1 text-sm font-semibold text-foreground">Profiler og valg er nemmere at vurdere hurtigt.</div>
+              </div>
+              <div className="rounded-xl bg-secondary/60 px-4 py-3">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Bedre flow</div>
+                <div className="mt-1 text-sm font-semibold text-foreground">Forsiden føles mere som et værktøj end som reklame.</div>
+              </div>
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">

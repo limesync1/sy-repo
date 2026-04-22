@@ -28,15 +28,18 @@ const GetQuotes = () => {
 
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
-                  <div className="text-sm font-semibold text-background">Kort input</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-background/60">Input</div>
+                  <div className="mt-1 text-sm font-semibold text-background">Kort input</div>
                   <div className="mt-1 text-xs leading-5 text-background/70">Ingen lange trin.</div>
                 </div>
                 <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
-                  <div className="text-sm font-semibold text-background">Færre, bedre matches</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-background/60">Sortering</div>
+                  <div className="mt-1 text-sm font-semibold text-background">Færre, bedre matches</div>
                   <div className="mt-1 text-xs leading-5 text-background/70">Udvalgt til opgaven.</div>
                 </div>
                 <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
-                  <div className="text-sm font-semibold text-background">Roligt overblik</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-background/60">Resultat</div>
+                  <div className="mt-1 text-sm font-semibold text-background">Roligt overblik</div>
                   <div className="mt-1 text-xs leading-5 text-background/70">Nemmere at vælge.</div>
                 </div>
               </div>
