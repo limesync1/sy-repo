@@ -257,15 +257,15 @@ const DynamicBusinessContent = () => {
 
       {/* ── Body ── */}
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-5 py-4 md:gap-6 md:py-5 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="grid gap-4 py-3 md:gap-5 md:py-4 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px]">
 
           {/* ── Main Column ── */}
-          <div className="min-w-0 space-y-10">
+          <div className="min-w-0 space-y-8">
 
             {/* Services */}
             {services && services.length > 0 && (
-              <section id="services" aria-labelledby="services-heading" className="rounded-[2rem] border border-border bg-card p-4 shadow-[0_22px_50px_-34px_hsl(var(--foreground)/0.2)] md:p-6">
-                <div className="mb-5 flex flex-col gap-2 border-b border-border pb-4 sm:flex-row sm:items-end sm:justify-between">
+              <section id="services" aria-labelledby="services-heading" className="rounded-[2rem] border border-border bg-card p-4 shadow-[0_22px_50px_-34px_hsl(var(--foreground)/0.2)] md:p-5">
+                <div className="mb-4 flex flex-col gap-2 border-b border-border pb-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Book direkte</p>
                     <h2 id="services-heading" className="text-[1.75rem] font-bold text-foreground">Services</h2>
@@ -275,8 +275,8 @@ const DynamicBusinessContent = () => {
                 </div>
 
                 {/* Category filter pills */}
-                {hasMultipleCategories && (
-                  <div className="mb-6 flex flex-wrap gap-2">
+                 {hasMultipleCategories && (
+                   <div className="mb-5 flex flex-wrap gap-2">
                     <button
                       onClick={() => setActiveCategory(null)}
                       className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all ${
@@ -307,19 +307,19 @@ const DynamicBusinessContent = () => {
                 )}
 
                 {/* Service cards */}
-                 <div className="space-y-8">
+                 <div className="space-y-6">
                   {fullWidthCategoryEntries.map(({ cat, subs }) => (
                     <div key={cat}>
                       {(hasMultipleCategories || Object.keys(subs).some(k => k !== "")) && (
                         <h3 className="mb-4 text-lg font-bold text-foreground">{cat}</h3>
                       )}
                       {Object.keys(subs).length >= 2 && Object.entries(subs).every(([, items]) => items.length === 1) ? (
-                        <div className="grid gap-6 md:grid-cols-2">
+                         <div className="grid gap-5 md:grid-cols-2">
                           {Object.entries(subs).map(([sub, items]) => {
                             const service = items[0];
 
                             return (
-                              <div key={sub || service.id} className="flex h-full flex-col gap-3">
+                               <div key={sub || service.id} className="flex h-full flex-col gap-2.5">
                                 {sub && (
                                   <div>
                                     <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{sub}</h4>
@@ -338,13 +338,13 @@ const DynamicBusinessContent = () => {
                           })}
                         </div>
                       ) : (
-                        <div className="space-y-6">
+                         <div className="space-y-5">
                           {Object.entries(subs).map(([sub, items]) => (
                             <div key={sub || "default"}>
                               {sub && (
                                 <h4 className="mb-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{sub}</h4>
                               )}
-                              <div className="grid gap-5 sm:grid-cols-2">
+                               <div className="grid gap-4 sm:grid-cols-2">
                                 {items.map((s) => (
                                   <DynamicServiceCard
                                     key={s.id}
@@ -362,7 +362,7 @@ const DynamicBusinessContent = () => {
                   ))}
 
                   {compactCategoryEntries.length > 0 && (
-                    <div className="grid gap-6 md:grid-cols-2">
+                     <div className="grid gap-5 md:grid-cols-2">
                       {compactCategoryEntries.map(({ cat, subs }) => {
                         const [sub, items] = Object.entries(subs)[0];
                         const service = items[0];
