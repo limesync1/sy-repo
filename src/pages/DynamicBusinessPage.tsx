@@ -261,25 +261,32 @@ const DynamicBusinessContent = () => {
 
       {/* ── Body ── */}
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-8 py-8 md:gap-10 md:py-12 lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_380px]">
+        <div className="grid gap-8 py-8 md:gap-10 md:py-12 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
 
           {/* ── Main Column ── */}
           <div className="min-w-0 space-y-10">
 
             {/* About */}
             {business.description && (
-              <section aria-labelledby="about-heading">
-                <h2 id="about-heading" className="mb-3 text-lg font-bold text-foreground">Om {business.name}</h2>
-                <p className="max-w-2xl leading-relaxed text-muted-foreground whitespace-pre-line">{business.description}</p>
+              <section aria-labelledby="about-heading" className="rounded-3xl border border-border bg-secondary/25 p-6 md:p-7">
+                <div className="max-w-3xl">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Virksomhedsprofil</p>
+                  <h2 id="about-heading" className="mb-3 text-xl font-bold text-foreground md:text-2xl">Om {business.name}</h2>
+                  <p className="leading-7 text-muted-foreground whitespace-pre-line">{business.description}</p>
+                </div>
               </section>
             )}
 
             {/* Services */}
             {services && services.length > 0 && (
               <section id="services" aria-labelledby="services-heading">
-                <div className="mb-5 flex items-center justify-between">
-                  <h2 id="services-heading" className="text-xl font-bold text-foreground">Services</h2>
-                  <span className="text-sm text-muted-foreground">{serviceCount} {serviceCount === 1 ? "service" : "services"}</span>
+                <div className="mb-6 flex flex-col gap-3 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Book direkte</p>
+                    <h2 id="services-heading" className="text-2xl font-bold text-foreground">Services</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">Vælg den løsning, der passer bedst til opgaven.</p>
+                  </div>
+                  <span className="inline-flex w-fit items-center rounded-full bg-secondary px-3 py-1 text-sm font-medium text-muted-foreground">{serviceCount} {serviceCount === 1 ? "service" : "services"}</span>
                 </div>
 
                 {/* Category filter pills */}
@@ -327,9 +334,9 @@ const DynamicBusinessContent = () => {
                             const service = items[0];
 
                             return (
-                              <div key={sub || service.id} className="flex h-full flex-col rounded-2xl border border-border bg-card p-4 sm:p-5">
+                              <div key={sub || service.id} className="flex h-full flex-col gap-3">
                                 {sub && (
-                                  <div className="mb-4">
+                                  <div>
                                     <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{sub}</h4>
                                   </div>
                                 )}
@@ -376,8 +383,8 @@ const DynamicBusinessContent = () => {
                         const service = items[0];
 
                         return (
-                          <div key={cat} className="flex h-full flex-col rounded-2xl border border-border bg-card p-4 sm:p-5">
-                            <div className="mb-4 flex items-start justify-between gap-3">
+                          <div key={cat} className="flex h-full flex-col gap-3">
+                            <div className="flex items-start justify-between gap-3">
                               <div>
                                 <h3 className="text-lg font-bold text-foreground">{cat}</h3>
                                 {sub && (
