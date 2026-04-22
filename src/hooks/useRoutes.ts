@@ -1039,9 +1039,9 @@ export const useUpdateRoute = () => {
         .update(updates)
         .eq("id", id)
         .select("*")
-        .single();
+        .maybeSingle();
       if (error) throw error;
-      return data as unknown as Route;
+      return (data ?? { id, ...updates }) as Route;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["routes"] });
