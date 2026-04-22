@@ -295,23 +295,23 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
         )}
 
         {/* Add button */}
-        <div className="mt-auto rounded-2xl border border-border bg-secondary/25 p-3">
-          <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="mt-auto rounded-2xl border border-accent/20 bg-accent/5 p-3 shadow-sm shadow-accent/10">
+          <div className="mb-3 flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Samlet pris</p>
-              <p className="text-lg font-bold text-foreground">{roundPrice(total)} kr</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Klar til bestilling</p>
+              <p className="text-xl font-bold text-foreground">{roundPrice(total)} kr</p>
             </div>
-            <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-background text-accent shadow-sm">
+            <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-background text-accent shadow-sm ring-1 ring-accent/15">
               <ShoppingCart className="h-4 w-4" />
             </div>
           </div>
           <Button
             onClick={handleAdd}
             disabled={justAdded}
-            className={`h-11 w-full gap-2 rounded-xl text-sm font-semibold transition-all ${
+            className={`h-12 w-full gap-2 rounded-xl text-sm font-semibold transition-all ${
               justAdded
                 ? "bg-accent/80 text-accent-foreground"
-                : "bg-accent text-accent-foreground shadow-md shadow-accent/20 hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/30 active:scale-[0.98]"
+                : "bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/35 active:scale-[0.98]"
             }`}
           >
             {justAdded ? (
