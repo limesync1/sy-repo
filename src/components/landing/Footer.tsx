@@ -2,13 +2,13 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="surface-dark-panel text-background">
+    <footer className="bg-foreground text-background">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
-        <div className="mb-8 grid gap-5 rounded-[30px] border border-background/10 bg-background/5 p-5 sm:p-6 lg:grid-cols-[1.2fr_0.8fr_0.8fr] lg:items-center">
+        <div className="mb-8 grid gap-5 rounded-[28px] border border-background/10 bg-background/5 p-5 sm:p-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div>
-            <h3 className="text-2xl text-background">Find hurtigere frem</h3>
+            <h3 className="text-xl font-semibold text-background">Find hurtigere frem</h3>
             <p className="mt-2 max-w-xl text-sm leading-6 text-background/70">
-              Vælg mellem direkte søgning og indhentning af 3 tilbud — alt efter hvor hurtigt du vil videre.
+              Direkte søgning eller 3 tilbud — afhængigt af hvordan du vil finde den rette løsning.
             </p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
@@ -19,13 +19,9 @@ const Footer = () => {
               Indhent 3 tilbud
             </Link>
           </div>
-          <div className="text-sm text-background/70 lg:text-right">
-            <div className="font-semibold text-background">Support</div>
-            <a href="mailto:kontakt@serviceydere.dk" className="mt-1 inline-block transition-colors hover:text-background">kontakt@serviceydere.dk</a>
-          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-8 sm:gap-10 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           <div>
             <h4 className="mb-3 text-sm font-semibold text-background">Serviceydere</h4>
             <ul className="space-y-2 text-sm text-background/65">
@@ -59,6 +55,7 @@ const Footer = () => {
             </ul>
           </div>
         </div>
+
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-background/10 pt-6 text-xs text-background/55 md:flex-row">
           <div>© {new Date().getFullYear()} Serviceydere · Danmark</div>
           <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-6 rounded bg-background px-2 py-1 opacity-90" />
