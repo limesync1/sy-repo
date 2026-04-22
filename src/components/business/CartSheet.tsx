@@ -548,7 +548,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
 
               {/* CVR-opslag — kun erhverv */}
               {customerType === "business" && (
-                <section className="space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                <section className="space-y-3 rounded-[1.25rem] border border-border bg-card p-4 shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
                   <div className="flex items-center gap-2">
                     <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
                       <Building2 className="h-3.5 w-3.5 text-accent" />
@@ -592,7 +592,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
               )}
 
               {/* Kontakt-oplysninger */}
-              <section className="space-y-3">
+              <section className="space-y-3 rounded-[1.25rem] border border-border bg-card p-4 shadow-sm">
                 <div className="flex items-center gap-2">
                   <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
                     <User className="h-3.5 w-3.5 text-accent" />
@@ -620,7 +620,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
               </section>
 
               {/* Service-adresse */}
-              <section className="space-y-3">
+              <section className="space-y-3 rounded-[1.25rem] border border-border bg-card p-4 shadow-sm">
                 <div className="flex items-center gap-2">
                   <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
                     <MapPin className="h-3.5 w-3.5 text-accent" />
@@ -696,7 +696,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
 
             {/* Submit footer */}
               <div className="shrink-0 border-t border-border bg-card px-5 py-4 space-y-2.5">
-              <div className="rounded-xl bg-secondary/40 px-3.5 py-3">
+              <div className="rounded-[1rem] border border-accent/15 bg-accent/5 px-3.5 py-3">
                 <div className="flex items-baseline justify-between">
                   <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total at betale</span>
                   <span className="text-xl font-bold text-foreground">{total} kr</span>
