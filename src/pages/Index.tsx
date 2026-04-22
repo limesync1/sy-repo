@@ -18,8 +18,8 @@ const Index = () => {
         keywords="serviceydere, find serviceydere, tilbud, rengøring, håndværker, flyttehjælp, haveservice, maler, vvs, elektriker, danmark"
       />
       <HeroSection />
-      <RecentBusinesses />
       <Categories />
+      <RecentBusinesses />
       <GetQuotes />
       <WhyUs />
       <HowItWorks />
