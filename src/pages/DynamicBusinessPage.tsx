@@ -349,30 +349,47 @@ const DynamicBusinessContent = () => {
                   {compactCategoryEntries.length > 0 && (
                     <div className="space-y-6">
                       {pairedCompactCategoryRows.map((row, rowIndex) => (
-                        <div key={`compact-row-${rowIndex}`} className="grid gap-6 md:grid-cols-2">
+                        <div
+                          key={`compact-row-${rowIndex}`}
+                          className="grid gap-5 md:grid-cols-2"
+                        >
                           {row.map(({ cat, subs }) => {
                             const [sub, items] = Object.entries(subs)[0];
                             const service = items[0];
 
                             return (
-                              <div key={cat} className="rounded-[28px] border border-border bg-card p-4 sm:p-5">
-                                <div className="mb-4 flex items-start justify-between gap-3">
-                                  <div>
-                                    <h3 className="text-lg font-bold text-foreground">{cat}</h3>
-                                    {sub && (
-                                      <p className="mt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">{sub}</p>
-                                    )}
+                              <section
+                                key={cat}
+                                className="overflow-hidden rounded-[30px] border border-border bg-card shadow-sm"
+                              >
+                                <div className="grid gap-px bg-border">
+                                  <div className="flex items-start justify-between gap-3 bg-background px-5 py-4">
+                                    <div className="min-w-0">
+                                      <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                        Overkategori
+                                      </div>
+                                      <h3 className="mt-1 text-lg font-bold text-foreground">{cat}</h3>
+                                      {sub && (
+                                        <p className="mt-1 truncate text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                          {sub}
+                                        </p>
+                                      )}
+                                    </div>
+                                    <span className="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                                      1 service
+                                    </span>
                                   </div>
-                                  <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-muted-foreground">1 service</span>
-                                </div>
 
-                                <DynamicServiceCard
-                                  key={service.id}
-                                  service={service}
-                                  businessName={business.name}
-                                  businessLogoUrl={business.logo_url || undefined}
-                                />
-                              </div>
+                                  <div className="bg-card p-4 sm:p-5">
+                                    <DynamicServiceCard
+                                      key={service.id}
+                                      service={service}
+                                      businessName={business.name}
+                                      businessLogoUrl={business.logo_url || undefined}
+                                    />
+                                  </div>
+                                </div>
+                              </section>
                             );
                           })}
                         </div>
