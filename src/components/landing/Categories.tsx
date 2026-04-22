@@ -20,12 +20,12 @@ const moreCategories = categories.slice(4);
 
 const Categories = () => {
   return (
-    <section className="bg-background py-10 md:py-14">
+    <section className="bg-background py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col gap-3 md:mb-8 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
             <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kategorier</div>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-foreground md:text-3xl">Vælg en retning og kom hurtigt videre</h2>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-foreground md:text-3xl">Start dér hvor behovet er tydeligt</h2>
           </div>
           <Link to="/virksomheder" className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-semibold text-foreground hover:bg-secondary">
             Se alle virksomheder
@@ -33,13 +33,13 @@ const Categories = () => {
           </Link>
         </div>
 
-        <div className="hidden gap-4 md:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+        <div className="hidden gap-5 md:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
           <div className="grid gap-4 sm:grid-cols-2">
             {featuredCategories.map((cat) => (
               <Link
                 key={cat.label}
                 to={`/search?category=${encodeURIComponent(cat.label)}`}
-                className="group flex min-h-[176px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all hover:border-foreground/20 hover:bg-secondary hover:shadow-sm"
+                className="group flex min-h-[190px] flex-col justify-between rounded-[24px] border border-border bg-card p-5 shadow-sm transition-all hover:border-foreground/20 hover:bg-secondary hover:shadow-md"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary text-foreground transition-colors group-hover:bg-background">
                   <cat.icon className="h-5 w-5" />
@@ -57,7 +57,7 @@ const Categories = () => {
             ))}
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="rounded-[24px] border border-border bg-card p-5 shadow-sm">
             <div className="mb-4">
               <div className="text-sm font-semibold text-foreground">Flere kategorier</div>
             </div>
@@ -66,7 +66,7 @@ const Categories = () => {
                 <Link
                   key={cat.label}
                   to={`/search?category=${encodeURIComponent(cat.label)}`}
-                  className="group flex items-center gap-3 rounded-xl border border-border bg-background px-3 py-3 transition-colors hover:bg-secondary"
+                  className="group flex items-center gap-3 rounded-2xl border border-border bg-background px-3 py-3 transition-colors hover:bg-secondary"
                 >
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground transition-colors group-hover:bg-card">
                     <cat.icon className="h-4 w-4" />
@@ -87,7 +87,7 @@ const Categories = () => {
             <Link
               key={cat.label}
               to={`/search?category=${encodeURIComponent(cat.label)}`}
-                className="group flex w-[190px] shrink-0 flex-col items-start gap-4 rounded-2xl border border-border bg-card p-4 transition-all hover:border-foreground/20 hover:shadow-sm"
+                className="group flex w-[208px] shrink-0 flex-col items-start gap-4 rounded-[24px] border border-border bg-card p-4 shadow-sm transition-all hover:border-foreground/20 hover:shadow-md"
             >
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground transition-colors group-hover:bg-foreground group-hover:text-background">
                 <cat.icon className="h-5 w-5" />

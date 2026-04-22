@@ -12,44 +12,44 @@ const GetQuotes = () => {
   return (
     <section className="bg-background py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="overflow-hidden rounded-[28px] bg-foreground px-5 py-7 sm:px-8 sm:py-9 md:px-12 md:py-10">
+          <div className="overflow-hidden rounded-[32px] border border-border bg-secondary px-5 py-7 shadow-sm sm:px-8 sm:py-9 md:px-12 md:py-10">
           <div className="grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10">
             <div>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-foreground">
                 <Sparkles className="h-3 w-3" />
                 AI-drevet matching
               </span>
-              <h2 className="mt-4 max-w-xl text-2xl font-bold tracking-tight text-background sm:text-3xl md:text-4xl">
+              <h2 className="mt-4 max-w-xl text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
                 Få et skarpere udvalg med det samme.
               </h2>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-background/60">Input</div>
-                  <div className="mt-1 text-sm font-semibold text-background">Kort input</div>
-                  <div className="mt-1 text-xs leading-5 text-background/70">Beskriv opgaven kort.</div>
+                <div className="rounded-2xl border border-border bg-card p-3">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Input</div>
+                  <div className="mt-1 text-sm font-semibold text-foreground">Kort input</div>
+                  <div className="mt-1 text-xs leading-5 text-muted-foreground">Beskriv opgaven kort.</div>
                 </div>
-                <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-background/60">Sortering</div>
-                  <div className="mt-1 text-sm font-semibold text-background">Færre, bedre matches</div>
-                  <div className="mt-1 text-xs leading-5 text-background/70">Prioriteret efter relevans.</div>
+                <div className="rounded-2xl border border-border bg-card p-3">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Sortering</div>
+                  <div className="mt-1 text-sm font-semibold text-foreground">Færre, bedre matches</div>
+                  <div className="mt-1 text-xs leading-5 text-muted-foreground">Prioriteret efter relevans.</div>
                 </div>
-                <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-background/60">Resultat</div>
-                  <div className="mt-1 text-sm font-semibold text-background">Roligt overblik</div>
-                  <div className="mt-1 text-xs leading-5 text-background/70">De bedste kandidater først.</div>
+                <div className="rounded-2xl border border-border bg-card p-3">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Resultat</div>
+                  <div className="mt-1 text-sm font-semibold text-foreground">Roligt overblik</div>
+                  <div className="mt-1 text-xs leading-5 text-muted-foreground">De bedste kandidater først.</div>
                 </div>
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link to="/tilbud">
-                  <Button size="lg" className="h-12 gap-2 rounded-full bg-accent px-7 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/20 hover:bg-accent/90">
+                  <Button size="lg" className="h-12 gap-2 rounded-full px-7 text-sm font-semibold">
                     Prøv det gratis
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
                 <Link to="/virksomheder">
-                  <Button size="lg" variant="outline" className="h-12 gap-2 rounded-full border-background/20 bg-transparent px-6 text-sm font-medium text-background hover:bg-background/10 hover:text-background">
+                  <Button size="lg" variant="outline" className="h-12 gap-2 rounded-full bg-background px-6 text-sm font-medium">
                     Se virksomheder
                   </Button>
                 </Link>
@@ -57,7 +57,7 @@ const GetQuotes = () => {
             </div>
 
             <div className="relative">
-              <div className="rounded-2xl bg-background p-4 shadow-2xl sm:p-5">
+              <div className="rounded-[28px] border border-border bg-background p-4 shadow-sm sm:p-5">
                 <div className="mb-4 flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent">
                     <Sparkles className="h-4 w-4" />
