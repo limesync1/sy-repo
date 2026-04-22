@@ -223,6 +223,44 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           </div>
         </div>
 
+        <div className="mb-4 rounded-[1.5rem] border border-accent/20 bg-accent/5 p-3.5 shadow-sm shadow-accent/10">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Prisoverslag</p>
+              <p className="text-2xl font-bold text-foreground">{roundPrice(total)} kr</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {selectedInterval && selectedInterval !== "engangskøb"
+                  ? INTERVAL_LABELS[selectedInterval] || selectedInterval
+                  : "Engangsservice"}
+              </p>
+            </div>
+            <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-background text-accent shadow-sm ring-1 ring-accent/15">
+              <ShoppingCart className="h-4 w-4" />
+            </div>
+          </div>
+          <Button
+            onClick={handleAdd}
+            disabled={justAdded}
+            className={`h-12 w-full gap-2 rounded-xl text-sm font-semibold transition-all ${
+              justAdded
+                ? "bg-accent/80 text-accent-foreground"
+                : "bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/35 active:scale-[0.98]"
+            }`}
+          >
+            {justAdded ? (
+              <>
+                <Check className="h-4 w-4" />
+                Tilføjet!
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="h-4 w-4" />
+                Tilføj til bestilling
+              </>
+            )}
+          </Button>
+        </div>
+
         {showIntervals && (
           <div className="mb-4 rounded-[1.25rem] border border-border bg-secondary/30 p-3.5">
             <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Abonnement / interval</label>
@@ -304,44 +342,6 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
             </div>
           </div>
         )}
-        </div>
-
-        <div className="mt-auto rounded-[1.5rem] border border-accent/20 bg-accent/5 p-3.5 shadow-sm shadow-accent/10">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Prisoverslag</p>
-              <p className="text-2xl font-bold text-foreground">{roundPrice(total)} kr</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {selectedInterval && selectedInterval !== "engangskøb"
-                  ? INTERVAL_LABELS[selectedInterval] || selectedInterval
-                  : "Engangsservice"}
-              </p>
-            </div>
-            <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-background text-accent shadow-sm ring-1 ring-accent/15">
-              <ShoppingCart className="h-4 w-4" />
-            </div>
-          </div>
-          <Button
-            onClick={handleAdd}
-            disabled={justAdded}
-            className={`h-12 w-full gap-2 rounded-xl text-sm font-semibold transition-all ${
-              justAdded
-                ? "bg-accent/80 text-accent-foreground"
-                : "bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/35 active:scale-[0.98]"
-            }`}
-          >
-            {justAdded ? (
-              <>
-                <Check className="h-4 w-4" />
-                Tilføjet!
-              </>
-            ) : (
-              <>
-                <ShoppingCart className="h-4 w-4" />
-                Tilføj til bestilling
-              </>
-            )}
-          </Button>
         </div>
 
       </CardContent>
