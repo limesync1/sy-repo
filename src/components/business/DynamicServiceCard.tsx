@@ -183,7 +183,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
   const showIntervals = intervals.length > 1 || (intervals.length === 1 && intervals[0] !== "engangskøb");
 
   return (
-    <Card className="group h-full overflow-hidden rounded-[2rem] border-border/80 bg-card transition-all hover:-translate-y-0.5 hover:border-accent/25 hover:shadow-[0_24px_55px_-34px_hsl(var(--foreground)/0.32)]">
+    <Card className="group h-full overflow-hidden rounded-[1.75rem] border-border/80 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/25 hover:shadow-[0_24px_55px_-34px_hsl(var(--foreground)/0.24)]">
       {/* Image or placeholder */}
       {service.image_url ? (
         <div className="relative h-36 w-full overflow-hidden bg-secondary sm:h-40">
@@ -208,57 +208,19 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
       )}
 
       <CardContent className="flex h-full flex-col p-4 sm:p-5">
-        <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="mb-4 flex items-start justify-between gap-3 border-b border-border/70 pb-4">
           <div className="min-w-0 flex-1">
           <h3 className="text-xl font-bold leading-tight text-foreground">{service.name}</h3>
           {(service as any).subcategory && (
             <span className="mt-1 inline-flex rounded-full bg-accent/10 px-2.5 py-1 text-[11px] font-semibold text-accent">{(service as any).subcategory}</span>
           )}
           {service.description && (
-            <p className="mt-2 text-sm leading-5 text-muted-foreground line-clamp-2">{service.description}</p>
+            <p className="mt-2 text-sm leading-5 text-muted-foreground/90 line-clamp-2">{service.description}</p>
           )}
           </div>
-          <div className="shrink-0 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-muted-foreground">
+          <div className="shrink-0 rounded-full border border-border bg-secondary/65 px-3 py-1 text-xs font-semibold text-muted-foreground">
             {pricingLabels[service.pricing_type]}
           </div>
-        </div>
-
-        <div className="mb-4 rounded-[1.5rem] border border-accent/20 bg-accent/5 p-3.5 shadow-sm shadow-accent/10">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Prisoverslag</p>
-              <p className="text-2xl font-bold text-foreground">{roundPrice(total)} kr</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {selectedInterval && selectedInterval !== "engangskøb"
-                  ? INTERVAL_LABELS[selectedInterval] || selectedInterval
-                  : "Engangsservice"}
-              </p>
-            </div>
-            <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-background text-accent shadow-sm ring-1 ring-accent/15">
-              <ShoppingCart className="h-4 w-4" />
-            </div>
-          </div>
-          <Button
-            onClick={handleAdd}
-            disabled={justAdded}
-            className={`h-12 w-full gap-2 rounded-xl text-sm font-semibold transition-all ${
-              justAdded
-                ? "bg-accent/80 text-accent-foreground"
-                : "bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/35 active:scale-[0.98]"
-            }`}
-          >
-            {justAdded ? (
-              <>
-                <Check className="h-4 w-4" />
-                Tilføjet!
-              </>
-            ) : (
-              <>
-                <ShoppingCart className="h-4 w-4" />
-                Tilføj til bestilling
-              </>
-            )}
-          </Button>
         </div>
 
         {showIntervals && (
@@ -279,7 +241,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           </div>
         )}
 
-        <div className="mb-4 rounded-[1.5rem] border border-border bg-secondary/20 p-3.5 sm:p-4">
+        <div className="mb-4 flex-1 rounded-[1.5rem] border border-border bg-secondary/20 p-3.5 sm:p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tilpas service</p>
@@ -342,6 +304,47 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
             </div>
           </div>
         )}
+        </div>
+
+        <div className="mt-auto rounded-[1.5rem] border border-accent/20 bg-[hsl(var(--accent)/0.06)] p-3.5 shadow-[0_18px_40px_-32px_hsl(var(--foreground)/0.45)]">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Prisoverslag</p>
+              <div className="mt-1 flex items-end gap-1.5">
+                <p className="text-2xl font-bold leading-none text-foreground">{roundPrice(total)}</p>
+                <span className="text-sm text-muted-foreground">kr</span>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {selectedInterval && selectedInterval !== "engangskøb"
+                  ? INTERVAL_LABELS[selectedInterval] || selectedInterval
+                  : "Engangsservice"}
+              </p>
+            </div>
+            <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-accent/15 bg-background text-accent shadow-sm">
+              <ShoppingCart className="h-4 w-4" />
+            </div>
+          </div>
+          <Button
+            onClick={handleAdd}
+            disabled={justAdded}
+            className={`h-12 w-full gap-2 rounded-xl text-sm font-semibold transition-all ${
+              justAdded
+                ? "bg-accent/80 text-accent-foreground"
+                : "bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/35 active:scale-[0.98]"
+            }`}
+          >
+            {justAdded ? (
+              <>
+                <Check className="h-4 w-4" />
+                Tilføjet!
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="h-4 w-4" />
+                Tilføj til bestilling
+              </>
+            )}
+          </Button>
         </div>
 
       </CardContent>
