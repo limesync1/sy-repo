@@ -139,10 +139,10 @@ const DynamicBusinessContent = () => {
 
       {/* ── Hero ── */}
       <header className="relative border-b border-border bg-background">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4 md:pt-6">
+        <div className="mx-auto max-w-7xl px-4 pt-3 sm:px-6 lg:px-8 md:pt-4">
           {/* Cover image with gradient */}
-          <div className="relative overflow-hidden rounded-[2rem] border border-border bg-secondary shadow-[0_26px_60px_-40px_hsl(var(--foreground)/0.28)]">
-            <div className={`relative w-full ${hasCover ? "aspect-[21/9] md:aspect-[21/8]" : "h-28 md:h-36"}`}>
+          <div className="relative overflow-hidden rounded-[1.75rem] border border-border bg-secondary shadow-[0_26px_60px_-40px_hsl(var(--foreground)/0.22)]">
+            <div className={`relative w-full ${hasCover ? "h-44 sm:h-52 md:h-64 lg:h-72" : "h-24 md:h-28"}`}>
               {hasCover && (
                 <>
                   <img
@@ -158,9 +158,9 @@ const DynamicBusinessContent = () => {
           </div>
 
           {/* Logo overlaps cover */}
-          <div className="relative -mt-8 mb-3 flex items-end md:-mt-12 md:mb-4">
+          <div className="relative -mt-6 mb-2 flex items-end md:-mt-8 md:mb-3">
             <div className="relative shrink-0">
-              <div className="flex h-[4.5rem] w-[4.5rem] items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card shadow-xl md:h-24 md:w-24">
+              <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card shadow-xl md:h-20 md:w-20">
                 {business.logo_url ? (
                   <img src={business.logo_url} alt={`${business.name} logo`} className="h-full w-full object-contain p-2" loading="eager" />
                 ) : (
@@ -178,7 +178,7 @@ const DynamicBusinessContent = () => {
           </div>
 
           {/* Identity row — clean, below cover */}
-          <div className="flex flex-col gap-4 pb-5 md:flex-row md:items-end md:justify-between md:gap-6 md:pb-8">
+          <div className="flex flex-col gap-3 pb-4 md:flex-row md:items-end md:justify-between md:gap-5 md:pb-6">
             <div className="min-w-0 flex-1">
               {(business.categories?.[0] || business.category) && (
                 <div className="mb-2.5 flex flex-wrap gap-1.5">
@@ -191,7 +191,7 @@ const DynamicBusinessContent = () => {
               )}
 
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <h1 className="text-[2.1rem] font-extrabold leading-tight tracking-tight text-foreground md:text-4xl lg:text-[2.75rem]">
+                <h1 className="text-[1.95rem] font-extrabold leading-tight tracking-tight text-foreground md:text-[2.35rem] lg:text-[2.7rem]">
                   {business.name}
                 </h1>
                 {business.is_verified && (
@@ -202,7 +202,7 @@ const DynamicBusinessContent = () => {
                 )}
               </div>
 
-              <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
                 {avgRating ? (
                   <span className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-foreground text-foreground" />
@@ -230,7 +230,7 @@ const DynamicBusinessContent = () => {
                 )}
               </div>
               {business.description && (
-                <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground line-clamp-3">{business.description}</p>
+                <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground line-clamp-2 md:text-[0.95rem]">{business.description}</p>
               )}
             </div>
 
@@ -257,7 +257,7 @@ const DynamicBusinessContent = () => {
 
       {/* ── Body ── */}
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-6 py-6 md:gap-8 md:py-8 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid gap-5 py-4 md:gap-6 md:py-5 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px]">
 
           {/* ── Main Column ── */}
           <div className="min-w-0 space-y-10">
