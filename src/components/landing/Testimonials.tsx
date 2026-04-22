@@ -32,16 +32,19 @@ const Testimonials = () => {
   if (!reviews || reviews.length === 0) return null;
 
   return (
-    <section className="bg-background py-14 md:py-18">
+    <section className="bg-secondary/35 py-14 md:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 max-w-2xl">
+        <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-2xl">
           <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Anmeldelser</div>
           <h2 className="mt-2 text-2xl font-bold tracking-tight text-foreground md:text-3xl">
             Kunderne siger det kort
           </h2>
+          </div>
+          <div className="text-sm text-muted-foreground">Rigtige oplevelser fra rigtige kunder</div>
         </div>
 
-        <div className="rounded-[32px] border border-border bg-secondary/50 p-4 shadow-sm sm:p-5">
+        <div className="rounded-[36px] border border-border bg-background p-4 shadow-sm sm:p-5">
         <HorizontalScroller>
           {reviews.map((r) => (
             <article
