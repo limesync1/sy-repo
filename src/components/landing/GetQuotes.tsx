@@ -4,9 +4,9 @@ import { Link } from "react-router-dom";
 
 const GetQuotes = () => {
   const matches = [
-    { name: "Ready2Clean", price: "1.450 kr", rating: "4.9", verified: true, logo: "R2", tone: "bg-secondary text-foreground", reason: "Stærkt match", eta: "Kan tage opgaven hurtigt" },
-    { name: "Nordic Service", price: "1.620 kr", rating: "4.8", verified: true, logo: "NS", tone: "bg-accent/10 text-accent", reason: "Bedst anmeldt", eta: "Høj kundetilfredshed" },
-    { name: "Pro Helpers", price: "1.380 kr", rating: "4.7", verified: false, logo: "PH", tone: "bg-muted text-foreground", reason: "Bedste pris", eta: "Budgetvenligt valg" },
+    { name: "Ready2Clean", price: "1.450 kr", rating: "4.9", verified: true, logo: "R2", tone: "bg-secondary text-foreground", reason: "Bedst samlet", eta: "Kan starte hurtigt" },
+    { name: "Nordic Service", price: "1.620 kr", rating: "4.8", verified: true, logo: "NS", tone: "bg-accent/10 text-accent", reason: "Stærk kvalitet", eta: "Mange glade kunder" },
+    { name: "Pro Helpers", price: "1.380 kr", rating: "4.7", verified: false, logo: "PH", tone: "bg-muted text-foreground", reason: "God pris", eta: "Fornuftigt budgetvalg" },
   ];
 
   return (
@@ -14,31 +14,30 @@ const GetQuotes = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="overflow-hidden rounded-[28px] bg-foreground px-5 py-7 sm:px-8 sm:py-9 md:px-12 md:py-10">
           <div className="grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10">
-            {/* Left */}
             <div>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent">
                 <Sparkles className="h-3 w-3" />
                 AI-drevet matching
               </span>
               <h2 className="mt-4 max-w-xl text-2xl font-bold tracking-tight text-background sm:text-3xl md:text-4xl">
-                Lad de bedste matches komme til dig.
+                Få de mest relevante valg først.
               </h2>
               <p className="mt-4 max-w-lg text-sm leading-7 text-background/75 sm:text-base">
-                Vi sorterer efter relevans, lokation og kvalitet, så du hurtigere ser hvem der faktisk giver mening.
+                I stedet for mange ligegyldige profiler bliver de mest relevante prioriteret med det samme.
               </p>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
-                  <div className="text-sm font-semibold text-background">1 formular</div>
-                  <div className="mt-1 text-xs leading-5 text-background/70">Kort og enkelt.</div>
+                  <div className="text-sm font-semibold text-background">Kort input</div>
+                  <div className="mt-1 text-xs leading-5 text-background/70">Ingen lange trin.</div>
                 </div>
                 <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
-                  <div className="text-sm font-semibold text-background">Op til 3 svar</div>
-                  <div className="mt-1 text-xs leading-5 text-background/70">Udvalgt til din opgave.</div>
+                  <div className="text-sm font-semibold text-background">Færre, bedre matches</div>
+                  <div className="mt-1 text-xs leading-5 text-background/70">Udvalgt til opgaven.</div>
                 </div>
                 <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
-                  <div className="text-sm font-semibold text-background">Ingen binding</div>
-                  <div className="mt-1 text-xs leading-5 text-background/70">Gratis at prøve.</div>
+                  <div className="text-sm font-semibold text-background">Roligt overblik</div>
+                  <div className="mt-1 text-xs leading-5 text-background/70">Nemmere at vælge.</div>
                 </div>
               </div>
 
@@ -51,23 +50,22 @@ const GetQuotes = () => {
                 </Link>
                 <Link to="/virksomheder">
                   <Button size="lg" variant="outline" className="h-12 gap-2 rounded-full border-background/20 bg-transparent px-6 text-sm font-medium text-background hover:bg-background/10 hover:text-background">
-                    Browse virksomheder
+                    Se virksomheder
                   </Button>
                 </Link>
               </div>
             </div>
 
-            {/* Right — fake AI matching demo */}
             <div className="relative">
               <div className="rounded-2xl bg-background p-4 shadow-2xl sm:p-5">
-                <div className="mb-3 flex items-center gap-2">
+                <div className="mb-4 flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent">
                     <Sparkles className="h-4 w-4" />
                   </div>
                   <div className="flex-1">
                     <div className="text-xs font-semibold text-foreground">AI matcher</div>
-                     <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                      <Clock className="h-3 w-3" /> Sorteret efter kvalitet, pris og afstand
+                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <Clock className="h-3 w-3" /> Prioriterer kvalitet, pris og nærhed
                     </div>
                   </div>
                   <span className="flex h-2 w-2 animate-pulse rounded-full bg-accent" />
@@ -98,7 +96,7 @@ const GetQuotes = () => {
 
                 <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-secondary py-2 text-xs font-medium text-muted-foreground">
                   <Zap className="h-3 w-3 text-accent" />
-                  Klarere prioritering af de bedste muligheder
+                  Viser først dem der mest sandsynligt passer
                 </div>
               </div>
             </div>

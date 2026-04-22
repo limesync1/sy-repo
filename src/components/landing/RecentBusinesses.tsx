@@ -29,7 +29,6 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
       to={`/b/${biz.slug}`}
       className="group flex w-[280px] shrink-0 flex-col gap-3 sm:w-[300px]"
     >
-      {/* Cover */}
       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-secondary">
         {biz.cover_image_url ? (
           <img
@@ -44,10 +43,8 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
           </div>
         )}
 
-        {/* Favorite (only when logged in) */}
         <FavoriteButton businessId={biz.id} />
 
-        {/* Verified badge */}
         {biz.is_verified && (
           <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur">
             <ShieldCheck className="h-3 w-3 text-accent" />
@@ -55,7 +52,6 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
           </div>
         )}
 
-        {/* Logo chip bottom-left — properly contained */}
         {biz.logo_url && (
           <div className="absolute -bottom-5 left-4 h-14 w-14 overflow-hidden rounded-xl border-2 border-card bg-card shadow-md flex items-center justify-center">
             <img src={biz.logo_url} alt="" className="h-full w-full object-contain p-1.5" />
@@ -63,7 +59,6 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
         )}
       </div>
 
-      {/* Body */}
       <div className={`flex flex-col gap-1 px-1 ${biz.logo_url ? "pt-4" : ""}`}>
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-[15px] font-semibold tracking-tight text-foreground line-clamp-1">{biz.name}</h3>
@@ -77,7 +72,6 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
           )}
         </div>
 
-        {/* Categories — labelled, with chip styling */}
         {primaryCat && (
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="inline-flex items-center rounded-md bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">
@@ -89,7 +83,6 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
           </div>
         )}
 
-        {/* Location with explicit icon */}
         {biz.city && (
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="h-3.5 w-3.5" />
@@ -142,10 +135,10 @@ const RecentBusinesses = () => {
   return (
     <section className="bg-background py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Populære virksomheder</h2>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">Stærke profiler, klar til at blive valgt.</p>
+            <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Udvalgte virksomheder</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">Et hurtigere overblik over profiler, der ser stærke ud med det samme.</p>
           </div>
           <Link to="/virksomheder" className="text-sm font-semibold text-foreground underline-offset-4 hover:underline">
             Vis alle
