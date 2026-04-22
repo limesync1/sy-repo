@@ -48,42 +48,43 @@ const Testimonials = () => {
   if (!reviews || reviews.length === 0) return null;
 
   const lead = reviews[0];
-  const sideReviews = reviews.slice(1, 5);
+  const sideReviews = reviews.slice(1, 4);
 
   return (
-    <section className="bg-secondary/45 py-16 md:py-24">
+    <section className="border-t border-border bg-secondary/35 py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <div className="max-w-2xl">
+        <div className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,0.55fr)_minmax(0,0.45fr)] lg:items-end">
+          <div>
             <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Anmeldelser
             </div>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+            <h2 className="mt-3 max-w-2xl text-3xl font-bold tracking-tight text-foreground md:text-4xl">
               Hvad kunder faktisk siger efter de har valgt.
             </h2>
           </div>
-          <div className="text-sm text-muted-foreground">
-            Udpluk af nyere oplevelser på platformen
-          </div>
+          <p className="max-w-xl text-base leading-7 text-muted-foreground lg:justify-self-end">
+            Anmeldelserne er gjort mere redaktionelle, så de læses som rigtige
+            oplevelser i stedet for bare endnu en kort-grid.
+          </p>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start">
-          <article className="rounded-[36px] bg-background px-6 py-7 shadow-sm sm:px-7 sm:py-8">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] lg:items-start">
+          <article className="rounded-[40px] bg-foreground px-6 py-7 text-background shadow-sm sm:px-8 sm:py-8">
             <Stars rating={lead.rating} />
-            <blockquote className="mt-6 text-2xl font-semibold leading-[1.35] tracking-tight text-foreground sm:text-[2rem]">
+            <blockquote className="mt-6 max-w-[18ch] text-[2rem] font-semibold leading-[1.18] tracking-tight text-background sm:text-[2.5rem]">
               “{lead.comment}”
             </blockquote>
-            <div className="mt-8 border-t border-border pt-5">
-              <div className="text-base font-semibold text-foreground">
+            <div className="mt-8 border-t border-background/12 pt-5">
+              <div className="text-base font-semibold text-background">
                 {lead.reviewer_name}
               </div>
-              <div className="mt-1 text-sm text-muted-foreground">
+              <div className="mt-1 text-sm text-background/70">
                 Bekræftet kundeanmeldelse
               </div>
               {lead.businesses && (
                 <Link
                   to={`/b/${lead.businesses.slug}`}
-                  className="mt-2 inline-flex text-sm text-foreground transition-opacity hover:opacity-80"
+                  className="mt-2 inline-flex text-sm text-background/86 transition-opacity hover:opacity-80"
                 >
                   om {lead.businesses.name}
                 </Link>
@@ -91,34 +92,34 @@ const Testimonials = () => {
             </div>
           </article>
 
-          <div className="space-y-0 border-t border-border bg-background">
-            {sideReviews.map((review, index) => (
+          <div className="space-y-3">
+            {sideReviews.map((review) => (
               <article
                 key={review.id}
-                className={`grid gap-4 py-5 sm:grid-cols-[120px_minmax(0,1fr)] ${index > 0 ? "border-t border-border" : ""}`}
+                className="rounded-[28px] bg-background px-5 py-5 shadow-sm"
               >
-                <div>
-                  <div className="text-sm font-semibold text-foreground">
-                    {review.reviewer_name}
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">
+                      {review.reviewer_name}
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      Kundeanmeldelse
+                    </div>
                   </div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    Kundeanmeldelse
-                  </div>
-                </div>
-                <div>
                   <Stars rating={review.rating} />
-                  <p className="mt-3 text-sm leading-7 text-foreground">
-                    “{review.comment}”
-                  </p>
-                  {review.businesses && (
-                    <Link
-                      to={`/b/${review.businesses.slug}`}
-                      className="mt-3 inline-flex text-xs text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                      om {review.businesses.name}
-                    </Link>
-                  )}
                 </div>
+                <p className="mt-4 text-sm leading-7 text-foreground">
+                  “{review.comment}”
+                </p>
+                {review.businesses && (
+                  <Link
+                    to={`/b/${review.businesses.slug}`}
+                    className="mt-4 inline-flex text-xs text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    om {review.businesses.name}
+                  </Link>
+                )}
               </article>
             ))}
           </div>
