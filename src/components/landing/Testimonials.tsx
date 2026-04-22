@@ -32,7 +32,7 @@ const Testimonials = () => {
   if (!reviews || reviews.length === 0) return null;
 
   return (
-    <section className="bg-secondary/60 py-12 md:py-16">
+    <section className="bg-background py-14 md:py-18">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 max-w-2xl">
           <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Anmeldelser</div>
@@ -41,6 +41,7 @@ const Testimonials = () => {
           </h2>
         </div>
 
+        <div className="rounded-[32px] border border-border bg-secondary/50 p-4 shadow-sm sm:p-5">
         <HorizontalScroller>
           {reviews.map((r) => (
             <article
@@ -78,6 +79,7 @@ const Testimonials = () => {
             </article>
           ))}
         </HorizontalScroller>
+        </div>
       </div>
     </section>
   );
