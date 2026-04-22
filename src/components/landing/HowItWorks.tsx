@@ -24,10 +24,10 @@ const HowItWorks = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-3 md:mb-10 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-              Hurtigere fra behov til valg
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Flow</div>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+              Fra behov til booking på få trin
             </h2>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">Forsiden skal føles enkel — også når opgaven ikke er det.</p>
           </div>
           <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground">
             <Sparkles className="h-4 w-4 text-accent" />
