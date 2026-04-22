@@ -158,9 +158,9 @@ const DynamicBusinessContent = () => {
           </div>
 
           {/* Logo overlaps cover */}
-          <div className="relative -mt-12 md:-mt-14 mb-4 md:mb-5 flex items-end">
+          <div className="relative -mt-10 mb-4 flex items-end md:-mt-14 md:mb-5">
             <div className="relative shrink-0">
-              <div className="overflow-hidden rounded-2xl border-4 border-background bg-card shadow-xl flex items-center justify-center h-24 w-24 md:h-28 md:w-28">
+              <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card shadow-xl md:h-28 md:w-28">
                 {business.logo_url ? (
                   <img src={business.logo_url} alt={`${business.name} logo`} className="h-full w-full object-contain p-2" loading="eager" />
                 ) : (
@@ -178,7 +178,7 @@ const DynamicBusinessContent = () => {
           </div>
 
           {/* Identity row — clean, below cover */}
-          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-6 pb-8 md:pb-10">
+          <div className="flex flex-col gap-5 pb-7 md:flex-row md:items-end md:justify-between md:gap-6 md:pb-10">
             <div className="min-w-0 flex-1">
               {(business.categories?.[0] || business.category) && (
                 <div className="mb-2.5 flex flex-wrap gap-1.5">
@@ -191,7 +191,7 @@ const DynamicBusinessContent = () => {
               )}
 
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-foreground md:text-4xl lg:text-[2.75rem]">
+                <h1 className="text-[2.1rem] font-extrabold leading-tight tracking-tight text-foreground md:text-4xl lg:text-[2.75rem]">
                   {business.name}
                 </h1>
                 {business.is_verified && (
@@ -202,7 +202,7 @@ const DynamicBusinessContent = () => {
                 )}
               </div>
 
-              <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
+              <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
                 {avgRating ? (
                   <span className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-foreground text-foreground" />
@@ -232,11 +232,11 @@ const DynamicBusinessContent = () => {
             </div>
 
             {services && services.length > 0 && (
-              <div className="flex flex-wrap gap-2 shrink-0">
+               <div className="grid shrink-0 gap-2 sm:flex sm:flex-wrap">
                 <Button
                   onClick={scrollToServices}
                   size="lg"
-                  className="h-12 gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/20 transition-all hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/30 active:scale-[0.98]"
+                   className="h-12 w-full gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/20 transition-all hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/30 active:scale-[0.98] sm:w-auto"
                 >
                   Bestil nu <ArrowDown className="h-4 w-4" />
                 </Button>
@@ -245,7 +245,7 @@ const DynamicBusinessContent = () => {
                     <Button
                       size="lg"
                       variant="outline"
-                      className="h-12 gap-2 rounded-full border-border bg-card px-5 text-sm font-medium text-foreground transition-all hover:border-foreground/40 hover:bg-secondary"
+                        className="h-12 w-full gap-2 rounded-full border-border bg-card px-5 text-sm font-medium text-foreground transition-all hover:border-foreground/40 hover:bg-secondary sm:w-auto"
                     >
                       <Phone className="h-4 w-4" /> Ring
                     </Button>
