@@ -4,22 +4,37 @@ import { Link } from "react-router-dom";
 
 const GetQuotes = () => {
   return (
-    <section className="bg-background py-12 md:py-20">
+    <section className="bg-background py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-3xl bg-foreground px-5 py-8 sm:px-8 sm:py-12 md:px-16 md:py-16">
-          <div className="grid items-center gap-8 md:grid-cols-[1.2fr_0.8fr]">
+        <div className="overflow-hidden rounded-[28px] bg-foreground px-5 py-8 sm:px-8 sm:py-10 md:px-12 md:py-12">
+          <div className="grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10">
             {/* Left */}
             <div>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent">
                 <Sparkles className="h-3 w-3" />
                 AI-drevet matching
               </span>
-              <h2 className="mt-4 text-2xl font-bold tracking-tight text-background sm:text-3xl md:text-4xl">
-                Beskriv opgaven – vores AI finder folkene.
+              <h2 className="mt-4 max-w-xl text-2xl font-bold tracking-tight text-background sm:text-3xl md:text-4xl">
+                Beskriv behovet én gang — få relevante tilbud tilbage.
               </h2>
-              <p className="mt-4 max-w-md text-base text-background/70">
+              <p className="mt-4 max-w-lg text-sm leading-7 text-background/75 sm:text-base">
                 Fortæl kort hvad du har brug for. Vores AI matcher med op til 3 verificerede serviceydere på <span className="font-semibold text-background">3-10 sekunder</span> — helt gratis & uforpligtende.
               </p>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
+                  <div className="text-sm font-semibold text-background">1 formular</div>
+                  <div className="mt-1 text-xs leading-5 text-background/70">Du beskriver opgaven én gang.</div>
+                </div>
+                <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
+                  <div className="text-sm font-semibold text-background">Op til 3 svar</div>
+                  <div className="mt-1 text-xs leading-5 text-background/70">Du får relevante tilbud at sammenligne.</div>
+                </div>
+                <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
+                  <div className="text-sm font-semibold text-background">Ingen binding</div>
+                  <div className="mt-1 text-xs leading-5 text-background/70">Gratis og uforpligtende hele vejen.</div>
+                </div>
+              </div>
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link to="/tilbud">
@@ -38,7 +53,7 @@ const GetQuotes = () => {
 
             {/* Right — fake AI matching demo */}
             <div className="relative">
-              <div className="rounded-2xl bg-background p-5 shadow-2xl">
+              <div className="rounded-2xl bg-background p-4 shadow-2xl sm:p-5">
                 <div className="mb-3 flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent">
                     <Sparkles className="h-4 w-4" />

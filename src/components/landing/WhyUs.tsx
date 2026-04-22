@@ -25,18 +25,18 @@ const benefits = [
 
 const WhyUs = () => {
   return (
-    <section className="bg-background py-16 md:py-20">
+    <section className="bg-background py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 max-w-2xl">
+        <div className="mb-8 max-w-2xl md:mb-10">
           <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
             Hvorfor Serviceydere?
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">Trygt, gratis og bygget til danske kunder.</p>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">Alt er bygget til at gøre valget mere trygt, hurtigt og overskueligt for danske kunder.</p>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {benefits.map((b) => (
-            <div key={b.title} className="group flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 transition-all hover:border-foreground/30 hover:shadow-md">
+            <div key={b.title} className="group flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 transition-all hover:border-foreground/20 hover:bg-secondary hover:shadow-sm">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 text-accent transition-colors group-hover:bg-accent group-hover:text-accent-foreground">
                 <b.icon className="h-5 w-5" />
               </div>
