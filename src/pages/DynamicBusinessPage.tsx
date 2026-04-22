@@ -236,9 +236,10 @@ const DynamicBusinessContent = () => {
                 <Button
                   onClick={scrollToServices}
                   size="lg"
-                   className="h-12 w-full gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/20 transition-all hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/30 active:scale-[0.98] sm:w-auto"
+                  variant="outline"
+                  className="h-12 w-full gap-2 rounded-full border-accent/30 bg-card px-6 text-sm font-semibold text-foreground shadow-sm transition-all hover:border-accent hover:bg-secondary sm:w-auto"
                 >
-                  Bestil nu <ArrowDown className="h-4 w-4" />
+                  Se services <ArrowDown className="h-4 w-4" />
                 </Button>
                 {business.phone && (
                   <a href={`tel:${business.phone}`}>
