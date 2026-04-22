@@ -233,14 +233,6 @@ const DynamicBusinessContent = () => {
 
             {services && services.length > 0 && (
                <div className="grid shrink-0 gap-2 sm:flex sm:flex-wrap">
-                <Button
-                  onClick={scrollToServices}
-                  size="lg"
-                  variant="outline"
-                  className="h-12 w-full gap-2 rounded-full border-accent/30 bg-card px-6 text-sm font-semibold text-foreground shadow-sm transition-all hover:border-accent hover:bg-secondary sm:w-auto"
-                >
-                  Se services <ArrowDown className="h-4 w-4" />
-                </Button>
                 {business.phone && (
                   <a href={`tel:${business.phone}`}>
                     <Button
