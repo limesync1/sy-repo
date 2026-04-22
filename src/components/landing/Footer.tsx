@@ -4,22 +4,22 @@ const Footer = () => {
   return (
     <footer className="border-t border-border bg-background">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8">
-        <div className="mb-10 grid gap-5 rounded-[36px] border border-border bg-secondary p-6 shadow-sm sm:p-7 lg:grid-cols-[1.15fr_0.9fr_0.8fr] lg:items-center">
+        <div className="mb-10 grid gap-5 rounded-[40px] border border-border bg-foreground p-6 shadow-sm sm:p-7 lg:grid-cols-[1.15fr_0.9fr_0.8fr] lg:items-center">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kom videre</div>
-            <h3 className="mt-2 text-2xl font-semibold text-foreground">Vælg næste skridt</h3>
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-background/60">Kom videre</div>
+            <h3 className="mt-2 text-2xl font-semibold text-background">Vælg næste skridt</h3>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
-            <Link to="/virksomheder" className="inline-flex items-center justify-center rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-foreground/90">
+            <Link to="/virksomheder" className="inline-flex items-center justify-center rounded-full bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-background/90">
               Find services
             </Link>
-            <Link to="/tilbud" className="inline-flex items-center justify-center rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary">
+            <Link to="/tilbud" className="inline-flex items-center justify-center rounded-full border border-background/20 bg-background/10 px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-background/20">
               Få tilbud
             </Link>
           </div>
-          <div className="text-sm text-muted-foreground lg:text-right">
-            <div className="font-semibold text-foreground">Support</div>
-            <a href="mailto:kontakt@serviceydere.dk" className="mt-1 inline-block transition-colors hover:text-foreground">kontakt@serviceydere.dk</a>
+          <div className="text-sm text-background/70 lg:text-right">
+            <div className="font-semibold text-background">Support</div>
+            <a href="mailto:kontakt@serviceydere.dk" className="mt-1 inline-block transition-colors hover:text-background">kontakt@serviceydere.dk</a>
           </div>
         </div>
 

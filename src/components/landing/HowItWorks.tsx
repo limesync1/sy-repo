@@ -35,10 +35,10 @@ const HowItWorks = () => {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-[minmax(0,0.82fr)_minmax(0,0.82fr)_minmax(0,0.82fr)]">
+        <div className="grid gap-4 md:grid-cols-3">
 
           {steps.map((step, i) => (
-            <div key={step.title} className="relative flex flex-col gap-5 rounded-[30px] border border-border bg-secondary/55 p-6 md:min-h-[260px] md:p-7">
+            <div key={step.title} className="relative flex flex-col gap-5 rounded-[34px] border border-border bg-card p-6 shadow-sm md:min-h-[280px] md:p-7">
               <div className="flex items-center justify-between gap-3">
                 <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-border bg-secondary shadow-sm">
                 <step.icon className="h-6 w-6 text-foreground" />
