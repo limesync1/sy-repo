@@ -142,7 +142,7 @@ const DynamicBusinessContent = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4 md:pt-6">
           {/* Cover image with gradient */}
           <div className="relative overflow-hidden rounded-3xl bg-secondary">
-            <div className={`relative w-full ${hasCover ? "aspect-[21/8] md:aspect-[21/7]" : "h-32 md:h-40"}`}>
+            <div className={`relative w-full ${hasCover ? "aspect-[21/9] md:aspect-[21/8]" : "h-28 md:h-36"}`}>
               {hasCover && (
                 <>
                   <img
@@ -158,9 +158,9 @@ const DynamicBusinessContent = () => {
           </div>
 
           {/* Logo overlaps cover */}
-          <div className="relative -mt-10 mb-4 flex items-end md:-mt-14 md:mb-5">
+          <div className="relative -mt-8 mb-3 flex items-end md:-mt-12 md:mb-4">
             <div className="relative shrink-0">
-              <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card shadow-xl md:h-28 md:w-28">
+              <div className="flex h-[4.5rem] w-[4.5rem] items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card shadow-xl md:h-24 md:w-24">
                 {business.logo_url ? (
                   <img src={business.logo_url} alt={`${business.name} logo`} className="h-full w-full object-contain p-2" loading="eager" />
                 ) : (
@@ -178,7 +178,7 @@ const DynamicBusinessContent = () => {
           </div>
 
           {/* Identity row — clean, below cover */}
-          <div className="flex flex-col gap-5 pb-7 md:flex-row md:items-end md:justify-between md:gap-6 md:pb-10">
+          <div className="flex flex-col gap-4 pb-5 md:flex-row md:items-end md:justify-between md:gap-6 md:pb-8">
             <div className="min-w-0 flex-1">
               {(business.categories?.[0] || business.category) && (
                 <div className="mb-2.5 flex flex-wrap gap-1.5">
@@ -261,18 +261,18 @@ const DynamicBusinessContent = () => {
 
       {/* ── Body ── */}
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-8 py-8 md:gap-10 md:py-12 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid gap-6 py-6 md:gap-8 md:py-8 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px]">
 
           {/* ── Main Column ── */}
           <div className="min-w-0 space-y-10">
 
             {/* Services */}
             {services && services.length > 0 && (
-              <section id="services" aria-labelledby="services-heading" className="rounded-[2rem] border border-border bg-card p-5 shadow-sm md:p-7">
-                <div className="mb-6 flex flex-col gap-3 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
+              <section id="services" aria-labelledby="services-heading" className="rounded-[2rem] border border-border bg-card p-4 shadow-sm md:p-6">
+                <div className="mb-5 flex flex-col gap-2 border-b border-border pb-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Book direkte</p>
-                    <h2 id="services-heading" className="text-2xl font-bold text-foreground">Services</h2>
+                    <h2 id="services-heading" className="text-[1.75rem] font-bold text-foreground">Services</h2>
                     <p className="mt-1 text-sm text-muted-foreground">Vælg en service, tilpas den hvis nødvendigt, og læg den direkte i bestillingen.</p>
                   </div>
                   <span className="inline-flex w-fit items-center rounded-full bg-secondary px-3 py-1 text-sm font-medium text-muted-foreground">{serviceCount} {serviceCount === 1 ? "service" : "services"}</span>
@@ -311,7 +311,7 @@ const DynamicBusinessContent = () => {
                 )}
 
                 {/* Service cards */}
-                <div className="space-y-10">
+                <div className="space-y-8">
                   {fullWidthCategoryEntries.map(({ cat, subs }) => (
                     <div key={cat}>
                       {(hasMultipleCategories || Object.keys(subs).some(k => k !== "")) && (
