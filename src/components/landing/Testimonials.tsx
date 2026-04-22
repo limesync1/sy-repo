@@ -39,6 +39,17 @@ const Testimonials = () => {
             Hvad kunderne siger
           </h2>
           <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">Ægte anmeldelser fra rigtige bookings, så du lettere kan vælge rigtigt.</p>
+          <div className="mt-3 flex flex-wrap gap-2 text-xs font-medium text-muted-foreground">
+            {[
+              "Rigtige kunder",
+              "Rigtige bookings",
+              "Bedre beslutninger",
+            ].map((item) => (
+              <span key={item} className="inline-flex rounded-full border border-border bg-background px-3 py-1">
+                {item}
+              </span>
+            ))}
+          </div>
         </div>
 
         <HorizontalScroller>
@@ -64,6 +75,7 @@ const Testimonials = () => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-semibold text-foreground">{r.reviewer_name}</div>
+                  <div className="mt-0.5 text-[11px] text-muted-foreground">Bekræftet kundeanmeldelse</div>
                   {r.businesses && (
                     <Link
                       to={`/b/${r.businesses.slug}`}

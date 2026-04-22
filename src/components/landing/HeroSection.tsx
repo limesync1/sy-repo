@@ -101,6 +101,20 @@ const HeroSection = () => {
                 <span className="text-xs text-muted-foreground">Søger nær:</span>
                 <LocationChip />
               </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {[
+                  "Rengøring i nærheden",
+                  "Håndværker i dag",
+                  "Få tilbud hurtigt",
+                ].map((shortcut) => (
+                  <span
+                    key={shortcut}
+                    className="inline-flex items-center rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground"
+                  >
+                    {shortcut}
+                  </span>
+                ))}
+              </div>
             </div>
 
             {/* Trust strip */}
@@ -132,6 +146,20 @@ const HeroSection = () => {
                 <p className="mt-1 text-sm leading-6 text-muted-foreground">
                   Få overblik over pris, anmeldelser og tilgængelighed uden at hoppe mellem flere sider.
                 </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {[
+                    "Prisoverblik",
+                    "Verificerede profiler",
+                    "Nær din lokation",
+                  ].map((item) => (
+                    <span
+                      key={item}
+                      className="inline-flex rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

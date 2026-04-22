@@ -148,6 +148,17 @@ const RecentBusinesses = () => {
               Virksomheder du kan booke med det samme
             </h2>
             <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">Se virksomheder med gode anmeldelser, tydelige profiler og hurtig adgang til booking.</p>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs font-medium text-muted-foreground">
+              {[
+                "Verificerede profiler",
+                "Ægte anmeldelser",
+                "Tydelige priser",
+              ].map((item) => (
+                <span key={item} className="inline-flex rounded-full border border-border bg-card px-3 py-1">
+                  {item}
+                </span>
+              ))}
+            </div>
           </div>
           <Link to="/virksomheder" className="text-sm font-semibold text-foreground underline-offset-4 hover:underline">
             Vis alle
