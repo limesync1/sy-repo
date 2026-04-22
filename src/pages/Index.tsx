@@ -1,6 +1,6 @@
 import HeroSection from "@/components/landing/HeroSection";
-import HowItWorks from "@/components/landing/HowItWorks";
 import Categories from "@/components/landing/Categories";
+import HowItWorks from "@/components/landing/HowItWorks";
 import RecentBusinesses from "@/components/landing/RecentBusinesses";
 import Testimonials from "@/components/landing/Testimonials";
 import WhyUs from "@/components/landing/WhyUs";
@@ -19,8 +19,8 @@ const Index = () => {
       />
       <HeroSection />
       <Categories />
-      <HowItWorks />
       <RecentBusinesses />
+      <HowItWorks />
       <GetQuotes />
       <Testimonials />
       <WhyUs />

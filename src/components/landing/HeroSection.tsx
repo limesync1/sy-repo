@@ -73,13 +73,13 @@ const HeroSection = () => {
           <div className="min-w-0 flex flex-col py-1 md:py-4">
             <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
               <Sparkles className="h-3 w-3" />
-              Danmarks samlede platform for serviceydere
+              Find den rette hjælp hurtigere
             </span>
             <h1 className="mt-4 max-w-2xl text-[2rem] font-extrabold leading-[1.02] tracking-tight text-foreground sm:text-[2.5rem] md:text-[3.2rem] lg:text-[3.6rem]">
               Find den rette <span className="text-accent">serviceyder</span> til opgaven.
             </h1>
             <p className="mt-4 max-w-xl text-[15px] leading-7 text-muted-foreground sm:text-base md:text-lg">
-              Sammenlign verificerede virksomheder, læs ægte anmeldelser og book direkte — eller få op til 3 skræddersyede tilbud på få sekunder.
+              Søg lokalt, sammenlign hurtigt og vælg med større sikkerhed.
             </p>
 
             <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -103,9 +103,8 @@ const HeroSection = () => {
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {[
-                  "Rengøring i nærheden",
-                  "Håndværker i dag",
-                  "Få tilbud hurtigt",
+                  "Tæt på dig",
+                  "Verificerede profiler",
                 ].map((shortcut) => (
                   <span
                     key={shortcut}
@@ -118,16 +117,15 @@ const HeroSection = () => {
             </div>
 
             {/* Trust strip */}
-            <div className="mt-5 grid grid-cols-1 gap-2 text-sm text-muted-foreground sm:mt-6 sm:grid-cols-3 sm:gap-3">
+            <div className="mt-5 grid grid-cols-1 gap-2 text-sm text-muted-foreground sm:mt-6 sm:grid-cols-2 sm:gap-3">
               <span className="flex items-center gap-1.5">
                 <ShieldCheck className="h-4 w-4 text-accent" />
                 Verificerede udbydere
               </span>
               <span className="flex items-center gap-1.5">
                 <Sparkles className="h-4 w-4 text-accent" />
-                AI-matchede tilbud
+                Smarte forslag
               </span>
-              <span>Gratis & uforpligtende</span>
             </div>
           </div>
 
