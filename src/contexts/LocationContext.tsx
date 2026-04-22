@@ -127,13 +127,20 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const applyDetectedLocation = useCallback((city: string | null, zip: string | null, region: string | null, source: UserLocation["source"]) => {
+  const lookupPostalCity = useCallback(async (zip: string | null) => {
+    if (!zip || !DK_ZIP_RE.test(zip)) return null;
+    const data = await fetchJSON(`https://api.dataforsyningen.dk/postnumre/${zip}`, 5000);
+    return data?.navn || null;
+  }, [fetchJSON]);
+
+  const applyDetectedLocation = useCallback(async (city: string | null, zip: string | null, region: string | null, source: UserLocation["source"]) => {
     if (!city && !zip) return false;
-    const next: UserLocation = { city, zip, region, source };
+    const canonicalCity = await lookupPostalCity(zip);
+    const next: UserLocation = { city: canonicalCity || city, zip, region, source };
     setLocation(next);
     writeStored(next);
     return true;
-  }, []);
+  }, [lookupPostalCity]);
 
   const reverseGeocodeCoords = useCallback(async (latitude: number, longitude: number) => {
     const dawa = await fetchJSON(
@@ -145,7 +152,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
       const zip = dawa?.postnummer?.nr || null;
       const city = dawa?.postnummer?.navn || dawa?.supplerendebynavn || null;
       const region = dawa?.kommune?.navn || null;
-      if (city || zip) return { city, zip, region };
+        if (city || zip) return { city, zip, region };
     }
 
     const nominatim = await fetchJSON(
@@ -208,7 +215,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
             });
 
             const precise = await reverseGeocodeCoords(position.coords.latitude, position.coords.longitude);
-            if (!cancelled && precise && applyDetectedLocation(precise.city, precise.zip, precise.region, "precise")) return;
+            if (!cancelled && precise && await applyDetectedLocation(precise.city, precise.zip, precise.region, "precise")) return;
           } catch {
             // ignore and fall back to IP-based lookup
           }
@@ -218,24 +225,24 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
         if (who?.success !== false) {
           if (Number.isFinite(who?.latitude) && Number.isFinite(who?.longitude)) {
             const precise = await reverseGeocodeCoords(Number(who.latitude), Number(who.longitude));
-            if (!cancelled && precise && applyDetectedLocation(precise.city, precise.zip, precise.region, "ip")) return;
+            if (!cancelled && precise && await applyDetectedLocation(precise.city, precise.zip, precise.region, "ip")) return;
           }
-          if (!cancelled && applyDetectedLocation(who?.city || null, who?.postal || null, who?.region || null, "ip")) return;
+          if (!cancelled && await applyDetectedLocation(who?.city || null, who?.postal || null, who?.region || null, "ip")) return;
         }
 
         const ipa = await fetchJSON("https://ipapi.co/json/");
         if (ipa) {
           if (Number.isFinite(ipa?.latitude) && Number.isFinite(ipa?.longitude)) {
             const precise = await reverseGeocodeCoords(Number(ipa.latitude), Number(ipa.longitude));
-            if (!cancelled && precise && applyDetectedLocation(precise.city, precise.zip, precise.region, "ip")) return;
+            if (!cancelled && precise && await applyDetectedLocation(precise.city, precise.zip, precise.region, "ip")) return;
           }
-          if (!cancelled && applyDetectedLocation(ipa?.city || null, ipa?.postal || null, ipa?.region || null, "ip")) return;
+          if (!cancelled && await applyDetectedLocation(ipa?.city || null, ipa?.postal || null, ipa?.region || null, "ip")) return;
         }
 
         // 3) BigDataCloud raw fallback
         const bdc = await fetchJSON("https://api-bdc.net/data/client-ip?localityLanguage=da");
         if (bdc && !cancelled) {
-          applyDetectedLocation(
+          await applyDetectedLocation(
             bdc?.location?.postcodeLocality || bdc?.location?.city || bdc?.location?.locality || null,
             bdc?.location?.postcode || null,
             bdc?.location?.principalSubdivision || null,
@@ -256,6 +263,25 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applyDetectedLocation, fetchJSON, location.city, location.source, location.zip]);
 
+  useEffect(() => {
+    if (!location.zip) return;
+
+    let cancelled = false;
+
+    (async () => {
+      const canonicalCity = await lookupPostalCity(location.zip);
+      if (!canonicalCity || cancelled || canonicalCity === location.city) return;
+
+      const next: UserLocation = { ...location, city: canonicalCity };
+      setLocation(next);
+      writeStored(next);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [location, lookupPostalCity]);
+
   const detectPreciseLocation = useCallback(async () => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return false;
 
@@ -274,7 +300,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
       const result = await reverseGeocodeCoords(position.coords.latitude, position.coords.longitude);
       if (!result) return false;
 
-      return applyDetectedLocation(result.city, result.zip, result.region, "precise");
+      return await applyDetectedLocation(result.city, result.zip, result.region, "precise");
     } catch {
       return false;
     } finally {
