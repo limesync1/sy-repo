@@ -1,8 +1,14 @@
-import { Sparkles, Zap, ShieldCheck, ArrowRight, Clock } from "lucide-react";
+import { Sparkles, Zap, ShieldCheck, ArrowRight, Clock, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 const GetQuotes = () => {
+  const matches = [
+    { name: "Ready2Clean", price: "1.450 kr", rating: "4.9", verified: true, logo: "R2", tone: "bg-secondary text-foreground" },
+    { name: "Nordic Service", price: "1.620 kr", rating: "4.8", verified: true, logo: "NS", tone: "bg-accent/10 text-accent" },
+    { name: "Pro Helpers", price: "1.380 kr", rating: "4.7", verified: false, logo: "PH", tone: "bg-muted text-foreground" },
+  ];
+
   return (
     <section className="bg-background py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -34,6 +40,19 @@ const GetQuotes = () => {
                   <div className="text-sm font-semibold text-background">Ingen binding</div>
                   <div className="mt-1 text-xs leading-5 text-background/70">Gratis og uforpligtende hele vejen.</div>
                 </div>
+              </div>
+
+              <div className="mt-5 flex flex-wrap gap-2 text-xs text-background/80">
+                {[
+                  "Mest relevante først",
+                  "Tager højde for lokation",
+                  "Sammenlign før du vælger",
+                ].map((item) => (
+                  <span key={item} className="inline-flex items-center gap-1.5 rounded-full border border-background/10 bg-background/5 px-3 py-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
+                    {item}
+                  </span>
+                ))}
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3">
@@ -68,25 +87,21 @@ const GetQuotes = () => {
                 </div>
 
                 <div className="space-y-2">
-                  {[
-                    { name: "Ready2Clean", price: "1.450 kr", rating: "4.9", verified: true },
-                    { name: "Nordic Service", price: "1.620 kr", rating: "4.8", verified: true },
-                    { name: "Pro Helpers", price: "1.380 kr", rating: "4.7", verified: false },
-                  ].map((m, i) => (
+                  {matches.map((m, i) => (
                     <div
                       key={m.name}
                       className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
                       style={{ animation: `fade-in 0.4s ease-out ${i * 120}ms both` }}
                     >
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-xs font-bold text-foreground">
-                        {m.name.charAt(0)}
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl text-xs font-bold ${m.tone}`}>
+                        {m.logo}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
                           <span className="truncate text-sm font-semibold text-foreground">{m.name}</span>
                           {m.verified && <ShieldCheck className="h-3 w-3 shrink-0 text-accent" />}
                         </div>
-                        <div className="text-[11px] text-muted-foreground">★ {m.rating} · Bedste match</div>
+                        <div className="text-[11px] text-muted-foreground">★ {m.rating} · Bedste match i dit område</div>
                       </div>
                       <div className="text-sm font-bold text-foreground">{m.price}</div>
                     </div>
