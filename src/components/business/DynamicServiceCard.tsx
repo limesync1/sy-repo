@@ -275,27 +275,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           </div>
         )}
 
-        {/* Interval selector */}
-        {showIntervals && (
-          <div className="mb-5">
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Vælg interval</label>
-            <div className="flex flex-wrap gap-1.5">
-              {intervals.map((iv) => (
-                <button key={iv} type="button" onClick={() => setSelectedInterval(iv)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
-                    selectedInterval === iv
-                      ? "border-accent bg-accent text-accent-foreground shadow-sm"
-                      : "border-border bg-card text-muted-foreground hover:border-accent/40"
-                  }`}>
-                  {INTERVAL_LABELS[iv] || iv}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Add button */}
-        <div className="mt-auto rounded-2xl border border-accent/20 bg-accent/5 p-3 shadow-sm shadow-accent/10">
+        <div className="mb-4 rounded-2xl border border-accent/20 bg-accent/5 p-3 shadow-sm shadow-accent/10">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Klar til bestilling</p>
@@ -327,6 +307,26 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
             )}
           </Button>
         </div>
+
+        {/* Interval selector */}
+        {showIntervals && (
+          <div className="mb-5">
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Vælg interval</label>
+            <div className="flex flex-wrap gap-1.5">
+              {intervals.map((iv) => (
+                <button key={iv} type="button" onClick={() => setSelectedInterval(iv)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                    selectedInterval === iv
+                      ? "border-accent bg-accent text-accent-foreground shadow-sm"
+                      : "border-border bg-card text-muted-foreground hover:border-accent/40"
+                  }`}>
+                  {INTERVAL_LABELS[iv] || iv}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
       </CardContent>
     </Card>
   );
