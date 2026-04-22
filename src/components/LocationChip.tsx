@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { MapPin, Loader2, Pencil, X, Check } from "lucide-react";
+import { MapPin, Loader2, Pencil, X, Check, LocateFixed } from "lucide-react";
 import { useUserLocation } from "@/contexts/LocationContext";
 
 interface Props {
@@ -15,9 +15,10 @@ interface Props {
  *  - User can always click to edit (4-digit DK postal code).
  */
 const LocationChip = ({ variant = "pill", className = "" }: Props) => {
-  const { location, detecting, detected, setManualZip, clear } = useUserLocation();
+  const { location, detecting, detected, setManualZip, detectPreciseLocation } = useUserLocation();
   const [editing, setEditing] = useState(false);
   const [zipInput, setZipInput] = useState(location.zip || "");
+  const [requestingPrecise, setRequestingPrecise] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // If auto-detection failed (detected but still no location), open the input by default.
@@ -39,11 +40,24 @@ const LocationChip = ({ variant = "pill", className = "" }: Props) => {
     }
   };
 
+  const handlePreciseLocation = async () => {
+    setRequestingPrecise(true);
+    const ok = await detectPreciseLocation();
+    if (ok) setEditing(false);
+    setRequestingPrecise(false);
+  };
+
   const label = location.city
     ? location.zip
       ? `${location.zip} ${location.city}`
       : location.city
     : location.zip || "";
+
+  const helperLabel = location.source === "precise"
+    ? "Præcis placering"
+    : location.source === "ip"
+      ? "Område baseret på netværk"
+      : "Tilpasset manuelt";
 
   const baseClasses =
     variant === "pill"
@@ -88,6 +102,16 @@ const LocationChip = ({ variant = "pill", className = "" }: Props) => {
         />
         <button
           type="button"
+          onClick={handlePreciseLocation}
+          disabled={requestingPrecise}
+          className="flex h-6 items-center gap-1 rounded-full px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-50"
+          aria-label="Brug min præcise placering"
+        >
+          {requestingPrecise ? <Loader2 className="h-3 w-3 animate-spin" /> : <LocateFixed className="h-3 w-3" />}
+          GPS
+        </button>
+        <button
+          type="button"
           onClick={submit}
           disabled={!/^\d{4}$/.test(zipInput.trim())}
           className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-background transition-opacity hover:opacity-90 disabled:opacity-30"
@@ -122,6 +146,11 @@ const LocationChip = ({ variant = "pill", className = "" }: Props) => {
     >
       <MapPin className="h-3.5 w-3.5 text-accent" />
       <span className="max-w-[160px] truncate">{label}</span>
+      {variant === "pill" && (
+        <span className="hidden rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground sm:inline-flex">
+          {helperLabel}
+        </span>
+      )}
       <Pencil className="h-3 w-3 text-muted-foreground/60 opacity-0 transition-opacity group-hover:opacity-100" />
     </button>
   );

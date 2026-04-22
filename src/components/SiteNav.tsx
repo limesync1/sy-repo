@@ -71,7 +71,7 @@ const SiteNav = ({ active, right }: Props) => {
             <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-8 sm:h-9 md:h-10" />
           </Link>
 
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden items-center gap-1 lg:flex">
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.key}
@@ -85,6 +85,10 @@ const SiteNav = ({ active, right }: Props) => {
                 {item.label}
               </Link>
             ))}
+          </div>
+
+          <div className="hidden md:flex lg:hidden items-center rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground">
+            {NAV_ITEMS.find((item) => isActive(item.key))?.label || "Menu"}
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
@@ -119,7 +123,7 @@ const SiteNav = ({ active, right }: Props) => {
               </DropdownMenu>
             ) : (
               <>
-                <Link to="/log-ind" className="hidden sm:inline-block">
+                <Link to="/log-ind" className="hidden md:inline-block">
                   <button className="rounded-full px-3 sm:px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary active:bg-secondary/70">
                     Log ind
                   </button>
