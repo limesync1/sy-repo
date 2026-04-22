@@ -218,14 +218,14 @@ const RequestQuote = () => {
 
       {/* ─── STEP 1: Hero + form ─── */}
       {!matches && !isLoading && !selectedBusiness && (
-        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pt-10 pb-16 md:pt-16 md:pb-20">
+        <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pt-10 pb-16 md:pt-14 md:pb-20">
           {/* Headline */}
           <div className="text-center">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
               <Sparkles className="h-3 w-3" />
               AI-drevet matching
             </span>
-            <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-[3.5rem]">
+            <h1 className="mt-4 text-4xl font-bold leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-[3.5rem]">
               Beskriv opgaven – <span className="text-accent">vores AI</span> finder folkene.
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">
@@ -235,9 +235,9 @@ const RequestQuote = () => {
           </div>
 
           {/* Form card */}
-          <form onSubmit={handleFind} className="mt-10 rounded-3xl border border-border bg-card p-6 shadow-xl md:p-8">
+          <form onSubmit={handleFind} className="surface-panel mt-10 rounded-[2rem] border border-border p-6 shadow-[0_24px_55px_-36px_hsl(var(--foreground)/0.28)] md:p-8">
             {/* Location strip */}
-            <div className="mb-6 flex flex-wrap items-center gap-2 rounded-2xl bg-secondary/50 px-3 py-2">
+            <div className="mb-6 flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card/80 px-3 py-2">
               <span className="text-xs font-medium text-muted-foreground">Din lokation:</span>
               <LocationChip />
               <RadiusPicker />
@@ -258,10 +258,10 @@ const RequestQuote = () => {
                       key={label}
                       type="button"
                       onClick={() => setCategory(label)}
-                      className={`group flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 px-2 py-3 text-center transition-all ${
+                     className={`group flex flex-col items-center justify-center gap-1.5 rounded-2xl border px-2 py-3 text-center transition-all ${
                         active
                           ? "border-foreground bg-foreground text-background shadow-md"
-                          : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                          : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:bg-secondary/60 hover:text-foreground"
                       }`}
                     >
                       <Icon className={`h-5 w-5 ${active ? "" : "text-foreground/70"}`} />
@@ -318,7 +318,7 @@ const RequestQuote = () => {
               { n: 2, title: "AI matcher", text: "Vores AI finder de bedste 3 udbydere på sekunder." },
               { n: 3, title: "Sammenlign & vælg", text: "Tilpas pris, læs anmeldelser og book direkte." },
             ].map((s) => (
-              <div key={s.n} className="rounded-2xl border border-border bg-card p-5">
+              <div key={s.n} className="rounded-[1.5rem] border border-border bg-card p-5 shadow-sm">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/10 text-sm font-bold text-accent">{s.n}</div>
                 <h3 className="mt-3 text-sm font-semibold text-foreground">{s.title}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{s.text}</p>
@@ -364,7 +364,7 @@ const RequestQuote = () => {
 
       {/* ─── STEP 2: Pick a business ─── */}
       {matches && matches.length > 0 && !isLoading && !selectedBusiness && (
-        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 md:py-14 animate-fade-in">
+          <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 md:py-14 animate-fade-in">
           <div className="mb-8 text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-1.5 text-sm font-semibold text-accent">
               <Sparkles className="h-4 w-4" />
@@ -384,7 +384,7 @@ const RequestQuote = () => {
                 <button
                   key={match.business_id}
                   onClick={() => handleSelectBusiness(match)}
-                  className={`group block w-full overflow-hidden rounded-2xl border bg-card text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.995] ${
+                  className={`group block w-full overflow-hidden rounded-[1.75rem] border bg-card text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_50px_-30px_hsl(var(--foreground)/0.28)] active:scale-[0.995] ${
                     isTop ? "border-accent/30 shadow-md ring-1 ring-accent/10" : "border-border hover:border-foreground/20"
                   }`}
                 >
@@ -509,7 +509,7 @@ const RequestQuote = () => {
           </Button>
 
           {/* Business header */}
-          <div className="rounded-2xl border border-border bg-card p-5 md:p-6">
+          <div className="rounded-[1.75rem] border border-border bg-card p-5 shadow-sm md:p-6">
             <div className="flex items-start gap-4">
               {selectedBusiness.business.logo_url ? (
                 <img src={selectedBusiness.business.logo_url} alt="" className="h-16 w-16 shrink-0 rounded-xl border border-border bg-card object-contain p-1.5" />
@@ -542,7 +542,7 @@ const RequestQuote = () => {
           </div>
 
           {/* Info banner */}
-          <div className="mt-5 flex items-start gap-3 rounded-2xl border border-accent/20 bg-accent/5 p-4">
+          <div className="mt-5 flex items-start gap-3 rounded-[1.5rem] border border-accent/20 bg-accent/5 p-4">
             <ShoppingCart className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
             <div className="text-sm">
               <p className="font-semibold text-foreground">Tilpas og tilføj services til din kurv</p>
@@ -602,9 +602,9 @@ const RequestQuote = () => {
                   {otherServices.length > 0 && (
                     <div>
                       {!showAllServices ? (
-                        <button
+                         <button
                           onClick={() => setShowAllServices(true)}
-                          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 py-3.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary active:scale-[0.99]"
+                           className="flex w-full items-center justify-center gap-2 rounded-[1.5rem] border border-border bg-card px-4 py-3.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary active:scale-[0.99]"
                         >
                           Se {otherServices.length} andre services fra {selectedBusiness.business.name}
                           <ArrowRight className="h-4 w-4" />

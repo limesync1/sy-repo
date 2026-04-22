@@ -141,7 +141,7 @@ const DynamicBusinessContent = () => {
       <header className="relative border-b border-border bg-background">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4 md:pt-6">
           {/* Cover image with gradient */}
-          <div className="relative overflow-hidden rounded-3xl bg-secondary">
+          <div className="relative overflow-hidden rounded-[2rem] border border-border bg-secondary shadow-[0_26px_60px_-40px_hsl(var(--foreground)/0.28)]">
             <div className={`relative w-full ${hasCover ? "aspect-[21/9] md:aspect-[21/8]" : "h-28 md:h-36"}`}>
               {hasCover && (
                 <>
@@ -229,6 +229,9 @@ const DynamicBusinessContent = () => {
                   </>
                 )}
               </div>
+              {business.description && (
+                <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground line-clamp-3">{business.description}</p>
+              )}
             </div>
 
             {services && services.length > 0 && (
@@ -261,7 +264,7 @@ const DynamicBusinessContent = () => {
 
             {/* Services */}
             {services && services.length > 0 && (
-              <section id="services" aria-labelledby="services-heading" className="rounded-[2rem] border border-border bg-card p-4 shadow-sm md:p-6">
+              <section id="services" aria-labelledby="services-heading" className="rounded-[2rem] border border-border bg-card p-4 shadow-[0_22px_50px_-34px_hsl(var(--foreground)/0.2)] md:p-6">
                 <div className="mb-5 flex flex-col gap-2 border-b border-border pb-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Book direkte</p>
@@ -304,7 +307,7 @@ const DynamicBusinessContent = () => {
                 )}
 
                 {/* Service cards */}
-                <div className="space-y-8">
+                 <div className="space-y-8">
                   {fullWidthCategoryEntries.map(({ cat, subs }) => (
                     <div key={cat}>
                       {(hasMultipleCategories || Object.keys(subs).some(k => k !== "")) && (
@@ -394,8 +397,8 @@ const DynamicBusinessContent = () => {
             )}
 
             {/* About */}
-            {business.description && (
-              <section aria-labelledby="about-heading" className="rounded-3xl border border-border bg-secondary/20 p-5 md:p-7">
+             {business.description && (
+               <section aria-labelledby="about-heading" className="rounded-[2rem] border border-border bg-secondary/20 p-5 md:p-7">
                 <div className="max-w-3xl">
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Virksomhedsprofil</p>
                   <h2 id="about-heading" className="mb-3 text-xl font-bold text-foreground md:text-2xl">Om {business.name}</h2>
@@ -489,8 +492,8 @@ const DynamicBusinessContent = () => {
           {/* ── Sidebar ── */}
           <aside className="order-first space-y-4 lg:order-none lg:sticky lg:top-24 lg:self-start">
             {/* Bestil/Contact Card — primary CTA */}
-            <Card className="overflow-hidden rounded-3xl border border-border shadow-sm">
-              <div className="border-b border-accent/15 bg-gradient-to-br from-accent/10 to-accent/5 px-5 py-5">
+             <Card className="overflow-hidden rounded-[2rem] border border-border shadow-[0_22px_50px_-34px_hsl(var(--foreground)/0.22)]">
+               <div className="border-b border-accent/15 bg-accent/5 px-5 py-5">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-accent" />
                   <h3 className="font-bold text-foreground">Klar til at bestille?</h3>
@@ -533,8 +536,8 @@ const DynamicBusinessContent = () => {
             </Card>
 
             {/* Opening Hours */}
-            {openingHours.length > 0 && (
-              <Card className="rounded-3xl border-border bg-card/90">
+             {openingHours.length > 0 && (
+               <Card className="rounded-[2rem] border-border bg-card/90 shadow-sm">
                 <CardContent className="p-5">
                   <h3 className="mb-3 flex items-center gap-2 font-bold text-foreground">
                     <Clock className="h-4 w-4 text-accent" /> Åbningstider
@@ -558,7 +561,7 @@ const DynamicBusinessContent = () => {
             )}
 
             {/* Trust Badges */}
-            <Card className="rounded-3xl border-border bg-card/90">
+             <Card className="rounded-[2rem] border-border bg-card/90 shadow-sm">
               <CardContent className="space-y-3 p-5">
                 {business.is_verified && (
                   <div className="flex items-center gap-3 text-sm text-foreground">
