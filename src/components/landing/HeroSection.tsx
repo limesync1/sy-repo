@@ -67,40 +67,53 @@ const HeroSection = () => {
         </div>
       </nav>
 
-      <div className="mx-auto max-w-7xl px-4 pb-10 pt-4 sm:px-6 sm:pb-12 sm:pt-8 lg:px-8 md:pt-10 md:pb-16">
-        <div className="overflow-hidden rounded-[32px] border border-border bg-secondary/60 p-4 shadow-sm sm:p-5 lg:p-6">
-          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:gap-8">
-            <div className="min-w-0 rounded-[28px] bg-card p-5 shadow-sm sm:p-7">
-              <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1 text-xs font-semibold text-foreground">
+      <div className="px-4 pb-10 pt-4 sm:px-6 sm:pb-12 sm:pt-8 lg:px-8 md:pt-10 md:pb-16">
+        <div className="relative overflow-hidden rounded-[32px] min-h-[760px] md:min-h-[700px] lg:min-h-[780px]">
+          <img
+            src={heroImage}
+            alt="Professionel serviceyder klar til at hjælpe"
+            className="absolute inset-0 h-full w-full object-cover"
+            width={1536}
+            height={1024}
+            loading="eager"
+          />
+          <div className="absolute inset-0 bg-background/28" />
+          <div className="absolute inset-0 bg-foreground/16" />
+
+          <div className="relative mx-auto flex min-h-[760px] max-w-7xl flex-col justify-between px-5 py-6 sm:px-8 sm:py-8 md:min-h-[700px] lg:min-h-[780px] lg:px-10 lg:py-10">
+            <div className="max-w-3xl pt-6 sm:pt-10 lg:pt-16">
+              <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-background/35 bg-background/88 px-3 py-1 text-xs font-semibold text-foreground backdrop-blur-sm">
                 <Sparkles className="h-3 w-3 text-accent" />
-                Lokal service, hurtigere valgt
+                Find lokal hjælp uden at rode dig væk
               </span>
-              <h1 className="mt-5 max-w-2xl text-[2.2rem] font-extrabold leading-[1] tracking-tight text-foreground sm:text-[2.8rem] md:text-[3.4rem] lg:text-[3.8rem]">
-                Find en serviceyder, der faktisk passer til opgaven.
+              <h1 className="mt-5 max-w-3xl text-[2.4rem] font-extrabold leading-[0.95] tracking-tight text-background sm:text-[3.3rem] md:text-[4.3rem] lg:text-[5.1rem]">
+                Den hurtigste vej til den rigtige serviceyder.
               </h1>
-              <p className="mt-4 max-w-xl text-[15px] leading-7 text-muted-foreground sm:text-base md:text-lg">
-                Mindre rod, bedre overblik og hurtigere vej fra søgning til booking.
+              <p className="mt-5 max-w-2xl text-base leading-7 text-background/88 sm:text-lg md:text-xl">
+                Søg, sammenlign og vælg med et klart overblik over pris, kvalitet og nærhed.
               </p>
 
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Link to="/virksomheder">
-                  <Button size="lg" className="h-12 w-full rounded-full px-6 text-sm font-semibold sm:w-auto">
+                  <Button size="lg" className="h-12 w-full rounded-full bg-background px-6 text-sm font-semibold text-foreground hover:bg-background/90 sm:w-auto">
                     Find services
                   </Button>
                 </Link>
                 <Link to="/tilbud">
-                  <Button size="lg" variant="outline" className="h-12 w-full rounded-full bg-background px-6 text-sm font-semibold sm:w-auto">
+                  <Button size="lg" variant="outline" className="h-12 w-full rounded-full border-background/45 bg-background/12 px-6 text-sm font-semibold text-background hover:bg-background/20 hover:text-background sm:w-auto">
                     Få 3 tilbud
                   </Button>
                 </Link>
               </div>
+            </div>
 
-              <div className="mt-7 rounded-[28px] border border-border bg-background shadow-sm">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <span>Match din opgave</span>
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)] lg:items-end">
+              <div className="rounded-[28px] border border-background/25 bg-background/92 p-4 shadow-2xl backdrop-blur-md sm:p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <span>Start din søgning</span>
                   <span>Live forslag</span>
                 </div>
-                <div className="p-3 sm:p-4">
+                <div className="pt-4">
                   <SearchSuggest variant="hero" />
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     <span className="text-xs text-muted-foreground">Søger nær:</span>
@@ -109,55 +122,18 @@ const HeroSection = () => {
                 </div>
               </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-border bg-secondary/70 px-4 py-3">
+              <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+                <div className="rounded-[24px] border border-background/25 bg-background/82 px-4 py-4 backdrop-blur-md">
                   <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Pris</div>
-                  <div className="mt-1 text-sm font-semibold text-foreground">Se niveau med det samme</div>
+                  <div className="mt-1 text-sm font-semibold text-foreground">Se niveau før du klikker videre</div>
                 </div>
-                <div className="rounded-2xl border border-border bg-secondary/70 px-4 py-3">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Profil</div>
-                  <div className="mt-1 text-sm font-semibold text-foreground">Vurdér kvalitet hurtigere</div>
+                <div className="rounded-[24px] border border-background/25 bg-background/82 px-4 py-4 backdrop-blur-md">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kvalitet</div>
+                  <div className="mt-1 text-sm font-semibold text-foreground">Vurdér profiler og anmeldelser hurtigere</div>
                 </div>
-                <div className="rounded-2xl border border-border bg-secondary/70 px-4 py-3">
+                <div className="rounded-[24px] border border-background/25 bg-background/82 px-4 py-4 backdrop-blur-md">
                   <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Nærhed</div>
-                  <div className="mt-1 text-sm font-semibold text-foreground">Lokale valg først</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid gap-4">
-              <div className="relative overflow-hidden rounded-[28px] border border-border bg-card p-3 shadow-sm">
-                <div className="relative aspect-[4/4.4] overflow-hidden rounded-[24px] bg-secondary">
-                  <img
-                    src={heroImage}
-                    alt="Professionel serviceyder klar til at hjælpe"
-                    className="h-full w-full object-cover"
-                    width={1536}
-                    height={1024}
-                    loading="eager"
-                  />
-                  <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-border bg-card/95 p-4 shadow-lg backdrop-blur">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Klar til sammenligning</div>
-                        <div className="mt-1 text-sm font-semibold text-foreground">De vigtigste signaler ligger forrest</div>
-                      </div>
-                      <ShieldCheck className="h-5 w-5 text-accent" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-[24px] border border-border bg-card p-5 shadow-sm">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Overblik</div>
-                  <div className="mt-2 text-lg font-semibold text-foreground">Rolig visning</div>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">Færre forstyrrelser og bedre fokus på valget.</p>
-                </div>
-                <div className="rounded-[24px] border border-border bg-card p-5 shadow-sm">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Tempo</div>
-                  <div className="mt-2 text-lg font-semibold text-foreground">Hurtigere handling</div>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">Gå fra søgning til kontakt uden unødige trin.</p>
+                  <div className="mt-1 text-sm font-semibold text-foreground">Lokale valg kommer tydeligere frem</div>
                 </div>
               </div>
             </div>

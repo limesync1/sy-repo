@@ -20,7 +20,7 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section className="bg-secondary py-12 md:py-16">
+    <section className="bg-secondary/60 py-14 md:py-18">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-3 md:mb-10 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
@@ -35,10 +35,10 @@ const HowItWorks = () => {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3 md:gap-6">
+        <div className="grid gap-px overflow-hidden rounded-[28px] border border-border bg-border md:grid-cols-3">
 
           {steps.map((step, i) => (
-            <div key={step.title} className="relative flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <div key={step.title} className="relative flex flex-col gap-5 bg-card p-6 md:min-h-[260px] md:p-7">
               <div className="flex items-center justify-between gap-3">
                 <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-border bg-secondary shadow-sm">
                 <step.icon className="h-6 w-6 text-foreground" />

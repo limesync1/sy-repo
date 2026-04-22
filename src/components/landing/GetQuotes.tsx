@@ -12,7 +12,7 @@ const GetQuotes = () => {
   return (
     <section className="bg-background py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="overflow-hidden rounded-[32px] border border-border bg-secondary px-5 py-7 shadow-sm sm:px-8 sm:py-9 md:px-12 md:py-10">
+          <div className="overflow-hidden rounded-[36px] border border-border bg-gradient-to-b from-secondary to-background px-5 py-8 shadow-sm sm:px-8 sm:py-10 md:px-12 md:py-12">
           <div className="grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10">
             <div>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-foreground">
@@ -57,7 +57,7 @@ const GetQuotes = () => {
             </div>
 
             <div className="relative">
-              <div className="rounded-[28px] border border-border bg-background p-4 shadow-sm sm:p-5">
+              <div className="rounded-[32px] border border-border bg-background p-4 shadow-sm sm:p-5">
                 <div className="mb-4 flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent">
                     <Sparkles className="h-4 w-4" />
@@ -75,7 +75,7 @@ const GetQuotes = () => {
                   {matches.map((m, i) => (
                     <div
                       key={m.name}
-                      className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+                     className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3.5"
                       style={{ animation: `fade-in 0.4s ease-out ${i * 120}ms both` }}
                     >
                       <div className={`flex h-10 w-10 items-center justify-center rounded-xl text-xs font-bold ${m.tone}`}>
