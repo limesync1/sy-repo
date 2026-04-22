@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import HorizontalScroller from "./HorizontalScroller";
 
 const categories = [
-  { icon: Sparkles, label: "Rengøring", tone: "bg-feature-cool text-feature-cool-foreground" },
+  { icon: HomeIcon, label: "Rengøring", tone: "bg-feature-cool text-feature-cool-foreground" },
   { icon: Wrench, label: "Håndværker", tone: "bg-feature-warm text-feature-warm-foreground" },
   { icon: Truck, label: "Flyttehjælp", tone: "bg-feature-lilac text-feature-lilac-foreground" },
   { icon: TreePine, label: "Haveservice", tone: "bg-accent-soft text-accent" },

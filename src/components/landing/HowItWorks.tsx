@@ -22,12 +22,12 @@ const HowItWorks = () => {
   return (
     <section className="bg-secondary py-12 md:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 max-w-2xl">
+        <div className="mb-5 max-w-2xl">
           <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">Sådan fungerer det</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground md:text-base">Et enkelt flow fra behov til valg.</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground md:text-base">Et enkelt flow fra søgning til bestilling.</p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-3">
           {steps.map((step, i) => (
             <div key={step.title} className="rounded-[24px] border border-border bg-card p-5 shadow-sm">
               <div className="flex items-center gap-3">

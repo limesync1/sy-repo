@@ -173,7 +173,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "" }: Props) => {
       {nearLabel && !open && (
         <div className="mt-2 flex items-center gap-2 px-2 text-xs text-muted-foreground">
           <MapPin className="h-3.5 w-3.5 text-accent" />
-          Matcher søgning ud fra området omkring {nearLabel}
+          Søger automatisk nær {nearLabel}
         </div>
       )}
 
