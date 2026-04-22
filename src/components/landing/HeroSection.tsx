@@ -4,8 +4,9 @@ import {
   Sparkles,
   ArrowRight,
   ShieldCheck,
-  Clock3,
   MapPin,
+  Clock3,
+  Star,
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -14,24 +15,30 @@ import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
 import LocationChip from "@/components/LocationChip";
 
-const heroSignals = [
-  { label: "Kvalitet", value: "Verificerede profiler" },
-  { label: "Pris", value: "Hurtigt niveau" },
-  { label: "Nærhed", value: "Lokale matches" },
-];
-
-const flowSteps = [
-  "Beskriv opgaven",
-  "Sammenlign profiler",
-  "Book den rette løsning",
+const quickSignals = [
+  { label: "Verificerede profiler", icon: ShieldCheck },
+  { label: "Lokale resultater", icon: MapPin },
+  { label: "Hurtigere valg", icon: Clock3 },
 ];
 
 const HeroSection = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="relative bg-background">
-      <nav className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-xl">
+    <header className="relative overflow-hidden bg-background">
+      <div className="absolute inset-y-0 right-0 hidden w-[56vw] lg:block">
+        <img
+          src={heroImage}
+          alt="Professionel serviceyder klar til en opgave"
+          className="h-full w-full object-cover"
+          width={1536}
+          height={1024}
+          loading="eager"
+        />
+        <div className="absolute inset-0 bg-gradient-to-l from-background/10 via-background/30 to-background" />
+      </div>
+
+      <nav className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-3.5">
             <Link
@@ -135,37 +142,25 @@ const HeroSection = () => {
         </div>
       </nav>
 
-      <div className="relative overflow-hidden border-b border-border bg-secondary/40">
-        <img
-          src={heroImage}
-          alt="Professionel serviceyder på vej til en opgave"
-          className="absolute inset-0 h-full w-full object-cover"
-          width={1536}
-          height={1024}
-          loading="eager"
-        />
-        <div className="absolute inset-0 bg-background/30" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/92 via-background/72 to-background/44" />
-        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background via-background/75 to-transparent" />
-
-        <div className="relative mx-auto flex min-h-[calc(100vh-73px)] max-w-7xl flex-col justify-between px-4 pb-8 pt-8 sm:px-6 lg:px-8 lg:pt-10">
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:items-start">
-            <div className="max-w-3xl">
-              <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/88 px-3 py-1 text-xs font-semibold text-foreground shadow-sm backdrop-blur-sm">
+      <div className="relative">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid min-h-[calc(100vh-72px)] items-center gap-10 py-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:py-14">
+            <div className="relative z-10 max-w-3xl">
+              <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-foreground">
                 <Sparkles className="h-3.5 w-3.5 text-accent" />
-                Find hurtigere frem til den rigtige hjælp
-              </span>
+                En hurtigere vej fra behov til booking
+              </div>
 
-              <h1 className="mt-6 max-w-4xl text-[2.8rem] font-extrabold leading-[0.94] tracking-tight text-foreground sm:text-[4rem] lg:text-[5.4rem]">
-                Find lokale serviceydere uden at rode dig gennem støj.
+              <h1 className="mt-6 max-w-4xl text-[3rem] font-extrabold leading-[0.9] tracking-tight text-foreground sm:text-[4.5rem] lg:text-[6.4rem]">
+                Find den rette hjælp uden at fare vild i kataloget.
               </h1>
 
-              <p className="mt-5 max-w-2xl text-base leading-7 text-foreground/78 sm:text-lg">
-                Sammenlign prisniveau, kvalitet og nærhed i én visning, og gå
-                fra søgning til booking med langt mindre friktion.
+              <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
+                Serviceydere gør søgning mere brugbar med nærhed, kvalitet og
+                pris samlet i ét klart overblik fra første klik.
               </p>
 
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Link to="/virksomheder">
                   <Button
                     size="lg"
@@ -179,97 +174,111 @@ const HeroSection = () => {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="h-12 rounded-full bg-background/86 px-6 text-sm font-semibold backdrop-blur-sm"
+                    className="h-12 rounded-full bg-background px-6 text-sm font-semibold"
                   >
                     Få 3 tilbud
                   </Button>
                 </Link>
               </div>
+
+              <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
+                {quickSignals.map((signal) => (
+                  <div
+                    key={signal.label}
+                    className="inline-flex items-center gap-2"
+                  >
+                    <signal.icon className="h-4 w-4 text-accent" />
+                    <span>{signal.label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="hidden lg:block">
-              <div className="ml-auto max-w-md overflow-hidden rounded-[32px] border border-border bg-background/86 shadow-xl backdrop-blur-md">
-                <div className="grid grid-cols-3 border-b border-border">
-                  {heroSignals.map((signal) => (
-                    <div key={signal.label} className="px-4 py-4">
-                      <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                        {signal.label}
-                      </div>
-                      <div className="mt-2 text-sm font-semibold text-foreground">
-                        {signal.value}
-                      </div>
+            <div className="relative lg:min-h-[680px]">
+              <div className="relative h-full min-h-[360px] overflow-hidden rounded-[40px] bg-secondary lg:ml-auto lg:w-[88%]">
+                <img
+                  src={heroImage}
+                  alt="Professionel serviceyder klar til at hjælpe"
+                  className="h-full w-full object-cover lg:hidden"
+                  loading="eager"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/28 via-transparent to-background/10 lg:hidden" />
+
+                <div className="absolute bottom-0 left-0 right-0 grid gap-px bg-border sm:grid-cols-3">
+                  <div className="bg-background/92 px-4 py-4 backdrop-blur-sm">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Signal
                     </div>
-                  ))}
-                </div>
-                <div className="grid gap-px bg-border">
-                  {flowSteps.map((step, index) => (
-                    <div
-                      key={step}
-                      className="flex items-center justify-between bg-background px-4 py-4"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-xs font-bold text-foreground">
-                          0{index + 1}
-                        </span>
-                        <span className="text-sm font-semibold text-foreground">
-                          {step}
-                        </span>
-                      </div>
-                      {index === 0 ? (
-                        <Clock3 className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <ShieldCheck className="h-4 w-4 text-accent" />
-                      )}
+                    <div className="mt-1 text-sm font-semibold text-foreground">
+                      Tydelige profiler
                     </div>
-                  ))}
+                  </div>
+                  <div className="bg-background/92 px-4 py-4 backdrop-blur-sm">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Signal
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-foreground">
+                      Kortere vej til valg
+                    </div>
+                  </div>
+                  <div className="bg-background/92 px-4 py-4 backdrop-blur-sm">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Signal
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-foreground">
+                      Mere lokal relevans
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-10 overflow-hidden rounded-[32px] border border-border bg-background/90 shadow-2xl backdrop-blur-md">
-            <div className="grid gap-px bg-border lg:grid-cols-[minmax(0,1.4fr)_minmax(260px,0.6fr)]">
-              <div className="bg-background px-5 py-5 sm:px-6 sm:py-6">
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      Søg direkte
+          <div className="relative z-10 -mt-10 pb-8 lg:-mt-24 lg:pb-14">
+            <div className="overflow-hidden rounded-[32px] border border-border bg-background shadow-[0_20px_60px_-30px_hsl(var(--foreground)/0.22)]">
+              <div className="grid gap-px bg-border lg:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
+                <div className="bg-background px-5 py-5 sm:px-6 sm:py-6">
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        Søg direkte
+                      </div>
+                      <div className="mt-1 text-base font-semibold text-foreground">
+                        Start med service, virksomhed eller område
+                      </div>
                     </div>
-                    <div className="mt-1 text-sm font-semibold text-foreground">
-                      Start med det, du skal have løst
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5 text-accent" />
                     <LocationChip />
                   </div>
+                  <SearchSuggest variant="hero" />
                 </div>
-                <SearchSuggest variant="hero" />
-              </div>
 
-              <div className="grid gap-px bg-border sm:grid-cols-3 lg:grid-cols-1">
-                <div className="bg-background px-5 py-5">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Signal
+                <div className="grid gap-px bg-border sm:grid-cols-3 lg:grid-cols-1">
+                  <div className="bg-secondary px-5 py-5">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Første filter
+                    </div>
+                    <div className="mt-2 flex items-center gap-2 text-sm font-semibold text-foreground">
+                      <Star className="h-4 w-4 text-accent" />
+                      Kvalitet og tillid
+                    </div>
                   </div>
-                  <div className="mt-2 text-base font-semibold text-foreground">
-                    Verificerede profiler
+                  <div className="bg-background px-5 py-5">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Andet filter
+                    </div>
+                    <div className="mt-2 flex items-center gap-2 text-sm font-semibold text-foreground">
+                      <MapPin className="h-4 w-4 text-accent" />
+                      Nærhed og timing
+                    </div>
                   </div>
-                </div>
-                <div className="bg-background px-5 py-5">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Signal
-                  </div>
-                  <div className="mt-2 text-base font-semibold text-foreground">
-                    Lokale resultater
-                  </div>
-                </div>
-                <div className="bg-background px-5 py-5">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Signal
-                  </div>
-                  <div className="mt-2 text-base font-semibold text-foreground">
-                    Hurtigere valg
+                  <div className="bg-secondary px-5 py-5">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Sidste filter
+                    </div>
+                    <div className="mt-2 flex items-center gap-2 text-sm font-semibold text-foreground">
+                      <Clock3 className="h-4 w-4 text-accent" />
+                      Prisniveau og fart
+                    </div>
                   </div>
                 </div>
               </div>
