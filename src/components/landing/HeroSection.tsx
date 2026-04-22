@@ -1,16 +1,10 @@
-import { Menu, X, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
+import { Menu, X, ShieldCheck, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-home-new.jpg";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
 import LocationChip from "@/components/LocationChip";
-
-const quickSignals = [
-  { label: "Verificerede profiler", tone: "bg-feature-cool text-feature-cool-foreground" },
-  { label: "Indhent 3 tilbud", tone: "bg-feature-warm text-feature-warm-foreground" },
-  { label: "Lokal søgning", tone: "bg-feature-lilac text-feature-lilac-foreground" },
-];
 
 const HeroSection = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -73,19 +67,14 @@ const HeroSection = () => {
       <div className="mx-auto max-w-7xl px-4 pb-10 pt-5 sm:px-6 lg:px-8 lg:pb-14 lg:pt-8">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(340px,0.95fr)] lg:items-start">
           <div className="rounded-[28px] border border-border bg-card p-5 shadow-sm sm:p-7">
-            <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-foreground">
-              <Sparkles className="h-3.5 w-3.5 text-accent" />
-              Professionel hjælp, enkelt præsenteret
-            </div>
-
-            <p className="mt-5 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:text-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:text-sm">
               Serviceydere i hele Danmark
             </p>
             <h1 className="mt-2 max-w-2xl text-[2.2rem] font-semibold leading-[1.02] text-foreground sm:text-[3rem] lg:text-[3.5rem]">
               Find den rette serviceyder til opgaven.
             </h1>
             <p className="mt-4 max-w-xl text-[15px] leading-7 text-muted-foreground sm:text-base">
-              Søg lokalt, sammenlign hurtigt og vælg med større sikkerhed — eller indhent 3 tilbud på én gang.
+              Søg lokalt med automatisk by og postnummer, sammenlign hurtigt og vælg den rette løsning.
             </p>
 
             <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -105,18 +94,9 @@ const HeroSection = () => {
             <div className="mt-6 rounded-[24px] border border-border bg-background p-3 sm:p-4">
               <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground sm:text-sm">
                 <span className="font-semibold text-foreground">Start med en søgning</span>
-                <span>·</span>
-                <span className="inline-flex items-center gap-1">Søger nær <LocationChip /></span>
+                <span className="inline-flex items-center gap-1">Nær <LocationChip /></span>
               </div>
               <SearchSuggest variant="hero" />
-            </div>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              {quickSignals.map((item) => (
-                <span key={item.label} className={`rounded-full px-3 py-2 text-xs font-semibold ${item.tone}`}>
-                  {item.label}
-                </span>
-              ))}
             </div>
           </div>
 
@@ -138,7 +118,7 @@ const HeroSection = () => {
                 Ét sted til søgning, overblik og tilbud.
               </h2>
               <p className="mt-3 max-w-md text-sm leading-6 text-background/75">
-                Gå direkte til profiler, eller brug tilbudsflowet når du vil sammenligne flere muligheder hurtigere.
+                Gå direkte til profiler og send en enkel bestilling, når du har fundet den rigtige virksomhed.
               </p>
               <Link to="/tilbud" className="mt-4 inline-flex items-center justify-center rounded-full bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-background/90">
                 Få tilbud

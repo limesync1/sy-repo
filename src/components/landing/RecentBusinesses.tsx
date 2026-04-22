@@ -127,10 +127,9 @@ const RecentBusinesses = () => {
   return (
     <section className="bg-background py-12 md:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Udvalgte virksomheder</p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground md:text-3xl">Profiler der er nemme at vurdere.</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">Udvalgte virksomheder</h2>
           </div>
           <Link to="/virksomheder" className="inline-flex items-center gap-2 text-sm font-semibold text-foreground hover:opacity-70">
             Vis alle
