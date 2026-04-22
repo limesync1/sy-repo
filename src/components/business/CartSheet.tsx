@@ -571,10 +571,12 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                     <div>
                       <label className="mb-1 block text-xs font-medium text-muted-foreground">Firmanavn</label>
                       <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Indtastes automatisk via CVR" className="rounded-lg" />
+                      {errors.companyName && <p className="mt-1 text-xs text-destructive">{errors.companyName}</p>}
                     </div>
                     <div>
                       <label className="mb-1 block text-xs font-medium text-muted-foreground">Kontaktperson</label>
                       <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Fulde navn" className="rounded-lg" />
+                      {errors.contactName && <p className="mt-1 text-xs text-destructive">{errors.contactName}</p>}
                     </div>
                   </div>
                 </section>

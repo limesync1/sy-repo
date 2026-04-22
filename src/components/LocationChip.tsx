@@ -104,11 +104,11 @@ const LocationChip = ({ variant = "pill", className = "" }: Props) => {
           type="button"
           onClick={handlePreciseLocation}
           disabled={requestingPrecise}
-          className="flex h-6 items-center gap-1 rounded-full px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-50"
-          aria-label="Fang min lokation"
+          className="flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-50"
+          aria-label="Opdater lokation automatisk"
+          title="Opdater lokation automatisk"
         >
           {requestingPrecise ? <Loader2 className="h-3 w-3 animate-spin" /> : <LocateFixed className="h-3 w-3" />}
-          Fang min lokation
         </button>
         <button
           type="button"
