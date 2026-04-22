@@ -424,9 +424,9 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                   </div>
 
                   {/* Items */}
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {group.items.map((item) => (
-                      <div key={item.serviceId} className="overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-sm">
+                      <div key={item.serviceId} className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-[0_18px_42px_-34px_hsl(var(--foreground)/0.3)]">
                         <div className="p-3.5">
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">
@@ -445,7 +445,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                           </div>
 
                           {item.stepDetails && item.stepDetails.length > 0 && (
-                            <div className="mt-2.5 rounded-lg bg-secondary/30 divide-y divide-border/50">
+                            <div className="mt-3 overflow-hidden rounded-xl border border-border/70 bg-secondary/30 divide-y divide-border/50">
                               {item.stepDetails.map((sd, i) => (
                                 <div key={i} className="flex justify-between px-3 py-1.5 text-xs">
                                   <span className="text-muted-foreground">
@@ -458,11 +458,11 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                           )}
 
                           {!item.stepDetails?.length && item.details && (
-                            <p className="text-xs text-muted-foreground mt-1.5">{item.details}</p>
+                            <p className="mt-2 text-xs leading-5 text-muted-foreground">{item.details}</p>
                           )}
 
-                          <div className="mt-3 flex items-center justify-between rounded-xl bg-secondary/40 px-3 py-2">
-                            <div>
+                          <div className="mt-3 flex items-center justify-between rounded-[1rem] border border-accent/15 bg-accent/5 px-3 py-2.5">
+                            <div className="min-w-0">
                               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Pris</p>
                               <p className="text-sm font-bold text-foreground">{item.total} kr</p>
                             </div>
@@ -474,7 +474,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                           </div>
                         </div>
                         {/* Anslået varighed + tidsrum — samme UI som ejerens stop-modul */}
-                        <div className="border-t bg-secondary/20 px-3.5 py-3">
+                        <div className="border-t bg-secondary/20 px-3.5 py-3.5">
                           <div className="mb-2">
                             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Planlægning</p>
                             <p className="text-xs text-muted-foreground">Hjælp virksomheden med at forstå varighed og ønsket tidsrum.</p>
@@ -502,7 +502,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
 
             {/* Footer */}
             <div className="shrink-0 border-t border-border bg-card px-5 py-4">
-              <div className="mb-3 rounded-xl bg-secondary/40 px-3.5 py-3">
+              <div className="mb-3 rounded-[1rem] border border-accent/15 bg-accent/5 px-3.5 py-3">
                 <div className="flex items-baseline justify-between">
                 <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total</span>
                 <span className="text-xl font-bold text-foreground">{total} kr</span>
@@ -548,7 +548,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
 
               {/* CVR-opslag — kun erhverv */}
               {customerType === "business" && (
-                <section className="space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                <section className="space-y-3 rounded-[1.25rem] border border-border bg-card p-4 shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
                   <div className="flex items-center gap-2">
                     <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
                       <Building2 className="h-3.5 w-3.5 text-accent" />
@@ -592,7 +592,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
               )}
 
               {/* Kontakt-oplysninger */}
-              <section className="space-y-3">
+              <section className="space-y-3 rounded-[1.25rem] border border-border bg-card p-4 shadow-sm">
                 <div className="flex items-center gap-2">
                   <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
                     <User className="h-3.5 w-3.5 text-accent" />
@@ -620,7 +620,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
               </section>
 
               {/* Service-adresse */}
-              <section className="space-y-3">
+              <section className="space-y-3 rounded-[1.25rem] border border-border bg-card p-4 shadow-sm">
                 <div className="flex items-center gap-2">
                   <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
                     <MapPin className="h-3.5 w-3.5 text-accent" />
@@ -696,7 +696,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
 
             {/* Submit footer */}
               <div className="shrink-0 border-t border-border bg-card px-5 py-4 space-y-2.5">
-              <div className="rounded-xl bg-secondary/40 px-3.5 py-3">
+              <div className="rounded-[1rem] border border-accent/15 bg-accent/5 px-3.5 py-3">
                 <div className="flex items-baseline justify-between">
                   <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total at betale</span>
                   <span className="text-xl font-bold text-foreground">{total} kr</span>

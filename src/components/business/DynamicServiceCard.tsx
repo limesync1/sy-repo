@@ -183,7 +183,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
   const showIntervals = intervals.length > 1 || (intervals.length === 1 && intervals[0] !== "engangskøb");
 
   return (
-    <Card className="group h-full overflow-hidden rounded-[1.75rem] border-border/80 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/25 hover:shadow-[0_24px_55px_-34px_hsl(var(--foreground)/0.24)]">
+    <Card className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border-border/80 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/25 hover:shadow-[0_24px_55px_-34px_hsl(var(--foreground)/0.24)]">
       {/* Image or placeholder */}
       {service.image_url ? (
         <div className="relative h-36 w-full overflow-hidden bg-secondary sm:h-40">
@@ -207,8 +207,8 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
         </div>
       )}
 
-      <CardContent className="flex h-full flex-col p-4 sm:p-5">
-        <div className="mb-4 flex items-start justify-between gap-3 border-b border-border/70 pb-4">
+      <CardContent className="flex flex-1 flex-col p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-3 border-b border-border/70 pb-4">
           <div className="min-w-0 flex-1">
           <h3 className="text-xl font-bold leading-tight text-foreground">{service.name}</h3>
           {(service as any).subcategory && (
@@ -223,8 +223,9 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           </div>
         </div>
 
+        <div className="mt-4 space-y-4">
         {showIntervals && (
-          <div className="mb-4 rounded-[1.25rem] border border-border bg-secondary/30 p-3.5">
+          <div className="rounded-[1.25rem] border border-border bg-secondary/30 p-3.5">
             <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Abonnement / interval</label>
             <div className="flex flex-wrap gap-1.5">
               {intervals.map((iv) => (
@@ -241,7 +242,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           </div>
         )}
 
-        <div className="mb-4 flex-1 rounded-[1.5rem] border border-border bg-secondary/20 p-3.5 sm:p-4">
+        <div className="rounded-[1.5rem] border border-border bg-secondary/20 p-3.5 sm:p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tilpas service</p>
@@ -306,7 +307,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
         )}
         </div>
 
-        <div className="mt-auto rounded-[1.5rem] border border-accent/20 bg-[hsl(var(--accent)/0.06)] p-3.5 shadow-[0_18px_40px_-32px_hsl(var(--foreground)/0.45)]">
+        <div className="rounded-[1.5rem] border border-accent/20 bg-[hsl(var(--accent)/0.06)] p-3.5 shadow-[0_18px_40px_-32px_hsl(var(--foreground)/0.45)]">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Prisoverslag</p>
@@ -345,6 +346,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
               </>
             )}
           </Button>
+        </div>
         </div>
 
       </CardContent>
