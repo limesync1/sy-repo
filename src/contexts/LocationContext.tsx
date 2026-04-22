@@ -136,6 +136,18 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const reverseGeocodeCoords = useCallback(async (latitude: number, longitude: number) => {
+    const dawa = await fetchJSON(
+      `https://api.dataforsyningen.dk/adgangsadresser/reverse?x=${longitude}&y=${latitude}`,
+      6000,
+    );
+
+    if (dawa) {
+      const zip = dawa?.postnummer?.nr || null;
+      const city = dawa?.postnummer?.navn || dawa?.supplerendebynavn || null;
+      const region = dawa?.kommune?.navn || null;
+      if (city || zip) return { city, zip, region };
+    }
+
     const nominatim = await fetchJSON(
       `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=da`,
       6000,
@@ -164,9 +176,10 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
     return null;
   }, [fetchJSON]);
 
-  // Auto-detect location. Strategy (silent, no permission prompts blocking UX):
-  //   1) Reverse-geocode by IP via BigDataCloud (no key, finds small towns + zip).
-  //   2) Fallback: ipwho.is then ipapi.co (city-level only).
+  // Auto-detect location. Strategy:
+  //   1) Attempt browser geolocation automatically and reverse-geocode to precise DK city/postcode.
+  //   2) Fallback to IP coordinates and reverse-geocode those.
+  //   3) Last fallback: raw IP city/postcode providers.
   // Manual entries are preserved.
   useEffect(() => {
     if (location.source === "manual") {
@@ -184,34 +197,50 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
 
     (async () => {
       try {
-        // 1) BigDataCloud client-side IP geocode (no API key, gives city + postcode + locality)
-        const bdc = await fetchJSON(
-          "https://api-bdc.net/data/client-ip?localityLanguage=da"
-        );
-        if (bdc) {
-          // Prefer the most specific locality (small town/village) over the broader city.
-          const city =
-            bdc?.location?.localityInfo?.administrative?.find?.(
-              (a: any) => a?.adminLevel === 8 || a?.adminLevel === 7
-            )?.name ||
-            bdc?.location?.city ||
-            bdc?.location?.locality ||
-            null;
-          const zip = bdc?.location?.postcode || null;
-          const region = bdc?.location?.principalSubdivision || null;
-          if (!cancelled && applyDetectedLocation(city, zip, region, "ip")) return;
+        if (typeof navigator !== "undefined" && navigator.geolocation) {
+          try {
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: false,
+                timeout: 7000,
+                maximumAge: 1000 * 60 * 60,
+              });
+            });
+
+            const precise = await reverseGeocodeCoords(position.coords.latitude, position.coords.longitude);
+            if (!cancelled && precise && applyDetectedLocation(precise.city, precise.zip, precise.region, "precise")) return;
+          } catch {
+            // ignore and fall back to IP-based lookup
+          }
         }
 
-        // 2) ipwho.is fallback
-        const who = await fetchJSON("https://ipwho.is/?fields=city,postal,region,success");
+        const who = await fetchJSON("https://ipwho.is/?fields=city,postal,region,success,latitude,longitude");
         if (who?.success !== false) {
+          if (Number.isFinite(who?.latitude) && Number.isFinite(who?.longitude)) {
+            const precise = await reverseGeocodeCoords(Number(who.latitude), Number(who.longitude));
+            if (!cancelled && precise && applyDetectedLocation(precise.city, precise.zip, precise.region, "ip")) return;
+          }
           if (!cancelled && applyDetectedLocation(who?.city || null, who?.postal || null, who?.region || null, "ip")) return;
         }
 
-        // 3) ipapi.co fallback
         const ipa = await fetchJSON("https://ipapi.co/json/");
         if (ipa) {
-          if (!cancelled) applyDetectedLocation(ipa?.city || null, ipa?.postal || null, ipa?.region || null, "ip");
+          if (Number.isFinite(ipa?.latitude) && Number.isFinite(ipa?.longitude)) {
+            const precise = await reverseGeocodeCoords(Number(ipa.latitude), Number(ipa.longitude));
+            if (!cancelled && precise && applyDetectedLocation(precise.city, precise.zip, precise.region, "ip")) return;
+          }
+          if (!cancelled && applyDetectedLocation(ipa?.city || null, ipa?.postal || null, ipa?.region || null, "ip")) return;
+        }
+
+        // 3) BigDataCloud raw fallback
+        const bdc = await fetchJSON("https://api-bdc.net/data/client-ip?localityLanguage=da");
+        if (bdc && !cancelled) {
+          applyDetectedLocation(
+            bdc?.location?.postcodeLocality || bdc?.location?.city || bdc?.location?.locality || null,
+            bdc?.location?.postcode || null,
+            bdc?.location?.principalSubdivision || null,
+            "ip",
+          );
         }
       } finally {
         if (!cancelled) {
