@@ -4,11 +4,11 @@ const Footer = () => {
   return (
     <footer className="border-t border-border bg-background">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
-        <div className="mb-8 grid gap-5 rounded-3xl border border-border bg-secondary/60 p-5 sm:p-6 lg:grid-cols-[1.2fr_0.8fr_0.8fr] lg:items-center">
+        <div className="mb-8 grid gap-5 rounded-[28px] border border-border bg-secondary/50 p-5 sm:p-6 lg:grid-cols-[1.2fr_0.8fr_0.8fr] lg:items-center">
           <div>
-            <h3 className="text-lg font-semibold text-foreground">Find hjælp hurtigere</h3>
+            <h3 className="text-lg font-semibold text-foreground">Find hurtigere frem</h3>
             <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-              Søg blandt verificerede virksomheder eller indhent tilbud, hvis du vil sammenligne flere muligheder på én gang.
+              Vælg mellem direkte booking eller tilbud, alt efter hvor hurtigt du vil videre.
             </p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
@@ -25,7 +25,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-8 sm:gap-10 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-8 sm:gap-10 md:grid-cols-4">
           <div>
             <h4 className="mb-3 text-sm font-semibold text-foreground">Serviceydere</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">

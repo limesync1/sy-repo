@@ -71,14 +71,14 @@ const SiteNav = ({ active, right }: Props) => {
             <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-8 sm:h-9 md:h-10" />
           </Link>
 
-          <div className="hidden items-center gap-1 lg:flex">
+          <div className="hidden items-center gap-1 rounded-full border border-border/70 bg-card/80 p-1 lg:flex">
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.key}
                 to={item.to}
                 className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                   isActive(item.key)
-                    ? "bg-secondary text-foreground"
+                    ? "bg-secondary text-foreground shadow-sm"
                     : "text-foreground/80 hover:bg-secondary hover:text-foreground"
                 }`}
               >
@@ -98,7 +98,7 @@ const SiteNav = ({ active, right }: Props) => {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
+                  <button className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-border bg-card/90 px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
                     {currentRole?.icon && <currentRole.icon className="h-4 w-4 text-muted-foreground" />}
                     <span className="max-w-[140px] truncate">{currentRole?.label || "Min konto"}</span>
                     <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
