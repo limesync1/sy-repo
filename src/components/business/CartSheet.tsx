@@ -594,16 +594,19 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                   <div>
                     <label className="mb-1 block text-xs font-medium text-muted-foreground">E-mail</label>
                     <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="din@email.dk" className="rounded-lg" />
+                    {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email}</p>}
                   </div>
                   {customerType === "private" && (
                     <div>
                       <label className="mb-1 block text-xs font-medium text-muted-foreground">Fulde navn</label>
                       <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Dit navn" className="rounded-lg" />
+                      {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name}</p>}
                     </div>
                   )}
                   <div>
                     <label className="mb-1 block text-xs font-medium text-muted-foreground">Telefon</label>
                     <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 00 00 00 00" className="rounded-lg" />
+                    {errors.phone && <p className="mt-1 text-xs text-destructive">{errors.phone}</p>}
                   </div>
                 </div>
               </section>
@@ -632,6 +635,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
                       }
                     }}
                   />
+                  {errors.address && <p className="text-xs text-destructive">{errors.address}</p>}
                   {address && zipCode && city && geo?.ok && (
                     <div className="flex items-center gap-2 text-[11px] text-foreground/70">
                       <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
