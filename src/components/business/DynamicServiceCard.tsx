@@ -186,7 +186,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
     <Card className="group h-full overflow-hidden rounded-3xl border-border/80 bg-card transition-all hover:-translate-y-0.5 hover:border-accent/25 hover:shadow-[0_22px_50px_-28px_hsl(var(--foreground)/0.32)]">
       {/* Image or placeholder */}
       {service.image_url ? (
-        <div className="relative h-48 w-full overflow-hidden bg-[linear-gradient(135deg,hsl(var(--feature-cool))_0%,hsl(var(--feature-lilac))_100%)]">
+        <div className="relative h-44 w-full overflow-hidden bg-secondary sm:h-48">
           <img
             src={service.image_url}
             alt={service.name}
@@ -199,7 +199,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           </Badge>
         </div>
       ) : (
-        <div className="relative flex h-28 w-full items-center justify-center bg-[linear-gradient(135deg,hsl(var(--feature-cool))_0%,hsl(var(--feature-warm))_100%)]">
+        <div className="relative flex h-24 w-full items-center justify-center bg-secondary/70 sm:h-28">
           <ImageIcon className="h-8 w-8 text-muted-foreground/15" />
           <Badge variant="outline" className="absolute right-3 top-3 text-xs font-medium">
             {pricingLabels[service.pricing_type]}
@@ -221,34 +221,34 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
 
         {/* Fast pris */}
         {service.pricing_type === "fast_pris" && (
-          <div className="mb-5 inline-flex w-fit items-end gap-1.5 rounded-2xl bg-[hsl(var(--feature-warm))] px-3 py-2">
-            <span className="text-3xl font-bold text-[hsl(var(--feature-warm-foreground))]">{service.base_price}</span>
-            <span className="pb-1 text-sm text-[hsl(var(--feature-warm-foreground))]/80">kr</span>
+          <div className="mb-5 inline-flex w-fit items-end gap-1.5 rounded-2xl bg-secondary px-3 py-2">
+            <span className="text-3xl font-bold text-foreground">{service.base_price}</span>
+            <span className="pb-1 text-sm text-muted-foreground">kr</span>
           </div>
         )}
 
         {/* Timepris */}
         {service.pricing_type === "timepris" && (
           <div className="mb-5 space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-sm text-muted-foreground">{service.base_price} kr / time</span>
               <StepperInput value={hours} onChange={setHours} min={0.5} max={24} step={0.5} unit="t" />
             </div>
-            <div className="inline-flex items-end gap-1.5 rounded-2xl bg-[hsl(var(--feature-lilac))] px-3 py-2 pt-2">
-              <span className="text-3xl font-bold text-[hsl(var(--feature-lilac-foreground))]">{roundPrice(total)}</span>
-              <span className="pb-1 text-sm text-[hsl(var(--feature-lilac-foreground))]/80">kr</span>
+            <div className="inline-flex items-end gap-1.5 rounded-2xl bg-secondary px-3 py-2 pt-2">
+              <span className="text-3xl font-bold text-foreground">{roundPrice(total)}</span>
+              <span className="pb-1 text-sm text-muted-foreground">kr</span>
             </div>
           </div>
         )}
 
         {/* Prisberegner */}
         {service.pricing_type === "prisberegner" && sortedSteps.length > 0 && (
-          <div className="mb-5 space-y-0 overflow-hidden rounded-2xl border border-border bg-secondary/20">
+          <div className="mb-5 space-y-0 overflow-hidden rounded-2xl border border-border bg-secondary/25">
             {sortedSteps.map((step, idx) => {
               const stepTotal = (stepValues[step.id] || 0) * step.price_per_unit;
               return (
-                <div key={step.id} className={`px-4 py-3 ${idx !== sortedSteps.length - 1 ? "border-b border-border" : ""}`}>
-                  <div className="flex items-center justify-between mb-2">
+                <div key={step.id} className={`px-3 py-3 sm:px-4 ${idx !== sortedSteps.length - 1 ? "border-b border-border" : ""}`}>
+                  <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <span className="text-sm font-medium text-foreground">{step.label}</span>
                       <span className="ml-1.5 text-xs text-muted-foreground">({step.price_per_unit} kr/{step.unit})</span>
@@ -263,7 +263,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
                 </div>
               );
             })}
-            <div className="flex items-center justify-between border-t border-accent/20 bg-accent/5 px-4 py-3">
+            <div className="flex items-center justify-between border-t border-accent/20 bg-accent/5 px-3 py-3 sm:px-4">
               <span className="text-sm font-semibold text-foreground">I alt</span>
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-bold text-foreground">{roundPrice(total)}</span>
@@ -293,11 +293,18 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
         )}
 
         {/* Add button */}
-        <div className="mt-auto pt-2">
+        <div className="mt-auto space-y-3 pt-2">
+        <div className="flex items-center justify-between rounded-2xl border border-border bg-secondary/35 px-4 py-3">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Samlet pris</p>
+            <p className="text-lg font-bold text-foreground">{roundPrice(total)} kr</p>
+          </div>
+          <ShoppingCart className="h-5 w-5 text-accent" />
+        </div>
         <Button
           onClick={handleAdd}
           disabled={justAdded}
-          className={`h-11 w-full gap-2 rounded-xl text-sm font-semibold transition-all ${
+          className={`h-12 w-full gap-2 rounded-xl text-sm font-semibold transition-all ${
             justAdded
               ? "bg-accent/80 text-accent-foreground"
               : "bg-accent text-accent-foreground shadow-md shadow-accent/20 hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/30 active:scale-[0.98]"
@@ -311,7 +318,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           ) : (
             <>
               <ShoppingCart className="h-4 w-4" />
-              Tilføj til bestilling – {roundPrice(total)} kr
+              Tilføj til bestilling
             </>
           )}
         </Button>

@@ -141,7 +141,7 @@ const DynamicBusinessContent = () => {
       <header className="relative border-b border-border bg-background">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4 md:pt-6">
           {/* Cover image with gradient */}
-          <div className="relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,hsl(var(--feature-cool))_0%,hsl(var(--feature-lilac))_52%,hsl(var(--feature-warm))_100%)]">
+          <div className="relative overflow-hidden rounded-3xl bg-secondary">
             <div className={`relative w-full ${hasCover ? "aspect-[21/8] md:aspect-[21/7]" : "h-32 md:h-40"}`}>
               {hasCover && (
                 <>
@@ -158,9 +158,9 @@ const DynamicBusinessContent = () => {
           </div>
 
           {/* Logo overlaps cover */}
-          <div className="relative -mt-12 md:-mt-14 mb-4 md:mb-5 flex items-end">
+          <div className="relative -mt-10 mb-4 flex items-end md:-mt-14 md:mb-5">
             <div className="relative shrink-0">
-              <div className="overflow-hidden rounded-2xl border-4 border-background bg-card shadow-xl flex items-center justify-center h-24 w-24 md:h-28 md:w-28">
+              <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card shadow-xl md:h-28 md:w-28">
                 {business.logo_url ? (
                   <img src={business.logo_url} alt={`${business.name} logo`} className="h-full w-full object-contain p-2" loading="eager" />
                 ) : (
@@ -178,7 +178,7 @@ const DynamicBusinessContent = () => {
           </div>
 
           {/* Identity row — clean, below cover */}
-          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-6 pb-8 md:pb-10">
+          <div className="flex flex-col gap-5 pb-7 md:flex-row md:items-end md:justify-between md:gap-6 md:pb-10">
             <div className="min-w-0 flex-1">
               {(business.categories?.[0] || business.category) && (
                 <div className="mb-2.5 flex flex-wrap gap-1.5">
@@ -191,7 +191,7 @@ const DynamicBusinessContent = () => {
               )}
 
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-foreground md:text-4xl lg:text-[2.75rem]">
+                <h1 className="text-[2.1rem] font-extrabold leading-tight tracking-tight text-foreground md:text-4xl lg:text-[2.75rem]">
                   {business.name}
                 </h1>
                 {business.is_verified && (
@@ -202,7 +202,7 @@ const DynamicBusinessContent = () => {
                 )}
               </div>
 
-              <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
+              <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
                 {avgRating ? (
                   <span className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-foreground text-foreground" />
@@ -232,11 +232,11 @@ const DynamicBusinessContent = () => {
             </div>
 
             {services && services.length > 0 && (
-              <div className="flex flex-wrap gap-2 shrink-0">
+               <div className="grid shrink-0 gap-2 sm:flex sm:flex-wrap">
                 <Button
                   onClick={scrollToServices}
                   size="lg"
-                  className="h-12 gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/20 transition-all hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/30 active:scale-[0.98]"
+                   className="h-12 w-full gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/20 transition-all hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/30 active:scale-[0.98] sm:w-auto"
                 >
                   Bestil nu <ArrowDown className="h-4 w-4" />
                 </Button>
@@ -245,7 +245,7 @@ const DynamicBusinessContent = () => {
                     <Button
                       size="lg"
                       variant="outline"
-                      className="h-12 gap-2 rounded-full border-border bg-card px-5 text-sm font-medium text-foreground transition-all hover:border-foreground/40 hover:bg-secondary"
+                        className="h-12 w-full gap-2 rounded-full border-border bg-card px-5 text-sm font-medium text-foreground transition-all hover:border-foreground/40 hover:bg-secondary sm:w-auto"
                     >
                       <Phone className="h-4 w-4" /> Ring
                     </Button>
@@ -268,7 +268,7 @@ const DynamicBusinessContent = () => {
 
             {/* About */}
             {business.description && (
-              <section aria-labelledby="about-heading" className="rounded-3xl border border-border bg-[linear-gradient(135deg,hsl(var(--feature-cool))_0%,hsl(var(--background))_100%)] p-6 md:p-7">
+              <section aria-labelledby="about-heading" className="rounded-3xl border border-border bg-secondary/30 p-5 md:p-7">
                 <div className="max-w-3xl">
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Virksomhedsprofil</p>
                   <h2 id="about-heading" className="mb-3 text-xl font-bold text-foreground md:text-2xl">Om {business.name}</h2>
@@ -391,7 +391,7 @@ const DynamicBusinessContent = () => {
                                   <p className="mt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">{sub}</p>
                                 )}
                               </div>
-                              <span className="rounded-full bg-[hsl(var(--feature-warm))] px-2.5 py-1 text-xs font-medium text-[hsl(var(--feature-warm-foreground))]">1 service</span>
+                              <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-muted-foreground">1 service</span>
                             </div>
 
                             <div className="flex-1">
@@ -431,7 +431,7 @@ const DynamicBusinessContent = () => {
 
                 {/* Rating distribution */}
                 {reviewCount >= 3 && (
-                  <div className="mb-5 rounded-3xl border border-border bg-[linear-gradient(135deg,hsl(var(--feature-lilac))_0%,hsl(var(--background))_100%)] p-5 md:p-6">
+                  <div className="mb-5 rounded-3xl border border-border bg-secondary/25 p-5 md:p-6">
                     <div className="flex items-center gap-6">
                       <div className="text-center">
                         <div className="text-3xl font-bold text-foreground">{avgRating}</div>
@@ -494,9 +494,9 @@ const DynamicBusinessContent = () => {
           </div>
 
           {/* ── Sidebar ── */}
-          <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
+          <aside className="order-first space-y-4 lg:order-none lg:sticky lg:top-24 lg:self-start">
             {/* Bestil/Contact Card — primary CTA */}
-            <Card className="overflow-hidden rounded-3xl border border-accent/20 bg-[linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--feature-cool))_100%)] shadow-[0_26px_60px_-32px_hsl(var(--accent)/0.5)]">
+            <Card className="overflow-hidden rounded-3xl border border-accent/20 shadow-[0_26px_60px_-32px_hsl(var(--accent)/0.5)]">
               <div className="border-b border-accent/15 bg-gradient-to-br from-accent/10 to-accent/5 px-5 py-5">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-accent" />
@@ -506,7 +506,7 @@ const DynamicBusinessContent = () => {
                 {services && services.length > 0 && (
                   <Button
                     onClick={scrollToServices}
-                    className="mt-3 h-11 w-full gap-2 rounded-xl bg-accent text-sm font-semibold text-accent-foreground shadow-md shadow-accent/20 transition-all hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/30 active:scale-[0.98]"
+                    className="mt-3 hidden h-11 w-full gap-2 rounded-xl bg-accent text-sm font-semibold text-accent-foreground shadow-md shadow-accent/20 transition-all hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/30 active:scale-[0.98] lg:flex"
                   >
                     Se {serviceCount} service{serviceCount === 1 ? "" : "s"} <ArrowDown className="h-4 w-4" />
                   </Button>
@@ -541,7 +541,7 @@ const DynamicBusinessContent = () => {
 
             {/* Opening Hours */}
             {openingHours.length > 0 && (
-              <Card className="rounded-3xl border-border bg-[linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--feature-warm))_100%)]">
+              <Card className="rounded-3xl border-border bg-card/90">
                 <CardContent className="p-5">
                   <h3 className="mb-3 flex items-center gap-2 font-bold text-foreground">
                     <Clock className="h-4 w-4 text-accent" /> Åbningstider
@@ -565,7 +565,7 @@ const DynamicBusinessContent = () => {
             )}
 
             {/* Trust Badges */}
-            <Card className="rounded-3xl border-border bg-[linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--feature-lilac))_100%)]">
+            <Card className="rounded-3xl border-border bg-card/90">
               <CardContent className="space-y-3 p-5">
                 {business.is_verified && (
                   <div className="flex items-center gap-3 text-sm text-foreground">
