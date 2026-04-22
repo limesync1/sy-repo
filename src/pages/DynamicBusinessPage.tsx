@@ -51,14 +51,19 @@ const DynamicBusinessContent = () => {
     }));
   }, [displayedServices]);
 
-  const compactCategoryEntries = useMemo(
-    () => (!activeCategory ? categoryEntries.filter((entry) => entry.total === 1) : []),
+  const shouldUseCompactCategoryGrid = useMemo(
+    () => !activeCategory && categoryEntries.length >= 2 && categoryEntries.every((entry) => entry.total === 1),
     [activeCategory, categoryEntries]
   );
 
+  const compactCategoryEntries = useMemo(
+    () => (shouldUseCompactCategoryGrid ? categoryEntries : []),
+    [categoryEntries, shouldUseCompactCategoryGrid]
+  );
+
   const fullWidthCategoryEntries = useMemo(
-    () => categoryEntries.filter((entry) => activeCategory || entry.total > 1),
-    [activeCategory, categoryEntries]
+    () => (shouldUseCompactCategoryGrid ? [] : categoryEntries),
+    [categoryEntries, shouldUseCompactCategoryGrid]
   );
 
   if (isLoading) return (
@@ -345,7 +350,7 @@ const DynamicBusinessContent = () => {
                         const service = items[0];
 
                         return (
-                          <div key={cat} className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+                          <div key={cat} className="flex h-full flex-col rounded-2xl border border-border bg-card p-4 sm:p-5">
                             <div className="mb-4 flex items-start justify-between gap-3">
                               <div>
                                 <h3 className="text-lg font-bold text-foreground">{cat}</h3>
@@ -356,12 +361,14 @@ const DynamicBusinessContent = () => {
                               <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-muted-foreground">1 service</span>
                             </div>
 
-                            <DynamicServiceCard
-                              key={service.id}
-                              service={service}
-                              businessName={business.name}
-                              businessLogoUrl={business.logo_url || undefined}
-                            />
+                            <div className="flex-1">
+                              <DynamicServiceCard
+                                key={service.id}
+                                service={service}
+                                businessName={business.name}
+                                businessLogoUrl={business.logo_url || undefined}
+                              />
+                            </div>
                           </div>
                         );
                       })}
