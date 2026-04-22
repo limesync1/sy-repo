@@ -261,30 +261,19 @@ const DynamicBusinessContent = () => {
 
       {/* ── Body ── */}
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-8 py-8 md:gap-10 md:py-12 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
+          <div className="grid gap-8 py-8 md:gap-10 md:py-12 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px]">
 
           {/* ── Main Column ── */}
           <div className="min-w-0 space-y-10">
 
-            {/* About */}
-            {business.description && (
-              <section aria-labelledby="about-heading" className="rounded-3xl border border-border bg-secondary/30 p-5 md:p-7">
-                <div className="max-w-3xl">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Virksomhedsprofil</p>
-                  <h2 id="about-heading" className="mb-3 text-xl font-bold text-foreground md:text-2xl">Om {business.name}</h2>
-                  <p className="leading-7 text-muted-foreground whitespace-pre-line">{business.description}</p>
-                </div>
-              </section>
-            )}
-
             {/* Services */}
             {services && services.length > 0 && (
-              <section id="services" aria-labelledby="services-heading">
+              <section id="services" aria-labelledby="services-heading" className="rounded-[2rem] border border-border bg-card p-5 shadow-sm md:p-7">
                 <div className="mb-6 flex flex-col gap-3 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Book direkte</p>
                     <h2 id="services-heading" className="text-2xl font-bold text-foreground">Services</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">Vælg den løsning, der passer bedst til opgaven.</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Vælg en service, tilpas den hvis nødvendigt, og læg den direkte i bestillingen.</p>
                   </div>
                   <span className="inline-flex w-fit items-center rounded-full bg-secondary px-3 py-1 text-sm font-medium text-muted-foreground">{serviceCount} {serviceCount === 1 ? "service" : "services"}</span>
                 </div>
@@ -411,6 +400,17 @@ const DynamicBusinessContent = () => {
               </section>
             )}
 
+            {/* About */}
+            {business.description && (
+              <section aria-labelledby="about-heading" className="rounded-3xl border border-border bg-secondary/20 p-5 md:p-7">
+                <div className="max-w-3xl">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Virksomhedsprofil</p>
+                  <h2 id="about-heading" className="mb-3 text-xl font-bold text-foreground md:text-2xl">Om {business.name}</h2>
+                  <p className="leading-7 text-muted-foreground whitespace-pre-line">{business.description}</p>
+                </div>
+              </section>
+            )}
+
             {/* Reviews */}
             {reviews && reviews.length > 0 && (
               <section id="reviews" aria-labelledby="reviews-heading">
@@ -496,7 +496,7 @@ const DynamicBusinessContent = () => {
           {/* ── Sidebar ── */}
           <aside className="order-first space-y-4 lg:order-none lg:sticky lg:top-24 lg:self-start">
             {/* Bestil/Contact Card — primary CTA */}
-            <Card className="overflow-hidden rounded-3xl border border-accent/20 shadow-[0_26px_60px_-32px_hsl(var(--accent)/0.5)]">
+            <Card className="overflow-hidden rounded-3xl border border-border shadow-sm">
               <div className="border-b border-accent/15 bg-gradient-to-br from-accent/10 to-accent/5 px-5 py-5">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-accent" />

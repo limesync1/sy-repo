@@ -293,35 +293,37 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
         )}
 
         {/* Add button */}
-        <div className="mt-auto space-y-3 pt-2">
-        <div className="flex items-center justify-between rounded-2xl border border-border bg-secondary/35 px-4 py-3">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Samlet pris</p>
-            <p className="text-lg font-bold text-foreground">{roundPrice(total)} kr</p>
+        <div className="mt-auto rounded-2xl border border-border bg-secondary/25 p-3 sm:p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Samlet pris</p>
+              <p className="text-xl font-bold text-foreground">{roundPrice(total)} kr</p>
+            </div>
+            <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-background text-accent shadow-sm">
+              <ShoppingCart className="h-5 w-5" />
+            </div>
           </div>
-          <ShoppingCart className="h-5 w-5 text-accent" />
-        </div>
-        <Button
-          onClick={handleAdd}
-          disabled={justAdded}
-          className={`h-12 w-full gap-2 rounded-xl text-sm font-semibold transition-all ${
-            justAdded
-              ? "bg-accent/80 text-accent-foreground"
-              : "bg-accent text-accent-foreground shadow-md shadow-accent/20 hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/30 active:scale-[0.98]"
-          }`}
-        >
-          {justAdded ? (
-            <>
-              <Check className="h-4 w-4" />
-              Tilføjet!
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="h-4 w-4" />
-              Tilføj til bestilling
-            </>
-          )}
-        </Button>
+          <Button
+            onClick={handleAdd}
+            disabled={justAdded}
+            className={`h-12 w-full gap-2 rounded-xl text-sm font-semibold transition-all ${
+              justAdded
+                ? "bg-accent/80 text-accent-foreground"
+                : "bg-accent text-accent-foreground shadow-md shadow-accent/20 hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/30 active:scale-[0.98]"
+            }`}
+          >
+            {justAdded ? (
+              <>
+                <Check className="h-4 w-4" />
+                Tilføjet!
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="h-4 w-4" />
+                Tilføj til bestilling
+              </>
+            )}
+          </Button>
         </div>
       </CardContent>
     </Card>
