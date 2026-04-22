@@ -1,76 +1,45 @@
-import {
-  Menu,
-  X,
-  Sparkles,
-  ArrowRight,
-  ShieldCheck,
-  MapPin,
-  Clock3,
-} from "lucide-react";
+import { Menu, X, ShieldCheck, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-home-new.jpg";
 import { Button } from "@/components/ui/button";
-
-const quickSignals = [
-  { label: "Verificerede profiler", icon: ShieldCheck },
-  { label: "Lokale resultater", icon: MapPin },
-  { label: "Hurtigere valg", icon: Clock3 },
-];
-
-const heroNotes = [
-  "Pris, kvalitet og nærhed tættere samlet",
-  "Kortere vej fra søgning til booking",
-];
+import SearchSuggest from "./SearchSuggest";
+import LocationChip from "@/components/LocationChip";
 
 const HeroSection = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <header className="relative bg-background">
-      <nav className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-xl">
+      {/* Top nav */}
+      <nav className="border-b border-border bg-background/90 backdrop-blur-md sticky top-0 z-30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-3.5">
-            <Link
-              to="/"
-              className="flex items-center"
-              aria-label="Serviceydere forside"
-            >
-              <img
-                src="/serviceydere-logo-dark.png"
-                alt="Serviceydere"
-                className="h-9 md:h-10"
-              />
+            <Link to="/" className="flex items-center" aria-label="Serviceydere forside">
+              <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-9 md:h-10" />
             </Link>
 
+            {/* Center nav links */}
             <div className="hidden md:flex items-center gap-1">
-              <Link
-                to="/virksomheder"
-                className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground"
-              >
+              <Link to="/virksomheder" className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground">
                 Find services
               </Link>
-              <Link
-                to="/tilbud"
-                className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground"
-              >
+              <Link to="/tilbud" className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground">
                 Få tilbud
               </Link>
-              <Link
-                to="/log-ind?mode=business"
-                className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground"
-              >
+              <Link to="/log-ind?mode=business" className="rounded-full px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground">
                 Bliv udbyder
               </Link>
             </div>
 
+            {/* Right side */}
             <div className="flex items-center gap-2">
-              <Link to="/log-ind" className="hidden sm:inline-flex">
+              <Link to="/log-ind" className="hidden sm:inline-block">
                 <button className="rounded-full px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary">
                   Log ind
                 </button>
               </Link>
-              <Link to="/log-ind?signup=1" className="hidden sm:inline-flex">
+              <Link to="/log-ind?signup=1" className="hidden sm:inline-block">
                 <button className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-foreground/90">
                   Opret konto
                 </button>
@@ -80,157 +49,84 @@ const HeroSection = () => {
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary md:hidden"
                 aria-label="Menu"
               >
-                {menuOpen ? (
-                  <X className="h-5 w-5" />
-                ) : (
-                  <Menu className="h-5 w-5" />
-                )}
+                {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
             </div>
           </div>
 
           {menuOpen && (
-            <div className="mb-3 rounded-[28px] border border-border bg-card p-2 shadow-lg md:hidden">
-              <Link
-                to="/virksomheder"
-                className="block rounded-2xl px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary"
-                onClick={() => setMenuOpen(false)}
-              >
-                Find services
-              </Link>
-              <Link
-                to="/tilbud"
-                className="block rounded-2xl px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary"
-                onClick={() => setMenuOpen(false)}
-              >
-                Få tilbud
-              </Link>
-              <Link
-                to="/log-ind?mode=business"
-                className="block rounded-2xl px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary"
-                onClick={() => setMenuOpen(false)}
-              >
-                Bliv udbyder
-              </Link>
+            <div className="mb-3 rounded-2xl border border-border bg-card p-2 shadow-lg md:hidden">
+              <Link to="/virksomheder" className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Find services</Link>
+              <Link to="/tilbud" className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Få tilbud</Link>
+              <Link to="/log-ind?mode=business" className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Bliv udbyder</Link>
               <div className="my-1 h-px bg-border" />
-              <Link
-                to="/log-ind"
-                className="block rounded-2xl px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary"
-                onClick={() => setMenuOpen(false)}
-              >
-                Log ind
-              </Link>
-              <Link
-                to="/log-ind?signup=1"
-                className="block rounded-2xl px-3 py-2 text-sm font-semibold text-foreground hover:bg-secondary"
-                onClick={() => setMenuOpen(false)}
-              >
-                Opret konto
-              </Link>
+              <Link to="/log-ind" className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Log ind</Link>
+              <Link to="/log-ind?signup=1" className="block rounded-lg px-3 py-2 text-sm font-semibold text-foreground hover:bg-secondary" onClick={() => setMenuOpen(false)}>Opret konto</Link>
             </div>
           )}
         </div>
       </nav>
 
-      <div className="mx-auto max-w-7xl px-4 pb-8 pt-8 sm:px-6 lg:px-8 lg:pb-14 lg:pt-10">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,0.94fr)_minmax(420px,1.06fr)] lg:items-center lg:gap-12">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-foreground">
-              <Sparkles className="h-3.5 w-3.5 text-accent" />
-              En hurtigere vej fra behov til booking
-            </div>
-
-            <h1 className="mt-6 max-w-4xl text-[3rem] font-extrabold leading-[0.9] tracking-tight text-foreground sm:text-[4.5rem] lg:text-[5.8rem]">
-              Find den rette hjælp uden at fare vild i kataloget.
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:pt-8 sm:pb-10 md:pt-12 md:pb-14">
+        <div className="grid items-center gap-8 md:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)] lg:gap-12">
+          {/* Left: copy + search */}
+          <div className="min-w-0 flex flex-col py-1 md:py-4">
+            <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
+              <Sparkles className="h-3 w-3" />
+              Find den rette hjælp hurtigere
+            </span>
+            <h1 className="mt-4 max-w-2xl text-[2rem] font-extrabold leading-[1.02] tracking-tight text-foreground sm:text-[2.5rem] md:text-[3.2rem] lg:text-[3.6rem]">
+              Find den rette <span className="text-accent">serviceyder</span> til opgaven.
             </h1>
-
-            <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-              Serviceydere gør søgning mere brugbar med nærhed, kvalitet og pris
-              samlet i ét klart overblik fra første klik.
+            <p className="mt-4 max-w-xl text-[15px] leading-7 text-muted-foreground sm:text-base md:text-lg">
+              Søg lokalt, sammenlign hurtigt og vælg med større sikkerhed.
             </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link to="/virksomheder">
-                <Button
-                  size="lg"
-                  className="h-12 gap-2 rounded-full px-6 text-sm font-semibold"
-                >
+                <Button size="lg" className="h-12 w-full rounded-full px-6 text-sm font-semibold sm:w-auto">
                   Find services
-                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
               <Link to="/tilbud">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="h-12 rounded-full bg-background px-6 text-sm font-semibold"
-                >
+                <Button size="lg" variant="outline" className="h-12 w-full rounded-full px-6 text-sm font-semibold sm:w-auto">
                   Få 3 tilbud
                 </Button>
               </Link>
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
-              {quickSignals.map((signal) => (
-                <div
-                  key={signal.label}
-                  className="inline-flex items-center gap-2"
-                >
-                  <signal.icon className="h-4 w-4 text-accent" />
-                  <span>{signal.label}</span>
-                </div>
-              ))}
+            <div className="mt-6 rounded-[28px] border border-border bg-card p-3 shadow-sm sm:mt-8 sm:p-4">
+              <SearchSuggest variant="hero" />
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className="text-xs text-muted-foreground">Søger nær:</span>
+                <LocationChip />
+              </div>
+            </div>
+
+            <div className="mt-5 text-sm text-muted-foreground sm:mt-6">
+              Hurtig søgning med smartere lokationsforståelse.
             </div>
           </div>
 
-          <div className="relative">
-            <div className="relative overflow-hidden rounded-[38px] bg-secondary shadow-sm">
-              <div className="aspect-[5/6] sm:aspect-[16/11] lg:aspect-[5/6]">
-                <img
-                  src={heroImage}
-                  alt="Professionel serviceyder klar til at hjælpe"
-                  className="h-full w-full object-cover"
-                  loading="eager"
-                />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-foreground/24 via-transparent to-background/12" />
-
-              <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 lg:p-6">
-                <div className="overflow-hidden rounded-[28px] border border-background/40 bg-background/88 shadow-lg backdrop-blur-sm">
-                  <div className="grid gap-px bg-border sm:grid-cols-3">
-                    {quickSignals.map((signal) => (
-                      <div
-                        key={signal.label}
-                        className="bg-background px-4 py-4"
-                      >
-                        <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          Signal
-                        </div>
-                        <div className="mt-2 flex items-center gap-2 text-sm font-semibold text-foreground">
-                          <signal.icon className="h-4 w-4 text-accent" />
-                          {signal.label}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+          <div className="relative mt-2 hidden md:block">
+            <div className="relative aspect-[5/4] w-full overflow-hidden rounded-[28px] bg-secondary shadow-xl lg:max-h-[520px]">
+              <img
+                src={heroImage}
+                alt="Professionel serviceyder klar til at hjælpe"
+                className="h-full w-full object-cover"
+                width={1536}
+                height={1024}
+                loading="eager"
+              />
+              <div className="absolute inset-x-5 bottom-5 rounded-2xl bg-card/92 p-4 shadow-lg backdrop-blur">
+                <div className="text-sm font-semibold text-foreground">Sammenlign smartere</div>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  Få overblik over pris, anmeldelser og tilgængelighed uden at hoppe mellem flere sider.
+                </p>
+                <div className="mt-3 inline-flex rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground">
+                  Pris og tilgængelighed samlet ét sted
                 </div>
               </div>
-            </div>
-
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {heroNotes.map((note, index) => (
-                <div
-                  key={note}
-                  className={`rounded-[24px] px-4 py-4 ${index === 0 ? "bg-secondary" : "bg-secondary/60"}`}
-                >
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Overblik
-                  </div>
-                  <div className="mt-2 text-sm font-semibold text-foreground">
-                    {note}
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>

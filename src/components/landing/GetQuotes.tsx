@@ -1,178 +1,102 @@
-import { ArrowRight, Clock3, ShieldCheck, Sparkles, Star } from "lucide-react";
+import { Sparkles, Zap, ShieldCheck, ArrowRight, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
-const matches = [
-  {
-    name: "Ready2Clean",
-    price: "1.450 kr",
-    rating: "4.9",
-    note: "Bedst samlet match",
-    verified: true,
-  },
-  {
-    name: "Nordic Service",
-    price: "1.620 kr",
-    rating: "4.8",
-    note: "Stærk kvalitet",
-    verified: true,
-  },
-  {
-    name: "Pro Helpers",
-    price: "1.380 kr",
-    rating: "4.7",
-    note: "God pris",
-    verified: false,
-  },
-];
-
 const GetQuotes = () => {
+  const matches = [
+    { name: "Ready2Clean", price: "1.450 kr", rating: "4.9", verified: true, logo: "R2", tone: "bg-secondary text-foreground", reason: "Bedst samlet", eta: "Kan starte hurtigt" },
+    { name: "Nordic Service", price: "1.620 kr", rating: "4.8", verified: true, logo: "NS", tone: "bg-accent/10 text-accent", reason: "Stærk kvalitet", eta: "Mange glade kunder" },
+    { name: "Pro Helpers", price: "1.380 kr", rating: "4.7", verified: false, logo: "PH", tone: "bg-muted text-foreground", reason: "God pris", eta: "Fornuftigt budgetvalg" },
+  ];
+
   return (
-    <section className="bg-background py-16 md:py-24">
+    <section className="bg-background py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,0.55fr)_minmax(0,0.45fr)] lg:items-end">
-          <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Tilbud
-            </div>
-            <h2 className="mt-3 max-w-xl text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-              Når du vil have markedet til at komme til dig.
-            </h2>
-          </div>
-          <p className="max-w-xl text-base leading-7 text-muted-foreground lg:justify-self-end">
-            Tilbudsflowet er gjort mere læsbart, så forklaringen og eksemplet
-            hænger tættere sammen i stedet for at føles som to separate bokse.
-          </p>
-        </div>
-
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,0.42fr)_minmax(0,0.58fr)] lg:gap-10">
-          <div className="flex flex-col justify-between rounded-[36px] bg-foreground px-6 py-7 text-background shadow-sm sm:px-8 sm:py-8">
+          <div className="overflow-hidden rounded-[28px] bg-foreground px-5 py-7 sm:px-8 sm:py-9 md:px-12 md:py-10">
+          <div className="grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-background/10 px-3 py-1 text-xs font-semibold text-background/80">
-                <Sparkles className="h-3.5 w-3.5" />
-                Smart matching
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent">
+                <Sparkles className="h-3 w-3" />
+                AI-drevet matching
+              </span>
+              <h2 className="mt-4 max-w-xl text-2xl font-bold tracking-tight text-background sm:text-3xl md:text-4xl">
+                Få de mest relevante valg først.
+              </h2>
+              <p className="mt-4 max-w-lg text-sm leading-7 text-background/75 sm:text-base">
+                I stedet for mange ligegyldige profiler bliver de mest relevante prioriteret med det samme.
+              </p>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
+                  <div className="text-sm font-semibold text-background">Kort input</div>
+                  <div className="mt-1 text-xs leading-5 text-background/70">Ingen lange trin.</div>
+                </div>
+                <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
+                  <div className="text-sm font-semibold text-background">Færre, bedre matches</div>
+                  <div className="mt-1 text-xs leading-5 text-background/70">Udvalgt til opgaven.</div>
+                </div>
+                <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
+                  <div className="text-sm font-semibold text-background">Roligt overblik</div>
+                  <div className="mt-1 text-xs leading-5 text-background/70">Nemmere at vælge.</div>
+                </div>
               </div>
-              <div className="mt-6 space-y-5">
-                <div>
-                  <div className="text-sm font-semibold text-background">
-                    1. Beskriv opgaven
-                  </div>
-                  <div className="mt-1 text-sm leading-6 text-background/68">
-                    Kort tekst er nok til at komme i gang.
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-background">
-                    2. De bedste svar ryger øverst
-                  </div>
-                  <div className="mt-1 text-sm leading-6 text-background/68">
-                    Kvalitet, pris og lokation vurderes samlet.
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-background">
-                    3. Vælg uden at starte forfra
-                  </div>
-                  <div className="mt-1 text-sm leading-6 text-background/68">
-                    Du får et mere brugbart første udvalg med det samme.
-                  </div>
-                </div>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link to="/tilbud">
+                  <Button size="lg" className="h-12 gap-2 rounded-full bg-accent px-7 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/20 hover:bg-accent/90">
+                    Prøv det gratis
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link to="/virksomheder">
+                  <Button size="lg" variant="outline" className="h-12 gap-2 rounded-full border-background/20 bg-transparent px-6 text-sm font-medium text-background hover:bg-background/10 hover:text-background">
+                    Se virksomheder
+                  </Button>
+                </Link>
               </div>
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/tilbud">
-                <Button
-                  size="lg"
-                  className="h-12 rounded-full bg-background px-6 text-sm font-semibold text-foreground hover:bg-background/90"
-                >
-                  Få tilbud
-                </Button>
-              </Link>
-              <Link to="/virksomheder">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="h-12 rounded-full border-background/20 bg-background/10 px-6 text-sm font-semibold text-background hover:bg-background/20"
-                >
-                  Se virksomheder
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          <div className="grid gap-4">
-            <div className="overflow-hidden rounded-[32px] border border-border bg-secondary shadow-sm">
-              <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4 sm:px-6">
-                <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Matchoversigt
+            <div className="relative">
+              <div className="rounded-2xl bg-background p-4 shadow-2xl sm:p-5">
+                <div className="mb-4 flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                    <Sparkles className="h-4 w-4" />
                   </div>
-                  <div className="mt-1 text-base font-semibold text-foreground">
-                    De kandidater der mest sandsynligt passer
-                  </div>
-                </div>
-                <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Clock3 className="h-3.5 w-3.5" />
-                  Klar hurtigt
-                </div>
-              </div>
-
-              <div className="space-y-3 px-4 py-4 sm:px-5 sm:py-5">
-                {matches.map((match, index) => (
-                  <div
-                    key={match.name}
-                    className="grid gap-3 rounded-[24px] bg-background px-4 py-4 sm:grid-cols-[48px_minmax(0,1fr)_auto] sm:items-center"
-                  >
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-sm font-bold text-foreground">
-                      0{index + 1}
+                  <div className="flex-1">
+                    <div className="text-xs font-semibold text-foreground">AI matcher</div>
+                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <Clock className="h-3 w-3" /> Prioriterer kvalitet, pris og nærhed
                     </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <div className="truncate text-sm font-semibold text-foreground">
-                          {match.name}
+                  </div>
+                  <span className="flex h-2 w-2 animate-pulse rounded-full bg-accent" />
+                </div>
+
+                <div className="space-y-2">
+                  {matches.map((m, i) => (
+                    <div
+                      key={m.name}
+                      className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+                      style={{ animation: `fade-in 0.4s ease-out ${i * 120}ms both` }}
+                    >
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl text-xs font-bold ${m.tone}`}>
+                        {m.logo}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="truncate text-sm font-semibold text-foreground">{m.name}</span>
+                          {m.verified && <ShieldCheck className="h-3 w-3 shrink-0 text-accent" />}
                         </div>
-                        {match.verified && (
-                          <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-accent" />
-                        )}
+                        <div className="text-[11px] text-muted-foreground">★ {m.rating} · {m.reason}</div>
+                        <div className="mt-0.5 text-[11px] text-muted-foreground/80">{m.eta}</div>
                       </div>
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        ★ {match.rating} · {match.note}
-                      </div>
+                      <div className="text-sm font-bold text-foreground">{m.price}</div>
                     </div>
-                    <div className="text-sm font-semibold text-foreground">
-                      {match.price}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  ))}
+                </div>
 
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-[24px] bg-secondary px-4 py-4">
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Fokus
-                </div>
-                <div className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-foreground">
-                  <Star className="h-4 w-4 text-accent" />
-                  Kvalitet først
-                </div>
-              </div>
-              <div className="rounded-[24px] bg-secondary/70 px-4 py-4">
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Fokus
-                </div>
-                <div className="mt-2 text-sm font-semibold text-foreground">
-                  Pris med i vurderingen
-                </div>
-              </div>
-              <div className="rounded-[24px] bg-secondary px-4 py-4">
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Fokus
-                </div>
-                <div className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-foreground">
-                  Lokal relevans
-                  <ArrowRight className="h-4 w-4" />
+                <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-secondary py-2 text-xs font-medium text-muted-foreground">
+                  <Zap className="h-3 w-3 text-accent" />
+                  Viser først dem der mest sandsynligt passer
                 </div>
               </div>
             </div>
