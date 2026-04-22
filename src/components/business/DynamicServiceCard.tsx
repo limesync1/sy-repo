@@ -79,7 +79,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
   const [stepValues, setStepValues] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
     service.calculator_steps?.forEach((s) => {
-      initial[s.id] = initialStepValues?.[s.id] ?? 0;
+      initial[s.id] = initialStepValues?.[s.id] ?? s.default_value ?? s.min_value ?? 0;
     });
     return initial;
   });
@@ -256,9 +256,11 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
                     <span className="text-sm font-semibold text-foreground shrink-0">{roundPrice(stepTotal)} kr</span>
                   </div>
                   <StepperInput
-                    value={stepValues[step.id] ?? 0}
+                    value={stepValues[step.id] ?? step.default_value ?? step.min_value ?? 0}
                     onChange={(v) => setStepValues((prev) => ({ ...prev, [step.id]: v }))}
-                    min={0} max={step.max_value || 100} unit={step.unit}
+                    min={step.min_value ?? 0}
+                    max={step.max_value || 100}
+                    unit={step.unit}
                   />
                 </div>
               );
