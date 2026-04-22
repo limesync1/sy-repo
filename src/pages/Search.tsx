@@ -294,19 +294,21 @@ const SearchPage = () => {
       <SiteNav active="search" />
 
       {/* Search hero — full-width search */}
-      <section className="border-b border-border bg-secondary/30 py-8 md:py-12">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+      <section className="border-b border-border bg-background py-8 md:py-12">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="surface-panel rounded-[2rem] border border-border p-6 text-center shadow-[0_24px_55px_-36px_hsl(var(--foreground)/0.26)] md:p-8">
           <h1 className="mb-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
             Find verificerede serviceydere
           </h1>
-          <p className="mb-5 text-sm text-muted-foreground md:text-base">Søg på service, virksomhed eller by — vi har 2.400+ udbydere på platformen.</p>
+          <p className="mb-5 text-sm text-muted-foreground md:text-base">Søg på service, virksomhed eller by, og få et hurtigere overblik over relevante virksomheder nær dig.</p>
           <div className="mx-auto flex justify-center">
             <SearchSuggest variant="hero" defaultQuery={debouncedQuery} />
           </div>
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-            <span className="text-xs text-muted-foreground">Viser nær:</span>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <span className="text-xs font-medium text-muted-foreground">Viser nær:</span>
             <LocationChip />
             <RadiusPicker />
+          </div>
           </div>
         </div>
       </section>
@@ -340,7 +342,7 @@ const SearchPage = () => {
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 md:py-10">
         {/* Results header */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-border bg-card p-4 shadow-sm">
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             {!isLoading && (
               <span>
@@ -359,7 +361,7 @@ const SearchPage = () => {
 
           <div className="flex items-center gap-2">
             {/* View toggle: list / map */}
-            <div className="inline-flex rounded-full border border-border bg-card p-0.5 text-sm">
+            <div className="inline-flex rounded-full border border-border bg-secondary/60 p-0.5 text-sm">
               <button
                 type="button"
                 onClick={() => setView("grid")}
@@ -438,7 +440,7 @@ const SearchPage = () => {
             </div>
           )
         ) : (
-          <div className="rounded-2xl border border-dashed border-border bg-card/50 py-16 text-center">
+          <div className="rounded-[2rem] border border-dashed border-border bg-card py-16 text-center shadow-sm">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
               <SearchIcon className="h-7 w-7 text-muted-foreground/40" />
             </div>
