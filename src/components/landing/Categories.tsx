@@ -1,4 +1,4 @@
-import { Sparkles, Wrench, Truck, TreePine, Paintbrush, Droplets, Zap, ShieldCheck, Hammer, Home as HomeIcon } from "lucide-react";
+import { ArrowRight, Sparkles, Wrench, Truck, TreePine, Paintbrush, Droplets, Zap, ShieldCheck, Hammer, Home as HomeIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import HorizontalScroller from "./HorizontalScroller";
 
@@ -15,52 +15,88 @@ const categories = [
   { icon: HomeIcon, label: "Boligservice", desc: "Hjælp i hjemmet" },
 ];
 
+const featuredCategories = categories.slice(0, 4);
+const moreCategories = categories.slice(4);
+
 const Categories = () => {
   return (
     <section className="bg-background py-10 md:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col gap-3 md:mb-8 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-              <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Vælg en kategori</h2>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">Start der, hvor dit behov er mest tydeligt.</p>
+            <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Start med det, du skal have løst</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">De mest brugte kategorier først — resten lige ved hånden.</p>
           </div>
-            <p className="text-sm font-medium text-muted-foreground">Populære valg</p>
+          <Link to="/virksomheder" className="inline-flex items-center gap-1 text-sm font-semibold text-foreground hover:text-foreground/80">
+            Se alle virksomheder
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
 
-        <div className="hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-5">
-          {categories.map((cat) => (
-            <Link
-              key={cat.label}
-              to={`/search?category=${encodeURIComponent(cat.label)}`}
-              className="group flex min-h-[152px] flex-col items-start justify-between rounded-2xl border border-border bg-card p-5 transition-all hover:border-foreground/20 hover:bg-secondary hover:shadow-sm"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground transition-colors group-hover:bg-background">
-                <cat.icon className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="text-base font-semibold text-foreground">{cat.label}</div>
-                <div className="mt-1 text-sm text-muted-foreground">{cat.desc}</div>
-              </div>
-            </Link>
-          ))}
+        <div className="hidden gap-4 md:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {featuredCategories.map((cat) => (
+              <Link
+                key={cat.label}
+                to={`/search?category=${encodeURIComponent(cat.label)}`}
+                className="group flex min-h-[176px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all hover:border-foreground/20 hover:bg-secondary hover:shadow-sm"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary text-foreground transition-colors group-hover:bg-background">
+                  <cat.icon className="h-5 w-5" />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="text-base font-semibold text-foreground">{cat.label}</div>
+                  <div className="text-sm text-muted-foreground">{cat.desc}</div>
+                  <div className="inline-flex items-center gap-1 text-sm font-medium text-foreground">
+                    Se muligheder
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="mb-4">
+              <div className="text-sm font-semibold text-foreground">Flere kategorier</div>
+              <p className="mt-1 text-sm text-muted-foreground">Når du bare vil hurtigt videre.</p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {moreCategories.map((cat) => (
+                <Link
+                  key={cat.label}
+                  to={`/search?category=${encodeURIComponent(cat.label)}`}
+                  className="group flex items-center gap-3 rounded-xl border border-border bg-background px-3 py-3 transition-colors hover:bg-secondary"
+                >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground transition-colors group-hover:bg-card">
+                    <cat.icon className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold text-foreground">{cat.label}</div>
+                    <div className="truncate text-xs text-muted-foreground">{cat.desc}</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="md:hidden">
           <HorizontalScroller>
             {categories.map((cat) => (
-              <Link
-                key={cat.label}
-                to={`/search?category=${encodeURIComponent(cat.label)}`}
-                className="group flex w-[180px] shrink-0 flex-col items-start gap-4 rounded-2xl border border-border bg-card p-4 transition-all hover:border-foreground/20 hover:shadow-sm"
-              >
+            <Link
+              key={cat.label}
+              to={`/search?category=${encodeURIComponent(cat.label)}`}
+                className="group flex w-[190px] shrink-0 flex-col items-start gap-4 rounded-2xl border border-border bg-card p-4 transition-all hover:border-foreground/20 hover:shadow-sm"
+            >
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground transition-colors group-hover:bg-foreground group-hover:text-background">
-                  <cat.icon className="h-5 w-5" />
-                </div>
-                <div>
+                <cat.icon className="h-5 w-5" />
+              </div>
+              <div>
                   <div className="text-sm font-semibold text-foreground">{cat.label}</div>
                   <div className="mt-1 text-xs text-muted-foreground">{cat.desc}</div>
-                </div>
-              </Link>
+              </div>
+            </Link>
             ))}
           </HorizontalScroller>
         </div>
