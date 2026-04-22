@@ -78,55 +78,52 @@ const categories = [
 
 const Categories = () => {
   return (
-    <section className="bg-secondary/50 py-16 md:py-24">
+    <section className="border-y border-border bg-secondary/35 py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,0.42fr)_minmax(0,0.58fr)] lg:items-start">
-          <div className="lg:sticky lg:top-24">
+        <div className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,0.55fr)_minmax(0,0.45fr)] lg:items-end">
+          <div>
             <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Kategorier
             </div>
-            <h2 className="mt-3 max-w-sm text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+            <h2 className="mt-3 max-w-2xl text-3xl font-bold tracking-tight text-foreground md:text-4xl">
               Gå ind dér hvor opgaven starter.
             </h2>
-            <p className="mt-4 max-w-md text-base leading-7 text-muted-foreground">
-              I stedet for én flad liste er forsiden bygget op omkring tydelige
-              indgange, så du kan skifte retning hurtigt uden at begynde forfra.
-            </p>
-            <Link
-              to="/virksomheder"
-              className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-foreground transition-opacity hover:opacity-80"
-            >
-              Se alle virksomheder
-              <ArrowRight className="h-4 w-4" />
-            </Link>
           </div>
+          <p className="max-w-xl text-base leading-7 text-muted-foreground lg:justify-self-end">
+            De vigtigste indgange ligger øverst, mens resten er organiseret tæt
+            nok på til, at du hurtigt kan skifte spor.
+          </p>
+        </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
-            {categories.map((category, index) => (
-              <Link
-                key={category.label}
-                to={`/search?category=${encodeURIComponent(category.label)}`}
-                className={`group relative overflow-hidden rounded-[30px] bg-background px-5 py-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${category.span}`}
-              >
-                <div
-                  className={`pointer-events-none absolute inset-0 ${index % 2 === 0 ? "bg-gradient-to-br from-secondary/70 via-transparent to-transparent" : "bg-gradient-to-br from-accent/10 via-transparent to-transparent"}`}
-                />
-                <div className="relative flex min-h-[152px] flex-col justify-between">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-foreground">
-                    <category.icon className="h-5 w-5" />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+          {categories.map((category, index) => (
+            <Link
+              key={category.label}
+              to={`/search?category=${encodeURIComponent(category.label)}`}
+              className={`group relative overflow-hidden rounded-[30px] bg-background px-5 py-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${category.span}`}
+            >
+              <div
+                className={`pointer-events-none absolute inset-0 ${index % 2 === 0 ? "bg-gradient-to-br from-secondary/70 via-transparent to-transparent" : "bg-gradient-to-br from-accent/10 via-transparent to-transparent"}`}
+              />
+              <div className="relative flex min-h-[152px] flex-col justify-between">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-foreground">
+                  <category.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-lg font-semibold text-foreground">
+                    {category.label}
                   </div>
-                  <div>
-                    <div className="text-lg font-semibold text-foreground">
-                      {category.label}
-                    </div>
-                    <p className="mt-2 max-w-[24ch] text-sm leading-6 text-muted-foreground">
-                      {category.desc}
-                    </p>
+                  <p className="mt-2 max-w-[24ch] text-sm leading-6 text-muted-foreground">
+                    {category.desc}
+                  </p>
+                  <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-foreground opacity-0 transition-all group-hover:opacity-100">
+                    Se kategori
+                    <ArrowRight className="h-4 w-4" />
                   </div>
                 </div>
-              </Link>
-            ))}
-          </div>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     </section>
