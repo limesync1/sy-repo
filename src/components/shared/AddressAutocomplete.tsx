@@ -186,6 +186,16 @@ const AddressAutocomplete = ({ value, onChange, onVerified, placeholder, classNa
           </ul>
         </div>
       )}
+
+      {(value.zip_code || value.city) && (
+        <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+          <MapPin className="h-3.5 w-3.5 text-accent" />
+          <span>
+            {value.zip_code ? `${value.zip_code} ` : ""}{value.city || ""}
+          </span>
+          {verified && <span className="font-medium text-foreground">· Verificeret</span>}
+        </div>
+      )}
     </div>
   );
 };

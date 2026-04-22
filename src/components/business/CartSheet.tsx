@@ -14,7 +14,6 @@ import { INTERVAL_LABELS } from "@/types/service";
 import { cn } from "@/lib/utils";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
-import { DurationTimePicker } from "@/components/shared/DurationTimePicker";
 
 /** Calculate next service date based on interval, anchored to today. */
 const calculateNextServiceDate = (interval: string): string => {
@@ -60,23 +59,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [geo, setGeo] = useState<{ ok: boolean; display?: string; lat?: number; lng?: number } | null>(null);
-
-  // Pr. service-linje: anslået varighed + ønsket tidsrum.
-  // Bruges til at give virksomheden et brugbart forhåndsestimat når de planlægger.
-  type LinePref = {
-    durationHours: number;
-    durationMinutes: number;
-    timeStart: string;
-    timeEnd: string;
-  };
-  const [linePrefs, setLinePrefs] = useState<Record<string, LinePref>>({});
-  const getLinePref = (serviceId: string): LinePref =>
-    linePrefs[serviceId] || { durationHours: 0, durationMinutes: 30, timeStart: "", timeEnd: "" };
-  const updateLinePref = (serviceId: string, patch: Partial<LinePref>) =>
-    setLinePrefs((prev) => ({
-      ...prev,
-      [serviceId]: { ...getLinePref(serviceId), ...patch },
-    }));
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Auto-fyld navn/email/tlf fra brugerens profil når de åbner checkout
   useEffect(() => {
@@ -94,6 +77,22 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkout, user]);
+
+  useEffect(() => {
+    if (!Object.keys(errors).length) return;
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (email.trim()) delete next.email;
+      if (phone.trim()) delete next.phone;
+      if (address.trim() && zipCode.trim() && city.trim()) delete next.address;
+      if (customerType === "private" && name.trim()) delete next.name;
+      if (customerType === "business") {
+        if (companyName.trim()) delete next.companyName;
+        if (contactName.trim()) delete next.contactName;
+      }
+      return next;
+    });
+  }, [address, city, companyName, contactName, customerType, email, errors, name, phone, zipCode]);
 
   // (zip/city håndteres nu udelukkende via AddressAutocomplete)
 
@@ -132,19 +131,31 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
   }, [address, zipCode, city, checkout]);
 
   const handleOrder = async () => {
-    if (!name || !email || !phone || !address || !zipCode || !city) {
-      toast.error("Udfyld venligst alle felter inkl. adresse for at sende bestillingen");
+    const nextErrors: Record<string, string> = {};
+    const trimmedEmail = email.trim();
+    const trimmedPhone = phone.trim();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
+
+    if (customerType === "private" && !name.trim()) nextErrors.name = "Indtast dit navn.";
+    if (customerType === "business" && !companyName.trim()) nextErrors.companyName = "Indtast firmanavn.";
+    if (customerType === "business" && !contactName.trim()) nextErrors.contactName = "Indtast kontaktperson.";
+    if (!trimmedEmail) nextErrors.email = "Indtast din e-mail.";
+    else if (!emailOk) nextErrors.email = "Indtast en gyldig e-mailadresse.";
+    if (!trimmedPhone) nextErrors.phone = "Indtast dit telefonnummer.";
+    if (!address.trim() || !zipCode.trim() || !city.trim()) nextErrors.address = "Vælg en gyldig adresse med postnummer og by.";
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
       return;
     }
 
-    // Block until address can be geocoded — protects route planner from typos
+    setErrors({});
+
     let coords = geo?.ok ? { lat: geo.lat!, lng: geo.lng! } : null;
     if (!coords) {
       const r = await verifyAddress();
       if (!r) {
-        toast.error("Vi kunne ikke finde adressen — tjek stavemåde og postnummer", {
-          description: "Adressen skal være gyldig før vi kan planlægge en rute.",
-        });
+        setErrors({ address: "Adressen kunne ikke verificeres. Vælg adressen fra listen igen." });
         return;
       }
       coords = { lat: r.lat!, lng: r.lng! };
@@ -164,8 +175,6 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
         for (let i = 0; i < group.items.length; i++) {
           const item = group.items[i];
           const lineTotal = item.total * item.quantity;
-          const pref = getLinePref(item.serviceId);
-          const totalMin = Math.max(15, pref.durationHours * 60 + pref.durationMinutes);
           await createOrder.mutateAsync({
             order: {
               id: childIds[i],
@@ -182,9 +191,9 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
               cvr: customerType === "business" ? (cvr.replace(/\D/g, "") || null) : null,
               company_name: customerType === "business" ? (companyName.trim() || null) : null,
               preferred_date: null,
-              preferred_time_start: pref.timeStart || null,
-              preferred_time_end: pref.timeEnd || null,
-              estimated_duration_minutes: totalMin,
+              preferred_time_start: null,
+              preferred_time_end: null,
+              estimated_duration_minutes: null,
               total_amount: lineTotal,
               customer_id: user?.id || null,
             },
@@ -296,7 +305,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
           .catch((err) => console.warn("Email send failed (non-blocking):", err));
       }
     } catch (e: any) {
-      toast.error("Fejl ved oprettelse af bestilling: " + e.message);
+      toast.error("Bestillingen kunne ikke sendes", { description: e.message });
       return;
     }
 
