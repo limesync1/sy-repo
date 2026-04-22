@@ -183,7 +183,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
   const showIntervals = intervals.length > 1 || (intervals.length === 1 && intervals[0] !== "engangskøb");
 
   return (
-    <Card className="group h-full overflow-hidden rounded-3xl border-border/80 bg-card transition-all hover:-translate-y-0.5 hover:border-accent/25 hover:shadow-[0_22px_50px_-28px_hsl(var(--foreground)/0.32)]">
+    <Card className="group h-full overflow-hidden rounded-[2rem] border-border/80 bg-card transition-all hover:-translate-y-0.5 hover:border-accent/25 hover:shadow-[0_24px_55px_-34px_hsl(var(--foreground)/0.32)]">
       {/* Image or placeholder */}
       {service.image_url ? (
         <div className="relative h-36 w-full overflow-hidden bg-secondary sm:h-40">
@@ -217,6 +217,39 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           {service.description && (
             <p className="mt-2 text-sm leading-5 text-muted-foreground line-clamp-2">{service.description}</p>
           )}
+        </div>
+
+        <div className="mb-4 rounded-[1.5rem] border border-border bg-secondary/35 p-3.5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Klar til bestilling</p>
+              <p className="text-xl font-bold text-foreground">{roundPrice(total)} kr</p>
+            </div>
+            <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-background text-accent shadow-sm ring-1 ring-border">
+              <ShoppingCart className="h-4 w-4" />
+            </div>
+          </div>
+          <Button
+            onClick={handleAdd}
+            disabled={justAdded}
+            className={`h-12 w-full gap-2 rounded-xl text-sm font-semibold transition-all ${
+              justAdded
+                ? "bg-accent/80 text-accent-foreground"
+                : "bg-accent text-accent-foreground shadow-lg shadow-accent/20 hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/30 active:scale-[0.98]"
+            }`}
+          >
+            {justAdded ? (
+              <>
+                <Check className="h-4 w-4" />
+                Tilføjet!
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="h-4 w-4" />
+                Tilføj til bestilling
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Fast pris */}
@@ -274,39 +307,6 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
             </div>
           </div>
         )}
-
-        <div className="mb-4 rounded-2xl border border-accent/20 bg-accent/5 p-3 shadow-sm shadow-accent/10">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Klar til bestilling</p>
-              <p className="text-xl font-bold text-foreground">{roundPrice(total)} kr</p>
-            </div>
-            <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-background text-accent shadow-sm ring-1 ring-accent/15">
-              <ShoppingCart className="h-4 w-4" />
-            </div>
-          </div>
-          <Button
-            onClick={handleAdd}
-            disabled={justAdded}
-            className={`h-12 w-full gap-2 rounded-xl text-sm font-semibold transition-all ${
-              justAdded
-                ? "bg-accent/80 text-accent-foreground"
-                : "bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/35 active:scale-[0.98]"
-            }`}
-          >
-            {justAdded ? (
-              <>
-                <Check className="h-4 w-4" />
-                Tilføjet!
-              </>
-            ) : (
-              <>
-                <ShoppingCart className="h-4 w-4" />
-                Tilføj til bestilling
-              </>
-            )}
-          </Button>
-        </div>
 
         {/* Interval selector */}
         {showIntervals && (
