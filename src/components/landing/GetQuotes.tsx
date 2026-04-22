@@ -4,9 +4,9 @@ import { Link } from "react-router-dom";
 
 const GetQuotes = () => {
   const matches = [
-    { name: "Ready2Clean", price: "1.450 kr", rating: "4.9", verified: true, logo: "R2", tone: "bg-secondary text-foreground" },
-    { name: "Nordic Service", price: "1.620 kr", rating: "4.8", verified: true, logo: "NS", tone: "bg-accent/10 text-accent" },
-    { name: "Pro Helpers", price: "1.380 kr", rating: "4.7", verified: false, logo: "PH", tone: "bg-muted text-foreground" },
+    { name: "Ready2Clean", price: "1.450 kr", rating: "4.9", verified: true, logo: "R2", tone: "bg-secondary text-foreground", reason: "Stærkt match", eta: "Kan tage opgaven hurtigt" },
+    { name: "Nordic Service", price: "1.620 kr", rating: "4.8", verified: true, logo: "NS", tone: "bg-accent/10 text-accent", reason: "Bedst anmeldt", eta: "Høj kundetilfredshed" },
+    { name: "Pro Helpers", price: "1.380 kr", rating: "4.7", verified: false, logo: "PH", tone: "bg-muted text-foreground", reason: "Bedste pris", eta: "Budgetvenligt valg" },
   ];
 
   return (
@@ -21,10 +21,10 @@ const GetQuotes = () => {
                 AI-drevet matching
               </span>
               <h2 className="mt-4 max-w-xl text-2xl font-bold tracking-tight text-background sm:text-3xl md:text-4xl">
-                Få relevante tilbud uden at lede længe.
+                Lad de bedste matches komme til dig.
               </h2>
               <p className="mt-4 max-w-lg text-sm leading-7 text-background/75 sm:text-base">
-                Beskriv opgaven kort, så finder vi de bedste matches nær dig.
+                Vi sorterer efter relevans, lokation og kvalitet, så du hurtigere ser hvem der faktisk giver mening.
               </p>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -66,8 +66,8 @@ const GetQuotes = () => {
                   </div>
                   <div className="flex-1">
                     <div className="text-xs font-semibold text-foreground">AI matcher</div>
-                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                      <Clock className="h-3 w-3" /> Udvalgte matches på få sekunder
+                     <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <Clock className="h-3 w-3" /> Sorteret efter kvalitet, pris og afstand
                     </div>
                   </div>
                   <span className="flex h-2 w-2 animate-pulse rounded-full bg-accent" />
@@ -88,7 +88,8 @@ const GetQuotes = () => {
                           <span className="truncate text-sm font-semibold text-foreground">{m.name}</span>
                           {m.verified && <ShieldCheck className="h-3 w-3 shrink-0 text-accent" />}
                         </div>
-                        <div className="text-[11px] text-muted-foreground">★ {m.rating} · Nær dig</div>
+                        <div className="text-[11px] text-muted-foreground">★ {m.rating} · {m.reason}</div>
+                        <div className="mt-0.5 text-[11px] text-muted-foreground/80">{m.eta}</div>
                       </div>
                       <div className="text-sm font-bold text-foreground">{m.price}</div>
                     </div>
@@ -97,7 +98,7 @@ const GetQuotes = () => {
 
                 <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-secondary py-2 text-xs font-medium text-muted-foreground">
                   <Zap className="h-3 w-3 text-accent" />
-                  Smartere sorteret efter lokation og match
+                  Klarere prioritering af de bedste muligheder
                 </div>
               </div>
             </div>

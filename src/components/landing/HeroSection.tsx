@@ -101,31 +101,10 @@ const HeroSection = () => {
                 <span className="text-xs text-muted-foreground">Søger nær:</span>
                 <LocationChip />
               </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {[
-                  "Tæt på dig",
-                  "Verificerede profiler",
-                ].map((shortcut) => (
-                  <span
-                    key={shortcut}
-                    className="inline-flex items-center rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground"
-                  >
-                    {shortcut}
-                  </span>
-                ))}
-              </div>
             </div>
 
-            {/* Trust strip */}
-            <div className="mt-5 grid grid-cols-1 gap-2 text-sm text-muted-foreground sm:mt-6 sm:grid-cols-2 sm:gap-3">
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-accent" />
-                Verificerede udbydere
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Sparkles className="h-4 w-4 text-accent" />
-                Smarte forslag
-              </span>
+            <div className="mt-5 text-sm text-muted-foreground sm:mt-6">
+              Hurtig søgning med smartere lokationsforståelse.
             </div>
           </div>
 
@@ -144,19 +123,8 @@ const HeroSection = () => {
                 <p className="mt-1 text-sm leading-6 text-muted-foreground">
                   Få overblik over pris, anmeldelser og tilgængelighed uden at hoppe mellem flere sider.
                 </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {[
-                    "Prisoverblik",
-                    "Verificerede profiler",
-                    "Nær din lokation",
-                  ].map((item) => (
-                    <span
-                      key={item}
-                      className="inline-flex rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground"
-                    >
-                      {item}
-                    </span>
-                  ))}
+                <div className="mt-3 inline-flex rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground">
+                  Pris og tilgængelighed samlet ét sted
                 </div>
               </div>
             </div>
