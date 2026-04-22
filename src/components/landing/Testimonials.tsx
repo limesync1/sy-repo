@@ -36,20 +36,9 @@ const Testimonials = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 max-w-2xl">
           <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-            Hvad kunderne siger
+            Kunderne siger det kort
           </h2>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">Ægte anmeldelser fra rigtige bookings, så du lettere kan vælge rigtigt.</p>
-          <div className="mt-3 flex flex-wrap gap-2 text-xs font-medium text-muted-foreground">
-            {[
-              "Rigtige kunder",
-              "Rigtige bookings",
-              "Bedre beslutninger",
-            ].map((item) => (
-              <span key={item} className="inline-flex rounded-full border border-border bg-background px-3 py-1">
-                {item}
-              </span>
-            ))}
-          </div>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">Ægte erfaringer, så du hurtigere kan vurdere kvaliteten.</p>
         </div>
 
         <HorizontalScroller>

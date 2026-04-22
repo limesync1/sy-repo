@@ -3,16 +3,16 @@ import { Link } from "react-router-dom";
 import HorizontalScroller from "./HorizontalScroller";
 
 const categories = [
-  { icon: Sparkles, label: "Rengøring", desc: "1.240+ udbydere", helper: "Privat & erhverv" },
-  { icon: Wrench, label: "Håndværker", desc: "890+ udbydere", helper: "Små og store opgaver" },
-  { icon: Truck, label: "Flyttehjælp", desc: "320+ udbydere", helper: "Flytning & tunge løft" },
-  { icon: TreePine, label: "Haveservice", desc: "560+ udbydere", helper: "Klipning, rydning, pleje" },
-  { icon: Paintbrush, label: "Maler", desc: "410+ udbydere", helper: "Inde og ude" },
-  { icon: Droplets, label: "VVS", desc: "280+ udbydere", helper: "Akut & planlagt" },
-  { icon: Zap, label: "Elektriker", desc: "350+ udbydere", helper: "Installation & reparation" },
-  { icon: ShieldCheck, label: "Sikkerhed", desc: "120+ udbydere", helper: "Låse, alarm, adgang" },
-  { icon: Hammer, label: "Tømrer", desc: "240+ udbydere", helper: "Montering & byg" },
-  { icon: HomeIcon, label: "Boligservice", desc: "180+ udbydere", helper: "Hjælp i hjemmet" },
+  { icon: Sparkles, label: "Rengøring", desc: "Privat & erhverv" },
+  { icon: Wrench, label: "Håndværker", desc: "Små og store opgaver" },
+  { icon: Truck, label: "Flyttehjælp", desc: "Flytning & tunge løft" },
+  { icon: TreePine, label: "Haveservice", desc: "Klipning, rydning, pleje" },
+  { icon: Paintbrush, label: "Maler", desc: "Inde og ude" },
+  { icon: Droplets, label: "VVS", desc: "Akut & planlagt" },
+  { icon: Zap, label: "Elektriker", desc: "Installation & reparation" },
+  { icon: ShieldCheck, label: "Sikkerhed", desc: "Låse, alarm, adgang" },
+  { icon: Hammer, label: "Tømrer", desc: "Montering & byg" },
+  { icon: HomeIcon, label: "Boligservice", desc: "Hjælp i hjemmet" },
 ];
 
 const Categories = () => {
@@ -21,14 +21,10 @@ const Categories = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col gap-3 md:mb-8 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-              Start med den type hjælp du søger
-            </h2>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">
-              Vælg en kategori for hurtigt at se relevante virksomheder, priser, anmeldelser og ledige tider i dit område.
-            </p>
+              <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Vælg en kategori</h2>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">Start der, hvor dit behov er mest tydeligt.</p>
           </div>
-          <p className="text-sm font-medium text-muted-foreground">Populære valg lige nu</p>
+            <p className="text-sm font-medium text-muted-foreground">Populære valg</p>
         </div>
 
         <div className="hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-5">
@@ -44,7 +40,6 @@ const Categories = () => {
               <div>
                 <div className="text-base font-semibold text-foreground">{cat.label}</div>
                 <div className="mt-1 text-sm text-muted-foreground">{cat.desc}</div>
-                <div className="mt-2 text-xs font-medium text-muted-foreground">{cat.helper}</div>
               </div>
             </Link>
           ))}
@@ -64,7 +59,6 @@ const Categories = () => {
                 <div>
                   <div className="text-sm font-semibold text-foreground">{cat.label}</div>
                   <div className="mt-1 text-xs text-muted-foreground">{cat.desc}</div>
-                  <div className="mt-2 text-[11px] font-medium text-muted-foreground">{cat.helper}</div>
                 </div>
               </Link>
             ))}

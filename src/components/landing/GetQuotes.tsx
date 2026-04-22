@@ -21,38 +21,25 @@ const GetQuotes = () => {
                 AI-drevet matching
               </span>
               <h2 className="mt-4 max-w-xl text-2xl font-bold tracking-tight text-background sm:text-3xl md:text-4xl">
-                Beskriv behovet én gang — få relevante tilbud tilbage.
+                Få relevante tilbud uden at lede længe.
               </h2>
               <p className="mt-4 max-w-lg text-sm leading-7 text-background/75 sm:text-base">
-                Fortæl kort hvad du har brug for. Vores AI matcher med op til 3 verificerede serviceydere på <span className="font-semibold text-background">3-10 sekunder</span> — helt gratis & uforpligtende.
+                Beskriv opgaven kort, så finder vi de bedste matches nær dig.
               </p>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
                   <div className="text-sm font-semibold text-background">1 formular</div>
-                  <div className="mt-1 text-xs leading-5 text-background/70">Du beskriver opgaven én gang.</div>
+                  <div className="mt-1 text-xs leading-5 text-background/70">Kort og enkelt.</div>
                 </div>
                 <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
                   <div className="text-sm font-semibold text-background">Op til 3 svar</div>
-                  <div className="mt-1 text-xs leading-5 text-background/70">Du får relevante tilbud at sammenligne.</div>
+                  <div className="mt-1 text-xs leading-5 text-background/70">Udvalgt til din opgave.</div>
                 </div>
                 <div className="rounded-2xl border border-background/10 bg-background/5 p-3">
                   <div className="text-sm font-semibold text-background">Ingen binding</div>
-                  <div className="mt-1 text-xs leading-5 text-background/70">Gratis og uforpligtende hele vejen.</div>
+                  <div className="mt-1 text-xs leading-5 text-background/70">Gratis at prøve.</div>
                 </div>
-              </div>
-
-              <div className="mt-5 flex flex-wrap gap-2 text-xs text-background/80">
-                {[
-                  "Mest relevante først",
-                  "Tager højde for lokation",
-                  "Sammenlign før du vælger",
-                ].map((item) => (
-                  <span key={item} className="inline-flex items-center gap-1.5 rounded-full border border-background/10 bg-background/5 px-3 py-1.5">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
-                    {item}
-                  </span>
-                ))}
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3">
@@ -80,7 +67,7 @@ const GetQuotes = () => {
                   <div className="flex-1">
                     <div className="text-xs font-semibold text-foreground">AI matcher</div>
                     <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                      <Clock className="h-3 w-3" /> Tilbud klar på 3-10 sek.
+                      <Clock className="h-3 w-3" /> Udvalgte matches på få sekunder
                     </div>
                   </div>
                   <span className="flex h-2 w-2 animate-pulse rounded-full bg-accent" />
@@ -101,7 +88,7 @@ const GetQuotes = () => {
                           <span className="truncate text-sm font-semibold text-foreground">{m.name}</span>
                           {m.verified && <ShieldCheck className="h-3 w-3 shrink-0 text-accent" />}
                         </div>
-                        <div className="text-[11px] text-muted-foreground">★ {m.rating} · Bedste match i dit område</div>
+                        <div className="text-[11px] text-muted-foreground">★ {m.rating} · Nær dig</div>
                       </div>
                       <div className="text-sm font-bold text-foreground">{m.price}</div>
                     </div>
@@ -110,7 +97,7 @@ const GetQuotes = () => {
 
                 <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-secondary py-2 text-xs font-medium text-muted-foreground">
                   <Zap className="h-3 w-3 text-accent" />
-                  3 tilbud genereret på 4,2 sek.
+                  Smartere sorteret efter lokation og match
                 </div>
               </div>
             </div>

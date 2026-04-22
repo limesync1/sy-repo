@@ -4,20 +4,17 @@ const steps = [
   {
     icon: Search,
     title: "Søg",
-    description: "Find serviceydere i din kategori og dit område på sekunder.",
-    helper: "Brug søgning, lokation og kategori for at indsnævre valget med det samme.",
+    description: "Find relevante serviceydere nær dig.",
   },
   {
     icon: BarChart3,
     title: "Sammenlign",
-    description: "Se priser, ægte anmeldelser og beregn pris direkte i appen.",
-    helper: "Få hurtig indsigt i prisniveau, kvalitet og hvem der passer bedst til opgaven.",
+    description: "Se pris, anmeldelser og overblik med det samme.",
   },
   {
     icon: CalendarCheck,
     title: "Book",
-    description: "Vælg den bedste og bestil med ét klik – betal efter levering.",
-    helper: "Når du er klar, fortsætter du direkte til aftale eller tilbud uden unødige trin.",
+    description: "Vælg den bedste løsning og gå videre hurtigt.",
   },
 ];
 
@@ -28,12 +25,9 @@ const HowItWorks = () => {
         <div className="mb-8 flex flex-col gap-3 md:mb-10 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
           <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-            Kom hurtigt fra behov til booking
+            Så enkelt er det
           </h2>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">Tre enkle trin, der gør det let at finde den rette hjælp på alle enheder.</p>
-          </div>
-          <div className="inline-flex w-fit rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
-            Fungerer på mobil, tablet og desktop
+          <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">Tre korte trin fra behov til valg.</p>
           </div>
         </div>
 
@@ -52,7 +46,6 @@ const HowItWorks = () => {
               <div>
                 <h3 className="mb-1 text-lg font-semibold text-foreground">{step.title}</h3>
                 <p className="text-sm leading-relaxed text-muted-foreground">{step.description}</p>
-                <p className="mt-2 text-xs leading-5 text-muted-foreground">{step.helper}</p>
               </div>
             </div>
           ))}

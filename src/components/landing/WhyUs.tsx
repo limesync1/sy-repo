@@ -4,22 +4,22 @@ const benefits = [
   {
     icon: CircleDollarSign,
     title: "Gratis at bruge",
-    description: "Det koster dig ikke en krone at søge, sammenligne og indhente tilbud.",
+    description: "Søg og sammenlign uden ekstra omkostning.",
   },
   {
     icon: BadgeCheck,
     title: "Verificerede virksomheder",
-    description: "Alle virksomheder er godkendte og kontrolleret af vores team.",
+    description: "Vælg blandt profiler, der er kontrolleret.",
   },
   {
     icon: Star,
     title: "Ægte anmeldelser",
-    description: "Læs hvad andre kunder synes – baseret på rigtige oplevelser.",
+    description: "Se hvad andre kunder faktisk oplevede.",
   },
   {
     icon: ShieldCheck,
     title: "Sammenlign priser",
-    description: "Brug prisberegneren og find den bedste pris til dit behov.",
+    description: "Få bedre overblik før du vælger.",
   },
 ];
 
@@ -31,18 +31,7 @@ const WhyUs = () => {
           <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
             Hvorfor Serviceydere?
           </h2>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">Alt er bygget til at gøre valget mere trygt, hurtigt og overskueligt for danske kunder.</p>
-          <div className="mt-3 flex flex-wrap gap-2 text-xs font-medium text-muted-foreground">
-            {[
-              "Mindre friktion",
-              "Mere tryghed",
-              "Bedre overblik",
-            ].map((item) => (
-              <span key={item} className="inline-flex rounded-full border border-border bg-card px-3 py-1">
-                {item}
-              </span>
-            ))}
-          </div>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">Alt er gjort enklere, så valget føles mere sikkert.</p>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -53,7 +42,6 @@ const WhyUs = () => {
               </div>
               <h3 className="text-base font-semibold text-foreground">{b.title}</h3>
               <p className="text-sm leading-relaxed text-muted-foreground">{b.description}</p>
-              <div className="pt-1 text-xs font-medium text-muted-foreground">Gør det lettere at vælge rigtigt første gang.</div>
             </div>
           ))}
         </div>
