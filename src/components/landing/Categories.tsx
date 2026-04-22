@@ -27,7 +27,7 @@ const Categories = () => {
             <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Start med det, du skal have løst</h2>
             <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">De mest brugte kategorier først — resten lige ved hånden.</p>
           </div>
-          <Link to="/virksomheder" className="inline-flex items-center gap-1 text-sm font-semibold text-foreground hover:text-foreground/80">
+          <Link to="/virksomheder" className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-semibold text-foreground hover:bg-secondary">
             Se alle virksomheder
             <ArrowRight className="h-4 w-4" />
           </Link>
@@ -45,6 +45,7 @@ const Categories = () => {
                   <cat.icon className="h-5 w-5" />
                 </div>
                 <div className="space-y-1.5">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kategori</div>
                   <div className="text-base font-semibold text-foreground">{cat.label}</div>
                   <div className="text-sm text-muted-foreground">{cat.desc}</div>
                   <div className="inline-flex items-center gap-1 text-sm font-medium text-foreground">

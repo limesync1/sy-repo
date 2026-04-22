@@ -140,7 +140,7 @@ const RecentBusinesses = () => {
             <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Udvalgte virksomheder</h2>
             <p className="mt-1 text-sm leading-6 text-muted-foreground md:text-base">Et hurtigere overblik over profiler, der ser stærke ud med det samme.</p>
           </div>
-          <Link to="/virksomheder" className="text-sm font-semibold text-foreground underline-offset-4 hover:underline">
+          <Link to="/virksomheder" className="inline-flex items-center rounded-full border border-border bg-card px-3 py-1.5 text-sm font-semibold text-foreground hover:bg-secondary">
             Vis alle
           </Link>
         </div>
