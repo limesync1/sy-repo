@@ -133,7 +133,7 @@ const RecentBusinesses = () => {
   if (!businesses || businesses.length === 0) return null;
 
   return (
-    <section className="bg-background py-14 md:py-18">
+    <section className="bg-background py-14 md:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
@@ -145,7 +145,7 @@ const RecentBusinesses = () => {
           </Link>
         </div>
 
-        <div className="rounded-[32px] bg-secondary/40 px-3 py-4 sm:px-4">
+        <div className="rounded-[36px] bg-secondary px-4 py-5 sm:px-5">
         <HorizontalScroller>
           {businesses.map((biz) => (
             <BusinessCard key={biz.id} biz={biz} />
