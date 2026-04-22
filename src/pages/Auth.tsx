@@ -51,7 +51,7 @@ const Auth = () => {
   const showModeSelector = !mode;
 
   return (
-    <div className="flex min-h-screen">
+      <div className="grid min-h-screen bg-background lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
       <SEO
         title={isSignUp ? "Opret konto – Serviceydere" : "Log ind – Serviceydere"}
         description={isSignUp ? "Opret en konto på Serviceydere og kom i gang med at finde de bedste serviceydere i Danmark." : "Log ind på din Serviceydere-konto for at administrere bestillinger, abonnementer og favoritter."}
@@ -59,51 +59,43 @@ const Auth = () => {
         noIndex
       />
       {/* ── Left: Branding panel ── */}
-      <div className="hidden lg:flex lg:w-[45%] xl:w-[42%] flex-col justify-between bg-[hsl(222,47%,11%)] px-10 py-8 relative overflow-hidden">
-        {/* Decorative blobs */}
-        <div className="absolute -top-32 -left-32 h-[500px] w-[500px] rounded-full bg-accent/10 blur-[100px] animate-magic-bg-1" />
-        <div className="absolute -bottom-40 -right-40 h-[400px] w-[400px] rounded-full bg-accent/5 blur-[80px] animate-magic-bg-2" />
+      <div className="surface-dark-panel relative hidden overflow-hidden lg:flex lg:min-h-screen lg:flex-col lg:justify-between px-10 py-8">
+        <div className="absolute inset-x-0 top-0 h-56 bg-gradient-to-b from-accent/10 to-transparent" />
+        <div className="absolute right-0 top-24 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
 
         <div className="relative z-10">
           <Link to="/">
             <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-8 mb-12" />
           </Link>
-          <h2 className="text-3xl font-extrabold text-white leading-tight xl:text-4xl">
-            Find de bedste<br />
-            <span className="text-accent">serviceydere</span> nær dig
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 backdrop-blur-sm">
+            <ShieldCheck className="h-3.5 w-3.5 text-accent" />
+            Sikker adgang til din konto
+          </div>
+          <h2 className="mt-6 text-3xl font-bold leading-tight text-white xl:text-5xl">
+            Saml booking,
+            <br />
+            kunder og drift ét sted.
           </h2>
-          <p className="mt-4 max-w-md text-white/60 leading-relaxed">
-            Sammenlign priser, læs anmeldelser og bestil services fra verificerede virksomheder — alt sammen ét sted.
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-white/70">
+            Log ind for at følge bestillinger, håndtere services og arbejde mere effektivt med Serviceydere.
           </p>
-        </div>
 
-        <div className="relative z-10 space-y-4">
-          <div className="flex items-center gap-3 text-white/70">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.08]">
-              <ShieldCheck className="h-4.5 w-4.5 text-accent" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-white/90">Verificerede virksomheder</p>
-              <p className="text-xs text-white/40">Alle virksomheder er gennemgået</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 text-white/70">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.08]">
-              <Star className="h-4.5 w-4.5 text-accent" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-white/90">Ægte anmeldelser</p>
-              <p className="text-xs text-white/40">Fra rigtige kunder</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 text-white/70">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.08]">
-              <Sparkles className="h-4.5 w-4.5 text-accent" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-white/90">AI-drevne tilbud</p>
-              <p className="text-xs text-white/40">Få skræddersyede tilbud automatisk</p>
-            </div>
+          <div className="mt-10 grid gap-4">
+            {[
+              { icon: ShieldCheck, title: "Verificeret platform", text: "Adgang til kunder, medarbejdere og virksomhedsdata samlet ét sted." },
+              { icon: Star, title: "Professionelt overblik", text: "Hold styr på tilbud, bestillinger og historik uden ekstra støj." },
+              { icon: Sparkles, title: "Hurtig opstart", text: "Kom i gang på få sekunder og skift let mellem kunde-, medarbejder- og virksomhedslogin." },
+            ].map(({ icon: Icon, title, text }) => (
+              <div key={title} className="grid grid-cols-[auto_1fr] gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-accent">
+                  <Icon className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">{title}</p>
+                  <p className="mt-1 text-sm leading-6 text-white/65">{text}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -125,19 +117,20 @@ const Auth = () => {
           )}
         </div>
 
-        <div className="flex flex-1 items-center justify-center px-4 pb-12">
-          <div className="w-full max-w-sm space-y-5">
+        <div className="flex flex-1 items-center justify-center px-4 pb-12 pt-2 sm:px-6 lg:px-10">
+          <div className="w-full max-w-md space-y-5">
 
             {/* ── Mode Selector ── */}
             {showModeSelector && (
               <div className="space-y-5">
                 <div className="text-center">
-                  <h1 className="text-2xl font-bold text-foreground">Velkommen</h1>
-                  <p className="mt-1.5 text-sm text-muted-foreground">Vælg hvordan du vil bruge Serviceydere</p>
+                  <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-muted-foreground">Vælg adgang</span>
+                  <h1 className="mt-4 text-3xl font-bold text-foreground">Velkommen tilbage</h1>
+                  <p className="mt-2 text-sm text-muted-foreground">Vælg hvordan du vil bruge Serviceydere</p>
                 </div>
 
                 <Link to="/log-ind?mode=customer" className="group block">
-                  <Card className="border-border/60 transition-all group-hover:border-accent/30 group-hover:shadow-md">
+                  <Card className="overflow-hidden border-border/70 bg-card transition-all group-hover:-translate-y-0.5 group-hover:border-accent/30 group-hover:shadow-[0_18px_40px_-24px_hsl(var(--foreground)/0.3)]">
                     <CardContent className="flex items-center gap-4 p-5">
                       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent/10 transition-colors group-hover:bg-accent/15">
                         <User className="h-6 w-6 text-accent" />
@@ -152,7 +145,7 @@ const Auth = () => {
                 </Link>
 
                 <Link to="/log-ind?mode=business" className="group block">
-                  <Card className="border-border/60 transition-all group-hover:border-foreground/20 group-hover:shadow-md">
+                  <Card className="overflow-hidden border-border/70 bg-card transition-all group-hover:-translate-y-0.5 group-hover:border-foreground/20 group-hover:shadow-[0_18px_40px_-24px_hsl(var(--foreground)/0.3)]">
                     <CardContent className="flex items-center gap-4 p-5">
                       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-foreground/5 transition-colors group-hover:bg-foreground/10">
                         <Building2 className="h-6 w-6 text-foreground" />
@@ -167,10 +160,10 @@ const Auth = () => {
                 </Link>
 
                 <Link to="/log-ind?mode=employee" className="group block">
-                  <Card className="border-border/60 transition-all group-hover:border-amber-400/40 group-hover:shadow-md">
+                  <Card className="overflow-hidden border-border/70 bg-card transition-all group-hover:-translate-y-0.5 group-hover:border-accent/25 group-hover:shadow-[0_18px_40px_-24px_hsl(var(--foreground)/0.3)]">
                     <CardContent className="flex items-center gap-4 p-5">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 transition-colors group-hover:bg-amber-200">
-                        <HardHat className="h-6 w-6 text-amber-700" />
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-secondary transition-colors group-hover:bg-accent/10">
+                        <HardHat className="h-6 w-6 text-foreground" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-foreground">Jeg er medarbejder</h3>
@@ -192,15 +185,15 @@ const Auth = () => {
 
             {/* ── Login / Signup Form ── */}
             {(isBusiness || isCustomer || isEmployee) && (
-              <div className="space-y-6">
+              <div className="rounded-[2rem] border border-border bg-card p-6 shadow-[0_18px_50px_-32px_hsl(var(--foreground)/0.28)] sm:p-8">
                 <div className="text-center">
                   <div className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl ${
-                    isBusiness ? "bg-foreground/5" : isEmployee ? "bg-amber-100" : "bg-accent/10"
+                    isBusiness ? "bg-foreground/5" : isEmployee ? "bg-secondary" : "bg-accent/10"
                   }`}>
                     {isBusiness
                       ? <Building2 className="h-6 w-6 text-foreground" />
                       : isEmployee
-                        ? <HardHat className="h-6 w-6 text-amber-700" />
+                        ? <HardHat className="h-6 w-6 text-foreground" />
                         : <User className="h-6 w-6 text-accent" />
                     }
                   </div>
