@@ -208,8 +208,8 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
       )}
 
       <CardContent className="flex h-full flex-col p-4 sm:p-5">
-        {/* Title & description */}
-        <div className="mb-4">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
           <h3 className="text-xl font-bold leading-tight text-foreground">{service.name}</h3>
           {(service as any).subcategory && (
             <span className="mt-1 inline-flex rounded-full bg-accent/10 px-2.5 py-1 text-[11px] font-semibold text-accent">{(service as any).subcategory}</span>
@@ -217,44 +217,41 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           {service.description && (
             <p className="mt-2 text-sm leading-5 text-muted-foreground line-clamp-2">{service.description}</p>
           )}
+          </div>
+          <div className="shrink-0 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-muted-foreground">
+            {pricingLabels[service.pricing_type]}
+          </div>
         </div>
 
-        <div className="mb-4 rounded-[1.5rem] border border-border bg-secondary/35 p-3.5">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Klar til bestilling</p>
-              <p className="text-xl font-bold text-foreground">{roundPrice(total)} kr</p>
-            </div>
-            <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-background text-accent shadow-sm ring-1 ring-border">
-              <ShoppingCart className="h-4 w-4" />
+        {showIntervals && (
+          <div className="mb-4 rounded-[1.25rem] border border-border bg-secondary/30 p-3.5">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Abonnement / interval</label>
+            <div className="flex flex-wrap gap-1.5">
+              {intervals.map((iv) => (
+                <button key={iv} type="button" onClick={() => setSelectedInterval(iv)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                    selectedInterval === iv
+                      ? "border-accent bg-accent text-accent-foreground shadow-sm"
+                      : "border-border bg-card text-muted-foreground hover:border-accent/40"
+                  }`}>
+                  {INTERVAL_LABELS[iv] || iv}
+                </button>
+              ))}
             </div>
           </div>
-          <Button
-            onClick={handleAdd}
-            disabled={justAdded}
-            className={`h-12 w-full gap-2 rounded-xl text-sm font-semibold transition-all ${
-              justAdded
-                ? "bg-accent/80 text-accent-foreground"
-                : "bg-accent text-accent-foreground shadow-lg shadow-accent/20 hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/30 active:scale-[0.98]"
-            }`}
-          >
-            {justAdded ? (
-              <>
-                <Check className="h-4 w-4" />
-                Tilføjet!
-              </>
-            ) : (
-              <>
-                <ShoppingCart className="h-4 w-4" />
-                Tilføj til bestilling
-              </>
-            )}
-          </Button>
-        </div>
+        )}
+
+        <div className="mb-4 rounded-[1.5rem] border border-border bg-secondary/20 p-3.5 sm:p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tilpas service</p>
+              <p className="text-sm text-muted-foreground">Vælg omfang og se prisen opdatere med det samme.</p>
+            </div>
+          </div>
 
         {/* Fast pris */}
         {service.pricing_type === "fast_pris" && (
-          <div className="mb-4 inline-flex w-fit items-end gap-1.5 rounded-2xl bg-secondary px-3 py-2">
+          <div className="inline-flex w-fit items-end gap-1.5 rounded-2xl bg-card px-3 py-2 ring-1 ring-border">
             <span className="text-[1.75rem] font-bold text-foreground">{service.base_price}</span>
             <span className="pb-1 text-sm text-muted-foreground">kr</span>
           </div>
@@ -262,12 +259,12 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
 
         {/* Timepris */}
         {service.pricing_type === "timepris" && (
-          <div className="mb-4 space-y-3">
+          <div className="space-y-3">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-sm text-muted-foreground">{service.base_price} kr / time</span>
               <StepperInput value={hours} onChange={setHours} min={0.5} max={24} step={0.5} unit="t" />
             </div>
-            <div className="inline-flex items-end gap-1.5 rounded-2xl bg-secondary px-3 py-2 pt-2">
+            <div className="inline-flex items-end gap-1.5 rounded-2xl bg-card px-3 py-2 pt-2 ring-1 ring-border">
               <span className="text-[1.75rem] font-bold text-foreground">{roundPrice(total)}</span>
               <span className="pb-1 text-sm text-muted-foreground">kr</span>
             </div>
@@ -276,7 +273,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
 
         {/* Prisberegner */}
         {service.pricing_type === "prisberegner" && sortedSteps.length > 0 && (
-          <div className="mb-4 space-y-0 overflow-hidden rounded-2xl border border-border bg-secondary/25">
+          <div className="space-y-0 overflow-hidden rounded-2xl border border-border bg-card">
             {sortedSteps.map((step, idx) => {
               const stepTotal = (stepValues[step.id] || 0) * step.price_per_unit;
               return (
@@ -307,25 +304,45 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
             </div>
           </div>
         )}
+        </div>
 
-        {/* Interval selector */}
-        {showIntervals && (
-          <div className="mb-5">
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Vælg interval</label>
-            <div className="flex flex-wrap gap-1.5">
-              {intervals.map((iv) => (
-                <button key={iv} type="button" onClick={() => setSelectedInterval(iv)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
-                    selectedInterval === iv
-                      ? "border-accent bg-accent text-accent-foreground shadow-sm"
-                      : "border-border bg-card text-muted-foreground hover:border-accent/40"
-                  }`}>
-                  {INTERVAL_LABELS[iv] || iv}
-                </button>
-              ))}
+        <div className="mt-auto rounded-[1.5rem] border border-accent/20 bg-accent/5 p-3.5 shadow-sm shadow-accent/10">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Prisoverslag</p>
+              <p className="text-2xl font-bold text-foreground">{roundPrice(total)} kr</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {selectedInterval && selectedInterval !== "engangskøb"
+                  ? INTERVAL_LABELS[selectedInterval] || selectedInterval
+                  : "Engangsservice"}
+              </p>
+            </div>
+            <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-background text-accent shadow-sm ring-1 ring-accent/15">
+              <ShoppingCart className="h-4 w-4" />
             </div>
           </div>
-        )}
+          <Button
+            onClick={handleAdd}
+            disabled={justAdded}
+            className={`h-12 w-full gap-2 rounded-xl text-sm font-semibold transition-all ${
+              justAdded
+                ? "bg-accent/80 text-accent-foreground"
+                : "bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/35 active:scale-[0.98]"
+            }`}
+          >
+            {justAdded ? (
+              <>
+                <Check className="h-4 w-4" />
+                Tilføjet!
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="h-4 w-4" />
+                Tilføj til bestilling
+              </>
+            )}
+          </Button>
+        </div>
 
       </CardContent>
     </Card>
