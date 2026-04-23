@@ -981,11 +981,11 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                         {/* Progress button for confirmed/in_progress */}
                         {actions.canProgress && actions.nextStatus && (
                           <Button size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
-                            className={`h-8 gap-1.5 rounded-md text-xs ${
+                            className={`h-9 gap-1.5 rounded-md text-xs ${
                               actions.nextStatus === "completed" && hasRecurring
                                 ? "bg-accent text-accent-foreground hover:bg-accent/90"
                                 : actions.nextStatus === "completed"
-                                ? "bg-green-600 text-white hover:bg-green-700"
+                                ? "bg-foreground text-background hover:bg-foreground/90"
                                 : "bg-foreground text-background hover:bg-foreground/90"
                             }`}>
                             {actions.nextStatus === "in_progress" && <><Play className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
@@ -997,7 +997,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                         {/* Cancel is always available for non-terminal states */}
                         {(order.status === "confirmed" || order.status === "in_progress") && (
                           <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, "cancelled"); }}
-                            className="ml-auto h-8 gap-1.5 rounded-md text-xs text-destructive hover:text-destructive hover:bg-destructive/5">
+                            className="ml-auto h-9 gap-1.5 rounded-md text-xs text-destructive hover:bg-destructive/5 hover:text-destructive">
                             <XCircle className="h-3.5 w-3.5" /> Annuller
                           </Button>
                         )}
