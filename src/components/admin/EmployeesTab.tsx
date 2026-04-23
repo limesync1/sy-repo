@@ -3,10 +3,8 @@ import {
   useEmployees, useCreateEmployee,
   useUpdateEmployee, useDeleteEmployee, useResetEmployeePassword,
 } from "@/hooks/useEmployees";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Mail, Phone, Briefcase, UserPlus, X,
@@ -304,25 +302,24 @@ const EmployeeRow = ({
   return (
     <TooltipProvider delayDuration={200}>
     <div className={`${employee.is_active ? "" : "opacity-70"}`}>
-      <AppListRow className="items-start justify-between gap-3 px-3 py-2.5">
+      <AppListRow className="items-start justify-between gap-4 px-3 py-3">
         <div className="flex items-center gap-3 min-w-0">
-          {/* Avatar / farve-prik med hover-overlay til upload */}
           <div className="relative h-10 w-10 shrink-0 group/avatar">
             {employee.avatar_url ? (
               <img
                 src={employee.avatar_url}
                 alt={employee.name}
-                className="h-10 w-10 rounded-full object-cover border"
+                className="h-10 w-10 rounded-md object-cover border border-border"
               />
             ) : (
               <div
-                className="h-10 w-10 rounded-full border"
+                className="h-10 w-10 rounded-md border border-border"
                 style={{ background: fallbackColor }}
                 aria-label={`Farve for ${employee.name}`}
               />
             )}
             <label
-              className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/60 text-background text-[9px] font-semibold opacity-0 group-hover/avatar:opacity-100 cursor-pointer transition-opacity"
+              className="absolute inset-0 flex items-center justify-center rounded-md bg-foreground/60 text-background text-[9px] font-semibold opacity-0 group-hover/avatar:opacity-100 cursor-pointer transition-opacity"
               title="Skift profilbillede"
             >
               {uploading ? "..." : "Skift"}
@@ -345,7 +342,7 @@ const EmployeeRow = ({
                 </InsightPill>
               )}
               {employee.title && (
-                <span className="text-[11px] text-muted-foreground">· {employee.title}</span>
+                <InsightPill>{employee.title}</InsightPill>
               )}
             </div>
             <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
@@ -360,8 +357,7 @@ const EmployeeRow = ({
                 </span>
               )}
             </div>
-            {/* Farve / billede-styring */}
-            <div className="mt-1 flex items-center gap-2">
+            <div className="mt-2 flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setPickerOpen((v) => !v)}
@@ -384,7 +380,7 @@ const EmployeeRow = ({
               )}
             </div>
             {pickerOpen && (
-              <div className="mt-2 grid grid-cols-12 gap-1 max-w-xs">
+              <div className="mt-2 grid grid-cols-8 gap-1 max-w-[188px] rounded-md border border-border bg-secondary/35 p-2">
                 {ROUTE_COLORS.map((c) => (
                   <button
                     key={c.value}
@@ -392,7 +388,7 @@ const EmployeeRow = ({
                     onClick={() => handlePickColor(c.value)}
                     title={c.name}
                     className={cn(
-                      "aspect-square rounded-md border transition-all hover:scale-110",
+                      "aspect-square rounded-md border border-border transition-all hover:scale-105",
                       fallbackColor === c.value && "ring-2 ring-foreground",
                     )}
                     style={{ background: c.value }}
@@ -449,7 +445,7 @@ const EmployeeRow = ({
         </div>
       </AppListRow>
 
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
@@ -462,28 +458,28 @@ const EmployeeRow = ({
           </DialogHeader>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Navn</label>
-              <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-10" />
+              <FieldLabel>Navn</FieldLabel>
+              <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-9" />
             </div>
             <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
+              <FieldLabel>Email</FieldLabel>
               <Input
                 type="email"
                 value={editEmail}
                 onChange={(e) => setEditEmail(e.target.value)}
-                className="h-10"
+                className="h-9"
               />
               <p className="mt-1 text-[11px] text-muted-foreground">
                 Email opdateres på medarbejder-profilen, men ændrer ikke login-emailen.
               </p>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Telefon</label>
-              <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-10" />
+              <FieldLabel>Telefon</FieldLabel>
+              <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-9" />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Titel</label>
-              <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="h-10" />
+              <FieldLabel>Titel</FieldLabel>
+              <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="h-9" />
             </div>
           </div>
           <DialogFooter className="gap-2">
