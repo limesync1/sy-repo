@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
   Handshake, DollarSign, Star, Briefcase, Clock, TrendingUp,
-  ArrowRight, AlertCircle, MapPin,
+  ArrowRight, AlertCircle, MapPin, ShieldCheck, Sparkles,
 } from "lucide-react";
 import type { Business } from "@/hooks/useDatabase";
 import { useMemo } from "react";
-import { PageHeader, StatCard, EmptyState } from "@/components/admin/shared/AdminUI";
+import { AppList, AppListRow, EmptyState, InsightPill, PageHeader, PriorityBanner, StatCard } from "@/components/admin/shared/AdminUI";
 
 interface Props {
   business: Business;
@@ -23,11 +23,11 @@ interface Props {
 }
 
 const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRating, reviewsCount, pendingOrders, recentOrders, onNavigate }: Props) => {
-  const stats: Array<{ label: string; value: React.ReactNode; icon: React.ReactNode; tone: "emerald" | "blue" | "violet" | "amber"; hint?: string | null }> = [
-    { label: "Omsætning", value: `${revenue.toLocaleString("da-DK")} kr`, icon: <DollarSign />, tone: "emerald", hint: null },
-    { label: "Bestillinger", value: ordersCount, icon: <Handshake />, tone: "blue", hint: null },
-    { label: "Services", value: servicesCount, icon: <Briefcase />, tone: "violet", hint: null },
-    { label: "Bedømmelse", value: reviewsCount > 0 ? `${averageRating.toFixed(1)} ★` : "–", icon: <Star />, tone: "amber", hint: reviewsCount > 0 ? `${reviewsCount} anmeldelser` : null },
+  const stats: Array<{ label: string; value: React.ReactNode; icon: React.ReactNode; tone: "emerald" | "blue" | "violet" | "amber"; hint?: string | null; emphasis?: "default" | "primary"; trend?: string | null }> = [
+    { label: "Omsætning", value: `${revenue.toLocaleString("da-DK")} kr`, icon: <DollarSign />, tone: "emerald", hint: ordersCount > 0 ? `${Math.round(revenue / Math.max(ordersCount, 1)).toLocaleString("da-DK")} kr pr. bestilling` : "Klar til at vokse med flere bookinger", emphasis: "primary", trend: ordersCount > 0 ? `${ordersCount} bookinger i alt` : null },
+    { label: "Bestillinger", value: ordersCount, icon: <Handshake />, tone: "blue", hint: pendingOrders > 0 ? `${pendingOrders} kræver svar nu` : "Alt ser opdateret ud", trend: ordersCount > 0 ? "Seneste 30 dage" : null },
+    { label: "Services", value: servicesCount, icon: <Briefcase />, tone: "violet", hint: servicesCount > 0 ? "Aktive ydelser på din profil" : "Tilføj din første service", trend: servicesCount > 0 ? "Klar til nye forespørgsler" : null },
+    { label: "Bedømmelse", value: reviewsCount > 0 ? `${averageRating.toFixed(1)} ★` : "–", icon: <Star />, tone: "amber", hint: reviewsCount > 0 ? `${reviewsCount} anmeldelser fra kunder` : "Ingen anmeldelser endnu", trend: reviewsCount > 0 ? "Din sociale proof" : null },
   ];
 
   const statusLabels: Record<string, string> = {
@@ -61,22 +61,48 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
   }, [business, servicesCount]);
 
   const missingItems = completeness.checks.filter(c => !c.done);
+  const completionLead = missingItems[0]?.label;
 
   return (
     <div className="space-y-6">
       <PageHeader
+        eyebrow="Virksomhedspanel"
         title="Overblik"
-        description={<>Her er status for <span className="font-medium text-foreground">{business.name}</span>.</>}
+        description={<>Her er det vigtigste for <span className="font-medium text-foreground">{business.name}</span> lige nu — hvad kræver handling, hvordan går det, og hvad er næste skridt.</>}
         action={business.slug ? (
           <a href={`/biz/${business.slug}`} target="_blank" rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors">
+            className="hidden items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground sm:flex">
             Se din side <ArrowRight className="h-3 w-3" />
           </a>
         ) : null}
       />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {stats.map((stat) => (
+      <PriorityBanner
+        eyebrow={pendingOrders > 0 ? "Kræver handling" : "Driftstatus"}
+        icon={pendingOrders > 0 ? <Clock /> : <ShieldCheck />}
+        title={pendingOrders > 0 ? `${pendingOrders} ${pendingOrders === 1 ? "afventende bestilling" : "afventende bestillinger"}` : "Ingen afventende bestillinger lige nu"}
+        description={pendingOrders > 0 ? "Svar hurtigt på nye bestillinger for at holde flowet i gang og give kunderne en tydelig næste besked." : "Du er ajour lige nu. Brug tiden på at styrke din profil, dine services og de næste muligheder."}
+        meta={
+          <>
+            <InsightPill><Handshake className="h-3.5 w-3.5" /> {ordersCount} bestillinger i alt</InsightPill>
+            <InsightPill><TrendingUp className="h-3.5 w-3.5" /> {revenue.toLocaleString("da-DK")} kr omsætning</InsightPill>
+            {servicesCount > 0 && <InsightPill><Briefcase className="h-3.5 w-3.5" /> {servicesCount} aktive services</InsightPill>}
+          </>
+        }
+        action={
+          <Button onClick={() => onNavigate?.(pendingOrders > 0 ? "orders" : "services")} className="h-10 rounded-xl px-4">
+            {pendingOrders > 0 ? "Gå til aftaler" : "Udbyg dine services"}
+          </Button>
+        }
+        secondaryAction={
+          <button onClick={() => onNavigate?.(completeness.pct < 100 ? "settings" : "reviews")} className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+            {completeness.pct < 100 ? `Næste løft: ${completionLead || "fuldfør profilen"}` : "Se din kundefeedback"}
+          </button>
+        }
+      />
+
+      <div className="grid gap-3 lg:grid-cols-[1.35fr_repeat(3,minmax(0,1fr))]">
+        {stats.map((stat, index) => (
           <StatCard
             key={stat.label}
             label={stat.label}
@@ -84,82 +110,81 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
             icon={stat.icon}
             tone={stat.tone}
             hint={stat.hint}
+            emphasis={stat.emphasis ?? (index === 0 ? "primary" : "default")}
+            trend={stat.trend}
           />
         ))}
       </div>
 
-      {/* Alerts row */}
-      <div className="grid gap-3 sm:grid-cols-2">
-        {/* Pending orders alert */}
-        {pendingOrders > 0 && (
-          <Card className="rounded-xl border-amber-500/30 bg-amber-500/5 shadow-sm">
-            <CardContent className="flex items-center gap-3 p-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 ring-1 ring-amber-500/20">
-                <Clock className="h-5 w-5 text-amber-600" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-foreground">{pendingOrders} afventende {pendingOrders === 1 ? "bestilling" : "bestillinger"}</p>
-                <p className="text-xs text-muted-foreground">Kræver din opmærksomhed</p>
-              </div>
-              <Button size="sm" variant="outline" className="shrink-0 h-8 rounded-lg text-xs border-amber-500/30 text-amber-700 hover:bg-amber-500/10"
-                onClick={() => onNavigate?.("orders")}>
-                Se aftaler
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Profile completeness */}
+      <div className="grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
         {completeness.pct < 100 && (
-          <Card className="rounded-xl border-border shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-semibold text-foreground">Profilfuldendelse</p>
-                <span className="text-xs font-bold text-accent tabular-nums">{completeness.pct}%</span>
+          <Card className="admin-panel border-border/80 shadow-sm">
+            <CardContent className="space-y-4 p-5 sm:p-6">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Profilstyrke</p>
+                  <h3 className="mt-1 text-lg font-semibold text-foreground">Gør profilen klar til flere bookinger</h3>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">Små forbedringer i profil, kontaktoplysninger og indhold giver kunderne mere tillid og gør din side mere komplet.</p>
+                </div>
+                <div className="rounded-full bg-accent/10 px-3 py-1 text-sm font-semibold text-accent">{completeness.pct}%</div>
               </div>
-              <Progress value={completeness.pct} className="h-2 mb-3" />
-              <div className="space-y-1">
-                {missingItems.slice(0, 3).map(item => (
-                  <div key={item.label} className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <AlertCircle className="h-3 w-3 text-amber-500 shrink-0" />
-                    <span>{item.label} mangler</span>
+              <Progress value={completeness.pct} className="h-2.5" />
+              <div className="grid gap-2 sm:grid-cols-2">
+                {missingItems.slice(0, 4).map((item) => (
+                  <div key={item.label} className="flex items-center gap-2 rounded-xl border border-border bg-background/70 px-3 py-2 text-sm text-muted-foreground">
+                    <AlertCircle className="h-3.5 w-3.5 shrink-0 text-feature-warm-foreground" />
+                    <span>{item.label}</span>
                   </div>
                 ))}
-                {missingItems.length > 3 && (
-                  <p className="text-xs text-muted-foreground pl-5">+ {missingItems.length - 3} mere</p>
-                )}
               </div>
-              <Button size="sm" variant="outline" className="mt-3 h-7 rounded-lg text-xs w-full"
-                onClick={() => onNavigate?.("settings")}>
-                Fuldfør profil
-              </Button>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm text-muted-foreground">Næste anbefaling: <span className="font-medium text-foreground">{completionLead || "Fuldfør de sidste detaljer"}</span></p>
+                <Button variant="outline" className="h-10 rounded-xl" onClick={() => onNavigate?.("settings")}>
+                  Fuldfør profil
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
-      </div>
 
-      {/* Quick actions */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        {[
-          { label: "Tilføj service", icon: Briefcase, tab: "services", color: "text-violet-600", bg: "bg-violet-500/10" },
-          { label: "Se bestillinger", icon: Handshake, tab: "orders", color: "text-blue-600", bg: "bg-blue-500/10" },
-          { label: "Anmeldelser", icon: Star, tab: "reviews", color: "text-amber-600", bg: "bg-amber-500/10" },
-          { label: "Indstillinger", icon: MapPin, tab: "settings", color: "text-emerald-600", bg: "bg-emerald-500/10" },
-        ].map(action => (
-          <button key={action.tab} onClick={() => onNavigate?.(action.tab)}
-            className="group flex items-center gap-3 rounded-xl border border-border bg-card p-3 text-left transition-all hover:shadow-sm hover:border-foreground/20">
-            <div className={`rounded-lg p-2 ${action.bg} transition-colors`}>
-              <action.icon className={`h-4 w-4 ${action.color}`} />
+        <Card className="admin-panel border-border/80 shadow-sm">
+          <CardContent className="space-y-4 p-5 sm:p-6">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Næste handlinger</p>
+              <h3 className="mt-1 text-lg font-semibold text-foreground">Hold forretningen i bevægelse</h3>
             </div>
-            <span className="text-sm font-medium text-foreground group-hover:text-foreground">{action.label}</span>
-          </button>
-        ))}
+            <div className="grid grid-cols-1 gap-2">
+              {[
+                { label: "Tilføj service", icon: Briefcase, tab: "services" },
+                { label: "Se bestillinger", icon: Handshake, tab: "orders" },
+                { label: "Anmeldelser", icon: Star, tab: "reviews" },
+                { label: "Indstillinger", icon: MapPin, tab: "settings" },
+              ].map((action) => (
+                <button
+                  key={action.tab}
+                  onClick={() => onNavigate?.(action.tab)}
+                  className="flex items-center justify-between rounded-xl border border-border bg-background/70 px-4 py-3 text-left transition-colors hover:border-foreground/20 hover:bg-secondary/60"
+                >
+                  <span className="flex items-center gap-3 text-sm font-medium text-foreground">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-muted-foreground">
+                      <action.icon className="h-4 w-4" />
+                    </span>
+                    {action.label}
+                  </span>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Recent Orders */}
       <div>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-foreground">Seneste bestillinger</h3>
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Seneste bestillinger</h3>
+            <p className="text-sm text-muted-foreground">Scan hurtigt status, kunde og beløb — og gå direkte til aftaler ved behov.</p>
+          </div>
           {recentOrders.length > 0 && (
             <button onClick={() => onNavigate?.("orders")} className="text-xs font-medium text-accent hover:underline">
               Se alle →
@@ -167,27 +192,35 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
           )}
         </div>
         {recentOrders.length > 0 ? (
-          <Card className="rounded-xl border-border shadow-sm overflow-hidden">
-            <div className="divide-y divide-border">
+          <AppList>
+            <div className="grid grid-cols-[minmax(0,1.4fr)_auto] gap-3 border-b border-border/80 bg-secondary/50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:grid-cols-[minmax(0,1.4fr)_auto_auto]">
+              <span>Kunde & aktivitet</span>
+              <span className="hidden sm:block">Status</span>
+              <span className="text-right">Beløb</span>
+            </div>
+            <div>
               {recentOrders.slice(0, 5).map((order) => (
-                <div key={order.id} className="flex items-center justify-between px-4 py-3 hover:bg-secondary/30 transition-colors cursor-pointer"
-                  onClick={() => onNavigate?.("orders")}>
+                <AppListRow key={order.id} onClick={() => onNavigate?.("orders")} className="gap-4">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-foreground truncate">{order.customer_name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-sm font-semibold text-foreground">{order.customer_name}</p>
+                      {order.status === "pending" && <Sparkles className="h-3.5 w-3.5 shrink-0 text-feature-warm-foreground" />}
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
                       {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2.5 ml-4">
-                    <Badge className={`${statusColors[order.status] || ""} text-xs font-medium border px-2 py-0.5`}>
-                      {statusLabels[order.status] || order.status}
-                    </Badge>
-                    <span className="text-sm font-bold text-foreground whitespace-nowrap w-16 text-right tabular-nums">{order.total_amount} kr</span>
+                  <Badge className={`${statusColors[order.status] || ""} hidden border px-2.5 py-1 text-xs font-medium sm:inline-flex`}>
+                    {statusLabels[order.status] || order.status}
+                  </Badge>
+                  <div className="flex min-w-[110px] flex-col items-end gap-1 text-right">
+                    <span className="text-sm font-bold text-foreground tabular-nums">{order.total_amount} kr</span>
+                    <span className="text-[11px] text-muted-foreground sm:hidden">{statusLabels[order.status] || order.status}</span>
                   </div>
-                </div>
+                </AppListRow>
               ))}
             </div>
-          </Card>
+          </AppList>
         ) : (
           <EmptyState
             icon={<TrendingUp />}
