@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
   Handshake, DollarSign, Star, Briefcase, Clock, TrendingUp,
-  ArrowRight, AlertCircle, MapPin, ShieldCheck, Sparkles,
+  ArrowRight, AlertCircle, MapPin, ShieldCheck, Sparkles, CircleCheckBig,
 } from "lucide-react";
 import type { Business } from "@/hooks/useDatabase";
 import { useMemo } from "react";
-import { AppList, AppListRow, EmptyState, InsightPill, PageHeader, PriorityBanner, StatCard } from "@/components/admin/shared/AdminUI";
+import { ActionTile, AppList, AppListRow, EmptyState, InsightPill, PageHeader, PriorityBanner, StatCard } from "@/components/admin/shared/AdminUI";
 
 interface Props {
   business: Business;
@@ -62,6 +62,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
 
   const missingItems = completeness.checks.filter(c => !c.done);
   const completionLead = missingItems[0]?.label;
+  const completedItems = completeness.checks.filter(c => c.done).length;
 
   return (
     <div className="space-y-6">
@@ -137,6 +138,10 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
                   </div>
                 ))}
               </div>
+              <div className="flex flex-wrap gap-2">
+                <InsightPill><CircleCheckBig className="h-3.5 w-3.5" /> {completedItems} af {completeness.total} punkter på plads</InsightPill>
+                {completionLead && <InsightPill><AlertCircle className="h-3.5 w-3.5" /> Næste skridt: {completionLead}</InsightPill>}
+              </div>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-sm text-muted-foreground">Næste anbefaling: <span className="font-medium text-foreground">{completionLead || "Fuldfør de sidste detaljer"}</span></p>
                 <Button variant="outline" className="h-10 rounded-xl" onClick={() => onNavigate?.("settings")}>
@@ -155,24 +160,19 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
             </div>
             <div className="grid grid-cols-1 gap-2">
               {[
-                { label: "Tilføj service", icon: Briefcase, tab: "services" },
-                { label: "Se bestillinger", icon: Handshake, tab: "orders" },
-                { label: "Anmeldelser", icon: Star, tab: "reviews" },
-                { label: "Indstillinger", icon: MapPin, tab: "settings" },
+                { label: "Se bestillinger", icon: Handshake, tab: "orders", description: pendingOrders > 0 ? `${pendingOrders} kræver svar nu` : "Få overblik over kommende og afsluttede aftaler", meta: pendingOrders > 0 ? "Høj prioritet" : "Drift" },
+                { label: "Tilføj service", icon: Briefcase, tab: "services", description: servicesCount > 0 ? "Udbyg din profil med flere ydelser og prisopsætning" : "Kom i gang med din første service", meta: servicesCount > 0 ? `${servicesCount} aktive services` : "Forretning" },
+                { label: "Anmeldelser", icon: Star, tab: "reviews", description: reviewsCount > 0 ? "Hold øje med feedback og styrk tilliden hos nye kunder" : "Skab social proof når de første anmeldelser kommer ind", meta: reviewsCount > 0 ? `${reviewsCount} anmeldelser` : "Synlighed" },
+                { label: "Indstillinger", icon: MapPin, tab: "settings", description: "Opdater virksomhedsoplysninger, kontakt og visning på din side", meta: "Opsætning" },
               ].map((action) => (
-                <button
+                <ActionTile
                   key={action.tab}
                   onClick={() => onNavigate?.(action.tab)}
-                  className="flex items-center justify-between rounded-xl border border-border bg-background/70 px-4 py-3 text-left transition-colors hover:border-foreground/20 hover:bg-secondary/60"
-                >
-                  <span className="flex items-center gap-3 text-sm font-medium text-foreground">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-muted-foreground">
-                      <action.icon className="h-4 w-4" />
-                    </span>
-                    {action.label}
-                  </span>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                </button>
+                  icon={<action.icon />}
+                  title={action.label}
+                  description={action.description}
+                  meta={action.meta}
+                />
               ))}
             </div>
           </CardContent>
@@ -215,7 +215,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
                   </Badge>
                   <div className="flex min-w-[110px] flex-col items-end gap-1 text-right">
                     <span className="text-sm font-bold text-foreground tabular-nums">{order.total_amount} kr</span>
-                    <span className="text-[11px] text-muted-foreground sm:hidden">{statusLabels[order.status] || order.status}</span>
+                    <span className="text-[11px] font-medium text-muted-foreground sm:hidden">{statusLabels[order.status] || order.status}</span>
                   </div>
                 </AppListRow>
               ))}
