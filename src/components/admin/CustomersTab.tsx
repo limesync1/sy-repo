@@ -531,14 +531,14 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
             <span className="font-semibold">{selectedCustomers.length}</span> kunde{selectedCustomers.length === 1 ? "" : "r"} valgt
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())} className="h-8 text-xs">
+            <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())} className="h-9 text-xs">
               Fravælg alle
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setConfirmDelete({ open: true, targets: selectedCustomers })}
-              className="h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30"
+              className="h-9 border-destructive/30 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
               <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Slet valgte
             </Button>
@@ -590,15 +590,17 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
               </button>
               <button onClick={() => setSelectedEmail(c.email)} className="flex-1 min-w-0 grid grid-cols-1 gap-2 text-left sm:grid-cols-[1.5fr_1fr_1fr] sm:items-center">
                 <div className="min-w-0">
-                  <p className="flex items-center gap-1.5 truncate text-sm font-medium text-foreground">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <p className="truncate text-sm font-medium text-foreground">
                     {c.type === "business" && c.company_name ? c.company_name : c.name}
+                    </p>
                     {c.type === "business" && (
                         <InsightPill>Erhverv</InsightPill>
                     )}
                     {c.type === "private" && (
                         <InsightPill>Privat</InsightPill>
                     )}
-                  </p>
+                  </div>
                   <p className="text-[11px] text-muted-foreground truncate">{c.email}{c.phone ? ` · ${c.phone}` : ""}</p>
                 </div>
                 <div className="min-w-0 hidden sm:block">
@@ -733,7 +735,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
             <div className="space-y-4 p-4">
               {/* Contact */}
               <div className="space-y-2">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Kontakt</h4>
+                <h4 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Kontakt</h4>
                 <div className="rounded-md border border-border bg-card divide-y divide-border">
                   <a href={`mailto:${customer.email}`} className="flex items-center gap-3 p-3 hover:bg-secondary/40">
                     <Mail className="h-4 w-4 text-muted-foreground" />
@@ -822,7 +824,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                       <div className="space-y-4">
                         {activeSubs.length > 0 && (
                           <div className="space-y-2">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                            <h4 className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                               <Repeat className="h-3.5 w-3.5" /> Aktive abonnementer ({activeSubs.length})
                             </h4>
                             <div className="space-y-2">{activeSubs.map(renderSub)}</div>
@@ -830,7 +832,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                         )}
                         {pausedSubs.length > 0 && (
                           <div className="space-y-2">
-                            <h4 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-feature-warm-foreground">
+                            <h4 className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-feature-warm-foreground">
                               <Pause className="h-3.5 w-3.5" /> På pause ({pausedSubs.length})
                             </h4>
                             <p className="text-[11px] text-muted-foreground">Disse abonnementer indgår ikke i ruteplanlægning. Når kunden genoptager dem, vises de igen — gerne på samme rute som før.</p>
@@ -839,7 +841,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                         )}
                         {cancelledSubs.length > 0 && (
                           <div className="space-y-2">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                            <h4 className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                               <Repeat className="h-3.5 w-3.5" /> Opsagte ({cancelledSubs.length})
                             </h4>
                             <div className="space-y-2 opacity-60">{cancelledSubs.map(renderSub)}</div>
@@ -852,7 +854,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                   {/* Route history */}
                   {data && data.stops.length > 0 && (
                     <div className="space-y-2">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                      <h4 className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                         <RouteIcon className="h-3.5 w-3.5" /> Rutehistorik ({data.stops.length})
                       </h4>
                       <div className="space-y-1.5">
@@ -883,7 +885,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                   {/* Orders */}
                   {data && data.orders.length > 0 && (
                     <div className="space-y-2">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                      <h4 className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                         <Package className="h-3.5 w-3.5" /> Bestillinger ({data.orders.length})
                       </h4>
                       <div className="space-y-2">
@@ -943,14 +945,14 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                   {/* Reviews */}
                   {data && data.reviews.length > 0 && (
                     <div className="space-y-2">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                      <h4 className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                         <Star className="h-3.5 w-3.5" /> Anmeldelser
                       </h4>
                       {data.reviews.map(r => (
                         <div key={r.id} className="rounded-md border border-border bg-card p-3">
                           <div className="flex items-center gap-1 mb-1">
                             {Array.from({ length: 5 }).map((_, i) => (
-                              <Star key={i} className={`h-3.5 w-3.5 ${i < r.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />
+                              <Star key={i} className={`h-3.5 w-3.5 ${i < r.rating ? "fill-foreground text-foreground" : "text-muted-foreground/30"}`} />
                             ))}
                             <span className="text-[11px] text-muted-foreground ml-2">{fmtDate(r.created_at)}</span>
                           </div>

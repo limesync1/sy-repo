@@ -574,10 +574,10 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
             <p className="text-[11px] text-muted-foreground">{service.unit ? `pr. ${service.unit}` : "pris efter opsætning"}</p>
           </div>
           <div className="flex gap-1">
-            <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-7 rounded-md px-2.5 text-[11px]">
+            <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-8 rounded-md px-2.5 text-[11px]">
               {editing ? "Luk" : "Rediger"}
             </Button>
-            <Button variant="ghost" size="sm" onClick={onDelete} className="h-7 w-7 rounded-md p-0 hover:bg-destructive/10">
+            <Button variant="ghost" size="sm" onClick={onDelete} className="h-8 w-8 rounded-md p-0 hover:bg-destructive/10">
               <Trash2 className="h-3.5 w-3.5 text-destructive" />
             </Button>
           </div>
@@ -969,7 +969,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border/80 pt-3">
-        <Button variant="ghost" onClick={onClose} className="h-8 rounded-md text-xs">Annuller</Button>
+        <Button variant="ghost" onClick={onClose} className="h-9 rounded-md text-xs">Annuller</Button>
         <PrimaryButton onClick={handleSave}>
           {existingService ? "Gem ændringer" : "Opret service"}
         </PrimaryButton>
