@@ -515,8 +515,19 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
 
   const intervals = service.interval_options || [];
   const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
+  const categoryIcons: Record<string, string> = {
+    "Rengøring": "🧹",
+    "Håndværker": "🔨",
+    "Flyttehjælp": "🚚",
+    "Haveservice": "🌿",
+    "Maler": "🎨",
+    "VVS": "💧",
+    "Elektriker": "⚡",
+    "Sikkerhed": "🛡️",
+  };
+  const categoryIcon = categoryIcons[service.service_category] || "🧰";
   const intervalSummary = intervals.length > 0
-    ? intervals.map((interval: string) => intervalLabels[interval] || interval).join(", ")
+    ? intervals.slice(0, 2).map((interval: string) => intervalLabels[interval] || interval).join(", ") + (intervals.length > 2 ? ` +${intervals.length - 2}` : "")
     : "Ikke angivet";
   const priceSummary = service.base_price != null
     ? `${service.base_price} kr${service.unit ? ` / ${service.unit}` : ""}`
@@ -527,20 +538,40 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
   return (
     <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
       <CardContent className="p-0">
-        <div className="grid gap-4 p-4 sm:p-5">
+        <div className="grid gap-3 p-4">
           <div className="min-w-0">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-base font-semibold text-foreground">{service.name}</h3>
-                  {service.is_active === false && (
-                    <Badge variant="outline" className="rounded-md border-destructive/30 px-2 py-0.5 text-[10px] text-destructive">Inaktiv</Badge>
-                  )}
+              <div className="flex min-w-0 items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground [&_svg]:h-4 [&_svg]:w-4">
+                  <span className="text-base leading-none">{categoryIcon}</span>
                 </div>
 
-                {service.description && (
-                  <p className="mt-1 text-sm text-muted-foreground line-clamp-2 max-w-3xl">{service.description}</p>
-                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="truncate text-sm font-semibold text-foreground sm:text-base">{service.name}</h3>
+                    {service.service_category && (
+                      <span className="rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                        {service.service_category}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                    <span>{service.subcategory || "Standard service"}</span>
+                    <span>•</span>
+                    <span>{pricingLabels[service.pricing_type] || service.pricing_type}</span>
+                    {hasRecurring && (
+                      <>
+                        <span>•</span>
+                        <span>Abonnement muligt</span>
+                      </>
+                    )}
+                  </div>
+
+                  {service.is_active === false && (
+                    <Badge variant="outline" className="mt-2 rounded-md border-destructive/30 px-2 py-0.5 text-[10px] text-destructive">Inaktiv</Badge>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center gap-1.5 sm:shrink-0">
@@ -551,33 +582,27 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
               </div>
             </div>
 
-            <div className="mt-4 grid gap-2.5 md:grid-cols-2 xl:grid-cols-5">
-              <div className="rounded-lg border border-border bg-card px-3 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kategori</p>
-                <p className="mt-1 text-sm font-medium text-foreground">{service.service_category || "Ikke angivet"}</p>
-              </div>
-
-              <div className="rounded-lg border border-border bg-card px-3 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Type</p>
-                <p className="mt-1 text-sm font-medium text-foreground">{service.subcategory || "Standard"}</p>
-              </div>
-
+            <div className="mt-3 grid gap-2 sm:grid-cols-3 xl:grid-cols-4">
               <div className="rounded-lg border border-border bg-card px-3 py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Pris</p>
                 <p className="mt-1 text-sm font-medium text-foreground">{priceSummary}</p>
               </div>
 
               <div className="rounded-lg border border-border bg-card px-3 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Intervaller</p>
-                <p className="mt-1 text-sm font-medium text-foreground line-clamp-2">{intervalSummary}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Interval</p>
+                <p className="mt-1 text-sm font-medium text-foreground line-clamp-1">{intervalSummary}</p>
               </div>
 
               <div className="rounded-lg border border-border bg-card px-3 py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Bestillinger</p>
-                <div className="mt-1 flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground tabular-nums">{orderCount}</p>
-                  {hasRecurring && <span className="text-xs text-muted-foreground">• Har abonnement</span>}
-                </div>
+                <p className="mt-1 text-sm font-semibold text-foreground tabular-nums">{orderCount}</p>
+              </div>
+
+              <div className="rounded-lg border border-border bg-card px-3 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Opsætning</p>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {service.calculator_steps?.length > 0 ? `${service.calculator_steps.length} beregnertrin` : "Standard opsætning"}
+                </p>
               </div>
             </div>
           </div>
