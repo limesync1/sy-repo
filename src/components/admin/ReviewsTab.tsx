@@ -23,8 +23,9 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
   return (
     <div className="space-y-6">
       <PageHeader
+        eyebrow="Forretning"
         title="Anmeldelser"
-        description={`${reviews.length} anmeldelser i alt`}
+        description={`${reviews.length} anmeldelser i alt — brug dem til at forstå kundernes oplevelse og styrke tilliden på din profil.`}
         action={reviews.length > 0 ? (
           <div className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-4 py-2 shadow-sm h-9">
             <div className="flex gap-0.5">

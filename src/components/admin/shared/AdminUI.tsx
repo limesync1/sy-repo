@@ -1,42 +1,38 @@
-// AdminUI — delte UI-byggeklodser så alle admin-faner (Overblik, Services,
-// Aftaler, Kunder, Medarbejdere, Anmeldelser, Indstillinger) deler samme
-// visuelle sprog: ens header-typografi, primær-knap, stat-kort, sektion-kort
-// og felt-labels. Brug disse i stedet for at re-definere lokale variationer.
 import * as React from "react";
+import { ArrowRight, Search } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/* ───────── PageHeader ─────────
-   Standard side-titel + beskrivelse + valgfri primær-knap i højre side.
-   Bruges som første element i alle admin-faner. */
 export const PageHeader = ({
+  eyebrow,
   title,
   description,
   action,
   className,
 }: {
+  eyebrow?: React.ReactNode;
   title: React.ReactNode;
   description?: React.ReactNode;
   action?: React.ReactNode;
   className?: string;
 }) => (
-  <div className={cn("flex items-start justify-between gap-3 flex-wrap", className)}>
-    <div className="min-w-0">
-      <h2 className="text-lg font-semibold text-foreground tracking-tight">{title}</h2>
-      {description && (
-        <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
+  <div className={cn("flex flex-wrap items-start justify-between gap-4", className)}>
+    <div className="min-w-0 space-y-1.5">
+      {eyebrow && (
+        <div className="inline-flex items-center rounded-full border border-border/80 bg-secondary px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          {eyebrow}
+        </div>
       )}
+      <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[1.8rem]">{title}</h2>
+      {description && <p className="max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p>}
     </div>
     {action && <div className="shrink-0">{action}</div>}
   </div>
 );
 
-/* ───────── PrimaryButton ─────────
-   Standard primær-handlings-knap (Tilføj kunde, Tilføj medarbejder, Gem osv).
-   Sort baggrund, hvid tekst, h-9 — samme på tværs af hele admin. */
 export const PrimaryButton = React.forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement> & { icon?: React.ReactNode }
@@ -44,7 +40,7 @@ export const PrimaryButton = React.forwardRef<
   <Button
     ref={ref}
     className={cn(
-      "h-9 rounded-lg bg-foreground text-background hover:bg-foreground/90 text-sm font-medium px-4 shadow-sm",
+      "h-10 rounded-xl bg-foreground px-4 text-sm font-medium text-background shadow-sm hover:bg-foreground/90",
       className,
     )}
     {...props}
@@ -55,48 +51,103 @@ export const PrimaryButton = React.forwardRef<
 ));
 PrimaryButton.displayName = "PrimaryButton";
 
-/* ───────── StatCard ─────────
-   Standard nøgletal-kort med ikon-badge. Brug i Overblik, Kunder osv. */
 export const StatCard = ({
   label,
   value,
   icon,
   hint,
   tone = "neutral",
+  emphasis = "default",
+  trend,
 }: {
   label: React.ReactNode;
   value: React.ReactNode;
   icon: React.ReactNode;
   hint?: React.ReactNode;
   tone?: "neutral" | "accent" | "emerald" | "amber" | "blue" | "violet";
+  emphasis?: "default" | "primary";
+  trend?: React.ReactNode;
 }) => {
   const tones: Record<string, string> = {
     neutral: "bg-secondary text-foreground",
     accent: "bg-accent/10 text-accent",
-    emerald: "bg-emerald-500/10 text-emerald-600",
-    amber: "bg-amber-500/10 text-amber-600",
-    blue: "bg-blue-500/10 text-blue-600",
-    violet: "bg-violet-500/10 text-violet-600",
+    emerald: "bg-feature-cool text-feature-cool-foreground",
+    amber: "bg-feature-warm text-feature-warm-foreground",
+    blue: "bg-feature-cool text-feature-cool-foreground",
+    violet: "bg-feature-lilac text-feature-lilac-foreground",
   };
+
   return (
-    <Card className="rounded-xl border-border shadow-sm">
-      <CardContent className="p-4 flex items-center gap-3">
-        <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center shrink-0 [&_svg]:h-5 [&_svg]:w-5", tones[tone])}>
+    <Card className={cn("admin-panel border-border/80 shadow-sm", emphasis === "primary" && "overflow-hidden border-foreground/10 bg-card shadow-lg")}>
+      <CardContent className={cn("flex items-center gap-3 p-4", emphasis === "primary" && "min-h-[148px] items-start justify-between p-5 sm:p-6")}>
+        <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg [&_svg]:h-5 [&_svg]:w-5", tones[tone], emphasis === "primary" && "h-11 w-11 rounded-xl")}>
           {icon}
         </div>
-        <div className="min-w-0">
-          <p className="text-xs text-muted-foreground truncate">{label}</p>
-          <p className="text-xl font-bold text-foreground tracking-tight tabular-nums">{value}</p>
-          {hint && <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{hint}</p>}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
+              <p className={cn("mt-2 font-bold tracking-tight text-foreground tabular-nums", emphasis === "primary" ? "text-3xl sm:text-4xl" : "text-xl")}>
+                {value}
+              </p>
+            </div>
+            {trend && <div className="shrink-0 text-xs font-medium text-muted-foreground">{trend}</div>}
+          </div>
+          {hint && <p className="mt-2 text-sm leading-5 text-muted-foreground">{hint}</p>}
         </div>
       </CardContent>
     </Card>
   );
 };
 
-/* ───────── SectionCard ─────────
-   Standard kort med titel + valgfrit ikon + valgfri handling i højre side.
-   Brug til at gruppere sektioner i Indstillinger, formularer mv. */
+export const PriorityBanner = ({
+  eyebrow,
+  title,
+  description,
+  icon,
+  meta,
+  action,
+  secondaryAction,
+  className,
+}: {
+  eyebrow?: React.ReactNode;
+  title: React.ReactNode;
+  description?: React.ReactNode;
+  icon?: React.ReactNode;
+  meta?: React.ReactNode;
+  action?: React.ReactNode;
+  secondaryAction?: React.ReactNode;
+  className?: string;
+}) => (
+  <Card className={cn("admin-panel overflow-hidden border-foreground/10 bg-card shadow-lg", className)}>
+    <CardContent className="grid gap-5 p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:p-6">
+      <div className="space-y-4">
+        <div className="flex items-start gap-3">
+          {icon && (
+            <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent [&_svg]:h-5 [&_svg]:w-5">
+              {icon}
+            </div>
+          )}
+          <div className="min-w-0 space-y-2">
+            {eyebrow && <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{eyebrow}</div>}
+            <div className="space-y-1">
+              <h3 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{title}</h3>
+              {description && <p className="max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p>}
+            </div>
+          </div>
+        </div>
+        {meta && <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">{meta}</div>}
+      </div>
+      {(action || secondaryAction) && (
+        <div className="flex flex-col gap-2 sm:items-end">
+          {action}
+          {secondaryAction}
+        </div>
+      )}
+    </CardContent>
+  </Card>
+);
+
 export const SectionCard = ({
   title,
   icon,
@@ -112,20 +163,18 @@ export const SectionCard = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <Card className={cn("rounded-xl border-border shadow-sm", className)}>
-    <CardContent className="p-5 space-y-4">
+  <Card className={cn("admin-panel border-border/80 shadow-sm", className)}>
+    <CardContent className="space-y-4 p-5 sm:p-6">
       {(title || action) && (
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             {title && (
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:text-muted-foreground">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground [&_svg]:h-4 [&_svg]:w-4 [&_svg]:text-muted-foreground">
                 {icon}
                 {title}
               </h3>
             )}
-            {description && (
-              <p className="mt-1 text-xs text-muted-foreground">{description}</p>
-            )}
+            {description && <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>}
           </div>
           {action && <div className="shrink-0">{action}</div>}
         </div>
@@ -135,9 +184,6 @@ export const SectionCard = ({
   </Card>
 );
 
-/* ───────── FieldLabel ─────────
-   Standard label til input-felter i admin-formularer.
-   Lille uppercase-stil, samme på tværs af alle faner. */
 export const FieldLabel = ({
   children,
   required,
@@ -147,14 +193,12 @@ export const FieldLabel = ({
   required?: boolean;
   className?: string;
 }) => (
-  <label className={cn("mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider", className)}>
+  <label className={cn("mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground", className)}>
     {children}
-    {required && <span className="text-destructive ml-0.5">*</span>}
+    {required && <span className="ml-0.5 text-destructive">*</span>}
   </label>
 );
 
-/* ───────── SearchInput ─────────
-   Standard søge-felt med ikon. Bruges i Kunder, Aftaler, Services. */
 export const SearchInput = ({
   value,
   onChange,
@@ -166,19 +210,12 @@ export const SearchInput = ({
   placeholder?: string;
   className?: string;
 }) => (
-  <div className={cn("relative flex-1 min-w-[240px]", className)}>
-    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-    <Input
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className="pl-9 rounded-lg h-10"
-    />
+  <div className={cn("relative min-w-[240px] flex-1", className)}>
+    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+    <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="h-10 rounded-xl pl-9" />
   </div>
 );
 
-/* ───────── EmptyState ─────────
-   Standard tom-state kort med ikon + tekst + valgfri handling. */
 export const EmptyState = ({
   icon,
   title,
@@ -190,16 +227,50 @@ export const EmptyState = ({
   description?: React.ReactNode;
   action?: React.ReactNode;
 }) => (
-  <Card className="rounded-xl border-dashed border-border">
+  <Card className="admin-panel border-dashed border-border">
     <CardContent className="flex flex-col items-center justify-center py-12 text-center">
       <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-secondary [&_svg]:h-6 [&_svg]:w-6 [&_svg]:text-muted-foreground/40">
         {icon}
       </div>
       <p className="text-sm font-semibold text-foreground">{title}</p>
-      {description && (
-        <p className="mt-1 text-sm text-muted-foreground max-w-sm">{description}</p>
-      )}
+      {description && <p className="mt-1 max-w-sm text-sm text-muted-foreground">{description}</p>}
       {action && <div className="mt-4">{action}</div>}
     </CardContent>
   </Card>
 );
+
+export const InsightPill = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <span className={cn("inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-muted-foreground", className)}>
+    {children}
+  </span>
+);
+
+export const AppList = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={cn("overflow-hidden rounded-[1.1rem] border border-border bg-card", className)}>{children}</div>
+);
+
+export const AppListRow = ({
+  children,
+  className,
+  onClick,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  onClick?: React.HTMLAttributes<HTMLButtonElement>["onClick"];
+}) => {
+  const Comp = onClick ? "button" : "div";
+
+  return (
+    <Comp
+      onClick={onClick as any}
+      className={cn(
+        "flex w-full items-center gap-3 border-b border-border/80 px-4 py-3.5 text-left transition-colors last:border-b-0 hover:bg-secondary/60",
+        onClick && "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        className,
+      )}
+    >
+      {children}
+      {onClick && <ArrowRight className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" />}
+    </Comp>
+  );
+};

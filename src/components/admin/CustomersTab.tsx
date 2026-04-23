@@ -23,7 +23,7 @@ import { da } from "date-fns/locale";
 import { INTERVAL_LABELS } from "@/types/service";
 import { Link } from "react-router-dom";
 import CustomerEditDialog, { type EditableCustomer } from "./CustomerEditDialog";
-import { PageHeader, PrimaryButton, StatCard, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
+import { AppList, AppListRow, PageHeader, PrimaryButton, SearchInput, EmptyState, StatCard } from "@/components/admin/shared/AdminUI";
 import { toast } from "sonner";
 
 type Customer = {
@@ -489,10 +489,11 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
 
   return (
     <TooltipProvider delayDuration={200}>
-    <div className="space-y-4">
+    <div className="space-y-5">
       <PageHeader
+        eyebrow="Kundeflow"
         title="Kunder"
-        description="Alle dine kunder, deres bestillinger, abonnementer og rutehistorik."
+        description="Alle dine kunder samlet ét sted — med omsætning, abonnementer og hurtig adgang til næste handling."
         action={
           <PrimaryButton onClick={openCreateDialog} icon={<UserPlus />}>
             Tilføj kunde
@@ -501,10 +502,10 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <StatCard label="Kunder i alt" value={stats.total} icon={<User />} tone="accent" />
-        <StatCard label="Med abonnement" value={stats.recurring} icon={<Repeat />} tone="emerald" />
-        <StatCard label="Samlet omsætning" value={fmtKr(stats.totalRev)} icon={<TrendingUp />} tone="amber" />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <StatCard label="Kunder i alt" value={stats.total} icon={<User />} tone="accent" hint="Alle aktive relationer i kartoteket" />
+        <StatCard label="Med abonnement" value={stats.recurring} icon={<Repeat />} tone="emerald" hint="Kunder med gentagne services" />
+        <StatCard label="Samlet omsætning" value={fmtKr(stats.totalRev)} icon={<TrendingUp />} tone="amber" hint="Omsætning på tværs af alle kunder" />
       </div>
 
       {/* Search */}
@@ -557,16 +558,16 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
           ) : undefined}
         />
       ) : (
-        <div className="rounded-xl border border-border bg-card overflow-hidden divide-y divide-border">
+        <AppList>
           {/* Header with select-all */}
           {eligibleSelectable.length > 0 && (
-            <div className="flex items-center gap-3 px-3.5 py-2 bg-secondary/40 text-xs font-medium text-muted-foreground">
+            <div className="flex items-center gap-3 border-b border-border/80 bg-secondary/40 px-3.5 py-2 text-xs font-medium text-muted-foreground">
               <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Vælg alle" />
               <span>{allSelected ? "Alle valgt" : `Vælg alle (${eligibleSelectable.length})`}</span>
             </div>
           )}
           {filtered.map((c) => (
-            <div key={c.email} className="flex items-center gap-3 p-3.5 hover:bg-secondary/50 transition-colors">
+            <div key={c.email} className="flex items-center gap-3 border-b border-border/80 px-3.5 py-3.5 last:border-b-0 hover:bg-secondary/50 transition-colors">
               {c.saved_id ? (
                 <Checkbox
                   checked={selectedIds.has(c.saved_id)}
@@ -584,10 +585,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
               >
                 {c.type === "business" ? <Building2 className="h-4 w-4" /> : (c.name?.charAt(0).toUpperCase() || "?")}
               </button>
-              <button
-                onClick={() => setSelectedEmail(c.email)}
-                className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-[1.5fr_1fr_1fr] gap-2 items-center text-left"
-              >
+              <button onClick={() => setSelectedEmail(c.email)} className="flex-1 min-w-0 grid grid-cols-1 gap-2 text-left sm:grid-cols-[1.5fr_1fr_1fr] sm:items-center">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-foreground truncate flex items-center gap-1.5">
                     {c.type === "business" && c.company_name ? c.company_name : c.name}
@@ -607,7 +605,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                   </p>
                   <p className="text-[11px] text-muted-foreground/70 mt-0.5">{c.last_order_at ? `Sidst: ${fmtDate(c.last_order_at)}` : "Ingen bestillinger endnu"}</p>
                 </div>
-                <div className="flex items-center justify-end gap-2">
+                  <div className="flex items-center justify-end gap-2">
                   {c.active_subs > 0 && (
                     <Badge variant="outline" className="border-emerald-300 text-emerald-700 bg-emerald-50 text-[10px] h-5 px-1.5 gap-0.5">
                       <Repeat className="h-2.5 w-2.5" />
@@ -653,7 +651,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
               </div>
             </div>
           ))}
-        </div>
+        </AppList>
       )}
 
       {/* Detail sheet */}
