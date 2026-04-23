@@ -108,6 +108,14 @@
     background-image: linear-gradient(180deg, hsl(var(--background)), hsl(var(--secondary)));
   }
 
+  .surface-admin {
+    background-image: linear-gradient(180deg, hsl(var(--card)), hsl(var(--secondary) / 0.65));
+  }
+
+  .surface-admin-strong {
+    background-image: linear-gradient(180deg, hsl(var(--card)), hsl(var(--secondary) / 0.9));
+  }
+
   .surface-dark-panel {
     background-image: linear-gradient(180deg, hsl(var(--foreground)), hsl(0 0% 9%));
   }
