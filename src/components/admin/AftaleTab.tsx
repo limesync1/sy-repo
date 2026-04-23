@@ -16,7 +16,7 @@ import {
   Play, Pause,
 } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
-import { PageHeader } from "@/components/admin/shared/AdminUI";
+import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
 import {
   buildPricingSnapshot,
   getSmartStep,
@@ -183,11 +183,11 @@ const buildAdjustmentItem = (item: any, service?: BusinessService): AdjustmentIt
    cancelled  → Annulleret
 */
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; color: string; bg: string; dot: string }> = {
-  pending: { label: "Ny bestilling", icon: Clock, color: "text-amber-700", bg: "bg-amber-50", dot: "bg-amber-400" },
-  confirmed: { label: "Aftalt", icon: CheckCircle2, color: "text-blue-700", bg: "bg-blue-50", dot: "bg-blue-400" },
-  in_progress: { label: "I gang", icon: RefreshCw, color: "text-purple-700", bg: "bg-purple-50", dot: "bg-purple-400" },
-  completed: { label: "Udført", icon: CheckCircle2, color: "text-green-700", bg: "bg-green-50", dot: "bg-green-400" },
-  cancelled: { label: "Annulleret", icon: XCircle, color: "text-red-700", bg: "bg-red-50", dot: "bg-red-400" },
+  pending: { label: "Ny bestilling", icon: Clock, color: "text-foreground", bg: "bg-secondary", dot: "bg-amber-500" },
+  confirmed: { label: "Aftalt", icon: CheckCircle2, color: "text-foreground", bg: "bg-secondary", dot: "bg-blue-500" },
+  in_progress: { label: "I gang", icon: RefreshCw, color: "text-foreground", bg: "bg-secondary", dot: "bg-violet-500" },
+  completed: { label: "Udført", icon: CheckCircle2, color: "text-foreground", bg: "bg-secondary", dot: "bg-emerald-500" },
+  cancelled: { label: "Annulleret", icon: XCircle, color: "text-foreground", bg: "bg-secondary", dot: "bg-destructive" },
 };
 
 const PRICING_LABELS: Record<string, string> = {
