@@ -342,7 +342,7 @@ const EmployeeRow = ({
                 <InsightPill className="border-transparent bg-feature-cool text-feature-cool-foreground">
                   <CheckCircle2 className="h-2.5 w-2.5" />
                   Konto aktiv
-                </Badge>
+                </InsightPill>
               )}
               {employee.title && (
                 <span className="text-[11px] text-muted-foreground">· {employee.title}</span>
