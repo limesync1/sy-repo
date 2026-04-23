@@ -35,11 +35,11 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
     completed: "Afsluttet", cancelled: "Annulleret",
   };
   const statusColors: Record<string, string> = {
-    pending: "bg-amber-500/10 text-amber-700 border-amber-500/20",
-    confirmed: "bg-blue-500/10 text-blue-700 border-blue-500/20",
-    in_progress: "bg-violet-500/10 text-violet-700 border-violet-500/20",
-    completed: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-    cancelled: "bg-red-500/10 text-red-700 border-red-500/20",
+    pending: "bg-feature-warm text-feature-warm-foreground border-transparent",
+    confirmed: "bg-feature-cool text-feature-cool-foreground border-transparent",
+    in_progress: "bg-feature-lilac text-feature-lilac-foreground border-transparent",
+    completed: "bg-secondary text-foreground border-transparent",
+    cancelled: "bg-secondary text-muted-foreground border-transparent",
   };
 
   // Profile completeness
@@ -72,7 +72,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
         description={<>Her er det vigtigste for <span className="font-medium text-foreground">{business.name}</span> lige nu — hvad kræver handling, hvordan går det, og hvad er næste skridt.</>}
         action={business.slug ? (
           <a href={`/biz/${business.slug}`} target="_blank" rel="noopener noreferrer"
-            className="hidden items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground sm:flex">
+            className="hidden items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground sm:flex">
             Se din side <ArrowRight className="h-3 w-3" />
           </a>
         ) : null}
@@ -91,7 +91,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
           </>
         }
         action={
-          <Button onClick={() => onNavigate?.(pendingOrders > 0 ? "orders" : "services")} className="h-10 rounded-xl px-4">
+          <Button onClick={() => onNavigate?.(pendingOrders > 0 ? "orders" : "services")} className="h-10 rounded-xl px-4 shadow-sm">
             {pendingOrders > 0 ? "Gå til aftaler" : "Udbyg dine services"}
           </Button>
         }
@@ -119,7 +119,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
 
       <div className="grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
         {completeness.pct < 100 && (
-          <Card className="admin-panel border-border/80 shadow-sm">
+          <Card className="admin-panel border-border shadow-sm">
             <CardContent className="space-y-4 p-5 sm:p-6">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -132,7 +132,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
               <Progress value={completeness.pct} className="h-2.5" />
               <div className="grid gap-2 sm:grid-cols-2">
                 {missingItems.slice(0, 4).map((item) => (
-                  <div key={item.label} className="flex items-center gap-2 rounded-xl border border-border bg-background/70 px-3 py-2 text-sm text-muted-foreground">
+                  <div key={item.label} className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
                     <AlertCircle className="h-3.5 w-3.5 shrink-0 text-feature-warm-foreground" />
                     <span>{item.label}</span>
                   </div>
@@ -152,7 +152,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
           </Card>
         )}
 
-        <Card className="admin-panel border-border/80 shadow-sm">
+        <Card className="admin-panel border-border shadow-sm">
           <CardContent className="space-y-4 p-5 sm:p-6">
             <div>
               <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Næste handlinger</p>
@@ -193,7 +193,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
         </div>
         {recentOrders.length > 0 ? (
           <AppList>
-            <div className="grid grid-cols-[minmax(0,1.4fr)_auto] gap-3 border-b border-border/80 bg-secondary/50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:grid-cols-[minmax(0,1.4fr)_auto_auto]">
+             <div className="grid grid-cols-[minmax(0,1.4fr)_auto] gap-3 border-b border-border bg-secondary/35 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:grid-cols-[minmax(0,1.4fr)_auto_auto]">
               <span>Kunde & aktivitet</span>
               <span className="hidden sm:block">Status</span>
               <span className="text-right">Beløb</span>
