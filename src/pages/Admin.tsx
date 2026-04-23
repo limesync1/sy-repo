@@ -430,8 +430,8 @@ const CreateBusinessForm = () => {
           <Button onClick={handleCreate} disabled={createBiz.isPending} className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-lg text-sm">
             {createBiz.isPending ? "Opretter..." : "Opret virksomhed"}
           </Button>
-        </div>
-      </SectionCard>
+        </CardContent>
+      </Card>
     </div>
   );
 };
@@ -1348,8 +1348,8 @@ const SettingsTab = ({ business }: { business: any }) => {
               );
             })}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
 
       {/* Sticky save bar */}
       {hasChanges && (
