@@ -343,13 +343,13 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
 
 const StatusBadge = ({ status }: { status: string }) => {
   const map: Record<string, { label: string; className: string }> = {
-    pending:     { label: "Afventer",  className: "border-amber-300 text-amber-700 bg-amber-50" },
-    confirmed:   { label: "Bekræftet", className: "border-blue-300 text-blue-700 bg-blue-50" },
-    in_progress: { label: "Igang",     className: "border-purple-300 text-purple-700 bg-purple-50" },
-    completed:   { label: "Udført",    className: "border-emerald-300 text-emerald-700 bg-emerald-50" },
-    cancelled:   { label: "Annulleret",className: "border-destructive/40 text-destructive bg-destructive/5" },
-    active:      { label: "Aktiv",     className: "border-emerald-300 text-emerald-700 bg-emerald-50" },
-    paused:      { label: "Pauset",    className: "border-amber-300 text-amber-700 bg-amber-50" },
+    pending:     { label: "Afventer",  className: "border-border text-feature-warm-foreground bg-feature-warm" },
+    confirmed:   { label: "Bekræftet", className: "border-border text-feature-cool-foreground bg-feature-cool" },
+    in_progress: { label: "Igang",     className: "border-border text-feature-lilac-foreground bg-feature-lilac" },
+    completed:   { label: "Udført",    className: "border-border text-foreground bg-secondary" },
+    cancelled:   { label: "Annulleret",className: "border-border text-muted-foreground bg-secondary" },
+    active:      { label: "Aktiv",     className: "border-border text-feature-cool-foreground bg-feature-cool" },
+    paused:      { label: "Pauset",    className: "border-border text-feature-warm-foreground bg-feature-warm" },
   };
   const m = map[status] || { label: status, className: "border-border text-muted-foreground" };
   return <Badge variant="outline" className={`text-[10px] h-5 px-1.5 ${m.className}`}>{m.label}</Badge>;
@@ -493,7 +493,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
       <PageHeader
         eyebrow="Kundeflow"
         title="Kunder"
-        description="Alle dine kunder samlet ét sted — med omsætning, abonnementer og hurtig adgang til næste handling."
+        description="Kunder, omsætning og relationer samlet ét sted."
         action={
           <PrimaryButton onClick={openCreateDialog} icon={<UserPlus />}>
             Tilføj kunde
@@ -502,7 +502,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
         <StatCard label="Kunder i alt" value={stats.total} icon={<User />} tone="accent" hint="Alle aktive relationer i kartoteket" />
         <StatCard label="Med abonnement" value={stats.recurring} icon={<Repeat />} tone="emerald" hint="Kunder med gentagne services" />
         <StatCard label="Samlet omsætning" value={fmtKr(stats.totalRev)} icon={<TrendingUp />} tone="amber" hint="Omsætning på tværs af alle kunder" />
@@ -525,7 +525,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
 
       {/* Bulk actions bar */}
       {selectedCustomers.length > 0 && (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent/5 px-4 py-2.5">
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-2.5">
           <div className="text-sm text-foreground">
             <span className="font-semibold">{selectedCustomers.length}</span> kunde{selectedCustomers.length === 1 ? "" : "r"} valgt
           </div>
@@ -561,13 +561,15 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         <AppList>
           {/* Header with select-all */}
           {eligibleSelectable.length > 0 && (
-            <div className="flex items-center gap-3 border-b border-border/80 bg-secondary/40 px-3.5 py-2 text-xs font-medium text-muted-foreground">
+             <div className="grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] items-center gap-3 border-b border-border/80 bg-secondary/40 px-3.5 py-2 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
               <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Vælg alle" />
-              <span>{allSelected ? "Alle valgt" : `Vælg alle (${eligibleSelectable.length})`}</span>
+               <span>{allSelected ? "Alle valgt" : `Vælg alle (${eligibleSelectable.length})`}</span>
+               <span className="hidden sm:block">Status</span>
+               <span className="text-right">Omsætning</span>
             </div>
           )}
           {filtered.map((c) => (
-            <div key={c.email} className="flex items-center gap-3 border-b border-border/80 px-3.5 py-3.5 last:border-b-0 hover:bg-secondary/50 transition-colors">
+            <div key={c.email} className="flex items-center gap-3 border-b border-border/80 px-3.5 py-3 last:border-b-0 hover:bg-secondary/35 transition-colors">
               {c.saved_id ? (
                 <Checkbox
                   checked={selectedIds.has(c.saved_id)}
@@ -580,7 +582,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
               )}
               <button
                 onClick={() => setSelectedEmail(c.email)}
-                className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0 text-sm font-semibold text-accent"
+                className="h-9 w-9 rounded-md border border-border bg-secondary flex items-center justify-center shrink-0 text-sm font-semibold text-foreground"
                 title="Se detaljer"
               >
                 {c.type === "business" ? <Building2 className="h-4 w-4" /> : (c.name?.charAt(0).toUpperCase() || "?")}
@@ -590,10 +592,10 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                   <p className="text-sm font-semibold text-foreground truncate flex items-center gap-1.5">
                     {c.type === "business" && c.company_name ? c.company_name : c.name}
                     {c.type === "business" && (
-                      <Badge variant="outline" className="text-[10px] h-4 px-1 border-blue-300 text-blue-700 bg-blue-50">Erhverv</Badge>
+                        <Badge variant="outline" className="text-[10px] h-4 px-1 border-border bg-background text-muted-foreground">Erhverv</Badge>
                     )}
                     {c.type === "private" && (
-                      <Badge variant="outline" className="text-[10px] h-4 px-1 border-emerald-300 text-emerald-700 bg-emerald-50">Privat</Badge>
+                        <Badge variant="outline" className="text-[10px] h-4 px-1 border-border bg-background text-muted-foreground">Privat</Badge>
                     )}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">{c.email}{c.phone ? ` · ${c.phone}` : ""}</p>
@@ -607,13 +609,13 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                 </div>
                   <div className="flex items-center justify-end gap-2">
                   {c.active_subs > 0 && (
-                    <Badge variant="outline" className="border-emerald-300 text-emerald-700 bg-emerald-50 text-[10px] h-5 px-1.5 gap-0.5">
+                    <Badge variant="outline" className="border-border text-feature-cool-foreground bg-feature-cool text-[10px] h-5 px-1.5 gap-0.5">
                       <Repeat className="h-2.5 w-2.5" />
                       {c.active_subs} abo.
                     </Badge>
                   )}
                   {c.paused_subs > 0 && (
-                    <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50 text-[10px] h-5 px-1.5 gap-0.5">
+                    <Badge variant="outline" className="border-border text-feature-warm-foreground bg-feature-warm text-[10px] h-5 px-1.5 gap-0.5">
                       <Pause className="h-2.5 w-2.5" />
                       {c.paused_subs} på pause
                     </Badge>

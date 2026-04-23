@@ -183,11 +183,11 @@ const buildAdjustmentItem = (item: any, service?: BusinessService): AdjustmentIt
    cancelled  → Annulleret
 */
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; color: string; bg: string; dot: string }> = {
-  pending: { label: "Ny bestilling", icon: Clock, color: "text-amber-700", bg: "bg-amber-50", dot: "bg-amber-400" },
-  confirmed: { label: "Aftalt", icon: CheckCircle2, color: "text-blue-700", bg: "bg-blue-50", dot: "bg-blue-400" },
-  in_progress: { label: "I gang", icon: RefreshCw, color: "text-purple-700", bg: "bg-purple-50", dot: "bg-purple-400" },
-  completed: { label: "Udført", icon: CheckCircle2, color: "text-green-700", bg: "bg-green-50", dot: "bg-green-400" },
-  cancelled: { label: "Annulleret", icon: XCircle, color: "text-red-700", bg: "bg-red-50", dot: "bg-red-400" },
+  pending: { label: "Ny bestilling", icon: Clock, color: "text-feature-warm-foreground", bg: "bg-feature-warm", dot: "bg-feature-warm-foreground" },
+  confirmed: { label: "Aftalt", icon: CheckCircle2, color: "text-feature-cool-foreground", bg: "bg-feature-cool", dot: "bg-feature-cool-foreground" },
+  in_progress: { label: "I gang", icon: RefreshCw, color: "text-feature-lilac-foreground", bg: "bg-feature-lilac", dot: "bg-feature-lilac-foreground" },
+  completed: { label: "Udført", icon: CheckCircle2, color: "text-foreground", bg: "bg-secondary", dot: "bg-foreground" },
+  cancelled: { label: "Annulleret", icon: XCircle, color: "text-muted-foreground", bg: "bg-secondary", dot: "bg-muted-foreground" },
 };
 
 const PRICING_LABELS: Record<string, string> = {
@@ -770,9 +770,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       <PageHeader
         eyebrow="Drift"
         title="Aftaler"
-        description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende services` : ""} — få overblik over hvad der kræver svar, hvad der er i gang, og hvad der er planlagt.`}
+        description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende services` : ""}. Se hvad der kræver svar, hvad der er i gang, og hvad der er planlagt.`}
         action={
-          <Button onClick={() => setCreateOrderOpen(true)} className="gap-2">
+          <Button onClick={() => setCreateOrderOpen(true)} className="h-9 gap-2 rounded-lg">
             <ShoppingCart className="h-4 w-4" />Opret bestilling
           </Button>
         }
@@ -780,9 +780,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
       {/* Upcoming services alert */}
       {upcomingSubs.length > 0 && (
-        <div className="rounded-xl border border-accent/20 bg-accent/5 p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
           <div className="flex items-center gap-2 mb-2">
-            <CalendarClock className="h-4 w-4 text-accent" />
+            <CalendarClock className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-semibold text-foreground">Kommende services</span>
           </div>
           <div className="space-y-1.5">
@@ -793,8 +793,8 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
               return (
                 <div key={sub.id} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
-                    <span className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold ${
-                      daysUntil <= 2 ? "bg-destructive/10 text-destructive" : daysUntil <= 7 ? "bg-amber-500/10 text-amber-700" : "bg-accent/10 text-accent"
+                    <span className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-md px-1.5 text-[10px] font-bold ${
+                      daysUntil <= 2 ? "bg-feature-warm text-feature-warm-foreground" : daysUntil <= 7 ? "bg-secondary text-foreground" : "bg-feature-cool text-feature-cool-foreground"
                     }`}>{daysUntil <= 0 ? "!" : `${daysUntil}d`}</span>
                     <span className="font-medium text-foreground">{sub.service_name}</span>
                     <span className="text-muted-foreground">— {profile?.display_name || "Kunde"}</span>
@@ -821,7 +821,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       )}
 
       {/* Filter tabs */}
-      <div className="flex gap-0 border-b border-border overflow-x-auto">
+      <div className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-card p-1">
         {[
           { key: "all", label: "Alle" },
           ...(actionNeeded.length > 0 ? [{ key: "action_needed", label: `Kræver handling (${actionNeeded.length})` }] : []),
@@ -832,15 +832,15 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
           { key: "cancelled", label: "Annullerede" },
         ].map(({ key, label }) => (
           <button key={key} onClick={() => setFilter(key)}
-            className={`relative px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
+            className={`relative rounded-md px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
               filter === key
-                ? "text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-foreground after:rounded-t"
+                ? "bg-secondary text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             }`}>
             {label}
             {key !== "action_needed" && key !== "waiting" && (counts[key] || 0) > 0 && (
               <span className={`ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-semibold ${
-                filter === key ? "bg-foreground/10" : "bg-muted"
+                filter === key ? "bg-background" : "bg-secondary"
               }`}>{counts[key]}</span>
             )}
           </button>
@@ -866,19 +866,19 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
             const daysUntilNext = nextDate ? Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
 
             return (
-              <Card key={order.id} className={`admin-panel rounded-xl shadow-sm overflow-hidden transition-all ${
-                actions.canRespond ? "border-amber-200 bg-amber-50/20" : "border-border"
+              <Card key={order.id} className={`admin-panel rounded-lg shadow-sm overflow-hidden transition-all ${
+                actions.canRespond ? "border-border bg-secondary/30" : "border-border"
               }`}>
                 {/* Order header */}
                 <button onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
-                  className="w-full text-left px-4 py-3.5 hover:bg-muted/20 transition-colors">
+                  className="w-full text-left px-4 py-3 hover:bg-muted/20 transition-colors">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                         <span className="text-sm font-semibold text-foreground truncate">{order.customer_name}</span>
                         {hasRecurring && (
-                          <Badge variant="secondary" className="text-[10px] gap-1 shrink-0">
+                          <Badge variant="outline" className="text-[10px] gap-1 shrink-0 border-border bg-background text-muted-foreground">
                             <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
                             {cycles > 0 && <span className="ml-0.5">· #{cycles}</span>}
                           </Badge>
@@ -960,7 +960,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                         {actions.canRespond && (
                           <>
                             <Button size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("accepted"); }}
-                              className="gap-1.5 rounded-xl text-xs bg-green-600 text-white hover:bg-green-700">
+                              className="gap-1.5 rounded-lg text-xs bg-foreground text-background hover:bg-foreground/90">
                               <Check className="h-3.5 w-3.5" /> Godkend aftale
                             </Button>
                             <Button variant="outline" size="sm" onClick={(e) => {
@@ -1004,16 +1004,16 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
                     {/* Response form */}
                     {isResponding && (
-                      <div className="rounded-xl border-2 border-foreground/10 bg-card p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="rounded-lg border border-border bg-card p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex gap-2">
                           {(["accepted", "adjusted", "rejected"] as const).map((type) => (
                             <button key={type} onClick={() => {
                               setResponseType(type);
                               if (type === "adjusted" && !adjustedItems[order.id]) initAdjustedItems(order);
                             }}
-                              className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-all ${
+                              className={`flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium transition-colors ${
                                 responseType === type
-                                  ? type === "accepted" ? "border-green-500 bg-green-600 text-white"
+                                  ? type === "accepted" ? "border-foreground bg-foreground text-background"
                                   : type === "rejected" ? "border-destructive bg-destructive text-destructive-foreground"
                                   : "border-foreground bg-foreground text-background"
                                   : "border-border bg-card text-muted-foreground hover:border-foreground/30"
@@ -1064,9 +1064,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                         </div>
 
                         <div className="flex gap-2">
-                          <Button size="sm" onClick={() => handleResponse(order.id)}
-                            className={`rounded-xl text-xs ${
-                              responseType === "accepted" ? "bg-green-600 hover:bg-green-700 text-white"
+                           <Button size="sm" onClick={() => handleResponse(order.id)}
+                            className={`rounded-lg text-xs ${
+                              responseType === "accepted" ? "bg-foreground hover:bg-foreground/90 text-background"
                               : responseType === "rejected" ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                               : "bg-foreground text-background hover:bg-foreground/90"
                             }`}>
@@ -1074,8 +1074,8 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                               : responseType === "rejected" ? "Bekræft afvisning"
                               : `Send forslag – ${roundPrice(getAdjustedTotal(order.id))} kr`}
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => { setRespondingTo(null); setResponseMessage(""); }}
-                            className="rounded-xl text-xs">Annuller</Button>
+                           <Button variant="ghost" size="sm" onClick={() => { setRespondingTo(null); setResponseMessage(""); }}
+                            className="rounded-lg text-xs">Annuller</Button>
                         </div>
                       </div>
                     )}
