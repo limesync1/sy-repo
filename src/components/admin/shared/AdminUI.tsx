@@ -19,15 +19,15 @@ export const PageHeader = ({
   action?: React.ReactNode;
   className?: string;
 }) => (
-  <div className={cn("flex flex-wrap items-start justify-between gap-4", className)}>
-    <div className="min-w-0 space-y-1.5">
+  <div className={cn("flex flex-wrap items-start justify-between gap-3", className)}>
+    <div className="min-w-0 space-y-1">
       {eyebrow && (
-        <div className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        <div className="inline-flex items-center rounded-md border border-border bg-secondary/45 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
           {eyebrow}
         </div>
       )}
-      <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[1.72rem]">{title}</h2>
-      {description && <p className="max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p>}
+      <h2 className="text-[1.35rem] font-semibold tracking-tight text-foreground sm:text-[1.5rem]">{title}</h2>
+      {description && <p className="max-w-xl text-sm leading-5 text-muted-foreground">{description}</p>}
     </div>
     {action && <div className="shrink-0">{action}</div>}
   </div>
@@ -40,7 +40,7 @@ export const PrimaryButton = React.forwardRef<
   <Button
     ref={ref}
     className={cn(
-        "h-10 rounded-xl bg-foreground px-4 text-sm font-medium text-background shadow-sm hover:bg-foreground/92",
+        "h-9 rounded-lg bg-foreground px-3.5 text-sm font-medium text-background shadow-sm hover:bg-foreground/92",
       className,
     )}
     {...props}
@@ -72,23 +72,23 @@ export const ActionTile = ({
     <Comp
       onClick={onClick}
       className={cn(
-        "group flex w-full items-start gap-3 rounded-[1rem] border border-border bg-background p-4 text-left transition-all duration-200 hover:border-foreground/12 hover:bg-secondary/45",
+        "group flex w-full items-start gap-3 rounded-lg border border-border bg-background px-3.5 py-3 text-left transition-colors duration-150 hover:border-border hover:bg-secondary/35",
         onClick && "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.99]",
         className,
       )}
     >
       {icon && (
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-secondary/70 text-muted-foreground transition-colors group-hover:bg-secondary [&_svg]:h-4 [&_svg]:w-4">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-secondary/70 text-muted-foreground [&_svg]:h-4 [&_svg]:w-4">
           {icon}
         </div>
       )}
-      <div className="min-w-0 flex-1 space-y-1">
+      <div className="min-w-0 flex-1 space-y-0.5">
         <div className="flex items-center justify-between gap-3">
           <p className="truncate text-sm font-semibold text-foreground">{title}</p>
-          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-foreground" />
+          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-foreground" />
         </div>
-        {description && <p className="text-sm leading-5 text-muted-foreground">{description}</p>}
-        {meta && <div className="pt-1 text-xs font-medium text-muted-foreground">{meta}</div>}
+        {description && <p className="text-xs leading-5 text-muted-foreground">{description}</p>}
+        {meta && <div className="pt-0.5 text-[11px] font-medium text-muted-foreground">{meta}</div>}
       </div>
     </Comp>
   );
@@ -121,22 +121,22 @@ export const StatCard = ({
   };
 
   return (
-    <Card className={cn("admin-panel border-border shadow-sm", emphasis === "primary" && "overflow-hidden border-border bg-card shadow-md")}>
-      <CardContent className={cn("flex items-center gap-3 p-4", emphasis === "primary" && "min-h-[148px] items-start justify-between p-5 sm:p-6")}>
-        <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg [&_svg]:h-5 [&_svg]:w-5", tones[tone], emphasis === "primary" && "h-11 w-11 rounded-xl")}>
+    <Card className={cn("admin-panel border-border shadow-sm", emphasis === "primary" && "overflow-hidden border-border bg-card shadow-sm")}>
+      <CardContent className={cn("flex items-center gap-3 p-3.5", emphasis === "primary" && "min-h-[124px] items-start justify-between p-4.5 sm:p-5")}>
+        <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-md [&_svg]:h-4 [&_svg]:w-4", tones[tone], emphasis === "primary" && "h-9 w-9 rounded-lg")}>
           {icon}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
+              <p className="truncate text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
               <p className={cn("mt-2 font-bold tracking-tight text-foreground tabular-nums", emphasis === "primary" ? "text-3xl sm:text-4xl" : "text-xl")}>
                 {value}
               </p>
             </div>
             {trend && <div className="shrink-0 text-xs font-medium text-muted-foreground">{trend}</div>}
           </div>
-          {hint && <p className="mt-2 text-sm leading-5 text-muted-foreground">{hint}</p>}
+           {hint && <p className="mt-1.5 text-xs leading-5 text-muted-foreground">{hint}</p>}
         </div>
       </CardContent>
     </Card>
@@ -162,20 +162,20 @@ export const PriorityBanner = ({
   secondaryAction?: React.ReactNode;
   className?: string;
 }) => (
-    <Card className={cn("admin-panel overflow-hidden border-border bg-card shadow-md", className)}>
-    <CardContent className="grid gap-5 p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:p-6">
-      <div className="space-y-4">
+    <Card className={cn("admin-panel overflow-hidden border-border bg-card shadow-sm", className)}>
+    <CardContent className="grid gap-4 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:p-5">
+      <div className="space-y-3">
         <div className="flex items-start gap-3">
           {icon && (
-            <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-secondary text-foreground [&_svg]:h-5 [&_svg]:w-5">
+            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-secondary text-foreground [&_svg]:h-4 [&_svg]:w-4">
               {icon}
             </div>
           )}
-          <div className="min-w-0 space-y-2">
-            {eyebrow && <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{eyebrow}</div>}
+          <div className="min-w-0 space-y-1.5">
+            {eyebrow && <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{eyebrow}</div>}
             <div className="space-y-1">
-              <h3 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{title}</h3>
-              {description && <p className="max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p>}
+              <h3 className="text-lg font-semibold tracking-tight text-foreground sm:text-[1.28rem]">{title}</h3>
+              {description && <p className="max-w-xl text-sm leading-5 text-muted-foreground">{description}</p>}
             </div>
           </div>
         </div>
@@ -207,17 +207,17 @@ export const SectionCard = ({
   className?: string;
 }) => (
     <Card className={cn("admin-panel border-border shadow-sm", className)}>
-    <CardContent className="space-y-4 p-5 sm:p-6">
+    <CardContent className="space-y-3.5 p-4 sm:p-5">
       {(title || action) && (
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             {title && (
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground [&_svg]:h-4 [&_svg]:w-4 [&_svg]:text-muted-foreground">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground [&_svg]:h-4 [&_svg]:w-4 [&_svg]:text-muted-foreground">
                 {icon}
                 {title}
               </h3>
             )}
-            {description && <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>}
+            {description && <p className="mt-1 text-xs leading-5 text-muted-foreground">{description}</p>}
           </div>
           {action && <div className="shrink-0">{action}</div>}
         </div>
@@ -255,7 +255,7 @@ export const SearchInput = ({
 }) => (
   <div className={cn("relative min-w-[240px] flex-1", className)}>
     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-    <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="h-10 rounded-xl pl-9" />
+    <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="h-9 rounded-lg pl-9" />
   </div>
 );
 
@@ -271,25 +271,25 @@ export const EmptyState = ({
   action?: React.ReactNode;
 }) => (
   <Card className="admin-panel border-dashed border-border">
-    <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-secondary [&_svg]:h-6 [&_svg]:w-6 [&_svg]:text-muted-foreground/40">
+    <CardContent className="flex flex-col items-center justify-center py-10 text-center">
+      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-secondary [&_svg]:h-5 [&_svg]:w-5 [&_svg]:text-muted-foreground/40">
         {icon}
       </div>
       <p className="text-sm font-semibold text-foreground">{title}</p>
-      {description && <p className="mt-1 max-w-sm text-sm text-muted-foreground">{description}</p>}
+      {description && <p className="mt-1 max-w-sm text-xs leading-5 text-muted-foreground">{description}</p>}
       {action && <div className="mt-4">{action}</div>}
     </CardContent>
   </Card>
 );
 
 export const InsightPill = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-  <span className={cn("inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground", className)}>
+  <span className={cn("inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1 text-[11px] font-medium text-muted-foreground", className)}>
     {children}
   </span>
 );
 
 export const AppList = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-  <div className={cn("overflow-hidden rounded-[1.1rem] border border-border bg-card shadow-sm", className)}>{children}</div>
+  <div className={cn("overflow-hidden rounded-lg border border-border bg-card shadow-sm", className)}>{children}</div>
 );
 
 export const AppListRow = ({
@@ -307,7 +307,7 @@ export const AppListRow = ({
     <Comp
       onClick={onClick as any}
       className={cn(
-        "group flex w-full items-center gap-3 border-b border-border/80 px-4 py-3.5 text-left transition-all last:border-b-0 hover:bg-secondary/60",
+        "group flex w-full items-center gap-3 border-b border-border/80 px-3.5 py-3 text-left transition-colors last:border-b-0 hover:bg-secondary/45",
         onClick && "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.998]",
         className,
       )}

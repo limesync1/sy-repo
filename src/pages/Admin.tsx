@@ -23,7 +23,7 @@ import ReviewsTab from "@/components/admin/ReviewsTab";
 import AftaleTab from "@/components/admin/AftaleTab";
 import EmployeesTab from "@/components/admin/EmployeesTab";
 import CustomersTab from "@/components/admin/CustomersTab";
-import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
+import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState, AppList, AppListRow, InsightPill } from "@/components/admin/shared/AdminUI";
 
 /* ─── Constants ─── */
 const CATEGORIES = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS", "Elektriker", "Sikkerhed"];
@@ -192,7 +192,7 @@ const AdminDashboard = () => {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-white/10 bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[272px] flex-col border-r border-border bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         {/* Sidebar header */}
         <div className="flex h-16 shrink-0 items-center justify-between px-4">
           <Link to="/" className="flex items-center gap-2">
@@ -204,23 +204,19 @@ const AdminDashboard = () => {
         </div>
 
         {/* Business info */}
-        <div className="mx-3 mb-4 shrink-0 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-3">
+        <div className="mx-3 mb-3 shrink-0 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3">
           <div className="flex items-start gap-3">
             {business.logo_url ? (
-              <img src={business.logo_url} alt="" className="h-10 w-10 shrink-0 rounded-xl object-contain bg-white/10 p-1" />
+              <img src={business.logo_url} alt="" className="h-9 w-9 shrink-0 rounded-md object-contain bg-white/10 p-1" />
             ) : (
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/20 text-sm font-bold text-accent">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white/8 text-sm font-bold text-white">
                 {business.name.charAt(0)}
               </div>
             )}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-white">{business.name}</p>
-              <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-white/45">Serviceydere panel</p>
-              {business.categories && business.categories.length > 0 && <p className="mt-2 truncate text-xs text-white/55">{(business.categories as string[]).join(", ")}</p>}
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-white/60">Drift</span>
-                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-white/60">Forretning</span>
-              </div>
+              <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/45">Virksomhedspanel</p>
+              {business.categories && business.categories.length > 0 && <p className="mt-2 truncate text-xs text-white/55">{(business.categories as string[]).slice(0, 2).join(" · ")}</p>}
             </div>
           </div>
         </div>
@@ -228,14 +224,14 @@ const AdminDashboard = () => {
         {/* Nav items */}
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 pb-4">
           {Object.entries(navGroups).map(([section, items]) => (
-            <div key={section} className="space-y-1.5">
-              <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/35">{section}</p>
+            <div key={section} className="space-y-1">
+              <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/30">{section}</p>
               {items.map((item: any) => {
                 const isActive = activeTab === item.value;
                 const baseClasses = `group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
                   isActive
                     ? "bg-white text-foreground shadow-sm"
-                    : "text-white/62 hover:bg-white/[0.06] hover:text-white"
+                    : "text-white/62 hover:bg-white/[0.04] hover:text-white"
                 }`;
                 if (item.href) {
                   return (
@@ -263,7 +259,7 @@ const AdminDashboard = () => {
         </nav>
 
         {/* Sidebar footer — always visible */}
-        <div className="shrink-0 border-t border-white/[0.08] px-3 py-3 space-y-1.5">
+        <div className="shrink-0 border-t border-white/[0.08] px-3 py-3 space-y-1">
           <Link
             to={`/v/${business.slug}`}
             className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 transition-colors hover:bg-white/[0.08] hover:text-white"
@@ -284,16 +280,16 @@ const AdminDashboard = () => {
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-background/96 px-5 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/96 px-4 backdrop-blur sm:px-5">
           <button onClick={() => setSidebarOpen(true)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors lg:hidden">
             <Menu className="h-5 w-5" />
           </button>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{currentNav?.section || "Panel"}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{currentNav?.section || "Panel"}</p>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-lg font-semibold text-foreground">{currentNav?.label}</h1>
+              <h1 className="text-base font-semibold text-foreground">{currentNav?.label}</h1>
               {currentSectionItems.length > 1 && (
-                <div className="hidden items-center gap-1 rounded-full border border-border bg-secondary/45 px-2 py-1 md:flex">
+                <div className="hidden items-center gap-1 rounded-lg border border-border bg-secondary/45 px-1.5 py-1 md:flex">
                   {currentSectionItems.map((item) => {
                     const isCurrent = item.value === activeTab;
                     const labelClasses = isCurrent
@@ -468,11 +464,6 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser services...</p>;
 
-  const CATEGORY_ICONS: Record<string, string> = {
-    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
-    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
-  };
-
   return (
     <div className="space-y-5">
       <PageHeader
@@ -489,30 +480,39 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
       {uniqueCategories.length > 1 && (
         <div className="flex flex-wrap gap-1.5">
           <button onClick={() => setFilterCategory("")}
-            className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${!filterCategory ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
+            className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${!filterCategory ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
             Alle
           </button>
           {uniqueCategories.map((cat) => (
             <button key={cat} onClick={() => setFilterCategory(filterCategory === cat ? "" : cat)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${filterCategory === cat ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
-              <span>{CATEGORY_ICONS[cat] || "📋"}</span> {cat}
+              className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${filterCategory === cat ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
+              {cat}
             </button>
           ))}
         </div>
       )}
 
       {showForm && (
-        <Card className="rounded-xl shadow-md border-accent/20 bg-gradient-to-b from-accent/[0.03] to-transparent">
-          <CardContent className="p-5 sm:p-6">
+        <Card className="rounded-lg border-border shadow-sm">
+          <CardContent className="p-4 sm:p-5">
             <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />
           </CardContent>
         </Card>
       )}
 
       <div className="space-y-2.5">
-        {filtered?.map((s: any) => (
-          <ServiceRow key={s.id} service={s} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
-        ))}
+        {filtered && filtered.length > 0 && (
+          <AppList>
+            <div className="grid grid-cols-[minmax(0,1.4fr)_auto_auto] gap-3 border-b border-border bg-secondary/35 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              <span>Service</span>
+              <span>Type</span>
+              <span className="text-right">Pris</span>
+            </div>
+            {filtered.map((s: any) => (
+              <ServiceRow key={s.id} service={s} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
+            ))}
+          </AppList>
+        )}
         {(!filtered || filtered.length === 0) && !showForm && (
           <EmptyState
             icon={<Wrench />}
@@ -533,93 +533,55 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
 const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCount: number; onDelete: () => void }) => {
   const [editing, setEditing] = useState(false);
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
-  const pricingIcons: Record<string, string> = { fast_pris: "💰", timepris: "⏱️", prisberegner: "🧮" };
-  const CATEGORY_ICONS: Record<string, string> = {
-    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
-    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
-  };
 
   const intervals = service.interval_options || [];
   const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
 
   return (
-    <Card className="rounded-xl shadow-sm border-border overflow-hidden transition-shadow hover:shadow-md">
-      <CardContent className="p-0">
-        <div className="flex items-stretch">
-          {/* Left accent strip with category icon */}
-          <div className="flex w-12 shrink-0 flex-col items-center justify-center bg-secondary/50 border-r border-border">
-            <span className="text-lg">{CATEGORY_ICONS[service.service_category] || "📋"}</span>
+    <div className="border-b border-border/80 last:border-b-0">
+      <AppListRow className="items-start gap-4 px-3.5 py-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="truncate text-sm font-semibold text-foreground">{service.name}</h3>
+            {service.is_active === false && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-border bg-background text-muted-foreground">Inaktiv</Badge>
+            )}
           </div>
-
-          {/* Main content */}
-          <div className="flex-1 p-3.5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-foreground truncate">{service.name}</h3>
-                  {service.is_active === false && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 rounded border-destructive/30 text-destructive">Inaktiv</Badge>
-                  )}
-                </div>
-                {service.description && (
-                  <p className="mt-0.5 text-xs text-muted-foreground line-clamp-1">{service.description}</p>
-                )}
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-0.5 text-[11px] font-medium text-foreground">
-                    <span className="text-xs">{pricingIcons[service.pricing_type]}</span>
-                    {pricingLabels[service.pricing_type] || service.pricing_type}
-                  </span>
-                  {service.base_price != null && (
-                    <span className="inline-flex items-center rounded-md border border-border bg-card px-2 py-0.5 text-[11px] font-semibold text-foreground">
-                      {service.base_price} kr{service.unit ? ` / ${service.unit}` : ""}
-                    </span>
-                  )}
-                  {service.calculator_steps?.length > 0 && (
-                    <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-0.5 text-[11px] text-muted-foreground">
-                      <Calculator className="h-3 w-3" /> {service.calculator_steps.length} trin
-                    </span>
-                  )}
-                  {service.subcategory && (
-                    <span className="inline-flex items-center rounded-md border border-accent/20 bg-accent/5 px-2 py-0.5 text-[11px] font-medium text-accent">
-                      {service.subcategory}
-                    </span>
-                  )}
-                  {service.service_category && !service.subcategory && (
-                    <span className="inline-flex items-center rounded-md border border-border bg-secondary/50 px-2 py-0.5 text-[11px] text-muted-foreground">
-                      {service.service_category}
-                    </span>
-                  )}
-                  {hasRecurring && (
-                    <span className="inline-flex items-center gap-0.5 rounded-md border border-blue-500/20 bg-blue-500/5 px-2 py-0.5 text-[11px] font-medium text-blue-600">
-                      🔄 Abonnement
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Right side: order count + actions */}
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="text-right hidden sm:block">
-                  <span className="block text-sm font-bold text-foreground">{orderCount}</span>
-                  <span className="block text-[10px] text-muted-foreground">bestillinger</span>
-                </div>
-                <div className="flex gap-1">
-                  <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-7 rounded-lg text-xs px-2.5 border-border hover:bg-secondary">
-                    {editing ? "Luk" : "Rediger"}
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={onDelete} className="h-7 w-7 p-0 rounded-lg hover:bg-destructive/10 transition-colors"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
-                </div>
-              </div>
-            </div>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {[service.service_category, service.subcategory].filter(Boolean).join(" · ") || "Ingen kategori valgt"}
+          </p>
+          {service.description && <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{service.description}</p>}
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {service.calculator_steps?.length > 0 && (
+              <InsightPill><Calculator className="h-3 w-3" /> {service.calculator_steps.length} trin</InsightPill>
+            )}
+            {hasRecurring && <InsightPill>Abonnement muligt</InsightPill>}
+            <InsightPill>{orderCount} bestillinger</InsightPill>
           </div>
         </div>
-      </CardContent>
+        <div className="hidden min-w-[120px] flex-col items-start gap-1 sm:flex">
+          <span className="text-xs font-medium text-foreground">{pricingLabels[service.pricing_type] || service.pricing_type}</span>
+          <span className="text-[11px] text-muted-foreground">{service.unit || "Fast enhed"}</span>
+        </div>
+        <div className="flex min-w-[148px] flex-col items-end gap-2">
+          <div className="text-right">
+            <span className="text-sm font-semibold text-foreground">{service.base_price != null ? `${service.base_price} kr` : "Variabel pris"}</span>
+            <p className="text-[11px] text-muted-foreground">{service.unit ? `pr. ${service.unit}` : "pris efter opsætning"}</p>
+          </div>
+          <div className="flex gap-1">
+            <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-7 rounded-md px-2.5 text-xs">
+              {editing ? "Luk" : "Rediger"}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onDelete} className="h-7 w-7 rounded-md p-0 hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+          </div>
+        </div>
+      </AppListRow>
       {editing && (
-        <div className="border-t border-border bg-secondary/20 p-5">
+        <div className="border-t border-border bg-secondary/18 p-4">
           <ServiceForm businessId={service.business_id} existingService={service} onClose={() => setEditing(false)} />
         </div>
       )}
-    </Card>
+    </div>
   );
 };
 
@@ -836,28 +798,27 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
         </div>
       </div>
 
-      {/* Step 1: Category — Card grid instead of dropdown */}
+      {/* Step 1: Category */}
       {currentStep === 1 && (
         <div className="space-y-5">
           <div>
-            <h4 className="text-base font-semibold text-foreground">Vælg kategori</h4>
-            <p className="mt-1 text-sm text-muted-foreground">Hvilken type service tilbyder du?</p>
+            <h4 className="text-sm font-semibold text-foreground">Kategori</h4>
+            <p className="mt-1 text-xs text-muted-foreground">Vælg den kategori, der bedst beskriver servicen.</p>
           </div>
 
           {!customCategory ? (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {categoryOptions.map((c) => (
                   <button key={c} type="button"
                     onClick={() => { setServiceCategory(c); setSubcategory(""); setCustomSubcategory(false); }}
-                    className={`flex flex-col items-center gap-2 rounded-xl border-2 px-3 py-4 text-center transition-all hover:shadow-sm ${
+                    className={`flex items-center justify-center rounded-lg border px-3 py-3 text-center text-sm font-medium transition-colors ${
                       serviceCategory === c
-                        ? "border-foreground bg-foreground/5 shadow-sm"
+                        ? "border-foreground bg-secondary text-foreground"
                         : "border-border bg-card hover:border-foreground/30"
                     }`}
                   >
-                    <span className="text-2xl">{CATEGORY_ICONS[c] || "📋"}</span>
-                    <span className="text-sm font-medium text-foreground">{c}</span>
+                    <span className="text-foreground">{c}</span>
                   </button>
                 ))}
               </div>
@@ -878,17 +839,17 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
 
           {/* Subcategory — chips instead of dropdown */}
           {serviceCategory && subcategoryOptions.length > 0 && (
-            <div className="space-y-3 pt-4 border-t border-border">
+              <div className="space-y-3 pt-4 border-t border-border">
               <div>
-                <h4 className="text-sm font-semibold text-foreground">Underkategori</h4>
-                <p className="mt-0.5 text-sm text-muted-foreground">Vælg den mest passende underkategori</p>
+                  <h4 className="text-sm font-semibold text-foreground">Underkategori</h4>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Vælg den mest præcise underkategori.</p>
               </div>
               {!customSubcategory ? (
                 <>
                   <div className="flex flex-wrap gap-2">
                     {subcategoryOptions.map((s) => (
                       <button key={s} type="button" onClick={() => setSubcategory(s)}
-                        className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                        className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
                           subcategory === s
                             ? "border-foreground bg-foreground text-background"
                             : "border-border bg-card text-foreground hover:border-foreground/40"
@@ -926,18 +887,18 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       {currentStep === 2 && (
         <div className="space-y-5">
           <div>
-            <h4 className="text-base font-semibold text-foreground">Service detaljer</h4>
-            <p className="mt-1 text-sm text-muted-foreground">Beskriv din service så kunderne ved hvad de får</p>
+            <h4 className="text-sm font-semibold text-foreground">Detaljer</h4>
+            <p className="mt-1 text-xs text-muted-foreground">Beskriv servicen kort og præcist.</p>
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">Servicenavn</label>
-            <Input placeholder="Fx Rengøring af kontor" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-11 text-base" />
+            <Input placeholder="Fx Rengøring af kontor" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-10" />
             {productSuggestions.length > 0 && !name && (
               <div className="mt-2.5 flex flex-wrap gap-2">
-                <span className="text-sm text-muted-foreground mr-1">Forslag:</span>
+                <span className="text-xs text-muted-foreground mr-1">Forslag:</span>
                 {productSuggestions.map((s) => (
                   <button key={s} type="button" onClick={() => setName(s)}
-                    className="rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-colors">{s}</button>
+                    className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-colors">{s}</button>
                 ))}
               </div>
             )}
@@ -953,28 +914,27 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
         </div>
       )}
 
-      {/* Step 3: Pricing — big cards */}
+      {/* Step 3: Pricing */}
       {currentStep === 3 && (
         <div className="space-y-5">
           <div>
-            <h4 className="text-base font-semibold text-foreground">Hvordan vil du prissætte?</h4>
-            <p className="mt-1 text-sm text-muted-foreground">Vælg den prismodel der passer bedst til din service</p>
+            <h4 className="text-sm font-semibold text-foreground">Pris</h4>
+            <p className="mt-1 text-xs text-muted-foreground">Vælg den prismodel der passer bedst til servicen.</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {[
-              { value: "fast_pris", label: "Fast pris", desc: "Kunden betaler én fast pris for hele servicen", icon: "💰" },
-              { value: "timepris", label: "Timepris", desc: "Kunden betaler pr. time brugt på opgaven", icon: "⏱️" },
-              { value: "prisberegner", label: "Prisberegner", desc: "Kunden sammensætter selv og ser prisen live", icon: "🧮" },
+              { value: "fast_pris", label: "Fast pris", desc: "Én fast pris for hele servicen" },
+              { value: "timepris", label: "Timepris", desc: "Pris pr. time" },
+              { value: "prisberegner", label: "Prisberegner", desc: "Pris ud fra kundens valg" },
             ].map((opt) => (
               <button key={opt.value} type="button" onClick={() => setPricingType(opt.value)}
-                className={`rounded-xl border-2 p-5 text-left transition-all ${
+                className={`rounded-lg border p-3.5 text-left transition-colors ${
                   pricingType === opt.value
-                    ? "border-foreground bg-foreground/5 shadow-sm"
-                    : "border-border bg-card hover:border-foreground/30 hover:shadow-sm"
+                    ? "border-foreground bg-secondary"
+                    : "border-border bg-card hover:border-foreground/30"
                 }`}>
-                <span className="text-2xl">{opt.icon}</span>
-                <span className="mt-2 block text-sm font-semibold text-foreground">{opt.label}</span>
-                <span className="mt-1 block text-sm text-muted-foreground leading-snug">{opt.desc}</span>
+                <span className="block text-sm font-semibold text-foreground">{opt.label}</span>
+                <span className="mt-1 block text-xs text-muted-foreground leading-5">{opt.desc}</span>
               </button>
             ))}
           </div>
@@ -1002,22 +962,22 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       {currentStep === 4 && pricingType === "prisberegner" && (
         <div className="space-y-5">
           <div>
-            <h4 className="text-base font-semibold text-foreground">Opsæt prisberegner</h4>
-            <p className="mt-1 text-sm text-muted-foreground">Tilføj de trin kunden skal igennem for at beregne prisen</p>
+            <h4 className="text-sm font-semibold text-foreground">Prisberegner</h4>
+            <p className="mt-1 text-xs text-muted-foreground">Tilføj de trin kunden bruger til at beregne prisen.</p>
           </div>
 
           {availableTemplates.length > 0 && steps.length === 0 && (
-            <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+            <div className="rounded-lg border border-border bg-card p-4 space-y-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-amber-500" />
+                <Sparkles className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-semibold text-foreground">Kom hurtigt i gang med en skabelon</span>
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
                 {availableTemplates.map((t) => (
                   <button key={t.label} type="button" onClick={() => applyTemplate(t)}
-                    className="rounded-xl border border-border bg-muted/30 p-4 text-left transition-all hover:border-foreground/30 hover:shadow-sm">
+                    className="rounded-lg border border-border bg-muted/30 p-3 text-left transition-colors hover:border-foreground/30">
                     <span className="block text-sm font-semibold text-foreground">{t.label}</span>
-                    <span className="mt-1 block text-sm text-muted-foreground">{t.steps.length} trin · {t.steps.map(s => s.unit).filter((v, i, a) => a.indexOf(v) === i).join(", ")}</span>
+                    <span className="mt-1 block text-xs text-muted-foreground">{t.steps.length} trin · {t.steps.map(s => s.unit).filter((v, i, a) => a.indexOf(v) === i).join(", ")}</span>
                   </button>
                 ))}
               </div>
@@ -1033,10 +993,10 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
             </div>
 
             {steps.map((step, i) => (
-              <Card key={i} className="rounded-xl shadow-sm border-border overflow-hidden">
-                <div className="flex items-center justify-between bg-secondary/40 px-4 py-2.5 border-b border-border">
+              <Card key={i} className="rounded-lg border-border overflow-hidden shadow-sm">
+                <div className="flex items-center justify-between border-b border-border bg-secondary/40 px-4 py-2.5">
                   <div className="flex items-center gap-2.5">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-md bg-foreground text-[11px] font-bold text-background">{i + 1}</span>
+                    <span className="flex h-6 w-6 items-center justify-center rounded-md bg-secondary text-[11px] font-bold text-foreground">{i + 1}</span>
                     <span className="text-sm font-semibold text-foreground">{step.label || `Trin ${i + 1}`}</span>
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => removeStep(i)} className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
@@ -1098,18 +1058,18 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       {currentStep === totalSteps && (
         <div className="space-y-5">
           <div>
-            <h4 className="text-base font-semibold text-foreground">Vælg intervaller</h4>
-            <p className="mt-1 text-sm text-muted-foreground">Hvilke intervaller kan kunden vælge for denne service?</p>
+            <h4 className="text-sm font-semibold text-foreground">Intervaller</h4>
+            <p className="mt-1 text-xs text-muted-foreground">Vælg hvilke intervaller kunden kan bestille.</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {ALL_INTERVALS.map((iv) => (
               <button key={iv.value} type="button" onClick={() => toggleInterval(iv.value)}
-                className={`rounded-xl border-2 px-4 py-3 text-center transition-all ${
+                className={`rounded-lg border px-4 py-2.5 text-center transition-colors ${
                   intervalOptions.includes(iv.value)
-                    ? "border-foreground bg-foreground/5 shadow-sm"
+                    ? "border-foreground bg-secondary"
                     : "border-border bg-card hover:border-foreground/30"
                 }`}>
-                <span className="text-sm font-medium text-foreground">{iv.label}</span>
+                <span className="text-xs font-medium text-foreground">{iv.label}</span>
               </button>
             ))}
           </div>
