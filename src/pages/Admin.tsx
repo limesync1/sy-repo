@@ -409,19 +409,16 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
   const filtered = filterCategory
     ? services?.filter((s: any) => s.service_category === filterCategory)
     : services;
+  const activeServices = (services || []).filter((s: any) => s.is_active !== false).length;
+  const totalOrders = Object.values(orderCountByService).reduce((a, b) => a + b, 0);
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser services...</p>;
-
-  const CATEGORY_ICONS: Record<string, string> = {
-    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
-    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
-  };
 
   return (
     <div className="space-y-5">
       <PageHeader
-        title="Services"
-        description={`${services?.length || 0} services · ${Object.values(orderCountByService).reduce((a, b) => a + b, 0)} bestillinger i alt`}
+        title="Servicekatalog"
+        description={`${services?.length || 0} services · ${totalOrders} bestillinger i alt`}
         action={
           <PrimaryButton onClick={() => setShowForm(true)} icon={<Plus />}>
             Tilføj service
@@ -429,31 +426,62 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
         }
       />
 
-      {/* Category filter chips */}
-      {uniqueCategories.length > 1 && (
-        <div className="flex flex-wrap gap-1.5">
-          <button onClick={() => setFilterCategory("")}
-            className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${!filterCategory ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
-            Alle
-          </button>
-          {uniqueCategories.map((cat) => (
-            <button key={cat} onClick={() => setFilterCategory(filterCategory === cat ? "" : cat)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${filterCategory === cat ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
-              <span>{CATEGORY_ICONS[cat] || "📋"}</span> {cat}
-            </button>
-          ))}
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Services i alt</p>
+              <p className="mt-1 text-2xl font-semibold text-foreground tabular-nums">{services?.length || 0}</p>
+            </CardContent>
+          </Card>
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Aktive</p>
+              <p className="mt-1 text-2xl font-semibold text-foreground tabular-nums">{activeServices}</p>
+            </CardContent>
+          </Card>
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Bestillinger</p>
+              <p className="mt-1 text-2xl font-semibold text-foreground tabular-nums">{totalOrders}</p>
+            </CardContent>
+          </Card>
         </div>
+
+        {uniqueCategories.length > 1 && (
+          <div className="flex flex-wrap gap-2 lg:justify-end">
+            <button
+              onClick={() => setFilterCategory("")}
+              className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${!filterCategory ? "border-border bg-secondary text-foreground" : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+            >
+              Alle
+            </button>
+            {uniqueCategories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setFilterCategory(filterCategory === cat ? "" : cat)}
+                className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${filterCategory === cat ? "border-border bg-secondary text-foreground" : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {uniqueCategories.length > 1 && (
+        <div className="hidden" />
       )}
 
       {showForm && (
-        <Card className="rounded-xl shadow-md border-accent/20 bg-gradient-to-b from-accent/[0.03] to-transparent">
+        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
           <CardContent className="p-5 sm:p-6">
             <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />
           </CardContent>
         </Card>
       )}
 
-      <div className="space-y-2.5">
+      <div className="space-y-3">
         {filtered?.map((s: any) => (
           <ServiceRow key={s.id} service={s} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
         ))}
@@ -477,89 +505,74 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
 const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCount: number; onDelete: () => void }) => {
   const [editing, setEditing] = useState(false);
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
-  const pricingIcons: Record<string, string> = { fast_pris: "💰", timepris: "⏱️", prisberegner: "🧮" };
-  const CATEGORY_ICONS: Record<string, string> = {
-    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
-    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
-  };
 
   const intervals = service.interval_options || [];
   const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
 
   return (
-    <Card className="rounded-xl shadow-sm border-border overflow-hidden transition-shadow hover:shadow-md">
+    <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
       <CardContent className="p-0">
-        <div className="flex items-stretch">
-          {/* Left accent strip with category icon */}
-          <div className="flex w-12 shrink-0 flex-col items-center justify-center bg-secondary/50 border-r border-border">
-            <span className="text-lg">{CATEGORY_ICONS[service.service_category] || "📋"}</span>
+        <div className="grid gap-4 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-sm font-semibold text-foreground">{service.name}</h3>
+              {service.is_active === false && (
+                <Badge variant="outline" className="rounded-md border-destructive/30 px-2 py-0.5 text-[10px] text-destructive">Inaktiv</Badge>
+              )}
+            </div>
+
+            {service.description && (
+              <p className="mt-1 text-xs text-muted-foreground line-clamp-2 max-w-2xl">{service.description}</p>
+            )}
+
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              {service.service_category && (
+                <span className="inline-flex items-center rounded-md border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground">
+                  {service.service_category}
+                </span>
+              )}
+              {service.subcategory && (
+                <span className="inline-flex items-center rounded-md border border-border bg-card px-2 py-1 text-[11px] text-foreground">
+                  {service.subcategory}
+                </span>
+              )}
+              <span className="inline-flex items-center rounded-md border border-border bg-card px-2 py-1 text-[11px] text-foreground">
+                {pricingLabels[service.pricing_type] || service.pricing_type}
+              </span>
+              {service.base_price != null && (
+                <span className="inline-flex items-center rounded-md border border-border bg-card px-2 py-1 text-[11px] font-semibold text-foreground">
+                  {service.base_price} kr{service.unit ? ` / ${service.unit}` : ""}
+                </span>
+              )}
+              {service.calculator_steps?.length > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground">
+                  <Calculator className="h-3 w-3" /> {service.calculator_steps.length} trin
+                </span>
+              )}
+              {hasRecurring && (
+                <span className="inline-flex items-center rounded-md border border-border bg-secondary px-2 py-1 text-[11px] text-foreground">
+                  Abonnement
+                </span>
+              )}
+            </div>
           </div>
 
-          {/* Main content */}
-          <div className="flex-1 p-3.5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-foreground truncate">{service.name}</h3>
-                  {service.is_active === false && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 rounded border-destructive/30 text-destructive">Inaktiv</Badge>
-                  )}
-                </div>
-                {service.description && (
-                  <p className="mt-0.5 text-xs text-muted-foreground line-clamp-1">{service.description}</p>
-                )}
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-0.5 text-[11px] font-medium text-foreground">
-                    <span className="text-xs">{pricingIcons[service.pricing_type]}</span>
-                    {pricingLabels[service.pricing_type] || service.pricing_type}
-                  </span>
-                  {service.base_price != null && (
-                    <span className="inline-flex items-center rounded-md border border-border bg-card px-2 py-0.5 text-[11px] font-semibold text-foreground">
-                      {service.base_price} kr{service.unit ? ` / ${service.unit}` : ""}
-                    </span>
-                  )}
-                  {service.calculator_steps?.length > 0 && (
-                    <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-0.5 text-[11px] text-muted-foreground">
-                      <Calculator className="h-3 w-3" /> {service.calculator_steps.length} trin
-                    </span>
-                  )}
-                  {service.subcategory && (
-                    <span className="inline-flex items-center rounded-md border border-accent/20 bg-accent/5 px-2 py-0.5 text-[11px] font-medium text-accent">
-                      {service.subcategory}
-                    </span>
-                  )}
-                  {service.service_category && !service.subcategory && (
-                    <span className="inline-flex items-center rounded-md border border-border bg-secondary/50 px-2 py-0.5 text-[11px] text-muted-foreground">
-                      {service.service_category}
-                    </span>
-                  )}
-                  {hasRecurring && (
-                    <span className="inline-flex items-center gap-0.5 rounded-md border border-blue-500/20 bg-blue-500/5 px-2 py-0.5 text-[11px] font-medium text-blue-600">
-                      🔄 Abonnement
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Right side: order count + actions */}
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="text-right hidden sm:block">
-                  <span className="block text-sm font-bold text-foreground">{orderCount}</span>
-                  <span className="block text-[10px] text-muted-foreground">bestillinger</span>
-                </div>
-                <div className="flex gap-1">
-                  <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-7 rounded-lg text-xs px-2.5 border-border hover:bg-secondary">
-                    {editing ? "Luk" : "Rediger"}
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={onDelete} className="h-7 w-7 p-0 rounded-lg hover:bg-destructive/10 transition-colors"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
-                </div>
-              </div>
+          <div className="flex flex-col items-start gap-3 sm:items-end">
+            <div className="rounded-lg border border-border bg-card px-3 py-2 text-left sm:text-right">
+              <span className="block text-lg font-semibold text-foreground tabular-nums">{orderCount}</span>
+              <span className="block text-[10px] uppercase tracking-wide text-muted-foreground">Bestillinger</span>
+            </div>
+            <div className="flex gap-1.5">
+              <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-8 rounded-lg px-3 text-xs border-border hover:bg-secondary">
+                {editing ? "Luk" : "Rediger"}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={onDelete} className="h-8 w-8 rounded-lg p-0 hover:bg-destructive/10 transition-colors"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
             </div>
           </div>
         </div>
       </CardContent>
       {editing && (
-        <div className="border-t border-border bg-secondary/20 p-5">
+        <div className="border-t border-border bg-secondary/30 p-5">
           <ServiceForm businessId={service.business_id} existingService={service} onClose={() => setEditing(false)} />
         </div>
       )}
