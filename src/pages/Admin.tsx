@@ -505,68 +505,80 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
 const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCount: number; onDelete: () => void }) => {
   const [editing, setEditing] = useState(false);
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
+  const intervalLabels: Record<string, string> = {
+    engangskøb: "Engangskøb",
+    ugentlig: "Ugentlig",
+    hver_14_dag: "Hver 14. dag",
+    månedlig: "Månedlig",
+    kvartalsvis: "Kvartalsvis",
+  };
 
   const intervals = service.interval_options || [];
   const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
+  const intervalSummary = intervals.length > 0
+    ? intervals.map((interval: string) => intervalLabels[interval] || interval).join(", ")
+    : "Ikke angivet";
+  const priceSummary = service.base_price != null
+    ? `${service.base_price} kr${service.unit ? ` / ${service.unit}` : ""}`
+    : service.pricing_type === "prisberegner"
+      ? `${service.calculator_steps?.length || 0} trin`
+      : "Ikke angivet";
 
   return (
     <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
       <CardContent className="p-0">
-        <div className="grid gap-4 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+        <div className="grid gap-4 p-4 sm:p-5">
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-sm font-semibold text-foreground">{service.name}</h3>
-              {service.is_active === false && (
-                <Badge variant="outline" className="rounded-md border-destructive/30 px-2 py-0.5 text-[10px] text-destructive">Inaktiv</Badge>
-              )}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-base font-semibold text-foreground">{service.name}</h3>
+                  {service.is_active === false && (
+                    <Badge variant="outline" className="rounded-md border-destructive/30 px-2 py-0.5 text-[10px] text-destructive">Inaktiv</Badge>
+                  )}
+                </div>
+
+                {service.description && (
+                  <p className="mt-1 text-sm text-muted-foreground line-clamp-2 max-w-3xl">{service.description}</p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5 sm:shrink-0">
+                <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-8 rounded-lg px-3 text-xs border-border hover:bg-secondary">
+                  {editing ? "Luk" : "Rediger"}
+                </Button>
+                <Button variant="ghost" size="sm" onClick={onDelete} className="h-8 w-8 rounded-lg p-0 hover:bg-destructive/10 transition-colors"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+              </div>
             </div>
 
-            {service.description && (
-              <p className="mt-1 text-xs text-muted-foreground line-clamp-2 max-w-2xl">{service.description}</p>
-            )}
+            <div className="mt-4 grid gap-2.5 md:grid-cols-2 xl:grid-cols-5">
+              <div className="rounded-lg border border-border bg-card px-3 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kategori</p>
+                <p className="mt-1 text-sm font-medium text-foreground">{service.service_category || "Ikke angivet"}</p>
+              </div>
 
-            <div className="mt-3 flex flex-wrap items-center gap-1.5">
-              {service.service_category && (
-                <span className="inline-flex items-center rounded-md border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground">
-                  {service.service_category}
-                </span>
-              )}
-              {service.subcategory && (
-                <span className="inline-flex items-center rounded-md border border-border bg-card px-2 py-1 text-[11px] text-foreground">
-                  {service.subcategory}
-                </span>
-              )}
-              <span className="inline-flex items-center rounded-md border border-border bg-card px-2 py-1 text-[11px] text-foreground">
-                {pricingLabels[service.pricing_type] || service.pricing_type}
-              </span>
-              {service.base_price != null && (
-                <span className="inline-flex items-center rounded-md border border-border bg-card px-2 py-1 text-[11px] font-semibold text-foreground">
-                  {service.base_price} kr{service.unit ? ` / ${service.unit}` : ""}
-                </span>
-              )}
-              {service.calculator_steps?.length > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground">
-                  <Calculator className="h-3 w-3" /> {service.calculator_steps.length} trin
-                </span>
-              )}
-              {hasRecurring && (
-                <span className="inline-flex items-center rounded-md border border-border bg-secondary px-2 py-1 text-[11px] text-foreground">
-                  Abonnement
-                </span>
-              )}
-            </div>
-          </div>
+              <div className="rounded-lg border border-border bg-card px-3 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Type</p>
+                <p className="mt-1 text-sm font-medium text-foreground">{service.subcategory || "Standard"}</p>
+              </div>
 
-          <div className="flex flex-col items-start gap-3 sm:items-end">
-            <div className="rounded-lg border border-border bg-card px-3 py-2 text-left sm:text-right">
-              <span className="block text-lg font-semibold text-foreground tabular-nums">{orderCount}</span>
-              <span className="block text-[10px] uppercase tracking-wide text-muted-foreground">Bestillinger</span>
-            </div>
-            <div className="flex gap-1.5">
-              <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-8 rounded-lg px-3 text-xs border-border hover:bg-secondary">
-                {editing ? "Luk" : "Rediger"}
-              </Button>
-              <Button variant="ghost" size="sm" onClick={onDelete} className="h-8 w-8 rounded-lg p-0 hover:bg-destructive/10 transition-colors"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+              <div className="rounded-lg border border-border bg-card px-3 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Pris</p>
+                <p className="mt-1 text-sm font-medium text-foreground">{priceSummary}</p>
+              </div>
+
+              <div className="rounded-lg border border-border bg-card px-3 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Intervaller</p>
+                <p className="mt-1 text-sm font-medium text-foreground line-clamp-2">{intervalSummary}</p>
+              </div>
+
+              <div className="rounded-lg border border-border bg-card px-3 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Bestillinger</p>
+                <div className="mt-1 flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground tabular-nums">{orderCount}</p>
+                  {hasRecurring && <span className="text-xs text-muted-foreground">• Har abonnement</span>}
+                </div>
+              </div>
             </div>
           </div>
         </div>
