@@ -734,21 +734,10 @@ const Planner = () => {
                       </p>
                     )}
                     {outsideWindowCount > 0 && (
-                      <p className="text-[10px] text-foreground bg-accent/5 border border-accent/20 rounded px-2 py-1 leading-snug">
-                        +{outsideWindowCount} aftale{outsideWindowCount === 1 ? "" : "r"} senere på måneden — brug 'Auto-fordel' for at lægge dem på den ønskede dato.
+                      <p className="text-[10px] text-muted-foreground rounded px-2 py-1 leading-snug bg-muted/40 border border-border/60">
+                        +{outsideWindowCount} aftale{outsideWindowCount === 1 ? "" : "r"} ligger uden for det viste vindue.
                       </p>
                     )}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="w-full h-7 text-xs gap-1"
-                      onClick={handleAutoDistribute}
-                      disabled={distributing || unassigned.length === 0}
-                      title="Opretter ruter på hver kundes ønskede dato og lægger aftalerne der. Gælder ALLE ledige aftaler — ikke kun dem du ser."
-                    >
-                      {distributing ? <Loader2 className="h-3 w-3 animate-spin" /> : <CalendarIcon className="h-3 w-3" />}
-                      Auto-fordel pr. ønsket dato
-                    </Button>
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                       <Input
