@@ -184,16 +184,16 @@ const AdminDashboard = () => {
   }, {});
 
   return (
-    <div className="flex min-h-screen bg-secondary/50">
+    <div className="admin-shell flex min-h-screen">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[240px] flex-col bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col border-r border-white/10 bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         {/* Sidebar header */}
-        <div className="flex h-14 shrink-0 items-center justify-between px-3">
+        <div className="flex h-16 shrink-0 items-center justify-between px-4">
           <Link to="/" className="flex items-center gap-2">
             <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-6" />
           </Link>
@@ -203,64 +203,70 @@ const AdminDashboard = () => {
         </div>
 
         {/* Business info */}
-        <div className="mx-2 mb-2 shrink-0 rounded-lg bg-white/[0.08] px-2.5 py-2">
-          <div className="flex items-center gap-2">
+        <div className="mx-3 mb-4 shrink-0 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3">
+          <div className="flex items-start gap-3">
             {business.logo_url ? (
-              <img src={business.logo_url} alt="" className="h-7 w-7 shrink-0 rounded object-contain bg-white/10 p-0.5" />
+              <img src={business.logo_url} alt="" className="h-10 w-10 shrink-0 rounded-xl object-contain bg-white/10 p-1" />
             ) : (
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-accent/20 text-accent font-bold text-xs">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/20 text-sm font-bold text-accent">
                 {business.name.charAt(0)}
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-white">{business.name}</p>
-              {business.categories && business.categories.length > 0 && <p className="truncate text-xs text-white/40">{(business.categories as string[]).join(", ")}</p>}
+              <p className="truncate text-sm font-semibold text-white">{business.name}</p>
+              <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-white/45">Serviceydere panel</p>
+              {business.categories && business.categories.length > 0 && <p className="mt-2 truncate text-xs text-white/55">{(business.categories as string[]).join(", ")}</p>}
             </div>
           </div>
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 space-y-px px-2 overflow-y-auto">
-          {visibleNav.map((item: any) => {
-            const isActive = activeTab === item.value;
-            const baseClasses = `flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors ${
-              isActive
-                ? "bg-white/[0.12] text-white"
-                : "text-white/55 hover:bg-white/[0.06] hover:text-white/90"
-            }`;
-            if (item.href) {
-              return (
-                <Link key={item.value} to={item.href} onClick={() => setSidebarOpen(false)} className={baseClasses}>
-                  <item.icon className="h-4 w-4 shrink-0" />
-                  {item.label}
-                </Link>
-              );
-            }
-            return (
-              <button
-                key={item.value}
-                onClick={() => { setActiveTab(item.value); setSidebarOpen(false); }}
-                className={baseClasses}
-              >
-                <item.icon className="h-4 w-4 shrink-0" />
-                {item.label}
-              </button>
-            );
-          })}
+        <nav className="flex-1 space-y-5 overflow-y-auto px-3 pb-4">
+          {Object.entries(navGroups).map(([section, items]) => (
+            <div key={section} className="space-y-1.5">
+              <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/35">{section}</p>
+              {items.map((item: any) => {
+                const isActive = activeTab === item.value;
+                const baseClasses = `flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-white text-foreground shadow-sm"
+                    : "text-white/60 hover:bg-white/[0.08] hover:text-white"
+                }`;
+                if (item.href) {
+                  return (
+                    <Link key={item.value} to={item.href} onClick={() => setSidebarOpen(false)} className={baseClasses}>
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      {item.label}
+                    </Link>
+                  );
+                }
+                return (
+                  <button
+                    key={item.value}
+                    onClick={() => { setActiveTab(item.value); setSidebarOpen(false); }}
+                    className={baseClasses}
+                  >
+                    <item.icon className="h-4 w-4 shrink-0" />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         {/* Sidebar footer — always visible */}
-        <div className="shrink-0 border-t border-white/[0.06] px-2 py-2 space-y-px">
+        <div className="shrink-0 border-t border-white/[0.08] px-3 py-3 space-y-1.5">
           <Link
             to={`/v/${business.slug}`}
-            className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-sm font-medium text-white/55 hover:bg-white/[0.06] hover:text-white/90 transition-colors"
+            className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 transition-colors hover:bg-white/[0.08] hover:text-white"
           >
             <ExternalLink className="h-4 w-4 shrink-0" />
             Se din side
           </Link>
           <button
             onClick={signOut}
-            className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-sm font-medium text-white/55 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+            className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 transition-colors hover:bg-destructive/20 hover:text-white"
           >
             <LogOut className="h-4 w-4 shrink-0" />
             Log ud
@@ -271,15 +277,18 @@ const AdminDashboard = () => {
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card px-5 sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border/80 bg-background/95 px-5 backdrop-blur sm:px-6">
           <button onClick={() => setSidebarOpen(true)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors lg:hidden">
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="text-lg font-semibold text-foreground">{currentNav?.label}</h1>
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{currentNav?.section || "Panel"}</p>
+            <h1 className="text-lg font-semibold text-foreground">{currentNav?.label}</h1>
+          </div>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-4 sm:p-6">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
           {renderContent()}
         </main>
       </div>
