@@ -2,13 +2,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Handshake, DollarSign, Star, Briefcase, Clock, TrendingUp,
   ArrowRight, AlertCircle, MapPin, ShieldCheck, Sparkles, CircleCheckBig,
 } from "lucide-react";
 import type { Business } from "@/hooks/useDatabase";
 import { useMemo } from "react";
-import { ActionTile, AppList, AppListRow, EmptyState, InsightPill, PageHeader, PriorityBanner, StatCard } from "@/components/admin/shared/AdminUI";
+import { ActionTile, EmptyState, InsightPill, PageHeader, PriorityBanner, SectionCard, StatCard } from "@/components/admin/shared/AdminUI";
 
 interface Props {
   business: Business;
@@ -69,10 +70,10 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
       <PageHeader
         eyebrow="Virksomhedspanel"
         title="Overblik"
-        description={<>Se hvad der kræver handling nu, hvordan forretningen performer, og hvad næste skridt er for <span className="font-medium text-foreground">{business.name}</span>.</>}
+        description={<>Driftsstatus, nøgletal og næste skridt for <span className="font-medium text-foreground">{business.name}</span>.</>}
         action={business.slug ? (
           <a href={`/biz/${business.slug}`} target="_blank" rel="noopener noreferrer"
-            className="hidden items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground sm:flex">
+            className="hidden items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex">
             Se din side <ArrowRight className="h-3 w-3" />
           </a>
         ) : null}
@@ -102,7 +103,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
         }
       />
 
-        <div className="grid gap-2 lg:grid-cols-4">
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat, index) => (
           <StatCard
             key={stat.label}
@@ -179,56 +180,57 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
         </Card>
       </div>
 
-      <div>
-        <div className="mb-3 flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-semibold text-foreground">Seneste bestillinger</h3>
-                  <p className="text-[11px] text-muted-foreground">Kunde, status og beløb uden overflødige lag.</p>
-          </div>
-          {recentOrders.length > 0 && (
-            <button onClick={() => onNavigate?.("orders")} className="text-xs font-medium text-accent hover:underline">
-              Se alle →
-            </button>
-          )}
-        </div>
+      <SectionCard
+        title="Seneste bestillinger"
+        description="Seneste aktivitet i en kompakt, tabulær visning."
+        action={recentOrders.length > 0 ? (
+          <button onClick={() => onNavigate?.("orders")} className="text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground">
+            Se alle
+          </button>
+        ) : null}
+      >
         {recentOrders.length > 0 ? (
-          <AppList>
-             <div className="grid grid-cols-[minmax(0,1.4fr)_auto] gap-3 border-b border-border bg-secondary/35 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:grid-cols-[minmax(0,1.4fr)_auto_auto]">
-              <span>Kunde & aktivitet</span>
-              <span className="hidden sm:block">Status</span>
-              <span className="text-right">Beløb</span>
-            </div>
-            <div>
-              {recentOrders.slice(0, 5).map((order) => (
-                <AppListRow key={order.id} onClick={() => onNavigate?.("orders")} className="gap-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-semibold text-foreground">{order.customer_name}</p>
-                      {order.status === "pending" && <Sparkles className="h-3.5 w-3.5 shrink-0 text-feature-warm-foreground" />}
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
+          <div className="overflow-hidden rounded-md border border-border">
+            <Table>
+              <TableHeader className="admin-list-header">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead>Kunde</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Dato</TableHead>
+                  <TableHead className="text-right">Beløb</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recentOrders.slice(0, 6).map((order) => (
+                  <TableRow key={order.id} className="cursor-pointer" onClick={() => onNavigate?.("orders")}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-medium text-foreground">{order.customer_name}</p>
+                        {order.status === "pending" && <Sparkles className="h-3.5 w-3.5 shrink-0 text-feature-warm-foreground" />}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`${statusColors[order.status] || ""} border px-2 py-1 text-[10px] font-medium`}>
+                        {statusLabels[order.status] || order.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-[11px] text-muted-foreground">
                       {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
-                    </p>
-                  </div>
-                  <Badge className={`${statusColors[order.status] || ""} hidden border px-2.5 py-1 text-xs font-medium sm:inline-flex`}>
-                    {statusLabels[order.status] || order.status}
-                  </Badge>
-                  <div className="flex min-w-[110px] flex-col items-end gap-1 text-right">
-                    <span className="text-sm font-bold text-foreground tabular-nums">{order.total_amount} kr</span>
-                    <span className="text-[11px] font-medium text-muted-foreground sm:hidden">{statusLabels[order.status] || order.status}</span>
-                  </div>
-                </AppListRow>
-              ))}
-            </div>
-          </AppList>
+                    </TableCell>
+                    <TableCell className="text-right text-sm font-semibold tabular-nums text-foreground">{order.total_amount} kr</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         ) : (
           <EmptyState
             icon={<TrendingUp />}
             title="Ingen bestillinger endnu"
-            description="Bestillinger vil vises her når de kommer ind."
+            description="Bestillinger vises her, når de første bookinger kommer ind."
           />
         )}
-      </div>
+      </SectionCard>
     </div>
   );
 };
