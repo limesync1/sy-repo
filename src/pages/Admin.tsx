@@ -287,7 +287,7 @@ const AdminDashboard = () => {
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{currentNav?.section || "Panel"}</p>
             <div className="mt-0.5 flex items-center gap-2">
-              <h1 className="truncate text-[17px] font-semibold text-foreground">{currentNav?.label}</h1>
+              <p className="truncate text-sm font-medium text-foreground">{business.name}</p>
               {currentSectionItems.length > 1 && (
                 <div className="hidden items-center gap-1 rounded-md border border-border bg-card p-1 md:flex">
                   {currentSectionItems.map((item) => {
@@ -317,9 +317,9 @@ const AdminDashboard = () => {
             </div>
           </div>
           <div className="hidden items-center gap-2 lg:flex">
-            <Link to={`/v/${business.slug}`} className="rounded-md border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground">
-              Se virksomhedsside
-            </Link>
+            <div className="rounded-md border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground">
+              {currentNav?.label}
+            </div>
           </div>
         </header>
 
