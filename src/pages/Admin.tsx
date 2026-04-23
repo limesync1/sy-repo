@@ -1248,11 +1248,11 @@ const SettingsTab = ({ business }: { business: any }) => {
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Logo</label>
+              <FieldLabel>Logo</FieldLabel>
               <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Coverbillede</label>
+              <FieldLabel>Coverbillede</FieldLabel>
               <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-48" />
             </div>
           </div>
@@ -1336,7 +1336,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                     placeholder={isWeekend ? "Lukket" : "Fx 08:00 - 16:00"}
                     value={openHours[day] || ""}
                     onChange={(e) => setOpenHours({ ...openHours, [day]: e.target.value })}
-                    className="flex-1 h-8 text-sm bg-card"
+                    className="h-9 flex-1 bg-background text-sm"
                   />
                   {openHours[day] && (
                     <button onClick={() => { const h = { ...openHours }; delete h[day]; setOpenHours(h); }}
