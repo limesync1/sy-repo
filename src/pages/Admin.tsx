@@ -1120,7 +1120,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
               ← Tilbage
             </Button>
           )}
-          <Button variant="ghost" onClick={onClose} className="rounded-lg h-10 px-4 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">
+          <Button variant="ghost" onClick={onClose} className="rounded-lg h-10 px-4 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:text-foreground">
             Annuller
           </Button>
         </div>
