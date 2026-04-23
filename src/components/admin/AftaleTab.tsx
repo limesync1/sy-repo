@@ -827,21 +827,22 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
       {/* Upcoming services alert */}
       {upcomingSubs.length > 0 && (
-        <div className="rounded-xl border border-accent/20 bg-accent/5 p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <CalendarClock className="h-4 w-4 text-accent" />
+        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+          <CardContent className="p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <CalendarClock className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-semibold text-foreground">Kommende services</span>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {upcomingSubs.slice(0, 4).map(sub => {
               const nextDate = new Date(sub.next_service_date!);
               const daysUntil = Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
               const profile = (sub as any).profiles;
               return (
-                <div key={sub.id} className="flex items-center justify-between text-sm">
+                <div key={sub.id} className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5 text-sm">
                   <div className="flex items-center gap-2">
                     <span className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold ${
-                      daysUntil <= 2 ? "bg-destructive/10 text-destructive" : daysUntil <= 7 ? "bg-amber-500/10 text-amber-700" : "bg-accent/10 text-accent"
+                      daysUntil <= 2 ? "bg-destructive/10 text-destructive" : "bg-secondary text-foreground"
                     }`}>{daysUntil <= 0 ? "!" : `${daysUntil}d`}</span>
                     <span className="font-medium text-foreground">{sub.service_name}</span>
                     <span className="text-muted-foreground">— {profile?.display_name || "Kunde"}</span>
@@ -853,52 +854,28 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
               );
             })}
           </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Action needed alert */}
       {actionNeeded.length > 0 && (
-        <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100">
-            <Clock className="h-4 w-4 text-amber-600" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-amber-900">{actionNeeded.length} {actionNeeded.length === 1 ? "aftale kræver" : "aftaler kræver"} din handling</p>
-            <p className="text-xs text-amber-700">Godkend, tilpas eller afvis for at give kunden besked</p>
-          </div>
-          <Button size="sm" variant="outline" onClick={() => setFilter("action_needed")}
-            className="shrink-0 rounded-xl text-xs border-amber-300 text-amber-800 hover:bg-amber-100">
-            Vis dem
-          </Button>
-        </div>
+        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+          <CardContent className="flex items-center gap-3 p-4">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary">
+              <Clock className="h-4 w-4 text-foreground" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">{actionNeeded.length} {actionNeeded.length === 1 ? "aftale kræver" : "aftaler kræver"} din handling</p>
+              <p className="text-xs text-muted-foreground">Godkend, tilpas eller afvis for at give kunden besked.</p>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => setFilter("action_needed")}
+              className="shrink-0 rounded-lg border-border text-xs text-foreground hover:bg-secondary hover:text-foreground">
+              Vis dem
+            </Button>
+          </CardContent>
+        </Card>
       )}
-
-      {/* Filter tabs */}
-      <div className="flex gap-0 border-b border-border overflow-x-auto">
-        {[
-          { key: "all", label: "Alle" },
-          ...(actionNeeded.length > 0 ? [{ key: "action_needed", label: `Kræver handling (${actionNeeded.length})` }] : []),
-          ...(waitingForCustomer.length > 0 ? [{ key: "waiting", label: `Afventer kunde (${waitingForCustomer.length})` }] : []),
-          { key: "confirmed", label: "Aftalte" },
-          { key: "in_progress", label: "I gang" },
-          { key: "completed", label: "Udførte" },
-          { key: "cancelled", label: "Annullerede" },
-        ].map(({ key, label }) => (
-          <button key={key} onClick={() => setFilter(key)}
-            className={`relative px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
-              filter === key
-                ? "text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-foreground after:rounded-t"
-                : "text-muted-foreground hover:text-foreground"
-            }`}>
-            {label}
-            {key !== "action_needed" && key !== "waiting" && (counts[key] || 0) > 0 && (
-              <span className={`ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-semibold ${
-                filter === key ? "bg-foreground/10" : "bg-muted"
-              }`}>{counts[key]}</span>
-            )}
-          </button>
-        ))}
-      </div>
 
       {/* Orders list */}
       {filteredOrders && filteredOrders.length > 0 ? (
