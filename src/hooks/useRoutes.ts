@@ -834,7 +834,7 @@ export const useOptimizeRoute = () => {
       }
 
       const { data, error } = await supabase.functions.invoke("optimize-route", {
-        body: { route_id: routeId },
+        body: { route_id: routeId, preserve_assignees: true },
       });
       if (error) throw new Error(error.message || "Kunne ikke optimere ruten");
       if (!data?.ok) throw new Error(data?.error || "Kunne ikke optimere ruten");
@@ -1033,6 +1033,15 @@ export const useGeocodeAddress = () => {
 export const useUpdateRoute = () => {
   const qc = useQueryClient();
   return useMutation({
+    onMutate: async ({ id, ...updates }: Partial<Route> & { id: string }) => {
+      const mergeRoute = (route: Route) => (route.id === id ? { ...route, ...updates } : route);
+      qc.setQueriesData({ queryKey: ["routes"] }, (old: Route[] | undefined) =>
+        Array.isArray(old) ? old.map(mergeRoute) : old,
+      );
+      qc.setQueriesData({ queryKey: ["routes-range"] }, (old: Route[] | undefined) =>
+        Array.isArray(old) ? old.map(mergeRoute) : old,
+      );
+    },
     mutationFn: async ({ id, ...updates }: Partial<Route> & { id: string }) => {
       const { data, error } = await supabase
         .from("routes")
