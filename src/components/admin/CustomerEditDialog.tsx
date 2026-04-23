@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FieldLabel, SectionCard } from "@/components/admin/shared/AdminUI";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
 import { Building2, User, Loader2, Save, ShoppingBag, Camera, X, Upload } from "lucide-react";
@@ -219,138 +220,147 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   return (
     <>
       <Dialog open={open} onOpenChange={(v) => { if (!v && !saving) { reset(); onOpenChange(false); } else if (v) onOpenChange(true); }}>
-        <DialogContent className="max-h-[92vh] max-w-xl gap-0 p-0">
-          <DialogHeader className="shrink-0 border-b px-4 py-3.5">
-            <DialogTitle className="flex items-center gap-2 text-base">
+        <DialogContent className="max-h-[92vh] max-w-[720px] gap-0 p-0">
+          <DialogHeader className="shrink-0 border-b border-border px-4 py-3.5">
+            <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
               {type === "business" ? <Building2 className="h-4 w-4 text-muted-foreground" /> : <User className="h-4 w-4 text-muted-foreground" />}
               {initial?.id ? "Rediger kunde" : "Opret ny kunde"}
             </DialogTitle>
-            <DialogDescription className="text-xs">
+            <DialogDescription className="text-[11px] text-muted-foreground">
               Gem kunden i kartoteket og opret eventuelt en bestilling bagefter.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 space-y-4 overflow-y-auto bg-secondary/20 px-4 py-4">
+          <div className="flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-4 py-4">
             {!initial?.id && (
               <Tabs value={type} onValueChange={(v) => setType(v as CustomerType)}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="private" className="gap-1.5"><User className="h-3.5 w-3.5" /> Privatkunde</TabsTrigger>
-                  <TabsTrigger value="business" className="gap-1.5"><Building2 className="h-3.5 w-3.5" /> Erhvervskunde</TabsTrigger>
+                <TabsList className="grid h-8 w-full grid-cols-2 rounded-md border border-border bg-card p-1">
+                  <TabsTrigger value="private" className="gap-1.5 rounded-md text-xs"><User className="h-3.5 w-3.5" /> Privatkunde</TabsTrigger>
+                  <TabsTrigger value="business" className="gap-1.5 rounded-md text-xs"><Building2 className="h-3.5 w-3.5" /> Erhvervskunde</TabsTrigger>
                 </TabsList>
               </Tabs>
             )}
 
-            {/* Profilbillede */}
-            <div className="flex items-center gap-3">
-              <div className="group/avatar relative h-12 w-12 shrink-0">
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="Profil" className="h-12 w-12 rounded-md border object-cover" />
-                ) : (
-                  <div className="flex h-12 w-12 items-center justify-center rounded-md border bg-secondary text-muted-foreground">
-                    {type === "business" ? <Building2 className="h-5 w-5" /> : <User className="h-5 w-5" />}
-                  </div>
-                )}
-                <label className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-md bg-foreground/60 text-[10px] font-semibold text-background opacity-0 transition-opacity group-hover/avatar:opacity-100" title="Skift profilbillede">
-                  {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : "Skift"}
-                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
-                </label>
+            <SectionCard title="Profil" description="Grundlæggende kundeoplysninger og billede.">
+              <div className="flex items-center gap-3">
+                <div className="group/avatar relative h-11 w-11 shrink-0">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Profil" className="h-11 w-11 rounded-md border border-border object-cover" />
+                  ) : (
+                    <div className="flex h-11 w-11 items-center justify-center rounded-md border border-border bg-secondary text-muted-foreground">
+                      {type === "business" ? <Building2 className="h-4 w-4" /> : <User className="h-4 w-4" />}
+                    </div>
+                  )}
+                  <label className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-md bg-foreground/60 text-[10px] font-semibold text-background opacity-0 transition-opacity group-hover/avatar:opacity-100" title="Skift profilbillede">
+                    {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : "Skift"}
+                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
+                  </label>
+                </div>
+                <div className="flex-1 text-[11px] text-muted-foreground">
+                  <p className="font-medium text-foreground">Profilbillede</p>
+                  <p>Maks 5MB.</p>
+                  {avatarUrl && (
+                    <button type="button" onClick={() => setAvatarUrl(null)} className="mt-1 text-[11px] text-muted-foreground underline-offset-2 transition-colors hover:text-destructive hover:underline">
+                      Fjern billede
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="text-xs text-muted-foreground flex-1">
-                <p className="font-medium text-foreground">Profilbillede</p>
-                <p>Maks 5MB.</p>
-                {avatarUrl && (
-                  <button type="button" onClick={() => setAvatarUrl(null)} className="text-[11px] text-muted-foreground hover:text-destructive underline-offset-2 hover:underline mt-0.5">
-                    Fjern billede
-                  </button>
-                )}
-              </div>
-            </div>
+            </SectionCard>
 
             {type === "business" && (
-              <div className="space-y-3 rounded-md border bg-card p-3">
-                <div>
-                  <Label className="text-xs">CVR (slå op for at auto-udfylde)</Label>
-                  <CvrLookupField
-                    value={cvr}
-                    onChange={setCvr}
-                    onResult={(r: CvrResult | null) => {
-                      if (!r) return;
-                      setCompanyName(r.name);
-                      if (r.address) setAddress(r.address);
-                      if (r.zip_code) setZipCode(r.zip_code);
-                      if (r.city) setCity(r.city);
-                      if (r.phone && !phone) setPhone(r.phone);
-                      if (r.email && !email) setEmail(r.email);
-                      // Geocode den nye adresse straks så den ikke vises som "ikke fundet"
-                      setLatitude(null); setLongitude(null);
-                      if (r.address && r.zip_code && r.city) {
-                        setTimeout(() => geocodeCurrentAddress(r.address!, r.zip_code!, r.city!), 50);
-                      }
-                    }}
-                  />
+              <SectionCard title="Virksomhedsoplysninger" description="Brug CVR-opslag for hurtig udfyldning.">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <FieldLabel>CVR (slå op for at auto-udfylde)</FieldLabel>
+                    <CvrLookupField
+                      value={cvr}
+                      onChange={setCvr}
+                      onResult={(r: CvrResult | null) => {
+                        if (!r) return;
+                        setCompanyName(r.name);
+                        if (r.address) setAddress(r.address);
+                        if (r.zip_code) setZipCode(r.zip_code);
+                        if (r.city) setCity(r.city);
+                        if (r.phone && !phone) setPhone(r.phone);
+                        if (r.email && !email) setEmail(r.email);
+                        setLatitude(null); setLongitude(null);
+                        if (r.address && r.zip_code && r.city) {
+                          setTimeout(() => geocodeCurrentAddress(r.address!, r.zip_code!, r.city!), 50);
+                        }
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <FieldLabel required>Firmanavn</FieldLabel>
+                    <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Hansen ApS" className="h-8" />
+                  </div>
+                  <div>
+                    <FieldLabel>Kontaktperson</FieldLabel>
+                    <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Mette Hansen" className="h-8" />
+                  </div>
                 </div>
-                <div>
-                  <Label className="text-xs">Firmanavn *</Label>
-                  <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Hansen ApS" className="h-9" />
-                </div>
-                <div>
-                  <Label className="text-xs">Kontaktperson</Label>
-                  <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Mette Hansen" className="h-9" />
-                </div>
-              </div>
+              </SectionCard>
             )}
 
             {type === "private" && (
-              <div>
-                <Label className="text-xs">Navn *</Label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Mette Hansen" className="h-9" />
-              </div>
+              <SectionCard title="Kundeoplysninger" description="Navn og kontakt på kunden.">
+                <div>
+                  <FieldLabel required>Navn</FieldLabel>
+                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Mette Hansen" className="h-8" />
+                </div>
+              </SectionCard>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs">Email *</Label>
-                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="kunde@email.dk" className="h-9" />
+            <SectionCard title="Kontakt" description="Primær kontaktinformation og adresse.">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <FieldLabel required>Email</FieldLabel>
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="kunde@email.dk" className="h-8" />
+                </div>
+                <div>
+                  <FieldLabel>Telefon</FieldLabel>
+                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-8" />
+                </div>
+                <div className="sm:col-span-2">
+                  <FieldLabel>Adresse</FieldLabel>
+                  <AddressAutocomplete
+                    value={{ address, zip_code: zipCode, city, latitude, longitude }}
+                    onChange={(v) => {
+                      setAddress(v.address); setZipCode(v.zip_code); setCity(v.city);
+                      setLatitude(v.latitude ?? null); setLongitude(v.longitude ?? null);
+                    }}
+                  />
+                </div>
+                {(zipCode || city) && (
+                  <>
+                    <div>
+                      <FieldLabel>Postnr.</FieldLabel>
+                      <Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-8" />
+                    </div>
+                    <div>
+                      <FieldLabel>By</FieldLabel>
+                      <Input value={city} onChange={(e) => setCity(e.target.value)} className="h-8" />
+                    </div>
+                  </>
+                )}
               </div>
-              <div>
-                <Label className="text-xs">Telefon</Label>
-                <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-9" />
-              </div>
-            </div>
+            </SectionCard>
 
-            <div>
-              <Label className="text-xs">Adresse</Label>
-              <AddressAutocomplete
-                value={{ address, zip_code: zipCode, city, latitude, longitude }}
-                onChange={(v) => {
-                  setAddress(v.address); setZipCode(v.zip_code); setCity(v.city);
-                  setLatitude(v.latitude ?? null); setLongitude(v.longitude ?? null);
-                }}
-              />
-            </div>
-
-            {(zipCode || city) && (
-              <div className="grid grid-cols-3 gap-3">
-                <div><Label className="text-xs">Postnr.</Label><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-9" /></div>
-                <div className="col-span-2"><Label className="text-xs">By</Label><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-9" /></div>
-              </div>
-            )}
-
-            <div>
-              <Label className="text-xs">Interne noter</Label>
-              <Textarea value={notes} onChange={(e) => setNotes(e.target.value.slice(0, 1000))} rows={2} placeholder="Fx kode til hoveddør, særlige aftaler…" className="bg-background resize-none" />
-            </div>
+            <SectionCard title="Interne noter" description="Noter der kun er synlige internt.">
+              <Textarea value={notes} onChange={(e) => setNotes(e.target.value.slice(0, 1000))} rows={3} placeholder="Fx kode til hoveddør, særlige aftaler…" className="resize-none bg-background" />
+            </SectionCard>
           </div>
 
-          <DialogFooter className="shrink-0 flex-row gap-2 border-t px-4 py-3 sm:justify-between sm:gap-2">
+          <DialogFooter className="shrink-0 flex-row gap-2 border-t border-border px-4 py-3 sm:justify-between sm:gap-2">
             <Button variant="ghost" onClick={() => { reset(); onOpenChange(false); }} disabled={saving}>Annullér</Button>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => handleSave(false)} disabled={saving}>
+              <Button variant="outline" onClick={() => handleSave(false)} disabled={saving} className="h-8 rounded-md text-xs">
                 {saving ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
                 Gem kunde
               </Button>
               {!initial?.id && (
-                <Button onClick={() => handleSave(true)} disabled={saving} className="bg-foreground text-background hover:bg-foreground/90">
+                <Button onClick={() => handleSave(true)} disabled={saving} className="h-8 rounded-md bg-foreground text-xs text-background hover:bg-foreground/90">
                   <ShoppingBag className="h-4 w-4 mr-1.5" />
                   Gem & opret bestilling
                 </Button>
