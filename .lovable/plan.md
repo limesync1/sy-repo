@@ -1,119 +1,165 @@
 
-Mål: gøre virksomhedspanelet mere tydeligt, mere handlingsorienteret og mere unikt for Serviceydere, så hele oplevelsen på tværs af dashboard, faner og sidebar føles som ét samlet produkt med klar prioritering og bedre flow.
+Mål: gøre hele virksomhedspanelet markant mere professionelt, kompakt og gennemtænkt, så intet føles dekorativt eller overflødigt. Fokus er høj informationsværdi, strammere hierarki, mindre visuel støj og ensartet UX på tværs af dashboard, sidebar og alle centrale faner.
 
-1. Etablere et tydeligere visuelt system for hele virksomhedspanelet
-- Udvide de delte admin-komponenter i `src/components/admin/shared/AdminUI.tsx`, så de ikke kun er “kort”, men egentlige layout-byggesten med fast hierarki.
-- Indføre et mere karakteristisk Serviceydere-udtryk med:
-  - roligere baggrundsflader
-  - tydeligere kontrast mellem primær handling, status og sekundær information
+1. Stramme det visuelle designsystem op i stedet for at tilføje flere elementer
+- Forenkle de delte admin-komponenter i `src/components/admin/shared/AdminUI.tsx`, så de bliver mere produkt-agtige og mindre “showcase”-agtige.
+- Reducere:
+  - unødige gradients
+  - for bløde kortflader
+  - overtydelige badges
+  - store ikonflader
+  - dekorative hover-effekter
+- Standardisere et mere professionelt system for:
+  - kompakte sideheaders
+  - sektioner med præcise titler og kort hjælpetekst
+  - tætte, scanbare liste-rækker
+  - KPI’er med mindre visuel volumen
+  - handlinger med klar primær/sekundær vægtning
+- Justere spacing, radius, skygger og typografi, så alt føles roligt, præcist og konsekvent.
+
+2. Gøre sidebaren mere diskret, skarp og funktionel
+- Opdatere `src/pages/Admin.tsx`, så sidebaren føles som et professionelt arbejdsredskab og ikke et visuelt “hero-element”.
+- Nedtone identitetsblokken for virksomheden:
+  - mindre visuel vægt
+  - færre pyntelabels
+  - tydeligere fokus på navn og hurtige handlinger
+- Forbedre navigationen med:
+  - stærkere aktiv state
+  - renere gruppering
+  - mere kompakte nav-rækker
+  - mindre kontraststøj i inaktive elementer
+- Gennemgå topbaren samtidig, så den matcher samme stramme retning og ikke bruger unødig plads.
+
+3. Omdesigne dashboardet til et mere kompakt og professionelt operations-overblik
+- Opdatere `src/components/admin/DashboardTab.tsx`, så siden ikke føles som store præsentationskort.
+- Gøre topområdet mere fokuseret:
+  - kortere introduktionstekster
+  - mindre bannerhøjde
+  - tydeligere primær handling
+- KPI-området skal gøres mindre og mere præcist:
+  - færre visuelle lag
+  - mere tabulære tal
+  - mindre ikonstøj
+  - tydelig prioritet uden store kort
+- “Næste handlinger” skal forenkles, så handlingerne virker nødvendige og konkrete, ikke som ekstra bokse for boksens skyld.
+- “Seneste bestillinger” skal optimeres mod hurtig scanning:
+  - tydeligere rækkehierarki
+  - mindre statusstøj
+  - bedre alignment
+  - mere app-lignende responsivitet
+
+4. Forbedre fanen Aftaler med fokus på arbejdsgang og beslutningshastighed
+- Stramme `src/components/admin/AftaleTab.tsx` op visuelt og strukturelt.
+- Reducere farveglade statusudtryk og erstatte dem med mere professionelle statustoner.
+- Gøre ordrevisning lettere at afkode:
+  - vigtigste handling først
+  - tydelig adskillelse mellem status, kunde, dato og beløb
+  - mindre tekstfyld
+- Gennemgå opgavedetaljer og redigeringsflader, så de føles mere operationelle og mindre som lange formularblokke.
+- Sikre at labels, badges og actionknapper følger samme admin-system som dashboardet.
+
+5. Forbedre fanen Kunder, så den føles mere som et CRM-værktøj
+- Opdatere `src/components/admin/CustomersTab.tsx` og `src/components/admin/CustomerEditDialog.tsx`.
+- Gøre kundelisten mere kompakt og professionel:
+  - mindre kortfølelse
+  - mere tydelig informationsstruktur
+  - bedre scanning af omsætning, aktivitet og type
+- Forbedre detailvisning og redigering:
+  - mindre visuel støj i dialogen
+  - tydeligere feltgrupper
   - mere konsekvent spacing
-  - ensartede radius, shadows og label-stile
-- Tilføje fælles varianter til:
-  - handlingsbanner / priority banner
-  - KPI-række med primær og sekundære metrics
-  - sektionstitler med bedre mikrohierarki
-  - app-lignende listekort til tabeller/rækker
-- Bruge eksisterende farver og brand-retning fra projektet, men gøre dem mere konsekvente i adminfladen.
+  - mindre “visuel pynt” på avatar og typevalg
+- Prioritere de felter og handlinger, som er vigtigst for drift.
 
-2. Redesigne dashboardet fra “kortsamling” til handlingsflow
-- Omlægge `src/components/admin/DashboardTab.tsx`, så siden læses i denne rækkefølge:
-  1. vigtigste opmærksomhedspunkt
-  2. performance-overblik
-  3. næste anbefalede handlinger
-  4. seneste aktivitet
-- Gøre afventende bestillinger til et tydeligt topbanner, ikke bare et almindeligt kort.
-- Banneret skal være visuelt mest dominerende og indeholde:
-  - antal afventende bestillinger
-  - kort forklaring
-  - tydelig CTA til Aftaler
-  - eventuelt sekundær statustekst hvis der ingen afventende er
-- Gøre profilfuldendelse mere motiverende og mere “handlingsbaseret” i stedet for kun procentvis status.
+6. Forbedre fanen Medarbejdere, så den føles enkel og administrativ
+- Opdatere `src/components/admin/EmployeesTab.tsx`.
+- Fjerne rester af “sjov” visuel behandling:
+  - tunge farveflader
+  - unødige badges
+  - visuelle effekter der ikke hjælper
+- Gøre create/edit-flowet mere kompakt og målrettet:
+  - kortere hjælpetekster
+  - mere logiske feltgrupper
+  - bedre handlingstilstande
+- Gøre medarbejderrækker mere ens med øvrige lister i panelet, så der er samme visuelle logik på tværs af faner.
 
-3. Stramme KPI-området op og gøre tallene mere meningsfulde
-- Opdatere KPI-kortene, så de får tydeligere prioritet:
-  - fremhæve ét primært nøgletal, fx omsætning
-  - gøre øvrige metrics mere kompakte og sekundære
-- Tilføje let kontekst til nøgletal, hvor det er muligt uden backend-ændringer:
-  - små udviklingsindikatorer
-  - korte hints som “seneste 30 dage”, “aktive nu”, “siden sidst”
-- Hvis der ikke findes sammenligningsdata nok, vise mere nyttige hints i stedet for tom pynt.
-- Beholde overblikket hurtigt og letlæseligt, uden at gøre dashboardet tungere.
+7. Forbedre fanen Anmeldelser, så den bliver mere troværdig og mindre dekorativ
+- Opdatere `src/components/admin/ReviewsTab.tsx`.
+- Nedtone stjerner, farver og kortstil, så indholdet fremstår mere seriøst.
+- Gøre rating-overblik og reviewliste mere analytisk og mindre “social widget”-agtig.
+- Prioritere:
+  - score
+  - verificering
+  - dato
+  - kommentar
+- Skabe tydeligere rytme og bedre læsbarhed i review-rækkerne.
 
-4. Gøre “Seneste bestillinger” mere scanbar og app-agtig
-- Forbedre listen i `DashboardTab.tsx`, så rækkerne føles mere responsive og tydelige.
-- Justere:
-  - spacing
-  - statusbadge-kontrast
-  - typografisk hierarki
-  - hover/focus-states
-  - klikbarhed på hele rækken
-- Gøre forskellen mellem “Afventer”, “Bekræftet”, “I gang”, osv. mere umiddelbar med stærkere visuelle cues.
-- Fremhæve de vigtigste informationer først: kunde, status, beløb, dato.
+8. Stramme services-fanen op, da den i dag har flere “sjove” visuelle elementer
+- Opdatere services-delen i `src/pages/Admin.tsx`, især `ServicesTab`, `ServiceRow`, `ServiceForm` og relaterede previews.
+- Fjerne eller nedtone emoji-lignende og overdekorative elementer i kategori- og pricing-UI.
+- Gøre servicekort og redigering mere professionelle:
+  - mere tabel-/listeagtig struktur
+  - færre farvede chips
+  - tydeligere pris, kategori og status
+- Forbedre formularhierarkiet i opret/redigér service:
+  - tydelig progression
+  - mindre “wizard-følelse”
+  - færre store blokke
+  - mere relevant mikrocopy
+- Sikre at AI-forslag og hjælpetekster, hvis de bruges, fremstår diskret og nyttigt.
 
-5. Gøre profilfuldendelse mere motiverende og nyttig
-- Omdanne profilsektionen fra generel status til konkret fremdrift.
-- Knytte budskabet til fordel, fx synlighed/troværdighed/flere bookinger.
-- Vise de vigtigste mangler som små næste skridt i stedet for kun en liste over manglende felter.
-- Lade CTA’en føles som en progression frem for bare “Fuldfør profil”.
+9. Justere globale admin-styles, så hele oplevelsen bliver mere rolig og premium
+- Opdatere `src/index.css` admin-relaterede utilities.
+- Forenkle admin-baggrunde og panelbaggrunde yderligere.
+- Indføre mere konsekvente tokens for:
+  - kompakte paneler
+  - rolige borders
+  - subtile separators
+  - fokusstates
+- Målet er, at adminoplevelsen føles skarp, ikke pyntet.
 
-6. Forbedre sidebar og overordnet panelstruktur
-- Opdatere sidebaren i `src/pages/Admin.tsx`, så den føles mere premium og mindre som en simpel mørk liste.
-- Skærpe aktiv tilstand med tydeligere kontrast, så det er helt klart hvor man er.
-- Gruppere navigation mere logisk, fx:
-  - Overblik
-  - Drift (Aftaler, Kunder, Medarbejdere, Ruter)
-  - Indhold/forretning (Services, Anmeldelser)
-  - Opsætning (Indstillinger)
-- Forfine business-headeren i sidebaren, så den føles mere som en identitetsblok.
-- Sikre at topbaren, sidebar og indholdsområde visuelt hænger sammen som samme produkt.
-
-7. Udrulle den nye stil konsekvent til de vigtigste faner
-- Anvende samme designretning på centrale faner, så panelet ikke skifter karakter fra side til side.
-- Starte med:
-  - `src/components/admin/AftaleTab.tsx`
-  - `src/components/admin/CustomersTab.tsx`
-  - `src/components/admin/EmployeesTab.tsx`
-  - `src/components/admin/ReviewsTab.tsx`
-- Fokusere på:
-  - ens sideheaders
-  - ens sektionkort
-  - ens liste-/rækkeoplevelse
-  - ens tomme states
-  - ens CTA-hierarki
-- Målet er, at alle faner føles som variationer af samme system, ikke separate mini-designs.
-
-8. Finpudse Serviceydere-identiteten i adminoplevelsen
-- Gøre layoutet mere unikt til Serviceydere uden at overdesigne:
-  - lidt stærkere brandet accent-brug
-  - mere konsekvent brug af foreground/accent i badges, ikoner og handlinger
-  - mere professionel panelæstetik frem for generiske dashboard-kort
-- Holde stilen enkel, lys og effektiv, i tråd med resten af projektets nuværende designretning.
+10. Gennemføre en samlet UX-finpudsning på tværs af alle faner
+- Gennemgå alle primære interaktioner i virksomhedspanelet for at fjerne:
+  - ligegyldig tekst
+  - dublerede forklaringer
+  - store tomme flader
+  - inkonsistente knapstile
+  - unødige sekundære elementer
+- Ensrette:
+  - headerstruktur
+  - sektionstitler
+  - filterplacering
+  - tomme states
+  - CTA-hierarki
+  - række- og listeopbygning
+- Sikre at hele panelet føles som ét professionelt system, ikke forskellige designs sat sammen.
 
 Tekniske detaljer
 - Primære filer:
-  - `src/components/admin/DashboardTab.tsx`
   - `src/components/admin/shared/AdminUI.tsx`
   - `src/pages/Admin.tsx`
+  - `src/components/admin/DashboardTab.tsx`
   - `src/components/admin/AftaleTab.tsx`
   - `src/components/admin/CustomersTab.tsx`
+  - `src/components/admin/CustomerEditDialog.tsx`
   - `src/components/admin/EmployeesTab.tsx`
   - `src/components/admin/ReviewsTab.tsx`
-  - eventuelt små token-/utility-justeringer i `src/index.css`
+  - `src/index.css`
+  - relevante services-sektioner i `src/pages/Admin.tsx`
 - Hovedgreb:
-  - flere fælles admin-UI-varianter frem for lokale one-off kort
-  - dashboard med tydelig topprioritet og bedre informationsflow
-  - sidebar med stærkere aktiv state og bedre gruppering
-  - konsekvent Serviceydere-look på tværs af faner
+  - mindre elementer
+  - strammere spacing
+  - mindre dekorativ styling
+  - højere informationsdensitet
+  - stærkere visuel disciplin
+  - ens UI/UX-mønstre på tværs af faner
 
 Acceptkriterier
-- Dashboardet kommunikerer tydeligt på få sekunder:
-  - hvad kræver opmærksomhed
-  - hvordan går forretningen
-  - hvad bør brugeren gøre nu
-- Afventende bestillinger er den mest visuelt dominerende handling på overblikket.
-- KPI-området føles mere struktureret og mindre tilfældigt.
-- “Seneste bestillinger” er lettere at scanne hurtigt.
-- Profilfuldendelse føles mere motiverende og mindre anonym.
-- Sidebarens aktive tilstand og gruppering er tydeligere.
-- De vigtigste faner deler samme stil, spacing og komponentlogik.
-- Virksomhedspanelet føles mere samlet, mere professionelt og mere unikt til Serviceydere.
+- Panelet føles professionelt fremfor sjovt.
+- Elementer er mindre, skarpere og mere informationsbårne.
+- Der er ikke unødvendig tekst eller pynt.
+- Dashboard, sidebar og alle centrale faner bruger samme visuelle logik.
+- Lister og rækker er hurtige at scanne.
+- Vigtige handlinger er tydelige uden at dominere unødigt.
+- Services-fanen og øvrige faner føles lige så gennemarbejdede som dashboardet.
+- Hele virksomhedspanelet fremstår som et gennemtænkt, brugervenligt og konsistent produkt.
