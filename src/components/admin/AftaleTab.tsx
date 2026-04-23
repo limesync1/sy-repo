@@ -766,7 +766,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
     .sort((a, b) => new Date(a.next_service_date!).getTime() - new Date(b.next_service_date!).getTime());
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4.5">
       <PageHeader
         eyebrow="Drift"
         title="Aftaler"
@@ -816,7 +816,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
           icon={<Clock />}
           title={`${actionNeeded.length} ${actionNeeded.length === 1 ? "aftale kræver" : "aftaler kræver"} din handling`}
           description="Godkend, tilpas eller afvis for at give kunden en hurtig og tydelig besked."
-          action={<Button size="sm" onClick={() => setFilter("action_needed")} className="rounded-xl">Vis dem</Button>}
+          action={<Button size="sm" onClick={() => setFilter("action_needed")} className="h-8 rounded-md text-xs">Vis dem</Button>}
         />
       )}
 
@@ -873,14 +873,14 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
               }`}>
                 {/* Order header */}
                 <button onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
-                  className="w-full text-left px-3.5 py-2.5 hover:bg-muted/20 transition-colors">
+                  className="w-full text-left px-3.5 py-3 hover:bg-secondary/30 transition-colors">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                         <span className="text-sm font-semibold text-foreground truncate">{order.customer_name}</span>
                         {hasRecurring && (
-                          <Badge variant="outline" className="text-[10px] gap-1 shrink-0 border-border bg-background text-muted-foreground">
+                          <Badge variant="outline" className="text-[10px] gap-1 shrink-0 border-border bg-secondary text-muted-foreground">
                             <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
                             {cycles > 0 && <span className="ml-0.5">· #{cycles}</span>}
                           </Badge>
@@ -914,7 +914,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
                 {/* Expanded content */}
                 {isExpanded && (
-                    <div className="border-t border-border bg-muted/5 px-3.5 py-3.5 space-y-3.5">
+                    <div className="border-t border-border bg-background px-3.5 py-3.5 space-y-3.5">
                     {/* Contact info */}
                     <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
                       <span className="inline-flex items-center gap-1.5 text-muted-foreground">
@@ -935,7 +935,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
                     {/* Customer note */}
                     {order.notes && (
-                      <div className="flex gap-2 rounded-md bg-card border border-border px-3 py-2.5">
+                      <div className="flex gap-2 rounded-md bg-secondary/35 border border-border px-3 py-2.5">
                         <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                         <p className="text-sm text-foreground">{order.notes}</p>
                       </div>
@@ -946,7 +946,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
                     {/* Business message (if already sent) */}
                     {order.business_message && !isResponding && (
-                      <div className="rounded-xl bg-secondary/30 border border-border px-4 py-3">
+                      <div className="rounded-md bg-secondary/35 border border-border px-4 py-3">
                         <p className="text-xs font-semibold text-muted-foreground mb-1">Din besked til kunden:</p>
                         <p className="text-sm text-foreground">{order.business_message}</p>
                       </div>
@@ -1006,7 +1006,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
                     {/* Response form */}
                     {isResponding && (
-                        <div className="rounded-md border border-border bg-card p-3.5 space-y-3.5" onClick={(e) => e.stopPropagation()}>
+                        <div className="rounded-md border border-border bg-background p-3.5 space-y-3.5" onClick={(e) => e.stopPropagation()}>
                         <div className="flex gap-2">
                           {(["accepted", "adjusted", "rejected"] as const).map((type) => (
                             <button key={type} onClick={() => {
