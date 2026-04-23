@@ -192,9 +192,9 @@ const AdminDashboard = () => {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[272px] flex-col border-r border-border bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-border bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         {/* Sidebar header */}
-        <div className="flex h-16 shrink-0 items-center justify-between px-4">
+        <div className="flex h-14 shrink-0 items-center justify-between px-3.5">
           <Link to="/" className="flex items-center gap-2">
             <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-6" />
           </Link>
@@ -204,34 +204,34 @@ const AdminDashboard = () => {
         </div>
 
         {/* Business info */}
-        <div className="mx-3 mb-3 shrink-0 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3">
-          <div className="flex items-start gap-3">
+        <div className="mx-3 mb-2 shrink-0 rounded-md border border-white/10 bg-white/[0.025] px-3 py-2.5">
+          <div className="flex items-start gap-2.5">
             {business.logo_url ? (
-              <img src={business.logo_url} alt="" className="h-9 w-9 shrink-0 rounded-md object-contain bg-white/10 p-1" />
+              <img src={business.logo_url} alt="" className="h-8 w-8 shrink-0 rounded-md object-contain bg-white/10 p-1" />
             ) : (
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white/8 text-sm font-bold text-white">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/8 text-sm font-bold text-white">
                 {business.name.charAt(0)}
               </div>
             )}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-white">{business.name}</p>
-              <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/45">Virksomhedspanel</p>
-              {business.categories && business.categories.length > 0 && <p className="mt-2 truncate text-xs text-white/55">{(business.categories as string[]).slice(0, 2).join(" · ")}</p>}
+              <p className="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-white/40">Virksomhedspanel</p>
+              {business.categories && business.categories.length > 0 && <p className="mt-1.5 truncate text-[11px] text-white/55">{(business.categories as string[]).slice(0, 2).join(" · ")}</p>}
             </div>
           </div>
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 space-y-5 overflow-y-auto px-3 pb-4">
+        <nav className="flex-1 space-y-4 overflow-y-auto px-3 pb-3">
           {Object.entries(navGroups).map(([section, items]) => (
             <div key={section} className="space-y-1">
               <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/30">{section}</p>
               {items.map((item: any) => {
                 const isActive = activeTab === item.value;
-                const baseClasses = `group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
+                const baseClasses = `group flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-all ${
                   isActive
                     ? "bg-white text-foreground shadow-sm"
-                    : "text-white/62 hover:bg-white/[0.04] hover:text-white"
+                    : "text-white/62 hover:bg-white/[0.035] hover:text-white"
                 }`;
                 if (item.href) {
                   return (
@@ -259,17 +259,17 @@ const AdminDashboard = () => {
         </nav>
 
         {/* Sidebar footer — always visible */}
-        <div className="shrink-0 border-t border-white/[0.08] px-3 py-3 space-y-1">
+        <div className="shrink-0 border-t border-white/[0.08] px-3 py-2.5 space-y-1">
           <Link
             to={`/v/${business.slug}`}
-            className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 transition-colors hover:bg-white/[0.08] hover:text-white"
+            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-white/65 transition-colors hover:bg-white/[0.06] hover:text-white"
           >
             <ExternalLink className="h-4 w-4 shrink-0" />
             Se din side
           </Link>
           <button
             onClick={signOut}
-            className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 transition-colors hover:bg-destructive/20 hover:text-white"
+            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-white/65 transition-colors hover:bg-destructive/20 hover:text-white"
           >
             <LogOut className="h-4 w-4 shrink-0" />
             Log ud
@@ -280,16 +280,16 @@ const AdminDashboard = () => {
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/96 px-4 backdrop-blur sm:px-5">
+        <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center gap-3 border-b border-border bg-background/96 px-4 backdrop-blur sm:px-5">
           <button onClick={() => setSidebarOpen(true)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors lg:hidden">
             <Menu className="h-5 w-5" />
           </button>
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{currentNav?.section || "Panel"}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{currentNav?.section || "Panel"}</p>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-base font-semibold text-foreground">{currentNav?.label}</h1>
+              <h1 className="text-sm font-semibold text-foreground sm:text-[15px]">{currentNav?.label}</h1>
               {currentSectionItems.length > 1 && (
-                <div className="hidden items-center gap-1 rounded-lg border border-border bg-secondary/45 px-1.5 py-1 md:flex">
+                <div className="hidden items-center gap-1 rounded-md border border-border bg-secondary/45 px-1 py-1 md:flex">
                   {currentSectionItems.map((item) => {
                     const isCurrent = item.value === activeTab;
                     const labelClasses = isCurrent
@@ -298,7 +298,7 @@ const AdminDashboard = () => {
 
                     if (item.href) {
                       return (
-                        <Link key={item.value} to={item.href} className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${labelClasses}`}>
+                          <Link key={item.value} to={item.href} className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${labelClasses}`}>
                           {item.label}
                         </Link>
                       );
@@ -308,7 +308,7 @@ const AdminDashboard = () => {
                       <button
                         key={item.value}
                         onClick={() => setActiveTab(item.value)}
-                        className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${labelClasses}`}
+                          className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${labelClasses}`}
                       >
                         {item.label}
                       </button>
@@ -319,7 +319,7 @@ const AdminDashboard = () => {
             </div>
           </div>
           <div className="hidden items-center gap-2 lg:flex">
-            <Link to={`/v/${business.slug}`} className="rounded-xl border border-border bg-card px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground">
+              <Link to={`/v/${business.slug}`} className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground">
               Se virksomhedsside
             </Link>
           </div>

@@ -65,14 +65,14 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
   const completedItems = completeness.checks.filter(c => c.done).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4.5">
       <PageHeader
         eyebrow="Virksomhedspanel"
         title="Overblik"
-        description={<>Det vigtigste for <span className="font-medium text-foreground">{business.name}</span> lige nu: handlinger, performance og næste skridt.</>}
+        description={<>Se hvad der kræver handling nu, hvordan forretningen performer, og hvad næste skridt er for <span className="font-medium text-foreground">{business.name}</span>.</>}
         action={business.slug ? (
           <a href={`/biz/${business.slug}`} target="_blank" rel="noopener noreferrer"
-            className="hidden items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground sm:flex">
+            className="hidden items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground sm:flex">
             Se din side <ArrowRight className="h-3 w-3" />
           </a>
         ) : null}
@@ -82,7 +82,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
         eyebrow={pendingOrders > 0 ? "Kræver handling" : "Driftstatus"}
         icon={pendingOrders > 0 ? <Clock /> : <ShieldCheck />}
         title={pendingOrders > 0 ? `${pendingOrders} ${pendingOrders === 1 ? "afventende bestilling" : "afventende bestillinger"}` : "Ingen afventende bestillinger lige nu"}
-        description={pendingOrders > 0 ? "Svar på nye bestillinger først, så kunderne hurtigt ved hvad næste skridt er." : "Du er ajour. Brug tiden på at skærpe profil, services og synlighed."}
+        description={pendingOrders > 0 ? "Start med de afventende bestillinger, så kunderne hurtigt får en afklaring." : "Driften er ajour. Brug næste skridt på profil, services og synlighed."}
         meta={
           <>
             <InsightPill><Handshake className="h-3.5 w-3.5" /> {ordersCount} bestillinger i alt</InsightPill>
@@ -91,18 +91,18 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
           </>
         }
         action={
-          <Button onClick={() => onNavigate?.(pendingOrders > 0 ? "orders" : "services")} className="h-10 rounded-xl px-4 shadow-sm">
+          <Button onClick={() => onNavigate?.(pendingOrders > 0 ? "orders" : "services")} className="h-8 rounded-md px-3.5 text-sm shadow-sm">
             {pendingOrders > 0 ? "Gå til aftaler" : "Udbyg dine services"}
           </Button>
         }
         secondaryAction={
-          <button onClick={() => onNavigate?.(completeness.pct < 100 ? "settings" : "reviews")} className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+          <button onClick={() => onNavigate?.(completeness.pct < 100 ? "settings" : "reviews")} className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
             {completeness.pct < 100 ? `Næste løft: ${completionLead || "fuldfør profilen"}` : "Se din kundefeedback"}
           </button>
         }
       />
 
-        <div className="grid gap-2.5 lg:grid-cols-[1.25fr_repeat(3,minmax(0,1fr))]">
+        <div className="grid gap-2 lg:grid-cols-4">
         {stats.map((stat, index) => (
           <StatCard
             key={stat.label}
@@ -117,22 +117,22 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
         ))}
       </div>
 
-      <div className="grid gap-2.5 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid gap-2 lg:grid-cols-[1.05fr_0.95fr]">
         {completeness.pct < 100 && (
           <Card className="admin-panel border-border shadow-sm">
-            <CardContent className="space-y-3.5 p-4 sm:p-5">
+            <CardContent className="space-y-3 p-3.5 sm:p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Profilstyrke</p>
-                  <h3 className="mt-1 text-base font-semibold text-foreground">Gør profilen klar til flere bookinger</h3>
-                  <p className="mt-1 text-xs leading-5 text-muted-foreground">Fuldfør de manglende felter for at gøre siden mere troværdig og komplet.</p>
+                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Profilstyrke</p>
+                  <h3 className="mt-1 text-sm font-semibold text-foreground">Fuldfør profilen</h3>
+                  <p className="mt-1 text-xs leading-4.5 text-muted-foreground">Luk de vigtigste huller for at styrke tillid og konvertering.</p>
                 </div>
-                <div className="rounded-md bg-secondary px-2.5 py-1 text-sm font-semibold text-foreground">{completeness.pct}%</div>
+                <div className="rounded-md bg-secondary px-2 py-1 text-xs font-semibold text-foreground">{completeness.pct}%</div>
               </div>
-              <Progress value={completeness.pct} className="h-2.5" />
+              <Progress value={completeness.pct} className="h-2" />
               <div className="grid gap-2 sm:grid-cols-2">
                 {missingItems.slice(0, 4).map((item) => (
-                  <div key={item.label} className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs text-muted-foreground">
+                  <div key={item.label} className="flex items-center gap-2 rounded-md border border-border bg-background px-2.5 py-2 text-xs text-muted-foreground">
                     <AlertCircle className="h-3.5 w-3.5 shrink-0 text-feature-warm-foreground" />
                     <span>{item.label}</span>
                   </div>
@@ -144,7 +144,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
               </div>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-xs text-muted-foreground">Næste: <span className="font-medium text-foreground">{completionLead || "Fuldfør de sidste detaljer"}</span></p>
-                <Button variant="outline" className="h-9 rounded-lg" onClick={() => onNavigate?.("settings")}>
+                <Button variant="outline" className="h-8 rounded-md text-sm" onClick={() => onNavigate?.("settings")}>
                   Fuldfør profil
                 </Button>
               </div>
@@ -152,11 +152,11 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
           </Card>
         )}
 
-        <Card className="admin-panel border-border shadow-sm">
-          <CardContent className="space-y-3 p-4 sm:p-5">
+          <Card className="admin-panel border-border shadow-sm">
+          <CardContent className="space-y-3 p-3.5 sm:p-4">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Næste handlinger</p>
-              <h3 className="mt-1 text-base font-semibold text-foreground">Næste handlinger</h3>
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Næste handlinger</p>
+              <h3 className="mt-1 text-sm font-semibold text-foreground">Fokus nu</h3>
             </div>
             <div className="grid grid-cols-1 gap-2">
               {[
@@ -183,7 +183,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
         <div className="mb-3 flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold text-foreground">Seneste bestillinger</h3>
-              <p className="text-xs text-muted-foreground">Scan hurtigt status, kunde og beløb.</p>
+                  <p className="text-[11px] text-muted-foreground">Kunde, status og beløb uden overflødige lag.</p>
           </div>
           {recentOrders.length > 0 && (
             <button onClick={() => onNavigate?.("orders")} className="text-xs font-medium text-accent hover:underline">
