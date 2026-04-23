@@ -442,9 +442,9 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
   const { data: orders } = useOrders(businessId);
   const deleteService = useDeleteService();
   const [showForm, setShowForm] = useState(false);
-  const [filterCategory, setFilterCategory] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [search, setSearch] = useState("");
 
-  // Count orders per service
   const orderCountByService: Record<string, number> = {};
   orders?.forEach((o: any) => {
     o.order_items?.forEach((item: any) => {
@@ -455,9 +455,14 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
   });
 
   const uniqueCategories = [...new Set((services || []).map((s: any) => s.service_category).filter(Boolean))];
-  const filtered = filterCategory
-    ? services?.filter((s: any) => s.service_category === filterCategory)
-    : services;
+  const filtered = (services || []).filter((service: any) => {
+    const categoryMatch = filterCategory === "all" || service.service_category === filterCategory;
+    const query = search.trim().toLowerCase();
+    const searchMatch = !query || [service.name, service.description, service.service_category, service.subcategory]
+      .filter(Boolean)
+      .some((value: string) => value.toLowerCase().includes(query));
+    return categoryMatch && searchMatch;
+  });
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser services...</p>;
 
@@ -474,34 +479,40 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
         }
       />
 
-      {/* Category filter chips */}
-      {uniqueCategories.length > 1 && (
-        <div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-card p-1">
-          <button onClick={() => setFilterCategory("")}
-            className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${!filterCategory ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}>
-            Alle
-          </button>
-          {uniqueCategories.map((cat) => (
-            <button key={cat} onClick={() => setFilterCategory(filterCategory === cat ? "" : cat)}
-              className={`flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${filterCategory === cat ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}>
-              {cat}
+      <div className="grid gap-2 md:grid-cols-3">
+        <StatCard label="Services" value={services?.length || 0} icon={<Wrench />} tone="blue" hint="Aktive ydelser på din profil" />
+        <StatCard label="Bestillinger" value={Object.values(orderCountByService).reduce((a, b) => a + b, 0)} icon={<ShoppingCart />} tone="emerald" hint="Samlet efterspørgsel på services" />
+        <StatCard label="Kategorier" value={uniqueCategories.length || 0} icon={<FolderTree />} tone="violet" hint="Bruges til at strukturere dit katalog" />
+      </div>
+
+      <SectionCard title="Filtre" description="Hold servicekataloget kompakt og nemt at skimme.">
+        <div className="space-y-2">
+          <SearchInput value={search} onChange={setSearch} placeholder="Søg i navn, kategori eller beskrivelse..." />
+          <div className="flex flex-wrap gap-1.5">
+            <button onClick={() => setFilterCategory("all")}
+              className={`rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors ${filterCategory === "all" ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}>
+              Alle
             </button>
-          ))}
+            {uniqueCategories.map((cat) => (
+              <button key={cat} onClick={() => setFilterCategory(cat)}
+                className={`rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors ${filterCategory === cat ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}>
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
-      )}
+      </SectionCard>
 
       {showForm && (
-        <Card className="rounded-md border-border shadow-sm">
-          <CardContent className="p-3.5 sm:p-4">
-            <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />
-          </CardContent>
-        </Card>
+        <SectionCard title="Ny service" description="Brug samme lineære opsætning som resten af panelet.">
+          <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />
+        </SectionCard>
       )}
 
-      <div className="space-y-2.5">
-        {filtered && filtered.length > 0 && (
+      {filtered.length > 0 ? (
+        <SectionCard title="Servicekatalog" description="Standardiseret listevisning med type, pris og efterspørgsel.">
           <AppList>
-            <div className="grid grid-cols-[minmax(0,1.4fr)_auto_auto] gap-3 border-b border-border bg-secondary/35 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            <div className="grid grid-cols-[minmax(0,1.5fr)_auto_auto] gap-3 admin-list-header px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               <span>Service</span>
               <span>Type</span>
               <span className="text-right">Pris</span>
@@ -510,20 +521,19 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
               <ServiceRow key={s.id} service={s} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
             ))}
           </AppList>
-        )}
-        {(!filtered || filtered.length === 0) && !showForm && (
-          <EmptyState
-            icon={<Wrench />}
-            title={filterCategory ? `Ingen services i "${filterCategory}"` : "Ingen services endnu"}
-            description="Tilføj din første service for at komme i gang."
-            action={
-              <PrimaryButton onClick={() => setShowForm(true)} icon={<Plus />}>
-                Tilføj service
-              </PrimaryButton>
-            }
-          />
-        )}
-      </div>
+        </SectionCard>
+      ) : !showForm ? (
+        <EmptyState
+          icon={<Wrench />}
+          title={filterCategory !== "all" ? `Ingen services i "${filterCategory}"` : "Ingen services endnu"}
+          description="Tilføj din første service for at komme i gang."
+          action={
+            <PrimaryButton onClick={() => setShowForm(true)} icon={<Plus />}>
+              Tilføj service
+            </PrimaryButton>
+          }
+        />
+      ) : null}
     </div>
   );
 };

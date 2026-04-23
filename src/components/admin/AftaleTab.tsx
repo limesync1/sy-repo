@@ -16,7 +16,7 @@ import {
   Play, Pause,
 } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
-import { AppList, PageHeader, PriorityBanner } from "@/components/admin/shared/AdminUI";
+import { AppList, AppListRow, InsightPill, PageHeader, PriorityBanner, SectionCard } from "@/components/admin/shared/AdminUI";
 import {
   buildPricingSnapshot,
   getSmartStep,
@@ -770,7 +770,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       <PageHeader
         eyebrow="Drift"
         title="Aftaler"
-        description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende services` : ""}. Prioritér det der kræver svar først.`}
+        description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende services` : ""}. Brug samme arbejdsgang for svar, opfølgning og status.`}
         action={
           <Button onClick={() => setCreateOrderOpen(true)} className="h-8 gap-2 rounded-md text-sm">
             <ShoppingCart className="h-4 w-4" />Opret bestilling
@@ -780,7 +780,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
       {/* Upcoming services alert */}
       {upcomingSubs.length > 0 && (
-        <div className="rounded-md border border-border bg-card p-3.5">
+        <SectionCard title="Kommende services" description="Næste abonnementsbesøg der nærmer sig.">
           <div className="mb-2 flex items-center gap-2">
             <CalendarClock className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-semibold text-foreground">Kommende services</span>
@@ -806,7 +806,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
               );
             })}
           </div>
-        </div>
+        </SectionCard>
       )}
 
       {/* Action needed alert */}
@@ -821,6 +821,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       )}
 
       {/* Filter tabs */}
+        <SectionCard title="Filtre" description="Skift mellem de vigtigste arbejdskøer uden at ændre sideopbygning.">
         <div className="flex gap-1 overflow-x-auto rounded-md border border-border bg-card p-1">
         {[
           { key: "all", label: "Alle" },
@@ -846,10 +847,11 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
           </button>
         ))}
       </div>
+      </SectionCard>
 
       {/* Orders list */}
       {filteredOrders && filteredOrders.length > 0 ? (
-        <AppList className="border-0 bg-transparent shadow-none">
+        <div className="space-y-2">
           {filteredOrders.map((order) => {
             const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
             const isExpanded = expandedOrder === order.id;
@@ -866,7 +868,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
             const daysUntilNext = nextDate ? Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
 
             return (
-              <Card key={order.id} className={`admin-panel rounded-md shadow-sm overflow-hidden transition-all ${
+              <Card key={order.id} className={`admin-panel rounded-md overflow-hidden transition-all ${
                 actions.canRespond ? "border-border bg-secondary/30" : "border-border"
               }`}>
                 {/* Order header */}
@@ -1084,7 +1086,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
               </Card>
             );
           })}
-        </AppList>
+        </div>
       ) : (
         <Card className="rounded-md border-dashed border-border">
           <CardContent className="flex flex-col items-center justify-center py-12">
