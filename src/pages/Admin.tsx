@@ -204,7 +204,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Business info */}
-        <div className="mx-3 mb-4 shrink-0 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 shadow-[0_16px_40px_-28px_hsl(var(--background)/0.25)]">
+        <div className="mx-3 mb-4 shrink-0 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-3">
           <div className="flex items-start gap-3">
             {business.logo_url ? (
               <img src={business.logo_url} alt="" className="h-10 w-10 shrink-0 rounded-xl object-contain bg-white/10 p-1" />
@@ -218,8 +218,8 @@ const AdminDashboard = () => {
               <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-white/45">Serviceydere panel</p>
               {business.categories && business.categories.length > 0 && <p className="mt-2 truncate text-xs text-white/55">{(business.categories as string[]).join(", ")}</p>}
               <div className="mt-3 flex flex-wrap gap-1.5">
-                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.08] px-2.5 py-1 text-[11px] font-medium text-white/65">Drift</span>
-                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.08] px-2.5 py-1 text-[11px] font-medium text-white/65">Forretning</span>
+                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-white/60">Drift</span>
+                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-white/60">Forretning</span>
               </div>
             </div>
           </div>
@@ -235,7 +235,7 @@ const AdminDashboard = () => {
                 const baseClasses = `group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
                   isActive
                     ? "bg-white text-foreground shadow-sm"
-                    : "text-white/60 hover:bg-white/[0.08] hover:text-white"
+                    : "text-white/62 hover:bg-white/[0.06] hover:text-white"
                 }`;
                 if (item.href) {
                   return (
@@ -284,7 +284,7 @@ const AdminDashboard = () => {
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border/80 bg-background/95 px-5 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-background/96 px-5 backdrop-blur sm:px-6">
           <button onClick={() => setSidebarOpen(true)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors lg:hidden">
             <Menu className="h-5 w-5" />
           </button>
@@ -293,7 +293,7 @@ const AdminDashboard = () => {
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-lg font-semibold text-foreground">{currentNav?.label}</h1>
               {currentSectionItems.length > 1 && (
-                <div className="hidden items-center gap-1 rounded-full border border-border bg-secondary/70 px-2 py-1 md:flex">
+                <div className="hidden items-center gap-1 rounded-full border border-border bg-secondary/45 px-2 py-1 md:flex">
                   {currentSectionItems.map((item) => {
                     const isCurrent = item.value === activeTab;
                     const labelClasses = isCurrent

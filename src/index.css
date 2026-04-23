@@ -106,12 +106,11 @@
 @layer utilities {
   .admin-shell {
     background:
-      radial-gradient(circle at top left, hsl(var(--accent-soft)) 0%, transparent 28%),
-      linear-gradient(180deg, hsl(var(--secondary)) 0%, hsl(var(--background)) 32%);
+      linear-gradient(180deg, hsl(var(--secondary)) 0%, hsl(var(--background)) 24%, hsl(var(--background)) 100%);
   }
 
   .admin-panel {
-    background: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--secondary) / 0.45) 100%);
+    background: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--secondary) / 0.22) 100%);
   }
 
   .surface-panel {

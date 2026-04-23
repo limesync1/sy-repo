@@ -22,11 +22,11 @@ export const PageHeader = ({
   <div className={cn("flex flex-wrap items-start justify-between gap-4", className)}>
     <div className="min-w-0 space-y-1.5">
       {eyebrow && (
-        <div className="inline-flex items-center rounded-full border border-border/80 bg-secondary px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        <div className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           {eyebrow}
         </div>
       )}
-      <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[1.8rem]">{title}</h2>
+      <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[1.72rem]">{title}</h2>
       {description && <p className="max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p>}
     </div>
     {action && <div className="shrink-0">{action}</div>}
@@ -40,7 +40,7 @@ export const PrimaryButton = React.forwardRef<
   <Button
     ref={ref}
     className={cn(
-      "h-10 rounded-xl bg-foreground px-4 text-sm font-medium text-background shadow-sm hover:bg-foreground/90",
+        "h-10 rounded-xl bg-foreground px-4 text-sm font-medium text-background shadow-sm hover:bg-foreground/92",
       className,
     )}
     {...props}
@@ -72,13 +72,13 @@ export const ActionTile = ({
     <Comp
       onClick={onClick}
       className={cn(
-        "group flex w-full items-start gap-3 rounded-[1rem] border border-border/80 bg-background/75 p-4 text-left transition-all duration-200 hover:border-foreground/15 hover:bg-secondary/70 hover:shadow-sm",
+        "group flex w-full items-start gap-3 rounded-[1rem] border border-border bg-background p-4 text-left transition-all duration-200 hover:border-foreground/12 hover:bg-secondary/45",
         onClick && "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.99]",
         className,
       )}
     >
       {icon && (
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-muted-foreground transition-colors group-hover:bg-accent/10 group-hover:text-accent [&_svg]:h-4 [&_svg]:w-4">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-secondary/70 text-muted-foreground transition-colors group-hover:bg-secondary [&_svg]:h-4 [&_svg]:w-4">
           {icon}
         </div>
       )}
@@ -121,7 +121,7 @@ export const StatCard = ({
   };
 
   return (
-    <Card className={cn("admin-panel border-border/80 shadow-sm", emphasis === "primary" && "overflow-hidden border-foreground/10 bg-card shadow-lg")}>
+    <Card className={cn("admin-panel border-border shadow-sm", emphasis === "primary" && "overflow-hidden border-border bg-card shadow-md")}>
       <CardContent className={cn("flex items-center gap-3 p-4", emphasis === "primary" && "min-h-[148px] items-start justify-between p-5 sm:p-6")}>
         <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg [&_svg]:h-5 [&_svg]:w-5", tones[tone], emphasis === "primary" && "h-11 w-11 rounded-xl")}>
           {icon}
@@ -162,12 +162,12 @@ export const PriorityBanner = ({
   secondaryAction?: React.ReactNode;
   className?: string;
 }) => (
-  <Card className={cn("admin-panel overflow-hidden border-foreground/10 bg-card shadow-lg", className)}>
+    <Card className={cn("admin-panel overflow-hidden border-border bg-card shadow-md", className)}>
     <CardContent className="grid gap-5 p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:p-6">
       <div className="space-y-4">
         <div className="flex items-start gap-3">
           {icon && (
-            <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent [&_svg]:h-5 [&_svg]:w-5">
+            <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-secondary text-foreground [&_svg]:h-5 [&_svg]:w-5">
               {icon}
             </div>
           )}
@@ -206,7 +206,7 @@ export const SectionCard = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <Card className={cn("admin-panel border-border/80 shadow-sm", className)}>
+    <Card className={cn("admin-panel border-border shadow-sm", className)}>
     <CardContent className="space-y-4 p-5 sm:p-6">
       {(title || action) && (
         <div className="flex items-start justify-between gap-3">
@@ -283,13 +283,13 @@ export const EmptyState = ({
 );
 
 export const InsightPill = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-  <span className={cn("inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-muted-foreground", className)}>
+  <span className={cn("inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground", className)}>
     {children}
   </span>
 );
 
 export const AppList = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-  <div className={cn("overflow-hidden rounded-[1.1rem] border border-border bg-card", className)}>{children}</div>
+  <div className={cn("overflow-hidden rounded-[1.1rem] border border-border bg-card shadow-sm", className)}>{children}</div>
 );
 
 export const AppListRow = ({
