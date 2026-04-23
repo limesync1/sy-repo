@@ -1,7 +1,7 @@
 // RouteEditSheet — rediger en rute: navn, farve, dato, medarbejdere.
 // Bruges fra den nye måned/uge kalender.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,6 +78,7 @@ export const RouteEditSheet = ({
   const [color, setColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [date, setDate] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const initialSyncDone = useRef(false);
 
   const updateRoute = useUpdateRoute();
   const deleteRoute = useDeleteRoute();
@@ -88,27 +89,36 @@ export const RouteEditSheet = ({
     setName(route.name || "");
     setColor(route.color || ROUTE_COLOR_PALETTE[0]);
     setDate(route.route_date);
+    initialSyncDone.current = false;
   }, [route?.id]);
 
-  if (!route) return null;
-
   const dirty =
-    (route.name || "") !== name ||
-    route.color !== color ||
-    route.route_date !== date;
+    (route?.name || "") !== name ||
+    route?.color !== color ||
+    route?.route_date !== date;
 
-  const handleSave = async () => {
-    try {
-      await updateRoute.mutateAsync({
-        id: route.id,
-        name: name.trim() || null,
-        color,
-        route_date: date,
-      });
-      toast.success("Rute opdateret");
-      onOpenChange(false);
-    } catch { /* hook viser toast */ }
-  };
+  const pendingPayload = useMemo(() => ({
+    id: route?.id ?? "",
+    name: name.trim() || null,
+    color,
+    route_date: date,
+  }), [route?.id, name, color, date]);
+
+  useEffect(() => {
+    if (!route || !open || !dirty) return;
+    if (!initialSyncDone.current) {
+      initialSyncDone.current = true;
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      updateRoute.mutate(pendingPayload);
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
+  }, [route, open, dirty, pendingPayload, updateRoute]);
+
+  if (!route) return null;
 
   const handleDelete = async () => {
     try {
@@ -229,13 +239,13 @@ export const RouteEditSheet = ({
               </Button>
               <Button
                 className="flex-1"
-                onClick={handleSave}
-                disabled={!dirty || updateRoute.isPending}
+                onClick={() => onOpenChange(false)}
+                disabled={updateRoute.isPending}
               >
                 {updateRoute.isPending
                   ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
                   : <Save className="h-4 w-4 mr-1.5" />}
-                Gem
+                Luk
               </Button>
             </div>
           </SheetFooterBar>
