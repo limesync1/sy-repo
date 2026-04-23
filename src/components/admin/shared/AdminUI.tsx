@@ -51,6 +51,49 @@ export const PrimaryButton = React.forwardRef<
 ));
 PrimaryButton.displayName = "PrimaryButton";
 
+export const ActionTile = ({
+  title,
+  description,
+  icon,
+  meta,
+  onClick,
+  className,
+}: {
+  title: React.ReactNode;
+  description?: React.ReactNode;
+  icon?: React.ReactNode;
+  meta?: React.ReactNode;
+  onClick?: () => void;
+  className?: string;
+}) => {
+  const Comp = onClick ? "button" : "div";
+
+  return (
+    <Comp
+      onClick={onClick}
+      className={cn(
+        "group flex w-full items-start gap-3 rounded-[1rem] border border-border/80 bg-background/75 p-4 text-left transition-all duration-200 hover:border-foreground/15 hover:bg-secondary/70 hover:shadow-sm",
+        onClick && "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.99]",
+        className,
+      )}
+    >
+      {icon && (
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-muted-foreground transition-colors group-hover:bg-accent/10 group-hover:text-accent [&_svg]:h-4 [&_svg]:w-4">
+          {icon}
+        </div>
+      )}
+      <div className="min-w-0 flex-1 space-y-1">
+        <div className="flex items-center justify-between gap-3">
+          <p className="truncate text-sm font-semibold text-foreground">{title}</p>
+          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-foreground" />
+        </div>
+        {description && <p className="text-sm leading-5 text-muted-foreground">{description}</p>}
+        {meta && <div className="pt-1 text-xs font-medium text-muted-foreground">{meta}</div>}
+      </div>
+    </Comp>
+  );
+};
+
 export const StatCard = ({
   label,
   value,
@@ -264,13 +307,13 @@ export const AppListRow = ({
     <Comp
       onClick={onClick as any}
       className={cn(
-        "flex w-full items-center gap-3 border-b border-border/80 px-4 py-3.5 text-left transition-colors last:border-b-0 hover:bg-secondary/60",
-        onClick && "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        "group flex w-full items-center gap-3 border-b border-border/80 px-4 py-3.5 text-left transition-all last:border-b-0 hover:bg-secondary/60",
+        onClick && "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.998]",
         className,
       )}
     >
       {children}
-      {onClick && <ArrowRight className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" />}
+      {onClick && <ArrowRight className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-foreground" />}
     </Comp>
   );
 };
