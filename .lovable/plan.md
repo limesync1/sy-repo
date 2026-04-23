@@ -1,89 +1,119 @@
 
-Mål: rydde op på forsiden, forbedre lokationsdetektering på forsiden og `/virksomheder`, og gøre bestillingsflowet på virksomhedssider enklere, tydeligere og mere fejltolerant.
+Mål: gøre virksomhedspanelet mere tydeligt, mere handlingsorienteret og mere unikt for Serviceydere, så hele oplevelsen på tværs af dashboard, faner og sidebar føles som ét samlet produkt med klar prioritering og bedre flow.
 
-1. Rydde forsiden for unødvendige elementer
-- Gennemgå `HeroSection.tsx` og de første landingssektioner for små UI-elementer, badges og ekstra tekstblokke som fylder uden at hjælpe brugeren.
-- Stramme heroen ind, så fokus bliver:
-  - tydelig overskrift
-  - søgefelt
-  - én enkel lokationslinje
-  - få, klare handlinger
-- Fjerne eller nedtone “quick signals”, overflødige chips og sekundære forklaringer, hvis de kun skaber visuel støj.
-- Gennemgå især:
-  - `src/components/landing/HeroSection.tsx`
-  - `src/components/landing/Categories.tsx`
-  - `src/components/landing/HowItWorks.tsx`
-  - `src/components/landing/RecentBusinesses.tsx`
+1. Etablere et tydeligere visuelt system for hele virksomhedspanelet
+- Udvide de delte admin-komponenter i `src/components/admin/shared/AdminUI.tsx`, så de ikke kun er “kort”, men egentlige layout-byggesten med fast hierarki.
+- Indføre et mere karakteristisk Serviceydere-udtryk med:
+  - roligere baggrundsflader
+  - tydeligere kontrast mellem primær handling, status og sekundær information
+  - mere konsekvent spacing
+  - ensartede radius, shadows og label-stile
+- Tilføje fælles varianter til:
+  - handlingsbanner / priority banner
+  - KPI-række med primær og sekundære metrics
+  - sektionstitler med bedre mikrohierarki
+  - app-lignende listekort til tabeller/rækker
+- Bruge eksisterende farver og brand-retning fra projektet, men gøre dem mere konsekvente i adminfladen.
 
-2. Forbedre lokationsdetektering på forsiden og `/virksomheder`
-- Erstatte eller omprioritere den nuværende IP-baserede strategi i `LocationContext.tsx`, så systemet finder den mest præcise by/postnummer muligt i stedet for brede kommune-/regionsnavne.
-- Indføre en bedre kæde for detektering:
-  - først automatisk browser-geolocation ved første besøg, hvis muligt
-  - derefter reverse geocoding mod en mere præcis adresse/lokalitetskilde
-  - fallback til IP-baseret lokation hvis brugeren afviser eller browseren ikke kan levere koordinater
-- Sikre at resultatet foretrækker et præcist format som `7540 Haderup` frem for kommune/navne på større administrative områder.
-- Opdatere `LocationChip.tsx`, så “Fang min lokation” ikke længere er nødvendig som primær handling, men kun er en fallback/redigeringsmulighed.
-- Opdatere søgefeltets mikrocopy i både hero og søgeside, så det tydeligt viser den fundne by/postnummer.
+2. Redesigne dashboardet fra “kortsamling” til handlingsflow
+- Omlægge `src/components/admin/DashboardTab.tsx`, så siden læses i denne rækkefølge:
+  1. vigtigste opmærksomhedspunkt
+  2. performance-overblik
+  3. næste anbefalede handlinger
+  4. seneste aktivitet
+- Gøre afventende bestillinger til et tydeligt topbanner, ikke bare et almindeligt kort.
+- Banneret skal være visuelt mest dominerende og indeholde:
+  - antal afventende bestillinger
+  - kort forklaring
+  - tydelig CTA til Aftaler
+  - eventuelt sekundær statustekst hvis der ingen afventende er
+- Gøre profilfuldendelse mere motiverende og mere “handlingsbaseret” i stedet for kun procentvis status.
 
-3. Sikre at søgning bruger den forbedrede lokation begge steder
-- Koble den nye lokationslogik tydeligt til:
-  - `src/components/landing/SearchSuggest.tsx`
-  - `src/pages/Search.tsx`
-- Beholde automatisk lokal søgning, men sikre at “nær” og afstands-/relevanslogikken bruger den korrekte by/postkode.
-- Forbedre fallback-adfærd, så søgningen stadig virker pænt hvis lokation ikke kan findes.
+3. Stramme KPI-området op og gøre tallene mere meningsfulde
+- Opdatere KPI-kortene, så de får tydeligere prioritet:
+  - fremhæve ét primært nøgletal, fx omsætning
+  - gøre øvrige metrics mere kompakte og sekundære
+- Tilføje let kontekst til nøgletal, hvor det er muligt uden backend-ændringer:
+  - små udviklingsindikatorer
+  - korte hints som “seneste 30 dage”, “aktive nu”, “siden sidst”
+- Hvis der ikke findes sammenligningsdata nok, vise mere nyttige hints i stedet for tom pynt.
+- Beholde overblikket hurtigt og letlæseligt, uden at gøre dashboardet tungere.
 
-4. Gøre bestillingsprocessen enklere ved at fjerne “Planlægning”
-- Fjerne hele planlægningssektionen i `CartSheet.tsx` fra kundens bestillingsflow.
-- Fjerne “anslået varighed” og “ønsket tidsrum” som synlige trin i checkout, så flowet bliver lettere og hurtigere.
-- Rydde op i tilhørende state og UI-afhængigheder, så der ikke ligger overflødig logik tilbage.
-- Beholde kun det, der er nødvendigt for at gennemføre en bestilling.
+4. Gøre “Seneste bestillinger” mere scanbar og app-agtig
+- Forbedre listen i `DashboardTab.tsx`, så rækkerne føles mere responsive og tydelige.
+- Justere:
+  - spacing
+  - statusbadge-kontrast
+  - typografisk hierarki
+  - hover/focus-states
+  - klikbarhed på hele rækken
+- Gøre forskellen mellem “Afventer”, “Bekræftet”, “I gang”, osv. mere umiddelbar med stærkere visuelle cues.
+- Fremhæve de vigtigste informationer først: kunde, status, beløb, dato.
 
-5. Forbedre adressefeltet i bestillingsflowet
-- Gøre adresseoplevelsen mere komplet, så brugeren ikke kun ser vej/husnummer men også by/postnummer som en tydelig del af inputoplevelsen.
-- Opdatere `AddressAutocomplete.tsx` og brugen i `CartSheet.tsx`, så:
-  - valg fra autocomplete udfylder adresse, postnummer og by automatisk
-  - by vises tydeligt i UI’et og ikke kun gemmes i state
-  - der gives klar feedback på, at adressen er fuldt udfyldt og verificeret
-- Forbedre visning af den valgte adresse, så den føles mere komplet og tryg for brugeren.
+5. Gøre profilfuldendelse mere motiverende og nyttig
+- Omdanne profilsektionen fra generel status til konkret fremdrift.
+- Knytte budskabet til fordel, fx synlighed/troværdighed/flere bookinger.
+- Vise de vigtigste mangler som små næste skridt i stedet for kun en liste over manglende felter.
+- Lade CTA’en føles som en progression frem for bare “Fuldfør profil”.
 
-6. Gøre fejlmeddelelserne mere specifikke og hjælpsomme
-- Erstatte generiske fejlbeskeder i bestillingsflowet med felt-specifik feedback.
-- Validere trinvis, fx:
-  - mangler navn
-  - ugyldig e-mail
-  - mangler telefon
-  - adressen er ikke valgt fra forslag / kunne ikke verificeres
-  - by/postnummer mangler
-- Vise fejl tættere på de relevante felter og ikke kun som generiske toasts.
-- Sørge for at fejlteksterne er korte, konkrete og skrevet på klart dansk.
+6. Forbedre sidebar og overordnet panelstruktur
+- Opdatere sidebaren i `src/pages/Admin.tsx`, så den føles mere premium og mindre som en simpel mørk liste.
+- Skærpe aktiv tilstand med tydeligere kontrast, så det er helt klart hvor man er.
+- Gruppere navigation mere logisk, fx:
+  - Overblik
+  - Drift (Aftaler, Kunder, Medarbejdere, Ruter)
+  - Indhold/forretning (Services, Anmeldelser)
+  - Opsætning (Indstillinger)
+- Forfine business-headeren i sidebaren, så den føles mere som en identitetsblok.
+- Sikre at topbaren, sidebar og indholdsområde visuelt hænger sammen som samme produkt.
 
-7. Generel UX-opstramning af checkout på virksomhedssider
-- Forenkle layoutet i `CartSheet.tsx`, så formularen får bedre hierarki og mindre støj.
-- Gøre opsummering, kontaktoplysninger og service-adresse mere overskuelige.
-- Justere spacing, sektionstitler og hjælpetekster, så flowet føles hurtigere og mere intuitivt.
-- Sikre at brugerens vej fra “Tilføj til bestilling” til “Send bestilling” bliver mere enkel og mindre tung.
+7. Udrulle den nye stil konsekvent til de vigtigste faner
+- Anvende samme designretning på centrale faner, så panelet ikke skifter karakter fra side til side.
+- Starte med:
+  - `src/components/admin/AftaleTab.tsx`
+  - `src/components/admin/CustomersTab.tsx`
+  - `src/components/admin/EmployeesTab.tsx`
+  - `src/components/admin/ReviewsTab.tsx`
+- Fokusere på:
+  - ens sideheaders
+  - ens sektionkort
+  - ens liste-/rækkeoplevelse
+  - ens tomme states
+  - ens CTA-hierarki
+- Målet er, at alle faner føles som variationer af samme system, ikke separate mini-designs.
+
+8. Finpudse Serviceydere-identiteten i adminoplevelsen
+- Gøre layoutet mere unikt til Serviceydere uden at overdesigne:
+  - lidt stærkere brandet accent-brug
+  - mere konsekvent brug af foreground/accent i badges, ikoner og handlinger
+  - mere professionel panelæstetik frem for generiske dashboard-kort
+- Holde stilen enkel, lys og effektiv, i tråd med resten af projektets nuværende designretning.
 
 Tekniske detaljer
 - Primære filer:
-  - `src/contexts/LocationContext.tsx`
-  - `src/components/LocationChip.tsx`
-  - `src/components/landing/HeroSection.tsx`
-  - `src/components/landing/SearchSuggest.tsx`
-  - `src/pages/Search.tsx`
-  - `src/components/business/CartSheet.tsx`
-  - `src/components/shared/AddressAutocomplete.tsx`
-  - eventuelt mindre oprydning i relevante landingssektioner
-- Hovedændringer:
-  - mere præcis og automatisk lokationsdetektering
-  - enklere hero og landingssektioner
-  - checkout uden planlægningssektion
-  - tydeligere adresse- og valideringsflow
+  - `src/components/admin/DashboardTab.tsx`
+  - `src/components/admin/shared/AdminUI.tsx`
+  - `src/pages/Admin.tsx`
+  - `src/components/admin/AftaleTab.tsx`
+  - `src/components/admin/CustomersTab.tsx`
+  - `src/components/admin/EmployeesTab.tsx`
+  - `src/components/admin/ReviewsTab.tsx`
+  - eventuelt små token-/utility-justeringer i `src/index.css`
+- Hovedgreb:
+  - flere fælles admin-UI-varianter frem for lokale one-off kort
+  - dashboard med tydelig topprioritet og bedre informationsflow
+  - sidebar med stærkere aktiv state og bedre gruppering
+  - konsekvent Serviceydere-look på tværs af faner
 
 Acceptkriterier
-- Forsiden føles lettere og mindre rodet, med færre småting der fylder unødigt.
-- Lokation findes automatisk uden at brugeren skal trykke “Fang min lokation”.
-- Lokationen vises mere præcist som rigtig by/postnummer i stedet for kommune-agtige navne.
-- Søgning på både forside og `/virksomheder` bruger den forbedrede lokation.
-- “Planlægning”-sektionen er fjernet fra bestillingsflowet på virksomhedssider.
-- Adressefeltet udfylder og viser adresse, postnummer og by tydeligt.
-- Bestillingsflowet har mere konkrete fejlmeddelelser og er generelt lettere at bruge.
+- Dashboardet kommunikerer tydeligt på få sekunder:
+  - hvad kræver opmærksomhed
+  - hvordan går forretningen
+  - hvad bør brugeren gøre nu
+- Afventende bestillinger er den mest visuelt dominerende handling på overblikket.
+- KPI-området føles mere struktureret og mindre tilfældigt.
+- “Seneste bestillinger” er lettere at scanne hurtigt.
+- Profilfuldendelse føles mere motiverende og mindre anonym.
+- Sidebarens aktive tilstand og gruppering er tydeligere.
+- De vigtigste faner deler samme stil, spacing og komponentlogik.
+- Virksomhedspanelet føles mere samlet, mere professionelt og mere unikt til Serviceydere.
