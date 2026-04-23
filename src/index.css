@@ -105,12 +105,11 @@
 
 @layer utilities {
   .admin-shell {
-    background:
-      linear-gradient(180deg, hsl(var(--secondary) / 0.5) 0%, hsl(var(--background)) 16%, hsl(var(--background)) 100%);
+    background: hsl(var(--secondary) / 0.45);
   }
 
   .admin-panel {
-    background: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--secondary) / 0.08) 100%);
+    background: hsl(var(--card));
   }
 
   .surface-panel {
@@ -128,7 +127,7 @@
 
   .admin-section-grid {
     display: grid;
-    gap: 0.75rem;
+    gap: 0.625rem;
   }
 
   .admin-compact-toggle {
@@ -141,6 +140,15 @@
 
   .surface-dark-panel {
     background-image: linear-gradient(180deg, hsl(var(--foreground)), hsl(0 0% 9%));
+  }
+
+  .admin-list-header {
+    background: hsl(var(--secondary) / 0.45);
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .admin-subtle-divider {
+    border-color: hsl(var(--border) / 0.75);
   }
 }
 
