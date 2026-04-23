@@ -1,10 +1,33 @@
 /// <reference types="npm:@types/react@18.3.1" />
 
 import * as React from 'npm:react@18.3.1'
-
+import { Body, Button, Container, Head, Heading, Html, Img, Link, Preview, Section, Text } from 'npm:@react-email/components@0.0.22'
 import {
-  Body, Button, Container, Head, Heading, Html, Img, Link, Preview, Section, Text,
-} from 'npm:@react-email/components@0.0.22'
+  LOGO_URL,
+  main,
+  wrapper,
+  headerBar,
+  container,
+  logo,
+  eyebrow,
+  h1,
+  text,
+  infoCard,
+  infoLabel,
+  infoValue,
+  buttonSection,
+  button,
+  linkCard,
+  linkCardText,
+  smallLink,
+  link,
+  securityBox,
+  securityTitle,
+  securityText,
+  footer,
+  footerText,
+  footerLink,
+} from './_styles.ts'
 
 interface SignupEmailProps {
   siteName: string
@@ -18,46 +41,47 @@ export const SignupEmail = ({ siteName, siteUrl, recipient, confirmationUrl }: S
     <Head />
     <Preview>Bekræft din e-mail hos {siteName}</Preview>
     <Body style={main}>
-      <Container style={container}>
-        <Section style={logoSection}>
-          <Img src={LOGO_URL} alt={siteName} height="32" style={logo} />
+      <Container style={wrapper}>
+        <Section style={headerBar}>
+          <Img src={LOGO_URL} alt={siteName} height="34" style={logo} />
         </Section>
-        <Heading style={h1}>Velkommen til Serviceydere 👋</Heading>
-        <Text style={text}>
-          Tak fordi du oprettede en konto på{' '}
-          <Link href={siteUrl} style={link}><strong>{siteName}</strong></Link>.
-          Bekræft venligst din e-mail ({recipient}) ved at klikke nedenfor.
-        </Text>
-        <Section style={buttonSection}>
-          <Button style={button} href={confirmationUrl}>Bekræft min e-mail</Button>
+        <Container style={container}>
+          <Text style={eyebrow}>Kontooprettelse</Text>
+          <Heading style={h1}>Bekræft din e-mail</Heading>
+          <Text style={text}>
+            Tak fordi du oprettede en konto på <Link href={siteUrl} style={link}>{siteName}</Link>.
+            Bekræft din e-mailadresse for at aktivere kontoen og komme videre.
+          </Text>
+
+          <Section style={infoCard}>
+            <Text style={infoLabel}>E-mailadresse</Text>
+            <Text style={infoValue}>{recipient}</Text>
+          </Section>
+
+          <Section style={buttonSection}>
+            <Button style={button} href={confirmationUrl}>Bekræft min e-mail</Button>
+          </Section>
+
+          <Section style={linkCard}>
+            <Text style={linkCardText}>Hvis knappen ikke virker, så kopier dette link ind i din browser:</Text>
+            <Link href={confirmationUrl} style={smallLink}>{confirmationUrl}</Link>
+          </Section>
+
+          <Section style={securityBox}>
+            <Text style={securityTitle}>Har du ikke oprettet kontoen?</Text>
+            <Text style={securityText}>Så kan du roligt ignorere denne e-mail. Din konto bliver ikke aktiveret uden bekræftelsen.</Text>
+          </Section>
+        </Container>
+
+        <Section style={footer}>
+          <Text style={footerText}>
+            <Link href={siteUrl} style={footerLink}>{siteName}</Link>
+          </Text>
+          <Text style={footerText}>Denne e-mail blev sendt, fordi der blev oprettet en konto med denne adresse.</Text>
         </Section>
-        <Text style={muted}>
-          Knappen virker ikke? Kopier dette link i din browser:<br />
-          <Link href={confirmationUrl} style={smallLink}>{confirmationUrl}</Link>
-        </Text>
-        <Text style={footer}>
-          Hvis du ikke har oprettet en konto, kan du roligt ignorere denne e-mail.
-        </Text>
       </Container>
     </Body>
   </Html>
 )
 
 export default SignupEmail
-
-const LOGO_URL = 'https://gkectsellkpltrxvusot.supabase.co/storage/v1/object/public/email-assets/serviceydere-logo.png'
-const main = { backgroundColor: '#ffffff', fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif' }
-const container = { padding: '32px 28px', maxWidth: '560px' }
-const logoSection = { marginBottom: '24px' }
-const logo = { display: 'block' }
-const h1 = { fontSize: '24px', fontWeight: 'bold' as const, color: '#0d1729', margin: '0 0 16px', letterSpacing: '-0.01em' }
-const text = { fontSize: '15px', color: '#4b5563', lineHeight: '1.6', margin: '0 0 24px' }
-const muted = { fontSize: '12px', color: '#9ca3af', lineHeight: '1.5', margin: '24px 0 0', wordBreak: 'break-all' as const }
-const link = { color: '#0d1729', textDecoration: 'underline' }
-const smallLink = { color: '#0891b2', textDecoration: 'underline', fontSize: '12px' }
-const buttonSection = { margin: '8px 0 8px' }
-const button = {
-  backgroundColor: '#0d1729', color: '#ffffff', fontSize: '15px', fontWeight: 600,
-  borderRadius: '12px', padding: '14px 24px', textDecoration: 'none', display: 'inline-block',
-}
-const footer = { fontSize: '12px', color: '#9ca3af', margin: '32px 0 0', borderTop: '1px solid #e5e7eb', paddingTop: '16px' }

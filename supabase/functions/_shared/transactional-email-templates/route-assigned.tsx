@@ -1,13 +1,12 @@
 /// <reference types="npm:@types/react@18.3.1" />
 import * as React from 'npm:react@18.3.1'
-import {
-  Body, Button, Container, Head, Heading, Html, Img, Link, Preview, Section, Text,
-} from 'npm:@react-email/components@0.0.22'
+import { Body, Button, Container, Head, Heading, Html, Img, Link, Preview, Section, Text } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 import {
   SITE_NAME, SITE_URL, SUPPORT_EMAIL, LOGO_URL,
   main, wrapper, container, headerBar,
-  h1, text, link,
+  heroSection, heroTitle, heroSubtitle,
+  text, link,
   buttonSection, button,
   card, cardLabel, cardValue,
   helpBox, helpBoxTitle, helpBoxText,
@@ -17,11 +16,11 @@ import {
 interface RouteAssignedProps {
   employeeName?: string
   businessName?: string
-  routeDate?: string // human readable e.g. "tirsdag d. 23. april 2026"
+  routeDate?: string
   stopCount?: number
   totalKm?: number
   totalDurationMinutes?: number
-  plannedStartTime?: string // "08:00"
+  plannedStartTime?: string
   firstStopName?: string
   firstStopAddress?: string
   appUrl?: string
@@ -29,7 +28,12 @@ interface RouteAssignedProps {
 
 const stat: React.CSSProperties = {
   display: 'inline-block',
-  marginRight: '18px',
+  backgroundColor: '#f8fafc',
+  border: '1px solid #e2e8f0',
+  borderRadius: '999px',
+  padding: '8px 12px',
+  marginRight: '8px',
+  marginBottom: '8px',
   fontSize: '13px',
   color: '#0d1729',
 }
@@ -60,27 +64,21 @@ const RouteAssignedEmail = ({
           </Section>
 
           <Container style={container}>
-            <Heading style={h1}>
-              {employeeName ? `Hej ${employeeName} 🚗` : 'Din rute er klar 🚗'}
-            </Heading>
-            <Text style={text}>
-              {businessName} har planlagt din rute for <strong>{routeDate}</strong>.
-              Du kan se alle stop, navigere og markere som færdig direkte i medarbejder-appen.
-            </Text>
+            <Section style={heroSection}>
+              <Heading style={heroTitle}>{employeeName ? `Hej ${employeeName}` : 'Din rute er klar'} 🚗</Heading>
+              <Text style={heroSubtitle}>
+                {businessName} har planlagt din rute for <strong>{routeDate}</strong>. Du kan nu åbne medarbejder-appen og følge dagens stop.
+              </Text>
+            </Section>
+
+            <Section style={{ margin: '0 0 10px' }}>
+              <span style={stat}>📍 <strong>{stopCount}</strong> stop</span>
+              {totalKm != null && totalKm > 0 && <span style={stat}>🛣 <strong>{totalKm.toFixed(1)}</strong> km</span>}
+              {hours != null && <span style={stat}>⏱ <strong>{hours}t {mins}m</strong></span>}
+            </Section>
 
             <Section style={card}>
-              <Text style={cardLabel}>Ruteoversigt</Text>
-              <div style={{ marginTop: 4 }}>
-                <span style={stat}>📍 <strong>{stopCount}</strong> stop</span>
-                {totalKm != null && totalKm > 0 && (
-                  <span style={stat}>🛣 <strong>{totalKm.toFixed(1)}</strong> km</span>
-                )}
-                {hours != null && (
-                  <span style={stat}>⏱ <strong>{hours}t {mins}m</strong></span>
-                )}
-              </div>
-
-              <Text style={{ ...cardLabel, marginTop: 14 }}>Planlagt start</Text>
+              <Text style={cardLabel}>Planlagt start</Text>
               <Text style={cardValue}>{plannedStartTime}</Text>
 
               {firstStopName && (
@@ -88,40 +86,29 @@ const RouteAssignedEmail = ({
                   <Text style={cardLabel}>Første stop</Text>
                   <Text style={cardValue}>
                     {firstStopName}
-                    {firstStopAddress && (
-                      <>
-                        <br />
-                        <span style={{ fontWeight: 400, color: '#6b7280', fontSize: 13 }}>{firstStopAddress}</span>
-                      </>
-                    )}
+                    {firstStopAddress && <><br /><span style={{ fontWeight: 400, color: '#64748b', fontSize: 13 }}>{firstStopAddress}</span></>}
                   </Text>
                 </>
               )}
             </Section>
 
             <Section style={buttonSection}>
-              <Button style={button} href={appUrl}>
-                Åbn medarbejder-appen
-              </Button>
+              <Button style={button} href={appUrl}>Åbn medarbejder-appen</Button>
             </Section>
 
             <Section style={helpBox}>
               <Text style={helpBoxTitle}>Spørgsmål til ruten?</Text>
               <Text style={helpBoxText}>
-                Kontakt {businessName} direkte — eller skriv til os på{' '}
-                <Link href={`mailto:${SUPPORT_EMAIL}`} style={link}>{SUPPORT_EMAIL}</Link>.
+                Kontakt {businessName} direkte — eller skriv til os på <Link href={`mailto:${SUPPORT_EMAIL}`} style={link}>{SUPPORT_EMAIL}</Link>.
               </Text>
             </Section>
           </Container>
 
           <Section style={footer}>
             <Text style={footerText}>
-              <Link href={SITE_URL} style={footerLink}>serviceydere.dk</Link> ·{' '}
-              <Link href={`mailto:${SUPPORT_EMAIL}`} style={footerLink}>Kontakt</Link>
+              <Link href={SITE_URL} style={footerLink}>serviceydere.dk</Link> · <Link href={`mailto:${SUPPORT_EMAIL}`} style={footerLink}>Kontakt</Link>
             </Text>
-            <Text style={footerText}>
-              © {new Date().getFullYear()} {SITE_NAME}.
-            </Text>
+            <Text style={footerText}>© {new Date().getFullYear()} {SITE_NAME}.</Text>
           </Section>
         </Container>
       </Body>
@@ -131,8 +118,7 @@ const RouteAssignedEmail = ({
 
 export const template = {
   component: RouteAssignedEmail,
-  subject: (data) =>
-    `Din rute er klar — ${data.routeDate || 'i morgen'} (${data.stopCount || 0} stop)`,
+  subject: (data) => `Din rute er klar — ${data.routeDate || 'i morgen'} (${data.stopCount || 0} stop)`,
   displayName: 'Rute tildelt til medarbejder',
   previewData: {
     employeeName: 'Anders',
