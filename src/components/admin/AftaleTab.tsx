@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrders, useServices, useBusinessSubscriptions } from "@/hooks/useDatabase";
+import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -567,6 +568,7 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
   const [responseType, setResponseType] = useState<"accepted" | "rejected" | "adjusted">("accepted");
   const [responseMessage, setResponseMessage] = useState("");
   const [adjustedItems, setAdjustedItems] = useState<Record<string, AdjustmentItem[]>>({});
+  const [createOrderOpen, setCreateOrderOpen] = useState(false);
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser aftaler...</p>;
 
@@ -768,6 +770,11 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
       <PageHeader
         title="Aftaler"
         description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende services` : ""}`}
+        action={
+          <Button onClick={() => setCreateOrderOpen(true)} className="gap-2">
+            <ShoppingCart className="h-4 w-4" />Opret bestilling
+          </Button>
+        }
       />
 
       {/* Upcoming services alert */}
@@ -1096,6 +1103,13 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
           </CardContent>
         </Card>
       )}
+
+      <CreateManualOrderDialog
+        open={createOrderOpen}
+        onOpenChange={setCreateOrderOpen}
+        businessId={businessId}
+        businessName=""
+      />
     </div>
   );
 };
