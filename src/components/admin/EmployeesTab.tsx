@@ -78,6 +78,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
     return (
       <div className="max-w-3xl space-y-6">
         <PageHeader
+          eyebrow="Drift"
           title="Medarbejdere"
           description="Tilføj medarbejdere — der oprettes automatisk en konto, og de modtager login-oplysninger på email."
         />
@@ -94,8 +95,9 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const inactiveEmployees = employees?.filter((e) => !e.is_active) || [];
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="max-w-5xl space-y-6">
       <PageHeader
+        eyebrow="Drift"
         title="Medarbejdere"
         description="Tilføj medarbejdere — der oprettes automatisk en konto, og de modtager login-oplysninger på email."
         action={!showForm ? (
@@ -173,7 +175,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 
       {/* Active Employees */}
       {activeEmployees.length > 0 && (
-        <div>
+          <SectionCard title="Aktive medarbejdere" description="Hold styr på hvem der kan tage opgaver og har adgang til medarbejder-appen.">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             Aktive ({activeEmployees.length})
           </h3>
@@ -188,12 +190,12 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
               />
             ))}
           </div>
-        </div>
+          </SectionCard>
       )}
 
       {/* Inactive Employees */}
       {inactiveEmployees.length > 0 && (
-        <div>
+          <SectionCard title="Deaktiverede medarbejdere" description="Gem tidligere medarbejdere uden at slette historikken.">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             Deaktiverede ({inactiveEmployees.length})
           </h3>
@@ -208,7 +210,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
               />
             ))}
           </div>
-        </div>
+          </SectionCard>
       )}
 
       {/* Empty state */}
