@@ -1083,7 +1083,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
               ← Tilbage
             </Button>
           )}
-          <Button variant="ghost" onClick={onClose} className="rounded-lg h-10 px-4 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary">
+          <Button variant="ghost" onClick={onClose} className="rounded-lg h-10 px-4 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">
             Annuller
           </Button>
         </div>
@@ -1095,8 +1095,8 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
               Næste →
             </Button>
           ) : (
-            <Button onClick={handleSave} className="rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 h-10 px-6 text-sm font-semibold shadow-sm">
-              {existingService ? "Gem ændringer" : "✓ Opret service"}
+            <Button onClick={handleSave} className="rounded-lg bg-foreground text-background hover:bg-foreground/90 h-10 px-6 text-sm font-semibold shadow-sm">
+              {existingService ? "Gem ændringer" : "Opret service"}
             </Button>
           )}
         </div>
