@@ -23,7 +23,7 @@ import ReviewsTab from "@/components/admin/ReviewsTab";
 import AftaleTab from "@/components/admin/AftaleTab";
 import EmployeesTab from "@/components/admin/EmployeesTab";
 import CustomersTab from "@/components/admin/CustomersTab";
-import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
+import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState, AppList, AppListRow, InsightPill } from "@/components/admin/shared/AdminUI";
 
 /* ─── Constants ─── */
 const CATEGORIES = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS", "Elektriker", "Sikkerhed"];
@@ -192,7 +192,7 @@ const AdminDashboard = () => {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-white/10 bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[272px] flex-col border-r border-border bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         {/* Sidebar header */}
         <div className="flex h-16 shrink-0 items-center justify-between px-4">
           <Link to="/" className="flex items-center gap-2">
@@ -204,23 +204,19 @@ const AdminDashboard = () => {
         </div>
 
         {/* Business info */}
-        <div className="mx-3 mb-4 shrink-0 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-3">
+        <div className="mx-3 mb-3 shrink-0 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3">
           <div className="flex items-start gap-3">
             {business.logo_url ? (
-              <img src={business.logo_url} alt="" className="h-10 w-10 shrink-0 rounded-xl object-contain bg-white/10 p-1" />
+              <img src={business.logo_url} alt="" className="h-9 w-9 shrink-0 rounded-md object-contain bg-white/10 p-1" />
             ) : (
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/20 text-sm font-bold text-accent">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white/8 text-sm font-bold text-white">
                 {business.name.charAt(0)}
               </div>
             )}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-white">{business.name}</p>
-              <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-white/45">Serviceydere panel</p>
-              {business.categories && business.categories.length > 0 && <p className="mt-2 truncate text-xs text-white/55">{(business.categories as string[]).join(", ")}</p>}
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-white/60">Drift</span>
-                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-white/60">Forretning</span>
-              </div>
+              <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/45">Virksomhedspanel</p>
+              {business.categories && business.categories.length > 0 && <p className="mt-2 truncate text-xs text-white/55">{(business.categories as string[]).slice(0, 2).join(" · ")}</p>}
             </div>
           </div>
         </div>
@@ -228,14 +224,14 @@ const AdminDashboard = () => {
         {/* Nav items */}
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 pb-4">
           {Object.entries(navGroups).map(([section, items]) => (
-            <div key={section} className="space-y-1.5">
-              <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/35">{section}</p>
+            <div key={section} className="space-y-1">
+              <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/30">{section}</p>
               {items.map((item: any) => {
                 const isActive = activeTab === item.value;
                 const baseClasses = `group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
                   isActive
                     ? "bg-white text-foreground shadow-sm"
-                    : "text-white/62 hover:bg-white/[0.06] hover:text-white"
+                    : "text-white/62 hover:bg-white/[0.04] hover:text-white"
                 }`;
                 if (item.href) {
                   return (
@@ -263,7 +259,7 @@ const AdminDashboard = () => {
         </nav>
 
         {/* Sidebar footer — always visible */}
-        <div className="shrink-0 border-t border-white/[0.08] px-3 py-3 space-y-1.5">
+        <div className="shrink-0 border-t border-white/[0.08] px-3 py-3 space-y-1">
           <Link
             to={`/v/${business.slug}`}
             className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 transition-colors hover:bg-white/[0.08] hover:text-white"
@@ -284,16 +280,16 @@ const AdminDashboard = () => {
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-background/96 px-5 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/96 px-4 backdrop-blur sm:px-5">
           <button onClick={() => setSidebarOpen(true)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors lg:hidden">
             <Menu className="h-5 w-5" />
           </button>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{currentNav?.section || "Panel"}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{currentNav?.section || "Panel"}</p>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-lg font-semibold text-foreground">{currentNav?.label}</h1>
+              <h1 className="text-base font-semibold text-foreground">{currentNav?.label}</h1>
               {currentSectionItems.length > 1 && (
-                <div className="hidden items-center gap-1 rounded-full border border-border bg-secondary/45 px-2 py-1 md:flex">
+                <div className="hidden items-center gap-1 rounded-lg border border-border bg-secondary/45 px-1.5 py-1 md:flex">
                   {currentSectionItems.map((item) => {
                     const isCurrent = item.value === activeTab;
                     const labelClasses = isCurrent
