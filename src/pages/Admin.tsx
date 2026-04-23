@@ -15,7 +15,7 @@ import { useState } from "react";
 import {
   Plus, Trash2, LogOut,
   Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart,
-  Star, Settings, Menu, X, ExternalLink, Bell, Users, Route, Contact,
+  Star, Settings, Menu, X, ExternalLink, Bell, Users, Route, Contact, ChevronRight,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import DashboardTab from "@/components/admin/DashboardTab";
@@ -182,6 +182,7 @@ const AdminDashboard = () => {
     acc[key] = [...(acc[key] || []), item];
     return acc;
   }, {});
+  const currentSectionItems = currentNav?.section ? navGroups[currentNav.section] || [] : [];
 
   return (
     <div className="admin-shell flex min-h-screen">
@@ -191,7 +192,7 @@ const AdminDashboard = () => {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col border-r border-white/10 bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-white/10 bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         {/* Sidebar header */}
         <div className="flex h-16 shrink-0 items-center justify-between px-4">
           <Link to="/" className="flex items-center gap-2">
@@ -203,7 +204,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Business info */}
-        <div className="mx-3 mb-4 shrink-0 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3">
+        <div className="mx-3 mb-4 shrink-0 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 shadow-[0_16px_40px_-28px_hsl(var(--background)/0.25)]">
           <div className="flex items-start gap-3">
             {business.logo_url ? (
               <img src={business.logo_url} alt="" className="h-10 w-10 shrink-0 rounded-xl object-contain bg-white/10 p-1" />
@@ -216,6 +217,10 @@ const AdminDashboard = () => {
               <p className="truncate text-sm font-semibold text-white">{business.name}</p>
               <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-white/45">Serviceydere panel</p>
               {business.categories && business.categories.length > 0 && <p className="mt-2 truncate text-xs text-white/55">{(business.categories as string[]).join(", ")}</p>}
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.08] px-2.5 py-1 text-[11px] font-medium text-white/65">Drift</span>
+                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.08] px-2.5 py-1 text-[11px] font-medium text-white/65">Forretning</span>
+              </div>
             </div>
           </div>
         </div>
@@ -227,7 +232,7 @@ const AdminDashboard = () => {
               <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/35">{section}</p>
               {items.map((item: any) => {
                 const isActive = activeTab === item.value;
-                const baseClasses = `flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                const baseClasses = `group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
                   isActive
                     ? "bg-white text-foreground shadow-sm"
                     : "text-white/60 hover:bg-white/[0.08] hover:text-white"
@@ -236,7 +241,8 @@ const AdminDashboard = () => {
                   return (
                     <Link key={item.value} to={item.href} onClick={() => setSidebarOpen(false)} className={baseClasses}>
                       <item.icon className="h-4 w-4 shrink-0" />
-                      {item.label}
+                      <span className="flex-1 text-left">{item.label}</span>
+                      {isActive && <ChevronRight className="h-4 w-4 shrink-0" />}
                     </Link>
                   );
                 }
@@ -247,7 +253,8 @@ const AdminDashboard = () => {
                     className={baseClasses}
                   >
                     <item.icon className="h-4 w-4 shrink-0" />
-                    {item.label}
+                    <span className="flex-1 text-left">{item.label}</span>
+                    {isActive && <ChevronRight className="h-4 w-4 shrink-0" />}
                   </button>
                 );
               })}
@@ -281,9 +288,44 @@ const AdminDashboard = () => {
           <button onClick={() => setSidebarOpen(true)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors lg:hidden">
             <Menu className="h-5 w-5" />
           </button>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{currentNav?.section || "Panel"}</p>
-            <h1 className="text-lg font-semibold text-foreground">{currentNav?.label}</h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-lg font-semibold text-foreground">{currentNav?.label}</h1>
+              {currentSectionItems.length > 1 && (
+                <div className="hidden items-center gap-1 rounded-full border border-border bg-secondary/70 px-2 py-1 md:flex">
+                  {currentSectionItems.map((item) => {
+                    const isCurrent = item.value === activeTab;
+                    const labelClasses = isCurrent
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground";
+
+                    if (item.href) {
+                      return (
+                        <Link key={item.value} to={item.href} className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${labelClasses}`}>
+                          {item.label}
+                        </Link>
+                      );
+                    }
+
+                    return (
+                      <button
+                        key={item.value}
+                        onClick={() => setActiveTab(item.value)}
+                        className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${labelClasses}`}
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="hidden items-center gap-2 lg:flex">
+            <Link to={`/v/${business.slug}`} className="rounded-xl border border-border bg-card px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground">
+              Se virksomhedsside
+            </Link>
           </div>
         </header>
 
