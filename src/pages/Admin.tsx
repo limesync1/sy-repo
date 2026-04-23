@@ -409,19 +409,16 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
   const filtered = filterCategory
     ? services?.filter((s: any) => s.service_category === filterCategory)
     : services;
+  const activeServices = (services || []).filter((s: any) => s.is_active !== false).length;
+  const totalOrders = Object.values(orderCountByService).reduce((a, b) => a + b, 0);
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser services...</p>;
-
-  const CATEGORY_ICONS: Record<string, string> = {
-    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
-    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
-  };
 
   return (
     <div className="space-y-5">
       <PageHeader
-        title="Services"
-        description={`${services?.length || 0} services · ${Object.values(orderCountByService).reduce((a, b) => a + b, 0)} bestillinger i alt`}
+        title="Servicekatalog"
+        description={`${services?.length || 0} services · ${totalOrders} bestillinger i alt`}
         action={
           <PrimaryButton onClick={() => setShowForm(true)} icon={<Plus />}>
             Tilføj service
@@ -429,31 +426,62 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
         }
       />
 
-      {/* Category filter chips */}
-      {uniqueCategories.length > 1 && (
-        <div className="flex flex-wrap gap-1.5">
-          <button onClick={() => setFilterCategory("")}
-            className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${!filterCategory ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
-            Alle
-          </button>
-          {uniqueCategories.map((cat) => (
-            <button key={cat} onClick={() => setFilterCategory(filterCategory === cat ? "" : cat)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${filterCategory === cat ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
-              <span>{CATEGORY_ICONS[cat] || "📋"}</span> {cat}
-            </button>
-          ))}
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Services i alt</p>
+              <p className="mt-1 text-2xl font-semibold text-foreground tabular-nums">{services?.length || 0}</p>
+            </CardContent>
+          </Card>
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Aktive</p>
+              <p className="mt-1 text-2xl font-semibold text-foreground tabular-nums">{activeServices}</p>
+            </CardContent>
+          </Card>
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Bestillinger</p>
+              <p className="mt-1 text-2xl font-semibold text-foreground tabular-nums">{totalOrders}</p>
+            </CardContent>
+          </Card>
         </div>
+
+        {uniqueCategories.length > 1 && (
+          <div className="flex flex-wrap gap-2 lg:justify-end">
+            <button
+              onClick={() => setFilterCategory("")}
+              className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${!filterCategory ? "border-border bg-secondary text-foreground" : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+            >
+              Alle
+            </button>
+            {uniqueCategories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setFilterCategory(filterCategory === cat ? "" : cat)}
+                className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${filterCategory === cat ? "border-border bg-secondary text-foreground" : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {uniqueCategories.length > 1 && (
+        <div className="hidden" />
       )}
 
       {showForm && (
-        <Card className="rounded-xl shadow-md border-accent/20 bg-gradient-to-b from-accent/[0.03] to-transparent">
+        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
           <CardContent className="p-5 sm:p-6">
             <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />
           </CardContent>
         </Card>
       )}
 
-      <div className="space-y-2.5">
+      <div className="space-y-3">
         {filtered?.map((s: any) => (
           <ServiceRow key={s.id} service={s} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
         ))}
