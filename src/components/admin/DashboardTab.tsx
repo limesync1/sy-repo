@@ -3,13 +3,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
-  Handshake, DollarSign, Star, Briefcase, Clock, TrendingUp,
-  ArrowRight, AlertCircle, MapPin, Activity, ChevronRight,
+  Handshake, DollarSign, Star, Briefcase, TrendingUp,
+  ArrowRight, AlertCircle, MapPin, ChevronRight,
 } from "lucide-react";
 import type { Business } from "@/hooks/useDatabase";
 import { useMemo } from "react";
 import { PageHeader, StatCard, EmptyState } from "@/components/admin/shared/AdminUI";
-import { cn } from "@/lib/utils";
 
 interface Props {
   business: Business;
@@ -43,20 +42,6 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
     cancelled: "bg-red-500/10 text-red-700 border-red-500/20",
   };
 
-  const primaryAction = pendingOrders > 0
-    ? {
-        title: `${pendingOrders} afventende ${pendingOrders === 1 ? "bestilling" : "bestillinger"}`,
-        description: "Der ligger nye aftaler klar til godkendelse og planlægning.",
-        cta: "Gå til aftaler",
-        hint: "Bør håndteres først",
-      }
-    : {
-        title: "Driften ser rolig ud i dag",
-        description: "Ingen afventende bestillinger lige nu. Brug overblikket til at følge performance og holde profilen skarp.",
-        cta: "Se aftaler",
-        hint: "Alt er opdateret",
-      };
-
   // Profile completeness
   const completeness = useMemo(() => {
     const checks = [
@@ -77,8 +62,6 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
 
   const missingItems = completeness.checks.filter(c => !c.done);
   const recentPending = recentOrders.filter((order) => order.status === "pending").length;
-  const hasRevenue = revenue > 0;
-  const revenueHint = hasRevenue ? "Samlet omsætning på platformen" : "Ingen omsætning registreret endnu";
 
   return (
     <div className="space-y-5">
@@ -93,85 +76,34 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
         ) : null}
       />
 
-      <section className="surface-admin-strong overflow-hidden rounded-xl border border-border/80">
-        <div className="grid gap-px lg:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.9fr)]">
-          <div className="bg-card px-5 py-5 sm:px-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 rounded-md border border-border bg-secondary px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  <Activity className="h-3.5 w-3.5" />
-                  Fokus nu
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{primaryAction.title}</h3>
-                  <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">{primaryAction.description}</p>
-                </div>
-              </div>
-              <div className="hidden rounded-lg border border-border bg-secondary px-3 py-2 text-right lg:block">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Status</p>
-                <p className="mt-1 text-sm font-medium text-foreground">{primaryAction.hint}</p>
-              </div>
+      {pendingOrders > 0 && (
+        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+          <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kræver opmærksomhed</p>
+              <p className="mt-1 text-base font-semibold text-foreground">{pendingOrders} afventende {pendingOrders === 1 ? "bestilling" : "bestillinger"}</p>
+              <p className="mt-1 text-sm text-muted-foreground">Nye aftaler ligger klar til gennemgang.</p>
             </div>
-
-            <div className="mt-5 flex flex-wrap items-center gap-2.5">
-              <Button className="h-9 rounded-lg px-4 text-sm" onClick={() => onNavigate?.("orders")}>
-                {primaryAction.cta}
-                <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
-              <Button variant="outline" className="h-9 rounded-lg px-4 text-sm" onClick={() => onNavigate?.("services")}>
-                Se services
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid gap-px bg-border/70 sm:grid-cols-3 lg:grid-cols-1">
-            <div className="bg-card px-4 py-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Afventer</p>
-              <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground tabular-nums">{pendingOrders}</p>
-              <p className="mt-1 text-xs text-muted-foreground">Bestillinger der skal håndteres nu</p>
-            </div>
-            <div className="bg-card px-4 py-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Seneste aktivitet</p>
-              <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground tabular-nums">{recentOrders.length}</p>
-              <p className="mt-1 text-xs text-muted-foreground">Vises i listen nedenfor</p>
-            </div>
-            <div className="bg-card px-4 py-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Profil</p>
-              <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground tabular-nums">{completeness.pct}%</p>
-              <p className="mt-1 text-xs text-muted-foreground">Klar til at tiltrække flere bookinger</p>
-            </div>
-          </div>
-        </div>
-      </section>
+            <Button className="h-9 rounded-lg px-4 text-sm sm:shrink-0" onClick={() => onNavigate?.("orders")}>
+              Gå til aftaler
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-3 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
         <section className="space-y-3">
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-12">
-            <Card className="surface-admin-strong rounded-xl border-border/80 shadow-sm md:col-span-2 xl:col-span-6">
-              <CardContent className="p-4 sm:p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Primært nøgletal</p>
-                    <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-[2rem]">{revenue.toLocaleString("da-DK")} kr</p>
-                    <p className="mt-2 text-sm text-muted-foreground">{revenueHint}</p>
-                  </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-secondary text-foreground [&_svg]:h-5 [&_svg]:w-5">
-                    <DollarSign />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {stats.slice(1).map((stat) => (
-              <div key={stat.label} className="xl:col-span-3">
-                <StatCard
-                  label={stat.label}
-                  value={stat.value}
-                  icon={stat.icon}
-                  tone={stat.tone}
-                  hint={stat.hint}
-                />
-              </div>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {stats.map((stat) => (
+              <StatCard
+                key={stat.label}
+                label={stat.label}
+                value={stat.value}
+                icon={stat.icon}
+                tone={stat.tone}
+                hint={stat.hint}
+              />
             ))}
           </div>
 
@@ -205,7 +137,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Badge className={cn("w-fit border px-2 py-0.5 text-xs font-medium", statusColors[order.status] || "") }>
+                      <Badge className={`${statusColors[order.status] || ""} w-fit border px-2 py-0.5 text-xs font-medium`}>
                         {statusLabels[order.status] || order.status}
                       </Badge>
                       {order.status === "pending" && <AlertCircle className="h-3.5 w-3.5 text-muted-foreground" />}
@@ -236,7 +168,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-semibold text-foreground">Hurtige handlinger</h3>
-                  <p className="mt-0.5 text-xs text-muted-foreground">Genveje til det du oftest skal bruge i driften.</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">De vigtigste genveje i panelet.</p>
                 </div>
               </div>
 
@@ -244,7 +176,6 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
                 {[
                   { label: "Tilføj service", meta: "Opdater dit tilbud", icon: Briefcase, tab: "services" },
                   { label: "Se bestillinger", meta: `${recentPending} afventer svar`, icon: Handshake, tab: "orders" },
-                  { label: "Anmeldelser", meta: reviewsCount > 0 ? `${reviewsCount} anmeldelser` : "Ingen anmeldelser endnu", icon: Star, tab: "reviews" },
                   { label: "Indstillinger", meta: "Profil, kontakt og side", icon: MapPin, tab: "settings" },
                 ].map((action) => (
                   <button
@@ -297,6 +228,31 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
               </CardContent>
             </Card>
           )}
+
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Kort status</h3>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Et hurtigt billede af driften lige nu.</p>
+                </div>
+              </div>
+              <div className="mt-4 space-y-2 text-sm">
+                <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
+                  <span className="text-muted-foreground">Afventende</span>
+                  <span className="font-semibold text-foreground tabular-nums">{pendingOrders}</span>
+                </div>
+                <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
+                  <span className="text-muted-foreground">Anmeldelser</span>
+                  <span className="font-semibold text-foreground tabular-nums">{reviewsCount}</span>
+                </div>
+                <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
+                  <span className="text-muted-foreground">Seneste liste</span>
+                  <span className="font-semibold text-foreground tabular-nums">{recentOrders.length}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </section>
       </div>
     </div>
