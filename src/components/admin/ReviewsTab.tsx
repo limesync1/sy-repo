@@ -93,7 +93,7 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
                 </div>
                 <div className="hidden sm:flex sm:min-w-[92px] sm:justify-center">
                   <InsightPill>
-                    <Star className="h-3 w-3 fill-foreground text-foreground" />
+                      <Star className="h-3 w-3 text-muted-foreground" />
                     {review.rating.toFixed(1)}
                   </InsightPill>
                 </div>

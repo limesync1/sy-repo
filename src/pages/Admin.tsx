@@ -193,18 +193,18 @@ const AdminDashboard = () => {
         <div className="fixed inset-0 z-40 bg-foreground/35 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[252px] flex-col border-r border-white/10 bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-4">
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[252px] flex-col border-r border-white/8 bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-white/8 px-4">
           <Link to="/" className="flex items-center gap-2.5 text-white">
             <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-5" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/60">Business</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/52">Business</span>
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="rounded-md p-1 text-white/50 hover:text-white lg:hidden">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="border-b border-white/10 px-4 py-4">
+        <div className="border-b border-white/8 px-4 py-4">
           <div className="flex items-start gap-3">
             {business.logo_url ? (
               <img src={business.logo_url} alt="" className="h-9 w-9 shrink-0 rounded-md border border-white/10 bg-white/5 object-contain p-1" />
@@ -230,8 +230,8 @@ const AdminDashboard = () => {
                   const isActive = activeTab === item.value;
                   const baseClasses = `group flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors ${
                     isActive
-                      ? "bg-white text-foreground shadow-sm"
-                      : "text-white/65 hover:bg-white/[0.04] hover:text-white"
+                      ? "bg-white/[0.08] text-white"
+                      : "text-white/62 hover:bg-white/[0.04] hover:text-white"
                   }`;
                   if (item.href) {
                     return (
@@ -263,14 +263,14 @@ const AdminDashboard = () => {
           <div className="space-y-1">
             <Link
               to={`/v/${business.slug}`}
-              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-[13px] font-medium text-white/65 transition-colors hover:bg-white/[0.04] hover:text-white"
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-[13px] font-medium text-white/62 transition-colors hover:bg-white/[0.04] hover:text-white"
             >
               <ExternalLink className="h-4 w-4 shrink-0" />
               Se din side
             </Link>
             <button
               onClick={signOut}
-              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-[13px] font-medium text-white/65 transition-colors hover:bg-white/[0.04] hover:text-white"
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-[13px] font-medium text-white/62 transition-colors hover:bg-white/[0.04] hover:text-white"
             >
               <LogOut className="h-4 w-4 shrink-0" />
               Log ud
@@ -287,7 +287,7 @@ const AdminDashboard = () => {
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{currentNav?.section || "Panel"}</p>
             <div className="mt-0.5 flex items-center gap-2">
-              <h1 className="truncate text-[17px] font-semibold text-foreground">{currentNav?.label}</h1>
+              <p className="truncate text-sm font-medium text-foreground">{business.name}</p>
               {currentSectionItems.length > 1 && (
                 <div className="hidden items-center gap-1 rounded-md border border-border bg-card p-1 md:flex">
                   {currentSectionItems.map((item) => {
@@ -317,9 +317,9 @@ const AdminDashboard = () => {
             </div>
           </div>
           <div className="hidden items-center gap-2 lg:flex">
-            <Link to={`/v/${business.slug}`} className="rounded-md border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground">
-              Se virksomhedsside
-            </Link>
+            <div className="rounded-md border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground">
+              {currentNav?.label}
+            </div>
           </div>
         </header>
 
@@ -399,10 +399,10 @@ const CreateBusinessForm = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-      <Card className="w-full max-w-lg shadow-lg">
+    <div className="flex min-h-screen items-center justify-center bg-secondary/40 px-4">
+      <Card className="w-full max-w-lg border-border shadow-none">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10">
+          <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-md bg-secondary">
             <Sparkles className="h-6 w-6 text-accent" />
           </div>
           <CardTitle className="text-xl">Opret din virksomhed</CardTitle>
@@ -416,9 +416,9 @@ const CreateBusinessForm = () => {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {CATEGORIES.map((c) => (
                 <button key={c} type="button" onClick={() => toggleCategory(c)}
-                  className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-3 text-center transition-all ${
+                  className={`flex flex-col items-center gap-1.5 rounded-md border px-3 py-3 text-center transition-colors ${
                     selectedCategories.includes(c)
-                      ? "border-foreground bg-foreground/5 shadow-sm"
+                      ? "border-foreground bg-secondary"
                       : "border-border bg-card hover:border-foreground/30"
                   }`}>
                   <span className="text-xl">{CATEGORY_ICONS[c] || "📋"}</span>
@@ -574,10 +574,10 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
             <p className="text-[11px] text-muted-foreground">{service.unit ? `pr. ${service.unit}` : "pris efter opsætning"}</p>
           </div>
           <div className="flex gap-1">
-            <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-7 rounded-md px-2.5 text-[11px]">
+            <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-8 rounded-md px-2.5 text-[11px]">
               {editing ? "Luk" : "Rediger"}
             </Button>
-            <Button variant="ghost" size="sm" onClick={onDelete} className="h-7 w-7 rounded-md p-0 hover:bg-destructive/10">
+            <Button variant="ghost" size="sm" onClick={onDelete} className="h-8 w-8 rounded-md p-0 hover:bg-destructive/10">
               <Trash2 className="h-3.5 w-3.5 text-destructive" />
             </Button>
           </div>
@@ -604,12 +604,12 @@ const CalculatorPreview = ({ steps }: { steps: any[] }) => {
   if (steps.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-accent/20 bg-accent/5 p-4">
-      <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-accent">
+    <div className="rounded-md border border-border bg-secondary/20 p-3">
+      <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
         <Calculator className="h-4 w-4" />
         Forhåndsvisning
       </div>
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
+      <div className="overflow-hidden rounded-md border border-border bg-card">
         {steps.filter(s => s.label).map((step, idx) => {
           const stepTotal = (values[idx] || 0) * (parseFloat(step.price_per_unit) || 0);
           return (
@@ -619,7 +619,7 @@ const CalculatorPreview = ({ steps }: { steps: any[] }) => {
                 <div className="text-xs text-muted-foreground">{parseFloat(step.price_per_unit) || 0} kr / {step.unit || "stk"}</div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-sm font-semibold text-foreground">
+                <span className="rounded-md border border-border bg-secondary px-3 py-1.5 text-sm font-semibold text-foreground">
                   {values[idx] || 0} {step.unit || "stk"}
                 </span>
                 <span className="w-16 text-right text-sm font-semibold text-foreground">{stepTotal} kr</span>
@@ -761,7 +761,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                 <FieldLabel required>Kategori</FieldLabel>
                 {!customCategory ? (
                   <Select value={serviceCategory} onValueChange={(value) => { setServiceCategory(value); setSubcategory(""); setCustomSubcategory(false); }}>
-                    <SelectTrigger className="h-8 rounded-md bg-card text-xs">
+                    <SelectTrigger className="h-9 rounded-md bg-background text-xs">
                       <SelectValue placeholder="Vælg kategori" />
                     </SelectTrigger>
                     <SelectContent>
@@ -771,7 +771,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                     </SelectContent>
                   </Select>
                 ) : (
-                  <Input value={serviceCategory} onChange={(e) => setServiceCategory(e.target.value)} placeholder="Skriv kategori" className="h-8" />
+                  <Input value={serviceCategory} onChange={(e) => setServiceCategory(e.target.value)} placeholder="Skriv kategori" className="h-9 bg-background" />
                 )}
                 <button type="button" onClick={() => { setCustomCategory((prev) => !prev); setServiceCategory(""); }} className="mt-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground">
                   {customCategory ? "Vælg fra listen" : "Skriv egen kategori"}
@@ -781,7 +781,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                 <FieldLabel>Underkategori</FieldLabel>
                 {subcategoryOptions.length > 0 && !customSubcategory ? (
                   <Select value={subcategory} onValueChange={setSubcategory}>
-                    <SelectTrigger className="h-8 rounded-md bg-card text-xs">
+                    <SelectTrigger className="h-9 rounded-md bg-background text-xs">
                       <SelectValue placeholder="Vælg underkategori" />
                     </SelectTrigger>
                     <SelectContent>
@@ -791,7 +791,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                     </SelectContent>
                   </Select>
                 ) : (
-                  <Input value={subcategory} onChange={(e) => setSubcategory(e.target.value)} placeholder="Fx Kontorrengøring" className="h-8" />
+                  <Input value={subcategory} onChange={(e) => setSubcategory(e.target.value)} placeholder="Fx Kontorrengøring" className="h-9 bg-background" />
                 )}
                 {subcategoryOptions.length > 0 && (
                   <button type="button" onClick={() => { setCustomSubcategory((prev) => !prev); setSubcategory(""); }} className="mt-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground">
@@ -801,7 +801,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
               </div>
               <div className="md:col-span-2">
                 <FieldLabel required>Servicenavn</FieldLabel>
-                <Input placeholder="Fx Rengøring af kontor" value={name} onChange={(e) => setName(e.target.value)} className="h-8" />
+                <Input placeholder="Fx Rengøring af kontor" value={name} onChange={(e) => setName(e.target.value)} className="h-9 bg-background" />
                 {productSuggestions.length > 0 && !name && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {productSuggestions.map((suggestion) => (
@@ -842,12 +842,12 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
                     <FieldLabel>{pricingType === "fast_pris" ? "Pris (kr)" : "Timepris (kr)"}</FieldLabel>
-                    <Input type="number" placeholder="0" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} className="h-8" />
+                    <Input type="number" placeholder="0" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} className="h-9 bg-background" />
                   </div>
                   {pricingType === "timepris" && (
                     <div>
                       <FieldLabel>Enhed</FieldLabel>
-                      <Input placeholder="Fx timer" value={unit} onChange={(e) => setUnit(e.target.value)} className="h-8" />
+                      <Input placeholder="Fx timer" value={unit} onChange={(e) => setUnit(e.target.value)} className="h-9 bg-background" />
                     </div>
                   )}
                 </div>
@@ -889,7 +889,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
 
                 <div className="flex items-center justify-between">
                   <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{steps.length} trin</p>
-                  <Button variant="outline" size="sm" onClick={addStep} className="h-8 rounded-md text-[11px]">
+                    <Button variant="outline" size="sm" onClick={addStep} className="h-9 rounded-md text-[11px]">
                     <Plus className="mr-1.5 h-3.5 w-3.5" /> Tilføj trin
                   </Button>
                 </div>
@@ -905,11 +905,11 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                     <div className="grid gap-3 md:grid-cols-2">
                       <div>
                         <FieldLabel>Navn</FieldLabel>
-                        <Input value={step.label} onChange={(e) => updateStep(i, "label", e.target.value)} className="h-8" />
+                        <Input value={step.label} onChange={(e) => updateStep(i, "label", e.target.value)} className="h-9 bg-background" />
                       </div>
                       <div>
                         <FieldLabel>Enhed</FieldLabel>
-                        <Input value={step.unit} onChange={(e) => updateStep(i, "unit", e.target.value)} className="h-8" />
+                        <Input value={step.unit} onChange={(e) => updateStep(i, "unit", e.target.value)} className="h-9 bg-background" />
                       </div>
                     </div>
                     <div className="mt-3 grid gap-3 sm:grid-cols-4">
@@ -921,7 +921,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                       ].map((field) => (
                         <div key={field.field}>
                           <FieldLabel>{field.label}</FieldLabel>
-                          <Input type="number" value={field.value} onChange={(e) => updateStep(i, field.field, e.target.value)} className="h-8" />
+                          <Input type="number" value={field.value} onChange={(e) => updateStep(i, field.field, e.target.value)} className="h-9 bg-background" />
                         </div>
                       ))}
                     </div>
@@ -969,7 +969,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border/80 pt-3">
-        <Button variant="ghost" onClick={onClose} className="h-8 rounded-md text-xs">Annuller</Button>
+        <Button variant="ghost" onClick={onClose} className="h-9 rounded-md text-xs">Annuller</Button>
         <PrimaryButton onClick={handleSave}>
           {existingService ? "Gem ændringer" : "Opret service"}
         </PrimaryButton>
@@ -1248,11 +1248,11 @@ const SettingsTab = ({ business }: { business: any }) => {
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Logo</label>
+              <FieldLabel>Logo</FieldLabel>
               <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Coverbillede</label>
+              <FieldLabel>Coverbillede</FieldLabel>
               <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-48" />
             </div>
           </div>
@@ -1336,7 +1336,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                     placeholder={isWeekend ? "Lukket" : "Fx 08:00 - 16:00"}
                     value={openHours[day] || ""}
                     onChange={(e) => setOpenHours({ ...openHours, [day]: e.target.value })}
-                    className="flex-1 h-8 text-sm bg-card"
+                    className="h-9 flex-1 bg-background text-sm"
                   />
                   {openHours[day] && (
                     <button onClick={() => { const h = { ...openHours }; delete h[day]; setOpenHours(h); }}

@@ -257,7 +257,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                 </div>
                 <div className="flex-1 text-[11px] text-muted-foreground">
                   <p className="font-medium text-foreground">Profilbillede</p>
-                  <p>Hold visningen enkel og genkendelig på tværs af panelet.</p>
+                  <p>Et roligt billede gør kunden lettere at genkende i lister og detaljer.</p>
                   {avatarUrl && (
                     <button type="button" onClick={() => setAvatarUrl(null)} className="mt-1 text-[11px] text-muted-foreground underline-offset-2 transition-colors hover:text-destructive hover:underline">
                       Fjern billede
@@ -292,11 +292,11 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                   </div>
                   <div>
                     <FieldLabel required>Firmanavn</FieldLabel>
-                    <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Hansen ApS" className="h-8" />
+                    <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Hansen ApS" className="h-9 bg-background" />
                   </div>
                   <div>
                     <FieldLabel>Kontaktperson</FieldLabel>
-                    <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Mette Hansen" className="h-8" />
+                    <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Mette Hansen" className="h-9 bg-background" />
                   </div>
                 </div>
               </SectionCard>
@@ -306,7 +306,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
               <SectionCard title="Kundeoplysninger" description="Navn og kontakt på kunden.">
                 <div>
                   <FieldLabel required>Navn</FieldLabel>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Mette Hansen" className="h-8" />
+                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Mette Hansen" className="h-9 bg-background" />
                 </div>
               </SectionCard>
             )}
@@ -315,11 +315,11 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                   <FieldLabel required>Email</FieldLabel>
-                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="kunde@email.dk" className="h-8" />
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="kunde@email.dk" className="h-9 bg-background" />
                 </div>
                 <div>
                   <FieldLabel>Telefon</FieldLabel>
-                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-8" />
+                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-9 bg-background" />
                 </div>
                 <div className="sm:col-span-2">
                   <FieldLabel>Adresse</FieldLabel>
@@ -335,11 +335,11 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                   <>
                     <div>
                       <FieldLabel>Postnr.</FieldLabel>
-                      <Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-8" />
+                        <Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-9 bg-background" />
                     </div>
                     <div>
                       <FieldLabel>By</FieldLabel>
-                      <Input value={city} onChange={(e) => setCity(e.target.value)} className="h-8" />
+                        <Input value={city} onChange={(e) => setCity(e.target.value)} className="h-9 bg-background" />
                     </div>
                   </>
                 )}

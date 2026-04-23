@@ -123,7 +123,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Anders Jensen"
-                  className="h-8"
+                  className="h-9 bg-background"
                 />
               </div>
               <div>
@@ -133,7 +133,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="anders@example.dk"
-                  className="h-8"
+                  className="h-9 bg-background"
                 />
               </div>
               <div>
@@ -142,7 +142,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="12 34 56 78"
-                  className="h-8"
+                  className="h-9 bg-background"
                 />
               </div>
               <div>
@@ -151,7 +151,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Chauffør, rengøringsmedarbejder…"
-                  className="h-8"
+                  className="h-9 bg-background"
                 />
               </div>
             </div>
@@ -173,7 +173,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
       {activeEmployees.length > 0 && (
           <SectionCard title="Aktive medarbejdere" description="Aktive profiler med adgang, kontaktoplysninger og hurtige handlinger.">
           <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Aktive</h3>
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Aktive</h3>
             <InsightPill>{activeEmployees.length}</InsightPill>
           </div>
           <AppList>
@@ -194,7 +194,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
       {inactiveEmployees.length > 0 && (
           <SectionCard title="Deaktiverede medarbejdere" description="Profiler uden aktiv adgang, men stadig bevaret i historikken.">
           <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Deaktiverede</h3>
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Deaktiverede</h3>
             <InsightPill>{inactiveEmployees.length}</InsightPill>
           </div>
           <AppList>
@@ -357,11 +357,11 @@ const EmployeeRow = ({
                 </span>
               )}
             </div>
-            <div className="mt-2 flex items-center gap-2">
+            <div className="mt-2 flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => setPickerOpen((v) => !v)}
-                className="text-[10px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1 underline-offset-2 hover:underline"
+                className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[10px] text-muted-foreground transition-colors hover:text-foreground"
               >
                 <span
                   className="inline-block h-2.5 w-2.5 rounded-full border"
@@ -373,7 +373,7 @@ const EmployeeRow = ({
                 <button
                   type="button"
                   onClick={handleRemoveAvatar}
-                  className="text-[10px] text-muted-foreground hover:text-destructive underline-offset-2 hover:underline"
+                  className="rounded-md border border-border bg-background px-2 py-1 text-[10px] text-muted-foreground transition-colors hover:text-destructive"
                 >
                   Fjern billede
                 </button>
@@ -446,7 +446,7 @@ const EmployeeRow = ({
       </AppListRow>
 
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
               <Pencil className="h-4 w-4 text-muted-foreground" />
@@ -459,7 +459,7 @@ const EmployeeRow = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="sm:col-span-2">
               <FieldLabel>Navn</FieldLabel>
-              <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-9" />
+              <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-9 bg-background" />
             </div>
             <div className="sm:col-span-2">
               <FieldLabel>Email</FieldLabel>
@@ -467,7 +467,7 @@ const EmployeeRow = ({
                 type="email"
                 value={editEmail}
                 onChange={(e) => setEditEmail(e.target.value)}
-                className="h-9"
+                className="h-9 bg-background"
               />
               <p className="mt-1 text-[11px] text-muted-foreground">
                 Email opdateres på medarbejder-profilen, men ændrer ikke login-emailen.
@@ -475,11 +475,11 @@ const EmployeeRow = ({
             </div>
             <div>
               <FieldLabel>Telefon</FieldLabel>
-              <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-9" />
+              <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-9 bg-background" />
             </div>
             <div>
               <FieldLabel>Titel</FieldLabel>
-              <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="h-9" />
+              <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="h-9 bg-background" />
             </div>
           </div>
           <DialogFooter className="gap-2">
