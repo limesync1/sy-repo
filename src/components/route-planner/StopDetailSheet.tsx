@@ -252,10 +252,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                         const svc = item.services || {};
                         const serviceDescription = svc.description || null;
                         const category = [svc.service_category, svc.subcategory].filter(Boolean).join(" · ");
-                        const pricingLabel =
-                          svc.pricing_type === "timepris" ? "Timepris" :
-                          svc.pricing_type === "prisberegner" ? "Prisberegner" :
-                          svc.pricing_type === "fast_pris" ? "Fast pris" : null;
+                        const effectiveInterval = itemInterval || recurringInterval || null;
                         return (
                           <div key={i} className="px-3 py-2.5">
                             <div className="flex items-start gap-3">
@@ -278,8 +275,11 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                                   <span className="text-sm font-semibold shrink-0">{Math.round(Number(item.total_price))} kr</span>
                                 </div>
                                 <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                                  {pricingLabel && (
-                                    <Badge variant="outline" className="text-[10px] h-4 px-1.5">{pricingLabel}</Badge>
+                                  {effectiveInterval && (
+                                    <Badge variant="outline" className="text-[10px] h-4 px-1.5 gap-1">
+                                      <Repeat className="h-2.5 w-2.5" />
+                                      {INTERVAL_LABELS[effectiveInterval] || effectiveInterval}
+                                    </Badge>
                                   )}
                                   {hours !== null ? (
                                     <span className="text-[11px] text-muted-foreground">
@@ -287,12 +287,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                                     </span>
                                   ) : item.quantity > 1 && (
                                     <span className="text-[11px] text-muted-foreground">{item.quantity} × {Math.round(Number(item.unit_price))} kr</span>
-                                  )}
-                                  {itemInterval && (
-                                    <Badge variant="secondary" className="text-[10px] gap-0.5 h-4 px-1.5">
-                                      <Repeat className="h-2.5 w-2.5" />
-                                      {INTERVAL_LABELS[itemInterval] || itemInterval}
-                                    </Badge>
                                   )}
                                 </div>
                               </div>
