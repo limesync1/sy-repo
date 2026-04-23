@@ -66,7 +66,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
   return (
     <div className="space-y-5">
       <PageHeader
-        title="Overblik"
+        title={business.name}
         description={<>Her er status for <span className="font-medium text-foreground">{business.name}</span>.</>}
         action={business.slug ? (
           <a href={`/biz/${business.slug}`} target="_blank" rel="noopener noreferrer"
