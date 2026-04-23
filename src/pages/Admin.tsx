@@ -204,7 +204,7 @@ const AdminDashboard = () => {
           </button>
         </div>
 
-        <div className="border-b border-white/10 px-4 py-3">
+        <div className="border-b border-white/10 px-4 py-4">
           <div className="flex items-start gap-3">
             {business.logo_url ? (
               <img src={business.logo_url} alt="" className="h-9 w-9 shrink-0 rounded-md border border-white/10 bg-white/5 object-contain p-1" />
@@ -280,14 +280,14 @@ const AdminDashboard = () => {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/96 px-4 backdrop-blur sm:px-5 lg:px-6">
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-background/96 px-4 backdrop-blur sm:px-5 lg:px-6">
           <button onClick={() => setSidebarOpen(true)} className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden">
             <Menu className="h-5 w-5" />
           </button>
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{currentNav?.section || "Panel"}</p>
             <div className="mt-0.5 flex items-center gap-2">
-              <h1 className="truncate text-[15px] font-semibold text-foreground">{currentNav?.label}</h1>
+              <h1 className="truncate text-[17px] font-semibold text-foreground">{currentNav?.label}</h1>
               {currentSectionItems.length > 1 && (
                 <div className="hidden items-center gap-1 rounded-md border border-border bg-card p-1 md:flex">
                   {currentSectionItems.map((item) => {
