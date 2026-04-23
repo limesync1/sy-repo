@@ -10,12 +10,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useState } from "react";
 import {
   Plus, Trash2, LogOut,
   Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart,
   Star, Settings, Menu, X, ExternalLink, Bell, Users, Route, Contact, ChevronRight,
+  CheckCircle2, MapPin, FolderTree, Clock3, Eye, Filter,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import DashboardTab from "@/components/admin/DashboardTab";
@@ -23,7 +26,7 @@ import ReviewsTab from "@/components/admin/ReviewsTab";
 import AftaleTab from "@/components/admin/AftaleTab";
 import EmployeesTab from "@/components/admin/EmployeesTab";
 import CustomersTab from "@/components/admin/CustomersTab";
-import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState, AppList, AppListRow, InsightPill } from "@/components/admin/shared/AdminUI";
+import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState, AppList, AppListRow, InsightPill, SearchInput, StatCard } from "@/components/admin/shared/AdminUI";
 
 /* ─── Constants ─── */
 const CATEGORIES = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS", "Elektriker", "Sikkerhed"];
