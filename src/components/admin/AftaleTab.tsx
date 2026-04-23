@@ -557,7 +557,7 @@ const LinkedSubscriptionInfo = ({ orderId, subscriptions }: { orderId: string; s
 /* ═══════════════════════════════════════════════════ */
 /*  Main AftaleTab — unified view                     */
 /* ═══════════════════════════════════════════════════ */
-const AftaleTab = ({ businessId }: { businessId: string }) => {
+const AftaleTab = ({ businessId, businessName }: { businessId: string; businessName: string }) => {
   const { data: orders, isLoading } = useOrders(businessId);
   const { data: services } = useServices(businessId);
   const { data: subscriptions } = useBusinessSubscriptions(businessId);
@@ -1108,7 +1108,7 @@ const AftaleTab = ({ businessId }: { businessId: string }) => {
         open={createOrderOpen}
         onOpenChange={setCreateOrderOpen}
         businessId={businessId}
-        businessName=""
+        businessName={businessName}
       />
     </div>
   );
