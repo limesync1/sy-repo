@@ -229,30 +229,6 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
             </Card>
           )}
 
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-            <CardContent className="p-4 sm:p-5">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground">Kort status</h3>
-                  <p className="mt-0.5 text-xs text-muted-foreground">Et hurtigt billede af driften lige nu.</p>
-                </div>
-              </div>
-              <div className="mt-4 space-y-2 text-sm">
-                <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
-                  <span className="text-muted-foreground">Afventende</span>
-                  <span className="font-semibold text-foreground tabular-nums">{pendingOrders}</span>
-                </div>
-                <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
-                  <span className="text-muted-foreground">Anmeldelser</span>
-                  <span className="font-semibold text-foreground tabular-nums">{reviewsCount}</span>
-                </div>
-                <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
-                  <span className="text-muted-foreground">Seneste liste</span>
-                  <span className="font-semibold text-foreground tabular-nums">{recentOrders.length}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </section>
       </div>
     </div>
