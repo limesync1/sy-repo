@@ -887,18 +887,18 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       {currentStep === 2 && (
         <div className="space-y-5">
           <div>
-            <h4 className="text-base font-semibold text-foreground">Service detaljer</h4>
-            <p className="mt-1 text-sm text-muted-foreground">Beskriv din service så kunderne ved hvad de får</p>
+            <h4 className="text-sm font-semibold text-foreground">Detaljer</h4>
+            <p className="mt-1 text-xs text-muted-foreground">Beskriv servicen kort og præcist.</p>
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">Servicenavn</label>
-            <Input placeholder="Fx Rengøring af kontor" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-11 text-base" />
+            <Input placeholder="Fx Rengøring af kontor" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-10" />
             {productSuggestions.length > 0 && !name && (
               <div className="mt-2.5 flex flex-wrap gap-2">
-                <span className="text-sm text-muted-foreground mr-1">Forslag:</span>
+                <span className="text-xs text-muted-foreground mr-1">Forslag:</span>
                 {productSuggestions.map((s) => (
                   <button key={s} type="button" onClick={() => setName(s)}
-                    className="rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-colors">{s}</button>
+                    className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-colors">{s}</button>
                 ))}
               </div>
             )}
@@ -914,28 +914,27 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
         </div>
       )}
 
-      {/* Step 3: Pricing — big cards */}
+      {/* Step 3: Pricing */}
       {currentStep === 3 && (
         <div className="space-y-5">
           <div>
-            <h4 className="text-base font-semibold text-foreground">Hvordan vil du prissætte?</h4>
-            <p className="mt-1 text-sm text-muted-foreground">Vælg den prismodel der passer bedst til din service</p>
+            <h4 className="text-sm font-semibold text-foreground">Pris</h4>
+            <p className="mt-1 text-xs text-muted-foreground">Vælg den prismodel der passer bedst til servicen.</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {[
-              { value: "fast_pris", label: "Fast pris", desc: "Kunden betaler én fast pris for hele servicen", icon: "💰" },
-              { value: "timepris", label: "Timepris", desc: "Kunden betaler pr. time brugt på opgaven", icon: "⏱️" },
-              { value: "prisberegner", label: "Prisberegner", desc: "Kunden sammensætter selv og ser prisen live", icon: "🧮" },
+              { value: "fast_pris", label: "Fast pris", desc: "Én fast pris for hele servicen" },
+              { value: "timepris", label: "Timepris", desc: "Pris pr. time" },
+              { value: "prisberegner", label: "Prisberegner", desc: "Pris ud fra kundens valg" },
             ].map((opt) => (
               <button key={opt.value} type="button" onClick={() => setPricingType(opt.value)}
-                className={`rounded-xl border-2 p-5 text-left transition-all ${
+                className={`rounded-lg border p-3.5 text-left transition-colors ${
                   pricingType === opt.value
-                    ? "border-foreground bg-foreground/5 shadow-sm"
-                    : "border-border bg-card hover:border-foreground/30 hover:shadow-sm"
+                    ? "border-foreground bg-secondary"
+                    : "border-border bg-card hover:border-foreground/30"
                 }`}>
-                <span className="text-2xl">{opt.icon}</span>
-                <span className="mt-2 block text-sm font-semibold text-foreground">{opt.label}</span>
-                <span className="mt-1 block text-sm text-muted-foreground leading-snug">{opt.desc}</span>
+                <span className="block text-sm font-semibold text-foreground">{opt.label}</span>
+                <span className="mt-1 block text-xs text-muted-foreground leading-5">{opt.desc}</span>
               </button>
             ))}
           </div>
@@ -963,22 +962,22 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       {currentStep === 4 && pricingType === "prisberegner" && (
         <div className="space-y-5">
           <div>
-            <h4 className="text-base font-semibold text-foreground">Opsæt prisberegner</h4>
-            <p className="mt-1 text-sm text-muted-foreground">Tilføj de trin kunden skal igennem for at beregne prisen</p>
+            <h4 className="text-sm font-semibold text-foreground">Prisberegner</h4>
+            <p className="mt-1 text-xs text-muted-foreground">Tilføj de trin kunden bruger til at beregne prisen.</p>
           </div>
 
           {availableTemplates.length > 0 && steps.length === 0 && (
-            <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+            <div className="rounded-lg border border-border bg-card p-4 space-y-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-amber-500" />
+                <Sparkles className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-semibold text-foreground">Kom hurtigt i gang med en skabelon</span>
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
                 {availableTemplates.map((t) => (
                   <button key={t.label} type="button" onClick={() => applyTemplate(t)}
-                    className="rounded-xl border border-border bg-muted/30 p-4 text-left transition-all hover:border-foreground/30 hover:shadow-sm">
+                    className="rounded-lg border border-border bg-muted/30 p-3 text-left transition-colors hover:border-foreground/30">
                     <span className="block text-sm font-semibold text-foreground">{t.label}</span>
-                    <span className="mt-1 block text-sm text-muted-foreground">{t.steps.length} trin · {t.steps.map(s => s.unit).filter((v, i, a) => a.indexOf(v) === i).join(", ")}</span>
+                    <span className="mt-1 block text-xs text-muted-foreground">{t.steps.length} trin · {t.steps.map(s => s.unit).filter((v, i, a) => a.indexOf(v) === i).join(", ")}</span>
                   </button>
                 ))}
               </div>
