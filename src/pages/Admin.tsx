@@ -464,11 +464,6 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser services...</p>;
 
-  const CATEGORY_ICONS: Record<string, string> = {
-    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
-    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
-  };
-
   return (
     <div className="space-y-5">
       <PageHeader
@@ -485,30 +480,39 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
       {uniqueCategories.length > 1 && (
         <div className="flex flex-wrap gap-1.5">
           <button onClick={() => setFilterCategory("")}
-            className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${!filterCategory ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
+            className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${!filterCategory ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
             Alle
           </button>
           {uniqueCategories.map((cat) => (
             <button key={cat} onClick={() => setFilterCategory(filterCategory === cat ? "" : cat)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${filterCategory === cat ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
-              <span>{CATEGORY_ICONS[cat] || "📋"}</span> {cat}
+              className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${filterCategory === cat ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
+              {cat}
             </button>
           ))}
         </div>
       )}
 
       {showForm && (
-        <Card className="rounded-xl shadow-md border-accent/20 bg-gradient-to-b from-accent/[0.03] to-transparent">
-          <CardContent className="p-5 sm:p-6">
+        <Card className="rounded-lg border-border shadow-sm">
+          <CardContent className="p-4 sm:p-5">
             <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />
           </CardContent>
         </Card>
       )}
 
       <div className="space-y-2.5">
-        {filtered?.map((s: any) => (
-          <ServiceRow key={s.id} service={s} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
-        ))}
+        {filtered && filtered.length > 0 && (
+          <AppList>
+            <div className="grid grid-cols-[minmax(0,1.4fr)_auto_auto] gap-3 border-b border-border bg-secondary/35 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              <span>Service</span>
+              <span>Type</span>
+              <span className="text-right">Pris</span>
+            </div>
+            {filtered.map((s: any) => (
+              <ServiceRow key={s.id} service={s} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
+            ))}
+          </AppList>
+        )}
         {(!filtered || filtered.length === 0) && !showForm && (
           <EmptyState
             icon={<Wrench />}
@@ -529,93 +533,55 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
 const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCount: number; onDelete: () => void }) => {
   const [editing, setEditing] = useState(false);
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
-  const pricingIcons: Record<string, string> = { fast_pris: "💰", timepris: "⏱️", prisberegner: "🧮" };
-  const CATEGORY_ICONS: Record<string, string> = {
-    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
-    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
-  };
 
   const intervals = service.interval_options || [];
   const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
 
   return (
-    <Card className="rounded-xl shadow-sm border-border overflow-hidden transition-shadow hover:shadow-md">
-      <CardContent className="p-0">
-        <div className="flex items-stretch">
-          {/* Left accent strip with category icon */}
-          <div className="flex w-12 shrink-0 flex-col items-center justify-center bg-secondary/50 border-r border-border">
-            <span className="text-lg">{CATEGORY_ICONS[service.service_category] || "📋"}</span>
+    <div className="border-b border-border/80 last:border-b-0">
+      <AppListRow className="items-start gap-4 px-3.5 py-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="truncate text-sm font-semibold text-foreground">{service.name}</h3>
+            {service.is_active === false && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-border bg-background text-muted-foreground">Inaktiv</Badge>
+            )}
           </div>
-
-          {/* Main content */}
-          <div className="flex-1 p-3.5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-foreground truncate">{service.name}</h3>
-                  {service.is_active === false && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 rounded border-destructive/30 text-destructive">Inaktiv</Badge>
-                  )}
-                </div>
-                {service.description && (
-                  <p className="mt-0.5 text-xs text-muted-foreground line-clamp-1">{service.description}</p>
-                )}
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-0.5 text-[11px] font-medium text-foreground">
-                    <span className="text-xs">{pricingIcons[service.pricing_type]}</span>
-                    {pricingLabels[service.pricing_type] || service.pricing_type}
-                  </span>
-                  {service.base_price != null && (
-                    <span className="inline-flex items-center rounded-md border border-border bg-card px-2 py-0.5 text-[11px] font-semibold text-foreground">
-                      {service.base_price} kr{service.unit ? ` / ${service.unit}` : ""}
-                    </span>
-                  )}
-                  {service.calculator_steps?.length > 0 && (
-                    <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-0.5 text-[11px] text-muted-foreground">
-                      <Calculator className="h-3 w-3" /> {service.calculator_steps.length} trin
-                    </span>
-                  )}
-                  {service.subcategory && (
-                    <span className="inline-flex items-center rounded-md border border-accent/20 bg-accent/5 px-2 py-0.5 text-[11px] font-medium text-accent">
-                      {service.subcategory}
-                    </span>
-                  )}
-                  {service.service_category && !service.subcategory && (
-                    <span className="inline-flex items-center rounded-md border border-border bg-secondary/50 px-2 py-0.5 text-[11px] text-muted-foreground">
-                      {service.service_category}
-                    </span>
-                  )}
-                  {hasRecurring && (
-                    <span className="inline-flex items-center gap-0.5 rounded-md border border-blue-500/20 bg-blue-500/5 px-2 py-0.5 text-[11px] font-medium text-blue-600">
-                      🔄 Abonnement
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Right side: order count + actions */}
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="text-right hidden sm:block">
-                  <span className="block text-sm font-bold text-foreground">{orderCount}</span>
-                  <span className="block text-[10px] text-muted-foreground">bestillinger</span>
-                </div>
-                <div className="flex gap-1">
-                  <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-7 rounded-lg text-xs px-2.5 border-border hover:bg-secondary">
-                    {editing ? "Luk" : "Rediger"}
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={onDelete} className="h-7 w-7 p-0 rounded-lg hover:bg-destructive/10 transition-colors"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
-                </div>
-              </div>
-            </div>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {[service.service_category, service.subcategory].filter(Boolean).join(" · ") || "Ingen kategori valgt"}
+          </p>
+          {service.description && <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{service.description}</p>}
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {service.calculator_steps?.length > 0 && (
+              <InsightPill><Calculator className="h-3 w-3" /> {service.calculator_steps.length} trin</InsightPill>
+            )}
+            {hasRecurring && <InsightPill>Abonnement muligt</InsightPill>}
+            <InsightPill>{orderCount} bestillinger</InsightPill>
           </div>
         </div>
-      </CardContent>
+        <div className="hidden min-w-[120px] flex-col items-start gap-1 sm:flex">
+          <span className="text-xs font-medium text-foreground">{pricingLabels[service.pricing_type] || service.pricing_type}</span>
+          <span className="text-[11px] text-muted-foreground">{service.unit || "Fast enhed"}</span>
+        </div>
+        <div className="flex min-w-[148px] flex-col items-end gap-2">
+          <div className="text-right">
+            <span className="text-sm font-semibold text-foreground">{service.base_price != null ? `${service.base_price} kr` : "Variabel pris"}</span>
+            <p className="text-[11px] text-muted-foreground">{service.unit ? `pr. ${service.unit}` : "pris efter opsætning"}</p>
+          </div>
+          <div className="flex gap-1">
+            <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-7 rounded-md px-2.5 text-xs">
+              {editing ? "Luk" : "Rediger"}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onDelete} className="h-7 w-7 rounded-md p-0 hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+          </div>
+        </div>
+      </AppListRow>
       {editing && (
-        <div className="border-t border-border bg-secondary/20 p-5">
+        <div className="border-t border-border bg-secondary/18 p-4">
           <ServiceForm businessId={service.business_id} existingService={service} onClose={() => setEditing(false)} />
         </div>
       )}
-    </Card>
+    </div>
   );
 };
 
