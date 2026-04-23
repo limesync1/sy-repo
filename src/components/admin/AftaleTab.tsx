@@ -770,9 +770,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       <PageHeader
         eyebrow="Drift"
         title="Aftaler"
-        description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende services` : ""}. Se hvad der kræver svar, hvad der er i gang, og hvad der er planlagt.`}
+        description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende services` : ""}. Prioritér det der kræver svar først.`}
         action={
-          <Button onClick={() => setCreateOrderOpen(true)} className="h-9 gap-2 rounded-lg">
+          <Button onClick={() => setCreateOrderOpen(true)} className="h-8 gap-2 rounded-md text-sm">
             <ShoppingCart className="h-4 w-4" />Opret bestilling
           </Button>
         }
@@ -780,8 +780,8 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
       {/* Upcoming services alert */}
       {upcomingSubs.length > 0 && (
-        <div className="rounded-lg border border-border bg-card p-4">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="rounded-md border border-border bg-card p-3.5">
+          <div className="mb-2 flex items-center gap-2">
             <CalendarClock className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-semibold text-foreground">Kommende services</span>
           </div>
@@ -821,7 +821,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       )}
 
       {/* Filter tabs */}
-      <div className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-card p-1">
+        <div className="flex gap-1 overflow-x-auto rounded-md border border-border bg-card p-1">
         {[
           { key: "all", label: "Alle" },
           ...(actionNeeded.length > 0 ? [{ key: "action_needed", label: `Kræver handling (${actionNeeded.length})` }] : []),
@@ -832,7 +832,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
           { key: "cancelled", label: "Annullerede" },
         ].map(({ key, label }) => (
           <button key={key} onClick={() => setFilter(key)}
-            className={`relative rounded-md px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
+            className={`relative rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap ${
               filter === key
                 ? "bg-secondary text-foreground"
                 : "text-muted-foreground hover:text-foreground"
@@ -866,12 +866,12 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
             const daysUntilNext = nextDate ? Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
 
             return (
-              <Card key={order.id} className={`admin-panel rounded-lg shadow-sm overflow-hidden transition-all ${
+              <Card key={order.id} className={`admin-panel rounded-md shadow-sm overflow-hidden transition-all ${
                 actions.canRespond ? "border-border bg-secondary/30" : "border-border"
               }`}>
                 {/* Order header */}
                 <button onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
-                  className="w-full text-left px-4 py-3 hover:bg-muted/20 transition-colors">
+                  className="w-full text-left px-3.5 py-2.5 hover:bg-muted/20 transition-colors">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -898,7 +898,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${cfg.bg} ${cfg.color}`}>
+                        <span className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium ${cfg.bg} ${cfg.color}`}>
                         <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
                         {cfg.label}
                       </span>
@@ -912,7 +912,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
                 {/* Expanded content */}
                 {isExpanded && (
-                  <div className="border-t border-border bg-muted/5 px-4 py-4 space-y-4">
+                    <div className="border-t border-border bg-muted/5 px-3.5 py-3.5 space-y-3.5">
                     {/* Contact info */}
                     <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
                       <span className="inline-flex items-center gap-1.5 text-muted-foreground">
@@ -933,7 +933,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
                     {/* Customer note */}
                     {order.notes && (
-                      <div className="flex gap-2 rounded-xl bg-card border border-border px-3.5 py-2.5">
+                      <div className="flex gap-2 rounded-md bg-card border border-border px-3 py-2.5">
                         <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                         <p className="text-sm text-foreground">{order.notes}</p>
                       </div>
@@ -960,17 +960,17 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                         {actions.canRespond && (
                           <>
                             <Button size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("accepted"); }}
-                              className="gap-1.5 rounded-lg text-xs bg-foreground text-background hover:bg-foreground/90">
+                              className="h-8 gap-1.5 rounded-md text-xs bg-foreground text-background hover:bg-foreground/90">
                               <Check className="h-3.5 w-3.5" /> Godkend aftale
                             </Button>
                             <Button variant="outline" size="sm" onClick={(e) => {
                               e.stopPropagation(); initAdjustedItems(order);
                               setRespondingTo(order.id); setResponseType("adjusted");
-                            }} className="gap-1.5 rounded-xl text-xs">
+                            }} className="h-8 gap-1.5 rounded-md text-xs">
                               <Pencil className="h-3.5 w-3.5" /> Tilpas aftale
                             </Button>
                             <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("rejected"); }}
-                              className="gap-1.5 rounded-xl text-xs text-destructive hover:text-destructive hover:bg-destructive/5">
+                              className="h-8 gap-1.5 rounded-md text-xs text-destructive hover:text-destructive hover:bg-destructive/5">
                               <X className="h-3.5 w-3.5" /> Afvis
                             </Button>
                           </>
@@ -979,7 +979,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                         {/* Progress button for confirmed/in_progress */}
                         {actions.canProgress && actions.nextStatus && (
                           <Button size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
-                            className={`gap-1.5 rounded-xl text-xs ${
+                            className={`h-8 gap-1.5 rounded-md text-xs ${
                               actions.nextStatus === "completed" && hasRecurring
                                 ? "bg-accent text-accent-foreground hover:bg-accent/90"
                                 : actions.nextStatus === "completed"
@@ -995,7 +995,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                         {/* Cancel is always available for non-terminal states */}
                         {(order.status === "confirmed" || order.status === "in_progress") && (
                           <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, "cancelled"); }}
-                            className="gap-1.5 rounded-xl text-xs text-destructive hover:text-destructive hover:bg-destructive/5 ml-auto">
+                            className="ml-auto h-8 gap-1.5 rounded-md text-xs text-destructive hover:text-destructive hover:bg-destructive/5">
                             <XCircle className="h-3.5 w-3.5" /> Annuller
                           </Button>
                         )}
@@ -1004,14 +1004,14 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
                     {/* Response form */}
                     {isResponding && (
-                        <div className="rounded-lg border border-border bg-card p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="rounded-md border border-border bg-card p-3.5 space-y-3.5" onClick={(e) => e.stopPropagation()}>
                         <div className="flex gap-2">
                           {(["accepted", "adjusted", "rejected"] as const).map((type) => (
                             <button key={type} onClick={() => {
                               setResponseType(type);
                               if (type === "adjusted" && !adjustedItems[order.id]) initAdjustedItems(order);
                             }}
-                              className={`flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium transition-colors ${
+                              className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors ${
                                 responseType === type
                                   ? type === "accepted" ? "border-foreground bg-foreground text-background"
                                   : type === "rejected" ? "border-destructive bg-destructive text-destructive-foreground"
@@ -1034,7 +1034,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                               onUpdateInterval={updateAdjustedInterval}
                               onUpdateFixedPrice={updateAdjustedFixedPrice}
                             />
-                            <div className="flex items-center justify-between rounded-xl bg-muted/50 px-4 py-3">
+                            <div className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2.5">
                               <div>
                                 <span className="text-xs text-muted-foreground">Kundens pris</span>
                                 <span className="ml-2 text-sm line-through text-muted-foreground">{order.total_amount} kr</span>
@@ -1065,7 +1065,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
                         <div className="flex gap-2">
                            <Button size="sm" onClick={() => handleResponse(order.id)}
-                            className={`rounded-lg text-xs ${
+                            className={`h-8 rounded-md text-xs ${
                               responseType === "accepted" ? "bg-foreground hover:bg-foreground/90 text-background"
                               : responseType === "rejected" ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                               : "bg-foreground text-background hover:bg-foreground/90"
@@ -1075,7 +1075,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                               : `Send forslag – ${roundPrice(getAdjustedTotal(order.id))} kr`}
                           </Button>
                            <Button variant="ghost" size="sm" onClick={() => { setRespondingTo(null); setResponseMessage(""); }}
-                            className="rounded-lg text-xs">Annuller</Button>
+                            className="h-8 rounded-md text-xs">Annuller</Button>
                         </div>
                       </div>
                     )}
@@ -1086,7 +1086,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
           })}
         </AppList>
       ) : (
-        <Card className="rounded-xl border-dashed border-border">
+        <Card className="rounded-md border-dashed border-border">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <div className="mb-3 rounded-xl bg-muted p-2.5">
               <ShoppingCart className="h-6 w-6 text-muted-foreground/40" />

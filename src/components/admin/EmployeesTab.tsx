@@ -23,7 +23,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { PageHeader, PrimaryButton, FieldLabel, SectionCard, EmptyState } from "@/components/admin/shared/AdminUI";
+import { AppList, AppListRow, PageHeader, PrimaryButton, FieldLabel, SectionCard, EmptyState, InsightPill } from "@/components/admin/shared/AdminUI";
 
 interface Props {
   businessId: string;
@@ -95,11 +95,11 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const inactiveEmployees = employees?.filter((e) => !e.is_active) || [];
 
   return (
-    <div className="max-w-5xl space-y-6">
+    <div className="space-y-4.5">
       <PageHeader
         eyebrow="Drift"
         title="Medarbejdere"
-        description="Tilføj medarbejdere — der oprettes automatisk en konto, og de modtager login-oplysninger på email."
+        description="Hold teamet samlet ét sted med samme struktur som resten af panelet."
         action={!showForm ? (
           <PrimaryButton onClick={() => setShowForm(true)} icon={<UserPlus />}>
             Tilføj medarbejder
@@ -156,10 +156,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 />
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Der genereres automatisk en sikker adgangskode, og medarbejderen
-              modtager en email med login-oplysninger og link til medarbejder-appen.
-            </p>
+            <p className="text-xs text-muted-foreground">Der oprettes automatisk login og udsendes adgangsoplysninger.</p>
             <div className="flex justify-end gap-2 pt-1">
               <Button variant="ghost" onClick={resetForm} className="h-9 text-sm">
                 Annuller
@@ -175,11 +172,12 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 
       {/* Active Employees */}
       {activeEmployees.length > 0 && (
-          <SectionCard title="Aktive medarbejdere" description="Hold styr på hvem der kan tage opgaver og har adgang til medarbejder-appen.">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-            Aktive ({activeEmployees.length})
-          </h3>
-          <div className="space-y-2">
+          <SectionCard title="Aktive medarbejdere" description="Medarbejdere med adgang og aktiv status.">
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Aktive</h3>
+            <InsightPill>{activeEmployees.length}</InsightPill>
+          </div>
+          <AppList>
             {activeEmployees.map((emp) => (
               <EmployeeRow
                 key={emp.id}
@@ -189,17 +187,18 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 onRemove={remove}
               />
             ))}
-          </div>
+          </AppList>
           </SectionCard>
       )}
 
       {/* Inactive Employees */}
       {inactiveEmployees.length > 0 && (
-          <SectionCard title="Deaktiverede medarbejdere" description="Gem tidligere medarbejdere uden at slette historikken.">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-            Deaktiverede ({inactiveEmployees.length})
-          </h3>
-          <div className="space-y-2">
+          <SectionCard title="Deaktiverede medarbejdere" description="Tidligere medarbejdere uden aktiv adgang.">
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Deaktiverede</h3>
+            <InsightPill>{inactiveEmployees.length}</InsightPill>
+          </div>
+          <AppList>
             {inactiveEmployees.map((emp) => (
               <EmployeeRow
                 key={emp.id}
@@ -209,7 +208,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 onRemove={remove}
               />
             ))}
-          </div>
+          </AppList>
           </SectionCard>
       )}
 
@@ -303,8 +302,8 @@ const EmployeeRow = ({
 
   return (
     <TooltipProvider delayDuration={200}>
-    <Card className={`rounded-xl ${employee.is_active ? "" : "opacity-60"}`}>
-      <CardContent className="p-4 flex items-center justify-between gap-3">
+    <div className={`${employee.is_active ? "" : "opacity-70"}`}>
+      <AppListRow className="items-start justify-between gap-3 px-3 py-3">
         <div className="flex items-center gap-3 min-w-0">
           {/* Avatar / farve-prik med hover-overlay til upload */}
           <div className="relative h-10 w-10 shrink-0 group/avatar">
@@ -339,7 +338,7 @@ const EmployeeRow = ({
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm font-medium text-foreground truncate">{employee.name}</p>
               {linked && (
-                <Badge variant="outline" className="h-5 text-[10px] gap-1 border-emerald-500/30 text-emerald-700 bg-emerald-50">
+                <Badge variant="outline" className="h-5 text-[10px] gap-1 border-border bg-feature-cool text-feature-cool-foreground">
                   <CheckCircle2 className="h-2.5 w-2.5" />
                   Konto aktiv
                 </Badge>
@@ -447,7 +446,7 @@ const EmployeeRow = ({
             <Trash2 className="h-4 w-4" />
           </button></TooltipTrigger><TooltipContent>Slet medarbejder</TooltipContent></Tooltip>
         </div>
-      </CardContent>
+      </AppListRow>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-md">
@@ -576,7 +575,7 @@ const EmployeeRow = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Card>
+    </div>
     </TooltipProvider>
   );
 };
