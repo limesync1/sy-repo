@@ -490,12 +490,12 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
           <SearchInput value={search} onChange={setSearch} placeholder="Søg i navn, kategori eller beskrivelse..." />
           <div className="flex flex-wrap gap-1.5">
             <button onClick={() => setFilterCategory("all")}
-              className={`rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors ${filterCategory === "all" ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}>
+              className={`rounded-md border px-2.5 py-1.5 text-[11px] font-medium transition-colors ${filterCategory === "all" ? "border-foreground bg-foreground text-background" : "border-border bg-background text-muted-foreground hover:text-foreground"}`}>
               Alle
             </button>
             {uniqueCategories.map((cat) => (
               <button key={cat} onClick={() => setFilterCategory(cat)}
-                className={`rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors ${filterCategory === cat ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}>
+                className={`rounded-md border px-2.5 py-1.5 text-[11px] font-medium transition-colors ${filterCategory === cat ? "border-foreground bg-foreground text-background" : "border-border bg-background text-muted-foreground hover:text-foreground"}`}>
                 {cat}
               </button>
             ))}
@@ -546,7 +546,7 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
 
   return (
     <div className="border-b border-border/80 last:border-b-0">
-      <AppListRow className="items-start gap-4 px-3 py-2.5">
+      <AppListRow className="items-start gap-4 px-3 py-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h3 className="truncate text-sm font-medium text-foreground">{service.name}</h3>
