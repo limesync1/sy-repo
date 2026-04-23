@@ -7,12 +7,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FieldLabel, SectionCard } from "@/components/admin/shared/AdminUI";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
-import { Building2, User, Loader2, Save, ShoppingBag, Camera, X, Upload } from "lucide-react";
+import { Building2, User, Loader2, Save, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 
@@ -231,7 +230,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 space-y-3 overflow-y-auto bg-secondary/20 px-4 py-4">
+          <div className="flex-1 space-y-3 overflow-y-auto bg-secondary/10 px-4 py-4">
             {!initial?.id && (
               <Tabs value={type} onValueChange={(v) => setType(v as CustomerType)}>
                 <TabsList className="grid h-8 w-full grid-cols-2 rounded-md border border-border bg-card p-1">
@@ -242,7 +241,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
             )}
 
             <SectionCard title="Profil" description="Grundlæggende kundeoplysninger og billede.">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 rounded-md border border-border bg-background px-3 py-3">
                 <div className="group/avatar relative h-11 w-11 shrink-0">
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Profil" className="h-11 w-11 rounded-md border border-border object-cover" />
@@ -258,7 +257,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                 </div>
                 <div className="flex-1 text-[11px] text-muted-foreground">
                   <p className="font-medium text-foreground">Profilbillede</p>
-                  <p>Maks 5MB.</p>
+                  <p>Hold visningen enkel og genkendelig på tværs af panelet.</p>
                   {avatarUrl && (
                     <button type="button" onClick={() => setAvatarUrl(null)} className="mt-1 text-[11px] text-muted-foreground underline-offset-2 transition-colors hover:text-destructive hover:underline">
                       Fjern billede

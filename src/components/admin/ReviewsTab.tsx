@@ -73,7 +73,7 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
       ) : (
         <SectionCard title="Seneste anmeldelser" description="Brug feedbacken som driftsinput, ikke som marketingkort.">
           <AppList>
-            <div className="grid grid-cols-[minmax(0,1.3fr)_auto_auto] gap-3 border-b border-border bg-secondary/35 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            <div className="grid grid-cols-[minmax(0,1.3fr)_auto_auto] gap-3 admin-list-header px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               <span>Feedback</span>
               <span>Score</span>
               <span>Dato</span>

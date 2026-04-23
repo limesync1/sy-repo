@@ -19,15 +19,15 @@ export const PageHeader = ({
   action?: React.ReactNode;
   className?: string;
 }) => (
-  <div className={cn("flex flex-col gap-3 border-b border-border/80 pb-3 sm:flex-row sm:items-end sm:justify-between", className)}>
-    <div className="min-w-0 space-y-1.5">
+  <div className={cn("flex flex-col gap-3 border-b border-border/80 pb-4 sm:flex-row sm:items-end sm:justify-between", className)}>
+    <div className="min-w-0 space-y-2">
       {eyebrow && (
-        <div className="inline-flex items-center text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+        <div className="inline-flex items-center rounded-md border border-border bg-secondary px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
           {eyebrow}
         </div>
       )}
-      <div className="space-y-1">
-        <h2 className="text-[18px] font-semibold leading-none text-foreground">{title}</h2>
+      <div className="space-y-1.5">
+        <h2 className="text-[20px] font-semibold leading-none text-foreground">{title}</h2>
         {description && <p className="max-w-2xl text-[12px] leading-5 text-muted-foreground">{description}</p>}
       </div>
     </div>
@@ -42,7 +42,7 @@ export const PrimaryButton = React.forwardRef<
   <Button
     ref={ref}
     className={cn(
-      "h-8 rounded-md bg-foreground px-3 text-xs font-medium text-background shadow-none hover:bg-foreground/92",
+      "h-8 rounded-md bg-foreground px-3 text-xs font-medium text-background shadow-sm shadow-foreground/10 hover:bg-foreground/92",
       className,
     )}
     {...props}
@@ -202,10 +202,10 @@ export const SectionCard = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <Card className={cn("admin-panel border-border shadow-none", className)}>
-    <CardContent className="space-y-3 p-3">
+    <Card className={cn("admin-panel border-border shadow-none", className)}>
+      <CardContent className="space-y-3 p-4">
       {(title || action) && (
-        <div className="flex items-start justify-between gap-3 border-b border-border/80 pb-2.5">
+        <div className="flex items-start justify-between gap-3 border-b border-border/80 pb-3">
           <div className="min-w-0">
             {title && (
               <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground [&_svg]:h-3.5 [&_svg]:w-3.5 [&_svg]:text-muted-foreground">
@@ -251,7 +251,7 @@ export const SearchInput = ({
 }) => (
   <div className={cn("relative min-w-[220px] flex-1", className)}>
     <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-    <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="h-8 rounded-md border-border bg-card pl-8 text-xs" />
+    <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="h-9 rounded-md border-border bg-background pl-8 text-xs shadow-none" />
   </div>
 );
 
@@ -279,7 +279,7 @@ export const EmptyState = ({
 );
 
 export const InsightPill = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-  <span className={cn("inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1 text-[10px] font-medium text-muted-foreground", className)}>
+  <span className={cn("inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2 py-1 text-[10px] font-medium text-muted-foreground", className)}>
     {children}
   </span>
 );
@@ -303,7 +303,7 @@ export const AppListRow = ({
     <Comp
       onClick={onClick as any}
       className={cn(
-        "group flex w-full items-center gap-3 border-b border-border/80 px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-secondary/30",
+        "group flex w-full items-center gap-3 border-b border-border/80 px-3 py-3 text-left transition-colors last:border-b-0 hover:bg-secondary/40",
         onClick && "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         className,
       )}

@@ -120,7 +120,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
 
       <div className="grid gap-2 lg:grid-cols-[1.05fr_0.95fr]">
         {completeness.pct < 100 && (
-          <Card className="admin-panel border-border shadow-sm">
+          <Card className="admin-panel border-border shadow-none">
             <CardContent className="space-y-3 p-3.5 sm:p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -153,7 +153,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
           </Card>
         )}
 
-          <Card className="admin-panel border-border shadow-sm">
+          <Card className="admin-panel border-border shadow-none">
           <CardContent className="space-y-3 p-3.5 sm:p-4">
             <div>
               <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Næste handlinger</p>

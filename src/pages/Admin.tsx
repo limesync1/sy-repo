@@ -204,7 +204,7 @@ const AdminDashboard = () => {
           </button>
         </div>
 
-        <div className="border-b border-white/10 px-4 py-3">
+        <div className="border-b border-white/10 px-4 py-4">
           <div className="flex items-start gap-3">
             {business.logo_url ? (
               <img src={business.logo_url} alt="" className="h-9 w-9 shrink-0 rounded-md border border-white/10 bg-white/5 object-contain p-1" />
@@ -280,14 +280,14 @@ const AdminDashboard = () => {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/96 px-4 backdrop-blur sm:px-5 lg:px-6">
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-background/96 px-4 backdrop-blur sm:px-5 lg:px-6">
           <button onClick={() => setSidebarOpen(true)} className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden">
             <Menu className="h-5 w-5" />
           </button>
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{currentNav?.section || "Panel"}</p>
             <div className="mt-0.5 flex items-center gap-2">
-              <h1 className="truncate text-[15px] font-semibold text-foreground">{currentNav?.label}</h1>
+              <h1 className="truncate text-[17px] font-semibold text-foreground">{currentNav?.label}</h1>
               {currentSectionItems.length > 1 && (
                 <div className="hidden items-center gap-1 rounded-md border border-border bg-card p-1 md:flex">
                   {currentSectionItems.map((item) => {
@@ -490,12 +490,12 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
           <SearchInput value={search} onChange={setSearch} placeholder="Søg i navn, kategori eller beskrivelse..." />
           <div className="flex flex-wrap gap-1.5">
             <button onClick={() => setFilterCategory("all")}
-              className={`rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors ${filterCategory === "all" ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}>
+              className={`rounded-md border px-2.5 py-1.5 text-[11px] font-medium transition-colors ${filterCategory === "all" ? "border-foreground bg-foreground text-background" : "border-border bg-background text-muted-foreground hover:text-foreground"}`}>
               Alle
             </button>
             {uniqueCategories.map((cat) => (
               <button key={cat} onClick={() => setFilterCategory(cat)}
-                className={`rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors ${filterCategory === cat ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}>
+                className={`rounded-md border px-2.5 py-1.5 text-[11px] font-medium transition-colors ${filterCategory === cat ? "border-foreground bg-foreground text-background" : "border-border bg-background text-muted-foreground hover:text-foreground"}`}>
                 {cat}
               </button>
             ))}
@@ -546,7 +546,7 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
 
   return (
     <div className="border-b border-border/80 last:border-b-0">
-      <AppListRow className="items-start gap-4 px-3 py-2.5">
+      <AppListRow className="items-start gap-4 px-3 py-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h3 className="truncate text-sm font-medium text-foreground">{service.name}</h3>
@@ -1137,16 +1137,16 @@ const SettingsTab = ({ business }: { business: any }) => {
             <h3 className="text-sm font-semibold text-foreground">Automatisk udfyldning fra CVR</h3>
           </div>
           <p className="text-xs text-muted-foreground">Indtast CVR-nummer eller virksomhedsnavn for at udfylde de vigtigste felter hurtigt.</p>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               placeholder="CVR-nummer eller virksomhedsnavn..."
               value={cvrQuery}
               onChange={(e) => setCvrQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && lookupCvr()}
-              className="bg-card flex-1"
+              className="h-9 bg-background flex-1"
             />
             <Button onClick={lookupCvr} disabled={cvrLoading || !cvrQuery.trim()} size="sm"
-              className="h-10 rounded-lg bg-foreground text-background hover:bg-foreground/90 px-4 text-sm font-medium">
+              className="h-9 rounded-md bg-foreground px-4 text-xs font-medium text-background hover:bg-foreground/90">
               {cvrLoading ? "Søger..." : "Søg"}
             </Button>
           </div>
@@ -1176,16 +1176,16 @@ const SettingsTab = ({ business }: { business: any }) => {
       <SectionCard title="Generelt" description="Kerneoplysninger om virksomheden og dens kategorier.">
         <div className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Virksomhedsnavn</label>
-              <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-10" />
+              <FieldLabel>Virksomhedsnavn</FieldLabel>
+              <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} className="h-9 bg-background" />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Beskrivelse</label>
-              <Textarea placeholder="Hvad gør din virksomhed? Hvad er jeres speciale?" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="bg-card" />
+              <FieldLabel>Beskrivelse</FieldLabel>
+              <Textarea placeholder="Hvad gør din virksomhed? Hvad er jeres speciale?" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="bg-background" />
               <p className="mt-1 text-xs text-muted-foreground">{description.length}/500 tegn</p>
             </div>
             <div>
-              <label className="mb-2 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Brancher</label>
+              <FieldLabel>Brancher</FieldLabel>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {CATEGORIES.map((c) => (
                   <button key={c} type="button" onClick={() => toggleSettingsCategory(c)}
@@ -1207,26 +1207,26 @@ const SettingsTab = ({ business }: { business: any }) => {
         <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Telefon</label>
+                <FieldLabel>Telefon</FieldLabel>
                 <Input placeholder="12 34 56 78" value={phone} onChange={(e) => handlePhoneChange(e.target.value)}
-                  className="bg-card h-10" type="tel" />
+                  className="h-9 bg-background" type="tel" />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
+                <FieldLabel>Email</FieldLabel>
                 <Input placeholder="kontakt@virksomhed.dk" value={email} onChange={(e) => setEmail(e.target.value)}
-                  className="bg-card h-10" type="email" />
+                  className="h-9 bg-background" type="email" />
               </div>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Adresse</label>
-              <Input placeholder="Vejnavn 123" value={address} onChange={(e) => setAddress(e.target.value)} className="bg-card h-10" />
+              <FieldLabel>Adresse</FieldLabel>
+              <Input placeholder="Vejnavn 123" value={address} onChange={(e) => setAddress(e.target.value)} className="h-9 bg-background" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Postnummer</label>
+                <FieldLabel>Postnummer</FieldLabel>
                 <div className="relative">
                   <Input placeholder="2100" value={zipCode} onChange={(e) => handleZipChange(e.target.value)}
-                    className="bg-card h-10" maxLength={4} />
+                    className="h-9 bg-background" maxLength={4} />
                   {zipLoading && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
                       <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted-foreground/20 border-t-accent" />
@@ -1236,8 +1236,8 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <p className="mt-1 text-xs text-muted-foreground">By udfyldes automatisk</p>
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">By</label>
-                <Input placeholder="København" value={city} onChange={(e) => setCity(e.target.value)} className="bg-card h-10" />
+                <FieldLabel>By</FieldLabel>
+                <Input placeholder="København" value={city} onChange={(e) => setCity(e.target.value)} className="h-9 bg-background" />
               </div>
             </div>
           </div>

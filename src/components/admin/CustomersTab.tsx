@@ -512,7 +512,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
       <div className="flex items-center gap-2 flex-wrap">
         <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, firma, CVR eller by..." />
         <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as any)}>
-          <SelectTrigger className="w-[180px] rounded-lg h-10">
+          <SelectTrigger className="h-9 w-[190px] rounded-md bg-background text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -562,7 +562,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         <AppList>
           {/* Header with select-all */}
           {eligibleSelectable.length > 0 && (
-              <div className="grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] items-center gap-3 admin-list-header px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            <div className="grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] items-center gap-3 admin-list-header px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Vælg alle" />
                <span>{allSelected ? "Alle valgt" : `Vælg alle (${eligibleSelectable.length})`}</span>
                <span className="hidden sm:block">Status</span>
@@ -570,7 +570,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
             </div>
           )}
           {filtered.map((c) => (
-            <div key={c.email} className="flex items-center gap-3 border-b border-border/80 px-3 py-2.5 last:border-b-0 transition-colors hover:bg-secondary/30">
+            <div key={c.email} className="flex items-center gap-3 border-b border-border/80 px-3 py-3 last:border-b-0 transition-colors hover:bg-secondary/40">
               {c.saved_id ? (
                 <Checkbox
                   checked={selectedIds.has(c.saved_id)}
@@ -581,9 +581,9 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
               ) : (
                 <div className="w-4 shrink-0" />
               )}
-              <button
+                <button
                 onClick={() => setSelectedEmail(c.email)}
-                className="h-8 w-8 rounded-md border border-border bg-secondary flex items-center justify-center shrink-0 text-sm font-semibold text-foreground"
+                  className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-secondary shrink-0 text-sm font-semibold text-foreground"
                 title="Se detaljer"
               >
                 {c.type === "business" ? <Building2 className="h-4 w-4" /> : (c.name?.charAt(0).toUpperCase() || "?")}
@@ -789,7 +789,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-semibold text-foreground truncate">{s.service_name}</p>
                               <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-accent/40 text-accent bg-accent/5">
+                                  <Badge variant="outline" className="h-5 border-border bg-secondary px-1.5 text-[10px] text-foreground">
                                   {INTERVAL_LABELS[s.interval] || s.interval}
                                 </Badge>
                                 <StatusBadge status={s.status} />
@@ -800,7 +800,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                                   </span>
                                 )}
                                 {s.status === "paused" && (
-                                  <span className="text-[11px] text-amber-700 flex items-center gap-1">
+                                  <span className="flex items-center gap-1 text-[11px] text-feature-warm-foreground">
                                     <Pause className="h-3 w-3" />
                                     Indgår ikke i ruteplanlægning
                                   </span>
@@ -830,7 +830,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                         )}
                         {pausedSubs.length > 0 && (
                           <div className="space-y-2">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
+                            <h4 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-feature-warm-foreground">
                               <Pause className="h-3.5 w-3.5" /> På pause ({pausedSubs.length})
                             </h4>
                             <p className="text-[11px] text-muted-foreground">Disse abonnementer indgår ikke i ruteplanlægning. Når kunden genoptager dem, vises de igen — gerne på samme rute som før.</p>
@@ -902,7 +902,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                                   </p>
                                 )}
                                 {o.is_paused && (
-                                  <p className="text-[11px] text-amber-700 flex items-center gap-1 mt-0.5 font-medium">
+                                  <p className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-feature-warm-foreground">
                                     <Pause className="h-3 w-3" />
                                     Abonnementet er på pause — indgår ikke i ruteplanlægning
                                   </p>
@@ -910,7 +910,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
                                 {o.is_paused
-                                  ? <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-amber-300 text-amber-700 bg-amber-50">På pause</Badge>
+                                  ? <Badge variant="outline" className="h-5 border-border bg-feature-warm px-1.5 text-[10px] text-feature-warm-foreground">På pause</Badge>
                                   : <StatusBadge status={o.status} />}
                                 <span className="text-sm font-bold text-foreground tabular-nums">{fmtKr(o.total_amount)}</span>
                               </div>
