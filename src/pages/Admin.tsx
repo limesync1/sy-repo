@@ -16,7 +16,6 @@ import {
   Plus, Trash2, LogOut,
   Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart,
   Star, Settings, Menu, X, ExternalLink, Bell, Users, Route, Contact,
-  BrushCleaning, Hammer, Truck, Trees, Paintbrush, Droplets, Zap, ShieldCheck,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import DashboardTab from "@/components/admin/DashboardTab";
@@ -516,17 +515,17 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
 
   const intervals = service.interval_options || [];
   const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
-  const categoryIcons: Record<string, any> = {
-    "Rengøring": BrushCleaning,
-    "Håndværker": Hammer,
-    "Flyttehjælp": Truck,
-    "Haveservice": Trees,
-    "Maler": Paintbrush,
-    "VVS": Droplets,
-    "Elektriker": Zap,
-    "Sikkerhed": ShieldCheck,
+  const categoryIcons: Record<string, string> = {
+    "Rengøring": "🧹",
+    "Håndværker": "🔨",
+    "Flyttehjælp": "🚚",
+    "Haveservice": "🌿",
+    "Maler": "🎨",
+    "VVS": "💧",
+    "Elektriker": "⚡",
+    "Sikkerhed": "🛡️",
   };
-  const CategoryIcon = categoryIcons[service.service_category] || Wrench;
+  const categoryIcon = categoryIcons[service.service_category] || "🧰";
   const intervalSummary = intervals.length > 0
     ? intervals.slice(0, 2).map((interval: string) => intervalLabels[interval] || interval).join(", ") + (intervals.length > 2 ? ` +${intervals.length - 2}` : "")
     : "Ikke angivet";
@@ -544,7 +543,7 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex min-w-0 items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground [&_svg]:h-4 [&_svg]:w-4">
-                  <CategoryIcon />
+                  <span className="text-base leading-none">{categoryIcon}</span>
                 </div>
 
                 <div className="min-w-0 flex-1">
