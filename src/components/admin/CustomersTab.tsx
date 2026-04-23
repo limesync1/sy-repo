@@ -830,7 +830,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                         )}
                         {pausedSubs.length > 0 && (
                           <div className="space-y-2">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
+                            <h4 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-feature-warm-foreground">
                               <Pause className="h-3.5 w-3.5" /> På pause ({pausedSubs.length})
                             </h4>
                             <p className="text-[11px] text-muted-foreground">Disse abonnementer indgår ikke i ruteplanlægning. Når kunden genoptager dem, vises de igen — gerne på samme rute som før.</p>
@@ -902,7 +902,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                                   </p>
                                 )}
                                 {o.is_paused && (
-                                  <p className="text-[11px] text-amber-700 flex items-center gap-1 mt-0.5 font-medium">
+                                  <p className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-feature-warm-foreground">
                                     <Pause className="h-3 w-3" />
                                     Abonnementet er på pause — indgår ikke i ruteplanlægning
                                   </p>
