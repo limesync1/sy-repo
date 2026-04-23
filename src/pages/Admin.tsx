@@ -465,8 +465,9 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
   if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser services...</p>;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4.5">
       <PageHeader
+        eyebrow="Forretning"
         title="Services"
         description={`${services?.length || 0} services · ${Object.values(orderCountByService).reduce((a, b) => a + b, 0)} bestillinger i alt`}
         action={
@@ -478,14 +479,14 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
 
       {/* Category filter chips */}
       {uniqueCategories.length > 1 && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-card p-1">
           <button onClick={() => setFilterCategory("")}
-            className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${!filterCategory ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
+            className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${!filterCategory ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}>
             Alle
           </button>
           {uniqueCategories.map((cat) => (
             <button key={cat} onClick={() => setFilterCategory(filterCategory === cat ? "" : cat)}
-              className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${filterCategory === cat ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
+              className={`flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${filterCategory === cat ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}>
               {cat}
             </button>
           ))}
@@ -493,8 +494,8 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
       )}
 
       {showForm && (
-        <Card className="rounded-lg border-border shadow-sm">
-          <CardContent className="p-4 sm:p-5">
+        <Card className="rounded-md border-border shadow-sm">
+          <CardContent className="p-3.5 sm:p-4">
             <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />
           </CardContent>
         </Card>
@@ -503,7 +504,7 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
       <div className="space-y-2.5">
         {filtered && filtered.length > 0 && (
           <AppList>
-            <div className="grid grid-cols-[minmax(0,1.4fr)_auto_auto] gap-3 border-b border-border bg-secondary/35 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            <div className="grid grid-cols-[minmax(0,1.4fr)_auto_auto] gap-3 border-b border-border bg-secondary/35 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               <span>Service</span>
               <span>Type</span>
               <span className="text-right">Pris</span>
@@ -539,7 +540,7 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
 
   return (
     <div className="border-b border-border/80 last:border-b-0">
-      <AppListRow className="items-start gap-4 px-3.5 py-3">
+      <AppListRow className="items-start gap-4 px-3 py-2.5">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h3 className="truncate text-sm font-semibold text-foreground">{service.name}</h3>
@@ -547,10 +548,10 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
               <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-border bg-background text-muted-foreground">Inaktiv</Badge>
             )}
           </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
             {[service.service_category, service.subcategory].filter(Boolean).join(" · ") || "Ingen kategori valgt"}
           </p>
-          {service.description && <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{service.description}</p>}
+          {service.description && <p className="mt-1 line-clamp-1 text-[11px] text-muted-foreground">{service.description}</p>}
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {service.calculator_steps?.length > 0 && (
               <InsightPill><Calculator className="h-3 w-3" /> {service.calculator_steps.length} trin</InsightPill>
@@ -577,7 +578,7 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
         </div>
       </AppListRow>
       {editing && (
-        <div className="border-t border-border bg-secondary/18 p-4">
+          <div className="border-t border-border bg-secondary/18 p-3.5">
           <ServiceForm businessId={service.business_id} existingService={service} onClose={() => setEditing(false)} />
         </div>
       )}
@@ -1251,10 +1252,11 @@ const SettingsTab = ({ business }: { business: any }) => {
     JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-4.5">
       <PageHeader
+        eyebrow="Opsætning"
         title="Indstillinger"
-        description="Administrer din virksomheds profil og oplysninger."
+        description="Hold virksomhedsdata, visning og drift samlet i samme kompakte opsætning."
         action={
           <PrimaryButton onClick={save} disabled={updateBiz.isPending || !hasChanges}>
             {updateBiz.isPending ? "Gemmer..." : "Gem ændringer"}
@@ -1263,13 +1265,13 @@ const SettingsTab = ({ business }: { business: any }) => {
       />
 
       {/* CVR Lookup */}
-      <Card className="rounded-xl border-accent/20 bg-gradient-to-b from-accent/[0.03] to-transparent shadow-sm">
-        <CardContent className="p-5">
+      <Card className="rounded-md border-border shadow-sm">
+        <CardContent className="p-4 space-y-3">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="h-4 w-4 text-accent" />
             <h3 className="text-sm font-semibold text-foreground">Automatisk udfyldning fra CVR</h3>
           </div>
-          <p className="text-xs text-muted-foreground mb-3">Indtast CVR-nummer eller virksomhedsnavn for at auto-udfylde alle felter.</p>
+          <p className="text-xs text-muted-foreground">Indtast CVR-nummer eller virksomhedsnavn for at udfylde de vigtigste felter hurtigt.</p>
           <div className="flex gap-2">
             <Input
               placeholder="CVR-nummer eller virksomhedsnavn..."
@@ -1285,7 +1287,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           </div>
           {cvrError && <p className="mt-2 text-xs text-destructive">{cvrError}</p>}
           {cvrResult && (
-            <div className="mt-3 rounded-lg border border-accent/20 bg-card p-4">
+            <div className="mt-3 rounded-md border border-border bg-card p-3">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm font-semibold text-foreground">{cvrResult.name}</p>
@@ -1296,7 +1298,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                   {cvrResult.email && <p className="text-xs text-muted-foreground">Email: {cvrResult.email}</p>}
                 </div>
                 <Button size="sm" onClick={applyCvrData}
-                  className="shrink-0 h-8 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 text-xs font-medium">
+                  className="shrink-0 h-8 rounded-md bg-foreground text-background hover:bg-foreground/90 text-xs font-medium">
                   Anvend oplysninger
                 </Button>
               </div>
@@ -1306,8 +1308,8 @@ const SettingsTab = ({ business }: { business: any }) => {
       </Card>
 
       {/* General */}
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
+      <Card className="rounded-md shadow-sm border-border">
+        <CardContent className="p-4 space-y-4">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Settings className="h-4 w-4 text-muted-foreground" />
             Generelt
@@ -1324,15 +1326,14 @@ const SettingsTab = ({ business }: { business: any }) => {
             </div>
             <div>
               <label className="mb-2 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Brancher</label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {CATEGORIES.map((c) => (
                   <button key={c} type="button" onClick={() => toggleSettingsCategory(c)}
-                    className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2.5 text-left transition-all ${
+                    className={`flex items-center gap-2 rounded-md border px-3 py-2 text-left transition-all ${
                       selectedCategories.includes(c)
-                        ? "border-foreground bg-foreground/5 shadow-sm"
+                        ? "border-foreground bg-secondary shadow-sm"
                         : "border-border bg-card hover:border-foreground/30"
                     }`}>
-                    <span className="text-lg">{CATEGORY_ICONS[c] || "📋"}</span>
                     <span className="text-xs font-medium text-foreground">{c}</span>
                   </button>
                 ))}
@@ -1343,8 +1344,8 @@ const SettingsTab = ({ business }: { business: any }) => {
       </Card>
 
       {/* Contact */}
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
+      <Card className="rounded-md shadow-sm border-border">
+        <CardContent className="p-4 space-y-4">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Plus className="h-4 w-4 text-muted-foreground" />
             Kontaktoplysninger
@@ -1390,8 +1391,8 @@ const SettingsTab = ({ business }: { business: any }) => {
       </Card>
 
       {/* Images */}
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
+      <Card className="rounded-md shadow-sm border-border">
+        <CardContent className="p-4 space-y-4">
           <h3 className="text-sm font-semibold text-foreground">Billeder</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -1407,8 +1408,8 @@ const SettingsTab = ({ business }: { business: any }) => {
       </Card>
 
       {/* Notification Settings */}
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
+      <Card className="rounded-md shadow-sm border-border">
+        <CardContent className="p-4 space-y-4">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Bell className="h-4 w-4 text-muted-foreground" />
             Notifikationsindstillinger
@@ -1421,7 +1422,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               { key: "subscription_change", label: "Abonnementsændringer", desc: "Besked når en kunde pauser eller annullerer et abonnement" },
               { key: "new_review", label: "Nye anmeldelser", desc: "Besked når en kunde skriver en anmeldelse" },
             ] as const).map(({ key, label, desc }) => (
-              <div key={key} className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-3">
+              <div key={key} className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-3">
                 <div>
                   <p className="text-sm font-medium text-foreground">{label}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
@@ -1442,8 +1443,8 @@ const SettingsTab = ({ business }: { business: any }) => {
       </Card>
 
       {/* Route Planning */}
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
+      <Card className="rounded-md shadow-sm border-border">
+        <CardContent className="p-4 space-y-4">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Route className="h-4 w-4 text-muted-foreground" />
             Ruteplanlægning
@@ -1453,7 +1454,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             ruter med stop hos kunder. Ruterne kan optimeres med AI baseret på afstand,
             tidsvinduer og prioriteter.
           </p>
-          <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-3">
+          <div className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-3">
             <div>
               <p className="text-sm font-medium text-foreground">Aktivér ruteplanlægning</p>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -1477,14 +1478,14 @@ const SettingsTab = ({ business }: { business: any }) => {
       </Card>
 
 
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
+      <Card className="rounded-md shadow-sm border-border">
+        <CardContent className="p-4 space-y-4">
           <h3 className="text-sm font-semibold text-foreground">Åbningstider</h3>
           <div className="space-y-2">
             {DAYS.map((day) => {
               const isWeekend = day === "Lørdag" || day === "Søndag";
               return (
-                <div key={day} className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
+                <div key={day} className={`flex items-center gap-3 rounded-md px-3 py-2 transition-colors ${
                   openHours[day] ? "bg-secondary/30" : isWeekend ? "opacity-60" : ""
                 }`}>
                   <span className="w-20 text-sm font-medium text-foreground">{day}</span>
@@ -1510,7 +1511,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       {/* Sticky save bar */}
       {hasChanges && (
         <div className="sticky bottom-4 z-20">
-          <Card className="rounded-xl border-accent/30 bg-card shadow-lg">
+            <Card className="rounded-md border-border bg-card shadow-lg">
             <CardContent className="flex items-center justify-between p-3">
               <p className="text-sm text-muted-foreground">Du har ændringer der ikke er gemt.</p>
               <Button onClick={save} disabled={updateBiz.isPending}
