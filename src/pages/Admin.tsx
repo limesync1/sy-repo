@@ -541,7 +541,6 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
 const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCount: number; onDelete: () => void }) => {
   const [editing, setEditing] = useState(false);
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
-
   const intervals = service.interval_options || [];
   const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
 
@@ -550,16 +549,14 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
       <AppListRow className="items-start gap-4 px-3 py-2.5">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="truncate text-sm font-semibold text-foreground">{service.name}</h3>
-            {service.is_active === false && (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-border bg-background text-muted-foreground">Inaktiv</Badge>
-            )}
+            <h3 className="truncate text-sm font-medium text-foreground">{service.name}</h3>
+            {service.is_active === false && <InsightPill>Inaktiv</InsightPill>}
           </div>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
+          <p className="mt-1 text-[11px] text-muted-foreground">
             {[service.service_category, service.subcategory].filter(Boolean).join(" · ") || "Ingen kategori valgt"}
           </p>
           {service.description && <p className="mt-1 line-clamp-1 text-[11px] text-muted-foreground">{service.description}</p>}
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <div className="mt-2 flex flex-wrap gap-1.5">
             {service.calculator_steps?.length > 0 && (
               <InsightPill><Calculator className="h-3 w-3" /> {service.calculator_steps.length} trin</InsightPill>
             )}
@@ -577,15 +574,17 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
             <p className="text-[11px] text-muted-foreground">{service.unit ? `pr. ${service.unit}` : "pris efter opsætning"}</p>
           </div>
           <div className="flex gap-1">
-            <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-7 rounded-md px-2.5 text-xs">
+            <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-7 rounded-md px-2.5 text-[11px]">
               {editing ? "Luk" : "Rediger"}
             </Button>
-            <Button variant="ghost" size="sm" onClick={onDelete} className="h-7 w-7 rounded-md p-0 hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+            <Button variant="ghost" size="sm" onClick={onDelete} className="h-7 w-7 rounded-md p-0 hover:bg-destructive/10">
+              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+            </Button>
           </div>
         </div>
       </AppListRow>
       {editing && (
-          <div className="border-t border-border bg-secondary/18 p-3.5">
+        <div className="border-t border-border bg-secondary/18 p-3">
           <ServiceForm businessId={service.business_id} existingService={service} onClose={() => setEditing(false)} />
         </div>
       )}
@@ -644,7 +643,6 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   const updateService = useUpdateService();
   const upsertSteps = useUpsertCalculatorSteps();
 
-  const [currentStep, setCurrentStep] = useState(1);
   const [serviceCategory, setServiceCategory] = useState(existingService?.service_category || "");
   const [subcategory, setSubcategory] = useState(existingService?.subcategory || "");
   const [name, setName] = useState(existingService?.name || "");
@@ -656,9 +654,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   const [steps, setSteps] = useState<any[]>(existingService?.calculator_steps || []);
   const [customCategory, setCustomCategory] = useState(false);
   const [customSubcategory, setCustomSubcategory] = useState(false);
-  const [intervalOptions, setIntervalOptions] = useState<string[]>(
-    existingService?.interval_options || ["engangskøb"]
-  );
+  const [intervalOptions, setIntervalOptions] = useState<string[]>(existingService?.interval_options || ["engangskøb"]);
 
   const ALL_INTERVALS = [
     { value: "engangskøb", label: "Engangskøb" },
@@ -669,9 +665,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   ];
 
   const toggleInterval = (v: string) => {
-    setIntervalOptions((prev) =>
-      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]
-    );
+    setIntervalOptions((prev) => prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]);
   };
 
   const categoryOptions = Object.keys(SERVICE_CATEGORIES);
@@ -680,15 +674,6 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   const productSuggestions = serviceCategory && subcategory && SERVICE_CATEGORIES[serviceCategory]?.[subcategory]
     ? SERVICE_CATEGORIES[serviceCategory][subcategory] : [];
   const availableTemplates = STEP_TEMPLATES[serviceCategory] || [];
-
-  const totalSteps = pricingType === "prisberegner" ? 5 : 4;
-  const FORM_STEPS = [
-    { num: 1, label: "Kategori", color: "bg-blue-500" },
-    { num: 2, label: "Detaljer", color: "bg-violet-500" },
-    { num: 3, label: "Pris", color: "bg-emerald-500" },
-    ...(pricingType === "prisberegner" ? [{ num: 4, label: "Beregner", color: "bg-amber-500" }] : []),
-    { num: pricingType === "prisberegner" ? 5 : 4, label: "Interval", color: "bg-cyan-500" },
-  ];
 
   const addStep = () => {
     setSteps([...steps, { label: "", unit: "stk", price_per_unit: 0, min_value: 0, max_value: 100, default_value: 0, sort_order: steps.length }]);
@@ -699,20 +684,9 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
     setSteps(updated);
   };
   const removeStep = (i: number) => setSteps(steps.filter((_, idx) => idx !== i));
-
   const applyTemplate = (template: typeof availableTemplates[number]) => {
     setSteps(template.steps.map((s, i) => ({ ...s, sort_order: i })));
     toast.success(`Skabelon "${template.label}" anvendt`);
-  };
-
-  const canGoNext = () => {
-    if (currentStep === 1) return !!serviceCategory;
-    if (currentStep === 2) return !!name.trim();
-    if (currentStep === 3) {
-      if (pricingType === "prisberegner") return true;
-      return true;
-    }
-    return true;
   };
 
   const handleSave = async () => {
@@ -740,11 +714,14 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
           await upsertSteps.mutateAsync({
             serviceId: existingService.id,
             steps: steps.map((s, i) => ({
-              service_id: existingService.id, label: s.label, unit: s.unit,
+              service_id: existingService.id,
+              label: s.label,
+              unit: s.unit,
               price_per_unit: parseFloat(s.price_per_unit) || 0,
               min_value: parseFloat(s.min_value) || 0,
               max_value: parseFloat(s.max_value) || 100,
-              default_value: parseFloat(s.default_value) || 0, sort_order: i,
+              default_value: parseFloat(s.default_value) || 0,
+              sort_order: i,
             })),
           });
         }
@@ -755,369 +732,251 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
           await upsertSteps.mutateAsync({
             serviceId: result.id,
             steps: steps.map((s, i) => ({
-              service_id: result.id, label: s.label, unit: s.unit,
+              service_id: result.id,
+              label: s.label,
+              unit: s.unit,
               price_per_unit: parseFloat(s.price_per_unit) || 0,
               min_value: parseFloat(s.min_value) || 0,
               max_value: parseFloat(s.max_value) || 100,
-              default_value: parseFloat(s.default_value) || 0, sort_order: i,
+              default_value: parseFloat(s.default_value) || 0,
+              sort_order: i,
             })),
           });
         }
         toast.success("Service oprettet");
       }
       onClose();
-    } catch (e: any) { toast.error(e.message); }
-  };
-
-  const CATEGORY_ICONS: Record<string, string> = {
-    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
-    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
+    } catch (e: any) {
+      toast.error(e.message);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Step Progress Bar */}
-      <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
-        <div className="flex items-center">
-          {FORM_STEPS.map((s, i) => {
-            const isLast = i === FORM_STEPS.length - 1;
-            return (
-              <div key={s.num} className={`flex items-center ${isLast ? "shrink-0" : "flex-1"}`}>
-                <button
-                  onClick={() => { if (s.num <= currentStep || canGoNext()) setCurrentStep(s.num); }}
-                  className="group flex shrink-0 items-center gap-2"
-                >
-                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold transition-all ${
-                    currentStep === s.num ? "bg-foreground text-background shadow-sm ring-2 ring-foreground/20" :
-                    s.num < currentStep ? "bg-accent/15 text-accent ring-1 ring-accent/30" : "bg-secondary text-muted-foreground"
-                  }`}>
-                    {s.num < currentStep ? "✓" : s.num}
-                  </span>
-                  <span className={`hidden sm:block text-sm font-medium whitespace-nowrap transition-colors ${
-                    currentStep === s.num ? "text-foreground" : s.num < currentStep ? "text-accent" : "text-muted-foreground"
-                  }`}>{s.label}</span>
+    <div className="space-y-3">
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="space-y-3">
+          <SectionCard title="Placering" description="Kategori, underkategori og navn i samme lineære flow.">
+            <div className="grid gap-3 md:grid-cols-2">
+              <div>
+                <FieldLabel required>Kategori</FieldLabel>
+                {!customCategory ? (
+                  <Select value={serviceCategory} onValueChange={(value) => { setServiceCategory(value); setSubcategory(""); setCustomSubcategory(false); }}>
+                    <SelectTrigger className="h-8 rounded-md bg-card text-xs">
+                      <SelectValue placeholder="Vælg kategori" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoryOptions.map((category) => (
+                        <SelectItem key={category} value={category}>{category}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input value={serviceCategory} onChange={(e) => setServiceCategory(e.target.value)} placeholder="Skriv kategori" className="h-8" />
+                )}
+                <button type="button" onClick={() => { setCustomCategory((prev) => !prev); setServiceCategory(""); }} className="mt-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground">
+                  {customCategory ? "Vælg fra listen" : "Skriv egen kategori"}
                 </button>
-                {!isLast && (
-                  <div className={`mx-2 sm:mx-3 h-px flex-1 min-w-4 transition-colors ${FORM_STEPS[i + 1].num <= currentStep ? "bg-accent/40" : "bg-border"}`} />
+              </div>
+              <div>
+                <FieldLabel>Underkategori</FieldLabel>
+                {subcategoryOptions.length > 0 && !customSubcategory ? (
+                  <Select value={subcategory} onValueChange={setSubcategory}>
+                    <SelectTrigger className="h-8 rounded-md bg-card text-xs">
+                      <SelectValue placeholder="Vælg underkategori" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subcategoryOptions.map((option) => (
+                        <SelectItem key={option} value={option}>{option}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input value={subcategory} onChange={(e) => setSubcategory(e.target.value)} placeholder="Fx Kontorrengøring" className="h-8" />
+                )}
+                {subcategoryOptions.length > 0 && (
+                  <button type="button" onClick={() => { setCustomSubcategory((prev) => !prev); setSubcategory(""); }} className="mt-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground">
+                    {customSubcategory ? "Vælg fra listen" : "Skriv egen underkategori"}
+                  </button>
                 )}
               </div>
-            );
-          })}
+              <div className="md:col-span-2">
+                <FieldLabel required>Servicenavn</FieldLabel>
+                <Input placeholder="Fx Rengøring af kontor" value={name} onChange={(e) => setName(e.target.value)} className="h-8" />
+                {productSuggestions.length > 0 && !name && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {productSuggestions.map((suggestion) => (
+                      <button key={suggestion} type="button" onClick={() => setName(suggestion)} className="rounded-md border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground">
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="md:col-span-2">
+                <FieldLabel>Beskrivelse</FieldLabel>
+                <Textarea placeholder="Kort og præcis beskrivelse af servicen" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="resize-none" />
+              </div>
+            </div>
+          </SectionCard>
+
+          <SectionCard title="Pris og levering" description="Hold prismodellen enkel og gennemskuelig.">
+            <div className="space-y-3">
+              <div className="grid gap-2 sm:grid-cols-3">
+                {[
+                  { value: "fast_pris", label: "Fast pris", desc: "Én fast pris" },
+                  { value: "timepris", label: "Timepris", desc: "Pris pr. time" },
+                  { value: "prisberegner", label: "Prisberegner", desc: "Beregn ud fra trin" },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setPricingType(option.value)}
+                    className={`rounded-md border px-3 py-2 text-left transition-colors ${pricingType === option.value ? "border-foreground bg-secondary" : "border-border bg-card hover:border-foreground/25"}`}
+                  >
+                    <span className="block text-sm font-medium text-foreground">{option.label}</span>
+                    <span className="mt-1 block text-[11px] text-muted-foreground">{option.desc}</span>
+                  </button>
+                ))}
+              </div>
+              {(pricingType === "fast_pris" || pricingType === "timepris") && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <FieldLabel>{pricingType === "fast_pris" ? "Pris (kr)" : "Timepris (kr)"}</FieldLabel>
+                    <Input type="number" placeholder="0" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} className="h-8" />
+                  </div>
+                  {pricingType === "timepris" && (
+                    <div>
+                      <FieldLabel>Enhed</FieldLabel>
+                      <Input placeholder="Fx timer" value={unit} onChange={(e) => setUnit(e.target.value)} className="h-8" />
+                    </div>
+                  )}
+                </div>
+              )}
+              <div>
+                <FieldLabel>Intervaller</FieldLabel>
+                <div className="flex flex-wrap gap-1.5">
+                  {ALL_INTERVALS.map((interval) => {
+                    const active = intervalOptions.includes(interval.value);
+                    return (
+                      <button
+                        key={interval.value}
+                        type="button"
+                        onClick={() => toggleInterval(interval.value)}
+                        className={`rounded-md border px-2.5 py-1.5 text-[11px] font-medium transition-colors ${active ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
+                      >
+                        {interval.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </SectionCard>
+
+          {pricingType === "prisberegner" && (
+            <SectionCard title="Prisberegner" description="Brug trin, hvis prisen afhænger af kundens valg.">
+              <div className="space-y-3">
+                {availableTemplates.length > 0 && steps.length === 0 && (
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {availableTemplates.map((template) => (
+                      <button key={template.label} type="button" onClick={() => applyTemplate(template)} className="rounded-md border border-border bg-card p-3 text-left transition-colors hover:border-foreground/25">
+                        <span className="block text-sm font-medium text-foreground">{template.label}</span>
+                        <span className="mt-1 block text-[11px] text-muted-foreground">{template.steps.length} trin</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{steps.length} trin</p>
+                  <Button variant="outline" size="sm" onClick={addStep} className="h-8 rounded-md text-[11px]">
+                    <Plus className="mr-1.5 h-3.5 w-3.5" /> Tilføj trin
+                  </Button>
+                </div>
+
+                {steps.map((step, i) => (
+                  <div key={i} className="rounded-md border border-border bg-card p-3">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <p className="text-sm font-medium text-foreground">{step.label || `Trin ${i + 1}`}</p>
+                      <Button variant="ghost" size="sm" onClick={() => removeStep(i)} className="h-7 w-7 rounded-md p-0 hover:bg-destructive/10">
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div>
+                        <FieldLabel>Navn</FieldLabel>
+                        <Input value={step.label} onChange={(e) => updateStep(i, "label", e.target.value)} className="h-8" />
+                      </div>
+                      <div>
+                        <FieldLabel>Enhed</FieldLabel>
+                        <Input value={step.unit} onChange={(e) => updateStep(i, "unit", e.target.value)} className="h-8" />
+                      </div>
+                    </div>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-4">
+                      {[
+                        { label: `Pris / ${step.unit || "enhed"}`, field: "price_per_unit", value: step.price_per_unit },
+                        { label: "Min", field: "min_value", value: step.min_value },
+                        { label: "Max", field: "max_value", value: step.max_value },
+                        { label: "Standard", field: "default_value", value: step.default_value },
+                      ].map((field) => (
+                        <div key={field.field}>
+                          <FieldLabel>{field.label}</FieldLabel>
+                          <Input type="number" value={field.value} onChange={(e) => updateStep(i, field.field, e.target.value)} className="h-8" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                {steps.length === 0 && (
+                  <div className="rounded-md border border-dashed border-border bg-card px-3 py-8 text-center text-[11px] text-muted-foreground">
+                    Tilføj trin eller brug en skabelon for at bygge prisberegneren.
+                  </div>
+                )}
+              </div>
+            </SectionCard>
+          )}
+        </div>
+
+        <div className="space-y-3">
+          <SectionCard title="Preview" description="Sådan fremstår servicen i systemet.">
+            <div className="space-y-2 rounded-md border border-border bg-card p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-foreground">{name || "Servicenavn"}</p>
+                  <p className="mt-1 text-[11px] text-muted-foreground">{[serviceCategory, subcategory].filter(Boolean).join(" · ") || "Kategori mangler"}</p>
+                </div>
+                <InsightPill>{pricingType === "fast_pris" ? "Fast pris" : pricingType === "timepris" ? "Timepris" : "Prisberegner"}</InsightPill>
+              </div>
+              {description && <p className="text-[11px] leading-5 text-muted-foreground">{description}</p>}
+              <div className="flex flex-wrap gap-1.5">
+                {intervalOptions.map((interval) => (
+                  <InsightPill key={interval}>{interval}</InsightPill>
+                ))}
+              </div>
+              {(pricingType === "fast_pris" || pricingType === "timepris") && (
+                <div className="rounded-md bg-secondary px-3 py-2 text-sm font-medium text-foreground">
+                  {basePrice ? `${basePrice} kr` : "Ingen pris endnu"} {pricingType === "timepris" && unit ? `/ ${unit}` : ""}
+                </div>
+              )}
+            </div>
+          </SectionCard>
+
+          <SectionCard title="Billede" description="Valgfrit, men nyttigt for visning på profilsiden.">
+            <ImageUpload folder={`${user!.id}/services`} currentUrl={imageUrl || null} onUploaded={setImageUrl} label="" aspectRatio="aspect-video" className="w-full max-w-[260px]" />
+          </SectionCard>
         </div>
       </div>
 
-      {/* Step 1: Category */}
-      {currentStep === 1 && (
-        <div className="space-y-5">
-          <div>
-            <h4 className="text-sm font-semibold text-foreground">Kategori</h4>
-            <p className="mt-1 text-xs text-muted-foreground">Vælg den kategori, der bedst beskriver servicen.</p>
-          </div>
-
-          {!customCategory ? (
-            <>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {categoryOptions.map((c) => (
-                  <button key={c} type="button"
-                    onClick={() => { setServiceCategory(c); setSubcategory(""); setCustomSubcategory(false); }}
-                    className={`flex items-center justify-center rounded-lg border px-3 py-3 text-center text-sm font-medium transition-colors ${
-                      serviceCategory === c
-                        ? "border-foreground bg-secondary text-foreground"
-                        : "border-border bg-card hover:border-foreground/30"
-                    }`}
-                  >
-                    <span className="text-foreground">{c}</span>
-                  </button>
-                ))}
-              </div>
-              <button type="button" onClick={() => { setCustomCategory(true); setServiceCategory(""); }}
-                className="text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors">
-                + Skriv din egen kategori
-              </button>
-            </>
-          ) : (
-            <div className="space-y-2">
-              <Input placeholder="Fx Vinduespolering" value={serviceCategory} onChange={(e) => setServiceCategory(e.target.value)} className="bg-card" />
-              <button type="button" onClick={() => { setCustomCategory(false); setServiceCategory(""); }}
-                className="text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors">
-                ← Vælg fra listen
-              </button>
-            </div>
-          )}
-
-          {/* Subcategory — chips instead of dropdown */}
-          {serviceCategory && subcategoryOptions.length > 0 && (
-              <div className="space-y-3 pt-4 border-t border-border">
-              <div>
-                  <h4 className="text-sm font-semibold text-foreground">Underkategori</h4>
-                  <p className="mt-0.5 text-xs text-muted-foreground">Vælg den mest præcise underkategori.</p>
-              </div>
-              {!customSubcategory ? (
-                <>
-                  <div className="flex flex-wrap gap-2">
-                    {subcategoryOptions.map((s) => (
-                      <button key={s} type="button" onClick={() => setSubcategory(s)}
-                        className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
-                          subcategory === s
-                            ? "border-foreground bg-foreground text-background"
-                            : "border-border bg-card text-foreground hover:border-foreground/40"
-                        }`}
-                      >{s}</button>
-                    ))}
-                  </div>
-                  <button type="button" onClick={() => { setCustomSubcategory(true); setSubcategory(""); }}
-                    className="text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors">
-                    + Skriv din egen
-                  </button>
-                </>
-              ) : (
-                <div className="space-y-2">
-                  <Input placeholder="Fx Erhvervsrengøring" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} className="bg-card" />
-                  <button type="button" onClick={() => { setCustomSubcategory(false); setSubcategory(""); }}
-                    className="text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors">
-                    ← Vælg fra listen
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {serviceCategory && subcategoryOptions.length === 0 && !customCategory && (
-            <div className="space-y-2 pt-4 border-t border-border">
-              <label className="text-sm font-medium text-muted-foreground">Underkategori (valgfrit)</label>
-              <Input placeholder="Fx Erhvervsrengøring" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} className="bg-card" />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Step 2: Details */}
-      {currentStep === 2 && (
-        <div className="space-y-5">
-          <div>
-            <h4 className="text-sm font-semibold text-foreground">Detaljer</h4>
-            <p className="mt-1 text-xs text-muted-foreground">Beskriv servicen kort og præcist.</p>
-          </div>
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">Servicenavn</label>
-            <Input placeholder="Fx Rengøring af kontor" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-10" />
-            {productSuggestions.length > 0 && !name && (
-              <div className="mt-2.5 flex flex-wrap gap-2">
-                <span className="text-xs text-muted-foreground mr-1">Forslag:</span>
-                {productSuggestions.map((s) => (
-                  <button key={s} type="button" onClick={() => setName(s)}
-                    className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-colors">{s}</button>
-                ))}
-              </div>
-            )}
-          </div>
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">Beskrivelse</label>
-            <Textarea placeholder="Hvad inkluderer denne service? Hvad kan kunden forvente?" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-card" rows={3} />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">Billede (valgfrit)</label>
-            <ImageUpload folder={`${user!.id}/services`} currentUrl={imageUrl || null} onUploaded={setImageUrl} label="" aspectRatio="aspect-video" className="w-40" />
-          </div>
-        </div>
-      )}
-
-      {/* Step 3: Pricing */}
-      {currentStep === 3 && (
-        <div className="space-y-5">
-          <div>
-            <h4 className="text-sm font-semibold text-foreground">Pris</h4>
-            <p className="mt-1 text-xs text-muted-foreground">Vælg den prismodel der passer bedst til servicen.</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {[
-              { value: "fast_pris", label: "Fast pris", desc: "Én fast pris for hele servicen" },
-              { value: "timepris", label: "Timepris", desc: "Pris pr. time" },
-              { value: "prisberegner", label: "Prisberegner", desc: "Pris ud fra kundens valg" },
-            ].map((opt) => (
-              <button key={opt.value} type="button" onClick={() => setPricingType(opt.value)}
-                className={`rounded-lg border p-3.5 text-left transition-colors ${
-                  pricingType === opt.value
-                    ? "border-foreground bg-secondary"
-                    : "border-border bg-card hover:border-foreground/30"
-                }`}>
-                <span className="block text-sm font-semibold text-foreground">{opt.label}</span>
-                <span className="mt-1 block text-xs text-muted-foreground leading-5">{opt.desc}</span>
-              </button>
-            ))}
-          </div>
-
-          {(pricingType === "fast_pris" || pricingType === "timepris") && (
-            <div className="flex gap-3 pt-2">
-              <div className="flex-1">
-                <label className="mb-1.5 block text-sm font-medium text-foreground">
-                  {pricingType === "fast_pris" ? "Pris (kr)" : "Timepris (kr)"}
-                </label>
-                <Input type="number" placeholder="0" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} className="bg-card h-11 text-base" />
-              </div>
-              {pricingType === "timepris" && (
-                <div className="flex-1">
-                  <label className="mb-1.5 block text-sm font-medium text-foreground">Enhed</label>
-                  <Input placeholder="Fx timer" value={unit} onChange={(e) => setUnit(e.target.value)} className="bg-card h-11 text-base" />
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Step 4: Calculator */}
-      {currentStep === 4 && pricingType === "prisberegner" && (
-        <div className="space-y-5">
-          <div>
-            <h4 className="text-sm font-semibold text-foreground">Prisberegner</h4>
-            <p className="mt-1 text-xs text-muted-foreground">Tilføj de trin kunden bruger til at beregne prisen.</p>
-          </div>
-
-          {availableTemplates.length > 0 && steps.length === 0 && (
-            <div className="rounded-lg border border-border bg-card p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-semibold text-foreground">Kom hurtigt i gang med en skabelon</span>
-              </div>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {availableTemplates.map((t) => (
-                  <button key={t.label} type="button" onClick={() => applyTemplate(t)}
-                    className="rounded-lg border border-border bg-muted/30 p-3 text-left transition-colors hover:border-foreground/30">
-                    <span className="block text-sm font-semibold text-foreground">{t.label}</span>
-                    <span className="mt-1 block text-xs text-muted-foreground">{t.steps.length} trin · {t.steps.map(s => s.unit).filter((v, i, a) => a.indexOf(v) === i).join(", ")}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-foreground">{steps.length} beregnertrin</span>
-              <Button variant="outline" size="sm" onClick={addStep} className="gap-1.5 rounded-lg">
-                <Plus className="h-3.5 w-3.5" /> Tilføj trin
-              </Button>
-            </div>
-
-            {steps.map((step, i) => (
-              <Card key={i} className="rounded-lg border-border overflow-hidden shadow-sm">
-                <div className="flex items-center justify-between border-b border-border bg-secondary/40 px-4 py-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-md bg-secondary text-[11px] font-bold text-foreground">{i + 1}</span>
-                    <span className="text-sm font-semibold text-foreground">{step.label || `Trin ${i + 1}`}</span>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => removeStep(i)} className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-                <CardContent className="p-4 space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Navn</label>
-                      <Input placeholder="Fx Støvsugning" value={step.label} onChange={(e) => updateStep(i, "label", e.target.value)} className="bg-card" />
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Enhed</label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {["stk", "m²", "m", "timer", "rum", "km", "kg", "kr"].map((u) => (
-                          <button key={u} type="button" onClick={() => updateStep(i, "unit", u)}
-                            className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${
-                              step.unit === u
-                                ? "border-foreground bg-foreground text-background"
-                                : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground"
-                            }`}>{u}</button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-4 gap-2.5">
-                    {[
-                      { label: `Pris / ${step.unit || "enhed"}`, field: "price_per_unit", value: step.price_per_unit },
-                      { label: "Min", field: "min_value", value: step.min_value },
-                      { label: "Max", field: "max_value", value: step.max_value },
-                      { label: "Standard", field: "default_value", value: step.default_value },
-                    ].map((f) => (
-                      <div key={f.field}>
-                        <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">{f.label}</label>
-                        <Input type="number" placeholder="0" value={f.value} onChange={(e) => updateStep(i, f.field, e.target.value)} className="bg-card text-sm" />
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {steps.length === 0 && (
-              <div className="py-10 text-center rounded-xl border border-dashed border-border bg-card">
-                <Calculator className="mx-auto h-8 w-8 text-muted-foreground/30" />
-                <p className="mt-3 text-sm text-muted-foreground">
-                  {availableTemplates.length > 0 ? "Vælg en skabelon ovenfor eller tilføj trin manuelt." : "Tilføj trin for at oprette din prisberegner."}
-                </p>
-              </div>
-            )}
-          </div>
-
-          <CalculatorPreview steps={steps} />
-        </div>
-      )}
-
-      {/* Step: Interval */}
-      {currentStep === totalSteps && (
-        <div className="space-y-5">
-          <div>
-            <h4 className="text-sm font-semibold text-foreground">Intervaller</h4>
-            <p className="mt-1 text-xs text-muted-foreground">Vælg hvilke intervaller kunden kan bestille.</p>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            {ALL_INTERVALS.map((iv) => (
-              <button key={iv.value} type="button" onClick={() => toggleInterval(iv.value)}
-                className={`rounded-lg border px-4 py-2.5 text-center transition-colors ${
-                  intervalOptions.includes(iv.value)
-                    ? "border-foreground bg-secondary"
-                    : "border-border bg-card hover:border-foreground/30"
-                }`}>
-                <span className="text-xs font-medium text-foreground">{iv.label}</span>
-              </button>
-            ))}
-          </div>
-          {intervalOptions.length === 0 && (
-            <p className="text-sm text-destructive">Vælg mindst ét interval</p>
-          )}
-        </div>
-      )}
-
-      <div className="flex items-center justify-between pt-4 border-t border-border">
-        <div className="flex gap-2">
-          {currentStep > 1 && (
-            <Button variant="outline" onClick={() => setCurrentStep(currentStep - 1)} className="rounded-lg h-10 px-4 text-sm font-medium">
-              ← Tilbage
-            </Button>
-          )}
-          <Button variant="ghost" onClick={onClose} className="rounded-lg h-10 px-4 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary">
-            Annuller
-          </Button>
-        </div>
-        <div>
-          {currentStep < totalSteps ? (
-            <Button onClick={() => { if (canGoNext()) setCurrentStep(currentStep + 1); else toast.error("Udfyld venligst de påkrævede felter"); }}
-              disabled={!canGoNext()}
-              className="rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:bg-muted disabled:text-muted-foreground h-10 px-6 text-sm font-semibold shadow-sm">
-              Næste →
-            </Button>
-          ) : (
-            <Button onClick={handleSave} className="rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 h-10 px-6 text-sm font-semibold shadow-sm">
-              {existingService ? "Gem ændringer" : "✓ Opret service"}
-            </Button>
-          )}
-        </div>
+      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border/80 pt-3">
+        <Button variant="ghost" onClick={onClose} className="h-8 rounded-md text-xs">Annuller</Button>
+        <PrimaryButton onClick={handleSave}>
+          {existingService ? "Gem ændringer" : "Opret service"}
+        </PrimaryButton>
       </div>
     </div>
   );
 };
-
-
-
 
 /* ─── Settings Tab ─── */
 const SettingsTab = ({ business }: { business: any }) => {
