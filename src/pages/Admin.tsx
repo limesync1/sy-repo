@@ -186,42 +186,42 @@ const AdminDashboard = () => {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[240px] flex-col bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-border bg-background transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         {/* Sidebar header */}
-        <div className="flex h-14 shrink-0 items-center justify-between px-3">
+        <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-6" />
+            <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-7" />
           </Link>
-          <button onClick={() => setSidebarOpen(false)} className="rounded-md p-1 text-white/50 hover:text-white lg:hidden">
+          <button onClick={() => setSidebarOpen(false)} className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Business info */}
-        <div className="mx-2 mb-2 shrink-0 rounded-lg bg-white/[0.08] px-2.5 py-2">
+        <div className="mx-3 mt-3 mb-3 shrink-0 rounded-xl border border-border bg-card px-3 py-3 shadow-sm">
           <div className="flex items-center gap-2">
             {business.logo_url ? (
-              <img src={business.logo_url} alt="" className="h-7 w-7 shrink-0 rounded object-contain bg-white/10 p-0.5" />
+              <img src={business.logo_url} alt="" className="h-9 w-9 shrink-0 rounded-lg border border-border object-contain bg-background p-1" />
             ) : (
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-accent/20 text-accent font-bold text-xs">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground font-bold text-sm">
                 {business.name.charAt(0)}
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-white">{business.name}</p>
-              {business.categories && business.categories.length > 0 && <p className="truncate text-xs text-white/40">{(business.categories as string[]).join(", ")}</p>}
+              <p className="truncate text-sm font-semibold text-foreground">{business.name}</p>
+              {business.categories && business.categories.length > 0 && <p className="truncate text-xs text-muted-foreground">{(business.categories as string[]).join(", ")}</p>}
             </div>
           </div>
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 space-y-px px-2 overflow-y-auto">
+        <nav className="flex-1 space-y-1 px-3 overflow-y-auto">
           {visibleNav.map((item: any) => {
             const isActive = activeTab === item.value;
-            const baseClasses = `flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors ${
+            const baseClasses = `flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
               isActive
-                ? "bg-white/[0.12] text-white"
-                : "text-white/55 hover:bg-white/[0.06] hover:text-white/90"
+                ? "bg-secondary text-foreground shadow-sm ring-1 ring-border"
+                : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
             }`;
             if (item.href) {
               return (
@@ -245,17 +245,17 @@ const AdminDashboard = () => {
         </nav>
 
         {/* Sidebar footer — always visible */}
-        <div className="shrink-0 border-t border-white/[0.06] px-2 py-2 space-y-px">
+        <div className="shrink-0 border-t border-border px-3 py-3 space-y-1">
           <Link
             to={`/v/${business.slug}`}
-            className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-sm font-medium text-white/55 hover:bg-white/[0.06] hover:text-white/90 transition-colors"
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
             <ExternalLink className="h-4 w-4 shrink-0" />
             Se din side
           </Link>
           <button
             onClick={signOut}
-            className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-sm font-medium text-white/55 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
           >
             <LogOut className="h-4 w-4 shrink-0" />
             Log ud
