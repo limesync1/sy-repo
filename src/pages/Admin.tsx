@@ -189,129 +189,124 @@ const AdminDashboard = () => {
 
   return (
     <div className="admin-shell flex min-h-screen">
-      {/* Mobile overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-foreground/35 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-border bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        {/* Sidebar header */}
-        <div className="flex h-14 shrink-0 items-center justify-between px-3.5">
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-6" />
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[252px] flex-col border-r border-white/10 bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-4">
+          <Link to="/" className="flex items-center gap-2.5 text-white">
+            <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-5" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/60">Business</span>
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="rounded-md p-1 text-white/50 hover:text-white lg:hidden">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Business info */}
-        <div className="mx-3 mb-2 shrink-0 rounded-md border border-white/10 bg-white/[0.025] px-3 py-2.5">
-          <div className="flex items-start gap-2.5">
+        <div className="border-b border-white/10 px-4 py-3">
+          <div className="flex items-start gap-3">
             {business.logo_url ? (
-              <img src={business.logo_url} alt="" className="h-8 w-8 shrink-0 rounded-md object-contain bg-white/10 p-1" />
+              <img src={business.logo_url} alt="" className="h-9 w-9 shrink-0 rounded-md border border-white/10 bg-white/5 object-contain p-1" />
             ) : (
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/8 text-sm font-bold text-white">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/[0.04] text-sm font-semibold text-white">
                 {business.name.charAt(0)}
               </div>
             )}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-white">{business.name}</p>
-              <p className="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-white/40">Virksomhedspanel</p>
-              {business.categories && business.categories.length > 0 && <p className="mt-1.5 truncate text-[11px] text-white/55">{(business.categories as string[]).slice(0, 2).join(" · ")}</p>}
+              <p className="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-white/38">Virksomhedspanel</p>
+              <p className="mt-1 truncate text-[11px] text-white/55">{business.city || business.category || "Opsætning pågår"}</p>
             </div>
           </div>
         </div>
 
-        {/* Nav items */}
-        <nav className="flex-1 space-y-4 overflow-y-auto px-3 pb-3">
+        <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-4">
           {Object.entries(navGroups).map(([section, items]) => (
-            <div key={section} className="space-y-1">
-              <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/30">{section}</p>
-              {items.map((item: any) => {
-                const isActive = activeTab === item.value;
-                const baseClasses = `group flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-all ${
-                  isActive
-                    ? "bg-white text-foreground shadow-sm"
-                    : "text-white/62 hover:bg-white/[0.035] hover:text-white"
-                }`;
-                if (item.href) {
+            <div key={section} className="space-y-1.5">
+              <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/28">{section}</p>
+              <div className="space-y-1">
+                {items.map((item: any) => {
+                  const isActive = activeTab === item.value;
+                  const baseClasses = `group flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors ${
+                    isActive
+                      ? "bg-white text-foreground shadow-sm"
+                      : "text-white/65 hover:bg-white/[0.04] hover:text-white"
+                  }`;
+                  if (item.href) {
+                    return (
+                      <Link key={item.value} to={item.href} onClick={() => setSidebarOpen(false)} className={baseClasses}>
+                        <item.icon className="h-4 w-4 shrink-0" />
+                        <span className="flex-1 text-left">{item.label}</span>
+                        {isActive && <ChevronRight className="h-4 w-4 shrink-0" />}
+                      </Link>
+                    );
+                  }
                   return (
-                    <Link key={item.value} to={item.href} onClick={() => setSidebarOpen(false)} className={baseClasses}>
+                    <button
+                      key={item.value}
+                      onClick={() => { setActiveTab(item.value); setSidebarOpen(false); }}
+                      className={baseClasses}
+                    >
                       <item.icon className="h-4 w-4 shrink-0" />
                       <span className="flex-1 text-left">{item.label}</span>
                       {isActive && <ChevronRight className="h-4 w-4 shrink-0" />}
-                    </Link>
+                    </button>
                   );
-                }
-                return (
-                  <button
-                    key={item.value}
-                    onClick={() => { setActiveTab(item.value); setSidebarOpen(false); }}
-                    className={baseClasses}
-                  >
-                    <item.icon className="h-4 w-4 shrink-0" />
-                    <span className="flex-1 text-left">{item.label}</span>
-                    {isActive && <ChevronRight className="h-4 w-4 shrink-0" />}
-                  </button>
-                );
-              })}
+                })}
+              </div>
             </div>
           ))}
         </nav>
 
-        {/* Sidebar footer — always visible */}
-        <div className="shrink-0 border-t border-white/[0.08] px-3 py-2.5 space-y-1">
-          <Link
-            to={`/v/${business.slug}`}
-            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-white/65 transition-colors hover:bg-white/[0.06] hover:text-white"
-          >
-            <ExternalLink className="h-4 w-4 shrink-0" />
-            Se din side
-          </Link>
-          <button
-            onClick={signOut}
-            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-white/65 transition-colors hover:bg-destructive/20 hover:text-white"
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            Log ud
-          </button>
+        <div className="shrink-0 border-t border-white/10 px-3 py-3">
+          <div className="space-y-1">
+            <Link
+              to={`/v/${business.slug}`}
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-[13px] font-medium text-white/65 transition-colors hover:bg-white/[0.04] hover:text-white"
+            >
+              <ExternalLink className="h-4 w-4 shrink-0" />
+              Se din side
+            </Link>
+            <button
+              onClick={signOut}
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-[13px] font-medium text-white/65 transition-colors hover:bg-white/[0.04] hover:text-white"
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              Log ud
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* Main content */}
-      <div className="flex flex-1 flex-col min-w-0">
-        {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center gap-3 border-b border-border bg-background/96 px-4 backdrop-blur sm:px-5">
-          <button onClick={() => setSidebarOpen(true)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors lg:hidden">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/96 px-4 backdrop-blur sm:px-5 lg:px-6">
+          <button onClick={() => setSidebarOpen(true)} className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden">
             <Menu className="h-5 w-5" />
           </button>
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{currentNav?.section || "Panel"}</p>
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-sm font-semibold text-foreground sm:text-[15px]">{currentNav?.label}</h1>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{currentNav?.section || "Panel"}</p>
+            <div className="mt-0.5 flex items-center gap-2">
+              <h1 className="truncate text-[15px] font-semibold text-foreground">{currentNav?.label}</h1>
               {currentSectionItems.length > 1 && (
-                <div className="hidden items-center gap-1 rounded-md border border-border bg-secondary/45 px-1 py-1 md:flex">
+                <div className="hidden items-center gap-1 rounded-md border border-border bg-card p-1 md:flex">
                   {currentSectionItems.map((item) => {
                     const isCurrent = item.value === activeTab;
                     const labelClasses = isCurrent
-                      ? "bg-background text-foreground shadow-sm"
+                      ? "bg-secondary text-foreground"
                       : "text-muted-foreground hover:text-foreground";
-
                     if (item.href) {
                       return (
-                          <Link key={item.value} to={item.href} className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${labelClasses}`}>
+                        <Link key={item.value} to={item.href} className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${labelClasses}`}>
                           {item.label}
                         </Link>
                       );
                     }
-
                     return (
                       <button
                         key={item.value}
                         onClick={() => setActiveTab(item.value)}
-                          className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${labelClasses}`}
+                        className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${labelClasses}`}
                       >
                         {item.label}
                       </button>
@@ -322,14 +317,13 @@ const AdminDashboard = () => {
             </div>
           </div>
           <div className="hidden items-center gap-2 lg:flex">
-              <Link to={`/v/${business.slug}`} className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground">
+            <Link to={`/v/${business.slug}`} className="rounded-md border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground">
               Se virksomhedsside
             </Link>
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 p-4 sm:p-5 lg:p-6">
           {renderContent()}
         </main>
       </div>
