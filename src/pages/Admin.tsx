@@ -993,10 +993,10 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
             </div>
 
             {steps.map((step, i) => (
-              <Card key={i} className="rounded-xl shadow-sm border-border overflow-hidden">
-                <div className="flex items-center justify-between bg-secondary/40 px-4 py-2.5 border-b border-border">
+              <Card key={i} className="rounded-lg border-border overflow-hidden shadow-sm">
+                <div className="flex items-center justify-between border-b border-border bg-secondary/40 px-4 py-2.5">
                   <div className="flex items-center gap-2.5">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-md bg-foreground text-[11px] font-bold text-background">{i + 1}</span>
+                    <span className="flex h-6 w-6 items-center justify-center rounded-md bg-secondary text-[11px] font-bold text-foreground">{i + 1}</span>
                     <span className="text-sm font-semibold text-foreground">{step.label || `Trin ${i + 1}`}</span>
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => removeStep(i)} className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
@@ -1058,18 +1058,18 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
       {currentStep === totalSteps && (
         <div className="space-y-5">
           <div>
-            <h4 className="text-base font-semibold text-foreground">Vælg intervaller</h4>
-            <p className="mt-1 text-sm text-muted-foreground">Hvilke intervaller kan kunden vælge for denne service?</p>
+            <h4 className="text-sm font-semibold text-foreground">Intervaller</h4>
+            <p className="mt-1 text-xs text-muted-foreground">Vælg hvilke intervaller kunden kan bestille.</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {ALL_INTERVALS.map((iv) => (
               <button key={iv.value} type="button" onClick={() => toggleInterval(iv.value)}
-                className={`rounded-xl border-2 px-4 py-3 text-center transition-all ${
+                className={`rounded-lg border px-4 py-2.5 text-center transition-colors ${
                   intervalOptions.includes(iv.value)
-                    ? "border-foreground bg-foreground/5 shadow-sm"
+                    ? "border-foreground bg-secondary"
                     : "border-border bg-card hover:border-foreground/30"
                 }`}>
-                <span className="text-sm font-medium text-foreground">{iv.label}</span>
+                <span className="text-xs font-medium text-foreground">{iv.label}</span>
               </button>
             ))}
           </div>
