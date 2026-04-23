@@ -68,11 +68,11 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
   return (
     <div className="space-y-4.5">
       <PageHeader
-        eyebrow="Virksomhedspanel"
-        title="Overblik"
+        eyebrow="Driftsoverblik"
+        title={business.name}
         description={<>Driftsstatus, nøgletal og næste skridt for <span className="font-medium text-foreground">{business.name}</span>.</>}
         action={business.slug ? (
-          <a href={`/biz/${business.slug}`} target="_blank" rel="noopener noreferrer"
+          <a href={`/v/${business.slug}`} target="_blank" rel="noopener noreferrer"
             className="hidden items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex">
             Se din side <ArrowRight className="h-3 w-3" />
           </a>
