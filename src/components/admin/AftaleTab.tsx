@@ -16,7 +16,7 @@ import {
   Play, Pause,
 } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
-import { PageHeader } from "@/components/admin/shared/AdminUI";
+import { AppList, PageHeader, PriorityBanner } from "@/components/admin/shared/AdminUI";
 import {
   buildPricingSnapshot,
   getSmartStep,
@@ -768,8 +768,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   return (
     <div className="space-y-5">
       <PageHeader
+        eyebrow="Drift"
         title="Aftaler"
-        description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende services` : ""}`}
+        description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende services` : ""} — få overblik over hvad der kræver svar, hvad der er i gang, og hvad der er planlagt.`}
         action={
           <Button onClick={() => setCreateOrderOpen(true)} className="gap-2">
             <ShoppingCart className="h-4 w-4" />Opret bestilling
@@ -810,19 +811,13 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
       {/* Action needed alert */}
       {actionNeeded.length > 0 && (
-        <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100">
-            <Clock className="h-4 w-4 text-amber-600" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-amber-900">{actionNeeded.length} {actionNeeded.length === 1 ? "aftale kræver" : "aftaler kræver"} din handling</p>
-            <p className="text-xs text-amber-700">Godkend, tilpas eller afvis for at give kunden besked</p>
-          </div>
-          <Button size="sm" variant="outline" onClick={() => setFilter("action_needed")}
-            className="shrink-0 rounded-xl text-xs border-amber-300 text-amber-800 hover:bg-amber-100">
-            Vis dem
-          </Button>
-        </div>
+        <PriorityBanner
+          eyebrow="Kræver handling"
+          icon={<Clock />}
+          title={`${actionNeeded.length} ${actionNeeded.length === 1 ? "aftale kræver" : "aftaler kræver"} din handling`}
+          description="Godkend, tilpas eller afvis for at give kunden en hurtig og tydelig besked."
+          action={<Button size="sm" onClick={() => setFilter("action_needed")} className="rounded-xl">Vis dem</Button>}
+        />
       )}
 
       {/* Filter tabs */}
@@ -854,7 +849,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
       {/* Orders list */}
       {filteredOrders && filteredOrders.length > 0 ? (
-        <div className="space-y-3">
+        <AppList className="border-0 bg-transparent shadow-none">
           {filteredOrders.map((order) => {
             const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
             const isExpanded = expandedOrder === order.id;
@@ -871,7 +866,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
             const daysUntilNext = nextDate ? Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
 
             return (
-              <Card key={order.id} className={`rounded-xl shadow-sm overflow-hidden transition-all ${
+              <Card key={order.id} className={`admin-panel rounded-xl shadow-sm overflow-hidden transition-all ${
                 actions.canRespond ? "border-amber-200 bg-amber-50/20" : "border-border"
               }`}>
                 {/* Order header */}
@@ -1089,7 +1084,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
               </Card>
             );
           })}
-        </div>
+        </AppList>
       ) : (
         <Card className="rounded-xl border-dashed border-border">
           <CardContent className="flex flex-col items-center justify-center py-12">
