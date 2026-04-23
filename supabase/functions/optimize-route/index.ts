@@ -39,9 +39,8 @@ Deno.serve(async (req) => {
       : "";
     const bodyToken = typeof body?.access_token === "string" ? body.access_token.trim() : "";
     const accessToken = headerToken || bodyToken;
-    // Hvis true: tillader VRP at omfordele alle stops (selv manuelt tildelte) for max gevinst.
-    // Default: true — det er standard adfærd ved klik på "Optimer".
-    const respectPinned = body?.respect_pinned === true;
+    const preserveAssignees = body?.preserve_assignees !== false;
+    const respectPinned = body?.respect_pinned === true || preserveAssignees;
 
     if (!routeId) {
       return new Response(JSON.stringify({ ok: false, error: "route_id required" }), {
@@ -305,8 +304,8 @@ Deno.serve(async (req) => {
           }).eq("id", sched.stop_id),
         );
 
-        // Sync assignees: hvis ikke pinned, opdater til de valgte
-        if (stop.pinned_assignees.length === 0) {
+        // Sync assignees: kun når vi eksplicit tillader ændring af bemanding
+        if (!preserveAssignees && stop.pinned_assignees.length === 0) {
           // Slet eksisterende og tilføj nye
           writes.push(
             supabase.from("route_stop_assignees").delete().eq("stop_id", sched.stop_id).then(() => {
