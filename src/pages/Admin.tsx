@@ -193,19 +193,20 @@ const AdminDashboard = () => {
         <div className="fixed inset-0 z-40 bg-foreground/35 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[252px] flex-col border-r border-white/8 bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex h-16 shrink-0 items-center justify-between border-b border-white/8 px-4">
-          <Link to="/" className="flex items-center gap-2.5 text-white">
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col border-r border-white/10 bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-white/10 px-4">
+          <Link to="/" className="flex items-center gap-3 text-white">
             <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-5" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/52">Business</span>
+            <span className="text-sm font-semibold tracking-normal text-white">Serviceydere</span>
           </Link>
-          <button onClick={() => setSidebarOpen(false)} className="rounded-md p-1 text-white/50 hover:text-white lg:hidden">
+          <button onClick={() => setSidebarOpen(false)} className="rounded-md p-1 text-white/60 hover:text-white lg:hidden">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="border-b border-white/8 px-4 py-4">
-          <div className="flex items-start gap-3">
+        <div className="border-b border-white/10 px-4 py-4">
+          <div className="rounded-lg border border-white/10 bg-white/[0.04] p-3">
+            <div className="flex items-start gap-3">
             {business.logo_url ? (
               <img src={business.logo_url} alt="" className="h-9 w-9 shrink-0 rounded-md border border-white/10 bg-white/5 object-contain p-1" />
             ) : (
@@ -215,48 +216,62 @@ const AdminDashboard = () => {
             )}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-white">{business.name}</p>
-              <p className="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-white/38">Virksomhedspanel</p>
-              <p className="mt-1 truncate text-[11px] text-white/55">{business.city || business.category || "Opsætning pågår"}</p>
+              <p className="mt-1 truncate text-[12px] text-white/60">{business.city || business.category || "Opsætning pågår"}</p>
+            </div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-white/70">
+              <div className="rounded-md border border-white/8 bg-white/[0.03] px-2.5 py-2">
+                <p className="text-white/40">Panel</p>
+                <p className="mt-1 font-medium text-white">Virksomhed</p>
+              </div>
+              <div className="rounded-md border border-white/8 bg-white/[0.03] px-2.5 py-2">
+                <p className="text-white/40">Status</p>
+                <p className="mt-1 font-medium text-white">Aktiv</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-4">
-          {Object.entries(navGroups).map(([section, items]) => (
-            <div key={section} className="space-y-1.5">
-              <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/28">{section}</p>
-              <div className="space-y-1">
-                {items.map((item: any) => {
-                  const isActive = activeTab === item.value;
-                  const baseClasses = `group flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors ${
-                    isActive
-                      ? "bg-white/[0.08] text-white"
-                      : "text-white/62 hover:bg-white/[0.04] hover:text-white"
-                  }`;
-                  if (item.href) {
-                    return (
-                      <Link key={item.value} to={item.href} onClick={() => setSidebarOpen(false)} className={baseClasses}>
-                        <item.icon className="h-4 w-4 shrink-0" />
-                        <span className="flex-1 text-left">{item.label}</span>
-                        {isActive && <ChevronRight className="h-4 w-4 shrink-0" />}
-                      </Link>
-                    );
-                  }
-                  return (
-                    <button
-                      key={item.value}
-                      onClick={() => { setActiveTab(item.value); setSidebarOpen(false); }}
-                      className={baseClasses}
-                    >
+        <nav className="flex-1 overflow-y-auto px-3 py-4">
+          <div className="space-y-1">
+            {visibleNav.map((item: any) => {
+              const isActive = activeTab === item.value;
+              const baseClasses = `group flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-[13px] font-medium transition-all ${
+                isActive
+                  ? "border-white/14 bg-white/[0.10] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                  : "border-transparent text-white/78 hover:border-white/8 hover:bg-white/[0.05] hover:text-white"
+              }`;
+              const iconClasses = isActive
+                ? "bg-white text-foreground"
+                : "bg-white/[0.07] text-white/72 group-hover:bg-white/[0.12] group-hover:text-white";
+
+              if (item.href) {
+                return (
+                  <Link key={item.value} to={item.href} onClick={() => setSidebarOpen(false)} className={baseClasses}>
+                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors ${iconClasses}`}>
                       <item.icon className="h-4 w-4 shrink-0" />
-                      <span className="flex-1 text-left">{item.label}</span>
-                      {isActive && <ChevronRight className="h-4 w-4 shrink-0" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+                    </span>
+                    <span className="flex-1 text-left">{item.label}</span>
+                    <ChevronRight className={`h-4 w-4 shrink-0 transition-opacity ${isActive ? "opacity-100" : "opacity-40 group-hover:opacity-70"}`} />
+                  </Link>
+                );
+              }
+
+              return (
+                <button
+                  key={item.value}
+                  onClick={() => { setActiveTab(item.value); setSidebarOpen(false); }}
+                  className={baseClasses}
+                >
+                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors ${iconClasses}`}>
+                    <item.icon className="h-4 w-4 shrink-0" />
+                  </span>
+                  <span className="flex-1 text-left">{item.label}</span>
+                  <ChevronRight className={`h-4 w-4 shrink-0 transition-opacity ${isActive ? "opacity-100" : "opacity-40 group-hover:opacity-70"}`} />
+                </button>
+              );
+            })}
+          </div>
         </nav>
 
         <div className="shrink-0 border-t border-white/10 px-3 py-3">
