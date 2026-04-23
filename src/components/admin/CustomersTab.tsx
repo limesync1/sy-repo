@@ -512,7 +512,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
       <div className="flex items-center gap-2 flex-wrap">
         <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, firma, CVR eller by..." />
         <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as any)}>
-          <SelectTrigger className="w-[180px] rounded-lg h-10">
+          <SelectTrigger className="h-9 w-[190px] rounded-md bg-background text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -562,7 +562,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         <AppList>
           {/* Header with select-all */}
           {eligibleSelectable.length > 0 && (
-              <div className="grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] items-center gap-3 admin-list-header px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            <div className="grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] items-center gap-3 admin-list-header px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Vælg alle" />
                <span>{allSelected ? "Alle valgt" : `Vælg alle (${eligibleSelectable.length})`}</span>
                <span className="hidden sm:block">Status</span>
@@ -570,7 +570,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
             </div>
           )}
           {filtered.map((c) => (
-            <div key={c.email} className="flex items-center gap-3 border-b border-border/80 px-3 py-2.5 last:border-b-0 transition-colors hover:bg-secondary/30">
+            <div key={c.email} className="flex items-center gap-3 border-b border-border/80 px-3 py-3 last:border-b-0 transition-colors hover:bg-secondary/40">
               {c.saved_id ? (
                 <Checkbox
                   checked={selectedIds.has(c.saved_id)}
@@ -581,9 +581,9 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
               ) : (
                 <div className="w-4 shrink-0" />
               )}
-              <button
+                <button
                 onClick={() => setSelectedEmail(c.email)}
-                className="h-8 w-8 rounded-md border border-border bg-secondary flex items-center justify-center shrink-0 text-sm font-semibold text-foreground"
+                  className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-secondary shrink-0 text-sm font-semibold text-foreground"
                 title="Se detaljer"
               >
                 {c.type === "business" ? <Building2 className="h-4 w-4" /> : (c.name?.charAt(0).toUpperCase() || "?")}
