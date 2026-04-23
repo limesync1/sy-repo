@@ -430,8 +430,8 @@ const CreateBusinessForm = () => {
           <Button onClick={handleCreate} disabled={createBiz.isPending} className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-lg text-sm">
             {createBiz.isPending ? "Opretter..." : "Opret virksomhed"}
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
     </div>
   );
 };
@@ -1130,9 +1130,8 @@ const SettingsTab = ({ business }: { business: any }) => {
         }
       />
 
-      {/* CVR Lookup */}
-      <Card className="rounded-md border-border shadow-sm">
-        <CardContent className="p-4 space-y-3">
+      <SectionCard title="CVR-opslag" description="Hent virksomhedsdata uden at skifte arbejdsgang.">
+        <div className="space-y-3">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="h-4 w-4 text-accent" />
             <h3 className="text-sm font-semibold text-foreground">Automatisk udfyldning fra CVR</h3>
@@ -1170,17 +1169,12 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
 
       {/* General */}
-      <Card className="rounded-md shadow-sm border-border">
-        <CardContent className="p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Settings className="h-4 w-4 text-muted-foreground" />
-            Generelt
-          </h3>
-          <div className="space-y-4">
+      <SectionCard title="Generelt" description="Kerneoplysninger om virksomheden og dens kategorier.">
+        <div className="space-y-4">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Virksomhedsnavn</label>
               <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-10" />
@@ -1206,17 +1200,11 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </SectionCard>
 
       {/* Contact */}
-      <Card className="rounded-md shadow-sm border-border">
-        <CardContent className="p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Plus className="h-4 w-4 text-muted-foreground" />
-            Kontaktoplysninger
-          </h3>
-          <div className="space-y-4">
+      <SectionCard title="Kontaktoplysninger" description="Vises på din profil og bruges i driften.">
+        <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Telefon</label>
@@ -1253,13 +1241,11 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </SectionCard>
 
       {/* Images */}
-      <Card className="rounded-md shadow-sm border-border">
-        <CardContent className="p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground">Billeder</h3>
+      <SectionCard title="Billeder" description="Logo og cover i samme rolige modulstruktur.">
+        <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Logo</label>
@@ -1270,16 +1256,12 @@ const SettingsTab = ({ business }: { business: any }) => {
               <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-48" />
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
 
       {/* Notification Settings */}
-      <Card className="rounded-md shadow-sm border-border">
-        <CardContent className="p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Bell className="h-4 w-4 text-muted-foreground" />
-            Notifikationsindstillinger
-          </h3>
+      <SectionCard title="Notifikationer" description="Ens toggles og mindre visuel støj på tværs af alle indstillinger.">
+        <div className="space-y-4">
           <p className="text-xs text-muted-foreground">Vælg hvilke hændelser du vil modtage varsler om.</p>
           <div className="space-y-3">
             {([
@@ -1305,16 +1287,12 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
 
       {/* Route Planning */}
-      <Card className="rounded-md shadow-sm border-border">
-        <CardContent className="p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Route className="h-4 w-4 text-muted-foreground" />
-            Ruteplanlægning
-          </h3>
+      <SectionCard title="Ruteplanlægning" description="Aktivér ruteplanlægning uden at bryde den samlede indstillingsstruktur.">
+        <div className="space-y-4">
           <p className="text-xs text-muted-foreground">
             Aktivér ruteplanlægning for at oprette medarbejder-konti og planlægge daglige
             ruter med stop hos kunder. Ruterne kan optimeres med AI baseret på afstand,
@@ -1340,13 +1318,12 @@ const SettingsTab = ({ business }: { business: any }) => {
               />
             </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
 
 
-      <Card className="rounded-md shadow-sm border-border">
-        <CardContent className="p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground">Åbningstider</h3>
+      <SectionCard title="Åbningstider" description="Tydelig ugentlig struktur med samme formularrytme.">
+        <div className="space-y-4">
           <div className="space-y-2">
             {DAYS.map((day) => {
               const isWeekend = day === "Lørdag" || day === "Søndag";
@@ -1377,11 +1354,11 @@ const SettingsTab = ({ business }: { business: any }) => {
       {/* Sticky save bar */}
       {hasChanges && (
         <div className="sticky bottom-4 z-20">
-            <Card className="rounded-md border-border bg-card shadow-lg">
+            <Card className="rounded-md border-border bg-card shadow-sm">
             <CardContent className="flex items-center justify-between p-3">
               <p className="text-sm text-muted-foreground">Du har ændringer der ikke er gemt.</p>
               <Button onClick={save} disabled={updateBiz.isPending}
-                className="h-9 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 text-sm font-semibold px-6 shadow-sm">
+                className="h-8 rounded-md bg-foreground px-4 text-xs font-medium text-background hover:bg-foreground/90">
                 {updateBiz.isPending ? "Gemmer..." : "Gem ændringer"}
               </Button>
             </CardContent>
