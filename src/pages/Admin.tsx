@@ -592,8 +592,8 @@ const CalculatorPreview = ({ steps }: { steps: any[] }) => {
   if (steps.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-accent/20 bg-accent/5 p-4">
-      <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-accent">
+    <div className="surface-admin rounded-xl border border-border/80 p-4">
+      <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
         <Calculator className="h-4 w-4" />
         Forhåndsvisning
       </div>
@@ -615,9 +615,9 @@ const CalculatorPreview = ({ steps }: { steps: any[] }) => {
             </div>
           );
         })}
-        <div className="flex items-center justify-between bg-muted/50 px-4 py-3">
+        <div className="flex items-center justify-between bg-secondary px-4 py-3">
           <span className="text-sm font-semibold text-foreground">I alt</span>
-          <span className="text-lg font-bold text-accent">{total} kr</span>
+          <span className="text-lg font-bold text-foreground">{total} kr</span>
         </div>
       </div>
     </div>
@@ -764,7 +764,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   return (
     <div className="space-y-6">
       {/* Step Progress Bar */}
-      <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
+      <div className="surface-admin rounded-xl border border-border/80 p-3 sm:p-4">
         <div className="flex items-center">
           {FORM_STEPS.map((s, i) => {
             const isLast = i === FORM_STEPS.length - 1;
@@ -776,16 +776,16 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                 >
                   <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold transition-all ${
                     currentStep === s.num ? "bg-foreground text-background shadow-sm ring-2 ring-foreground/20" :
-                    s.num < currentStep ? "bg-accent/15 text-accent ring-1 ring-accent/30" : "bg-secondary text-muted-foreground"
+                    s.num < currentStep ? "bg-secondary text-foreground ring-1 ring-border" : "bg-secondary text-muted-foreground"
                   }`}>
                     {s.num < currentStep ? "✓" : s.num}
                   </span>
                   <span className={`hidden sm:block text-sm font-medium whitespace-nowrap transition-colors ${
-                    currentStep === s.num ? "text-foreground" : s.num < currentStep ? "text-accent" : "text-muted-foreground"
+                    currentStep === s.num ? "text-foreground" : s.num < currentStep ? "text-foreground" : "text-muted-foreground"
                   }`}>{s.label}</span>
                 </button>
                 {!isLast && (
-                  <div className={`mx-2 sm:mx-3 h-px flex-1 min-w-4 transition-colors ${FORM_STEPS[i + 1].num <= currentStep ? "bg-accent/40" : "bg-border"}`} />
+                  <div className={`mx-2 sm:mx-3 h-px flex-1 min-w-4 transition-colors ${FORM_STEPS[i + 1].num <= currentStep ? "bg-foreground/20" : "bg-border"}`} />
                 )}
               </div>
             );
@@ -807,10 +807,10 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                 {categoryOptions.map((c) => (
                   <button key={c} type="button"
                     onClick={() => { setServiceCategory(c); setSubcategory(""); setCustomSubcategory(false); }}
-                    className={`flex flex-col items-center gap-2 rounded-xl border-2 px-3 py-4 text-center transition-all hover:shadow-sm ${
+                    className={`flex flex-col items-center gap-2 rounded-xl border px-3 py-4 text-center transition-colors ${
                       serviceCategory === c
-                        ? "border-foreground bg-foreground/5 shadow-sm"
-                        : "border-border bg-card hover:border-foreground/30"
+                        ? "border-border bg-secondary"
+                        : "border-border bg-card hover:bg-secondary"
                     }`}
                   >
                     <span className="text-2xl">{CATEGORY_ICONS[c] || "📋"}</span>
@@ -845,10 +845,10 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                   <div className="flex flex-wrap gap-2">
                     {subcategoryOptions.map((s) => (
                       <button key={s} type="button" onClick={() => setSubcategory(s)}
-                        className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                        className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
                           subcategory === s
-                            ? "border-foreground bg-foreground text-background"
-                            : "border-border bg-card text-foreground hover:border-foreground/40"
+                            ? "border-border bg-secondary text-foreground"
+                            : "border-border bg-card text-foreground hover:bg-secondary"
                         }`}
                       >{s}</button>
                     ))}
@@ -894,7 +894,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
                 <span className="text-sm text-muted-foreground mr-1">Forslag:</span>
                 {productSuggestions.map((s) => (
                   <button key={s} type="button" onClick={() => setName(s)}
-                    className="rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-colors">{s}</button>
+                    className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">{s}</button>
                 ))}
               </div>
             )}
@@ -924,10 +924,10 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
               { value: "prisberegner", label: "Prisberegner", desc: "Kunden sammensætter selv og ser prisen live", icon: "🧮" },
             ].map((opt) => (
               <button key={opt.value} type="button" onClick={() => setPricingType(opt.value)}
-                className={`rounded-xl border-2 p-5 text-left transition-all ${
+                className={`rounded-xl border p-5 text-left transition-colors ${
                   pricingType === opt.value
-                    ? "border-foreground bg-foreground/5 shadow-sm"
-                    : "border-border bg-card hover:border-foreground/30 hover:shadow-sm"
+                    ? "border-border bg-secondary"
+                    : "border-border bg-card hover:bg-secondary"
                 }`}>
                 <span className="text-2xl">{opt.icon}</span>
                 <span className="mt-2 block text-sm font-semibold text-foreground">{opt.label}</span>
@@ -964,15 +964,15 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
           </div>
 
           {availableTemplates.length > 0 && steps.length === 0 && (
-            <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+            <div className="surface-admin rounded-xl border border-border/80 p-5 space-y-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-amber-500" />
+                <Sparkles className="h-5 w-5 text-muted-foreground" />
                 <span className="text-sm font-semibold text-foreground">Kom hurtigt i gang med en skabelon</span>
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
                 {availableTemplates.map((t) => (
                   <button key={t.label} type="button" onClick={() => applyTemplate(t)}
-                    className="rounded-xl border border-border bg-muted/30 p-4 text-left transition-all hover:border-foreground/30 hover:shadow-sm">
+                    className="rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-secondary">
                     <span className="block text-sm font-semibold text-foreground">{t.label}</span>
                     <span className="mt-1 block text-sm text-muted-foreground">{t.steps.length} trin · {t.steps.map(s => s.unit).filter((v, i, a) => a.indexOf(v) === i).join(", ")}</span>
                   </button>
@@ -1061,10 +1061,10 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {ALL_INTERVALS.map((iv) => (
               <button key={iv.value} type="button" onClick={() => toggleInterval(iv.value)}
-                className={`rounded-xl border-2 px-4 py-3 text-center transition-all ${
+                className={`rounded-xl border px-4 py-3 text-center transition-colors ${
                   intervalOptions.includes(iv.value)
-                    ? "border-foreground bg-foreground/5 shadow-sm"
-                    : "border-border bg-card hover:border-foreground/30"
+                    ? "border-border bg-secondary"
+                    : "border-border bg-card hover:bg-secondary"
                 }`}>
                 <span className="text-sm font-medium text-foreground">{iv.label}</span>
               </button>
