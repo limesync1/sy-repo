@@ -419,11 +419,11 @@ const ProposalStatusBanner = ({ order }: { order: any }) => {
 
   if (bizResp === "adjusted" && !custResp && status === "pending") {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-        <Clock className="h-4 w-4 text-amber-600 shrink-0 animate-pulse" />
+      <div className="flex items-center gap-3 rounded-md border border-border bg-feature-warm px-4 py-3">
+        <Clock className="h-4 w-4 shrink-0 animate-pulse text-feature-warm-foreground" />
         <div>
-          <p className="text-sm font-semibold text-amber-900">Afventer kundens svar på dit forslag</p>
-          <p className="text-xs text-amber-700">Kunden kan godkende eller afvise dit tilpassede forslag.</p>
+          <p className="text-sm font-semibold text-feature-warm-foreground">Afventer kundens svar på dit forslag</p>
+          <p className="text-xs text-feature-warm-foreground/80">Kunden kan godkende eller afvise dit tilpassede forslag.</p>
         </div>
       </div>
     );
@@ -431,11 +431,11 @@ const ProposalStatusBanner = ({ order }: { order: any }) => {
 
   if (bizResp === "adjusted" && custResp === "accepted") {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
-        <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+      <div className="flex items-center gap-3 rounded-md border border-border bg-feature-cool px-4 py-3">
+        <CheckCircle2 className="h-4 w-4 shrink-0 text-feature-cool-foreground" />
         <div>
-          <p className="text-sm font-semibold text-green-900">Kunden godkendte dit forslag</p>
-          <p className="text-xs text-green-700">Aftalen er bekræftet til {order.adjusted_amount} kr. Du kan nu starte arbejdet.</p>
+          <p className="text-sm font-semibold text-feature-cool-foreground">Kunden godkendte dit forslag</p>
+          <p className="text-xs text-feature-cool-foreground/80">Aftalen er bekræftet til {order.adjusted_amount} kr. Du kan nu starte arbejdet.</p>
         </div>
       </div>
     );

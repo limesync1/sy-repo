@@ -105,11 +105,12 @@
 
 @layer utilities {
   .admin-shell {
-    background: hsl(var(--secondary) / 0.45);
+    background: linear-gradient(180deg, hsl(var(--secondary) / 0.72), hsl(var(--background)) 28%);
   }
 
   .admin-panel {
     background: hsl(var(--card));
+    box-shadow: 0 1px 0 hsl(var(--border) / 0.8);
   }
 
   .surface-panel {
@@ -143,12 +144,20 @@
   }
 
   .admin-list-header {
-    background: hsl(var(--secondary) / 0.45);
+    background: hsl(var(--secondary) / 0.7);
     border-bottom: 1px solid hsl(var(--border));
   }
 
   .admin-subtle-divider {
     border-color: hsl(var(--border) / 0.75);
+  }
+
+  .admin-inline-toggle {
+    background: hsl(var(--border));
+  }
+
+  .admin-inline-toggle[data-state="on"] {
+    background: hsl(var(--accent));
   }
 }
 

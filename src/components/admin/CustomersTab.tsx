@@ -789,7 +789,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-semibold text-foreground truncate">{s.service_name}</p>
                               <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-accent/40 text-accent bg-accent/5">
+                                  <Badge variant="outline" className="h-5 border-border bg-secondary px-1.5 text-[10px] text-foreground">
                                   {INTERVAL_LABELS[s.interval] || s.interval}
                                 </Badge>
                                 <StatusBadge status={s.status} />
@@ -800,7 +800,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                                   </span>
                                 )}
                                 {s.status === "paused" && (
-                                  <span className="text-[11px] text-amber-700 flex items-center gap-1">
+                                  <span className="flex items-center gap-1 text-[11px] text-feature-warm-foreground">
                                     <Pause className="h-3 w-3" />
                                     Indgår ikke i ruteplanlægning
                                   </span>
@@ -910,7 +910,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
                                 {o.is_paused
-                                  ? <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-amber-300 text-amber-700 bg-amber-50">På pause</Badge>
+                                  ? <Badge variant="outline" className="h-5 border-border bg-feature-warm px-1.5 text-[10px] text-feature-warm-foreground">På pause</Badge>
                                   : <StatusBadge status={o.status} />}
                                 <span className="text-sm font-bold text-foreground tabular-nums">{fmtKr(o.total_amount)}</span>
                               </div>
