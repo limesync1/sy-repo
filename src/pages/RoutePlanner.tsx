@@ -218,6 +218,11 @@ const Planner = () => {
     });
   }, [calendarRoutesRaw, calendarStops, activeEmployees]);
 
+  const activeEditingRoute = useMemo(() => {
+    if (!editingRoute) return null;
+    return calendarRoutesRaw.find((route) => route.id === editingRoute.id) ?? editingRoute;
+  }, [editingRoute, calendarRoutesRaw]);
+
   /* Map data — viser ruter for det aktuelle range (måned/uge) */
   const mapRoutes: MapRoute[] = useMemo(() => {
     const list: MapRoute[] = [];
@@ -940,18 +945,18 @@ const Planner = () => {
         />
 
         <RouteEditSheet
-          route={editingRoute}
-          open={!!editingRoute}
+          route={activeEditingRoute}
+          open={!!activeEditingRoute}
           onOpenChange={(o) => !o && setEditingRoute(null)}
-          stopCount={editingRoute ? (calendarStops.filter((s) => s.route_id === editingRoute.id).length) : 0}
+          stopCount={activeEditingRoute ? (calendarStops.filter((s) => s.route_id === activeEditingRoute.id).length) : 0}
         />
 
         {/* Slide-in: stops på den valgte rute (vises ved siden af rute-redigering) */}
         <RouteStopsPanel
-          route={editingRoute}
-          open={!!editingRoute}
+          route={activeEditingRoute}
+          open={!!activeEditingRoute}
           onOpenChange={(o) => !o && setEditingRoute(null)}
-          stops={editingRoute ? calendarStops.filter((s) => s.route_id === editingRoute.id) : []}
+          stops={activeEditingRoute ? calendarStops.filter((s) => s.route_id === activeEditingRoute.id) : []}
           onSelectStop={(s) => setSelectedStopId(s.id)}
           employees={activeEmployees.map((e: any) => ({
             id: e.id, name: e.name, avatar_url: e.avatar_url, color: e.color,

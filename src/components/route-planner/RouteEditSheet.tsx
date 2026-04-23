@@ -12,7 +12,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Sparkles, Trash2, Save, Check } from "lucide-react";
+import { Loader2, Sparkles, Trash2, Check } from "lucide-react";
 import { Palette, CalendarDays, Pencil } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -229,25 +229,13 @@ export const RouteEditSheet = ({
                 Optimér rute (AI + Mapbox)
               </Button>
             )}
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="flex-1 text-destructive hover:text-destructive hover:bg-destructive/10"
-                onClick={() => setConfirmDelete(true)}
-              >
-                <Trash2 className="h-4 w-4 mr-1.5" />Slet
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={() => onOpenChange(false)}
-                disabled={updateRoute.isPending}
-              >
-                {updateRoute.isPending
-                  ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                  : <Save className="h-4 w-4 mr-1.5" />}
-                Luk
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={() => setConfirmDelete(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-1.5" />Slet
+            </Button>
           </SheetFooterBar>
         </SheetContent>
       </Sheet>
