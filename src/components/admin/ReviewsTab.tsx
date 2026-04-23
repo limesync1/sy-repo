@@ -40,26 +40,26 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
 
       {/* Rating breakdown */}
       {reviews.length > 0 && (
-        <Card className="rounded-xl border-border shadow-sm">
-          <CardContent className="p-5">
+        <Card className="rounded-lg border-border shadow-sm">
+          <CardContent className="p-4">
             <h3 className="mb-3 text-sm font-semibold text-foreground">Fordeling</h3>
             <div className="space-y-2">
               {[5, 4, 3, 2, 1].map((rating) => {
                 const count = reviews.filter((r) => r.rating === rating).length;
                 const pct = (count / reviews.length) * 100;
                 return (
-                  <div key={rating} className="flex items-center gap-3 text-sm">
+                  <div key={rating} className="flex items-center gap-3 text-xs">
                     <div className="flex w-8 items-center justify-end gap-0.5">
                       <span className="text-muted-foreground tabular-nums">{rating}</span>
-                      <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                      <Star className="h-3 w-3 fill-foreground text-foreground" />
                     </div>
                     <div className="h-2.5 flex-1 rounded-full bg-secondary overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-amber-400 transition-all duration-500"
+                        className="h-full rounded-full bg-foreground transition-all duration-500"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
-                    <span className="w-8 text-right text-sm font-medium text-foreground tabular-nums">{count}</span>
+                    <span className="w-8 text-right text-xs font-medium text-foreground tabular-nums">{count}</span>
                   </div>
                 );
               })}
@@ -71,25 +71,25 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
       {/* Review list */}
       <div className="space-y-3">
         {reviews.map((review) => (
-          <Card key={review.id} className="rounded-xl border-border shadow-sm hover:shadow-md transition-shadow">
-            <CardContent className="p-5">
+          <Card key={review.id} className="rounded-lg border-border shadow-sm transition-shadow">
+            <CardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10 text-sm font-bold text-accent">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-secondary text-xs font-bold text-foreground">
                     {review.reviewer_name.charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="text-sm font-semibold text-foreground">{review.reviewer_name}</h3>
                       {review.is_verified && (
-                        <Badge variant="secondary" className="text-[11px] font-medium px-1.5 py-0 bg-accent/10 text-accent border-0">
+                        <Badge variant="outline" className="text-[10px] font-medium px-1.5 py-0 border-border bg-background text-muted-foreground">
                           Verificeret
                         </Badge>
                       )}
                     </div>
                     <div className="mt-1 flex items-center gap-0.5">
                       {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} className={`h-3.5 w-3.5 ${star <= review.rating ? "fill-amber-400 text-amber-400" : "text-border"}`} />
+                        <Star key={star} className={`h-3.5 w-3.5 ${star <= review.rating ? "fill-foreground text-foreground" : "text-border"}`} />
                       ))}
                     </div>
                   </div>
@@ -99,9 +99,9 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
                 </span>
               </div>
               {review.comment && (
-                <div className="mt-3 flex gap-2.5 pl-[52px]">
+                <div className="mt-3 flex gap-2.5 pl-[48px]">
                   <MessageSquare className="h-3.5 w-3.5 text-muted-foreground/40 mt-0.5 shrink-0" />
-                  <p className="text-sm text-foreground/85 leading-relaxed">{review.comment}</p>
+                  <p className="text-sm text-foreground/85 leading-6">{review.comment}</p>
                 </div>
               )}
             </CardContent>
