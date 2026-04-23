@@ -23,7 +23,7 @@ import { da } from "date-fns/locale";
 import { INTERVAL_LABELS } from "@/types/service";
 import { Link } from "react-router-dom";
 import CustomerEditDialog, { type EditableCustomer } from "./CustomerEditDialog";
-import { AppList, AppListRow, PageHeader, PrimaryButton, SearchInput, EmptyState, StatCard } from "@/components/admin/shared/AdminUI";
+import { AppList, AppListRow, EmptyState, InsightPill, PageHeader, PrimaryButton, SearchInput, SectionCard, StatCard } from "@/components/admin/shared/AdminUI";
 import { toast } from "sonner";
 
 type Customer = {
@@ -493,7 +493,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
       <PageHeader
         eyebrow="Kundeflow"
         title="Kunder"
-        description="Samlet kundebillede med relation, aktivitet og værdi i samme mønster som resten af panelet."
+        description="CRM-overblik med relation, aktivitet og værdi i samme struktur som resten af panelet."
         action={
           <PrimaryButton onClick={openCreateDialog} icon={<UserPlus />}>
             Tilføj kunde
@@ -508,7 +508,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         <StatCard label="Samlet omsætning" value={fmtKr(stats.totalRev)} icon={<TrendingUp />} tone="amber" hint="Omsætning på tværs af alle kunder" />
       </div>
 
-      {/* Search */}
+      <SectionCard title="Filtre" description="Søg og afgræns kundelisten uden at skifte layout mellem faner.">
       <div className="flex items-center gap-2 flex-wrap">
         <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, firma, CVR eller by..." />
         <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as any)}>
@@ -522,6 +522,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
           </SelectContent>
         </Select>
       </div>
+      </SectionCard>
 
       {/* Bulk actions bar */}
       {selectedCustomers.length > 0 && (
@@ -561,7 +562,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         <AppList>
           {/* Header with select-all */}
           {eligibleSelectable.length > 0 && (
-              <div className="grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] items-center gap-3 border-b border-border/80 bg-secondary/40 px-3 py-2 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              <div className="grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] items-center gap-3 admin-list-header px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Vælg alle" />
                <span>{allSelected ? "Alle valgt" : `Vælg alle (${eligibleSelectable.length})`}</span>
                <span className="hidden sm:block">Status</span>
@@ -569,7 +570,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
             </div>
           )}
           {filtered.map((c) => (
-            <div key={c.email} className="flex items-center gap-3 border-b border-border/80 px-3 py-2.5 last:border-b-0 hover:bg-secondary/35 transition-colors">
+            <div key={c.email} className="flex items-center gap-3 border-b border-border/80 px-3 py-2.5 last:border-b-0 transition-colors hover:bg-secondary/30">
               {c.saved_id ? (
                 <Checkbox
                   checked={selectedIds.has(c.saved_id)}
@@ -589,13 +590,13 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
               </button>
               <button onClick={() => setSelectedEmail(c.email)} className="flex-1 min-w-0 grid grid-cols-1 gap-2 text-left sm:grid-cols-[1.5fr_1fr_1fr] sm:items-center">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate flex items-center gap-1.5">
+                  <p className="flex items-center gap-1.5 truncate text-sm font-medium text-foreground">
                     {c.type === "business" && c.company_name ? c.company_name : c.name}
                     {c.type === "business" && (
-                        <Badge variant="outline" className="text-[10px] h-4 px-1 border-border bg-background text-muted-foreground">Erhverv</Badge>
+                        <InsightPill>Erhverv</InsightPill>
                     )}
                     {c.type === "private" && (
-                        <Badge variant="outline" className="text-[10px] h-4 px-1 border-border bg-background text-muted-foreground">Privat</Badge>
+                        <InsightPill>Privat</InsightPill>
                     )}
                   </p>
                   <p className="text-[11px] text-muted-foreground truncate">{c.email}{c.phone ? ` · ${c.phone}` : ""}</p>
@@ -609,21 +610,21 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                 </div>
                   <div className="flex items-center justify-end gap-1.5">
                   {c.active_subs > 0 && (
-                    <Badge variant="outline" className="border-border text-feature-cool-foreground bg-feature-cool text-[10px] h-5 px-1.5 gap-0.5">
+                    <InsightPill className="border-transparent bg-feature-cool text-feature-cool-foreground">
                       <Repeat className="h-2.5 w-2.5" />
                       {c.active_subs} abo.
-                    </Badge>
+                    </InsightPill>
                   )}
                   {c.paused_subs > 0 && (
-                    <Badge variant="outline" className="border-border text-feature-warm-foreground bg-feature-warm text-[10px] h-5 px-1.5 gap-0.5">
+                    <InsightPill className="border-transparent bg-feature-warm text-feature-warm-foreground">
                       <Pause className="h-2.5 w-2.5" />
                       {c.paused_subs} på pause
-                    </Badge>
+                    </InsightPill>
                   )}
                   {c.orders_count > 0 && (
-                    <Badge variant="secondary" className="text-[10px] h-5 px-1.5">
+                    <InsightPill>
                       {c.orders_count} ordrer
-                    </Badge>
+                    </InsightPill>
                   )}
                     <span className="w-24 text-right text-sm font-semibold text-foreground tabular-nums">{c.total_revenue > 0 ? fmtKr(c.total_revenue) : "—"}</span>
                 </div>
