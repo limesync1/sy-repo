@@ -132,14 +132,14 @@ const SERVICE_CATEGORIES: Record<string, Record<string, string[]>> = {
 };
 
 const NAV_ITEMS = [
-  { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
-  { value: "services", label: "Services", icon: Wrench },
-  { value: "orders", label: "Aftaler", icon: ShoppingCart },
-  { value: "customers", label: "Kunder", icon: Contact },
-  { value: "routes", label: "Ruter", icon: Route, requiresRoutePlanning: true, href: "/virksomhed/ruter" as string | undefined },
-  { value: "employees", label: "Medarbejdere", icon: Users, requiresRoutePlanning: true },
-  { value: "reviews", label: "Anmeldelser", icon: Star },
-  { value: "settings", label: "Indstillinger", icon: Settings },
+  { value: "dashboard", label: "Overblik", icon: LayoutDashboard, section: "Overblik" },
+  { value: "orders", label: "Aftaler", icon: ShoppingCart, section: "Drift" },
+  { value: "customers", label: "Kunder", icon: Contact, section: "Drift" },
+  { value: "routes", label: "Ruter", icon: Route, section: "Drift", requiresRoutePlanning: true, href: "/virksomhed/ruter" as string | undefined },
+  { value: "employees", label: "Medarbejdere", icon: Users, section: "Drift", requiresRoutePlanning: true },
+  { value: "services", label: "Services", icon: Wrench, section: "Forretning" },
+  { value: "reviews", label: "Anmeldelser", icon: Star, section: "Forretning" },
+  { value: "settings", label: "Indstillinger", icon: Settings, section: "Opsætning" },
 ];
 
 /* ─── Entry ─── */
@@ -177,6 +177,11 @@ const AdminDashboard = () => {
   };
 
   const currentNav = visibleNav.find(n => n.value === activeTab) || NAV_ITEMS.find(n => n.value === activeTab);
+  const navGroups = visibleNav.reduce<Record<string, typeof visibleNav>>((acc, item) => {
+    const key = item.section || "Andet";
+    acc[key] = [...(acc[key] || []), item];
+    return acc;
+  }, {});
 
   return (
     <div className="flex min-h-screen bg-secondary/50">
