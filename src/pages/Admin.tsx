@@ -798,28 +798,27 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
         </div>
       </div>
 
-      {/* Step 1: Category — Card grid instead of dropdown */}
+      {/* Step 1: Category */}
       {currentStep === 1 && (
         <div className="space-y-5">
           <div>
-            <h4 className="text-base font-semibold text-foreground">Vælg kategori</h4>
-            <p className="mt-1 text-sm text-muted-foreground">Hvilken type service tilbyder du?</p>
+            <h4 className="text-sm font-semibold text-foreground">Kategori</h4>
+            <p className="mt-1 text-xs text-muted-foreground">Vælg den kategori, der bedst beskriver servicen.</p>
           </div>
 
           {!customCategory ? (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {categoryOptions.map((c) => (
                   <button key={c} type="button"
                     onClick={() => { setServiceCategory(c); setSubcategory(""); setCustomSubcategory(false); }}
-                    className={`flex flex-col items-center gap-2 rounded-xl border-2 px-3 py-4 text-center transition-all hover:shadow-sm ${
+                    className={`flex items-center justify-center rounded-lg border px-3 py-3 text-center text-sm font-medium transition-colors ${
                       serviceCategory === c
-                        ? "border-foreground bg-foreground/5 shadow-sm"
+                        ? "border-foreground bg-secondary text-foreground"
                         : "border-border bg-card hover:border-foreground/30"
                     }`}
                   >
-                    <span className="text-2xl">{CATEGORY_ICONS[c] || "📋"}</span>
-                    <span className="text-sm font-medium text-foreground">{c}</span>
+                    <span className="text-foreground">{c}</span>
                   </button>
                 ))}
               </div>
@@ -840,17 +839,17 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
 
           {/* Subcategory — chips instead of dropdown */}
           {serviceCategory && subcategoryOptions.length > 0 && (
-            <div className="space-y-3 pt-4 border-t border-border">
+              <div className="space-y-3 pt-4 border-t border-border">
               <div>
-                <h4 className="text-sm font-semibold text-foreground">Underkategori</h4>
-                <p className="mt-0.5 text-sm text-muted-foreground">Vælg den mest passende underkategori</p>
+                  <h4 className="text-sm font-semibold text-foreground">Underkategori</h4>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Vælg den mest præcise underkategori.</p>
               </div>
               {!customSubcategory ? (
                 <>
                   <div className="flex flex-wrap gap-2">
                     {subcategoryOptions.map((s) => (
                       <button key={s} type="button" onClick={() => setSubcategory(s)}
-                        className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                        className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
                           subcategory === s
                             ? "border-foreground bg-foreground text-background"
                             : "border-border bg-card text-foreground hover:border-foreground/40"
