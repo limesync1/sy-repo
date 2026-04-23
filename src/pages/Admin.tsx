@@ -538,17 +538,17 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
   return (
     <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
       <CardContent className="p-0">
-        <div className="grid gap-3 p-4">
+        <div className="grid gap-2.5 p-3.5 sm:p-4">
           <div className="min-w-0">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex min-w-0 items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground [&_svg]:h-4 [&_svg]:w-4">
-                  <span className="text-base leading-none">{categoryIcon}</span>
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex min-w-0 items-start gap-2.5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground">
+                  <span className="text-sm leading-none">{categoryIcon}</span>
                 </div>
 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="truncate text-sm font-semibold text-foreground sm:text-base">{service.name}</h3>
+                    <h3 className="truncate text-sm font-semibold text-foreground">{service.name}</h3>
                     {service.service_category && (
                       <span className="rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                         {service.service_category}
@@ -575,31 +575,31 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
               </div>
 
               <div className="flex items-center gap-1.5 sm:shrink-0">
-                <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-8 rounded-lg px-3 text-xs border-border hover:bg-secondary">
+                <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-8 rounded-lg border-border px-3 text-xs text-foreground hover:bg-secondary hover:text-foreground">
                   {editing ? "Luk" : "Rediger"}
                 </Button>
-                <Button variant="ghost" size="sm" onClick={onDelete} className="h-8 w-8 rounded-lg p-0 hover:bg-destructive/10 transition-colors"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                <Button variant="ghost" size="sm" onClick={onDelete} className="h-8 w-8 rounded-lg p-0 text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></Button>
               </div>
             </div>
 
-            <div className="mt-3 grid gap-2 sm:grid-cols-3 xl:grid-cols-4">
-              <div className="rounded-lg border border-border bg-card px-3 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Pris</p>
-                <p className="mt-1 text-sm font-medium text-foreground">{priceSummary}</p>
+            <div className="mt-2.5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-lg border border-border bg-card px-3 py-2.5">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Pris</p>
+                <p className="mt-1 text-sm font-medium text-foreground truncate">{priceSummary}</p>
               </div>
 
-              <div className="rounded-lg border border-border bg-card px-3 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Interval</p>
+              <div className="rounded-lg border border-border bg-card px-3 py-2.5">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Interval</p>
                 <p className="mt-1 text-sm font-medium text-foreground line-clamp-1">{intervalSummary}</p>
               </div>
 
-              <div className="rounded-lg border border-border bg-card px-3 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Bestillinger</p>
+              <div className="rounded-lg border border-border bg-card px-3 py-2.5">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Bestillinger</p>
                 <p className="mt-1 text-sm font-semibold text-foreground tabular-nums">{orderCount}</p>
               </div>
 
-              <div className="rounded-lg border border-border bg-card px-3 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Opsætning</p>
+              <div className="rounded-lg border border-border bg-card px-3 py-2.5">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Opsætning</p>
                 <p className="mt-1 text-sm font-medium text-foreground">
                   {service.calculator_steps?.length > 0 ? `${service.calculator_steps.length} beregnertrin` : "Standard opsætning"}
                 </p>
@@ -609,7 +609,7 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
         </div>
       </CardContent>
       {editing && (
-        <div className="border-t border-border bg-secondary/30 p-5">
+        <div className="border-t border-border bg-secondary/30 p-4 sm:p-5">
           <ServiceForm businessId={service.business_id} existingService={service} onClose={() => setEditing(false)} />
         </div>
       )}
