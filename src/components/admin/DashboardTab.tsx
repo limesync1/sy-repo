@@ -69,7 +69,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
       <PageHeader
         eyebrow="Virksomhedspanel"
         title="Overblik"
-        description={<>Her er det vigtigste for <span className="font-medium text-foreground">{business.name}</span> lige nu — hvad kræver handling, hvordan går det, og hvad er næste skridt.</>}
+        description={<>Det vigtigste for <span className="font-medium text-foreground">{business.name}</span> lige nu: handlinger, performance og næste skridt.</>}
         action={business.slug ? (
           <a href={`/biz/${business.slug}`} target="_blank" rel="noopener noreferrer"
             className="hidden items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground sm:flex">
@@ -82,7 +82,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
         eyebrow={pendingOrders > 0 ? "Kræver handling" : "Driftstatus"}
         icon={pendingOrders > 0 ? <Clock /> : <ShieldCheck />}
         title={pendingOrders > 0 ? `${pendingOrders} ${pendingOrders === 1 ? "afventende bestilling" : "afventende bestillinger"}` : "Ingen afventende bestillinger lige nu"}
-        description={pendingOrders > 0 ? "Svar hurtigt på nye bestillinger for at holde flowet i gang og give kunderne en tydelig næste besked." : "Du er ajour lige nu. Brug tiden på at styrke din profil, dine services og de næste muligheder."}
+        description={pendingOrders > 0 ? "Svar på nye bestillinger først, så kunderne hurtigt ved hvad næste skridt er." : "Du er ajour. Brug tiden på at skærpe profil, services og synlighed."}
         meta={
           <>
             <InsightPill><Handshake className="h-3.5 w-3.5" /> {ordersCount} bestillinger i alt</InsightPill>
@@ -102,7 +102,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
         }
       />
 
-      <div className="grid gap-3 lg:grid-cols-[1.35fr_repeat(3,minmax(0,1fr))]">
+        <div className="grid gap-2.5 lg:grid-cols-[1.25fr_repeat(3,minmax(0,1fr))]">
         {stats.map((stat, index) => (
           <StatCard
             key={stat.label}
@@ -117,22 +117,22 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
         ))}
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
+      <div className="grid gap-2.5 lg:grid-cols-[1.1fr_0.9fr]">
         {completeness.pct < 100 && (
           <Card className="admin-panel border-border shadow-sm">
-            <CardContent className="space-y-4 p-5 sm:p-6">
+            <CardContent className="space-y-3.5 p-4 sm:p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Profilstyrke</p>
-                  <h3 className="mt-1 text-lg font-semibold text-foreground">Gør profilen klar til flere bookinger</h3>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">Små forbedringer i profil, kontaktoplysninger og indhold giver kunderne mere tillid og gør din side mere komplet.</p>
+                  <h3 className="mt-1 text-base font-semibold text-foreground">Gør profilen klar til flere bookinger</h3>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">Fuldfør de manglende felter for at gøre siden mere troværdig og komplet.</p>
                 </div>
-                <div className="rounded-full bg-accent/10 px-3 py-1 text-sm font-semibold text-accent">{completeness.pct}%</div>
+                <div className="rounded-md bg-secondary px-2.5 py-1 text-sm font-semibold text-foreground">{completeness.pct}%</div>
               </div>
               <Progress value={completeness.pct} className="h-2.5" />
               <div className="grid gap-2 sm:grid-cols-2">
                 {missingItems.slice(0, 4).map((item) => (
-                  <div key={item.label} className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
+                  <div key={item.label} className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs text-muted-foreground">
                     <AlertCircle className="h-3.5 w-3.5 shrink-0 text-feature-warm-foreground" />
                     <span>{item.label}</span>
                   </div>
@@ -143,8 +143,8 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
                 {completionLead && <InsightPill><AlertCircle className="h-3.5 w-3.5" /> Næste skridt: {completionLead}</InsightPill>}
               </div>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">Næste anbefaling: <span className="font-medium text-foreground">{completionLead || "Fuldfør de sidste detaljer"}</span></p>
-                <Button variant="outline" className="h-10 rounded-xl" onClick={() => onNavigate?.("settings")}>
+                <p className="text-xs text-muted-foreground">Næste: <span className="font-medium text-foreground">{completionLead || "Fuldfør de sidste detaljer"}</span></p>
+                <Button variant="outline" className="h-9 rounded-lg" onClick={() => onNavigate?.("settings")}>
                   Fuldfør profil
                 </Button>
               </div>
@@ -153,10 +153,10 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
         )}
 
         <Card className="admin-panel border-border shadow-sm">
-          <CardContent className="space-y-4 p-5 sm:p-6">
+          <CardContent className="space-y-3 p-4 sm:p-5">
             <div>
               <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Næste handlinger</p>
-              <h3 className="mt-1 text-lg font-semibold text-foreground">Hold forretningen i bevægelse</h3>
+              <h3 className="mt-1 text-base font-semibold text-foreground">Næste handlinger</h3>
             </div>
             <div className="grid grid-cols-1 gap-2">
               {[
@@ -183,7 +183,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
         <div className="mb-3 flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold text-foreground">Seneste bestillinger</h3>
-            <p className="text-sm text-muted-foreground">Scan hurtigt status, kunde og beløb — og gå direkte til aftaler ved behov.</p>
+              <p className="text-xs text-muted-foreground">Scan hurtigt status, kunde og beløb.</p>
           </div>
           {recentOrders.length > 0 && (
             <button onClick={() => onNavigate?.("orders")} className="text-xs font-medium text-accent hover:underline">
