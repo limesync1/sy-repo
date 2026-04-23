@@ -99,7 +99,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
       <PageHeader
         eyebrow="Drift"
         title="Medarbejdere"
-        description="Hold teamet samlet ét sted med samme struktur som resten af panelet."
+        description="Samlet teamoverblik med samme liste-, formular- og handlingslogik som resten af panelet."
         action={!showForm ? (
           <PrimaryButton onClick={() => setShowForm(true)} icon={<UserPlus />}>
             Tilføj medarbejder
@@ -111,6 +111,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
       {showForm && (
         <SectionCard
           title={<><UserPlus /> Ny medarbejder</>}
+          description="Brug samme kompakte formularmønster som i de øvrige faner."
           action={
             <button onClick={resetForm} className="rounded-md p-1 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
               <X className="h-4 w-4" />
@@ -124,7 +125,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Anders Jensen"
-                  className="h-10"
+                  className="h-8"
                 />
               </div>
               <div>
@@ -134,7 +135,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="anders@example.dk"
-                  className="h-10"
+                  className="h-8"
                 />
               </div>
               <div>
@@ -143,7 +144,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="12 34 56 78"
-                  className="h-10"
+                  className="h-8"
                 />
               </div>
               <div>
@@ -152,7 +153,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Chauffør, rengøringsmedarbejder…"
-                  className="h-10"
+                  className="h-8"
                 />
               </div>
             </div>
@@ -172,7 +173,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 
       {/* Active Employees */}
       {activeEmployees.length > 0 && (
-          <SectionCard title="Aktive medarbejdere" description="Medarbejdere med adgang og aktiv status.">
+          <SectionCard title="Aktive medarbejdere" description="Aktive profiler med adgang, kontaktoplysninger og hurtige handlinger.">
           <div className="mb-2 flex items-center justify-between">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Aktive</h3>
             <InsightPill>{activeEmployees.length}</InsightPill>
@@ -193,7 +194,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 
       {/* Inactive Employees */}
       {inactiveEmployees.length > 0 && (
-          <SectionCard title="Deaktiverede medarbejdere" description="Tidligere medarbejdere uden aktiv adgang.">
+          <SectionCard title="Deaktiverede medarbejdere" description="Profiler uden aktiv adgang, men stadig bevaret i historikken.">
           <div className="mb-2 flex items-center justify-between">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Deaktiverede</h3>
             <InsightPill>{inactiveEmployees.length}</InsightPill>
@@ -303,7 +304,7 @@ const EmployeeRow = ({
   return (
     <TooltipProvider delayDuration={200}>
     <div className={`${employee.is_active ? "" : "opacity-70"}`}>
-      <AppListRow className="items-start justify-between gap-3 px-3 py-3">
+      <AppListRow className="items-start justify-between gap-3 px-3 py-2.5">
         <div className="flex items-center gap-3 min-w-0">
           {/* Avatar / farve-prik med hover-overlay til upload */}
           <div className="relative h-10 w-10 shrink-0 group/avatar">
@@ -338,13 +339,13 @@ const EmployeeRow = ({
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm font-medium text-foreground truncate">{employee.name}</p>
               {linked && (
-                <Badge variant="outline" className="h-5 text-[10px] gap-1 border-border bg-feature-cool text-feature-cool-foreground">
+                <InsightPill className="border-transparent bg-feature-cool text-feature-cool-foreground">
                   <CheckCircle2 className="h-2.5 w-2.5" />
                   Konto aktiv
                 </Badge>
               )}
               {employee.title && (
-                <span className="text-xs text-muted-foreground">· {employee.title}</span>
+                <span className="text-[11px] text-muted-foreground">· {employee.title}</span>
               )}
             </div>
             <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
@@ -360,7 +361,7 @@ const EmployeeRow = ({
               )}
             </div>
             {/* Farve / billede-styring */}
-            <div className="mt-1.5 flex items-center gap-2">
+            <div className="mt-1 flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setPickerOpen((v) => !v)}
@@ -451,8 +452,8 @@ const EmployeeRow = ({
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Pencil className="h-4 w-4 text-accent" />
+            <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
+              <Pencil className="h-4 w-4 text-muted-foreground" />
               Rediger medarbejder
             </DialogTitle>
             <DialogDescription>
