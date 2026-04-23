@@ -489,11 +489,11 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
 
   return (
     <TooltipProvider delayDuration={200}>
-    <div className="space-y-5">
+    <div className="space-y-4.5">
       <PageHeader
         eyebrow="Kundeflow"
         title="Kunder"
-        description="Kunder, omsætning og relationer samlet ét sted."
+        description="Samlet kundebillede med relation, aktivitet og værdi i samme mønster som resten af panelet."
         action={
           <PrimaryButton onClick={openCreateDialog} icon={<UserPlus />}>
             Tilføj kunde
@@ -502,7 +502,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         <StatCard label="Kunder i alt" value={stats.total} icon={<User />} tone="accent" hint="Alle aktive relationer i kartoteket" />
         <StatCard label="Med abonnement" value={stats.recurring} icon={<Repeat />} tone="emerald" hint="Kunder med gentagne services" />
         <StatCard label="Samlet omsætning" value={fmtKr(stats.totalRev)} icon={<TrendingUp />} tone="amber" hint="Omsætning på tværs af alle kunder" />
@@ -525,8 +525,8 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
 
       {/* Bulk actions bar */}
       {selectedCustomers.length > 0 && (
-        <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-2.5">
-          <div className="text-sm text-foreground">
+        <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2.5">
+            <div className="text-sm text-foreground">
             <span className="font-semibold">{selectedCustomers.length}</span> kunde{selectedCustomers.length === 1 ? "" : "r"} valgt
           </div>
           <div className="flex items-center gap-2">
@@ -561,7 +561,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         <AppList>
           {/* Header with select-all */}
           {eligibleSelectable.length > 0 && (
-             <div className="grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] items-center gap-3 border-b border-border/80 bg-secondary/40 px-3.5 py-2 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              <div className="grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] items-center gap-3 border-b border-border/80 bg-secondary/40 px-3 py-2 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
               <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Vælg alle" />
                <span>{allSelected ? "Alle valgt" : `Vælg alle (${eligibleSelectable.length})`}</span>
                <span className="hidden sm:block">Status</span>
@@ -569,7 +569,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
             </div>
           )}
           {filtered.map((c) => (
-            <div key={c.email} className="flex items-center gap-3 border-b border-border/80 px-3.5 py-3 last:border-b-0 hover:bg-secondary/35 transition-colors">
+            <div key={c.email} className="flex items-center gap-3 border-b border-border/80 px-3 py-2.5 last:border-b-0 hover:bg-secondary/35 transition-colors">
               {c.saved_id ? (
                 <Checkbox
                   checked={selectedIds.has(c.saved_id)}
@@ -582,7 +582,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
               )}
               <button
                 onClick={() => setSelectedEmail(c.email)}
-                className="h-9 w-9 rounded-md border border-border bg-secondary flex items-center justify-center shrink-0 text-sm font-semibold text-foreground"
+                className="h-8 w-8 rounded-md border border-border bg-secondary flex items-center justify-center shrink-0 text-sm font-semibold text-foreground"
                 title="Se detaljer"
               >
                 {c.type === "business" ? <Building2 className="h-4 w-4" /> : (c.name?.charAt(0).toUpperCase() || "?")}
@@ -598,16 +598,16 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                         <Badge variant="outline" className="text-[10px] h-4 px-1 border-border bg-background text-muted-foreground">Privat</Badge>
                     )}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">{c.email}{c.phone ? ` · ${c.phone}` : ""}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{c.email}{c.phone ? ` · ${c.phone}` : ""}</p>
                 </div>
                 <div className="min-w-0 hidden sm:block">
-                  <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                  <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1">
                     <MapPin className="h-3 w-3 shrink-0" />
                     {c.city || c.address ? `${c.address || ""}${c.address && c.city ? ", " : ""}${c.city || ""}` : "—"}
                   </p>
-                  <p className="text-[11px] text-muted-foreground/70 mt-0.5">{c.last_order_at ? `Sidst: ${fmtDate(c.last_order_at)}` : "Ingen bestillinger endnu"}</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground/70">{c.last_order_at ? `Sidst: ${fmtDate(c.last_order_at)}` : "Ingen bestillinger endnu"}</p>
                 </div>
-                  <div className="flex items-center justify-end gap-2">
+                  <div className="flex items-center justify-end gap-1.5">
                   {c.active_subs > 0 && (
                     <Badge variant="outline" className="border-border text-feature-cool-foreground bg-feature-cool text-[10px] h-5 px-1.5 gap-0.5">
                       <Repeat className="h-2.5 w-2.5" />
@@ -625,7 +625,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                       {c.orders_count} ordrer
                     </Badge>
                   )}
-                  <span className="text-sm font-bold text-foreground tabular-nums w-24 text-right">{c.total_revenue > 0 ? fmtKr(c.total_revenue) : "—"}</span>
+                    <span className="w-24 text-right text-sm font-semibold text-foreground tabular-nums">{c.total_revenue > 0 ? fmtKr(c.total_revenue) : "—"}</span>
                 </div>
               </button>
               <div className="flex items-center gap-1 shrink-0">
@@ -715,25 +715,25 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
         {customer && (
           <>
-            <SheetHeader className="border-b border-border p-5">
+            <SheetHeader className="border-b border-border p-4">
               <SheetTitle className="text-left">
                 <div className="flex items-start gap-3">
-                  <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center text-base font-semibold text-accent shrink-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-secondary text-sm font-semibold text-foreground">
                     {customer.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-lg font-bold text-foreground truncate">{customer.name}</h3>
-                    <p className="text-xs text-muted-foreground font-normal">Kunde siden {fmtDate(customer.first_order_at)}</p>
+                    <h3 className="truncate text-base font-semibold text-foreground">{customer.name}</h3>
+                    <p className="text-[11px] font-normal text-muted-foreground">Kunde siden {fmtDate(customer.first_order_at)}</p>
                   </div>
                 </div>
               </SheetTitle>
             </SheetHeader>
 
-            <div className="p-5 space-y-5">
+            <div className="space-y-4 p-4">
               {/* Contact */}
               <div className="space-y-2">
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Kontakt</h4>
-                <div className="rounded-xl border border-border bg-card divide-y divide-border">
+                <div className="rounded-md border border-border bg-card divide-y divide-border">
                   <a href={`mailto:${customer.email}`} className="flex items-center gap-3 p-3 hover:bg-secondary/40">
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm text-foreground flex-1">{customer.email}</span>
@@ -757,17 +757,17 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
 
               {/* Quick stats */}
               <div className="grid grid-cols-3 gap-2">
-                <div className="rounded-xl border border-border bg-card p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Omsætning</p>
-                  <p className="text-base font-bold text-foreground">{fmtKr(customer.total_revenue)}</p>
+                <div className="rounded-md border border-border bg-card p-2.5 text-center">
+                  <p className="text-[11px] text-muted-foreground">Omsætning</p>
+                  <p className="text-sm font-semibold text-foreground">{fmtKr(customer.total_revenue)}</p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Ordrer</p>
-                  <p className="text-base font-bold text-foreground">{customer.orders_count}</p>
+                <div className="rounded-md border border-border bg-card p-2.5 text-center">
+                  <p className="text-[11px] text-muted-foreground">Ordrer</p>
+                  <p className="text-sm font-semibold text-foreground">{customer.orders_count}</p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Abonnementer</p>
-                  <p className="text-base font-bold text-foreground">{customer.active_subs}</p>
+                <div className="rounded-md border border-border bg-card p-2.5 text-center">
+                  <p className="text-[11px] text-muted-foreground">Abonnementer</p>
+                  <p className="text-sm font-semibold text-foreground">{customer.active_subs}</p>
                 </div>
               </div>
 
@@ -783,7 +783,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                     const renderSub = (s: SubRow) => {
                       const pref = s.preferred_route_id ? data.preferredRoutes[s.preferred_route_id] : null;
                       return (
-                        <div key={s.id} className={`rounded-xl border p-3 ${s.status === "paused" ? "border-amber-300/60 bg-amber-50/40" : "border-border bg-card"}`}>
+                        <div key={s.id} className={`rounded-md border p-3 ${s.status === "paused" ? "border-border bg-feature-warm" : "border-border bg-card"}`}>
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-semibold text-foreground truncate">{s.service_name}</p>
@@ -862,7 +862,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                             <Link
                               key={s.id}
                               to={`/virksomhed/ruter?date=${s.routes?.route_date}`}
-                              className="flex items-center gap-3 rounded-lg border border-border bg-card p-2.5 hover:border-accent/40 transition-colors"
+                              className="flex items-center gap-3 rounded-md border border-border bg-card p-2.5 transition-colors hover:border-foreground/20"
                             >
                               <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
                               <div className="flex-1 min-w-0">
@@ -887,7 +887,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                       </h4>
                       <div className="space-y-2">
                         {data.orders.map(o => (
-                          <div key={o.id} className={`rounded-xl border p-3 space-y-1.5 ${o.is_paused ? "border-amber-300/60 bg-amber-50/30" : "border-border bg-card"}`}>
+                          <div key={o.id} className={`rounded-md border p-3 space-y-1.5 ${o.is_paused ? "border-border bg-feature-warm" : "border-border bg-card"}`}>
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0 flex-1">
                                 <p className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -931,7 +931,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                               </ul>
                             )}
                             {o.notes && (
-                              <p className="text-[11px] text-muted-foreground italic bg-secondary/40 rounded px-2 py-1">📝 {o.notes}</p>
+                              <p className="rounded-md bg-secondary/40 px-2 py-1 text-[11px] text-muted-foreground italic">{o.notes}</p>
                             )}
                           </div>
                         ))}
@@ -946,7 +946,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                         <Star className="h-3.5 w-3.5" /> Anmeldelser
                       </h4>
                       {data.reviews.map(r => (
-                        <div key={r.id} className="rounded-xl border border-border bg-card p-3">
+                        <div key={r.id} className="rounded-md border border-border bg-card p-3">
                           <div className="flex items-center gap-1 mb-1">
                             {Array.from({ length: 5 }).map((_, i) => (
                               <Star key={i} className={`h-3.5 w-3.5 ${i < r.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />

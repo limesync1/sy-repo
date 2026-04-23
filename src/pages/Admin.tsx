@@ -192,9 +192,9 @@ const AdminDashboard = () => {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[272px] flex-col border-r border-border bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-border bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         {/* Sidebar header */}
-        <div className="flex h-16 shrink-0 items-center justify-between px-4">
+        <div className="flex h-14 shrink-0 items-center justify-between px-3.5">
           <Link to="/" className="flex items-center gap-2">
             <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-6" />
           </Link>
@@ -204,34 +204,34 @@ const AdminDashboard = () => {
         </div>
 
         {/* Business info */}
-        <div className="mx-3 mb-3 shrink-0 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-3">
-          <div className="flex items-start gap-3">
+        <div className="mx-3 mb-2 shrink-0 rounded-md border border-white/10 bg-white/[0.025] px-3 py-2.5">
+          <div className="flex items-start gap-2.5">
             {business.logo_url ? (
-              <img src={business.logo_url} alt="" className="h-9 w-9 shrink-0 rounded-md object-contain bg-white/10 p-1" />
+              <img src={business.logo_url} alt="" className="h-8 w-8 shrink-0 rounded-md object-contain bg-white/10 p-1" />
             ) : (
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white/8 text-sm font-bold text-white">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/8 text-sm font-bold text-white">
                 {business.name.charAt(0)}
               </div>
             )}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-white">{business.name}</p>
-              <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/45">Virksomhedspanel</p>
-              {business.categories && business.categories.length > 0 && <p className="mt-2 truncate text-xs text-white/55">{(business.categories as string[]).slice(0, 2).join(" · ")}</p>}
+              <p className="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-white/40">Virksomhedspanel</p>
+              {business.categories && business.categories.length > 0 && <p className="mt-1.5 truncate text-[11px] text-white/55">{(business.categories as string[]).slice(0, 2).join(" · ")}</p>}
             </div>
           </div>
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 space-y-5 overflow-y-auto px-3 pb-4">
+        <nav className="flex-1 space-y-4 overflow-y-auto px-3 pb-3">
           {Object.entries(navGroups).map(([section, items]) => (
             <div key={section} className="space-y-1">
               <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/30">{section}</p>
               {items.map((item: any) => {
                 const isActive = activeTab === item.value;
-                const baseClasses = `group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
+                const baseClasses = `group flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-all ${
                   isActive
                     ? "bg-white text-foreground shadow-sm"
-                    : "text-white/62 hover:bg-white/[0.04] hover:text-white"
+                    : "text-white/62 hover:bg-white/[0.035] hover:text-white"
                 }`;
                 if (item.href) {
                   return (
@@ -259,17 +259,17 @@ const AdminDashboard = () => {
         </nav>
 
         {/* Sidebar footer — always visible */}
-        <div className="shrink-0 border-t border-white/[0.08] px-3 py-3 space-y-1">
+        <div className="shrink-0 border-t border-white/[0.08] px-3 py-2.5 space-y-1">
           <Link
             to={`/v/${business.slug}`}
-            className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 transition-colors hover:bg-white/[0.08] hover:text-white"
+            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-white/65 transition-colors hover:bg-white/[0.06] hover:text-white"
           >
             <ExternalLink className="h-4 w-4 shrink-0" />
             Se din side
           </Link>
           <button
             onClick={signOut}
-            className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 transition-colors hover:bg-destructive/20 hover:text-white"
+            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-white/65 transition-colors hover:bg-destructive/20 hover:text-white"
           >
             <LogOut className="h-4 w-4 shrink-0" />
             Log ud
@@ -280,16 +280,16 @@ const AdminDashboard = () => {
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/96 px-4 backdrop-blur sm:px-5">
+        <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center gap-3 border-b border-border bg-background/96 px-4 backdrop-blur sm:px-5">
           <button onClick={() => setSidebarOpen(true)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors lg:hidden">
             <Menu className="h-5 w-5" />
           </button>
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{currentNav?.section || "Panel"}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{currentNav?.section || "Panel"}</p>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-base font-semibold text-foreground">{currentNav?.label}</h1>
+              <h1 className="text-sm font-semibold text-foreground sm:text-[15px]">{currentNav?.label}</h1>
               {currentSectionItems.length > 1 && (
-                <div className="hidden items-center gap-1 rounded-lg border border-border bg-secondary/45 px-1.5 py-1 md:flex">
+                <div className="hidden items-center gap-1 rounded-md border border-border bg-secondary/45 px-1 py-1 md:flex">
                   {currentSectionItems.map((item) => {
                     const isCurrent = item.value === activeTab;
                     const labelClasses = isCurrent
@@ -298,7 +298,7 @@ const AdminDashboard = () => {
 
                     if (item.href) {
                       return (
-                        <Link key={item.value} to={item.href} className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${labelClasses}`}>
+                          <Link key={item.value} to={item.href} className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${labelClasses}`}>
                           {item.label}
                         </Link>
                       );
@@ -308,7 +308,7 @@ const AdminDashboard = () => {
                       <button
                         key={item.value}
                         onClick={() => setActiveTab(item.value)}
-                        className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${labelClasses}`}
+                          className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${labelClasses}`}
                       >
                         {item.label}
                       </button>
@@ -319,7 +319,7 @@ const AdminDashboard = () => {
             </div>
           </div>
           <div className="hidden items-center gap-2 lg:flex">
-            <Link to={`/v/${business.slug}`} className="rounded-xl border border-border bg-card px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground">
+              <Link to={`/v/${business.slug}`} className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground">
               Se virksomhedsside
             </Link>
           </div>
@@ -465,8 +465,9 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
   if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser services...</p>;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4.5">
       <PageHeader
+        eyebrow="Forretning"
         title="Services"
         description={`${services?.length || 0} services · ${Object.values(orderCountByService).reduce((a, b) => a + b, 0)} bestillinger i alt`}
         action={
@@ -478,14 +479,14 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
 
       {/* Category filter chips */}
       {uniqueCategories.length > 1 && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-card p-1">
           <button onClick={() => setFilterCategory("")}
-            className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${!filterCategory ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
+            className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${!filterCategory ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}>
             Alle
           </button>
           {uniqueCategories.map((cat) => (
             <button key={cat} onClick={() => setFilterCategory(filterCategory === cat ? "" : cat)}
-              className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${filterCategory === cat ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
+              className={`flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${filterCategory === cat ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}>
               {cat}
             </button>
           ))}
@@ -493,8 +494,8 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
       )}
 
       {showForm && (
-        <Card className="rounded-lg border-border shadow-sm">
-          <CardContent className="p-4 sm:p-5">
+        <Card className="rounded-md border-border shadow-sm">
+          <CardContent className="p-3.5 sm:p-4">
             <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />
           </CardContent>
         </Card>
@@ -503,7 +504,7 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
       <div className="space-y-2.5">
         {filtered && filtered.length > 0 && (
           <AppList>
-            <div className="grid grid-cols-[minmax(0,1.4fr)_auto_auto] gap-3 border-b border-border bg-secondary/35 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            <div className="grid grid-cols-[minmax(0,1.4fr)_auto_auto] gap-3 border-b border-border bg-secondary/35 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               <span>Service</span>
               <span>Type</span>
               <span className="text-right">Pris</span>
@@ -539,7 +540,7 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
 
   return (
     <div className="border-b border-border/80 last:border-b-0">
-      <AppListRow className="items-start gap-4 px-3.5 py-3">
+      <AppListRow className="items-start gap-4 px-3 py-2.5">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h3 className="truncate text-sm font-semibold text-foreground">{service.name}</h3>
@@ -547,10 +548,10 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
               <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-border bg-background text-muted-foreground">Inaktiv</Badge>
             )}
           </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
             {[service.service_category, service.subcategory].filter(Boolean).join(" · ") || "Ingen kategori valgt"}
           </p>
-          {service.description && <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{service.description}</p>}
+          {service.description && <p className="mt-1 line-clamp-1 text-[11px] text-muted-foreground">{service.description}</p>}
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {service.calculator_steps?.length > 0 && (
               <InsightPill><Calculator className="h-3 w-3" /> {service.calculator_steps.length} trin</InsightPill>
@@ -577,7 +578,7 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
         </div>
       </AppListRow>
       {editing && (
-        <div className="border-t border-border bg-secondary/18 p-4">
+          <div className="border-t border-border bg-secondary/18 p-3.5">
           <ServiceForm businessId={service.business_id} existingService={service} onClose={() => setEditing(false)} />
         </div>
       )}
@@ -1251,10 +1252,11 @@ const SettingsTab = ({ business }: { business: any }) => {
     JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-4.5">
       <PageHeader
+        eyebrow="Opsætning"
         title="Indstillinger"
-        description="Administrer din virksomheds profil og oplysninger."
+        description="Hold virksomhedsdata, visning og drift samlet i samme kompakte opsætning."
         action={
           <PrimaryButton onClick={save} disabled={updateBiz.isPending || !hasChanges}>
             {updateBiz.isPending ? "Gemmer..." : "Gem ændringer"}
@@ -1263,13 +1265,13 @@ const SettingsTab = ({ business }: { business: any }) => {
       />
 
       {/* CVR Lookup */}
-      <Card className="rounded-xl border-accent/20 bg-gradient-to-b from-accent/[0.03] to-transparent shadow-sm">
-        <CardContent className="p-5">
+      <Card className="rounded-md border-border shadow-sm">
+        <CardContent className="p-4 space-y-3">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="h-4 w-4 text-accent" />
             <h3 className="text-sm font-semibold text-foreground">Automatisk udfyldning fra CVR</h3>
           </div>
-          <p className="text-xs text-muted-foreground mb-3">Indtast CVR-nummer eller virksomhedsnavn for at auto-udfylde alle felter.</p>
+          <p className="text-xs text-muted-foreground">Indtast CVR-nummer eller virksomhedsnavn for at udfylde de vigtigste felter hurtigt.</p>
           <div className="flex gap-2">
             <Input
               placeholder="CVR-nummer eller virksomhedsnavn..."
@@ -1285,7 +1287,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           </div>
           {cvrError && <p className="mt-2 text-xs text-destructive">{cvrError}</p>}
           {cvrResult && (
-            <div className="mt-3 rounded-lg border border-accent/20 bg-card p-4">
+            <div className="mt-3 rounded-md border border-border bg-card p-3">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm font-semibold text-foreground">{cvrResult.name}</p>
@@ -1296,7 +1298,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                   {cvrResult.email && <p className="text-xs text-muted-foreground">Email: {cvrResult.email}</p>}
                 </div>
                 <Button size="sm" onClick={applyCvrData}
-                  className="shrink-0 h-8 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 text-xs font-medium">
+                  className="shrink-0 h-8 rounded-md bg-foreground text-background hover:bg-foreground/90 text-xs font-medium">
                   Anvend oplysninger
                 </Button>
               </div>
@@ -1306,8 +1308,8 @@ const SettingsTab = ({ business }: { business: any }) => {
       </Card>
 
       {/* General */}
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
+      <Card className="rounded-md shadow-sm border-border">
+        <CardContent className="p-4 space-y-4">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Settings className="h-4 w-4 text-muted-foreground" />
             Generelt
@@ -1324,15 +1326,14 @@ const SettingsTab = ({ business }: { business: any }) => {
             </div>
             <div>
               <label className="mb-2 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Brancher</label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {CATEGORIES.map((c) => (
                   <button key={c} type="button" onClick={() => toggleSettingsCategory(c)}
-                    className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2.5 text-left transition-all ${
+                    className={`flex items-center gap-2 rounded-md border px-3 py-2 text-left transition-all ${
                       selectedCategories.includes(c)
-                        ? "border-foreground bg-foreground/5 shadow-sm"
+                        ? "border-foreground bg-secondary shadow-sm"
                         : "border-border bg-card hover:border-foreground/30"
                     }`}>
-                    <span className="text-lg">{CATEGORY_ICONS[c] || "📋"}</span>
                     <span className="text-xs font-medium text-foreground">{c}</span>
                   </button>
                 ))}
@@ -1343,8 +1344,8 @@ const SettingsTab = ({ business }: { business: any }) => {
       </Card>
 
       {/* Contact */}
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
+      <Card className="rounded-md shadow-sm border-border">
+        <CardContent className="p-4 space-y-4">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Plus className="h-4 w-4 text-muted-foreground" />
             Kontaktoplysninger
@@ -1390,8 +1391,8 @@ const SettingsTab = ({ business }: { business: any }) => {
       </Card>
 
       {/* Images */}
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
+      <Card className="rounded-md shadow-sm border-border">
+        <CardContent className="p-4 space-y-4">
           <h3 className="text-sm font-semibold text-foreground">Billeder</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -1407,8 +1408,8 @@ const SettingsTab = ({ business }: { business: any }) => {
       </Card>
 
       {/* Notification Settings */}
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
+      <Card className="rounded-md shadow-sm border-border">
+        <CardContent className="p-4 space-y-4">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Bell className="h-4 w-4 text-muted-foreground" />
             Notifikationsindstillinger
@@ -1421,7 +1422,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               { key: "subscription_change", label: "Abonnementsændringer", desc: "Besked når en kunde pauser eller annullerer et abonnement" },
               { key: "new_review", label: "Nye anmeldelser", desc: "Besked når en kunde skriver en anmeldelse" },
             ] as const).map(({ key, label, desc }) => (
-              <div key={key} className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-3">
+              <div key={key} className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-3">
                 <div>
                   <p className="text-sm font-medium text-foreground">{label}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
@@ -1442,8 +1443,8 @@ const SettingsTab = ({ business }: { business: any }) => {
       </Card>
 
       {/* Route Planning */}
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
+      <Card className="rounded-md shadow-sm border-border">
+        <CardContent className="p-4 space-y-4">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Route className="h-4 w-4 text-muted-foreground" />
             Ruteplanlægning
@@ -1453,7 +1454,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             ruter med stop hos kunder. Ruterne kan optimeres med AI baseret på afstand,
             tidsvinduer og prioriteter.
           </p>
-          <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-3">
+          <div className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-3">
             <div>
               <p className="text-sm font-medium text-foreground">Aktivér ruteplanlægning</p>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -1477,14 +1478,14 @@ const SettingsTab = ({ business }: { business: any }) => {
       </Card>
 
 
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
+      <Card className="rounded-md shadow-sm border-border">
+        <CardContent className="p-4 space-y-4">
           <h3 className="text-sm font-semibold text-foreground">Åbningstider</h3>
           <div className="space-y-2">
             {DAYS.map((day) => {
               const isWeekend = day === "Lørdag" || day === "Søndag";
               return (
-                <div key={day} className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
+                <div key={day} className={`flex items-center gap-3 rounded-md px-3 py-2 transition-colors ${
                   openHours[day] ? "bg-secondary/30" : isWeekend ? "opacity-60" : ""
                 }`}>
                   <span className="w-20 text-sm font-medium text-foreground">{day}</span>
@@ -1510,7 +1511,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       {/* Sticky save bar */}
       {hasChanges && (
         <div className="sticky bottom-4 z-20">
-          <Card className="rounded-xl border-accent/30 bg-card shadow-lg">
+            <Card className="rounded-md border-border bg-card shadow-lg">
             <CardContent className="flex items-center justify-between p-3">
               <p className="text-sm text-muted-foreground">Du har ændringer der ikke er gemt.</p>
               <Button onClick={save} disabled={updateBiz.isPending}

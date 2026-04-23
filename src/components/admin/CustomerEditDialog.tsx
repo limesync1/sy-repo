@@ -219,21 +219,21 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   return (
     <>
       <Dialog open={open} onOpenChange={(v) => { if (!v && !saving) { reset(); onOpenChange(false); } else if (v) onOpenChange(true); }}>
-        <DialogContent className="max-w-xl max-h-[92vh] flex flex-col p-0 gap-0">
-          <DialogHeader className="px-5 py-4 border-b shrink-0">
+        <DialogContent className="max-h-[92vh] max-w-xl gap-0 p-0">
+          <DialogHeader className="shrink-0 border-b px-4 py-3.5">
             <DialogTitle className="flex items-center gap-2 text-base">
-              {type === "business" ? <Building2 className="h-4 w-4 text-accent" /> : <User className="h-4 w-4 text-accent" />}
+              {type === "business" ? <Building2 className="h-4 w-4 text-muted-foreground" /> : <User className="h-4 w-4 text-muted-foreground" />}
               {initial?.id ? "Rediger kunde" : "Opret ny kunde"}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Tilføj kunden i dit kartotek. Du kan vælge at oprette en bestilling for kunden bagefter.
+              Gem kunden i kartoteket og opret eventuelt en bestilling bagefter.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 bg-secondary/20">
+          <div className="flex-1 space-y-4 overflow-y-auto bg-secondary/20 px-4 py-4">
             {!initial?.id && (
               <Tabs value={type} onValueChange={(v) => setType(v as CustomerType)}>
-                <TabsList className="grid grid-cols-2 w-full">
+                <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="private" className="gap-1.5"><User className="h-3.5 w-3.5" /> Privatkunde</TabsTrigger>
                   <TabsTrigger value="business" className="gap-1.5"><Building2 className="h-3.5 w-3.5" /> Erhvervskunde</TabsTrigger>
                 </TabsList>
@@ -242,22 +242,22 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
 
             {/* Profilbillede */}
             <div className="flex items-center gap-3">
-              <div className="relative h-14 w-14 shrink-0 group/avatar">
+              <div className="group/avatar relative h-12 w-12 shrink-0">
                 {avatarUrl ? (
-                  <img src={avatarUrl} alt="Profil" className="h-14 w-14 rounded-full object-cover border" />
+                  <img src={avatarUrl} alt="Profil" className="h-12 w-12 rounded-md border object-cover" />
                 ) : (
-                  <div className="h-14 w-14 rounded-full bg-accent/10 border flex items-center justify-center text-accent">
-                    {type === "business" ? <Building2 className="h-6 w-6" /> : <User className="h-6 w-6" />}
+                  <div className="flex h-12 w-12 items-center justify-center rounded-md border bg-secondary text-muted-foreground">
+                    {type === "business" ? <Building2 className="h-5 w-5" /> : <User className="h-5 w-5" />}
                   </div>
                 )}
-                <label className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/60 text-background text-[10px] font-semibold opacity-0 group-hover/avatar:opacity-100 cursor-pointer transition-opacity" title="Skift profilbillede">
+                <label className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-md bg-foreground/60 text-[10px] font-semibold text-background opacity-0 transition-opacity group-hover/avatar:opacity-100" title="Skift profilbillede">
                   {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : "Skift"}
                   <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
                 </label>
               </div>
               <div className="text-xs text-muted-foreground flex-1">
                 <p className="font-medium text-foreground">Profilbillede</p>
-                <p>Hold over billedet for at skifte. Maks 5MB.</p>
+                <p>Maks 5MB.</p>
                 {avatarUrl && (
                   <button type="button" onClick={() => setAvatarUrl(null)} className="text-[11px] text-muted-foreground hover:text-destructive underline-offset-2 hover:underline mt-0.5">
                     Fjern billede
@@ -267,7 +267,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
             </div>
 
             {type === "business" && (
-              <div className="rounded-lg border bg-card p-3 space-y-3">
+              <div className="space-y-3 rounded-md border bg-card p-3">
                 <div>
                   <Label className="text-xs">CVR (slå op for at auto-udfylde)</Label>
                   <CvrLookupField
@@ -342,7 +342,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
             </div>
           </div>
 
-          <DialogFooter className="px-5 py-3 border-t shrink-0 gap-2 sm:gap-2 flex-row sm:justify-between">
+          <DialogFooter className="shrink-0 flex-row gap-2 border-t px-4 py-3 sm:justify-between sm:gap-2">
             <Button variant="ghost" onClick={() => { reset(); onOpenChange(false); }} disabled={saving}>Annullér</Button>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => handleSave(false)} disabled={saving}>
@@ -350,7 +350,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                 Gem kunde
               </Button>
               {!initial?.id && (
-                <Button onClick={() => handleSave(true)} disabled={saving} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                <Button onClick={() => handleSave(true)} disabled={saving} className="bg-foreground text-background hover:bg-foreground/90">
                   <ShoppingBag className="h-4 w-4 mr-1.5" />
                   Gem & opret bestilling
                 </Button>
