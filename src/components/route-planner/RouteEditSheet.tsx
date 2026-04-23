@@ -92,22 +92,20 @@ export const RouteEditSheet = ({
     initialSyncDone.current = false;
   }, [route?.id]);
 
-  if (!route) return null;
-
   const dirty =
-    (route.name || "") !== name ||
-    route.color !== color ||
-    route.route_date !== date;
+    (route?.name || "") !== name ||
+    route?.color !== color ||
+    route?.route_date !== date;
 
   const pendingPayload = useMemo(() => ({
-    id: route.id,
+    id: route?.id ?? "",
     name: name.trim() || null,
     color,
     route_date: date,
-  }), [route.id, name, color, date]);
+  }), [route?.id, name, color, date]);
 
   useEffect(() => {
-    if (!open || !dirty) return;
+    if (!route || !open || !dirty) return;
     if (!initialSyncDone.current) {
       initialSyncDone.current = true;
       return;
@@ -118,7 +116,9 @@ export const RouteEditSheet = ({
     }, 250);
 
     return () => window.clearTimeout(timeout);
-  }, [open, dirty, pendingPayload, updateRoute]);
+  }, [route, open, dirty, pendingPayload, updateRoute]);
+
+  if (!route) return null;
 
   const handleDelete = async () => {
     try {
