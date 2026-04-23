@@ -771,11 +771,59 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
         title="Aftaler"
         description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende services` : ""}`}
         action={
-          <Button onClick={() => setCreateOrderOpen(true)} className="gap-2">
-            <ShoppingCart className="h-4 w-4" />Opret bestilling
-          </Button>
+          <PrimaryButton onClick={() => setCreateOrderOpen(true)} icon={<ShoppingCart />}>
+            Opret bestilling
+          </PrimaryButton>
         }
       />
+
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Aftaler i alt</p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{orders?.length || 0}</p>
+            </CardContent>
+          </Card>
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kræver handling</p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{actionNeeded.length}</p>
+            </CardContent>
+          </Card>
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kommende services</p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{upcomingSubs.length}</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex flex-wrap gap-2 lg:justify-end">
+          {[
+            { key: "all", label: "Alle", count: counts.all || 0 },
+            ...(actionNeeded.length > 0 ? [{ key: "action_needed", label: "Kræver handling", count: actionNeeded.length }] : []),
+            ...(waitingForCustomer.length > 0 ? [{ key: "waiting", label: "Afventer kunde", count: waitingForCustomer.length }] : []),
+            { key: "confirmed", label: "Aftalte", count: counts.confirmed || 0 },
+            { key: "in_progress", label: "I gang", count: counts.in_progress || 0 },
+            { key: "completed", label: "Udførte", count: counts.completed || 0 },
+            { key: "cancelled", label: "Annullerede", count: counts.cancelled || 0 },
+          ].map(({ key, label, count }) => (
+            <button
+              key={key}
+              onClick={() => setFilter(key)}
+              className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                filter === key
+                  ? "border-border bg-secondary text-foreground"
+                  : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+              }`}
+            >
+              {label}
+              {count > 0 && <span className="ml-1.5 tabular-nums">{count}</span>}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Upcoming services alert */}
       {upcomingSubs.length > 0 && (
