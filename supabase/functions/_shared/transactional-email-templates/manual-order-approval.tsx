@@ -1,13 +1,12 @@
 /// <reference types="npm:@types/react@18.3.1" />
 import * as React from 'npm:react@18.3.1'
-import {
-  Body, Button, Container, Head, Heading, Html, Img, Link, Preview, Section, Text,
-} from 'npm:@react-email/components@0.0.22'
+import { Body, Button, Container, Head, Heading, Html, Img, Link, Preview, Section, Text } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 import {
   SITE_NAME, SITE_URL, SUPPORT_EMAIL, LOGO_URL,
   main, wrapper, container, headerBar,
-  h1, h2, text, link,
+  heroSection, heroTitle, heroSubtitle,
+  text, link,
   buttonSection, button,
   card, cardLabel, cardValue,
   itemRow, itemRowLast, itemName, itemDetail, itemPrice, stepLine,
@@ -70,9 +69,7 @@ const ManualOrderApprovalEmail = ({
   return (
     <Html lang="da" dir="ltr">
       <Head />
-      <Preview>
-        {businessLabel} har oprettet en bestilling til dig — godkend for {fmt(totalAmount)}
-      </Preview>
+      <Preview>{businessLabel} har oprettet en bestilling til dig — godkend for {fmt(totalAmount)}</Preview>
       <Body style={main}>
         <Container style={wrapper}>
           <Section style={headerBar}>
@@ -80,19 +77,19 @@ const ManualOrderApprovalEmail = ({
           </Section>
 
           <Container style={container}>
-            <Heading style={h1}>Du har en bestilling til godkendelse</Heading>
-            <Text style={text}>
-              Hej{customerName ? ` ${customerName}` : ''}, <strong>{businessLabel}</strong> har
-              oprettet en bestilling til dig på serviceydere.dk og venter på din godkendelse,
-              før de går videre.
-            </Text>
+            <Section style={heroSection}>
+              <Heading style={heroTitle}>Du har en bestilling til godkendelse</Heading>
+              <Text style={heroSubtitle}>
+                Hej{customerName ? ` ${customerName}` : ''}. {businessLabel} har oprettet en bestilling og venter på dit svar, før arbejdet kan gå videre.
+              </Text>
+            </Section>
 
-            <Section style={{ margin: '0 0 8px' }}>
+            <Section style={{ margin: '0 0 10px' }}>
               <span style={badge('#92400e', '#fef3c7')}>Afventer din godkendelse</span>
             </Section>
 
             {businessMessage && (
-              <Section style={{ ...card, borderLeftColor: '#0ea5e9' }}>
+              <Section style={{ ...card, borderLeft: '4px solid #11c4ce' }}>
                 <Text style={cardLabel}>Besked fra {businessLabel}</Text>
                 <Text style={{ ...text, margin: '4px 0 0', fontStyle: 'italic' }}>
                   "{businessMessage}"
@@ -101,26 +98,9 @@ const ManualOrderApprovalEmail = ({
             )}
 
             <Section style={card}>
-              {shortId && (
-                <>
-                  <Text style={cardLabel}>Ordrenummer</Text>
-                  <Text style={cardValue}>{shortId}</Text>
-                </>
-              )}
-
-              {address && (
-                <>
-                  <Text style={{ ...cardLabel, marginTop: '8px' }}>Adresse</Text>
-                  <Text style={cardValue}>📍 {address}</Text>
-                </>
-              )}
-
-              {preferredDate && (
-                <>
-                  <Text style={{ ...cardLabel, marginTop: '8px' }}>Foreslået dato</Text>
-                  <Text style={cardValue}>📅 {preferredDate}</Text>
-                </>
-              )}
+              {shortId && <><Text style={cardLabel}>Ordrenummer</Text><Text style={cardValue}>{shortId}</Text></>}
+              {address && <><Text style={cardLabel}>Adresse</Text><Text style={cardValue}>📍 {address}</Text></>}
+              {preferredDate && <><Text style={cardLabel}>Foreslået dato</Text><Text style={cardValue}>📅 {preferredDate}</Text></>}
 
               {items.length > 0 && (
                 <>
@@ -135,17 +115,10 @@ const ManualOrderApprovalEmail = ({
                             <tr>
                               <td style={{ verticalAlign: 'top' }}>
                                 <Text style={itemName}>{qty}{it.name}</Text>
-                                {it.intervalLabel && (
-                                  <Text style={itemDetail}>🔄 {it.intervalLabel}</Text>
-                                )}
-                                {it.description && !it.stepDetails?.length && (
-                                  <Text style={itemDetail}>{it.description}</Text>
-                                )}
+                                {it.intervalLabel && <Text style={itemDetail}>🔄 {it.intervalLabel}</Text>}
+                                {it.description && !it.stepDetails?.length && <Text style={itemDetail}>{it.description}</Text>}
                                 {it.stepDetails?.map((sd, j) => (
-                                  <Text key={j} style={stepLine}>
-                                    • {sd.label}: <strong>{sd.value} {sd.unit || ''}</strong>
-                                    {sd.subtotal != null ? ` — ${fmt(sd.subtotal)}` : ''}
-                                  </Text>
+                                  <Text key={j} style={stepLine}>• {sd.label}: <strong>{sd.value} {sd.unit || ''}</strong>{sd.subtotal != null ? ` — ${fmt(sd.subtotal)}` : ''}</Text>
                                 ))}
                               </td>
                               <td style={{ verticalAlign: 'top', textAlign: 'right', minWidth: '70px' }}>
@@ -160,40 +133,27 @@ const ManualOrderApprovalEmail = ({
                 </>
               )}
 
-              <div style={totalRow}>
-                <span>I alt</span>
-                <span>{fmt(totalAmount)}</span>
-              </div>
+              <div style={totalRow}><span>I alt</span><span>{fmt(totalAmount)}</span></div>
             </Section>
 
             <Section style={buttonSection}>
-              <Button style={button} href={approvalUrl}>
-                Gennemgå og godkend bestilling
-              </Button>
-              <Text style={{ ...text, fontSize: '12px', color: '#6b7280', marginTop: '12px', textAlign: 'center' as const }}>
-                Linket udløber om {expiresInDays} dag{expiresInDays === 1 ? '' : 'e'}
+              <Button style={button} href={approvalUrl}>Gennemgå og godkend bestilling</Button>
+              <Text style={{ ...text, fontSize: '12px', color: '#64748b', marginTop: '12px' }}>
+                Linket udløber om {expiresInDays} dag{expiresInDays === 1 ? '' : 'e'}.
               </Text>
             </Section>
 
             <Section style={helpBox}>
-              <Text style={helpBoxTitle}>Spørgsmål?</Text>
+              <Text style={helpBoxTitle}>Spørgsmål før du svarer?</Text>
               <Text style={helpBoxText}>
-                Kontakt {businessLabel} direkte
-                {businessPhone ? ` på ${businessPhone}` : ''}
-                {businessEmail ? `, eller skriv til ${businessEmail}` : ''}.
-                Har du spørgsmål til selve platformen, så skriv til{' '}
-                <Link href={`mailto:${SUPPORT_EMAIL}`} style={link}>{SUPPORT_EMAIL}</Link>.
+                Kontakt {businessLabel} direkte{businessPhone ? ` på ${businessPhone}` : ''}{businessEmail ? ` eller ${businessEmail}` : ''}. Ved spørgsmål til platformen kan du skrive til <Link href={`mailto:${SUPPORT_EMAIL}`} style={link}>{SUPPORT_EMAIL}</Link>.
               </Text>
             </Section>
           </Container>
 
           <Section style={footer}>
-            <Text style={footerText}>
-              <Link href={SITE_URL} style={footerLink}>serviceydere.dk</Link>
-            </Text>
-            <Text style={footerText}>
-              © {new Date().getFullYear()} {SITE_NAME}. Du modtager denne e-mail, fordi {businessLabel} har oprettet en bestilling til dig.
-            </Text>
+            <Text style={footerText}><Link href={SITE_URL} style={footerLink}>serviceydere.dk</Link></Text>
+            <Text style={footerText}>© {new Date().getFullYear()} {SITE_NAME}. Du modtager denne e-mail, fordi {businessLabel} har oprettet en bestilling til dig.</Text>
           </Section>
         </Container>
       </Body>
@@ -203,8 +163,7 @@ const ManualOrderApprovalEmail = ({
 
 export const template = {
   component: ManualOrderApprovalEmail,
-  subject: (data) =>
-    `Bestilling til godkendelse${data.businessName ? ` fra ${data.businessName}` : ''}`,
+  subject: (data) => `Bestilling til godkendelse${data.businessName ? ` fra ${data.businessName}` : ''}`,
   displayName: 'Manuel ordre — kunde-godkendelse',
   previewData: {
     customerName: 'Mette Hansen',
