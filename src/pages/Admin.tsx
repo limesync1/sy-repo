@@ -10,15 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useState } from "react";
 import {
   Plus, Trash2, LogOut,
   Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart,
-  Star, Settings, Menu, X, ExternalLink, Bell, Users, Route, Contact, ChevronRight,
-  CheckCircle2, MapPin, FolderTree, Clock3, Eye, Filter,
+  Star, Settings, Menu, X, ExternalLink, Bell, Users, Route, Contact,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import DashboardTab from "@/components/admin/DashboardTab";
@@ -26,7 +23,7 @@ import ReviewsTab from "@/components/admin/ReviewsTab";
 import AftaleTab from "@/components/admin/AftaleTab";
 import EmployeesTab from "@/components/admin/EmployeesTab";
 import CustomersTab from "@/components/admin/CustomersTab";
-import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState, AppList, AppListRow, InsightPill, SearchInput, StatCard } from "@/components/admin/shared/AdminUI";
+import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 
 /* ─── Constants ─── */
 const CATEGORIES = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS", "Elektriker", "Sikkerhed"];
@@ -135,14 +132,14 @@ const SERVICE_CATEGORIES: Record<string, Record<string, string[]>> = {
 };
 
 const NAV_ITEMS = [
-  { value: "dashboard", label: "Overblik", icon: LayoutDashboard, section: "Overblik" },
-  { value: "orders", label: "Aftaler", icon: ShoppingCart, section: "Drift" },
-  { value: "customers", label: "Kunder", icon: Contact, section: "Drift" },
-  { value: "routes", label: "Ruter", icon: Route, section: "Drift", requiresRoutePlanning: true, href: "/virksomhed/ruter" as string | undefined },
-  { value: "employees", label: "Medarbejdere", icon: Users, section: "Drift", requiresRoutePlanning: true },
-  { value: "services", label: "Services", icon: Wrench, section: "Forretning" },
-  { value: "reviews", label: "Anmeldelser", icon: Star, section: "Forretning" },
-  { value: "settings", label: "Indstillinger", icon: Settings, section: "Opsætning" },
+  { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
+  { value: "services", label: "Services", icon: Wrench },
+  { value: "orders", label: "Aftaler", icon: ShoppingCart },
+  { value: "customers", label: "Kunder", icon: Contact },
+  { value: "routes", label: "Ruter", icon: Route, requiresRoutePlanning: true, href: "/virksomhed/ruter" as string | undefined },
+  { value: "employees", label: "Medarbejdere", icon: Users, requiresRoutePlanning: true },
+  { value: "reviews", label: "Anmeldelser", icon: Star },
+  { value: "settings", label: "Indstillinger", icon: Settings },
 ];
 
 /* ─── Entry ─── */
@@ -180,165 +177,104 @@ const AdminDashboard = () => {
   };
 
   const currentNav = visibleNav.find(n => n.value === activeTab) || NAV_ITEMS.find(n => n.value === activeTab);
-  const navGroups = visibleNav.reduce<Record<string, typeof visibleNav>>((acc, item) => {
-    const key = item.section || "Andet";
-    acc[key] = [...(acc[key] || []), item];
-    return acc;
-  }, {});
-  const currentSectionItems = currentNav?.section ? navGroups[currentNav.section] || [] : [];
 
   return (
-    <div className="admin-shell flex min-h-screen">
+    <div className="flex min-h-screen bg-secondary/50">
+      {/* Mobile overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-foreground/35 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col border-r border-white/10 bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex h-16 shrink-0 items-center justify-between border-b border-white/10 px-4">
-          <Link to="/" className="flex items-center gap-3 text-white">
-            <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-5" />
-            <span className="text-sm font-semibold tracking-normal text-white">Serviceydere</span>
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[240px] flex-col bg-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        {/* Sidebar header */}
+        <div className="flex h-14 shrink-0 items-center justify-between px-3">
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/serviceydere-logo.png" alt="Serviceydere" className="h-6" />
           </Link>
-          <button onClick={() => setSidebarOpen(false)} className="rounded-md p-1 text-white/60 hover:text-white lg:hidden">
+          <button onClick={() => setSidebarOpen(false)} className="rounded-md p-1 text-white/50 hover:text-white lg:hidden">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="border-b border-white/10 px-4 py-4">
-          <div className="rounded-lg border border-white/10 bg-white/[0.04] p-3">
-            <div className="flex items-start gap-3">
+        {/* Business info */}
+        <div className="mx-2 mb-2 shrink-0 rounded-lg bg-white/[0.08] px-2.5 py-2">
+          <div className="flex items-center gap-2">
             {business.logo_url ? (
-              <img src={business.logo_url} alt="" className="h-9 w-9 shrink-0 rounded-md border border-white/10 bg-white/5 object-contain p-1" />
+              <img src={business.logo_url} alt="" className="h-7 w-7 shrink-0 rounded object-contain bg-white/10 p-0.5" />
             ) : (
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/[0.04] text-sm font-semibold text-white">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-accent/20 text-accent font-bold text-xs">
                 {business.name.charAt(0)}
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-white">{business.name}</p>
-              <p className="mt-1 truncate text-[12px] text-white/60">{business.city || business.category || "Opsætning pågår"}</p>
-            </div>
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-white/70">
-              <div className="rounded-md border border-white/8 bg-white/[0.03] px-2.5 py-2">
-                <p className="text-white/40">Panel</p>
-                <p className="mt-1 font-medium text-white">Virksomhed</p>
-              </div>
-              <div className="rounded-md border border-white/8 bg-white/[0.03] px-2.5 py-2">
-                <p className="text-white/40">Status</p>
-                <p className="mt-1 font-medium text-white">Aktiv</p>
-              </div>
+              <p className="truncate text-sm font-medium text-white">{business.name}</p>
+              {business.categories && business.categories.length > 0 && <p className="truncate text-xs text-white/40">{(business.categories as string[]).join(", ")}</p>}
             </div>
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
-          <div className="space-y-1">
-            {visibleNav.map((item: any) => {
-              const isActive = activeTab === item.value;
-              const baseClasses = `group flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-[13px] font-medium transition-all ${
-                isActive
-                  ? "border-white/14 bg-white/[0.10] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
-                  : "border-transparent text-white/78 hover:border-white/8 hover:bg-white/[0.05] hover:text-white"
-              }`;
-              const iconClasses = isActive
-                ? "bg-white text-foreground"
-                : "bg-white/[0.07] text-white/72 group-hover:bg-white/[0.12] group-hover:text-white";
-
-              if (item.href) {
-                return (
-                  <Link key={item.value} to={item.href} onClick={() => setSidebarOpen(false)} className={baseClasses}>
-                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors ${iconClasses}`}>
-                      <item.icon className="h-4 w-4 shrink-0" />
-                    </span>
-                    <span className="flex-1 text-left">{item.label}</span>
-                    <ChevronRight className={`h-4 w-4 shrink-0 transition-opacity ${isActive ? "opacity-100" : "opacity-40 group-hover:opacity-70"}`} />
-                  </Link>
-                );
-              }
-
+        {/* Nav items */}
+        <nav className="flex-1 space-y-px px-2 overflow-y-auto">
+          {visibleNav.map((item: any) => {
+            const isActive = activeTab === item.value;
+            const baseClasses = `flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors ${
+              isActive
+                ? "bg-white/[0.12] text-white"
+                : "text-white/55 hover:bg-white/[0.06] hover:text-white/90"
+            }`;
+            if (item.href) {
               return (
-                <button
-                  key={item.value}
-                  onClick={() => { setActiveTab(item.value); setSidebarOpen(false); }}
-                  className={baseClasses}
-                >
-                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors ${iconClasses}`}>
-                    <item.icon className="h-4 w-4 shrink-0" />
-                  </span>
-                  <span className="flex-1 text-left">{item.label}</span>
-                  <ChevronRight className={`h-4 w-4 shrink-0 transition-opacity ${isActive ? "opacity-100" : "opacity-40 group-hover:opacity-70"}`} />
-                </button>
+                <Link key={item.value} to={item.href} onClick={() => setSidebarOpen(false)} className={baseClasses}>
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  {item.label}
+                </Link>
               );
-            })}
-          </div>
+            }
+            return (
+              <button
+                key={item.value}
+                onClick={() => { setActiveTab(item.value); setSidebarOpen(false); }}
+                className={baseClasses}
+              >
+                <item.icon className="h-4 w-4 shrink-0" />
+                {item.label}
+              </button>
+            );
+          })}
         </nav>
 
-        <div className="shrink-0 border-t border-white/10 px-3 py-3">
-          <div className="space-y-1">
-            <Link
-              to={`/v/${business.slug}`}
-              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-[13px] font-medium text-white/62 transition-colors hover:bg-white/[0.04] hover:text-white"
-            >
-              <ExternalLink className="h-4 w-4 shrink-0" />
-              Se din side
-            </Link>
-            <button
-              onClick={signOut}
-              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-[13px] font-medium text-white/62 transition-colors hover:bg-white/[0.04] hover:text-white"
-            >
-              <LogOut className="h-4 w-4 shrink-0" />
-              Log ud
-            </button>
-          </div>
+        {/* Sidebar footer — always visible */}
+        <div className="shrink-0 border-t border-white/[0.06] px-2 py-2 space-y-px">
+          <Link
+            to={`/v/${business.slug}`}
+            className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-sm font-medium text-white/55 hover:bg-white/[0.06] hover:text-white/90 transition-colors"
+          >
+            <ExternalLink className="h-4 w-4 shrink-0" />
+            Se din side
+          </Link>
+          <button
+            onClick={signOut}
+            className="flex w-full items-center gap-2 rounded-lg px-2 py-[7px] text-sm font-medium text-white/55 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            Log ud
+          </button>
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-background/96 px-4 backdrop-blur sm:px-5 lg:px-6">
-          <button onClick={() => setSidebarOpen(true)} className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden">
+      {/* Main content */}
+      <div className="flex flex-1 flex-col min-w-0">
+        {/* Top bar */}
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card px-5 sm:px-6">
+          <button onClick={() => setSidebarOpen(true)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors lg:hidden">
             <Menu className="h-5 w-5" />
           </button>
-          <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{currentNav?.section || "Panel"}</p>
-            <div className="mt-0.5 flex items-center gap-2">
-              <p className="truncate text-sm font-medium text-foreground">{business.name}</p>
-              {currentSectionItems.length > 1 && (
-                <div className="hidden items-center gap-1 rounded-md border border-border bg-card p-1 md:flex">
-                  {currentSectionItems.map((item) => {
-                    const isCurrent = item.value === activeTab;
-                    const labelClasses = isCurrent
-                      ? "bg-secondary text-foreground"
-                      : "text-muted-foreground hover:text-foreground";
-                    if (item.href) {
-                      return (
-                        <Link key={item.value} to={item.href} className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${labelClasses}`}>
-                          {item.label}
-                        </Link>
-                      );
-                    }
-                    return (
-                      <button
-                        key={item.value}
-                        onClick={() => setActiveTab(item.value)}
-                        className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${labelClasses}`}
-                      >
-                        {item.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="hidden items-center gap-2 lg:flex">
-            <div className="rounded-md border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground">
-              {currentNav?.label}
-            </div>
-          </div>
+          <h1 className="text-lg font-semibold text-foreground">{currentNav?.label}</h1>
         </header>
 
-        <main className="flex-1 p-4 sm:p-5 lg:p-6">
+        {/* Page content */}
+        <main className="flex-1 p-4 sm:p-6">
           {renderContent()}
         </main>
       </div>
@@ -414,10 +350,10 @@ const CreateBusinessForm = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary/40 px-4">
-      <Card className="w-full max-w-lg border-border shadow-none">
+    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
+      <Card className="w-full max-w-lg shadow-lg">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-md bg-secondary">
+          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10">
             <Sparkles className="h-6 w-6 text-accent" />
           </div>
           <CardTitle className="text-xl">Opret din virksomhed</CardTitle>
@@ -431,9 +367,9 @@ const CreateBusinessForm = () => {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {CATEGORIES.map((c) => (
                 <button key={c} type="button" onClick={() => toggleCategory(c)}
-                  className={`flex flex-col items-center gap-1.5 rounded-md border px-3 py-3 text-center transition-colors ${
+                  className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-3 text-center transition-all ${
                     selectedCategories.includes(c)
-                      ? "border-foreground bg-secondary"
+                      ? "border-foreground bg-foreground/5 shadow-sm"
                       : "border-border bg-card hover:border-foreground/30"
                   }`}>
                   <span className="text-xl">{CATEGORY_ICONS[c] || "📋"}</span>
@@ -457,9 +393,9 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
   const { data: orders } = useOrders(businessId);
   const deleteService = useDeleteService();
   const [showForm, setShowForm] = useState(false);
-  const [filterCategory, setFilterCategory] = useState("all");
-  const [search, setSearch] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
 
+  // Count orders per service
   const orderCountByService: Record<string, number> = {};
   orders?.forEach((o: any) => {
     o.order_items?.forEach((item: any) => {
@@ -470,21 +406,20 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
   });
 
   const uniqueCategories = [...new Set((services || []).map((s: any) => s.service_category).filter(Boolean))];
-  const filtered = (services || []).filter((service: any) => {
-    const categoryMatch = filterCategory === "all" || service.service_category === filterCategory;
-    const query = search.trim().toLowerCase();
-    const searchMatch = !query || [service.name, service.description, service.service_category, service.subcategory]
-      .filter(Boolean)
-      .some((value: string) => value.toLowerCase().includes(query));
-    return categoryMatch && searchMatch;
-  });
+  const filtered = filterCategory
+    ? services?.filter((s: any) => s.service_category === filterCategory)
+    : services;
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser services...</p>;
 
+  const CATEGORY_ICONS: Record<string, string> = {
+    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
+    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
+  };
+
   return (
-    <div className="space-y-4.5">
+    <div className="space-y-5">
       <PageHeader
-        eyebrow="Forretning"
         title="Services"
         description={`${services?.length || 0} services · ${Object.values(orderCountByService).reduce((a, b) => a + b, 0)} bestillinger i alt`}
         action={
@@ -494,61 +429,47 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
         }
       />
 
-      <div className="grid gap-2 md:grid-cols-3">
-        <StatCard label="Services" value={services?.length || 0} icon={<Wrench />} tone="blue" hint="Aktive ydelser på din profil" />
-        <StatCard label="Bestillinger" value={Object.values(orderCountByService).reduce((a, b) => a + b, 0)} icon={<ShoppingCart />} tone="emerald" hint="Samlet efterspørgsel på services" />
-        <StatCard label="Kategorier" value={uniqueCategories.length || 0} icon={<FolderTree />} tone="violet" hint="Bruges til at strukturere dit katalog" />
-      </div>
-
-      <SectionCard title="Filtre" description="Hold servicekataloget kompakt og nemt at skimme.">
-        <div className="space-y-2">
-          <SearchInput value={search} onChange={setSearch} placeholder="Søg i navn, kategori eller beskrivelse..." />
-          <div className="flex flex-wrap gap-1.5">
-            <button onClick={() => setFilterCategory("all")}
-              className={`rounded-md border px-2.5 py-1.5 text-[11px] font-medium transition-colors ${filterCategory === "all" ? "border-foreground bg-foreground text-background" : "border-border bg-background text-muted-foreground hover:text-foreground"}`}>
-              Alle
+      {/* Category filter chips */}
+      {uniqueCategories.length > 1 && (
+        <div className="flex flex-wrap gap-1.5">
+          <button onClick={() => setFilterCategory("")}
+            className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${!filterCategory ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
+            Alle
+          </button>
+          {uniqueCategories.map((cat) => (
+            <button key={cat} onClick={() => setFilterCategory(filterCategory === cat ? "" : cat)}
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${filterCategory === cat ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}>
+              <span>{CATEGORY_ICONS[cat] || "📋"}</span> {cat}
             </button>
-            {uniqueCategories.map((cat) => (
-              <button key={cat} onClick={() => setFilterCategory(cat)}
-                className={`rounded-md border px-2.5 py-1.5 text-[11px] font-medium transition-colors ${filterCategory === cat ? "border-foreground bg-foreground text-background" : "border-border bg-background text-muted-foreground hover:text-foreground"}`}>
-                {cat}
-              </button>
-            ))}
-          </div>
+          ))}
         </div>
-      </SectionCard>
-
-      {showForm && (
-        <SectionCard title="Ny service" description="Brug samme lineære opsætning som resten af panelet.">
-          <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />
-        </SectionCard>
       )}
 
-      {filtered.length > 0 ? (
-        <SectionCard title="Servicekatalog" description="Standardiseret listevisning med type, pris og efterspørgsel.">
-          <AppList>
-            <div className="grid grid-cols-[minmax(0,1.5fr)_auto_auto] gap-3 admin-list-header px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              <span>Service</span>
-              <span>Type</span>
-              <span className="text-right">Pris</span>
-            </div>
-            {filtered.map((s: any) => (
-              <ServiceRow key={s.id} service={s} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
-            ))}
-          </AppList>
-        </SectionCard>
-      ) : !showForm ? (
-        <EmptyState
-          icon={<Wrench />}
-          title={filterCategory !== "all" ? `Ingen services i "${filterCategory}"` : "Ingen services endnu"}
-          description="Tilføj din første service for at komme i gang."
-          action={
-            <PrimaryButton onClick={() => setShowForm(true)} icon={<Plus />}>
-              Tilføj service
-            </PrimaryButton>
-          }
-        />
-      ) : null}
+      {showForm && (
+        <Card className="rounded-xl shadow-md border-accent/20 bg-gradient-to-b from-accent/[0.03] to-transparent">
+          <CardContent className="p-5 sm:p-6">
+            <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="space-y-2.5">
+        {filtered?.map((s: any) => (
+          <ServiceRow key={s.id} service={s} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
+        ))}
+        {(!filtered || filtered.length === 0) && !showForm && (
+          <EmptyState
+            icon={<Wrench />}
+            title={filterCategory ? `Ingen services i "${filterCategory}"` : "Ingen services endnu"}
+            description="Tilføj din første service for at komme i gang."
+            action={
+              <PrimaryButton onClick={() => setShowForm(true)} icon={<Plus />}>
+                Tilføj service
+              </PrimaryButton>
+            }
+          />
+        )}
+      </div>
     </div>
   );
 };
@@ -556,54 +477,93 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
 const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCount: number; onDelete: () => void }) => {
   const [editing, setEditing] = useState(false);
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
+  const pricingIcons: Record<string, string> = { fast_pris: "💰", timepris: "⏱️", prisberegner: "🧮" };
+  const CATEGORY_ICONS: Record<string, string> = {
+    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
+    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
+  };
+
   const intervals = service.interval_options || [];
   const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
 
   return (
-    <div className="border-b border-border/80 last:border-b-0">
-      <AppListRow className="items-start gap-4 px-3 py-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="truncate text-sm font-medium text-foreground">{service.name}</h3>
-            {service.is_active === false && <InsightPill>Inaktiv</InsightPill>}
+    <Card className="rounded-xl shadow-sm border-border overflow-hidden transition-shadow hover:shadow-md">
+      <CardContent className="p-0">
+        <div className="flex items-stretch">
+          {/* Left accent strip with category icon */}
+          <div className="flex w-12 shrink-0 flex-col items-center justify-center bg-secondary/50 border-r border-border">
+            <span className="text-lg">{CATEGORY_ICONS[service.service_category] || "📋"}</span>
           </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            {[service.service_category, service.subcategory].filter(Boolean).join(" · ") || "Ingen kategori valgt"}
-          </p>
-          {service.description && <p className="mt-1 line-clamp-1 text-[11px] text-muted-foreground">{service.description}</p>}
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {service.calculator_steps?.length > 0 && (
-              <InsightPill><Calculator className="h-3 w-3" /> {service.calculator_steps.length} trin</InsightPill>
-            )}
-            {hasRecurring && <InsightPill>Abonnement muligt</InsightPill>}
-            <InsightPill>{orderCount} bestillinger</InsightPill>
+
+          {/* Main content */}
+          <div className="flex-1 p-3.5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-foreground truncate">{service.name}</h3>
+                  {service.is_active === false && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 rounded border-destructive/30 text-destructive">Inaktiv</Badge>
+                  )}
+                </div>
+                {service.description && (
+                  <p className="mt-0.5 text-xs text-muted-foreground line-clamp-1">{service.description}</p>
+                )}
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-0.5 text-[11px] font-medium text-foreground">
+                    <span className="text-xs">{pricingIcons[service.pricing_type]}</span>
+                    {pricingLabels[service.pricing_type] || service.pricing_type}
+                  </span>
+                  {service.base_price != null && (
+                    <span className="inline-flex items-center rounded-md border border-border bg-card px-2 py-0.5 text-[11px] font-semibold text-foreground">
+                      {service.base_price} kr{service.unit ? ` / ${service.unit}` : ""}
+                    </span>
+                  )}
+                  {service.calculator_steps?.length > 0 && (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-0.5 text-[11px] text-muted-foreground">
+                      <Calculator className="h-3 w-3" /> {service.calculator_steps.length} trin
+                    </span>
+                  )}
+                  {service.subcategory && (
+                    <span className="inline-flex items-center rounded-md border border-accent/20 bg-accent/5 px-2 py-0.5 text-[11px] font-medium text-accent">
+                      {service.subcategory}
+                    </span>
+                  )}
+                  {service.service_category && !service.subcategory && (
+                    <span className="inline-flex items-center rounded-md border border-border bg-secondary/50 px-2 py-0.5 text-[11px] text-muted-foreground">
+                      {service.service_category}
+                    </span>
+                  )}
+                  {hasRecurring && (
+                    <span className="inline-flex items-center gap-0.5 rounded-md border border-blue-500/20 bg-blue-500/5 px-2 py-0.5 text-[11px] font-medium text-blue-600">
+                      🔄 Abonnement
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Right side: order count + actions */}
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="text-right hidden sm:block">
+                  <span className="block text-sm font-bold text-foreground">{orderCount}</span>
+                  <span className="block text-[10px] text-muted-foreground">bestillinger</span>
+                </div>
+                <div className="flex gap-1">
+                  <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-7 rounded-lg text-xs px-2.5 border-border hover:bg-secondary">
+                    {editing ? "Luk" : "Rediger"}
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={onDelete} className="h-7 w-7 p-0 rounded-lg hover:bg-destructive/10 transition-colors"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="hidden min-w-[120px] flex-col items-start gap-1 sm:flex">
-          <span className="text-xs font-medium text-foreground">{pricingLabels[service.pricing_type] || service.pricing_type}</span>
-          <span className="text-[11px] text-muted-foreground">{service.unit || "Fast enhed"}</span>
-        </div>
-        <div className="flex min-w-[148px] flex-col items-end gap-2">
-          <div className="text-right">
-            <span className="text-sm font-semibold text-foreground">{service.base_price != null ? `${service.base_price} kr` : "Variabel pris"}</span>
-            <p className="text-[11px] text-muted-foreground">{service.unit ? `pr. ${service.unit}` : "pris efter opsætning"}</p>
-          </div>
-          <div className="flex gap-1">
-            <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-8 rounded-md px-2.5 text-[11px]">
-              {editing ? "Luk" : "Rediger"}
-            </Button>
-            <Button variant="ghost" size="sm" onClick={onDelete} className="h-8 w-8 rounded-md p-0 hover:bg-destructive/10">
-              <Trash2 className="h-3.5 w-3.5 text-destructive" />
-            </Button>
-          </div>
-        </div>
-      </AppListRow>
+      </CardContent>
       {editing && (
-        <div className="border-t border-border bg-secondary/18 p-3">
+        <div className="border-t border-border bg-secondary/20 p-5">
           <ServiceForm businessId={service.business_id} existingService={service} onClose={() => setEditing(false)} />
         </div>
       )}
-    </div>
+    </Card>
   );
 };
 
@@ -619,12 +579,12 @@ const CalculatorPreview = ({ steps }: { steps: any[] }) => {
   if (steps.length === 0) return null;
 
   return (
-    <div className="rounded-md border border-border bg-secondary/20 p-3">
-      <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
+    <div className="rounded-xl border border-accent/20 bg-accent/5 p-4">
+      <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-accent">
         <Calculator className="h-4 w-4" />
         Forhåndsvisning
       </div>
-      <div className="overflow-hidden rounded-md border border-border bg-card">
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
         {steps.filter(s => s.label).map((step, idx) => {
           const stepTotal = (values[idx] || 0) * (parseFloat(step.price_per_unit) || 0);
           return (
@@ -634,7 +594,7 @@ const CalculatorPreview = ({ steps }: { steps: any[] }) => {
                 <div className="text-xs text-muted-foreground">{parseFloat(step.price_per_unit) || 0} kr / {step.unit || "stk"}</div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="rounded-md border border-border bg-secondary px-3 py-1.5 text-sm font-semibold text-foreground">
+                <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-sm font-semibold text-foreground">
                   {values[idx] || 0} {step.unit || "stk"}
                 </span>
                 <span className="w-16 text-right text-sm font-semibold text-foreground">{stepTotal} kr</span>
@@ -658,6 +618,7 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   const updateService = useUpdateService();
   const upsertSteps = useUpsertCalculatorSteps();
 
+  const [currentStep, setCurrentStep] = useState(1);
   const [serviceCategory, setServiceCategory] = useState(existingService?.service_category || "");
   const [subcategory, setSubcategory] = useState(existingService?.subcategory || "");
   const [name, setName] = useState(existingService?.name || "");
@@ -669,7 +630,9 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   const [steps, setSteps] = useState<any[]>(existingService?.calculator_steps || []);
   const [customCategory, setCustomCategory] = useState(false);
   const [customSubcategory, setCustomSubcategory] = useState(false);
-  const [intervalOptions, setIntervalOptions] = useState<string[]>(existingService?.interval_options || ["engangskøb"]);
+  const [intervalOptions, setIntervalOptions] = useState<string[]>(
+    existingService?.interval_options || ["engangskøb"]
+  );
 
   const ALL_INTERVALS = [
     { value: "engangskøb", label: "Engangskøb" },
@@ -680,7 +643,9 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   ];
 
   const toggleInterval = (v: string) => {
-    setIntervalOptions((prev) => prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]);
+    setIntervalOptions((prev) =>
+      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]
+    );
   };
 
   const categoryOptions = Object.keys(SERVICE_CATEGORIES);
@@ -689,6 +654,15 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
   const productSuggestions = serviceCategory && subcategory && SERVICE_CATEGORIES[serviceCategory]?.[subcategory]
     ? SERVICE_CATEGORIES[serviceCategory][subcategory] : [];
   const availableTemplates = STEP_TEMPLATES[serviceCategory] || [];
+
+  const totalSteps = pricingType === "prisberegner" ? 5 : 4;
+  const FORM_STEPS = [
+    { num: 1, label: "Kategori", color: "bg-blue-500" },
+    { num: 2, label: "Detaljer", color: "bg-violet-500" },
+    { num: 3, label: "Pris", color: "bg-emerald-500" },
+    ...(pricingType === "prisberegner" ? [{ num: 4, label: "Beregner", color: "bg-amber-500" }] : []),
+    { num: pricingType === "prisberegner" ? 5 : 4, label: "Interval", color: "bg-cyan-500" },
+  ];
 
   const addStep = () => {
     setSteps([...steps, { label: "", unit: "stk", price_per_unit: 0, min_value: 0, max_value: 100, default_value: 0, sort_order: steps.length }]);
@@ -699,9 +673,20 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
     setSteps(updated);
   };
   const removeStep = (i: number) => setSteps(steps.filter((_, idx) => idx !== i));
+
   const applyTemplate = (template: typeof availableTemplates[number]) => {
     setSteps(template.steps.map((s, i) => ({ ...s, sort_order: i })));
     toast.success(`Skabelon "${template.label}" anvendt`);
+  };
+
+  const canGoNext = () => {
+    if (currentStep === 1) return !!serviceCategory;
+    if (currentStep === 2) return !!name.trim();
+    if (currentStep === 3) {
+      if (pricingType === "prisberegner") return true;
+      return true;
+    }
+    return true;
   };
 
   const handleSave = async () => {
@@ -729,14 +714,11 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
           await upsertSteps.mutateAsync({
             serviceId: existingService.id,
             steps: steps.map((s, i) => ({
-              service_id: existingService.id,
-              label: s.label,
-              unit: s.unit,
+              service_id: existingService.id, label: s.label, unit: s.unit,
               price_per_unit: parseFloat(s.price_per_unit) || 0,
               min_value: parseFloat(s.min_value) || 0,
               max_value: parseFloat(s.max_value) || 100,
-              default_value: parseFloat(s.default_value) || 0,
-              sort_order: i,
+              default_value: parseFloat(s.default_value) || 0, sort_order: i,
             })),
           });
         }
@@ -747,251 +729,371 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
           await upsertSteps.mutateAsync({
             serviceId: result.id,
             steps: steps.map((s, i) => ({
-              service_id: result.id,
-              label: s.label,
-              unit: s.unit,
+              service_id: result.id, label: s.label, unit: s.unit,
               price_per_unit: parseFloat(s.price_per_unit) || 0,
               min_value: parseFloat(s.min_value) || 0,
               max_value: parseFloat(s.max_value) || 100,
-              default_value: parseFloat(s.default_value) || 0,
-              sort_order: i,
+              default_value: parseFloat(s.default_value) || 0, sort_order: i,
             })),
           });
         }
         toast.success("Service oprettet");
       }
       onClose();
-    } catch (e: any) {
-      toast.error(e.message);
-    }
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  const CATEGORY_ICONS: Record<string, string> = {
+    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
+    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
   };
 
   return (
-    <div className="space-y-3">
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-3">
-          <SectionCard title="Placering" description="Kategori, underkategori og navn i samme lineære flow.">
-            <div className="grid gap-3 md:grid-cols-2">
-              <div>
-                <FieldLabel required>Kategori</FieldLabel>
-                {!customCategory ? (
-                  <Select value={serviceCategory} onValueChange={(value) => { setServiceCategory(value); setSubcategory(""); setCustomSubcategory(false); }}>
-                    <SelectTrigger className="h-9 rounded-md bg-background text-xs">
-                      <SelectValue placeholder="Vælg kategori" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categoryOptions.map((category) => (
-                        <SelectItem key={category} value={category}>{category}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input value={serviceCategory} onChange={(e) => setServiceCategory(e.target.value)} placeholder="Skriv kategori" className="h-9 bg-background" />
-                )}
-                <button type="button" onClick={() => { setCustomCategory((prev) => !prev); setServiceCategory(""); }} className="mt-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground">
-                  {customCategory ? "Vælg fra listen" : "Skriv egen kategori"}
+    <div className="space-y-6">
+      {/* Step Progress Bar */}
+      <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
+        <div className="flex items-center">
+          {FORM_STEPS.map((s, i) => {
+            const isLast = i === FORM_STEPS.length - 1;
+            return (
+              <div key={s.num} className={`flex items-center ${isLast ? "shrink-0" : "flex-1"}`}>
+                <button
+                  onClick={() => { if (s.num <= currentStep || canGoNext()) setCurrentStep(s.num); }}
+                  className="group flex shrink-0 items-center gap-2"
+                >
+                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold transition-all ${
+                    currentStep === s.num ? "bg-foreground text-background shadow-sm ring-2 ring-foreground/20" :
+                    s.num < currentStep ? "bg-accent/15 text-accent ring-1 ring-accent/30" : "bg-secondary text-muted-foreground"
+                  }`}>
+                    {s.num < currentStep ? "✓" : s.num}
+                  </span>
+                  <span className={`hidden sm:block text-sm font-medium whitespace-nowrap transition-colors ${
+                    currentStep === s.num ? "text-foreground" : s.num < currentStep ? "text-accent" : "text-muted-foreground"
+                  }`}>{s.label}</span>
                 </button>
-              </div>
-              <div>
-                <FieldLabel>Underkategori</FieldLabel>
-                {subcategoryOptions.length > 0 && !customSubcategory ? (
-                  <Select value={subcategory} onValueChange={setSubcategory}>
-                    <SelectTrigger className="h-9 rounded-md bg-background text-xs">
-                      <SelectValue placeholder="Vælg underkategori" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {subcategoryOptions.map((option) => (
-                        <SelectItem key={option} value={option}>{option}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input value={subcategory} onChange={(e) => setSubcategory(e.target.value)} placeholder="Fx Kontorrengøring" className="h-9 bg-background" />
-                )}
-                {subcategoryOptions.length > 0 && (
-                  <button type="button" onClick={() => { setCustomSubcategory((prev) => !prev); setSubcategory(""); }} className="mt-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground">
-                    {customSubcategory ? "Vælg fra listen" : "Skriv egen underkategori"}
-                  </button>
+                {!isLast && (
+                  <div className={`mx-2 sm:mx-3 h-px flex-1 min-w-4 transition-colors ${FORM_STEPS[i + 1].num <= currentStep ? "bg-accent/40" : "bg-border"}`} />
                 )}
               </div>
-              <div className="md:col-span-2">
-                <FieldLabel required>Servicenavn</FieldLabel>
-                <Input placeholder="Fx Rengøring af kontor" value={name} onChange={(e) => setName(e.target.value)} className="h-9 bg-background" />
-                {productSuggestions.length > 0 && !name && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {productSuggestions.map((suggestion) => (
-                      <button key={suggestion} type="button" onClick={() => setName(suggestion)} className="rounded-md border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground">
-                        {suggestion}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="md:col-span-2">
-                <FieldLabel>Beskrivelse</FieldLabel>
-                <Textarea placeholder="Kort og præcis beskrivelse af servicen" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="resize-none" />
-              </div>
-            </div>
-          </SectionCard>
-
-          <SectionCard title="Pris og levering" description="Hold prismodellen enkel og gennemskuelig.">
-            <div className="space-y-3">
-              <div className="grid gap-2 sm:grid-cols-3">
-                {[
-                  { value: "fast_pris", label: "Fast pris", desc: "Én fast pris" },
-                  { value: "timepris", label: "Timepris", desc: "Pris pr. time" },
-                  { value: "prisberegner", label: "Prisberegner", desc: "Beregn ud fra trin" },
-                ].map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setPricingType(option.value)}
-                    className={`rounded-md border px-3 py-2 text-left transition-colors ${pricingType === option.value ? "border-foreground bg-secondary" : "border-border bg-card hover:border-foreground/25"}`}
-                  >
-                    <span className="block text-sm font-medium text-foreground">{option.label}</span>
-                    <span className="mt-1 block text-[11px] text-muted-foreground">{option.desc}</span>
-                  </button>
-                ))}
-              </div>
-              {(pricingType === "fast_pris" || pricingType === "timepris") && (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <FieldLabel>{pricingType === "fast_pris" ? "Pris (kr)" : "Timepris (kr)"}</FieldLabel>
-                    <Input type="number" placeholder="0" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} className="h-9 bg-background" />
-                  </div>
-                  {pricingType === "timepris" && (
-                    <div>
-                      <FieldLabel>Enhed</FieldLabel>
-                      <Input placeholder="Fx timer" value={unit} onChange={(e) => setUnit(e.target.value)} className="h-9 bg-background" />
-                    </div>
-                  )}
-                </div>
-              )}
-              <div>
-                <FieldLabel>Intervaller</FieldLabel>
-                <div className="flex flex-wrap gap-1.5">
-                  {ALL_INTERVALS.map((interval) => {
-                    const active = intervalOptions.includes(interval.value);
-                    return (
-                      <button
-                        key={interval.value}
-                        type="button"
-                        onClick={() => toggleInterval(interval.value)}
-                        className={`rounded-md border px-2.5 py-1.5 text-[11px] font-medium transition-colors ${active ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
-                      >
-                        {interval.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </SectionCard>
-
-          {pricingType === "prisberegner" && (
-            <SectionCard title="Prisberegner" description="Brug trin, hvis prisen afhænger af kundens valg.">
-              <div className="space-y-3">
-                {availableTemplates.length > 0 && steps.length === 0 && (
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {availableTemplates.map((template) => (
-                      <button key={template.label} type="button" onClick={() => applyTemplate(template)} className="rounded-md border border-border bg-card p-3 text-left transition-colors hover:border-foreground/25">
-                        <span className="block text-sm font-medium text-foreground">{template.label}</span>
-                        <span className="mt-1 block text-[11px] text-muted-foreground">{template.steps.length} trin</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{steps.length} trin</p>
-                    <Button variant="outline" size="sm" onClick={addStep} className="h-9 rounded-md text-[11px]">
-                    <Plus className="mr-1.5 h-3.5 w-3.5" /> Tilføj trin
-                  </Button>
-                </div>
-
-                {steps.map((step, i) => (
-                  <div key={i} className="rounded-md border border-border bg-card p-3">
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium text-foreground">{step.label || `Trin ${i + 1}`}</p>
-                      <Button variant="ghost" size="sm" onClick={() => removeStep(i)} className="h-7 w-7 rounded-md p-0 hover:bg-destructive/10">
-                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                      </Button>
-                    </div>
-                    <div className="grid gap-3 md:grid-cols-2">
-                      <div>
-                        <FieldLabel>Navn</FieldLabel>
-                        <Input value={step.label} onChange={(e) => updateStep(i, "label", e.target.value)} className="h-9 bg-background" />
-                      </div>
-                      <div>
-                        <FieldLabel>Enhed</FieldLabel>
-                        <Input value={step.unit} onChange={(e) => updateStep(i, "unit", e.target.value)} className="h-9 bg-background" />
-                      </div>
-                    </div>
-                    <div className="mt-3 grid gap-3 sm:grid-cols-4">
-                      {[
-                        { label: `Pris / ${step.unit || "enhed"}`, field: "price_per_unit", value: step.price_per_unit },
-                        { label: "Min", field: "min_value", value: step.min_value },
-                        { label: "Max", field: "max_value", value: step.max_value },
-                        { label: "Standard", field: "default_value", value: step.default_value },
-                      ].map((field) => (
-                        <div key={field.field}>
-                          <FieldLabel>{field.label}</FieldLabel>
-                          <Input type="number" value={field.value} onChange={(e) => updateStep(i, field.field, e.target.value)} className="h-9 bg-background" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-
-                {steps.length === 0 && (
-                  <div className="rounded-md border border-dashed border-border bg-card px-3 py-8 text-center text-[11px] text-muted-foreground">
-                    Tilføj trin eller brug en skabelon for at bygge prisberegneren.
-                  </div>
-                )}
-              </div>
-            </SectionCard>
-          )}
-        </div>
-
-        <div className="space-y-3">
-          <SectionCard title="Preview" description="Sådan fremstår servicen i systemet.">
-            <div className="space-y-2 rounded-md border border-border bg-card p-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">{name || "Servicenavn"}</p>
-                  <p className="mt-1 text-[11px] text-muted-foreground">{[serviceCategory, subcategory].filter(Boolean).join(" · ") || "Kategori mangler"}</p>
-                </div>
-                <InsightPill>{pricingType === "fast_pris" ? "Fast pris" : pricingType === "timepris" ? "Timepris" : "Prisberegner"}</InsightPill>
-              </div>
-              {description && <p className="text-[11px] leading-5 text-muted-foreground">{description}</p>}
-              <div className="flex flex-wrap gap-1.5">
-                {intervalOptions.map((interval) => (
-                  <InsightPill key={interval}>{interval}</InsightPill>
-                ))}
-              </div>
-              {(pricingType === "fast_pris" || pricingType === "timepris") && (
-                <div className="rounded-md bg-secondary px-3 py-2 text-sm font-medium text-foreground">
-                  {basePrice ? `${basePrice} kr` : "Ingen pris endnu"} {pricingType === "timepris" && unit ? `/ ${unit}` : ""}
-                </div>
-              )}
-            </div>
-          </SectionCard>
-
-          <SectionCard title="Billede" description="Valgfrit, men nyttigt for visning på profilsiden.">
-            <ImageUpload folder={`${user!.id}/services`} currentUrl={imageUrl || null} onUploaded={setImageUrl} label="" aspectRatio="aspect-video" className="w-full max-w-[260px]" />
-          </SectionCard>
+            );
+          })}
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border/80 pt-3">
-        <Button variant="ghost" onClick={onClose} className="h-9 rounded-md text-xs">Annuller</Button>
-        <PrimaryButton onClick={handleSave}>
-          {existingService ? "Gem ændringer" : "Opret service"}
-        </PrimaryButton>
+      {/* Step 1: Category — Card grid instead of dropdown */}
+      {currentStep === 1 && (
+        <div className="space-y-5">
+          <div>
+            <h4 className="text-base font-semibold text-foreground">Vælg kategori</h4>
+            <p className="mt-1 text-sm text-muted-foreground">Hvilken type service tilbyder du?</p>
+          </div>
+
+          {!customCategory ? (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {categoryOptions.map((c) => (
+                  <button key={c} type="button"
+                    onClick={() => { setServiceCategory(c); setSubcategory(""); setCustomSubcategory(false); }}
+                    className={`flex flex-col items-center gap-2 rounded-xl border-2 px-3 py-4 text-center transition-all hover:shadow-sm ${
+                      serviceCategory === c
+                        ? "border-foreground bg-foreground/5 shadow-sm"
+                        : "border-border bg-card hover:border-foreground/30"
+                    }`}
+                  >
+                    <span className="text-2xl">{CATEGORY_ICONS[c] || "📋"}</span>
+                    <span className="text-sm font-medium text-foreground">{c}</span>
+                  </button>
+                ))}
+              </div>
+              <button type="button" onClick={() => { setCustomCategory(true); setServiceCategory(""); }}
+                className="text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors">
+                + Skriv din egen kategori
+              </button>
+            </>
+          ) : (
+            <div className="space-y-2">
+              <Input placeholder="Fx Vinduespolering" value={serviceCategory} onChange={(e) => setServiceCategory(e.target.value)} className="bg-card" />
+              <button type="button" onClick={() => { setCustomCategory(false); setServiceCategory(""); }}
+                className="text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors">
+                ← Vælg fra listen
+              </button>
+            </div>
+          )}
+
+          {/* Subcategory — chips instead of dropdown */}
+          {serviceCategory && subcategoryOptions.length > 0 && (
+            <div className="space-y-3 pt-4 border-t border-border">
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">Underkategori</h4>
+                <p className="mt-0.5 text-sm text-muted-foreground">Vælg den mest passende underkategori</p>
+              </div>
+              {!customSubcategory ? (
+                <>
+                  <div className="flex flex-wrap gap-2">
+                    {subcategoryOptions.map((s) => (
+                      <button key={s} type="button" onClick={() => setSubcategory(s)}
+                        className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                          subcategory === s
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border bg-card text-foreground hover:border-foreground/40"
+                        }`}
+                      >{s}</button>
+                    ))}
+                  </div>
+                  <button type="button" onClick={() => { setCustomSubcategory(true); setSubcategory(""); }}
+                    className="text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors">
+                    + Skriv din egen
+                  </button>
+                </>
+              ) : (
+                <div className="space-y-2">
+                  <Input placeholder="Fx Erhvervsrengøring" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} className="bg-card" />
+                  <button type="button" onClick={() => { setCustomSubcategory(false); setSubcategory(""); }}
+                    className="text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors">
+                    ← Vælg fra listen
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {serviceCategory && subcategoryOptions.length === 0 && !customCategory && (
+            <div className="space-y-2 pt-4 border-t border-border">
+              <label className="text-sm font-medium text-muted-foreground">Underkategori (valgfrit)</label>
+              <Input placeholder="Fx Erhvervsrengøring" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} className="bg-card" />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Step 2: Details */}
+      {currentStep === 2 && (
+        <div className="space-y-5">
+          <div>
+            <h4 className="text-base font-semibold text-foreground">Service detaljer</h4>
+            <p className="mt-1 text-sm text-muted-foreground">Beskriv din service så kunderne ved hvad de får</p>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">Servicenavn</label>
+            <Input placeholder="Fx Rengøring af kontor" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-11 text-base" />
+            {productSuggestions.length > 0 && !name && (
+              <div className="mt-2.5 flex flex-wrap gap-2">
+                <span className="text-sm text-muted-foreground mr-1">Forslag:</span>
+                {productSuggestions.map((s) => (
+                  <button key={s} type="button" onClick={() => setName(s)}
+                    className="rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-colors">{s}</button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">Beskrivelse</label>
+            <Textarea placeholder="Hvad inkluderer denne service? Hvad kan kunden forvente?" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-card" rows={3} />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">Billede (valgfrit)</label>
+            <ImageUpload folder={`${user!.id}/services`} currentUrl={imageUrl || null} onUploaded={setImageUrl} label="" aspectRatio="aspect-video" className="w-40" />
+          </div>
+        </div>
+      )}
+
+      {/* Step 3: Pricing — big cards */}
+      {currentStep === 3 && (
+        <div className="space-y-5">
+          <div>
+            <h4 className="text-base font-semibold text-foreground">Hvordan vil du prissætte?</h4>
+            <p className="mt-1 text-sm text-muted-foreground">Vælg den prismodel der passer bedst til din service</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              { value: "fast_pris", label: "Fast pris", desc: "Kunden betaler én fast pris for hele servicen", icon: "💰" },
+              { value: "timepris", label: "Timepris", desc: "Kunden betaler pr. time brugt på opgaven", icon: "⏱️" },
+              { value: "prisberegner", label: "Prisberegner", desc: "Kunden sammensætter selv og ser prisen live", icon: "🧮" },
+            ].map((opt) => (
+              <button key={opt.value} type="button" onClick={() => setPricingType(opt.value)}
+                className={`rounded-xl border-2 p-5 text-left transition-all ${
+                  pricingType === opt.value
+                    ? "border-foreground bg-foreground/5 shadow-sm"
+                    : "border-border bg-card hover:border-foreground/30 hover:shadow-sm"
+                }`}>
+                <span className="text-2xl">{opt.icon}</span>
+                <span className="mt-2 block text-sm font-semibold text-foreground">{opt.label}</span>
+                <span className="mt-1 block text-sm text-muted-foreground leading-snug">{opt.desc}</span>
+              </button>
+            ))}
+          </div>
+
+          {(pricingType === "fast_pris" || pricingType === "timepris") && (
+            <div className="flex gap-3 pt-2">
+              <div className="flex-1">
+                <label className="mb-1.5 block text-sm font-medium text-foreground">
+                  {pricingType === "fast_pris" ? "Pris (kr)" : "Timepris (kr)"}
+                </label>
+                <Input type="number" placeholder="0" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} className="bg-card h-11 text-base" />
+              </div>
+              {pricingType === "timepris" && (
+                <div className="flex-1">
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">Enhed</label>
+                  <Input placeholder="Fx timer" value={unit} onChange={(e) => setUnit(e.target.value)} className="bg-card h-11 text-base" />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Step 4: Calculator */}
+      {currentStep === 4 && pricingType === "prisberegner" && (
+        <div className="space-y-5">
+          <div>
+            <h4 className="text-base font-semibold text-foreground">Opsæt prisberegner</h4>
+            <p className="mt-1 text-sm text-muted-foreground">Tilføj de trin kunden skal igennem for at beregne prisen</p>
+          </div>
+
+          {availableTemplates.length > 0 && steps.length === 0 && (
+            <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-amber-500" />
+                <span className="text-sm font-semibold text-foreground">Kom hurtigt i gang med en skabelon</span>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {availableTemplates.map((t) => (
+                  <button key={t.label} type="button" onClick={() => applyTemplate(t)}
+                    className="rounded-xl border border-border bg-muted/30 p-4 text-left transition-all hover:border-foreground/30 hover:shadow-sm">
+                    <span className="block text-sm font-semibold text-foreground">{t.label}</span>
+                    <span className="mt-1 block text-sm text-muted-foreground">{t.steps.length} trin · {t.steps.map(s => s.unit).filter((v, i, a) => a.indexOf(v) === i).join(", ")}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-foreground">{steps.length} beregnertrin</span>
+              <Button variant="outline" size="sm" onClick={addStep} className="gap-1.5 rounded-lg">
+                <Plus className="h-3.5 w-3.5" /> Tilføj trin
+              </Button>
+            </div>
+
+            {steps.map((step, i) => (
+              <Card key={i} className="rounded-xl shadow-sm border-border overflow-hidden">
+                <div className="flex items-center justify-between bg-secondary/40 px-4 py-2.5 border-b border-border">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-md bg-foreground text-[11px] font-bold text-background">{i + 1}</span>
+                    <span className="text-sm font-semibold text-foreground">{step.label || `Trin ${i + 1}`}</span>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => removeStep(i)} className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                <CardContent className="p-4 space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Navn</label>
+                      <Input placeholder="Fx Støvsugning" value={step.label} onChange={(e) => updateStep(i, "label", e.target.value)} className="bg-card" />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Enhed</label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {["stk", "m²", "m", "timer", "rum", "km", "kg", "kr"].map((u) => (
+                          <button key={u} type="button" onClick={() => updateStep(i, "unit", u)}
+                            className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${
+                              step.unit === u
+                                ? "border-foreground bg-foreground text-background"
+                                : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                            }`}>{u}</button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2.5">
+                    {[
+                      { label: `Pris / ${step.unit || "enhed"}`, field: "price_per_unit", value: step.price_per_unit },
+                      { label: "Min", field: "min_value", value: step.min_value },
+                      { label: "Max", field: "max_value", value: step.max_value },
+                      { label: "Standard", field: "default_value", value: step.default_value },
+                    ].map((f) => (
+                      <div key={f.field}>
+                        <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">{f.label}</label>
+                        <Input type="number" placeholder="0" value={f.value} onChange={(e) => updateStep(i, f.field, e.target.value)} className="bg-card text-sm" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+
+            {steps.length === 0 && (
+              <div className="py-10 text-center rounded-xl border border-dashed border-border bg-card">
+                <Calculator className="mx-auto h-8 w-8 text-muted-foreground/30" />
+                <p className="mt-3 text-sm text-muted-foreground">
+                  {availableTemplates.length > 0 ? "Vælg en skabelon ovenfor eller tilføj trin manuelt." : "Tilføj trin for at oprette din prisberegner."}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <CalculatorPreview steps={steps} />
+        </div>
+      )}
+
+      {/* Step: Interval */}
+      {currentStep === totalSteps && (
+        <div className="space-y-5">
+          <div>
+            <h4 className="text-base font-semibold text-foreground">Vælg intervaller</h4>
+            <p className="mt-1 text-sm text-muted-foreground">Hvilke intervaller kan kunden vælge for denne service?</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            {ALL_INTERVALS.map((iv) => (
+              <button key={iv.value} type="button" onClick={() => toggleInterval(iv.value)}
+                className={`rounded-xl border-2 px-4 py-3 text-center transition-all ${
+                  intervalOptions.includes(iv.value)
+                    ? "border-foreground bg-foreground/5 shadow-sm"
+                    : "border-border bg-card hover:border-foreground/30"
+                }`}>
+                <span className="text-sm font-medium text-foreground">{iv.label}</span>
+              </button>
+            ))}
+          </div>
+          {intervalOptions.length === 0 && (
+            <p className="text-sm text-destructive">Vælg mindst ét interval</p>
+          )}
+        </div>
+      )}
+
+      <div className="flex items-center justify-between pt-4 border-t border-border">
+        <div className="flex gap-2">
+          {currentStep > 1 && (
+            <Button variant="outline" onClick={() => setCurrentStep(currentStep - 1)} className="rounded-lg h-10 px-4 text-sm font-medium">
+              ← Tilbage
+            </Button>
+          )}
+          <Button variant="ghost" onClick={onClose} className="rounded-lg h-10 px-4 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary">
+            Annuller
+          </Button>
+        </div>
+        <div>
+          {currentStep < totalSteps ? (
+            <Button onClick={() => { if (canGoNext()) setCurrentStep(currentStep + 1); else toast.error("Udfyld venligst de påkrævede felter"); }}
+              disabled={!canGoNext()}
+              className="rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:bg-muted disabled:text-muted-foreground h-10 px-6 text-sm font-semibold shadow-sm">
+              Næste →
+            </Button>
+          ) : (
+            <Button onClick={handleSave} className="rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 h-10 px-6 text-sm font-semibold shadow-sm">
+              {existingService ? "Gem ændringer" : "✓ Opret service"}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
 };
+
+
+
 
 /* ─── Settings Tab ─── */
 const SettingsTab = ({ business }: { business: any }) => {
@@ -1133,11 +1235,10 @@ const SettingsTab = ({ business }: { business: any }) => {
     JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
 
   return (
-    <div className="space-y-4.5">
+    <div className="max-w-3xl space-y-6">
       <PageHeader
-        eyebrow="Opsætning"
         title="Indstillinger"
-        description="Hold virksomhedsdata, visning og drift samlet i samme kompakte opsætning."
+        description="Administrer din virksomheds profil og oplysninger."
         action={
           <PrimaryButton onClick={save} disabled={updateBiz.isPending || !hasChanges}>
             {updateBiz.isPending ? "Gemmer..." : "Gem ændringer"}
@@ -1145,29 +1246,30 @@ const SettingsTab = ({ business }: { business: any }) => {
         }
       />
 
-      <SectionCard title="CVR-opslag" description="Hent virksomhedsdata uden at skifte arbejdsgang.">
-        <div className="space-y-3">
+      {/* CVR Lookup */}
+      <Card className="rounded-xl border-accent/20 bg-gradient-to-b from-accent/[0.03] to-transparent shadow-sm">
+        <CardContent className="p-5">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="h-4 w-4 text-accent" />
             <h3 className="text-sm font-semibold text-foreground">Automatisk udfyldning fra CVR</h3>
           </div>
-          <p className="text-xs text-muted-foreground">Indtast CVR-nummer eller virksomhedsnavn for at udfylde de vigtigste felter hurtigt.</p>
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <p className="text-xs text-muted-foreground mb-3">Indtast CVR-nummer eller virksomhedsnavn for at auto-udfylde alle felter.</p>
+          <div className="flex gap-2">
             <Input
               placeholder="CVR-nummer eller virksomhedsnavn..."
               value={cvrQuery}
               onChange={(e) => setCvrQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && lookupCvr()}
-              className="h-9 bg-background flex-1"
+              className="bg-card flex-1"
             />
             <Button onClick={lookupCvr} disabled={cvrLoading || !cvrQuery.trim()} size="sm"
-              className="h-9 rounded-md bg-foreground px-4 text-xs font-medium text-background hover:bg-foreground/90">
+              className="h-10 rounded-lg bg-foreground text-background hover:bg-foreground/90 px-4 text-sm font-medium">
               {cvrLoading ? "Søger..." : "Søg"}
             </Button>
           </div>
           {cvrError && <p className="mt-2 text-xs text-destructive">{cvrError}</p>}
           {cvrResult && (
-            <div className="mt-3 rounded-md border border-border bg-card p-3">
+            <div className="mt-3 rounded-lg border border-accent/20 bg-card p-4">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm font-semibold text-foreground">{cvrResult.name}</p>
@@ -1178,70 +1280,82 @@ const SettingsTab = ({ business }: { business: any }) => {
                   {cvrResult.email && <p className="text-xs text-muted-foreground">Email: {cvrResult.email}</p>}
                 </div>
                 <Button size="sm" onClick={applyCvrData}
-                  className="shrink-0 h-8 rounded-md bg-foreground text-background hover:bg-foreground/90 text-xs font-medium">
+                  className="shrink-0 h-8 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 text-xs font-medium">
                   Anvend oplysninger
                 </Button>
               </div>
             </div>
           )}
-        </div>
-      </SectionCard>
+        </CardContent>
+      </Card>
 
       {/* General */}
-      <SectionCard title="Generelt" description="Kerneoplysninger om virksomheden og dens kategorier.">
-        <div className="space-y-4">
+      <Card className="rounded-xl shadow-sm border-border">
+        <CardContent className="p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Settings className="h-4 w-4 text-muted-foreground" />
+            Generelt
+          </h3>
+          <div className="space-y-4">
             <div>
-              <FieldLabel>Virksomhedsnavn</FieldLabel>
-              <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} className="h-9 bg-background" />
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Virksomhedsnavn</label>
+              <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-10" />
             </div>
             <div>
-              <FieldLabel>Beskrivelse</FieldLabel>
-              <Textarea placeholder="Hvad gør din virksomhed? Hvad er jeres speciale?" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="bg-background" />
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Beskrivelse</label>
+              <Textarea placeholder="Hvad gør din virksomhed? Hvad er jeres speciale?" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="bg-card" />
               <p className="mt-1 text-xs text-muted-foreground">{description.length}/500 tegn</p>
             </div>
             <div>
-              <FieldLabel>Brancher</FieldLabel>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <label className="mb-2 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Brancher</label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {CATEGORIES.map((c) => (
                   <button key={c} type="button" onClick={() => toggleSettingsCategory(c)}
-                    className={`flex items-center gap-2 rounded-md border px-3 py-2 text-left transition-all ${
+                    className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2.5 text-left transition-all ${
                       selectedCategories.includes(c)
-                        ? "border-foreground bg-secondary shadow-sm"
+                        ? "border-foreground bg-foreground/5 shadow-sm"
                         : "border-border bg-card hover:border-foreground/30"
                     }`}>
+                    <span className="text-lg">{CATEGORY_ICONS[c] || "📋"}</span>
                     <span className="text-xs font-medium text-foreground">{c}</span>
                   </button>
                 ))}
               </div>
             </div>
           </div>
-        </SectionCard>
+        </CardContent>
+      </Card>
 
       {/* Contact */}
-      <SectionCard title="Kontaktoplysninger" description="Vises på din profil og bruges i driften.">
-        <div className="space-y-4">
+      <Card className="rounded-xl shadow-sm border-border">
+        <CardContent className="p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Plus className="h-4 w-4 text-muted-foreground" />
+            Kontaktoplysninger
+          </h3>
+          <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <FieldLabel>Telefon</FieldLabel>
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Telefon</label>
                 <Input placeholder="12 34 56 78" value={phone} onChange={(e) => handlePhoneChange(e.target.value)}
-                  className="h-9 bg-background" type="tel" />
+                  className="bg-card h-10" type="tel" />
               </div>
               <div>
-                <FieldLabel>Email</FieldLabel>
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
                 <Input placeholder="kontakt@virksomhed.dk" value={email} onChange={(e) => setEmail(e.target.value)}
-                  className="h-9 bg-background" type="email" />
+                  className="bg-card h-10" type="email" />
               </div>
             </div>
             <div>
-              <FieldLabel>Adresse</FieldLabel>
-              <Input placeholder="Vejnavn 123" value={address} onChange={(e) => setAddress(e.target.value)} className="h-9 bg-background" />
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Adresse</label>
+              <Input placeholder="Vejnavn 123" value={address} onChange={(e) => setAddress(e.target.value)} className="bg-card h-10" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <FieldLabel>Postnummer</FieldLabel>
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Postnummer</label>
                 <div className="relative">
                   <Input placeholder="2100" value={zipCode} onChange={(e) => handleZipChange(e.target.value)}
-                    className="h-9 bg-background" maxLength={4} />
+                    className="bg-card h-10" maxLength={4} />
                   {zipLoading && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
                       <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted-foreground/20 border-t-accent" />
@@ -1251,32 +1365,38 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <p className="mt-1 text-xs text-muted-foreground">By udfyldes automatisk</p>
               </div>
               <div>
-                <FieldLabel>By</FieldLabel>
-                <Input placeholder="København" value={city} onChange={(e) => setCity(e.target.value)} className="h-9 bg-background" />
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">By</label>
+                <Input placeholder="København" value={city} onChange={(e) => setCity(e.target.value)} className="bg-card h-10" />
               </div>
             </div>
           </div>
-        </SectionCard>
+        </CardContent>
+      </Card>
 
       {/* Images */}
-      <SectionCard title="Billeder" description="Logo og cover i samme rolige modulstruktur.">
-        <div className="space-y-4">
+      <Card className="rounded-xl shadow-sm border-border">
+        <CardContent className="p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-foreground">Billeder</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel>Logo</FieldLabel>
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Logo</label>
               <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
             </div>
             <div>
-              <FieldLabel>Coverbillede</FieldLabel>
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Coverbillede</label>
               <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-48" />
             </div>
           </div>
-        </div>
-      </SectionCard>
+        </CardContent>
+      </Card>
 
       {/* Notification Settings */}
-      <SectionCard title="Notifikationer" description="Ens toggles og mindre visuel støj på tværs af alle indstillinger.">
-        <div className="space-y-4">
+      <Card className="rounded-xl shadow-sm border-border">
+        <CardContent className="p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            Notifikationsindstillinger
+          </h3>
           <p className="text-xs text-muted-foreground">Vælg hvilke hændelser du vil modtage varsler om.</p>
           <div className="space-y-3">
             {([
@@ -1285,7 +1405,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               { key: "subscription_change", label: "Abonnementsændringer", desc: "Besked når en kunde pauser eller annullerer et abonnement" },
               { key: "new_review", label: "Nye anmeldelser", desc: "Besked når en kunde skriver en anmeldelse" },
             ] as const).map(({ key, label, desc }) => (
-              <div key={key} className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-3">
+              <div key={key} className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-3">
                 <div>
                   <p className="text-sm font-medium text-foreground">{label}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
@@ -1302,18 +1422,22 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
             ))}
           </div>
-        </div>
-      </SectionCard>
+        </CardContent>
+      </Card>
 
       {/* Route Planning */}
-      <SectionCard title="Ruteplanlægning" description="Aktivér ruteplanlægning uden at bryde den samlede indstillingsstruktur.">
-        <div className="space-y-4">
+      <Card className="rounded-xl shadow-sm border-border">
+        <CardContent className="p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Route className="h-4 w-4 text-muted-foreground" />
+            Ruteplanlægning
+          </h3>
           <p className="text-xs text-muted-foreground">
             Aktivér ruteplanlægning for at oprette medarbejder-konti og planlægge daglige
             ruter med stop hos kunder. Ruterne kan optimeres med AI baseret på afstand,
             tidsvinduer og prioriteter.
           </p>
-          <div className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-3">
+          <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-3">
             <div>
               <p className="text-sm font-medium text-foreground">Aktivér ruteplanlægning</p>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -1333,17 +1457,18 @@ const SettingsTab = ({ business }: { business: any }) => {
               />
             </button>
           </div>
-        </div>
-      </SectionCard>
+        </CardContent>
+      </Card>
 
 
-      <SectionCard title="Åbningstider" description="Tydelig ugentlig struktur med samme formularrytme.">
-        <div className="space-y-4">
+      <Card className="rounded-xl shadow-sm border-border">
+        <CardContent className="p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-foreground">Åbningstider</h3>
           <div className="space-y-2">
             {DAYS.map((day) => {
               const isWeekend = day === "Lørdag" || day === "Søndag";
               return (
-                <div key={day} className={`flex items-center gap-3 rounded-md px-3 py-2 transition-colors ${
+                <div key={day} className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
                   openHours[day] ? "bg-secondary/30" : isWeekend ? "opacity-60" : ""
                 }`}>
                   <span className="w-20 text-sm font-medium text-foreground">{day}</span>
@@ -1351,7 +1476,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                     placeholder={isWeekend ? "Lukket" : "Fx 08:00 - 16:00"}
                     value={openHours[day] || ""}
                     onChange={(e) => setOpenHours({ ...openHours, [day]: e.target.value })}
-                    className="h-9 flex-1 bg-background text-sm"
+                    className="flex-1 h-8 text-sm bg-card"
                   />
                   {openHours[day] && (
                     <button onClick={() => { const h = { ...openHours }; delete h[day]; setOpenHours(h); }}
@@ -1363,17 +1488,17 @@ const SettingsTab = ({ business }: { business: any }) => {
               );
             })}
           </div>
-        </div>
-      </SectionCard>
+        </CardContent>
+      </Card>
 
       {/* Sticky save bar */}
       {hasChanges && (
         <div className="sticky bottom-4 z-20">
-            <Card className="rounded-md border-border bg-card shadow-sm">
+          <Card className="rounded-xl border-accent/30 bg-card shadow-lg">
             <CardContent className="flex items-center justify-between p-3">
               <p className="text-sm text-muted-foreground">Du har ændringer der ikke er gemt.</p>
               <Button onClick={save} disabled={updateBiz.isPending}
-                className="h-8 rounded-md bg-foreground px-4 text-xs font-medium text-background hover:bg-foreground/90">
+                className="h-9 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 text-sm font-semibold px-6 shadow-sm">
                 {updateBiz.isPending ? "Gemmer..." : "Gem ændringer"}
               </Button>
             </CardContent>

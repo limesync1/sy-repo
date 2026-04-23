@@ -1,188 +1,89 @@
 
-Mål: lave en reel, synlig redesign af virksomhedspanelet, så hele oplevelsen bliver konsekvent, professionel og tydeligt moderniseret i én samlet retning. Det nuværende problem er, at der stadig er blandede mønstre i koden: nogle faner bruger de nye admin-komponenter, mens andre stadig bruger gamle kort, forskellige filterlinjer, forskellige spacing-systemer, store tekstblokke og særskilte interaktioner. Det giver et ujævnt og uprofessionelt resultat.
+Mål: rydde op på forsiden, forbedre lokationsdetektering på forsiden og `/virksomheder`, og gøre bestillingsflowet på virksomhedssider enklere, tydeligere og mere fejltolerant.
 
-1. Gøre admin-shell og sidebar markant mere standardiseret
-- Opdatere `src/pages/Admin.tsx`, så venstremenu, topbar og content-ramme får en mere moden SaaS-struktur.
-- Stramme sidebaren op:
-  - mindre visuel vægt i virksomhedsblokken
-  - mere præcis aktiv state
-  - ens nav-rækker
-  - tydeligere sektioner uden støj
-- Forenkle topbaren:
-  - én tydelig titel
-  - kort kontekstlinje
-  - færre ekstra elementer
-  - samme mønster på alle faner
-- Fjerne alt der stadig føles som specialbygget layout fremfor standard adminpanel.
+1. Rydde forsiden for unødvendige elementer
+- Gennemgå `HeroSection.tsx` og de første landingssektioner for små UI-elementer, badges og ekstra tekstblokke som fylder uden at hjælpe brugeren.
+- Stramme heroen ind, så fokus bliver:
+  - tydelig overskrift
+  - søgefelt
+  - én enkel lokationslinje
+  - få, klare handlinger
+- Fjerne eller nedtone “quick signals”, overflødige chips og sekundære forklaringer, hvis de kun skaber visuel støj.
+- Gennemgå især:
+  - `src/components/landing/HeroSection.tsx`
+  - `src/components/landing/Categories.tsx`
+  - `src/components/landing/HowItWorks.tsx`
+  - `src/components/landing/RecentBusinesses.tsx`
 
-2. Gøre `AdminUI.tsx` til det faktiske fælles designsystem
-- Stramme `src/components/admin/shared/AdminUI.tsx` yderligere op, så alle faner bygges ud fra samme primitives.
-- Ensrette:
-  - `PageHeader`
-  - `SectionCard`
-  - `StatCard`
-  - `AppList` / `AppListRow`
-  - `InsightPill`
-  - formularetiketter og actions
-- Reducere stadig for store størrelser og for meget luft.
-- Indføre et fast mønster for:
-  - header
-  - filter-/action-række
-  - indholdssektion
-  - liste
-  - tom state
-  - edit/create-flows
+2. Forbedre lokationsdetektering på forsiden og `/virksomheder`
+- Erstatte eller omprioritere den nuværende IP-baserede strategi i `LocationContext.tsx`, så systemet finder den mest præcise by/postnummer muligt i stedet for brede kommune-/regionsnavne.
+- Indføre en bedre kæde for detektering:
+  - først automatisk browser-geolocation ved første besøg, hvis muligt
+  - derefter reverse geocoding mod en mere præcis adresse/lokalitetskilde
+  - fallback til IP-baseret lokation hvis brugeren afviser eller browseren ikke kan levere koordinater
+- Sikre at resultatet foretrækker et præcist format som `7540 Haderup` frem for kommune/navne på større administrative områder.
+- Opdatere `LocationChip.tsx`, så “Fang min lokation” ikke længere er nødvendig som primær handling, men kun er en fallback/redigeringsmulighed.
+- Opdatere søgefeltets mikrocopy i både hero og søgeside, så det tydeligt viser den fundne by/postnummer.
 
-3. Redesigne Overblik, så det faktisk føles brugervenligt
-- Opdatere `src/components/admin/DashboardTab.tsx`, fordi det stadig bruger store moduler, store tal og for meget forklarende tekst.
-- Gøre overblikket mere operations-orienteret:
-  - mindre hero-følelse
-  - mindre talstørrelser
-  - færre tekstlinjer
-  - mere kompakte KPI’er
-  - mere tabulær “seneste aktivitet”
-- Forenkle profilstyrke- og næste handlinger-sektionerne, så de ikke føles som separate kortfamilier.
-- Målet er, at brugeren kan afkode status på få sekunder.
+3. Sikre at søgning bruger den forbedrede lokation begge steder
+- Koble den nye lokationslogik tydeligt til:
+  - `src/components/landing/SearchSuggest.tsx`
+  - `src/pages/Search.tsx`
+- Beholde automatisk lokal søgning, men sikre at “nær” og afstands-/relevanslogikken bruger den korrekte by/postkode.
+- Forbedre fallback-adfærd, så søgningen stadig virker pænt hvis lokation ikke kan findes.
 
-4. Ensrette Aftaler med samme liste- og detaljelogik
-- Opdatere `src/components/admin/AftaleTab.tsx`, som stadig har mange egne visuelle mønstre.
-- Samle siden i samme system som resten:
-  - kompakt page header
-  - ens filterlinje
-  - ens statuschips
-  - ens sektioner
-  - ens listehierarki
-- Gøre ordredetaljer mere strømlinede:
-  - mindre tekst
-  - mindre kontraststøj
-  - mere tydelig prioritering af status, kunde, tidspunkt, beløb og handling
+4. Gøre bestillingsprocessen enklere ved at fjerne “Planlægning”
+- Fjerne hele planlægningssektionen i `CartSheet.tsx` fra kundens bestillingsflow.
+- Fjerne “anslået varighed” og “ønsket tidsrum” som synlige trin i checkout, så flowet bliver lettere og hurtigere.
+- Rydde op i tilhørende state og UI-afhængigheder, så der ikke ligger overflødig logik tilbage.
+- Beholde kun det, der er nødvendigt for at gennemføre en bestilling.
 
-5. Gøre Kunder til et konsekvent CRM-mønster
-- Opdatere `src/components/admin/CustomersTab.tsx`, så den ikke længere blander sheet-logik, statskort og forskellige row-stile.
-- Indføre fast CRM-opsætning:
-  - kompakt statistik
-  - tydelig filterlinje
-  - konsekvent kundeliste
-  - samme detailvisning som resten af admin
-- Gøre kunderækker lettere at skimme med fast prioritet:
-  - navn / virksomhed
-  - kontaktinfo
-  - omsætning / aktivitet
-  - status / type
-  - handling
+5. Forbedre adressefeltet i bestillingsflowet
+- Gøre adresseoplevelsen mere komplet, så brugeren ikke kun ser vej/husnummer men også by/postnummer som en tydelig del af inputoplevelsen.
+- Opdatere `AddressAutocomplete.tsx` og brugen i `CartSheet.tsx`, så:
+  - valg fra autocomplete udfylder adresse, postnummer og by automatisk
+  - by vises tydeligt i UI’et og ikke kun gemmes i state
+  - der gives klar feedback på, at adressen er fuldt udfyldt og verificeret
+- Forbedre visning af den valgte adresse, så den føles mere komplet og tryg for brugeren.
 
-6. Gøre kundedialogen mere professionel og mindre “feature-tung”
-- Opdatere `src/components/admin/CustomerEditDialog.tsx`.
-- Fjerne visuelle særtilfælde:
-  - tung profilblok
-  - for mange separate sektioner
-  - ujævn spacing
-- Gøre dialogen mere standard admin:
-  - faste formulargrupper
-  - ens inputhøjder
-  - tydelig primær handling
-  - mere kompakt rytme
-- Sikre at privat- og erhvervskunde følger samme grundmønster.
+6. Gøre fejlmeddelelserne mere specifikke og hjælpsomme
+- Erstatte generiske fejlbeskeder i bestillingsflowet med felt-specifik feedback.
+- Validere trinvis, fx:
+  - mangler navn
+  - ugyldig e-mail
+  - mangler telefon
+  - adressen er ikke valgt fra forslag / kunne ikke verificeres
+  - by/postnummer mangler
+- Vise fejl tættere på de relevante felter og ikke kun som generiske toasts.
+- Sørge for at fejlteksterne er korte, konkrete og skrevet på klart dansk.
 
-7. Gøre Medarbejdere enklere, mere administrative og mindre særlige
-- Opdatere `src/components/admin/EmployeesTab.tsx`.
-- Fjerne special-case UI omkring avatar/farvevalg som dominerer for meget visuelt.
-- Gøre listen mere lig kunder og aftaler:
-  - samme rækkehøjde
-  - samme metaopbygning
-  - samme actionzone
-- Gøre opret/redigér-flow mere kompakt og konsekvent med resten af panelet.
-
-8. Gøre Services markant mere strømlinet
-- Opdatere services-delene i `src/pages/Admin.tsx`:
-  - `ServicesTab`
-  - `ServiceRow`
-  - `ServiceForm`
-  - `CalculatorPreview`
-- Fjerne rester af builder-/wizard-følelse og store blokke.
-- Gøre serviceoversigten mere som et professionelt katalog:
-  - tæt listevisning
-  - tydelig service, kategori, prissystem og status
-  - færre sekundære chips
-- Gøre formularen mere lineær og mere som moderne adminsoftware.
-- Nedtone previewet, så det bliver støtteinformation og ikke et visuelt hovednummer.
-
-9. Gøre Anmeldelser mere analytisk og mindre widget-agtig
-- Opdatere `src/components/admin/ReviewsTab.tsx`.
-- Beholde samme fælles system som øvrige faner:
-  - samme header
-  - samme stat-kort logik
-  - samme listevisning
-  - samme spacing og tonalitet
-- Nedtone stjerner og visuelle effekter, så fokus bliver på data og feedback.
-
-10. Gøre Indstillinger lige så strømlinet som resten
-- Opdatere `SettingsTab` i `src/pages/Admin.tsx`, som stadig har mange gamle mønstre:
-  - store formularfelter
-  - ujævne knapper
-  - forskellige toggle-stilarter
-  - blokke med forskellig visuel vægt
-- Ensrette hele indstillingssiden med samme adminsystem:
-  - ens sektionskort
-  - ens labels
-  - kompakte inputfelter
-  - standardiserede toggles
-  - fast save-logik
-- Fjerne emoji-/kategori-knap-følelse og gøre alt mere professionelt.
-
-11. Rydde op i globale admin-styles
-- Opdatere `src/index.css`.
-- Stramme de globale admin-utilities op, så shell og indhold arbejder bedre sammen.
-- Indføre mere konsekvente utilities for:
-  - panelbaggrund
-  - listeheaders
-  - separators
-  - rolige chips
-  - hover/focus states
-- Målet er at fjerne den “mærkelige” følelse, der opstår når forskellige overflader kæmper mod hinanden.
-
-12. Gennemføre en samlet harmonisering på tværs af alle faner
-- Fjerne:
-  - lange beskrivelser
-  - store modulhøjder
-  - blandede badge-stile
-  - one-off cards
-  - inkonsistente CTA’er
-  - forskellige row- og formularmønstre
-- Ensrette:
-  - spacing
-  - radius
-  - typografi
-  - hierarchy
-  - CTA-placering
-  - tomme states
-  - redigeringsflows
-- Resultatet skal være en tydelig, synlig redesign — ikke små kosmetiske justeringer.
+7. Generel UX-opstramning af checkout på virksomhedssider
+- Forenkle layoutet i `CartSheet.tsx`, så formularen får bedre hierarki og mindre støj.
+- Gøre opsummering, kontaktoplysninger og service-adresse mere overskuelige.
+- Justere spacing, sektionstitler og hjælpetekster, så flowet føles hurtigere og mere intuitivt.
+- Sikre at brugerens vej fra “Tilføj til bestilling” til “Send bestilling” bliver mere enkel og mindre tung.
 
 Tekniske detaljer
-- Filer der opdateres:
-  - `src/pages/Admin.tsx`
-  - `src/components/admin/shared/AdminUI.tsx`
-  - `src/components/admin/DashboardTab.tsx`
-  - `src/components/admin/AftaleTab.tsx`
-  - `src/components/admin/CustomersTab.tsx`
-  - `src/components/admin/CustomerEditDialog.tsx`
-  - `src/components/admin/EmployeesTab.tsx`
-  - `src/components/admin/ReviewsTab.tsx`
-  - `src/index.css`
-- Primært greb:
-  - ét adminsystem
-  - højere informationsdensitet
-  - mindre moduler
-  - mindre tekst
-  - ens lister
-  - ens formularer
-  - mere moden, standardiseret SaaS-oplevelse
+- Primære filer:
+  - `src/contexts/LocationContext.tsx`
+  - `src/components/LocationChip.tsx`
+  - `src/components/landing/HeroSection.tsx`
+  - `src/components/landing/SearchSuggest.tsx`
+  - `src/pages/Search.tsx`
+  - `src/components/business/CartSheet.tsx`
+  - `src/components/shared/AddressAutocomplete.tsx`
+  - eventuelt mindre oprydning i relevante landingssektioner
+- Hovedændringer:
+  - mere præcis og automatisk lokationsdetektering
+  - enklere hero og landingssektioner
+  - checkout uden planlægningssektion
+  - tydeligere adresse- og valideringsflow
 
 Acceptkriterier
-- Det er visuelt tydeligt, at panelet er redesignet.
-- Sidebar, topbar, overblik og alle faner føles som samme produkt.
-- Overblik er kompakt, hurtigt at afkode og uden store, tunge moduler.
-- Kunder, aftaler, medarbejdere, services, anmeldelser og indstillinger bruger samme UI/UX-mønster.
-- Der er ikke længere blandede layoutsystemer mellem fanerne.
-- Oplevelsen fremstår professionel, moderne og konsekvent i hele virksomhedspanelet.
+- Forsiden føles lettere og mindre rodet, med færre småting der fylder unødigt.
+- Lokation findes automatisk uden at brugeren skal trykke “Fang min lokation”.
+- Lokationen vises mere præcist som rigtig by/postnummer i stedet for kommune-agtige navne.
+- Søgning på både forside og `/virksomheder` bruger den forbedrede lokation.
+- “Planlægning”-sektionen er fjernet fra bestillingsflowet på virksomhedssider.
+- Adressefeltet udfylder og viser adresse, postnummer og by tydeligt.
+- Bestillingsflowet har mere konkrete fejlmeddelelser og er generelt lettere at bruge.

@@ -3,8 +3,10 @@ import {
   useEmployees, useCreateEmployee,
   useUpdateEmployee, useDeleteEmployee, useResetEmployeePassword,
 } from "@/hooks/useEmployees";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Mail, Phone, Briefcase, UserPlus, X,
@@ -21,7 +23,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AppList, AppListRow, PageHeader, PrimaryButton, FieldLabel, SectionCard, EmptyState, InsightPill } from "@/components/admin/shared/AdminUI";
+import { PageHeader, PrimaryButton, FieldLabel, SectionCard, EmptyState } from "@/components/admin/shared/AdminUI";
 
 interface Props {
   businessId: string;
@@ -76,7 +78,6 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
     return (
       <div className="max-w-3xl space-y-6">
         <PageHeader
-          eyebrow="Drift"
           title="Medarbejdere"
           description="Tilføj medarbejdere — der oprettes automatisk en konto, og de modtager login-oplysninger på email."
         />
@@ -93,11 +94,10 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const inactiveEmployees = employees?.filter((e) => !e.is_active) || [];
 
   return (
-    <div className="space-y-4.5">
+    <div className="max-w-4xl space-y-6">
       <PageHeader
-        eyebrow="Drift"
         title="Medarbejdere"
-        description="Samlet teamoverblik med samme liste-, formular- og handlingslogik som resten af panelet."
+        description="Tilføj medarbejdere — der oprettes automatisk en konto, og de modtager login-oplysninger på email."
         action={!showForm ? (
           <PrimaryButton onClick={() => setShowForm(true)} icon={<UserPlus />}>
             Tilføj medarbejder
@@ -109,7 +109,6 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
       {showForm && (
         <SectionCard
           title={<><UserPlus /> Ny medarbejder</>}
-          description="Brug samme kompakte formularmønster som i de øvrige faner."
           action={
             <button onClick={resetForm} className="rounded-md p-1 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
               <X className="h-4 w-4" />
@@ -123,7 +122,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Anders Jensen"
-                  className="h-9 bg-background"
+                  className="h-10"
                 />
               </div>
               <div>
@@ -133,7 +132,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="anders@example.dk"
-                  className="h-9 bg-background"
+                  className="h-10"
                 />
               </div>
               <div>
@@ -142,7 +141,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="12 34 56 78"
-                  className="h-9 bg-background"
+                  className="h-10"
                 />
               </div>
               <div>
@@ -151,11 +150,14 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Chauffør, rengøringsmedarbejder…"
-                  className="h-9 bg-background"
+                  className="h-10"
                 />
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">Der oprettes automatisk login og udsendes adgangsoplysninger.</p>
+            <p className="text-xs text-muted-foreground">
+              Der genereres automatisk en sikker adgangskode, og medarbejderen
+              modtager en email med login-oplysninger og link til medarbejder-appen.
+            </p>
             <div className="flex justify-end gap-2 pt-1">
               <Button variant="ghost" onClick={resetForm} className="h-9 text-sm">
                 Annuller
@@ -171,12 +173,11 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 
       {/* Active Employees */}
       {activeEmployees.length > 0 && (
-          <SectionCard title="Aktive medarbejdere" description="Aktive profiler med adgang, kontaktoplysninger og hurtige handlinger.">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Aktive</h3>
-            <InsightPill>{activeEmployees.length}</InsightPill>
-          </div>
-          <AppList>
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+            Aktive ({activeEmployees.length})
+          </h3>
+          <div className="space-y-2">
             {activeEmployees.map((emp) => (
               <EmployeeRow
                 key={emp.id}
@@ -186,18 +187,17 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 onRemove={remove}
               />
             ))}
-          </AppList>
-          </SectionCard>
+          </div>
+        </div>
       )}
 
       {/* Inactive Employees */}
       {inactiveEmployees.length > 0 && (
-          <SectionCard title="Deaktiverede medarbejdere" description="Profiler uden aktiv adgang, men stadig bevaret i historikken.">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Deaktiverede</h3>
-            <InsightPill>{inactiveEmployees.length}</InsightPill>
-          </div>
-          <AppList>
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+            Deaktiverede ({inactiveEmployees.length})
+          </h3>
+          <div className="space-y-2">
             {inactiveEmployees.map((emp) => (
               <EmployeeRow
                 key={emp.id}
@@ -207,8 +207,8 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 onRemove={remove}
               />
             ))}
-          </AppList>
-          </SectionCard>
+          </div>
+        </div>
       )}
 
       {/* Empty state */}
@@ -301,25 +301,26 @@ const EmployeeRow = ({
 
   return (
     <TooltipProvider delayDuration={200}>
-    <div className={`${employee.is_active ? "" : "opacity-70"}`}>
-      <AppListRow className="items-start justify-between gap-4 px-3 py-3">
+    <Card className={`rounded-xl ${employee.is_active ? "" : "opacity-60"}`}>
+      <CardContent className="p-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
+          {/* Avatar / farve-prik med hover-overlay til upload */}
           <div className="relative h-10 w-10 shrink-0 group/avatar">
             {employee.avatar_url ? (
               <img
                 src={employee.avatar_url}
                 alt={employee.name}
-                className="h-10 w-10 rounded-md object-cover border border-border"
+                className="h-10 w-10 rounded-full object-cover border"
               />
             ) : (
               <div
-                className="h-10 w-10 rounded-md border border-border"
+                className="h-10 w-10 rounded-full border"
                 style={{ background: fallbackColor }}
                 aria-label={`Farve for ${employee.name}`}
               />
             )}
             <label
-              className="absolute inset-0 flex items-center justify-center rounded-md bg-foreground/60 text-background text-[9px] font-semibold opacity-0 group-hover/avatar:opacity-100 cursor-pointer transition-opacity"
+              className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/60 text-background text-[9px] font-semibold opacity-0 group-hover/avatar:opacity-100 cursor-pointer transition-opacity"
               title="Skift profilbillede"
             >
               {uploading ? "..." : "Skift"}
@@ -336,13 +337,13 @@ const EmployeeRow = ({
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm font-medium text-foreground truncate">{employee.name}</p>
               {linked && (
-                <InsightPill className="border-transparent bg-feature-cool text-feature-cool-foreground">
+                <Badge variant="outline" className="h-5 text-[10px] gap-1 border-emerald-500/30 text-emerald-700 bg-emerald-50">
                   <CheckCircle2 className="h-2.5 w-2.5" />
                   Konto aktiv
-                </InsightPill>
+                </Badge>
               )}
               {employee.title && (
-                <InsightPill>{employee.title}</InsightPill>
+                <span className="text-xs text-muted-foreground">· {employee.title}</span>
               )}
             </div>
             <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
@@ -357,11 +358,12 @@ const EmployeeRow = ({
                 </span>
               )}
             </div>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
+            {/* Farve / billede-styring */}
+            <div className="mt-1.5 flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setPickerOpen((v) => !v)}
-                className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[10px] text-muted-foreground transition-colors hover:text-foreground"
+                className="text-[10px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1 underline-offset-2 hover:underline"
               >
                 <span
                   className="inline-block h-2.5 w-2.5 rounded-full border"
@@ -373,14 +375,14 @@ const EmployeeRow = ({
                 <button
                   type="button"
                   onClick={handleRemoveAvatar}
-                  className="rounded-md border border-border bg-background px-2 py-1 text-[10px] text-muted-foreground transition-colors hover:text-destructive"
+                  className="text-[10px] text-muted-foreground hover:text-destructive underline-offset-2 hover:underline"
                 >
                   Fjern billede
                 </button>
               )}
             </div>
             {pickerOpen && (
-              <div className="mt-2 grid grid-cols-8 gap-1 max-w-[188px] rounded-md border border-border bg-secondary/35 p-2">
+              <div className="mt-2 grid grid-cols-12 gap-1 max-w-xs">
                 {ROUTE_COLORS.map((c) => (
                   <button
                     key={c.value}
@@ -388,7 +390,7 @@ const EmployeeRow = ({
                     onClick={() => handlePickColor(c.value)}
                     title={c.name}
                     className={cn(
-                      "aspect-square rounded-md border border-border transition-all hover:scale-105",
+                      "aspect-square rounded-md border transition-all hover:scale-110",
                       fallbackColor === c.value && "ring-2 ring-foreground",
                     )}
                     style={{ background: c.value }}
@@ -443,13 +445,13 @@ const EmployeeRow = ({
             <Trash2 className="h-4 w-4" />
           </button></TooltipTrigger><TooltipContent>Slet medarbejder</TooltipContent></Tooltip>
         </div>
-      </AppListRow>
+      </CardContent>
 
-        <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent className="sm:max-w-md">
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
-              <Pencil className="h-4 w-4 text-muted-foreground" />
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-4 w-4 text-accent" />
               Rediger medarbejder
             </DialogTitle>
             <DialogDescription>
@@ -458,28 +460,28 @@ const EmployeeRow = ({
           </DialogHeader>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="sm:col-span-2">
-              <FieldLabel>Navn</FieldLabel>
-              <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-9 bg-background" />
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Navn</label>
+              <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-10" />
             </div>
             <div className="sm:col-span-2">
-              <FieldLabel>Email</FieldLabel>
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
               <Input
                 type="email"
                 value={editEmail}
                 onChange={(e) => setEditEmail(e.target.value)}
-                className="h-9 bg-background"
+                className="h-10"
               />
               <p className="mt-1 text-[11px] text-muted-foreground">
                 Email opdateres på medarbejder-profilen, men ændrer ikke login-emailen.
               </p>
             </div>
             <div>
-              <FieldLabel>Telefon</FieldLabel>
-              <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-9 bg-background" />
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Telefon</label>
+              <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-10" />
             </div>
             <div>
-              <FieldLabel>Titel</FieldLabel>
-              <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="h-9 bg-background" />
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Titel</label>
+              <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="h-10" />
             </div>
           </div>
           <DialogFooter className="gap-2">
@@ -572,7 +574,7 @@ const EmployeeRow = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </Card>
     </TooltipProvider>
   );
 };

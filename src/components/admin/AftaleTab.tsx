@@ -16,7 +16,7 @@ import {
   Play, Pause,
 } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
-import { AppList, AppListRow, InsightPill, PageHeader, PriorityBanner, SectionCard } from "@/components/admin/shared/AdminUI";
+import { PageHeader } from "@/components/admin/shared/AdminUI";
 import {
   buildPricingSnapshot,
   getSmartStep,
@@ -183,11 +183,11 @@ const buildAdjustmentItem = (item: any, service?: BusinessService): AdjustmentIt
    cancelled  → Annulleret
 */
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; color: string; bg: string; dot: string }> = {
-  pending: { label: "Ny bestilling", icon: Clock, color: "text-feature-warm-foreground", bg: "bg-feature-warm", dot: "bg-feature-warm-foreground" },
-  confirmed: { label: "Aftalt", icon: CheckCircle2, color: "text-feature-cool-foreground", bg: "bg-feature-cool", dot: "bg-feature-cool-foreground" },
-  in_progress: { label: "I gang", icon: RefreshCw, color: "text-feature-lilac-foreground", bg: "bg-feature-lilac", dot: "bg-feature-lilac-foreground" },
-  completed: { label: "Udført", icon: CheckCircle2, color: "text-foreground", bg: "bg-secondary", dot: "bg-foreground" },
-  cancelled: { label: "Annulleret", icon: XCircle, color: "text-muted-foreground", bg: "bg-secondary", dot: "bg-muted-foreground" },
+  pending: { label: "Ny bestilling", icon: Clock, color: "text-amber-700", bg: "bg-amber-50", dot: "bg-amber-400" },
+  confirmed: { label: "Aftalt", icon: CheckCircle2, color: "text-blue-700", bg: "bg-blue-50", dot: "bg-blue-400" },
+  in_progress: { label: "I gang", icon: RefreshCw, color: "text-purple-700", bg: "bg-purple-50", dot: "bg-purple-400" },
+  completed: { label: "Udført", icon: CheckCircle2, color: "text-green-700", bg: "bg-green-50", dot: "bg-green-400" },
+  cancelled: { label: "Annulleret", icon: XCircle, color: "text-red-700", bg: "bg-red-50", dot: "bg-red-400" },
 };
 
 const PRICING_LABELS: Record<string, string> = {
@@ -419,11 +419,11 @@ const ProposalStatusBanner = ({ order }: { order: any }) => {
 
   if (bizResp === "adjusted" && !custResp && status === "pending") {
     return (
-      <div className="flex items-center gap-3 rounded-md border border-border bg-feature-warm px-4 py-3">
-        <Clock className="h-4 w-4 shrink-0 animate-pulse text-feature-warm-foreground" />
+      <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+        <Clock className="h-4 w-4 text-amber-600 shrink-0 animate-pulse" />
         <div>
-          <p className="text-sm font-semibold text-feature-warm-foreground">Afventer kundens svar på dit forslag</p>
-          <p className="text-xs text-feature-warm-foreground/80">Kunden kan godkende eller afvise dit tilpassede forslag.</p>
+          <p className="text-sm font-semibold text-amber-900">Afventer kundens svar på dit forslag</p>
+          <p className="text-xs text-amber-700">Kunden kan godkende eller afvise dit tilpassede forslag.</p>
         </div>
       </div>
     );
@@ -431,11 +431,11 @@ const ProposalStatusBanner = ({ order }: { order: any }) => {
 
   if (bizResp === "adjusted" && custResp === "accepted") {
     return (
-      <div className="flex items-center gap-3 rounded-md border border-border bg-feature-cool px-4 py-3">
-        <CheckCircle2 className="h-4 w-4 shrink-0 text-feature-cool-foreground" />
+      <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
+        <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
         <div>
-          <p className="text-sm font-semibold text-feature-cool-foreground">Kunden godkendte dit forslag</p>
-          <p className="text-xs text-feature-cool-foreground/80">Aftalen er bekræftet til {order.adjusted_amount} kr. Du kan nu starte arbejdet.</p>
+          <p className="text-sm font-semibold text-green-900">Kunden godkendte dit forslag</p>
+          <p className="text-xs text-green-700">Aftalen er bekræftet til {order.adjusted_amount} kr. Du kan nu starte arbejdet.</p>
         </div>
       </div>
     );
@@ -766,13 +766,12 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
     .sort((a, b) => new Date(a.next_service_date!).getTime() - new Date(b.next_service_date!).getTime());
 
   return (
-    <div className="space-y-4.5">
+    <div className="space-y-5">
       <PageHeader
-        eyebrow="Drift"
         title="Aftaler"
-        description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende services` : ""}. Brug samme arbejdsgang for svar, opfølgning og status.`}
+        description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende services` : ""}`}
         action={
-          <Button onClick={() => setCreateOrderOpen(true)} className="h-8 gap-2 rounded-md text-sm">
+          <Button onClick={() => setCreateOrderOpen(true)} className="gap-2">
             <ShoppingCart className="h-4 w-4" />Opret bestilling
           </Button>
         }
@@ -780,9 +779,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
       {/* Upcoming services alert */}
       {upcomingSubs.length > 0 && (
-        <SectionCard title="Kommende services" description="Næste abonnementsbesøg der nærmer sig.">
-          <div className="mb-2 flex items-center gap-2">
-            <CalendarClock className="h-4 w-4 text-muted-foreground" />
+        <div className="rounded-xl border border-accent/20 bg-accent/5 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <CalendarClock className="h-4 w-4 text-accent" />
             <span className="text-sm font-semibold text-foreground">Kommende services</span>
           </div>
           <div className="space-y-1.5">
@@ -793,8 +792,8 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
               return (
                 <div key={sub.id} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
-                    <span className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-md px-1.5 text-[10px] font-bold ${
-                      daysUntil <= 2 ? "bg-feature-warm text-feature-warm-foreground" : daysUntil <= 7 ? "bg-secondary text-foreground" : "bg-feature-cool text-feature-cool-foreground"
+                    <span className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold ${
+                      daysUntil <= 2 ? "bg-destructive/10 text-destructive" : daysUntil <= 7 ? "bg-amber-500/10 text-amber-700" : "bg-accent/10 text-accent"
                     }`}>{daysUntil <= 0 ? "!" : `${daysUntil}d`}</span>
                     <span className="font-medium text-foreground">{sub.service_name}</span>
                     <span className="text-muted-foreground">— {profile?.display_name || "Kunde"}</span>
@@ -806,23 +805,28 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
               );
             })}
           </div>
-        </SectionCard>
+        </div>
       )}
 
       {/* Action needed alert */}
       {actionNeeded.length > 0 && (
-        <PriorityBanner
-          eyebrow="Kræver handling"
-          icon={<Clock />}
-          title={`${actionNeeded.length} ${actionNeeded.length === 1 ? "aftale kræver" : "aftaler kræver"} din handling`}
-          description="Godkend, tilpas eller afvis for at give kunden en hurtig og tydelig besked."
-          action={<Button size="sm" onClick={() => setFilter("action_needed")} className="h-8 rounded-md text-xs">Vis dem</Button>}
-        />
+        <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100">
+            <Clock className="h-4 w-4 text-amber-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-amber-900">{actionNeeded.length} {actionNeeded.length === 1 ? "aftale kræver" : "aftaler kræver"} din handling</p>
+            <p className="text-xs text-amber-700">Godkend, tilpas eller afvis for at give kunden besked</p>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => setFilter("action_needed")}
+            className="shrink-0 rounded-xl text-xs border-amber-300 text-amber-800 hover:bg-amber-100">
+            Vis dem
+          </Button>
+        </div>
       )}
 
       {/* Filter tabs */}
-        <SectionCard title="Filtre" description="Skift mellem de vigtigste arbejdskøer uden at ændre sideopbygning.">
-        <div className="flex gap-1 overflow-x-auto rounded-md border border-border bg-card p-1">
+      <div className="flex gap-0 border-b border-border overflow-x-auto">
         {[
           { key: "all", label: "Alle" },
           ...(actionNeeded.length > 0 ? [{ key: "action_needed", label: `Kræver handling (${actionNeeded.length})` }] : []),
@@ -833,25 +837,24 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
           { key: "cancelled", label: "Annullerede" },
         ].map(({ key, label }) => (
           <button key={key} onClick={() => setFilter(key)}
-            className={`relative rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap ${
+            className={`relative px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
               filter === key
-                ? "bg-secondary text-foreground"
+                ? "text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-foreground after:rounded-t"
                 : "text-muted-foreground hover:text-foreground"
             }`}>
             {label}
             {key !== "action_needed" && key !== "waiting" && (counts[key] || 0) > 0 && (
               <span className={`ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-semibold ${
-                filter === key ? "bg-background" : "bg-secondary"
+                filter === key ? "bg-foreground/10" : "bg-muted"
               }`}>{counts[key]}</span>
             )}
           </button>
         ))}
       </div>
-      </SectionCard>
 
       {/* Orders list */}
       {filteredOrders && filteredOrders.length > 0 ? (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {filteredOrders.map((order) => {
             const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
             const isExpanded = expandedOrder === order.id;
@@ -868,19 +871,19 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
             const daysUntilNext = nextDate ? Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
 
             return (
-              <Card key={order.id} className={`admin-panel rounded-md overflow-hidden transition-all ${
-                actions.canRespond ? "border-border bg-secondary/30" : "border-border"
+              <Card key={order.id} className={`rounded-xl shadow-sm overflow-hidden transition-all ${
+                actions.canRespond ? "border-amber-200 bg-amber-50/20" : "border-border"
               }`}>
                 {/* Order header */}
                 <button onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
-                  className="w-full text-left px-3.5 py-3 hover:bg-secondary/30 transition-colors">
+                  className="w-full text-left px-4 py-3.5 hover:bg-muted/20 transition-colors">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                         <span className="text-sm font-semibold text-foreground truncate">{order.customer_name}</span>
                         {hasRecurring && (
-                          <Badge variant="outline" className="text-[10px] gap-1 shrink-0 border-border bg-secondary text-muted-foreground">
+                          <Badge variant="secondary" className="text-[10px] gap-1 shrink-0">
                             <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
                             {cycles > 0 && <span className="ml-0.5">· #{cycles}</span>}
                           </Badge>
@@ -900,7 +903,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                        <span className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium ${cfg.bg} ${cfg.color}`}>
+                      <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${cfg.bg} ${cfg.color}`}>
                         <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
                         {cfg.label}
                       </span>
@@ -914,7 +917,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
                 {/* Expanded content */}
                 {isExpanded && (
-                    <div className="border-t border-border bg-background px-3.5 py-3.5 space-y-3.5">
+                  <div className="border-t border-border bg-muted/5 px-4 py-4 space-y-4">
                     {/* Contact info */}
                     <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
                       <span className="inline-flex items-center gap-1.5 text-muted-foreground">
@@ -935,7 +938,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
                     {/* Customer note */}
                     {order.notes && (
-                      <div className="flex gap-2 rounded-md bg-secondary/35 border border-border px-3 py-2.5">
+                      <div className="flex gap-2 rounded-xl bg-card border border-border px-3.5 py-2.5">
                         <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                         <p className="text-sm text-foreground">{order.notes}</p>
                       </div>
@@ -946,7 +949,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
                     {/* Business message (if already sent) */}
                     {order.business_message && !isResponding && (
-                      <div className="rounded-md bg-secondary/35 border border-border px-4 py-3">
+                      <div className="rounded-xl bg-secondary/30 border border-border px-4 py-3">
                         <p className="text-xs font-semibold text-muted-foreground mb-1">Din besked til kunden:</p>
                         <p className="text-sm text-foreground">{order.business_message}</p>
                       </div>
@@ -962,17 +965,17 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                         {actions.canRespond && (
                           <>
                             <Button size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("accepted"); }}
-                              className="h-8 gap-1.5 rounded-md text-xs bg-foreground text-background hover:bg-foreground/90">
+                              className="gap-1.5 rounded-xl text-xs bg-green-600 text-white hover:bg-green-700">
                               <Check className="h-3.5 w-3.5" /> Godkend aftale
                             </Button>
                             <Button variant="outline" size="sm" onClick={(e) => {
                               e.stopPropagation(); initAdjustedItems(order);
                               setRespondingTo(order.id); setResponseType("adjusted");
-                            }} className="h-8 gap-1.5 rounded-md text-xs">
+                            }} className="gap-1.5 rounded-xl text-xs">
                               <Pencil className="h-3.5 w-3.5" /> Tilpas aftale
                             </Button>
                             <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("rejected"); }}
-                              className="h-8 gap-1.5 rounded-md text-xs text-destructive hover:text-destructive hover:bg-destructive/5">
+                              className="gap-1.5 rounded-xl text-xs text-destructive hover:text-destructive hover:bg-destructive/5">
                               <X className="h-3.5 w-3.5" /> Afvis
                             </Button>
                           </>
@@ -981,11 +984,11 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                         {/* Progress button for confirmed/in_progress */}
                         {actions.canProgress && actions.nextStatus && (
                           <Button size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
-                            className={`h-9 gap-1.5 rounded-md text-xs ${
+                            className={`gap-1.5 rounded-xl text-xs ${
                               actions.nextStatus === "completed" && hasRecurring
                                 ? "bg-accent text-accent-foreground hover:bg-accent/90"
                                 : actions.nextStatus === "completed"
-                                ? "bg-foreground text-background hover:bg-foreground/90"
+                                ? "bg-green-600 text-white hover:bg-green-700"
                                 : "bg-foreground text-background hover:bg-foreground/90"
                             }`}>
                             {actions.nextStatus === "in_progress" && <><Play className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
@@ -997,7 +1000,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                         {/* Cancel is always available for non-terminal states */}
                         {(order.status === "confirmed" || order.status === "in_progress") && (
                           <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, "cancelled"); }}
-                            className="ml-auto h-9 gap-1.5 rounded-md text-xs text-destructive hover:bg-destructive/5 hover:text-destructive">
+                            className="gap-1.5 rounded-xl text-xs text-destructive hover:text-destructive hover:bg-destructive/5 ml-auto">
                             <XCircle className="h-3.5 w-3.5" /> Annuller
                           </Button>
                         )}
@@ -1006,16 +1009,16 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
                     {/* Response form */}
                     {isResponding && (
-                        <div className="rounded-md border border-border bg-background p-3.5 space-y-3.5" onClick={(e) => e.stopPropagation()}>
+                      <div className="rounded-xl border-2 border-foreground/10 bg-card p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex gap-2">
                           {(["accepted", "adjusted", "rejected"] as const).map((type) => (
                             <button key={type} onClick={() => {
                               setResponseType(type);
                               if (type === "adjusted" && !adjustedItems[order.id]) initAdjustedItems(order);
                             }}
-                              className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                              className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-all ${
                                 responseType === type
-                                  ? type === "accepted" ? "border-foreground bg-foreground text-background"
+                                  ? type === "accepted" ? "border-green-500 bg-green-600 text-white"
                                   : type === "rejected" ? "border-destructive bg-destructive text-destructive-foreground"
                                   : "border-foreground bg-foreground text-background"
                                   : "border-border bg-card text-muted-foreground hover:border-foreground/30"
@@ -1036,7 +1039,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                               onUpdateInterval={updateAdjustedInterval}
                               onUpdateFixedPrice={updateAdjustedFixedPrice}
                             />
-                            <div className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2.5">
+                            <div className="flex items-center justify-between rounded-xl bg-muted/50 px-4 py-3">
                               <div>
                                 <span className="text-xs text-muted-foreground">Kundens pris</span>
                                 <span className="ml-2 text-sm line-through text-muted-foreground">{order.total_amount} kr</span>
@@ -1066,9 +1069,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                         </div>
 
                         <div className="flex gap-2">
-                           <Button size="sm" onClick={() => handleResponse(order.id)}
-                            className={`h-8 rounded-md text-xs ${
-                              responseType === "accepted" ? "bg-foreground hover:bg-foreground/90 text-background"
+                          <Button size="sm" onClick={() => handleResponse(order.id)}
+                            className={`rounded-xl text-xs ${
+                              responseType === "accepted" ? "bg-green-600 hover:bg-green-700 text-white"
                               : responseType === "rejected" ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                               : "bg-foreground text-background hover:bg-foreground/90"
                             }`}>
@@ -1076,8 +1079,8 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                               : responseType === "rejected" ? "Bekræft afvisning"
                               : `Send forslag – ${roundPrice(getAdjustedTotal(order.id))} kr`}
                           </Button>
-                           <Button variant="ghost" size="sm" onClick={() => { setRespondingTo(null); setResponseMessage(""); }}
-                            className="h-8 rounded-md text-xs">Annuller</Button>
+                          <Button variant="ghost" size="sm" onClick={() => { setRespondingTo(null); setResponseMessage(""); }}
+                            className="rounded-xl text-xs">Annuller</Button>
                         </div>
                       </div>
                     )}
@@ -1088,7 +1091,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
           })}
         </div>
       ) : (
-        <Card className="rounded-md border-dashed border-border">
+        <Card className="rounded-xl border-dashed border-border">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <div className="mb-3 rounded-xl bg-muted p-2.5">
               <ShoppingCart className="h-6 w-6 text-muted-foreground/40" />

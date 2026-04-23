@@ -104,60 +104,12 @@
 }
 
 @layer utilities {
-  .admin-shell {
-    background: linear-gradient(180deg, hsl(var(--secondary) / 0.72), hsl(var(--background)) 28%);
-  }
-
-  .admin-panel {
-    background: hsl(var(--card));
-    box-shadow: 0 1px 0 hsl(var(--border) / 0.8);
-  }
-
   .surface-panel {
     background-image: linear-gradient(180deg, hsl(var(--background)), hsl(var(--secondary)));
   }
 
-  .admin-divider {
-    border-color: hsl(var(--border) / 0.8);
-  }
-
-  .admin-quiet-chip {
-    background: hsl(var(--secondary) / 0.55);
-    border: 1px solid hsl(var(--border));
-  }
-
-  .admin-section-grid {
-    display: grid;
-    gap: 0.625rem;
-  }
-
-  .admin-compact-toggle {
-    background: hsl(var(--border));
-  }
-
-  .admin-compact-toggle[data-state="on"] {
-    background: hsl(var(--foreground));
-  }
-
   .surface-dark-panel {
     background-image: linear-gradient(180deg, hsl(var(--foreground)), hsl(0 0% 9%));
-  }
-
-  .admin-list-header {
-    background: hsl(var(--secondary) / 0.7);
-    border-bottom: 1px solid hsl(var(--border));
-  }
-
-  .admin-subtle-divider {
-    border-color: hsl(var(--border) / 0.75);
-  }
-
-  .admin-inline-toggle {
-    background: hsl(var(--border));
-  }
-
-  .admin-inline-toggle[data-state="on"] {
-    background: hsl(var(--accent));
   }
 }
 
