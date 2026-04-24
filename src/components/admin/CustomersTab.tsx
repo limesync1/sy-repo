@@ -454,17 +454,20 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     });
   };
 
+  // Vi bruger nu en stabil nøgle pr. kunde (saved_id hvis findes, ellers email-lowercase)
+  // så også ikke-gemte kunder kan vælges og slettes.
+  const customerKey = (c: Customer) => c.saved_id || `email:${c.email.toLowerCase()}`;
+
   const toggleSelectAll = () => {
-    const eligible = filtered.filter(c => c.saved_id);
-    if (selectedIds.size === eligible.length && eligible.length > 0) {
+    if (selectedIds.size === filtered.length && filtered.length > 0) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(eligible.map(c => c.saved_id!)));
+      setSelectedIds(new Set(filtered.map(customerKey)));
     }
   };
 
   const selectedCustomers = useMemo(
-    () => filtered.filter(c => c.saved_id && selectedIds.has(c.saved_id)),
+    () => filtered.filter(c => selectedIds.has(customerKey(c))),
     [filtered, selectedIds]
   );
 
