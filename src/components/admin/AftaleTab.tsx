@@ -955,6 +955,10 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
             const nextDate = (order as any).next_service_date ? new Date((order as any).next_service_date) : null;
             const interval = getOrderInterval(order);
             const daysUntilNext = nextDate ? Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+            const routeStop = stopByOrder[order.id];
+            const routeInfo = routeStop?.route;
+            const routeDate = routeInfo?.route_date ? new Date(routeInfo.route_date) : null;
+            const routeIsToday = routeDate ? routeDate.toDateString() === new Date().toDateString() : false;
 
             return (
               <Card key={order.id} className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
@@ -983,6 +987,28 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                               <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                                 <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
                                 {cycles > 0 && <span className="ml-0.5">· #{cycles}</span>}
+                              </span>
+                            )}
+                            {routeInfo && (
+                              <span
+                                className="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-medium"
+                                style={{
+                                  borderColor: `${routeInfo.color}40`,
+                                  backgroundColor: `${routeInfo.color}14`,
+                                  color: routeInfo.color,
+                                }}
+                                title={`Rute ${routeInfo.name || ""} · ${routeDate?.toLocaleDateString("da-DK")}`}
+                              >
+                                <RouteIcon className="h-2.5 w-2.5" />
+                                {routeInfo.name || "Rute"}
+                                {routeDate && (
+                                  <span className="opacity-80">
+                                    · {routeIsToday ? "i dag" : routeDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
+                                  </span>
+                                )}
+                                {typeof routeStop.sequence === "number" && (
+                                  <span className="opacity-80">· #{routeStop.sequence + 1}</span>
+                                )}
                               </span>
                             )}
                           </div>
