@@ -280,6 +280,11 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                     {filteredActive.length} {filteredActive.length === 1 ? "medarbejder" : "medarbejdere"}
                   </p>
                 </div>
+                {/* Kolonne-titler — matcher bredder i hver række */}
+                <div className="hidden sm:flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  <span className="w-28 text-right">Kontostatus</span>
+                  <span className="w-[136px] text-right pr-2">Handlinger</span>
+                </div>
               </div>
               <div className="divide-y divide-border">
                 {filteredActive.map((emp) => (
@@ -303,6 +308,10 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {filteredInactive.length} {filteredInactive.length === 1 ? "medarbejder" : "medarbejdere"}
                   </p>
+                </div>
+                <div className="hidden sm:flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  <span className="w-28 text-right">Kontostatus</span>
+                  <span className="w-[136px] text-right pr-2">Handlinger</span>
                 </div>
               </div>
               <div className="divide-y divide-border">
