@@ -628,6 +628,8 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   const baseFilteredOrders = filter === "all" ? orders
     : filter === "action_needed" ? actionNeeded
     : filter === "waiting" ? waitingForCustomer
+    : filter === "in_route" ? orders?.filter(o => stopByOrder[o.id])
+    : filter === "not_planned" ? orders?.filter(o => !stopByOrder[o.id] && !["completed","cancelled"].includes(o.status))
     : orders?.filter(o => o.status === filter);
 
   // Søgning på kundenavn, e-mail, telefon, adresse og service-navne
