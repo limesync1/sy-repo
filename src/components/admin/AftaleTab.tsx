@@ -866,10 +866,47 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       return;
     }
 
-    const stopsForThisRoute = (poolStops || []).filter((s: any) => s.route_id === routeId);
-    const nextSeq = stopsForThisRoute.length > 0
-      ? Math.max(...stopsForThisRoute.map((s: any) => s.sequence ?? 0)) + 1
-      : 0;
+    // Find næste ledige stop-position på ruten:
+    //   1) Hvis nogle stops allerede er udført/i gang, indsæt LIGE EFTER det
+    //      sidste af dem — så den nye aftale bliver "det næste at køre til".
+    //   2) Ellers placér aftalen sidst i ruten.
+    // Bagefter forskydes alle efterfølgende pending-stops én sekvens ned, så
+    // ingen kolliderer.
+    const stopsForThisRoute = (poolStops || [])
+      .filter((s: any) => s.route_id === routeId)
+      .sort((a: any, b: any) => (a.sequence ?? 0) - (b.sequence ?? 0));
+
+    const doneStatuses = new Set(["completed", "in_progress", "arrived", "skipped"]);
+    const lastDoneIdx = (() => {
+      let idx = -1;
+      stopsForThisRoute.forEach((s: any, i: number) => {
+        if (doneStatuses.has(s.status)) idx = i;
+      });
+      return idx;
+    })();
+
+    const insertAfterSeq = lastDoneIdx >= 0
+      ? (stopsForThisRoute[lastDoneIdx].sequence ?? lastDoneIdx)
+      : (stopsForThisRoute.length > 0
+          ? Math.max(...stopsForThisRoute.map((s: any) => s.sequence ?? 0))
+          : -1);
+    const nextSeq = insertAfterSeq + 1;
+
+    // Skub efterfølgende stops én ned, så det nye stop får en unik plads.
+    const toShift = stopsForThisRoute.filter((s: any) => (s.sequence ?? 0) >= nextSeq);
+    if (toShift.length > 0) {
+      // Opdater sekvens i omvendt rækkefølge for at undgå mellemkollisioner.
+      for (const s of [...toShift].reverse()) {
+        const { error } = await supabase
+          .from("route_stops")
+          .update({ sequence: (s.sequence ?? 0) + 1 })
+          .eq("id", s.id);
+        if (error) {
+          toast.error("Kunne ikke gøre plads til aftalen i ruten");
+          return;
+        }
+      }
+    }
 
     const items = ((order as any).order_items || []) as any[];
     const summary = items.map((it) => `${it.service_name}${it.quantity > 1 ? ` ×${it.quantity}` : ""}`).join(", ");
@@ -891,7 +928,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       });
       const route = (poolRoutes || []).find((r) => r.id === routeId);
       const dateLabel = route ? new Date(route.route_date).toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" }) : "";
-      toast.success(`Lagt på rute ${route?.name || ""} · ${dateLabel}`);
+      toast.success(`Lagt som stop #${nextSeq + 1} på ${route?.name || "rute"} · ${dateLabel}`);
       qc.invalidateQueries({ queryKey: ["aftaler-route-stops", businessId] });
     } catch (e: any) {
       toast.error(e?.message || "Kunne ikke lægge aftalen på ruten");
