@@ -563,6 +563,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   const { data: subscriptions } = useBusinessSubscriptions(businessId);
   const qc = useQueryClient();
   const [filter, setFilter] = useState<string>("all");
+  const [search, setSearch] = useState("");
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const [responseType, setResponseType] = useState<"accepted" | "rejected" | "adjusted">("accepted");
