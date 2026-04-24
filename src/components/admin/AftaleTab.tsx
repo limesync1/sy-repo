@@ -1014,9 +1014,12 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                   <div className="grid gap-2.5 p-3.5 sm:p-4">
                     <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex min-w-0 items-start gap-2.5">
-                        {/* Ikon-badge i samme stil som Services */}
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground">
-                          <User className="h-4 w-4 text-muted-foreground" />
+                        {/* Ikon-badge — viser service-kategori-ikon (samme som Services-fanen) */}
+                        <div
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground"
+                          title={primaryCategory || "Aftale"}
+                        >
+                          <span className="text-sm leading-none">{categoryIcon}</span>
                         </div>
 
                         <div className="min-w-0 flex-1">
@@ -1027,7 +1030,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                               {cfg.label}
                             </span>
                             {hasRecurring && (
-                              <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                              <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                                 <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
                                 {cycles > 0 && <span className="ml-0.5">· #{cycles}</span>}
                               </span>
