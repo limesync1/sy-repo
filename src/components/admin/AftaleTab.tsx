@@ -1063,6 +1063,56 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                       )}
                     </div>
 
+                    {/* Rute-info — vis på hvilken rute denne aftale er placeret. */}
+                    {routeInfo ? (
+                      <div
+                        className="rounded-xl border px-4 py-3 space-y-1.5"
+                        style={{ borderColor: `${routeInfo.color}40`, backgroundColor: `${routeInfo.color}0d` }}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <RouteIcon className="h-4 w-4 shrink-0" style={{ color: routeInfo.color }} />
+                            <span className="text-sm font-semibold text-foreground truncate">
+                              {routeInfo.name || "Rute"}
+                            </span>
+                            {routeDate && (
+                              <span className="text-xs text-muted-foreground shrink-0">
+                                · {routeDate.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] uppercase tracking-wide font-medium text-muted-foreground">
+                            Stop #{(routeStop.sequence ?? 0) + 1}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                          {routeStop.planned_arrival && (
+                            <span className="inline-flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              Ankomst {new Date(routeStop.planned_arrival).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
+                              {routeStop.planned_departure && (
+                                <> – {new Date(routeStop.planned_departure).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}</>
+                              )}
+                            </span>
+                          )}
+                          {routeStop.status && (
+                            <span className="inline-flex items-center gap-1">
+                              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: routeInfo.color }} />
+                              Stop-status: <span className="text-foreground font-medium">{routeStop.status}</span>
+                            </span>
+                          )}
+                          {routeInfo.status && (
+                            <span>Rute-status: <span className="text-foreground font-medium">{routeInfo.status}</span></span>
+                          )}
+                        </div>
+                      </div>
+                    ) : !["completed", "cancelled"].includes(order.status) && (
+                      <div className="rounded-xl border border-dashed border-border px-4 py-3 flex items-center gap-2 text-xs text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5" />
+                        Denne aftale er endnu ikke planlagt på en rute.
+                      </div>
+                    )}
+
                     {/* Order items summary */}
                     <CustomerOrderSummary order={order} />
 
