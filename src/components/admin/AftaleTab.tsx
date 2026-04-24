@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrders, useServices, useBusinessSubscriptions } from "@/hooks/useDatabase";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
@@ -13,7 +13,7 @@ import {
   ShoppingCart, Pencil, Minus, Plus, Check, X, MessageSquare,
   ChevronDown, ChevronUp, Clock, User, Mail, Phone, ArrowRight,
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
-  Play, Pause, Search,
+  Play, Pause, Search, Route as RouteIcon, MapPin,
 } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
