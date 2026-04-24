@@ -47,6 +47,7 @@ type Customer = {
   cvr?: string | null;
   contact_name?: string | null;
   notes?: string | null;
+  avatar_url?: string | null;
 };
 
 type OrderRow = {
