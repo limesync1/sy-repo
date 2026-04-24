@@ -593,16 +593,6 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         />
       ) : (
         <>
-          {/* Select all bar */}
-          {eligibleSelectable.length > 0 && (
-            <div className="flex items-center gap-2.5 px-1">
-              <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Vælg alle" />
-              <span className="text-xs text-muted-foreground">
-                {allSelected ? `Alle ${eligibleSelectable.length} valgt` : `Vælg alle (${eligibleSelectable.length})`}
-              </span>
-            </div>
-          )}
-
           {/* Kundeliste — samme struktur som "Seneste bestillinger" på Overblik:
               ét stort kort med header-bar, og rækker adskilt af divide-y */}
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
