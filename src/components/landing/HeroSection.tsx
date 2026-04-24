@@ -1,6 +1,6 @@
-import { ShieldCheck, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import heroImage from "@/assets/hero-home-new.jpg";
+import heroImage from "@/assets/hero-window-cleaning.webp";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
 import LocationChip from "@/components/LocationChip";
@@ -8,70 +8,57 @@ import SiteNav from "@/components/SiteNav";
 
 const HeroSection = () => {
   return (
-    <header className="bg-background">
+    <header className="relative isolate overflow-hidden bg-foreground text-background">
+      {/* Baggrundsbillede */}
+      <img
+        src={heroImage}
+        alt="Professionel vinduespudser i gang med arbejdet"
+        className="absolute inset-0 -z-10 h-full w-full object-cover"
+        width={1280}
+        height={960}
+        loading="eager"
+      />
+      {/* Overlay for læsbarhed */}
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-foreground/80 via-foreground/55 to-foreground/85" />
+
       <SiteNav />
 
-      <div className="mx-auto max-w-7xl px-4 pb-10 pt-5 sm:px-6 lg:px-8 lg:pb-14 lg:pt-8">
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(340px,0.95fr)] lg:items-start">
-          <div className="rounded-[28px] border border-border bg-card p-5 shadow-sm sm:p-7">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:text-sm">
-              Serviceydere i hele Danmark
-            </p>
-            <h1 className="mt-2 max-w-2xl text-[2.2rem] font-semibold leading-[1.02] text-foreground sm:text-[3rem] lg:text-[3.5rem]">
-              Find den rette serviceyder til opgaven.
-            </h1>
-            <p className="mt-4 max-w-xl text-[15px] leading-7 text-muted-foreground sm:text-base">
-              Søg lokalt med automatisk by og postnummer, sammenlign hurtigt og vælg den rette løsning.
-            </p>
+      <div className="mx-auto flex max-w-5xl flex-col items-center px-4 pb-20 pt-16 text-center sm:px-6 sm:pb-28 sm:pt-24 lg:pb-36 lg:pt-32">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-background/80 sm:text-sm">
+          Serviceydere i hele Danmark
+        </p>
+        <h1 className="mt-4 max-w-3xl text-[2.4rem] font-semibold leading-[1.05] text-background sm:text-[3.25rem] lg:text-[3.75rem]">
+          Find den rette serviceyder til opgaven.
+        </h1>
+        <p className="mt-5 max-w-xl text-[15px] leading-7 text-background/85 sm:text-base">
+          Søg lokalt med automatisk by og postnummer, sammenlign hurtigt og vælg den rette løsning.
+        </p>
 
-            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Link to="/virksomheder">
-                <Button size="lg" className="h-11 w-full rounded-full px-6 text-sm font-semibold sm:w-auto">
-                  Find services
-                </Button>
-              </Link>
-              <Link to="/tilbud">
-                <Button size="lg" variant="outline" className="h-11 w-full rounded-full px-6 text-sm font-semibold sm:w-auto">
-                  Indhent 3 tilbud
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-
-            <div className="mt-6 rounded-[24px] border border-border bg-background p-3 sm:p-4">
-              <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground sm:text-sm">
-                <span className="font-semibold text-foreground">Start med en søgning</span>
-                <span className="inline-flex items-center gap-1">Nær <LocationChip /></span>
-              </div>
-              <SearchSuggest variant="hero" />
-            </div>
+        {/* Søgefelt-kort */}
+        <div className="mt-8 w-full max-w-2xl rounded-[24px] border border-background/20 bg-background/95 p-3 shadow-2xl backdrop-blur sm:p-4">
+          <div className="mb-3 flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground sm:text-sm">
+            <span className="font-semibold text-foreground">Start med en søgning</span>
+            <span className="inline-flex items-center gap-1">Nær <LocationChip /></span>
           </div>
+          <SearchSuggest variant="hero" />
+        </div>
 
-          <div className="rounded-[28px] border border-border bg-foreground p-4 text-background shadow-sm sm:p-5">
-            <img
-              src={heroImage}
-              alt="Professionel serviceyder klar til at hjælpe"
-              className="h-[220px] w-full rounded-[22px] object-cover sm:h-[260px] lg:h-[300px]"
-              width={1536}
-              height={1024}
-              loading="eager"
-            />
-            <div className="mt-4">
-              <div className="inline-flex items-center gap-2 rounded-full bg-background/10 px-3 py-1 text-xs font-semibold text-background">
-                <ShieldCheck className="h-3.5 w-3.5 text-accent" />
-                Mere ro i valget
-              </div>
-              <h2 className="mt-3 text-[1.7rem] font-semibold leading-tight sm:text-[2rem]">
-                Ét sted til søgning, overblik og tilbud.
-              </h2>
-              <p className="mt-3 max-w-md text-sm leading-6 text-background/75">
-                Gå direkte til profiler og send en enkel bestilling, når du har fundet den rigtige virksomhed.
-              </p>
-              <Link to="/tilbud" className="mt-4 inline-flex items-center justify-center rounded-full bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-background/90">
-                Få tilbud
-              </Link>
-            </div>
-          </div>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+          <Link to="/virksomheder">
+            <Button size="lg" className="h-11 w-full rounded-full px-6 text-sm font-semibold sm:w-auto">
+              Find services
+            </Button>
+          </Link>
+          <Link to="/tilbud">
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-11 w-full rounded-full border-background/40 bg-background/10 px-6 text-sm font-semibold text-background hover:bg-background/20 hover:text-background sm:w-auto"
+            >
+              Indhent 3 tilbud
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
         </div>
       </div>
     </header>
