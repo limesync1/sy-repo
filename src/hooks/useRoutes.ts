@@ -1149,11 +1149,18 @@ export const useMyDayRoutes = (date: string) => {
         .eq("user_id", user.user.id)
         .maybeSingle();
       if (!emp) return [];
-      const { data: links } = await supabase
-        .from("route_employees")
-        .select("route_id")
-        .eq("employee_id", emp.id);
-      const routeIds = (links || []).map((l) => l.route_id);
+      // Find ruter via junction-tabel (nye ruter, evt. team) ELLER legacy
+      // routes.employee_id-kolonne (ældre ruter / demo-data).
+      const [linksRes, legacyRes] = await Promise.all([
+        supabase.from("route_employees").select("route_id").eq("employee_id", emp.id),
+        supabase.from("routes").select("id").eq("employee_id", emp.id).eq("route_date", date),
+      ]);
+      const routeIds = Array.from(
+        new Set([
+          ...((linksRes.data || []).map((l: any) => l.route_id)),
+          ...((legacyRes.data || []).map((r: any) => r.id)),
+        ]),
+      );
       if (routeIds.length === 0) return [];
       const { data, error } = await supabase
         .from("routes")
@@ -1207,11 +1214,16 @@ export const useMyDayStops = (date: string) => {
         .eq("user_id", user.user.id)
         .maybeSingle();
       if (!emp) return [];
-      const { data: links } = await supabase
-        .from("route_employees")
-        .select("route_id")
-        .eq("employee_id", emp.id);
-      const routeIds = (links || []).map((l) => l.route_id);
+      const [linksRes, legacyRes] = await Promise.all([
+        supabase.from("route_employees").select("route_id").eq("employee_id", emp.id),
+        supabase.from("routes").select("id").eq("employee_id", emp.id).eq("route_date", date),
+      ]);
+      const routeIds = Array.from(
+        new Set([
+          ...((linksRes.data || []).map((l: any) => l.route_id)),
+          ...((legacyRes.data || []).map((r: any) => r.id)),
+        ]),
+      );
       if (routeIds.length === 0) return [];
       const { data: routes } = await supabase
         .from("routes")
