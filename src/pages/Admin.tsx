@@ -1336,6 +1336,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           )}
       </SectionCard>
 
+      <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
       {/* General */}
       <SectionCard title="Generelt" icon={<Settings />}>
         <div className="space-y-4">
@@ -1509,6 +1510,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             })}
         </div>
       </SectionCard>
+      </div>
 
       {/* Sticky save bar */}
       {hasChanges && (
