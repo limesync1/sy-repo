@@ -603,120 +603,114 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
             </div>
           )}
 
-          {/* Customer cards */}
+          {/* Customer cards — matcher Aftaler: navn øverst, dato/services nedenunder, status+pris+chevron til højre */}
           <div className="space-y-2.5">
             {filtered.map((c) => {
               const typeLabel = c.type === "business" ? "Erhverv" : c.type === "private" ? "Privat" : null;
               const typeDot = c.type === "business" ? "bg-blue-500" : c.type === "private" ? "bg-emerald-500" : "bg-muted-foreground/40";
+              const metaParts: string[] = [];
+              if (c.last_order_at) metaParts.push(fmtDate(c.last_order_at));
+              if (c.orders_count > 0) metaParts.push(`${c.orders_count} ${c.orders_count === 1 ? "ordre" : "ordrer"}`);
+              else metaParts.push("Ingen bestillinger endnu");
+              if (c.city) metaParts.push(c.city);
               return (
-                <Card key={c.email} className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden transition-colors hover:border-border">
-                  <button
-                    onClick={() => setSelectedEmail(c.email)}
-                    className="w-full text-left px-4 py-3 transition-colors hover:bg-secondary/60"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      {/* Left: checkbox + identity */}
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        {c.saved_id ? (
-                          <span onClick={(e) => { e.stopPropagation(); toggleSelect(c.saved_id!); }} className="shrink-0">
-                            <Checkbox
-                              checked={selectedIds.has(c.saved_id)}
-                              onCheckedChange={() => toggleSelect(c.saved_id!)}
-                              aria-label={`Vælg ${c.name}`}
-                            />
-                          </span>
-                        ) : (
-                          <span className="w-4 shrink-0" />
-                        )}
+                <Card key={c.email} className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden transition-all">
+                  <div className="flex items-center gap-3 px-4 py-3.5">
+                    {/* Checkbox (kun for gemte kunder, ensartet plads) */}
+                    <div className="shrink-0 w-4 flex items-center justify-center">
+                      {c.saved_id && (
+                        <Checkbox
+                          checked={selectedIds.has(c.saved_id)}
+                          onCheckedChange={() => toggleSelect(c.saved_id!)}
+                          aria-label={`Vælg ${c.name}`}
+                        />
+                      )}
+                    </div>
 
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {c.type === "business"
-                              ? <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                              : <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
-                            <span className="text-sm font-semibold text-foreground truncate">
-                              {c.type === "business" && c.company_name ? c.company_name : c.name}
-                            </span>
-                            {typeLabel && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0">
-                                <span className={`h-1.5 w-1.5 rounded-full ${typeDot}`} />
-                                {typeLabel}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
-                            <span className="inline-flex items-center gap-1 truncate">
-                              <Mail className="h-3 w-3 shrink-0" /> <span className="truncate">{c.email}</span>
-                            </span>
-                            {c.phone && (
-                              <span className="inline-flex items-center gap-1">
-                                <Phone className="h-3 w-3 shrink-0" /> {c.phone}
-                              </span>
-                            )}
-                            {(c.address || c.city) && (
-                              <span className="inline-flex items-center gap-1 truncate">
-                                <MapPin className="h-3 w-3 shrink-0" />
-                                <span className="truncate">{c.city || c.address}</span>
-                              </span>
-                            )}
-                            {c.last_order_at && (
-                              <span className="inline-flex items-center gap-1">
-                                <Clock className="h-3 w-3 shrink-0" /> {fmtDate(c.last_order_at)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                    {/* Hovedindhold — klik åbner detalje-sheet */}
+                    <button
+                      onClick={() => setSelectedEmail(c.email)}
+                      className="flex-1 min-w-0 text-left"
+                    >
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {c.type === "business"
+                          ? <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          : <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+                        <span className="text-sm font-semibold text-foreground truncate">
+                          {c.type === "business" && c.company_name ? c.company_name : c.name}
+                        </span>
+                        {typeLabel && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0">
+                            <span className={`h-1.5 w-1.5 rounded-full ${typeDot}`} />
+                            {typeLabel}
+                          </span>
+                        )}
                       </div>
+                      <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                        {metaParts.map((part, i) => (
+                          <span key={i}>{i > 0 && <span className="mr-3">·</span>}{part}</span>
+                        ))}
+                      </div>
+                    </button>
 
-                      {/* Right: stats + actions */}
-                      <div className="flex items-center gap-2 shrink-0">
-                        {c.active_subs > 0 && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-foreground">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            {c.active_subs} abo.
-                          </span>
-                        )}
-                        {c.paused_subs > 0 && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-foreground">
-                            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                            {c.paused_subs} pause
-                          </span>
-                        )}
-                        {c.orders_count > 0 && (
-                          <span className="text-xs text-muted-foreground tabular-nums hidden md:inline">
-                            {c.orders_count} {c.orders_count === 1 ? "ordre" : "ordrer"}
-                          </span>
-                        )}
-                        <span className="text-sm font-bold text-foreground tabular-nums min-w-[4.5rem] text-right">
+                    {/* Højre: stats + pris + chevron, ligesom Aftaler */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {c.active_subs > 0 && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-foreground">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                          {c.active_subs} abo.
+                        </span>
+                      )}
+                      {c.paused_subs > 0 && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-foreground">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                          {c.paused_subs} pause
+                        </span>
+                      )}
+                      <div className="text-right ml-1">
+                        <span className="text-sm font-bold text-foreground tabular-nums">
                           {c.total_revenue > 0 ? fmtKr(c.total_revenue) : "—"}
                         </span>
-
-                        <div className="flex items-center gap-0.5 ml-1 border-l border-border pl-1.5">
-                          <Tooltip><TooltipTrigger asChild><button
-                            onClick={(e) => { e.stopPropagation(); openCreateOrderForCustomer(c); }}
-                            className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                          >
-                            <ShoppingBag className="h-3.5 w-3.5" />
-                          </button></TooltipTrigger><TooltipContent>Opret bestilling</TooltipContent></Tooltip>
-                          <Tooltip><TooltipTrigger asChild><button
-                            onClick={(e) => { e.stopPropagation(); openEditDialog(c); }}
-                            className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button></TooltipTrigger><TooltipContent>Rediger kunde</TooltipContent></Tooltip>
-                          {c.saved_id && (
-                            <Tooltip><TooltipTrigger asChild><button
-                              onClick={(e) => { e.stopPropagation(); setConfirmDelete({ open: true, targets: [c] }); }}
-                              className="rounded-md p-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button></TooltipTrigger><TooltipContent>Slet kunde</TooltipContent></Tooltip>
-                          )}
-                          <ChevronRight className="h-4 w-4 text-muted-foreground/60 ml-0.5" />
-                        </div>
                       </div>
+
+                      {/* Handlinger samlet i en dropdown — fjerner visuel støj fra rækken */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            onClick={(e) => e.stopPropagation()}
+                            className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                            aria-label="Handlinger"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem onClick={() => setSelectedEmail(c.email)} className="text-foreground focus:text-foreground">
+                            <ExternalLink className="h-4 w-4 mr-2" /> Se detaljer
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openCreateOrderForCustomer(c)} className="text-foreground focus:text-foreground">
+                            <ShoppingBag className="h-4 w-4 mr-2" /> Opret bestilling
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openEditDialog(c)} className="text-foreground focus:text-foreground">
+                            <Pencil className="h-4 w-4 mr-2" /> Rediger kunde
+                          </DropdownMenuItem>
+                          {c.saved_id && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => setConfirmDelete({ open: true, targets: [c] })}
+                                className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" /> Slet kunde
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     </div>
-                  </button>
+                  </div>
                 </Card>
               );
             })}
