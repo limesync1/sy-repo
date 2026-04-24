@@ -1067,6 +1067,19 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                             {serviceSummary}
                           </p>
 
+                          {/* Service-adresse — den fysiske adresse hvor opgaven skal
+                              udføres. Vises sammen med by/postnr så virksomhedsejeren
+                              hurtigt kan vurdere geografi inden ruteplanlægning. */}
+                          {(order.address || order.city || order.zip_code) && (
+                            <p className="mt-1 flex items-start gap-1.5 text-xs text-muted-foreground">
+                              <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
+                              <span className="truncate text-foreground/75">
+                                {[order.address, [order.zip_code, order.city].filter(Boolean).join(" ")]
+                                  .filter(Boolean).join(", ")}
+                              </span>
+                            </p>
+                          )}
+
                           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                             <span>{date.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}</span>
                           </div>
