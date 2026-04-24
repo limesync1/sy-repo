@@ -236,6 +236,41 @@ const ROUTE_STATUS_LABELS: Record<string, string> = {
 const formatStopStatus = (s?: string | null) => (s ? STOP_STATUS_LABELS[s] || s : "");
 const formatRouteStatus = (s?: string | null) => (s ? ROUTE_STATUS_LABELS[s] || s : "");
 
+/* ─── Drag & drop helpers (samme @dnd-kit setup som Ruteplanlæggeren) ─── */
+const OrderDragHandle = ({ orderId }: { orderId: string }) => {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `order-${orderId}`,
+    data: { type: "order", orderId },
+  });
+  return (
+    <button
+      ref={setNodeRef}
+      type="button"
+      {...listeners}
+      {...attributes}
+      onClick={(e) => e.stopPropagation()}
+      aria-label="Træk aftalen til en rute"
+      title="Træk til en rute i Rute-pool"
+      className={`flex h-9 w-5 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground active:cursor-grabbing ${
+        isDragging ? "opacity-40" : ""
+      }`}
+    >
+      <GripVertical className="h-4 w-4" />
+    </button>
+  );
+};
+
+const PoolRouteDropZone = ({
+  routeId, children,
+}: { routeId: string; children: (state: { isOver: boolean; isActive: boolean }) => React.ReactNode }) => {
+  const { setNodeRef, isOver, active } = useDroppable({
+    id: `pool-route-${routeId}`,
+    data: { type: "pool-route", routeId },
+  });
+  const isActive = !!active && active.data.current?.type === "order";
+  return <div ref={setNodeRef}>{children({ isOver, isActive })}</div>;
+};
+
 /* ─── What can the business DO at each stage? ─── */
 const getActions = (order: any): { canRespond: boolean; canProgress: boolean; nextStatus: string | null; nextLabel: string | null } => {
   const status = order.status;
