@@ -340,17 +340,22 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
 };
 
 const StatusBadge = ({ status }: { status: string }) => {
-  const map: Record<string, { label: string; className: string }> = {
-    pending:     { label: "Afventer",  className: "border-amber-300 text-amber-700 bg-amber-50" },
-    confirmed:   { label: "Bekræftet", className: "border-blue-300 text-blue-700 bg-blue-50" },
-    in_progress: { label: "Igang",     className: "border-purple-300 text-purple-700 bg-purple-50" },
-    completed:   { label: "Udført",    className: "border-emerald-300 text-emerald-700 bg-emerald-50" },
-    cancelled:   { label: "Annulleret",className: "border-destructive/40 text-destructive bg-destructive/5" },
-    active:      { label: "Aktiv",     className: "border-emerald-300 text-emerald-700 bg-emerald-50" },
-    paused:      { label: "Pauset",    className: "border-amber-300 text-amber-700 bg-amber-50" },
+  const map: Record<string, { label: string; dot: string }> = {
+    pending:     { label: "Afventer",   dot: "bg-amber-500" },
+    confirmed:   { label: "Bekræftet",  dot: "bg-blue-500" },
+    in_progress: { label: "I gang",     dot: "bg-violet-500" },
+    completed:   { label: "Udført",     dot: "bg-emerald-500" },
+    cancelled:   { label: "Annulleret", dot: "bg-destructive" },
+    active:      { label: "Aktiv",      dot: "bg-emerald-500" },
+    paused:      { label: "Pauset",     dot: "bg-amber-500" },
   };
-  const m = map[status] || { label: status, className: "border-border text-muted-foreground" };
-  return <Badge variant="outline" className={`text-[10px] h-5 px-1.5 ${m.className}`}>{m.label}</Badge>;
+  const m = map[status] || { label: status, dot: "bg-muted-foreground/40" };
+  return (
+    <Badge variant="outline" className="text-[10px] h-5 px-1.5 gap-1 border-border bg-secondary text-foreground">
+      <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} />
+      {m.label}
+    </Badge>
+  );
 };
 
 interface Props { businessId: string; businessName?: string }
