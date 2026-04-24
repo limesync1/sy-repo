@@ -591,105 +591,136 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
           ) : undefined}
         />
       ) : (
-        <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-          <div className="divide-y divide-border">
-            {/* Header with select-all */}
-            {eligibleSelectable.length > 0 && (
-              <div className="flex items-center gap-3 px-3.5 py-2 bg-secondary/40 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Vælg alle" />
-                <span>{allSelected ? "Alle valgt" : `Vælg alle (${eligibleSelectable.length})`}</span>
-              </div>
-            )}
-            {filtered.map((c) => (
-              <div key={c.email} className="flex items-center gap-3 px-3.5 py-2.5 hover:bg-secondary/60 transition-colors">
-                {c.saved_id ? (
-                  <Checkbox
-                    checked={selectedIds.has(c.saved_id)}
-                    onCheckedChange={() => toggleSelect(c.saved_id!)}
-                    aria-label={`Vælg ${c.name}`}
-                    className="shrink-0"
-                  />
-                ) : (
-                  <div className="w-4 shrink-0" />
-                )}
-                <button
-                  onClick={() => setSelectedEmail(c.email)}
-                  className="h-9 w-9 rounded-lg bg-secondary flex items-center justify-center shrink-0 text-sm font-semibold text-foreground"
-                  title="Se detaljer"
-                >
-                  {c.type === "business" ? <Building2 className="h-4 w-4" /> : (c.name?.charAt(0).toUpperCase() || "?")}
-                </button>
-                <button
-                  onClick={() => setSelectedEmail(c.email)}
-                  className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-[1.6fr_1fr_1fr] gap-2 items-center text-left"
-                >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${c.type === "business" ? "bg-blue-500" : c.type === "private" ? "bg-emerald-500" : "bg-muted-foreground/40"}`} />
-                      <p className="text-sm font-semibold text-foreground truncate">
-                        {c.type === "business" && c.company_name ? c.company_name : c.name}
-                      </p>
-                      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide shrink-0">
-                        {c.type === "business" ? "Erhverv" : c.type === "private" ? "Privat" : "—"}
-                      </span>
+        <>
+          {/* Select all bar */}
+          {eligibleSelectable.length > 0 && (
+            <div className="flex items-center gap-2.5 px-1">
+              <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Vælg alle" />
+              <span className="text-xs text-muted-foreground">
+                {allSelected ? `Alle ${eligibleSelectable.length} valgt` : `Vælg alle (${eligibleSelectable.length})`}
+              </span>
+            </div>
+          )}
+
+          {/* Customer cards */}
+          <div className="space-y-2.5">
+            {filtered.map((c) => {
+              const typeLabel = c.type === "business" ? "Erhverv" : c.type === "private" ? "Privat" : null;
+              const typeDot = c.type === "business" ? "bg-blue-500" : c.type === "private" ? "bg-emerald-500" : "bg-muted-foreground/40";
+              return (
+                <Card key={c.email} className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden transition-colors hover:border-border">
+                  <button
+                    onClick={() => setSelectedEmail(c.email)}
+                    className="w-full text-left px-4 py-3 transition-colors hover:bg-secondary/60"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      {/* Left: checkbox + identity */}
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        {c.saved_id ? (
+                          <span onClick={(e) => { e.stopPropagation(); toggleSelect(c.saved_id!); }} className="shrink-0">
+                            <Checkbox
+                              checked={selectedIds.has(c.saved_id)}
+                              onCheckedChange={() => toggleSelect(c.saved_id!)}
+                              aria-label={`Vælg ${c.name}`}
+                            />
+                          </span>
+                        ) : (
+                          <span className="w-4 shrink-0" />
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {c.type === "business"
+                              ? <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                              : <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+                            <span className="text-sm font-semibold text-foreground truncate">
+                              {c.type === "business" && c.company_name ? c.company_name : c.name}
+                            </span>
+                            {typeLabel && (
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0">
+                                <span className={`h-1.5 w-1.5 rounded-full ${typeDot}`} />
+                                {typeLabel}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
+                            <span className="inline-flex items-center gap-1 truncate">
+                              <Mail className="h-3 w-3 shrink-0" /> <span className="truncate">{c.email}</span>
+                            </span>
+                            {c.phone && (
+                              <span className="inline-flex items-center gap-1">
+                                <Phone className="h-3 w-3 shrink-0" /> {c.phone}
+                              </span>
+                            )}
+                            {(c.address || c.city) && (
+                              <span className="inline-flex items-center gap-1 truncate">
+                                <MapPin className="h-3 w-3 shrink-0" />
+                                <span className="truncate">{c.city || c.address}</span>
+                              </span>
+                            )}
+                            {c.last_order_at && (
+                              <span className="inline-flex items-center gap-1">
+                                <Clock className="h-3 w-3 shrink-0" /> {fmtDate(c.last_order_at)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: stats + actions */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {c.active_subs > 0 && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-foreground">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            {c.active_subs} abo.
+                          </span>
+                        )}
+                        {c.paused_subs > 0 && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-foreground">
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                            {c.paused_subs} pause
+                          </span>
+                        )}
+                        {c.orders_count > 0 && (
+                          <span className="text-xs text-muted-foreground tabular-nums hidden md:inline">
+                            {c.orders_count} {c.orders_count === 1 ? "ordre" : "ordrer"}
+                          </span>
+                        )}
+                        <span className="text-sm font-bold text-foreground tabular-nums min-w-[4.5rem] text-right">
+                          {c.total_revenue > 0 ? fmtKr(c.total_revenue) : "—"}
+                        </span>
+
+                        <div className="flex items-center gap-0.5 ml-1 border-l border-border pl-1.5">
+                          <Tooltip><TooltipTrigger asChild><button
+                            onClick={(e) => { e.stopPropagation(); openCreateOrderForCustomer(c); }}
+                            className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                          >
+                            <ShoppingBag className="h-3.5 w-3.5" />
+                          </button></TooltipTrigger><TooltipContent>Opret bestilling</TooltipContent></Tooltip>
+                          <Tooltip><TooltipTrigger asChild><button
+                            onClick={(e) => { e.stopPropagation(); openEditDialog(c); }}
+                            className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button></TooltipTrigger><TooltipContent>Rediger kunde</TooltipContent></Tooltip>
+                          {c.saved_id && (
+                            <Tooltip><TooltipTrigger asChild><button
+                              onClick={(e) => { e.stopPropagation(); setConfirmDelete({ open: true, targets: [c] }); }}
+                              className="rounded-md p-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button></TooltipTrigger><TooltipContent>Slet kunde</TooltipContent></Tooltip>
+                          )}
+                          <ChevronRight className="h-4 w-4 text-muted-foreground/60 ml-0.5" />
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground truncate mt-0.5">{c.email}{c.phone ? ` · ${c.phone}` : ""}</p>
-                  </div>
-                  <div className="min-w-0 hidden sm:block">
-                    <p className="text-xs text-foreground truncate flex items-center gap-1">
-                      <MapPin className="h-3 w-3 shrink-0 text-muted-foreground" />
-                      {c.city || c.address ? `${c.address || ""}${c.address && c.city ? ", " : ""}${c.city || ""}` : "—"}
-                    </p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{c.last_order_at ? `Sidst: ${fmtDate(c.last_order_at)}` : "Ingen bestillinger endnu"}</p>
-                  </div>
-                  <div className="flex items-center justify-end gap-2 flex-wrap">
-                    {c.active_subs > 0 && (
-                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground tabular-nums">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                        {c.active_subs} abo.
-                      </span>
-                    )}
-                    {c.paused_subs > 0 && (
-                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground tabular-nums">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                        {c.paused_subs} pause
-                      </span>
-                    )}
-                    {c.orders_count > 0 && (
-                      <span className="text-[11px] text-muted-foreground tabular-nums">
-                        {c.orders_count} ordrer
-                      </span>
-                    )}
-                    <span className="text-sm font-semibold text-foreground tabular-nums w-20 text-right">{c.total_revenue > 0 ? fmtKr(c.total_revenue) : "—"}</span>
-                  </div>
-                </button>
-                <div className="flex items-center gap-0.5 shrink-0">
-                  <Tooltip><TooltipTrigger asChild><button
-                    onClick={(e) => { e.stopPropagation(); openCreateOrderForCustomer(c); }}
-                    className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                  >
-                    <ShoppingBag className="h-3.5 w-3.5" />
-                  </button></TooltipTrigger><TooltipContent>Opret bestilling</TooltipContent></Tooltip>
-                  <Tooltip><TooltipTrigger asChild><button
-                    onClick={(e) => { e.stopPropagation(); openEditDialog(c); }}
-                    className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </button></TooltipTrigger><TooltipContent>Rediger kunde</TooltipContent></Tooltip>
-                  {c.saved_id && (
-                    <Tooltip><TooltipTrigger asChild><button
-                      onClick={(e) => { e.stopPropagation(); setConfirmDelete({ open: true, targets: [c] }); }}
-                      className="rounded-md p-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button></TooltipTrigger><TooltipContent>Slet kunde</TooltipContent></Tooltip>
-                  )}
-                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 ml-0.5" />
-                </div>
-              </div>
-            ))}
+                  </button>
+                </Card>
+              );
+            })}
           </div>
-        </Card>
+        </>
       )}
 
       {/* Detail sheet */}
