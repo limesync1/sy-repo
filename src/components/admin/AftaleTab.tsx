@@ -854,6 +854,67 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
     .filter(s => s.status === "active" && s.next_service_date)
     .sort((a, b) => new Date(a.next_service_date!).getTime() - new Date(b.next_service_date!).getTime());
 
+  // ─── Tilføj aftale til en eksisterende rute (drag-drop fra aftalekort) ───
+  // Finder næste sekvensnummer på den valgte rute, geocoder evt. hvis ordren
+  // mangler koordinater og kalder useAddStop. Synkroniserer både rute-stops
+  // og aftaler-listen, så brugeren ser ændringen straks.
+  const handleDropOrderOnRoute = async (orderId: string, routeId: string) => {
+    const order = (orders || []).find((o: any) => o.id === orderId);
+    if (!order) { toast.error("Aftalen kunne ikke findes"); return; }
+    if (stopByOrder[orderId]) {
+      toast.info("Denne aftale ligger allerede på en rute");
+      return;
+    }
+
+    const stopsForThisRoute = (poolStops || []).filter((s: any) => s.route_id === routeId);
+    const nextSeq = stopsForThisRoute.length > 0
+      ? Math.max(...stopsForThisRoute.map((s: any) => s.sequence ?? 0)) + 1
+      : 0;
+
+    const items = ((order as any).order_items || []) as any[];
+    const summary = items.map((it) => `${it.service_name}${it.quantity > 1 ? ` ×${it.quantity}` : ""}`).join(", ");
+    const fullAddress = [order.address, [order.zip_code, order.city].filter(Boolean).join(" ")]
+      .filter(Boolean).join(", ");
+
+    try {
+      await addStop.mutateAsync({
+        route_id: routeId,
+        order_id: orderId,
+        sequence: nextSeq,
+        customer_name: order.customer_name || null,
+        customer_phone: order.customer_phone || null,
+        address: fullAddress || null,
+        latitude: (order as any).latitude ?? null,
+        longitude: (order as any).longitude ?? null,
+        service_summary: summary || null,
+        duration_minutes: (order as any).estimated_duration_minutes || 30,
+      });
+      const route = (poolRoutes || []).find((r) => r.id === routeId);
+      const dateLabel = route ? new Date(route.route_date).toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" }) : "";
+      toast.success(`Lagt på rute ${route?.name || ""} · ${dateLabel}`);
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops", businessId] });
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke lægge aftalen på ruten");
+    }
+  };
+
+  // Opret en ny rute "i farten" fra sidebar — bruges når brugeren ingen
+  // eksisterende rute har til den dato de vil planlægge.
+  const handleQuickCreateRoute = async (dateIso: string) => {
+    try {
+      const route = await createRoute.mutateAsync({
+        business_id: businessId,
+        route_date: dateIso,
+        name: `Rute ${new Date(dateIso).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}`,
+      });
+      toast.success("Ny rute oprettet");
+      return route;
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke oprette ruten");
+      return null;
+    }
+  };
+
   return (
     <div className="space-y-5">
       <PageHeader
