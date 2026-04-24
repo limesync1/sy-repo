@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrders, useServices, useBusinessSubscriptions } from "@/hooks/useDatabase";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
@@ -13,7 +13,7 @@ import {
   ShoppingCart, Pencil, Minus, Plus, Check, X, MessageSquare,
   ChevronDown, ChevronUp, Clock, User, Mail, Phone, ArrowRight,
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
-  Play, Pause, Search,
+  Play, Pause, Search, Route as RouteIcon, MapPin,
 } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
@@ -571,6 +571,27 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   const [adjustedItems, setAdjustedItems] = useState<Record<string, AdjustmentItem[]>>({});
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
 
+  // Hent route-stops for alle ordrer i denne forretning, så vi kan vise hvilken
+  // rute hver aftale er placeret på (dato, rute-navn, sekvens og status).
+  const { data: routeStops } = useQuery({
+    queryKey: ["aftaler-route-stops", businessId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("route_stops")
+        .select("id, order_id, sequence, status, planned_arrival, planned_departure, route:routes!inner(id, name, route_date, color, status, business_id)")
+        .eq("route.business_id", businessId);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!businessId,
+  });
+
+  // Map: order_id → første tilknyttede stop (en aftale ligger typisk på én rute).
+  const stopByOrder = (routeStops || []).reduce<Record<string, any>>((acc, s: any) => {
+    if (s.order_id && !acc[s.order_id]) acc[s.order_id] = s;
+    return acc;
+  }, {});
+
   if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser aftaler...</p>;
 
   const servicesById = (services || []).reduce<Record<string, BusinessService>>((acc, s) => {
@@ -607,6 +628,8 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   const baseFilteredOrders = filter === "all" ? orders
     : filter === "action_needed" ? actionNeeded
     : filter === "waiting" ? waitingForCustomer
+    : filter === "in_route" ? orders?.filter(o => stopByOrder[o.id])
+    : filter === "not_planned" ? orders?.filter(o => !stopByOrder[o.id] && !["completed","cancelled"].includes(o.status))
     : orders?.filter(o => o.status === filter);
 
   // Søgning på kundenavn, e-mail, telefon, adresse og service-navne
@@ -832,6 +855,8 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
           ...(waitingForCustomer.length > 0 ? [{ key: "waiting", label: "Afventer kunde", count: waitingForCustomer.length }] : []),
           { key: "confirmed", label: "Aftalte", count: counts.confirmed || 0 },
           { key: "in_progress", label: "I gang", count: counts.in_progress || 0 },
+          { key: "in_route", label: "I rute", count: Object.keys(stopByOrder).length },
+          { key: "not_planned", label: "Ikke planlagt", count: (orders || []).filter(o => !stopByOrder[o.id] && !["completed","cancelled"].includes(o.status)).length },
           { key: "completed", label: "Udførte", count: counts.completed || 0 },
           { key: "cancelled", label: "Annullerede", count: counts.cancelled || 0 },
         ].map(({ key, label, count }) => (
@@ -930,6 +955,10 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
             const nextDate = (order as any).next_service_date ? new Date((order as any).next_service_date) : null;
             const interval = getOrderInterval(order);
             const daysUntilNext = nextDate ? Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+            const routeStop = stopByOrder[order.id];
+            const routeInfo = routeStop?.route;
+            const routeDate = routeInfo?.route_date ? new Date(routeInfo.route_date) : null;
+            const routeIsToday = routeDate ? routeDate.toDateString() === new Date().toDateString() : false;
 
             return (
               <Card key={order.id} className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
@@ -958,6 +987,28 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                               <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                                 <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
                                 {cycles > 0 && <span className="ml-0.5">· #{cycles}</span>}
+                              </span>
+                            )}
+                            {routeInfo && (
+                              <span
+                                className="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-medium"
+                                style={{
+                                  borderColor: `${routeInfo.color}40`,
+                                  backgroundColor: `${routeInfo.color}14`,
+                                  color: routeInfo.color,
+                                }}
+                                title={`Rute ${routeInfo.name || ""} · ${routeDate?.toLocaleDateString("da-DK")}`}
+                              >
+                                <RouteIcon className="h-2.5 w-2.5" />
+                                {routeInfo.name || "Rute"}
+                                {routeDate && (
+                                  <span className="opacity-80">
+                                    · {routeIsToday ? "i dag" : routeDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
+                                  </span>
+                                )}
+                                {typeof routeStop.sequence === "number" && (
+                                  <span className="opacity-80">· #{routeStop.sequence + 1}</span>
+                                )}
                               </span>
                             )}
                           </div>
@@ -1011,6 +1062,56 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                         </span>
                       )}
                     </div>
+
+                    {/* Rute-info — vis på hvilken rute denne aftale er placeret. */}
+                    {routeInfo ? (
+                      <div
+                        className="rounded-xl border px-4 py-3 space-y-1.5"
+                        style={{ borderColor: `${routeInfo.color}40`, backgroundColor: `${routeInfo.color}0d` }}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <RouteIcon className="h-4 w-4 shrink-0" style={{ color: routeInfo.color }} />
+                            <span className="text-sm font-semibold text-foreground truncate">
+                              {routeInfo.name || "Rute"}
+                            </span>
+                            {routeDate && (
+                              <span className="text-xs text-muted-foreground shrink-0">
+                                · {routeDate.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] uppercase tracking-wide font-medium text-muted-foreground">
+                            Stop #{(routeStop.sequence ?? 0) + 1}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                          {routeStop.planned_arrival && (
+                            <span className="inline-flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              Ankomst {new Date(routeStop.planned_arrival).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
+                              {routeStop.planned_departure && (
+                                <> – {new Date(routeStop.planned_departure).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}</>
+                              )}
+                            </span>
+                          )}
+                          {routeStop.status && (
+                            <span className="inline-flex items-center gap-1">
+                              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: routeInfo.color }} />
+                              Stop-status: <span className="text-foreground font-medium">{routeStop.status}</span>
+                            </span>
+                          )}
+                          {routeInfo.status && (
+                            <span>Rute-status: <span className="text-foreground font-medium">{routeInfo.status}</span></span>
+                          )}
+                        </div>
+                      </div>
+                    ) : !["completed", "cancelled"].includes(order.status) && (
+                      <div className="rounded-xl border border-dashed border-border px-4 py-3 flex items-center gap-2 text-xs text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5" />
+                        Denne aftale er endnu ikke planlagt på en rute.
+                      </div>
+                    )}
 
                     {/* Order items summary */}
                     <CustomerOrderSummary order={order} />
