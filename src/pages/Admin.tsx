@@ -1298,29 +1298,26 @@ const SettingsTab = ({ business }: { business: any }) => {
       />
 
       {/* CVR Lookup */}
-      <Card className="rounded-xl border-accent/20 bg-gradient-to-b from-accent/[0.03] to-transparent shadow-sm">
-        <CardContent className="p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="h-4 w-4 text-accent" />
-            <h3 className="text-sm font-semibold text-foreground">Automatisk udfyldning fra CVR</h3>
-          </div>
-          <p className="text-xs text-muted-foreground mb-3">Indtast CVR-nummer eller virksomhedsnavn for at auto-udfylde alle felter.</p>
-          <div className="flex gap-2">
+      <SectionCard
+        title="Automatisk udfyldning fra CVR"
+        icon={<Sparkles />}
+        description="Indtast CVR-nummer eller virksomhedsnavn for at auto-udfylde alle felter."
+      >
+        <div className="flex gap-2">
             <Input
               placeholder="CVR-nummer eller virksomhedsnavn..."
               value={cvrQuery}
               onChange={(e) => setCvrQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && lookupCvr()}
-              className="bg-card flex-1"
+              className="bg-card h-10 flex-1 rounded-lg"
             />
-            <Button onClick={lookupCvr} disabled={cvrLoading || !cvrQuery.trim()} size="sm"
-              className="h-10 rounded-lg bg-foreground text-background hover:bg-foreground/90 px-4 text-sm font-medium">
+            <PrimaryButton onClick={lookupCvr} disabled={cvrLoading || !cvrQuery.trim()}>
               {cvrLoading ? "Søger..." : "Søg"}
-            </Button>
+            </PrimaryButton>
           </div>
           {cvrError && <p className="mt-2 text-xs text-destructive">{cvrError}</p>}
           {cvrResult && (
-            <div className="mt-3 rounded-lg border border-accent/20 bg-card p-4">
+            <div className="mt-3 rounded-lg border border-border bg-secondary/40 p-4">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm font-semibold text-foreground">{cvrResult.name}</p>
@@ -1337,29 +1334,23 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+      </SectionCard>
 
       {/* General */}
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Settings className="h-4 w-4 text-muted-foreground" />
-            Generelt
-          </h3>
-          <div className="space-y-4">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Virksomhedsnavn</label>
-              <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-10" />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Beskrivelse</label>
-              <Textarea placeholder="Hvad gør din virksomhed? Hvad er jeres speciale?" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="bg-card" />
-              <p className="mt-1 text-xs text-muted-foreground">{description.length}/500 tegn</p>
-            </div>
-            <div>
-              <label className="mb-2 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Brancher</label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <SectionCard title="Generelt" icon={<Settings />}>
+        <div className="space-y-4">
+          <div>
+            <FieldLabel>Virksomhedsnavn</FieldLabel>
+            <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-10 rounded-lg" />
+          </div>
+          <div>
+            <FieldLabel>Beskrivelse</FieldLabel>
+            <Textarea placeholder="Hvad gør din virksomhed? Hvad er jeres speciale?" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="bg-card rounded-lg" />
+            <p className="mt-1 text-xs text-muted-foreground">{description.length}/500 tegn</p>
+          </div>
+          <div>
+            <FieldLabel>Brancher</FieldLabel>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {CATEGORIES.map((c) => (
                   <button key={c} type="button" onClick={() => toggleSettingsCategory(c)}
                     className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2.5 text-left transition-all ${
@@ -1371,42 +1362,36 @@ const SettingsTab = ({ business }: { business: any }) => {
                     <span className="text-xs font-medium text-foreground">{c}</span>
                   </button>
                 ))}
-              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
 
       {/* Contact */}
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Plus className="h-4 w-4 text-muted-foreground" />
-            Kontaktoplysninger
-          </h3>
-          <div className="space-y-4">
+      <SectionCard title="Kontaktoplysninger" icon={<Contact />}>
+        <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Telefon</label>
+                <FieldLabel>Telefon</FieldLabel>
                 <Input placeholder="12 34 56 78" value={phone} onChange={(e) => handlePhoneChange(e.target.value)}
-                  className="bg-card h-10" type="tel" />
+                  className="bg-card h-10 rounded-lg" type="tel" />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
+                <FieldLabel>Email</FieldLabel>
                 <Input placeholder="kontakt@virksomhed.dk" value={email} onChange={(e) => setEmail(e.target.value)}
-                  className="bg-card h-10" type="email" />
+                  className="bg-card h-10 rounded-lg" type="email" />
               </div>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Adresse</label>
-              <Input placeholder="Vejnavn 123" value={address} onChange={(e) => setAddress(e.target.value)} className="bg-card h-10" />
+              <FieldLabel>Adresse</FieldLabel>
+              <Input placeholder="Vejnavn 123" value={address} onChange={(e) => setAddress(e.target.value)} className="bg-card h-10 rounded-lg" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Postnummer</label>
+                <FieldLabel>Postnummer</FieldLabel>
                 <div className="relative">
                   <Input placeholder="2100" value={zipCode} onChange={(e) => handleZipChange(e.target.value)}
-                    className="bg-card h-10" maxLength={4} />
+                    className="bg-card h-10 rounded-lg" maxLength={4} />
                   {zipLoading && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
                       <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted-foreground/20 border-t-accent" />
@@ -1416,40 +1401,34 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <p className="mt-1 text-xs text-muted-foreground">By udfyldes automatisk</p>
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">By</label>
-                <Input placeholder="København" value={city} onChange={(e) => setCity(e.target.value)} className="bg-card h-10" />
+                <FieldLabel>By</FieldLabel>
+                <Input placeholder="København" value={city} onChange={(e) => setCity(e.target.value)} className="bg-card h-10 rounded-lg" />
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
 
       {/* Images */}
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground">Billeder</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <SectionCard title="Billeder" icon={<Sparkles />}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Logo</label>
+              <FieldLabel>Logo</FieldLabel>
               <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Coverbillede</label>
+              <FieldLabel>Coverbillede</FieldLabel>
               <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-48" />
             </div>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
 
       {/* Notification Settings */}
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Bell className="h-4 w-4 text-muted-foreground" />
-            Notifikationsindstillinger
-          </h3>
-          <p className="text-xs text-muted-foreground">Vælg hvilke hændelser du vil modtage varsler om.</p>
-          <div className="space-y-3">
+      <SectionCard
+        title="Notifikationsindstillinger"
+        icon={<Bell />}
+        description="Vælg hvilke hændelser du vil modtage varsler om."
+      >
+        <div className="space-y-3">
             {([
               { key: "new_order", label: "Nye bestillinger", desc: "Modtag besked når en kunde opretter en ny bestilling" },
               { key: "upcoming_service", label: "Kommende services", desc: "Påmindelse når en abonnements-service skal udføres snart" },
@@ -1472,23 +1451,16 @@ const SettingsTab = ({ business }: { business: any }) => {
                 </button>
               </div>
             ))}
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
 
       {/* Route Planning */}
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Route className="h-4 w-4 text-muted-foreground" />
-            Ruteplanlægning
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            Aktivér ruteplanlægning for at oprette medarbejder-konti og planlægge daglige
-            ruter med stop hos kunder. Ruterne kan optimeres med AI baseret på afstand,
-            tidsvinduer og prioriteter.
-          </p>
-          <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-3">
+      <SectionCard
+        title="Ruteplanlægning"
+        icon={<Route />}
+        description="Aktivér ruteplanlægning for at oprette medarbejder-konti og planlægge daglige ruter med stop hos kunder. Ruterne kan optimeres med AI baseret på afstand, tidsvinduer og prioriteter."
+      >
+        <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-3">
             <div>
               <p className="text-sm font-medium text-foreground">Aktivér ruteplanlægning</p>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -1507,15 +1479,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                 }`}
               />
             </button>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
 
 
-      <Card className="rounded-xl shadow-sm border-border">
-        <CardContent className="p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground">Åbningstider</h3>
-          <div className="space-y-2">
+      <SectionCard title="Åbningstider" icon={<Settings />}>
+        <div className="space-y-2">
             {DAYS.map((day) => {
               const isWeekend = day === "Lørdag" || day === "Søndag";
               return (
@@ -1527,7 +1496,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                     placeholder={isWeekend ? "Lukket" : "Fx 08:00 - 16:00"}
                     value={openHours[day] || ""}
                     onChange={(e) => setOpenHours({ ...openHours, [day]: e.target.value })}
-                    className="flex-1 h-8 text-sm bg-card"
+                    className="flex-1 h-9 text-sm bg-card rounded-lg"
                   />
                   {openHours[day] && (
                     <button onClick={() => { const h = { ...openHours }; delete h[day]; setOpenHours(h); }}
@@ -1538,9 +1507,8 @@ const SettingsTab = ({ business }: { business: any }) => {
                 </div>
               );
             })}
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
 
       {/* Sticky save bar */}
       {hasChanges && (
@@ -1548,10 +1516,9 @@ const SettingsTab = ({ business }: { business: any }) => {
           <Card className="rounded-xl border-accent/30 bg-card shadow-lg">
             <CardContent className="flex items-center justify-between p-3">
               <p className="text-sm text-muted-foreground">Du har ændringer der ikke er gemt.</p>
-              <Button onClick={save} disabled={updateBiz.isPending}
-                className="h-9 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 text-sm font-semibold px-6 shadow-sm">
+              <PrimaryButton onClick={save} disabled={updateBiz.isPending}>
                 {updateBiz.isPending ? "Gemmer..." : "Gem ændringer"}
-              </Button>
+              </PrimaryButton>
             </CardContent>
           </Card>
         </div>
