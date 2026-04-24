@@ -586,103 +586,105 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
           ) : undefined}
         />
       ) : (
-        <div className="rounded-xl border border-border bg-card overflow-hidden divide-y divide-border">
-          {/* Header with select-all */}
-          {eligibleSelectable.length > 0 && (
-            <div className="flex items-center gap-3 px-3.5 py-2 bg-secondary/40 text-xs font-medium text-muted-foreground">
-              <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Vælg alle" />
-              <span>{allSelected ? "Alle valgt" : `Vælg alle (${eligibleSelectable.length})`}</span>
-            </div>
-          )}
-          {filtered.map((c) => (
-            <div key={c.email} className="flex items-center gap-3 p-3.5 hover:bg-secondary/50 transition-colors">
-              {c.saved_id ? (
-                <Checkbox
-                  checked={selectedIds.has(c.saved_id)}
-                  onCheckedChange={() => toggleSelect(c.saved_id!)}
-                  aria-label={`Vælg ${c.name}`}
-                  className="shrink-0"
-                />
-              ) : (
-                <div className="w-4 shrink-0" />
-              )}
-              <button
-                onClick={() => setSelectedEmail(c.email)}
-                className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0 text-sm font-semibold text-accent"
-                title="Se detaljer"
-              >
-                {c.type === "business" ? <Building2 className="h-4 w-4" /> : (c.name?.charAt(0).toUpperCase() || "?")}
-              </button>
-              <button
-                onClick={() => setSelectedEmail(c.email)}
-                className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-[1.5fr_1fr_1fr] gap-2 items-center text-left"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate flex items-center gap-1.5">
-                    {c.type === "business" && c.company_name ? c.company_name : c.name}
-                    {c.type === "business" && (
-                      <Badge variant="outline" className="text-[10px] h-4 px-1 border-blue-300 text-blue-700 bg-blue-50">Erhverv</Badge>
-                    )}
-                    {c.type === "private" && (
-                      <Badge variant="outline" className="text-[10px] h-4 px-1 border-emerald-300 text-emerald-700 bg-emerald-50">Privat</Badge>
-                    )}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">{c.email}{c.phone ? ` · ${c.phone}` : ""}</p>
-                </div>
-                <div className="min-w-0 hidden sm:block">
-                  <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
-                    <MapPin className="h-3 w-3 shrink-0" />
-                    {c.city || c.address ? `${c.address || ""}${c.address && c.city ? ", " : ""}${c.city || ""}` : "—"}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground/70 mt-0.5">{c.last_order_at ? `Sidst: ${fmtDate(c.last_order_at)}` : "Ingen bestillinger endnu"}</p>
-                </div>
-                <div className="flex items-center justify-end gap-2">
-                  {c.active_subs > 0 && (
-                    <Badge variant="outline" className="border-emerald-300 text-emerald-700 bg-emerald-50 text-[10px] h-5 px-1.5 gap-0.5">
-                      <Repeat className="h-2.5 w-2.5" />
-                      {c.active_subs} abo.
-                    </Badge>
-                  )}
-                  {c.paused_subs > 0 && (
-                    <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50 text-[10px] h-5 px-1.5 gap-0.5">
-                      <Pause className="h-2.5 w-2.5" />
-                      {c.paused_subs} på pause
-                    </Badge>
-                  )}
-                  {c.orders_count > 0 && (
-                    <Badge variant="secondary" className="text-[10px] h-5 px-1.5">
-                      {c.orders_count} ordrer
-                    </Badge>
-                  )}
-                  <span className="text-sm font-bold text-foreground tabular-nums w-24 text-right">{c.total_revenue > 0 ? fmtKr(c.total_revenue) : "—"}</span>
-                </div>
-              </button>
-              <div className="flex items-center gap-1 shrink-0">
-                <Tooltip><TooltipTrigger asChild><button
-                  onClick={(e) => { e.stopPropagation(); openCreateOrderForCustomer(c); }}
-                  className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                >
-                  <ShoppingBag className="h-4 w-4" />
-                </button></TooltipTrigger><TooltipContent>Opret bestilling</TooltipContent></Tooltip>
-                <Tooltip><TooltipTrigger asChild><button
-                  onClick={(e) => { e.stopPropagation(); openEditDialog(c); }}
-                  className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                >
-                  <Pencil className="h-4 w-4" />
-                </button></TooltipTrigger><TooltipContent>Rediger kunde</TooltipContent></Tooltip>
-                {c.saved_id && (
-                  <Tooltip><TooltipTrigger asChild><button
-                    onClick={(e) => { e.stopPropagation(); setConfirmDelete({ open: true, targets: [c] }); }}
-                    className="rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button></TooltipTrigger><TooltipContent>Slet kunde</TooltipContent></Tooltip>
-                )}
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
+          <div className="divide-y divide-border">
+            {/* Header with select-all */}
+            {eligibleSelectable.length > 0 && (
+              <div className="flex items-center gap-3 px-3.5 py-2 bg-secondary/40 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Vælg alle" />
+                <span>{allSelected ? "Alle valgt" : `Vælg alle (${eligibleSelectable.length})`}</span>
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+            {filtered.map((c) => (
+              <div key={c.email} className="flex items-center gap-3 px-3.5 py-2.5 hover:bg-secondary/60 transition-colors">
+                {c.saved_id ? (
+                  <Checkbox
+                    checked={selectedIds.has(c.saved_id)}
+                    onCheckedChange={() => toggleSelect(c.saved_id!)}
+                    aria-label={`Vælg ${c.name}`}
+                    className="shrink-0"
+                  />
+                ) : (
+                  <div className="w-4 shrink-0" />
+                )}
+                <button
+                  onClick={() => setSelectedEmail(c.email)}
+                  className="h-9 w-9 rounded-lg bg-secondary flex items-center justify-center shrink-0 text-sm font-semibold text-foreground"
+                  title="Se detaljer"
+                >
+                  {c.type === "business" ? <Building2 className="h-4 w-4" /> : (c.name?.charAt(0).toUpperCase() || "?")}
+                </button>
+                <button
+                  onClick={() => setSelectedEmail(c.email)}
+                  className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-[1.6fr_1fr_1fr] gap-2 items-center text-left"
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${c.type === "business" ? "bg-blue-500" : c.type === "private" ? "bg-emerald-500" : "bg-muted-foreground/40"}`} />
+                      <p className="text-sm font-semibold text-foreground truncate">
+                        {c.type === "business" && c.company_name ? c.company_name : c.name}
+                      </p>
+                      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide shrink-0">
+                        {c.type === "business" ? "Erhverv" : c.type === "private" ? "Privat" : "—"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">{c.email}{c.phone ? ` · ${c.phone}` : ""}</p>
+                  </div>
+                  <div className="min-w-0 hidden sm:block">
+                    <p className="text-xs text-foreground truncate flex items-center gap-1">
+                      <MapPin className="h-3 w-3 shrink-0 text-muted-foreground" />
+                      {c.city || c.address ? `${c.address || ""}${c.address && c.city ? ", " : ""}${c.city || ""}` : "—"}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{c.last_order_at ? `Sidst: ${fmtDate(c.last_order_at)}` : "Ingen bestillinger endnu"}</p>
+                  </div>
+                  <div className="flex items-center justify-end gap-2 flex-wrap">
+                    {c.active_subs > 0 && (
+                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground tabular-nums">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        {c.active_subs} abo.
+                      </span>
+                    )}
+                    {c.paused_subs > 0 && (
+                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground tabular-nums">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                        {c.paused_subs} pause
+                      </span>
+                    )}
+                    {c.orders_count > 0 && (
+                      <span className="text-[11px] text-muted-foreground tabular-nums">
+                        {c.orders_count} ordrer
+                      </span>
+                    )}
+                    <span className="text-sm font-semibold text-foreground tabular-nums w-20 text-right">{c.total_revenue > 0 ? fmtKr(c.total_revenue) : "—"}</span>
+                  </div>
+                </button>
+                <div className="flex items-center gap-0.5 shrink-0">
+                  <Tooltip><TooltipTrigger asChild><button
+                    onClick={(e) => { e.stopPropagation(); openCreateOrderForCustomer(c); }}
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                  >
+                    <ShoppingBag className="h-3.5 w-3.5" />
+                  </button></TooltipTrigger><TooltipContent>Opret bestilling</TooltipContent></Tooltip>
+                  <Tooltip><TooltipTrigger asChild><button
+                    onClick={(e) => { e.stopPropagation(); openEditDialog(c); }}
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button></TooltipTrigger><TooltipContent>Rediger kunde</TooltipContent></Tooltip>
+                  {c.saved_id && (
+                    <Tooltip><TooltipTrigger asChild><button
+                      onClick={(e) => { e.stopPropagation(); setConfirmDelete({ open: true, targets: [c] }); }}
+                      className="rounded-md p-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button></TooltipTrigger><TooltipContent>Slet kunde</TooltipContent></Tooltip>
+                  )}
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 ml-0.5" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
       )}
 
       {/* Detail sheet */}
