@@ -1,12 +1,10 @@
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -14,16 +12,16 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Search, User, Mail, Phone, MapPin, Package, Repeat, Calendar,
-  Route as RouteIcon, TrendingUp, Star, Clock, ChevronRight, ExternalLink, Pause,
-  UserPlus, Building2, Pencil, Trash2, ShoppingBag, Send,
+  User, Mail, Phone, MapPin, Package, Repeat, Calendar,
+  Route as RouteIcon, Star, Clock, ChevronRight, ExternalLink, Pause,
+  UserPlus, Building2, Pencil, Trash2, ShoppingBag,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { INTERVAL_LABELS } from "@/types/service";
 import { Link } from "react-router-dom";
 import CustomerEditDialog, { type EditableCustomer } from "./CustomerEditDialog";
-import { PageHeader, PrimaryButton, StatCard, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
+import { PageHeader, PrimaryButton, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
 import { toast } from "sonner";
 
 type Customer = {
@@ -342,17 +340,22 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
 };
 
 const StatusBadge = ({ status }: { status: string }) => {
-  const map: Record<string, { label: string; className: string }> = {
-    pending:     { label: "Afventer",  className: "border-amber-300 text-amber-700 bg-amber-50" },
-    confirmed:   { label: "Bekræftet", className: "border-blue-300 text-blue-700 bg-blue-50" },
-    in_progress: { label: "Igang",     className: "border-purple-300 text-purple-700 bg-purple-50" },
-    completed:   { label: "Udført",    className: "border-emerald-300 text-emerald-700 bg-emerald-50" },
-    cancelled:   { label: "Annulleret",className: "border-destructive/40 text-destructive bg-destructive/5" },
-    active:      { label: "Aktiv",     className: "border-emerald-300 text-emerald-700 bg-emerald-50" },
-    paused:      { label: "Pauset",    className: "border-amber-300 text-amber-700 bg-amber-50" },
+  const map: Record<string, { label: string; dot: string }> = {
+    pending:     { label: "Afventer",   dot: "bg-amber-500" },
+    confirmed:   { label: "Bekræftet",  dot: "bg-blue-500" },
+    in_progress: { label: "I gang",     dot: "bg-violet-500" },
+    completed:   { label: "Udført",     dot: "bg-emerald-500" },
+    cancelled:   { label: "Annulleret", dot: "bg-destructive" },
+    active:      { label: "Aktiv",      dot: "bg-emerald-500" },
+    paused:      { label: "Pauset",     dot: "bg-amber-500" },
   };
-  const m = map[status] || { label: status, className: "border-border text-muted-foreground" };
-  return <Badge variant="outline" className={`text-[10px] h-5 px-1.5 ${m.className}`}>{m.label}</Badge>;
+  const m = map[status] || { label: status, dot: "bg-muted-foreground/40" };
+  return (
+    <Badge variant="outline" className="text-[10px] h-5 px-1.5 gap-1 border-border bg-secondary text-foreground">
+      <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} />
+      {m.label}
+    </Badge>
+  );
 };
 
 interface Props { businessId: string; businessName?: string }
@@ -500,48 +503,79 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         }
       />
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <StatCard label="Kunder i alt" value={stats.total} icon={<User />} tone="accent" />
-        <StatCard label="Med abonnement" value={stats.recurring} icon={<Repeat />} tone="emerald" />
-        <StatCard label="Samlet omsætning" value={fmtKr(stats.totalRev)} icon={<TrendingUp />} tone="amber" />
+      {/* Stats + filters */}
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kunder i alt</p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{stats.total}</p>
+            </CardContent>
+          </Card>
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Med abonnement</p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{stats.recurring}</p>
+            </CardContent>
+          </Card>
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Samlet omsætning</p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{fmtKr(stats.totalRev)}</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex flex-wrap gap-2 lg:justify-end">
+          {[
+            { key: "all", label: "Alle", count: stats.total },
+            { key: "private", label: "Privat", count: stats.privateCount },
+            { key: "business", label: "Erhverv", count: stats.businessCount },
+          ].map(({ key, label, count }) => (
+            <button
+              key={key}
+              onClick={() => setTypeFilter(key as any)}
+              className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                typeFilter === key
+                  ? "border-border bg-secondary text-foreground"
+                  : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+              }`}
+            >
+              {label}
+              {count > 0 && <span className="ml-1.5 tabular-nums">{count}</span>}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Search */}
       <div className="flex items-center gap-2 flex-wrap">
         <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, firma, CVR eller by..." />
-        <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as any)}>
-          <SelectTrigger className="w-[180px] rounded-lg h-10">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Alle kunder ({stats.total})</SelectItem>
-            <SelectItem value="private">Privatkunder ({stats.privateCount})</SelectItem>
-            <SelectItem value="business">Erhvervskunder ({stats.businessCount})</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Bulk actions bar */}
       {selectedCustomers.length > 0 && (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent/5 px-4 py-2.5">
-          <div className="text-sm text-foreground">
-            <span className="font-semibold">{selectedCustomers.length}</span> kunde{selectedCustomers.length === 1 ? "" : "r"} valgt
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())} className="h-8 text-xs">
-              Fravælg alle
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setConfirmDelete({ open: true, targets: selectedCustomers })}
-              className="h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30"
-            >
-              <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Slet valgte
-            </Button>
-          </div>
-        </div>
+        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+          <CardContent className="flex items-center justify-between gap-3 p-3">
+            <div className="text-sm text-foreground">
+              <span className="font-semibold">{selectedCustomers.length}</span> kunde{selectedCustomers.length === 1 ? "" : "r"} valgt
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())}
+                className="h-8 rounded-lg text-xs text-foreground hover:bg-secondary hover:text-foreground">
+                Fravælg alle
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmDelete({ open: true, targets: selectedCustomers })}
+                className="h-8 rounded-lg border-border text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Slet valgte
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* List */}
@@ -557,103 +591,105 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
           ) : undefined}
         />
       ) : (
-        <div className="rounded-xl border border-border bg-card overflow-hidden divide-y divide-border">
-          {/* Header with select-all */}
-          {eligibleSelectable.length > 0 && (
-            <div className="flex items-center gap-3 px-3.5 py-2 bg-secondary/40 text-xs font-medium text-muted-foreground">
-              <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Vælg alle" />
-              <span>{allSelected ? "Alle valgt" : `Vælg alle (${eligibleSelectable.length})`}</span>
-            </div>
-          )}
-          {filtered.map((c) => (
-            <div key={c.email} className="flex items-center gap-3 p-3.5 hover:bg-secondary/50 transition-colors">
-              {c.saved_id ? (
-                <Checkbox
-                  checked={selectedIds.has(c.saved_id)}
-                  onCheckedChange={() => toggleSelect(c.saved_id!)}
-                  aria-label={`Vælg ${c.name}`}
-                  className="shrink-0"
-                />
-              ) : (
-                <div className="w-4 shrink-0" />
-              )}
-              <button
-                onClick={() => setSelectedEmail(c.email)}
-                className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0 text-sm font-semibold text-accent"
-                title="Se detaljer"
-              >
-                {c.type === "business" ? <Building2 className="h-4 w-4" /> : (c.name?.charAt(0).toUpperCase() || "?")}
-              </button>
-              <button
-                onClick={() => setSelectedEmail(c.email)}
-                className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-[1.5fr_1fr_1fr] gap-2 items-center text-left"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate flex items-center gap-1.5">
-                    {c.type === "business" && c.company_name ? c.company_name : c.name}
-                    {c.type === "business" && (
-                      <Badge variant="outline" className="text-[10px] h-4 px-1 border-blue-300 text-blue-700 bg-blue-50">Erhverv</Badge>
-                    )}
-                    {c.type === "private" && (
-                      <Badge variant="outline" className="text-[10px] h-4 px-1 border-emerald-300 text-emerald-700 bg-emerald-50">Privat</Badge>
-                    )}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">{c.email}{c.phone ? ` · ${c.phone}` : ""}</p>
-                </div>
-                <div className="min-w-0 hidden sm:block">
-                  <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
-                    <MapPin className="h-3 w-3 shrink-0" />
-                    {c.city || c.address ? `${c.address || ""}${c.address && c.city ? ", " : ""}${c.city || ""}` : "—"}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground/70 mt-0.5">{c.last_order_at ? `Sidst: ${fmtDate(c.last_order_at)}` : "Ingen bestillinger endnu"}</p>
-                </div>
-                <div className="flex items-center justify-end gap-2">
-                  {c.active_subs > 0 && (
-                    <Badge variant="outline" className="border-emerald-300 text-emerald-700 bg-emerald-50 text-[10px] h-5 px-1.5 gap-0.5">
-                      <Repeat className="h-2.5 w-2.5" />
-                      {c.active_subs} abo.
-                    </Badge>
-                  )}
-                  {c.paused_subs > 0 && (
-                    <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50 text-[10px] h-5 px-1.5 gap-0.5">
-                      <Pause className="h-2.5 w-2.5" />
-                      {c.paused_subs} på pause
-                    </Badge>
-                  )}
-                  {c.orders_count > 0 && (
-                    <Badge variant="secondary" className="text-[10px] h-5 px-1.5">
-                      {c.orders_count} ordrer
-                    </Badge>
-                  )}
-                  <span className="text-sm font-bold text-foreground tabular-nums w-24 text-right">{c.total_revenue > 0 ? fmtKr(c.total_revenue) : "—"}</span>
-                </div>
-              </button>
-              <div className="flex items-center gap-1 shrink-0">
-                <Tooltip><TooltipTrigger asChild><button
-                  onClick={(e) => { e.stopPropagation(); openCreateOrderForCustomer(c); }}
-                  className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                >
-                  <ShoppingBag className="h-4 w-4" />
-                </button></TooltipTrigger><TooltipContent>Opret bestilling</TooltipContent></Tooltip>
-                <Tooltip><TooltipTrigger asChild><button
-                  onClick={(e) => { e.stopPropagation(); openEditDialog(c); }}
-                  className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                >
-                  <Pencil className="h-4 w-4" />
-                </button></TooltipTrigger><TooltipContent>Rediger kunde</TooltipContent></Tooltip>
-                {c.saved_id && (
-                  <Tooltip><TooltipTrigger asChild><button
-                    onClick={(e) => { e.stopPropagation(); setConfirmDelete({ open: true, targets: [c] }); }}
-                    className="rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button></TooltipTrigger><TooltipContent>Slet kunde</TooltipContent></Tooltip>
-                )}
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
+          <div className="divide-y divide-border">
+            {/* Header with select-all */}
+            {eligibleSelectable.length > 0 && (
+              <div className="flex items-center gap-3 px-3.5 py-2 bg-secondary/40 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Vælg alle" />
+                <span>{allSelected ? "Alle valgt" : `Vælg alle (${eligibleSelectable.length})`}</span>
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+            {filtered.map((c) => (
+              <div key={c.email} className="flex items-center gap-3 px-3.5 py-2.5 hover:bg-secondary/60 transition-colors">
+                {c.saved_id ? (
+                  <Checkbox
+                    checked={selectedIds.has(c.saved_id)}
+                    onCheckedChange={() => toggleSelect(c.saved_id!)}
+                    aria-label={`Vælg ${c.name}`}
+                    className="shrink-0"
+                  />
+                ) : (
+                  <div className="w-4 shrink-0" />
+                )}
+                <button
+                  onClick={() => setSelectedEmail(c.email)}
+                  className="h-9 w-9 rounded-lg bg-secondary flex items-center justify-center shrink-0 text-sm font-semibold text-foreground"
+                  title="Se detaljer"
+                >
+                  {c.type === "business" ? <Building2 className="h-4 w-4" /> : (c.name?.charAt(0).toUpperCase() || "?")}
+                </button>
+                <button
+                  onClick={() => setSelectedEmail(c.email)}
+                  className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-[1.6fr_1fr_1fr] gap-2 items-center text-left"
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${c.type === "business" ? "bg-blue-500" : c.type === "private" ? "bg-emerald-500" : "bg-muted-foreground/40"}`} />
+                      <p className="text-sm font-semibold text-foreground truncate">
+                        {c.type === "business" && c.company_name ? c.company_name : c.name}
+                      </p>
+                      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide shrink-0">
+                        {c.type === "business" ? "Erhverv" : c.type === "private" ? "Privat" : "—"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">{c.email}{c.phone ? ` · ${c.phone}` : ""}</p>
+                  </div>
+                  <div className="min-w-0 hidden sm:block">
+                    <p className="text-xs text-foreground truncate flex items-center gap-1">
+                      <MapPin className="h-3 w-3 shrink-0 text-muted-foreground" />
+                      {c.city || c.address ? `${c.address || ""}${c.address && c.city ? ", " : ""}${c.city || ""}` : "—"}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{c.last_order_at ? `Sidst: ${fmtDate(c.last_order_at)}` : "Ingen bestillinger endnu"}</p>
+                  </div>
+                  <div className="flex items-center justify-end gap-2 flex-wrap">
+                    {c.active_subs > 0 && (
+                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground tabular-nums">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        {c.active_subs} abo.
+                      </span>
+                    )}
+                    {c.paused_subs > 0 && (
+                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground tabular-nums">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                        {c.paused_subs} pause
+                      </span>
+                    )}
+                    {c.orders_count > 0 && (
+                      <span className="text-[11px] text-muted-foreground tabular-nums">
+                        {c.orders_count} ordrer
+                      </span>
+                    )}
+                    <span className="text-sm font-semibold text-foreground tabular-nums w-20 text-right">{c.total_revenue > 0 ? fmtKr(c.total_revenue) : "—"}</span>
+                  </div>
+                </button>
+                <div className="flex items-center gap-0.5 shrink-0">
+                  <Tooltip><TooltipTrigger asChild><button
+                    onClick={(e) => { e.stopPropagation(); openCreateOrderForCustomer(c); }}
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                  >
+                    <ShoppingBag className="h-3.5 w-3.5" />
+                  </button></TooltipTrigger><TooltipContent>Opret bestilling</TooltipContent></Tooltip>
+                  <Tooltip><TooltipTrigger asChild><button
+                    onClick={(e) => { e.stopPropagation(); openEditDialog(c); }}
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button></TooltipTrigger><TooltipContent>Rediger kunde</TooltipContent></Tooltip>
+                  {c.saved_id && (
+                    <Tooltip><TooltipTrigger asChild><button
+                      onClick={(e) => { e.stopPropagation(); setConfirmDelete({ open: true, targets: [c] }); }}
+                      className="rounded-md p-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button></TooltipTrigger><TooltipContent>Slet kunde</TooltipContent></Tooltip>
+                  )}
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 ml-0.5" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
       )}
 
       {/* Detail sheet */}
@@ -686,7 +722,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Annullér</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting} className="text-foreground hover:bg-secondary hover:text-foreground">Annullér</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => confirmDelete && handleDelete(confirmDelete.targets)}
               disabled={deleting}
@@ -718,8 +754,8 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
             <SheetHeader className="border-b border-border p-5">
               <SheetTitle className="text-left">
                 <div className="flex items-start gap-3">
-                  <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center text-base font-semibold text-accent shrink-0">
-                    {customer.name.charAt(0).toUpperCase()}
+                  <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center text-base font-semibold text-foreground shrink-0">
+                    {customer.type === "business" ? <Building2 className="h-5 w-5" /> : customer.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="text-lg font-bold text-foreground truncate">{customer.name}</h3>
@@ -783,7 +819,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                     const renderSub = (s: SubRow) => {
                       const pref = s.preferred_route_id ? data.preferredRoutes[s.preferred_route_id] : null;
                       return (
-                        <div key={s.id} className={`rounded-xl border p-3 ${s.status === "paused" ? "border-amber-300/60 bg-amber-50/40" : "border-border bg-card"}`}>
+                        <div key={s.id} className="rounded-xl border border-border bg-card p-3">
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-semibold text-foreground truncate">{s.service_name}</p>
@@ -887,7 +923,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                       </h4>
                       <div className="space-y-2">
                         {data.orders.map(o => (
-                          <div key={o.id} className={`rounded-xl border p-3 space-y-1.5 ${o.is_paused ? "border-amber-300/60 bg-amber-50/30" : "border-border bg-card"}`}>
+                          <div key={o.id} className="rounded-xl border border-border bg-card p-3 space-y-1.5">
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0 flex-1">
                                 <p className="text-xs text-muted-foreground flex items-center gap-1.5">
