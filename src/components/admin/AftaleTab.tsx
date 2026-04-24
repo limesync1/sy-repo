@@ -13,7 +13,7 @@ import {
   ShoppingCart, Pencil, Minus, Plus, Check, X, MessageSquare,
   ChevronDown, ChevronUp, Clock, User, Mail, Phone, ArrowRight,
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
-  Play, Pause,
+  Play, Pause, Search,
 } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
@@ -563,6 +563,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   const { data: subscriptions } = useBusinessSubscriptions(businessId);
   const qc = useQueryClient();
   const [filter, setFilter] = useState<string>("all");
+  const [search, setSearch] = useState("");
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const [responseType, setResponseType] = useState<"accepted" | "rejected" | "adjusted">("accepted");
@@ -603,10 +604,23 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
     o.status === "pending" && o.business_response === "adjusted" && !o.customer_response
   ) || [];
 
-  const filteredOrders = filter === "all" ? orders
+  const baseFilteredOrders = filter === "all" ? orders
     : filter === "action_needed" ? actionNeeded
     : filter === "waiting" ? waitingForCustomer
     : orders?.filter(o => o.status === filter);
+
+  // Søgning på kundenavn, e-mail, telefon, adresse og service-navne
+  const q = search.trim().toLowerCase();
+  const filteredOrders = !q ? baseFilteredOrders : baseFilteredOrders?.filter((o: any) => {
+    if ((o.customer_name || "").toLowerCase().includes(q)) return true;
+    if ((o.customer_email || "").toLowerCase().includes(q)) return true;
+    if ((o.customer_phone || "").toLowerCase().includes(q)) return true;
+    if ((o.address || "").toLowerCase().includes(q)) return true;
+    if ((o.city || "").toLowerCase().includes(q)) return true;
+    if ((o.company_name || "").toLowerCase().includes(q)) return true;
+    const items = (o.order_items || []) as any[];
+    return items.some((it: any) => (it.service_name || "").toLowerCase().includes(q));
+  });
 
   const initAdjustedItems = (order: any) => {
     const items = (order.order_items || []).map((item: any) =>
@@ -799,6 +813,17 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
         </Card>
       </div>
 
+      {/* Søgefelt — leder efter kunde, service, adresse osv. */}
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Søg efter kunde, e-mail, service eller adresse..."
+          className="h-10 pl-9 rounded-lg"
+        />
+      </div>
+
       {/* Filtre — placeret under stats-kortene, så de er lette at scanne */}
       <div className="flex flex-wrap gap-2">
         {[
@@ -952,7 +977,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                                 daysUntilNext <= 0 ? "text-destructive" : daysUntilNext <= 3 ? "text-amber-600" : "text-accent"
                               }`}>
                                 <CalendarClock className="h-3 w-3" />
-                                {daysUntilNext <= 0 ? "I dag!" : daysUntilNext === 1 ? "I morgen" : `om ${daysUntilNext} dage`}
+                                <span className="text-muted-foreground font-normal">Næste udførelse:</span>
+                                {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
+                                <span>· {daysUntilNext <= 0 ? "i dag!" : daysUntilNext === 1 ? "i morgen" : `om ${daysUntilNext} dage`}</span>
                               </span>
                             )}
                           </div>
