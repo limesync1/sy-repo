@@ -855,6 +855,8 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
           ...(waitingForCustomer.length > 0 ? [{ key: "waiting", label: "Afventer kunde", count: waitingForCustomer.length }] : []),
           { key: "confirmed", label: "Aftalte", count: counts.confirmed || 0 },
           { key: "in_progress", label: "I gang", count: counts.in_progress || 0 },
+          { key: "in_route", label: "I rute", count: Object.keys(stopByOrder).length },
+          { key: "not_planned", label: "Ikke planlagt", count: (orders || []).filter(o => !stopByOrder[o.id] && !["completed","cancelled"].includes(o.status)).length },
           { key: "completed", label: "Udførte", count: counts.completed || 0 },
           { key: "cancelled", label: "Annullerede", count: counts.cancelled || 0 },
         ].map(({ key, label, count }) => (
