@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   ShoppingCart, Pencil, Minus, Plus, Check, X, MessageSquare,
-  ChevronDown, ChevronUp, Clock, User, Mail, Phone, ArrowRight,
+  ChevronDown, ChevronUp, Clock, Mail, Phone, ArrowRight,
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
   Play, Pause, Search, Route as RouteIcon, MapPin,
 } from "lucide-react";
