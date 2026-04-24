@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   useEmployees, useCreateEmployee,
   useUpdateEmployee, useDeleteEmployee, useResetEmployeePassword,
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Mail, Phone, Briefcase, UserPlus, X,
-  Trash2, Power, PowerOff, CheckCircle2, Pencil, KeyRound,
+  Trash2, Power, PowerOff, CheckCircle2, Pencil, KeyRound, Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
@@ -23,7 +23,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { PageHeader, PrimaryButton, FieldLabel, SectionCard, EmptyState } from "@/components/admin/shared/AdminUI";
+import { PageHeader, PrimaryButton, FieldLabel, SectionCard, EmptyState, SearchInput } from "@/components/admin/shared/AdminUI";
 
 interface Props {
   businessId: string;
@@ -42,6 +42,8 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [title, setTitle] = useState("");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "linked" | "pending">("all");
 
   const resetForm = () => {
     setName(""); setEmail(""); setPhone(""); setTitle("");
@@ -74,6 +76,33 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
     );
   };
 
+  // Hooks skal kaldes før early return — derfor beregner vi filtered her,
+  // og bruger employees direkte i deps så det er stabilt.
+  const all = employees || [];
+  const activeEmployees = all.filter((e) => e.is_active);
+  const inactiveEmployees = all.filter((e) => !e.is_active);
+  const linkedCount = all.filter((e) => !!e.user_id).length;
+  const pendingCount = all.filter((e) => !e.user_id).length;
+
+  const filtered = useMemo(() => {
+    let list = employees || [];
+    if (statusFilter === "active")   list = list.filter((e) => e.is_active);
+    if (statusFilter === "inactive") list = list.filter((e) => !e.is_active);
+    if (statusFilter === "linked")   list = list.filter((e) => !!e.user_id);
+    if (statusFilter === "pending")  list = list.filter((e) => !e.user_id);
+    if (!search.trim()) return list;
+    const q = search.toLowerCase();
+    return list.filter((e) =>
+      (e.name || "").toLowerCase().includes(q) ||
+      (e.email || "").toLowerCase().includes(q) ||
+      (e.phone || "").toLowerCase().includes(q) ||
+      (e.title || "").toLowerCase().includes(q),
+    );
+  }, [employees, search, statusFilter]);
+
+  const filteredActive = filtered.filter((e) => e.is_active);
+  const filteredInactive = filtered.filter((e) => !e.is_active);
+
   if (!routePlanningEnabled) {
     return (
       <div className="max-w-3xl space-y-6">
@@ -90,11 +119,8 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
     );
   }
 
-  const activeEmployees = employees?.filter((e) => e.is_active) || [];
-  const inactiveEmployees = employees?.filter((e) => !e.is_active) || [];
-
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Medarbejdere"
         description="Tilføj medarbejdere — der oprettes automatisk en konto, og de modtager login-oplysninger på email."
@@ -104,6 +130,60 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
           </PrimaryButton>
         ) : null}
       />
+
+      {/* Stats + filter — samme layout som Kunder/Aftaler */}
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Medarbejdere i alt</p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{all.length}</p>
+            </CardContent>
+          </Card>
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Aktive</p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{activeEmployees.length}</p>
+            </CardContent>
+          </Card>
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Konto aktiveret</p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{linkedCount}</p>
+              {pendingCount > 0 && (
+                <p className="mt-0.5 text-[11px] text-muted-foreground">{pendingCount} afventer login</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex flex-wrap gap-2 lg:justify-end">
+          {[
+            { key: "all", label: "Alle", count: all.length },
+            { key: "active", label: "Aktive", count: activeEmployees.length },
+            { key: "inactive", label: "Deaktiverede", count: inactiveEmployees.length },
+            ...(pendingCount > 0 ? [{ key: "pending", label: "Afventer login", count: pendingCount }] : []),
+          ].map(({ key, label, count }) => (
+            <button
+              key={key}
+              onClick={() => setStatusFilter(key as any)}
+              className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                statusFilter === key
+                  ? "border-border bg-secondary text-foreground"
+                  : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+              }`}
+            >
+              {label}
+              {count > 0 && <span className="ml-1.5 tabular-nums">{count}</span>}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Søgefelt */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, telefon eller titel..." />
+      </div>
 
       {/* Create Form */}
       {showForm && (
@@ -171,48 +251,8 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 
       {isLoading && <p className="text-sm text-muted-foreground">Indlæser…</p>}
 
-      {/* Active Employees */}
-      {activeEmployees.length > 0 && (
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-            Aktive ({activeEmployees.length})
-          </h3>
-          <div className="space-y-2">
-            {activeEmployees.map((emp) => (
-              <EmployeeRow
-                key={emp.id}
-                employee={emp}
-                businessId={businessId}
-                onUpdate={update}
-                onRemove={remove}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Inactive Employees */}
-      {inactiveEmployees.length > 0 && (
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-            Deaktiverede ({inactiveEmployees.length})
-          </h3>
-          <div className="space-y-2">
-            {inactiveEmployees.map((emp) => (
-              <EmployeeRow
-                key={emp.id}
-                employee={emp}
-                businessId={businessId}
-                onUpdate={update}
-                onRemove={remove}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Empty state */}
-      {!isLoading && (employees?.length === 0) && !showForm && (
+      {/* Liste — ét stort kort med header-bar og rækker adskilt af divide-y, ligesom Kunder. */}
+      {!isLoading && all.length === 0 && !showForm ? (
         <EmptyState
           icon={<UserPlus />}
           title="Ingen medarbejdere endnu"
@@ -223,7 +263,63 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
             </PrimaryButton>
           }
         />
-      )}
+      ) : !isLoading && filtered.length === 0 ? (
+        <EmptyState
+          icon={<Users />}
+          title="Ingen medarbejdere matcher"
+          description="Prøv et andet søgeord eller skift filter."
+        />
+      ) : !isLoading ? (
+        <div className="space-y-3">
+          {filteredActive.length > 0 && (
+            <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
+                <div className="min-w-0">
+                  <h3 className="text-sm font-semibold text-foreground">Aktive medarbejdere</h3>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {filteredActive.length} {filteredActive.length === 1 ? "medarbejder" : "medarbejdere"}
+                  </p>
+                </div>
+              </div>
+              <div className="divide-y divide-border">
+                {filteredActive.map((emp) => (
+                  <EmployeeRow
+                    key={emp.id}
+                    employee={emp}
+                    businessId={businessId}
+                    onUpdate={update}
+                    onRemove={remove}
+                  />
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {filteredInactive.length > 0 && (
+            <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
+                <div className="min-w-0">
+                  <h3 className="text-sm font-semibold text-foreground">Deaktiverede</h3>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {filteredInactive.length} {filteredInactive.length === 1 ? "medarbejder" : "medarbejdere"}
+                  </p>
+                </div>
+              </div>
+              <div className="divide-y divide-border">
+                {filteredInactive.map((emp) => (
+                  <EmployeeRow
+                    key={emp.id}
+                    employee={emp}
+                    businessId={businessId}
+                    onUpdate={update}
+                    onRemove={remove}
+                  />
+                ))}
+              </div>
+            </Card>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 };
@@ -301,8 +397,7 @@ const EmployeeRow = ({
 
   return (
     <TooltipProvider delayDuration={200}>
-    <Card className={`rounded-xl ${employee.is_active ? "" : "opacity-60"}`}>
-      <CardContent className="p-4 flex items-center justify-between gap-3">
+    <div className={`group flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5 ${employee.is_active ? "" : "opacity-60"}`}>
         <div className="flex items-center gap-3 min-w-0">
           {/* Avatar / farve-prik med hover-overlay til upload */}
           <div className="relative h-10 w-10 shrink-0 group/avatar">
@@ -445,7 +540,6 @@ const EmployeeRow = ({
             <Trash2 className="h-4 w-4" />
           </button></TooltipTrigger><TooltipContent>Slet medarbejder</TooltipContent></Tooltip>
         </div>
-      </CardContent>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-md">
@@ -574,7 +668,7 @@ const EmployeeRow = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Card>
+    </div>
     </TooltipProvider>
   );
 };

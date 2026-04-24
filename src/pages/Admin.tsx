@@ -214,8 +214,9 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Nav items */}
-        <nav className="flex-1 space-y-1 px-3 overflow-y-auto">
+        {/* Nav items — pt-1/pb-2 så aktiv-ringen på første/sidste punkt
+            ikke beskæres af overflow-grænsen. */}
+        <nav className="flex-1 space-y-1 px-3 pt-1 pb-2 overflow-y-auto">
           {visibleNav.map((item: any) => {
             const isActive = activeTab === item.value;
             const baseClasses = `flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
