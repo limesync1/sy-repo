@@ -1127,7 +1127,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                               </span>
                             )}
                           </div>
-                          <span className="text-[10px] uppercase tracking-wide font-medium text-muted-foreground">
+                          <span className="text-[10px] font-medium text-muted-foreground">
                             Stop #{(routeStop.sequence ?? 0) + 1}
                           </span>
                         </div>
@@ -1144,11 +1144,11 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                           {routeStop.status && (
                             <span className="inline-flex items-center gap-1">
                               <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: routeInfo.color }} />
-                              Stop-status: <span className="text-foreground font-medium">{routeStop.status}</span>
+                              Status på dette stop: <span className="text-foreground font-medium">{formatStopStatus(routeStop.status)}</span>
                             </span>
                           )}
                           {routeInfo.status && (
-                            <span>Rute-status: <span className="text-foreground font-medium">{routeInfo.status}</span></span>
+                            <span>Status på rute: <span className="text-foreground font-medium">{formatRouteStatus(routeInfo.status)}</span></span>
                           )}
                         </div>
                       </div>
