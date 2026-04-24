@@ -14,6 +14,7 @@ import {
   ChevronDown, ChevronUp, Clock, Mail, Phone, ArrowRight,
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
   Play, Pause, Search, Route as RouteIcon, MapPin, Plus as PlusIcon,
+  GripVertical,
 } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
@@ -1140,7 +1141,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                 onDragEnd={() => { setDraggingOrderId(null); setDragOverRouteId(null); }}
                 className={`surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden ${
                   canDragToRoute ? "cursor-grab active:cursor-grabbing" : ""
-                } ${draggingOrderId === order.id ? "opacity-60" : ""}`}
+                } ${draggingOrderId === order.id ? "opacity-60" : ""} ${
+                  canDragToRoute ? "select-none" : ""
+                }`}
               >
                 {/* Header — samme struktur som ServiceRow på Services-fanen:
                     ikon + navn + meta i én kolonne; status, beløb og chevron i højre side. */}
@@ -1161,6 +1164,27 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                   <div className="grid gap-2.5 p-3.5 sm:p-4">
                     <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex min-w-0 items-start gap-2.5">
+                        {/* Eksplicit drag-håndtag — gør det helt tydeligt at kortet
+                            kan trækkes, og fungerer som primær gribepunkt for HTML5-drag. */}
+                        {canDragToRoute && (
+                          <div
+                            draggable
+                            onDragStart={(e) => {
+                              e.stopPropagation();
+                              e.dataTransfer.effectAllowed = "link";
+                              e.dataTransfer.setData("application/x-order-id", order.id);
+                              e.dataTransfer.setData("text/plain", order.id);
+                              setDraggingOrderId(order.id);
+                            }}
+                            onDragEnd={() => { setDraggingOrderId(null); setDragOverRouteId(null); }}
+                            onClick={(e) => e.stopPropagation()}
+                            title="Træk til en rute i Rute-pool"
+                            className="flex h-9 w-5 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground active:cursor-grabbing"
+                            aria-label="Træk aftalen til en rute"
+                          >
+                            <GripVertical className="h-4 w-4" />
+                          </div>
+                        )}
                         {/* Ikon-badge — viser service-kategori-ikon (samme som Services-fanen) */}
                         <div
                           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground"
