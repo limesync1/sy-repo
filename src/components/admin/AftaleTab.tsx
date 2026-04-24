@@ -293,7 +293,7 @@ const CustomerOrderSummary = ({ order }: { order: any }) => {
   return (
     <div className="rounded-xl border border-border overflow-hidden">
       <div className="px-4 py-2.5 bg-muted/40 border-b border-border">
-        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bestilte services</span>
+        <span className="text-sm font-semibold text-foreground">Bestilte services</span>
       </div>
       {items.map((item: any) => (
         <div key={item.id} className="border-b border-border last:border-b-0 px-4 py-3">
