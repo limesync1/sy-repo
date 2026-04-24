@@ -652,10 +652,12 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                   </p>
                 </div>
               </div>
-              <div className="hidden sm:flex items-center gap-4 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              {/* Kolonne-titler: matcher præcis bredde og rækkefølge i hver række
+                  (bestillinger w-20, omsætning w-24, handlinger ~ 4 × 32px = 128px). */}
+              <div className="hidden sm:flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 <span className="w-20 text-right">Bestillinger</span>
                 <span className="w-24 text-right">Omsætning</span>
-                <span className="w-6" />
+                <span className="w-[136px] text-right pr-2">Handlinger</span>
               </div>
             </div>
 
