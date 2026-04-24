@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -14,7 +15,7 @@ import {
 import {
   User, Mail, Phone, MapPin, Package, Repeat, Calendar,
   Route as RouteIcon, Star, Clock, ChevronRight, ExternalLink, Pause,
-  UserPlus, Building2, Pencil, Trash2, ShoppingBag,
+  UserPlus, Building2, Pencil, Trash2, ShoppingBag, MoreHorizontal,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
