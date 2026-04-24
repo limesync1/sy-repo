@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   ShoppingCart, Pencil, Minus, Plus, Check, X, MessageSquare,
-  ChevronDown, ChevronUp, Clock, User, Mail, Phone, ArrowRight,
+  ChevronDown, ChevronUp, Clock, Mail, Phone, ArrowRight,
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
   Play, Pause, Search, Route as RouteIcon, MapPin,
 } from "lucide-react";
@@ -195,6 +195,39 @@ const PRICING_LABELS: Record<string, string> = {
   timepris: "Timepris",
   prisberegner: "Prisberegner",
 };
+
+/* ─── Service category icons (samme system som Services-fanen) ─── */
+const CATEGORY_ICONS: Record<string, string> = {
+  "Rengøring": "🧹",
+  "Håndværker": "🔨",
+  "Flyttehjælp": "🚚",
+  "Haveservice": "🌿",
+  "Maler": "🎨",
+  "VVS": "💧",
+  "Elektriker": "⚡",
+  "Sikkerhed": "🛡️",
+};
+const DEFAULT_CATEGORY_ICON = "🧰";
+
+/* ─── Danske labels for rute- og stop-status ─── */
+const STOP_STATUS_LABELS: Record<string, string> = {
+  pending: "Afventer",
+  planned: "Planlagt",
+  in_progress: "I gang",
+  arrived: "Ankommet",
+  completed: "Udført",
+  skipped: "Sprunget over",
+  cancelled: "Annulleret",
+};
+const ROUTE_STATUS_LABELS: Record<string, string> = {
+  draft: "Kladde",
+  planned: "Planlagt",
+  in_progress: "I gang",
+  completed: "Afsluttet",
+  cancelled: "Annulleret",
+};
+const formatStopStatus = (s?: string | null) => (s ? STOP_STATUS_LABELS[s] || s : "");
+const formatRouteStatus = (s?: string | null) => (s ? ROUTE_STATUS_LABELS[s] || s : "");
 
 /* ─── What can the business DO at each stage? ─── */
 const getActions = (order: any): { canRespond: boolean; canProgress: boolean; nextStatus: string | null; nextLabel: string | null } => {
@@ -959,6 +992,16 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
             const routeInfo = routeStop?.route;
             const routeDate = routeInfo?.route_date ? new Date(routeInfo.route_date) : null;
             const routeIsToday = routeDate ? routeDate.toDateString() === new Date().toDateString() : false;
+            // Find primær service-kategori for at vælge ikon — bruger første order_item
+            // der har et matchende service med kategori. Falder tilbage til standard-ikon.
+            const primaryCategory = (() => {
+              for (const it of items) {
+                const svc = it.service_id ? servicesById[it.service_id] : undefined;
+                if (svc?.service_category) return svc.service_category;
+              }
+              return null;
+            })();
+            const categoryIcon = (primaryCategory && CATEGORY_ICONS[primaryCategory]) || DEFAULT_CATEGORY_ICON;
 
             return (
               <Card key={order.id} className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
@@ -971,9 +1014,12 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                   <div className="grid gap-2.5 p-3.5 sm:p-4">
                     <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex min-w-0 items-start gap-2.5">
-                        {/* Ikon-badge i samme stil som Services */}
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground">
-                          <User className="h-4 w-4 text-muted-foreground" />
+                        {/* Ikon-badge — viser service-kategori-ikon (samme som Services-fanen) */}
+                        <div
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground"
+                          title={primaryCategory || "Aftale"}
+                        >
+                          <span className="text-sm leading-none">{categoryIcon}</span>
                         </div>
 
                         <div className="min-w-0 flex-1">
@@ -984,7 +1030,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                               {cfg.label}
                             </span>
                             {hasRecurring && (
-                              <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                              <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                                 <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
                                 {cycles > 0 && <span className="ml-0.5">· #{cycles}</span>}
                               </span>
@@ -1081,7 +1127,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                               </span>
                             )}
                           </div>
-                          <span className="text-[10px] uppercase tracking-wide font-medium text-muted-foreground">
+                          <span className="text-[10px] font-medium text-muted-foreground">
                             Stop #{(routeStop.sequence ?? 0) + 1}
                           </span>
                         </div>
@@ -1098,11 +1144,11 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                           {routeStop.status && (
                             <span className="inline-flex items-center gap-1">
                               <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: routeInfo.color }} />
-                              Stop-status: <span className="text-foreground font-medium">{routeStop.status}</span>
+                              Status på dette stop: <span className="text-foreground font-medium">{formatStopStatus(routeStop.status)}</span>
                             </span>
                           )}
                           {routeInfo.status && (
-                            <span>Rute-status: <span className="text-foreground font-medium">{routeInfo.status}</span></span>
+                            <span>Status på rute: <span className="text-foreground font-medium">{formatRouteStatus(routeInfo.status)}</span></span>
                           )}
                         </div>
                       </div>
