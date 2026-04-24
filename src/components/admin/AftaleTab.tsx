@@ -13,10 +13,11 @@ import {
   ShoppingCart, Pencil, Minus, Plus, Check, X, MessageSquare,
   ChevronDown, ChevronUp, Clock, Mail, Phone, ArrowRight,
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
-  Play, Pause, Search, Route as RouteIcon, MapPin,
+  Play, Pause, Search, Route as RouteIcon, MapPin, Plus as PlusIcon,
 } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
+import { useRoutesForRange, useStopsForRoutes, useAddStop, useCreateRoute } from "@/hooks/useRoutes";
 import {
   buildPricingSnapshot,
   getSmartStep,
@@ -604,6 +605,24 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   const [adjustedItems, setAdjustedItems] = useState<Record<string, AdjustmentItem[]>>({});
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
 
+  // ─── Drag & drop til rute-pool ───
+  // Vi tracker hvilken aftale der pt. trækkes (for visuel feedback) og hvilken
+  // rute der "hovers" over, så vi kan highlighte dropzonen.
+  const [draggingOrderId, setDraggingOrderId] = useState<string | null>(null);
+  const [dragOverRouteId, setDragOverRouteId] = useState<string | null>(null);
+
+  // Ruter for de næste 14 dage (incl. i dag) — det vindue virksomhedsejeren
+  // typisk planlægger inden for. Sidebar-poolen viser disse ruter.
+  const today = new Date();
+  const fromIso = today.toISOString().slice(0, 10);
+  const toDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
+  const toIso = toDate.toISOString().slice(0, 10);
+  const { data: poolRoutes } = useRoutesForRange(businessId, fromIso, toIso);
+  const poolRouteIds = (poolRoutes || []).map((r) => r.id);
+  const { data: poolStops } = useStopsForRoutes(poolRouteIds);
+  const addStop = useAddStop();
+  const createRoute = useCreateRoute();
+
   // Hent route-stops for alle ordrer i denne forretning, så vi kan vise hvilken
   // rute hver aftale er placeret på (dato, rute-navn, sekvens og status).
   const { data: routeStops } = useQuery({
@@ -835,6 +854,67 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
     .filter(s => s.status === "active" && s.next_service_date)
     .sort((a, b) => new Date(a.next_service_date!).getTime() - new Date(b.next_service_date!).getTime());
 
+  // ─── Tilføj aftale til en eksisterende rute (drag-drop fra aftalekort) ───
+  // Finder næste sekvensnummer på den valgte rute, geocoder evt. hvis ordren
+  // mangler koordinater og kalder useAddStop. Synkroniserer både rute-stops
+  // og aftaler-listen, så brugeren ser ændringen straks.
+  const handleDropOrderOnRoute = async (orderId: string, routeId: string) => {
+    const order = (orders || []).find((o: any) => o.id === orderId);
+    if (!order) { toast.error("Aftalen kunne ikke findes"); return; }
+    if (stopByOrder[orderId]) {
+      toast.info("Denne aftale ligger allerede på en rute");
+      return;
+    }
+
+    const stopsForThisRoute = (poolStops || []).filter((s: any) => s.route_id === routeId);
+    const nextSeq = stopsForThisRoute.length > 0
+      ? Math.max(...stopsForThisRoute.map((s: any) => s.sequence ?? 0)) + 1
+      : 0;
+
+    const items = ((order as any).order_items || []) as any[];
+    const summary = items.map((it) => `${it.service_name}${it.quantity > 1 ? ` ×${it.quantity}` : ""}`).join(", ");
+    const fullAddress = [order.address, [order.zip_code, order.city].filter(Boolean).join(" ")]
+      .filter(Boolean).join(", ");
+
+    try {
+      await addStop.mutateAsync({
+        route_id: routeId,
+        order_id: orderId,
+        sequence: nextSeq,
+        customer_name: order.customer_name || null,
+        customer_phone: order.customer_phone || null,
+        address: fullAddress || null,
+        latitude: (order as any).latitude ?? null,
+        longitude: (order as any).longitude ?? null,
+        service_summary: summary || null,
+        duration_minutes: (order as any).estimated_duration_minutes || 30,
+      });
+      const route = (poolRoutes || []).find((r) => r.id === routeId);
+      const dateLabel = route ? new Date(route.route_date).toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" }) : "";
+      toast.success(`Lagt på rute ${route?.name || ""} · ${dateLabel}`);
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops", businessId] });
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke lægge aftalen på ruten");
+    }
+  };
+
+  // Opret en ny rute "i farten" fra sidebar — bruges når brugeren ingen
+  // eksisterende rute har til den dato de vil planlægge.
+  const handleQuickCreateRoute = async (dateIso: string) => {
+    try {
+      const route = await createRoute.mutateAsync({
+        business_id: businessId,
+        route_date: dateIso,
+        name: `Rute ${new Date(dateIso).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}`,
+      });
+      toast.success("Ny rute oprettet");
+      return route;
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke oprette ruten");
+      return null;
+    }
+  };
+
   return (
     <div className="space-y-5">
       <PageHeader
@@ -870,7 +950,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       </div>
 
       {/* Søgefelt — leder efter kunde, service, adresse osv. */}
-      <div className="relative">
+      <div className="grid gap-5 lg:grid-cols-[7fr_3fr]">
+        <div className="space-y-5 min-w-0">
+        <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={search}
@@ -878,7 +960,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
           placeholder="Søg efter kunde, e-mail, service eller adresse..."
           className="h-10 pl-9 rounded-lg"
         />
-      </div>
+        </div>
 
       {/* Filtre — placeret under stats-kortene, så de er lette at scanne */}
       <div className="flex flex-wrap gap-2">
@@ -1002,9 +1084,25 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
               return null;
             })();
             const categoryIcon = (primaryCategory && CATEGORY_ICONS[primaryCategory]) || DEFAULT_CATEGORY_ICON;
+            // Aftalen kan kun trækkes til en rute hvis den ikke allerede ligger på
+            // en rute, og den ikke er afsluttet/annulleret.
+            const canDragToRoute = !routeStop && !["completed", "cancelled"].includes(order.status);
 
             return (
-              <Card key={order.id} className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
+              <Card
+                key={order.id}
+                draggable={canDragToRoute}
+                onDragStart={(e) => {
+                  if (!canDragToRoute) return;
+                  e.dataTransfer.effectAllowed = "link";
+                  e.dataTransfer.setData("application/x-order-id", order.id);
+                  setDraggingOrderId(order.id);
+                }}
+                onDragEnd={() => { setDraggingOrderId(null); setDragOverRouteId(null); }}
+                className={`surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden ${
+                  canDragToRoute ? "cursor-grab active:cursor-grabbing" : ""
+                } ${draggingOrderId === order.id ? "opacity-60" : ""}`}
+              >
                 {/* Header — samme struktur som ServiceRow på Services-fanen:
                     ikon + navn + meta i én kolonne; status, beløb og chevron i højre side. */}
                 <button
@@ -1065,6 +1163,19 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                             <span className="text-muted-foreground">Services: </span>
                             {serviceSummary}
                           </p>
+
+                          {/* Service-adresse — den fysiske adresse hvor opgaven skal
+                              udføres. Vises sammen med by/postnr så virksomhedsejeren
+                              hurtigt kan vurdere geografi inden ruteplanlægning. */}
+                          {(order.address || order.city || order.zip_code) && (
+                            <p className="mt-1 flex items-start gap-1.5 text-xs text-muted-foreground">
+                              <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
+                              <span className="truncate text-foreground/75">
+                                {[order.address, [order.zip_code, order.city].filter(Boolean).join(" ")]
+                                  .filter(Boolean).join(", ")}
+                              </span>
+                            </p>
+                          )}
 
                           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                             <span>{date.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}</span>
@@ -1333,6 +1444,95 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
           description="Aftaler vises her når kunder bestiller."
         />
       )}
+        </div>
+
+        {/* ─── Sidebar: Rute-pool ───
+            Viser ruter for de næste 14 dage. Aftaler kan trækkes direkte
+            fra venstre kolonne over på en rute her — så er den planlagt.
+            Dette er en lettere arbejdsgang end at åbne ruteplanlæggeren. */}
+        <aside className="lg:sticky lg:top-4 lg:self-start">
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between gap-2 border-b border-border bg-secondary/40 px-4 py-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <RouteIcon className="h-4 w-4 text-foreground shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-foreground">Rute-pool</p>
+                  <p className="text-[11px] text-muted-foreground">Træk en aftale herover for at planlægge den</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleQuickCreateRoute(fromIso)}
+                className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-medium text-foreground hover:bg-secondary"
+                title="Opret en ny rute i dag"
+              >
+                <PlusIcon className="h-3 w-3" /> Ny rute
+              </button>
+            </div>
+            <div className="max-h-[calc(100vh-12rem)] overflow-y-auto p-3 space-y-2">
+              {(poolRoutes || []).length === 0 && (
+                <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
+                  Ingen ruter de næste 14 dage. Opret en rute for at komme i gang.
+                </div>
+              )}
+              {(poolRoutes || []).map((route) => {
+                const stopsForRoute = (poolStops || []).filter((s: any) => s.route_id === route.id);
+                const rDate = new Date(route.route_date);
+                const isToday = rDate.toDateString() === new Date().toDateString();
+                const isHover = dragOverRouteId === route.id;
+                return (
+                  <div
+                    key={route.id}
+                    onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "link"; }}
+                    onDragEnter={() => setDragOverRouteId(route.id)}
+                    onDragLeave={(e) => {
+                      // Kun fjern højlight hvis vi forlader hele kortet (ikke et child element)
+                      if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
+                        setDragOverRouteId((c) => (c === route.id ? null : c));
+                      }
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const id = e.dataTransfer.getData("application/x-order-id");
+                      setDragOverRouteId(null);
+                      setDraggingOrderId(null);
+                      if (id) handleDropOrderOnRoute(id, route.id);
+                    }}
+                    className={`rounded-lg border bg-card p-2.5 transition-colors ${
+                      isHover
+                        ? "border-foreground/40 bg-secondary ring-2 ring-foreground/10"
+                        : draggingOrderId
+                        ? "border-dashed border-foreground/30"
+                        : "border-border"
+                    }`}
+                    style={!isHover ? { borderLeft: `3px solid ${route.color}` } : undefined}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-foreground">
+                          {route.name || "Rute"}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {isToday ? "I dag · " : ""}
+                          {rDate.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" })}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        {stopsForRoute.length} stop
+                      </span>
+                    </div>
+                    {isHover && (
+                      <p className="mt-2 rounded-md bg-foreground/5 px-2 py-1 text-center text-[11px] font-medium text-foreground">
+                        Slip her for at lægge aftalen på ruten
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        </aside>
+      </div>
 
       <CreateManualOrderDialog
         open={createOrderOpen}
