@@ -999,12 +999,34 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       onDragEnd={(e: DragEndEvent) => {
         const { active, over } = e;
         setDraggingOrderId(null);
-        if (!over) return;
         const a: any = active.data.current;
-        const o: any = over.data.current;
-        if (a?.type === "order" && o?.type === "pool-route") {
-          handleDropOrderOnRoute(a.orderId, o.routeId);
+        // Kun aftale-drag er understøttet i denne fane.
+        if (a?.type !== "order") return;
+
+        // 1) Sluppet udenfor enhver droppable-zone
+        if (!over) {
+          toast.error("Slip aftalen direkte oven på en rute i Rute-poolen til højre", {
+            description: "Træk hen over et rute-kort indtil det lyser op, før du slipper.",
+          });
+          return;
         }
+
+        const o: any = over.data.current;
+        // 2) Sluppet et ugyldigt sted (ikke en pool-rute)
+        if (o?.type !== "pool-route") {
+          toast.error("Aftaler kan kun slippes på et rute-kort i Rute-poolen", {
+            description: "Find ruten i sidebar'en til højre og slip aftalen direkte oven på den.",
+          });
+          return;
+        }
+
+        // 3) Aftalen er allerede tildelt en rute (ekstra sikkerhed — også checket inde i handler)
+        if (stopByOrder[a.orderId]) {
+          toast.info("Denne aftale ligger allerede på en rute");
+          return;
+        }
+
+        handleDropOrderOnRoute(a.orderId, o.routeId);
       }}
       onDragStart={(e: DragStartEvent) => {
         const a: any = e.active.data.current;
