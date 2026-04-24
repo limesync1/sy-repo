@@ -1579,54 +1579,41 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                 const stopsForRoute = (poolStops || []).filter((s: any) => s.route_id === route.id);
                 const rDate = new Date(route.route_date);
                 const isToday = rDate.toDateString() === new Date().toDateString();
-                const isHover = dragOverRouteId === route.id;
                 return (
-                  <div
-                    key={route.id}
-                    onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "link"; }}
-                    onDragEnter={() => setDragOverRouteId(route.id)}
-                    onDragLeave={(e) => {
-                      // Kun fjern højlight hvis vi forlader hele kortet (ikke et child element)
-                      if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
-                        setDragOverRouteId((c) => (c === route.id ? null : c));
-                      }
-                    }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const id = e.dataTransfer.getData("application/x-order-id");
-                      setDragOverRouteId(null);
-                      setDraggingOrderId(null);
-                      if (id) handleDropOrderOnRoute(id, route.id);
-                    }}
-                    className={`rounded-lg border bg-card p-2.5 transition-colors ${
-                      isHover
-                        ? "border-foreground/40 bg-secondary ring-2 ring-foreground/10"
-                        : draggingOrderId
-                        ? "border-dashed border-foreground/30"
-                        : "border-border"
-                    }`}
-                    style={!isHover ? { borderLeft: `3px solid ${route.color}` } : undefined}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-foreground">
-                          {route.name || "Rute"}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {isToday ? "I dag · " : ""}
-                          {rDate.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" })}
-                        </p>
+                  <PoolRouteDropZone key={route.id} routeId={route.id}>
+                    {({ isOver, isActive }) => (
+                      <div
+                        className={`rounded-lg border bg-card p-2.5 transition-colors ${
+                          isOver
+                            ? "border-foreground/40 bg-secondary ring-2 ring-foreground/10"
+                            : isActive
+                            ? "border-dashed border-foreground/30"
+                            : "border-border"
+                        }`}
+                        style={!isOver ? { borderLeft: `3px solid ${route.color}` } : undefined}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-foreground">
+                              {route.name || "Rute"}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">
+                              {isToday ? "I dag · " : ""}
+                              {rDate.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" })}
+                            </p>
+                          </div>
+                          <span className="shrink-0 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                            {stopsForRoute.length} stop
+                          </span>
+                        </div>
+                        {isOver && (
+                          <p className="mt-2 rounded-md bg-foreground/5 px-2 py-1 text-center text-[11px] font-medium text-foreground">
+                            Slip her for at lægge aftalen på ruten
+                          </p>
+                        )}
                       </div>
-                      <span className="shrink-0 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                        {stopsForRoute.length} stop
-                      </span>
-                    </div>
-                    {isHover && (
-                      <p className="mt-2 rounded-md bg-foreground/5 px-2 py-1 text-center text-[11px] font-medium text-foreground">
-                        Slip her for at lægge aftalen på ruten
-                      </p>
                     )}
-                  </div>
+                  </PoolRouteDropZone>
                 );
               })}
             </div>
