@@ -23,6 +23,7 @@ import ReviewsTab from "@/components/admin/ReviewsTab";
 import AftaleTab from "@/components/admin/AftaleTab";
 import EmployeesTab from "@/components/admin/EmployeesTab";
 import CustomersTab from "@/components/admin/CustomersTab";
+import SettingsTab from "@/components/admin/SettingsTab";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 
 /* ─── Constants ─── */
