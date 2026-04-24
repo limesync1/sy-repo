@@ -744,7 +744,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                     {/* Handlinger */}
                     {/* Inline handlings-knapper — synlige for hver kunde, så ingen
                         dropdown er nødvendig. Tooltips forklarer hver handling. */}
-                    <div className="flex items-center justify-end gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-end gap-0.5 shrink-0 sm:w-[136px]" onClick={(e) => e.stopPropagation()}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
