@@ -571,6 +571,27 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   const [adjustedItems, setAdjustedItems] = useState<Record<string, AdjustmentItem[]>>({});
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
 
+  // Hent route-stops for alle ordrer i denne forretning, så vi kan vise hvilken
+  // rute hver aftale er placeret på (dato, rute-navn, sekvens og status).
+  const { data: routeStops } = useQuery({
+    queryKey: ["aftaler-route-stops", businessId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("route_stops")
+        .select("id, order_id, sequence, status, planned_arrival, planned_departure, route:routes!inner(id, name, route_date, color, status, business_id)")
+        .eq("route.business_id", businessId);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!businessId,
+  });
+
+  // Map: order_id → første tilknyttede stop (en aftale ligger typisk på én rute).
+  const stopByOrder = (routeStops || []).reduce<Record<string, any>>((acc, s: any) => {
+    if (s.order_id && !acc[s.order_id]) acc[s.order_id] = s;
+    return acc;
+  }, {});
+
   if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser aftaler...</p>;
 
   const servicesById = (services || []).reduce<Record<string, BusinessService>>((acc, s) => {
