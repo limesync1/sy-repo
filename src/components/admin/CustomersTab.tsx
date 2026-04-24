@@ -740,47 +740,63 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                     </div>
 
                     {/* Handlinger */}
-                    <div className="flex items-center justify-end gap-1 shrink-0">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                    {/* Inline handlings-knapper — synlige for hver kunde, så ingen
+                        dropdown er nødvendig. Tooltips forklarer hver handling. */}
+                    <div className="flex items-center justify-end gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
                           <button
-                            onClick={(e) => e.stopPropagation()}
-                            className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                            aria-label="Handlinger"
+                            type="button"
+                            onClick={() => setSelectedEmail(c.email)}
+                            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                            aria-label="Se detaljer"
                           >
-                            <MoreHorizontal className="h-4 w-4" />
+                            <ExternalLink className="h-4 w-4" />
                           </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem onClick={() => setSelectedEmail(c.email)} className="text-foreground focus:text-foreground">
-                            <ExternalLink className="h-4 w-4 mr-2" /> Se detaljer
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openCreateOrderForCustomer(c)} className="text-foreground focus:text-foreground">
-                            <ShoppingBag className="h-4 w-4 mr-2" /> Opret bestilling
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openEditDialog(c)} className="text-foreground focus:text-foreground">
-                            <Pencil className="h-4 w-4 mr-2" /> Rediger kunde
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          {c.saved_id ? (
-                            <DropdownMenuItem
-                              onClick={() => setConfirmDelete({ open: true, targets: [c] })}
-                              className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" /> Slet kunde
-                            </DropdownMenuItem>
-                          ) : (
-                            <DropdownMenuItem
-                              disabled
-                              className="text-muted-foreground"
-                              title="Kunden er kun kendt fra ordrer og findes ikke i dit kartotek. Tilføj kunden først via 'Rediger kunde', hvorefter du kan slette den."
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" /> Kan ikke slettes
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>Se detaljer</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => openCreateOrderForCustomer(c)}
+                            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                            aria-label="Opret bestilling"
+                          >
+                            <ShoppingBag className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Opret bestilling</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => openEditDialog(c)}
+                            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                            aria-label="Rediger kunde"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Rediger kunde</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDelete({ open: true, targets: [c] })}
+                            className="rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                            aria-label="Slet kunde"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {c.saved_id ? "Slet kunde" : "Slet kunde og alle bestillinger"}
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
                 );
