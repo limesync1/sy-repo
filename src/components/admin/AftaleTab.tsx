@@ -16,6 +16,11 @@ import {
   Play, Pause, Search, Route as RouteIcon, MapPin, Plus as PlusIcon,
   GripVertical,
 } from "lucide-react";
+import {
+  DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
+  pointerWithin, useDraggable, useDroppable,
+  type DragStartEvent, type DragEndEvent,
+} from "@dnd-kit/core";
 import { INTERVAL_LABELS } from "@/types/service";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
 import { useRoutesForRange, useStopsForRoutes, useAddStop, useCreateRoute } from "@/hooks/useRoutes";
