@@ -526,8 +526,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     openEditDialog(c);
   };
 
-  const eligibleSelectable = filtered.filter(c => c.saved_id);
-  const allSelected = eligibleSelectable.length > 0 && selectedIds.size === eligibleSelectable.length;
+  const allSelected = filtered.length > 0 && selectedIds.size === filtered.length;
 
   return (
     <TooltipProvider delayDuration={200}>
