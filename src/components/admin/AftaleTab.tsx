@@ -13,7 +13,7 @@ import {
   ShoppingCart, Pencil, Minus, Plus, Check, X, MessageSquare,
   ChevronDown, ChevronUp, Clock, Mail, Phone, ArrowRight,
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
-  Play, Pause, Search, Route as RouteIcon, MapPin, Plus as PlusIcon, GripVertical,
+  Play, Pause, Search, Route as RouteIcon, MapPin, Plus as PlusIcon,
 } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
