@@ -107,11 +107,11 @@ const useCustomers = (businessId: string) => {
           .eq("business_id", businessId),
         supabase
           .from("private_customers")
-          .select("id, name, email, phone, address, zip_code, city, notes")
+          .select("id, name, email, phone, address, zip_code, city, notes, avatar_url")
           .eq("business_id", businessId),
         supabase
           .from("business_customers")
-          .select("id, company_name, cvr, contact_name, email, phone, address, zip_code, city, notes")
+          .select("id, company_name, cvr, contact_name, email, phone, address, zip_code, city, notes, avatar_url")
           .eq("business_id", businessId),
       ]);
       if (ordersRes.error) throw ordersRes.error;
