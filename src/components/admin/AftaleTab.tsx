@@ -994,7 +994,27 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   };
 
   return (
-    <div className="space-y-5">
+    <DndContext
+      sensors={useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))}
+      collisionDetection={pointerWithin}
+      onDragEnd={(e: DragEndEvent) => {
+        const { active, over } = e;
+        setDraggingOrderId(null);
+        setDragOverRouteId(null);
+        if (!over) return;
+        const a: any = active.data.current;
+        const o: any = over.data.current;
+        if (a?.type === "order" && o?.type === "pool-route") {
+          handleDropOrderOnRoute(a.orderId, o.routeId);
+        }
+      }}
+      onDragStart={(e: DragStartEvent) => {
+        const a: any = e.active.data.current;
+        if (a?.type === "order") setDraggingOrderId(a.orderId);
+      }}
+      onDragCancel={() => { setDraggingOrderId(null); setDragOverRouteId(null); }}
+    >
+      <div className="space-y-5">
       <PageHeader
         title="Aftaler"
         description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende services` : ""}`}
