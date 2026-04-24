@@ -605,6 +605,24 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   const [adjustedItems, setAdjustedItems] = useState<Record<string, AdjustmentItem[]>>({});
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
 
+  // ─── Drag & drop til rute-pool ───
+  // Vi tracker hvilken aftale der pt. trækkes (for visuel feedback) og hvilken
+  // rute der "hovers" over, så vi kan highlighte dropzonen.
+  const [draggingOrderId, setDraggingOrderId] = useState<string | null>(null);
+  const [dragOverRouteId, setDragOverRouteId] = useState<string | null>(null);
+
+  // Ruter for de næste 14 dage (incl. i dag) — det vindue virksomhedsejeren
+  // typisk planlægger inden for. Sidebar-poolen viser disse ruter.
+  const today = new Date();
+  const fromIso = today.toISOString().slice(0, 10);
+  const toDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
+  const toIso = toDate.toISOString().slice(0, 10);
+  const { data: poolRoutes } = useRoutesForRange(businessId, fromIso, toIso);
+  const poolRouteIds = (poolRoutes || []).map((r) => r.id);
+  const { data: poolStops } = useStopsForRoutes(poolRouteIds);
+  const addStop = useAddStop();
+  const createRoute = useCreateRoute();
+
   // Hent route-stops for alle ordrer i denne forretning, så vi kan vise hvilken
   // rute hver aftale er placeret på (dato, rute-navn, sekvens og status).
   const { data: routeStops } = useQuery({
