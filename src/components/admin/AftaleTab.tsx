@@ -777,52 +777,52 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
         }
       />
 
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Aftaler i alt</p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{orders?.length || 0}</p>
-            </CardContent>
-          </Card>
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kræver handling</p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{actionNeeded.length}</p>
-            </CardContent>
-          </Card>
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kommende services</p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{upcomingSubs.length}</p>
-            </CardContent>
-          </Card>
-        </div>
+      {/* Stats — én række, fuld bredde, ligesom Services */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+          <CardContent className="p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Aftaler i alt</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{orders?.length || 0}</p>
+          </CardContent>
+        </Card>
+        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+          <CardContent className="p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kræver handling</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{actionNeeded.length}</p>
+          </CardContent>
+        </Card>
+        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+          <CardContent className="p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kommende services</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{upcomingSubs.length}</p>
+          </CardContent>
+        </Card>
+      </div>
 
-        <div className="flex flex-wrap gap-2 lg:justify-end">
-          {[
-            { key: "all", label: "Alle", count: counts.all || 0 },
-            ...(actionNeeded.length > 0 ? [{ key: "action_needed", label: "Kræver handling", count: actionNeeded.length }] : []),
-            ...(waitingForCustomer.length > 0 ? [{ key: "waiting", label: "Afventer kunde", count: waitingForCustomer.length }] : []),
-            { key: "confirmed", label: "Aftalte", count: counts.confirmed || 0 },
-            { key: "in_progress", label: "I gang", count: counts.in_progress || 0 },
-            { key: "completed", label: "Udførte", count: counts.completed || 0 },
-            { key: "cancelled", label: "Annullerede", count: counts.cancelled || 0 },
-          ].map(({ key, label, count }) => (
-            <button
-              key={key}
-              onClick={() => setFilter(key)}
-              className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
-                filter === key
-                  ? "border-border bg-secondary text-foreground"
-                  : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
-              }`}
-            >
-              {label}
-              {count > 0 && <span className="ml-1.5 tabular-nums">{count}</span>}
-            </button>
-          ))}
-        </div>
+      {/* Filtre — placeret under stats-kortene, så de er lette at scanne */}
+      <div className="flex flex-wrap gap-2">
+        {[
+          { key: "all", label: "Alle", count: counts.all || 0 },
+          ...(actionNeeded.length > 0 ? [{ key: "action_needed", label: "Kræver handling", count: actionNeeded.length }] : []),
+          ...(waitingForCustomer.length > 0 ? [{ key: "waiting", label: "Afventer kunde", count: waitingForCustomer.length }] : []),
+          { key: "confirmed", label: "Aftalte", count: counts.confirmed || 0 },
+          { key: "in_progress", label: "I gang", count: counts.in_progress || 0 },
+          { key: "completed", label: "Udførte", count: counts.completed || 0 },
+          { key: "cancelled", label: "Annullerede", count: counts.cancelled || 0 },
+        ].map(({ key, label, count }) => (
+          <button
+            key={key}
+            onClick={() => setFilter(key)}
+            className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+              filter === key
+                ? "border-border bg-secondary text-foreground"
+                : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+            }`}
+          >
+            {label}
+            {count > 0 && <span className="ml-1.5 tabular-nums">{count}</span>}
+          </button>
+        ))}
       </div>
 
       {/* Upcoming services alert */}
@@ -877,35 +877,10 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
         </Card>
       )}
 
-      {/* Orders list — samme struktur som "Seneste bestillinger" på Overblik:
-          ét stort kort med header-bar + rækker adskilt af divide-y. Klik på en
-          række folder ordren ud inline. */}
+      {/* Aftale-liste — individuelle kort pr. aftale (samme stil som Services-fanen).
+          Hvert kort viser kunde, services, status og beløb i headeren. Klik for at folde ud. */}
       {filteredOrders && filteredOrders.length > 0 ? (
-        <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
-            <div className="min-w-0">
-              <h3 className="text-sm font-semibold text-foreground">
-                {filter === "all" ? "Alle aftaler"
-                  : filter === "action_needed" ? "Kræver handling"
-                  : filter === "waiting" ? "Afventer kunde"
-                  : filter === "confirmed" ? "Aftalte"
-                  : filter === "in_progress" ? "I gang"
-                  : filter === "completed" ? "Udførte"
-                  : filter === "cancelled" ? "Annullerede"
-                  : "Aftaler"}
-              </h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {filteredOrders.length} {filteredOrders.length === 1 ? "aftale" : "aftaler"} · klik for at se detaljer
-              </p>
-            </div>
-            <div className="hidden sm:flex items-center gap-4 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              <span className="w-24 text-right">Status</span>
-              <span className="w-24 text-right">Beløb</span>
-              <span className="w-4" />
-            </div>
-          </div>
-
-          <div className="divide-y divide-border">
+        <div className="space-y-3">
           {filteredOrders.map((order) => {
             const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
             const isExpanded = expandedOrder === order.id;
@@ -915,63 +890,82 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
             const currentTotal = order.adjusted_amount && order.customer_response === "accepted" ? order.adjusted_amount : originalTotal;
             const hasRecurring = orderHasRecurring(order);
             const date = new Date(order.created_at);
-            const itemCount = (order as any).order_items?.length || 0;
+            const items = ((order as any).order_items || []) as any[];
+            const itemCount = items.length;
+            // Sammenfattet liste over services i denne aftale (vises i header-rækken,
+            // så brugeren straks kan se hvad aftalen indeholder uden at folde ud).
+            const serviceList = items.map((it: any) => {
+              const qty = it.quantity > 1 ? ` ×${it.quantity}` : "";
+              return `${it.service_name}${qty}`;
+            });
+            const serviceSummary = serviceList.length > 0
+              ? serviceList.slice(0, 2).join(", ") + (serviceList.length > 2 ? ` +${serviceList.length - 2}` : "")
+              : "Ingen services";
             const cycles = (order as any).completed_cycles || 0;
             const nextDate = (order as any).next_service_date ? new Date((order as any).next_service_date) : null;
             const interval = getOrderInterval(order);
             const daysUntilNext = nextDate ? Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
 
             return (
-              <div key={order.id} className="bg-card transition-colors">
-                {/* Order header */}
-                <button onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
-                  className="w-full text-left px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5">
-                  <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:items-center">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="text-sm font-medium text-foreground truncate">{order.customer_name}</span>
-                        {hasRecurring && (
-                          <Badge variant="secondary" className="text-[10px] gap-1 shrink-0">
-                            <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
-                            {cycles > 0 && <span className="ml-0.5">· #{cycles}</span>}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
-                        <span>{date.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}</span>
-                        {itemCount > 0 && <span>· {itemCount} {itemCount === 1 ? "service" : "services"}</span>}
-                        {nextDate && daysUntilNext !== null && (
-                          <span className={`inline-flex items-center gap-1 font-medium ${
-                            daysUntilNext <= 0 ? "text-destructive" : daysUntilNext <= 3 ? "text-amber-600" : "text-accent"
-                          }`}>
-                            <CalendarClock className="h-3 w-3" />
-                            {daysUntilNext <= 0 ? "I dag!" : daysUntilNext === 1 ? "I morgen" : `om ${daysUntilNext} dage`}
-                          </span>
-                        )}
-                      </div>
-                    </div>
+              <Card key={order.id} className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
+                {/* Header — samme struktur som ServiceRow på Services-fanen:
+                    ikon + navn + meta i én kolonne; status, beløb og chevron i højre side. */}
+                <button
+                  onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
+                  className="w-full text-left transition-colors hover:bg-secondary/40"
+                >
+                  <div className="grid gap-2.5 p-3.5 sm:p-4">
+                    <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="flex min-w-0 items-start gap-2.5">
+                        {/* Ikon-badge i samme stil som Services */}
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                        </div>
 
-                    <div className="hidden sm:flex w-24 justify-end">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-[11px] font-medium ${cfg.bg} ${cfg.color}`}>
-                        <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
-                        {cfg.label}
-                      </span>
-                    </div>
-                    <div className="hidden sm:block w-24 text-right text-sm font-semibold tabular-nums text-foreground">
-                      {currentTotal} kr
-                    </div>
-                    <div className="flex items-center justify-end w-4 text-muted-foreground">
-                      {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="truncate text-sm font-semibold text-foreground">{order.customer_name}</h3>
+                            <span className={`inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-[10px] font-medium ${cfg.bg} ${cfg.color}`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
+                              {cfg.label}
+                            </span>
+                            {hasRecurring && (
+                              <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
+                                {cycles > 0 && <span className="ml-0.5">· #{cycles}</span>}
+                              </span>
+                            )}
+                          </div>
 
-                    {/* Mobile-only fallback rad: status + beløb under navnet */}
-                    <div className="flex items-center gap-2 sm:hidden">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-[11px] font-medium ${cfg.bg} ${cfg.color}`}>
-                        <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
-                        {cfg.label}
-                      </span>
-                      <span className="ml-auto text-sm font-semibold tabular-nums text-foreground">{currentTotal} kr</span>
+                          {/* Service-sammendrag — vises direkte i headeren, så det er
+                              tydeligt hvad aftalen omfatter. */}
+                          <p className="mt-1 truncate text-xs text-foreground/80">
+                            <span className="text-muted-foreground">Services: </span>
+                            {serviceSummary}
+                          </p>
+
+                          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                            <span>{date.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}</span>
+                            {itemCount > 0 && <span>· {itemCount} {itemCount === 1 ? "service" : "services"}</span>}
+                            {nextDate && daysUntilNext !== null && (
+                              <span className={`inline-flex items-center gap-1 font-medium ${
+                                daysUntilNext <= 0 ? "text-destructive" : daysUntilNext <= 3 ? "text-amber-600" : "text-accent"
+                              }`}>
+                                <CalendarClock className="h-3 w-3" />
+                                {daysUntilNext <= 0 ? "I dag!" : daysUntilNext === 1 ? "I morgen" : `om ${daysUntilNext} dage`}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Højre side: beløb + chevron */}
+                      <div className="flex items-center justify-end gap-3 sm:flex-col sm:items-end sm:gap-1">
+                        <span className="text-base font-semibold tabular-nums text-foreground">{currentTotal} kr</span>
+                        <span className="text-muted-foreground">
+                          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </button>
@@ -1144,11 +1138,10 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                     )}
                   </div>
                 )}
-              </div>
+              </Card>
             );
           })}
-          </div>
-        </Card>
+        </div>
       ) : (
         <EmptyState
           icon={<ShoppingCart />}

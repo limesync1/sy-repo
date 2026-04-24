@@ -454,33 +454,64 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     });
   };
 
+  // Vi bruger nu en stabil nøgle pr. kunde (saved_id hvis findes, ellers email-lowercase)
+  // så også ikke-gemte kunder kan vælges og slettes.
+  const customerKey = (c: Customer) => c.saved_id || `email:${c.email.toLowerCase()}`;
+
   const toggleSelectAll = () => {
-    const eligible = filtered.filter(c => c.saved_id);
-    if (selectedIds.size === eligible.length && eligible.length > 0) {
+    if (selectedIds.size === filtered.length && filtered.length > 0) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(eligible.map(c => c.saved_id!)));
+      setSelectedIds(new Set(filtered.map(customerKey)));
     }
   };
 
   const selectedCustomers = useMemo(
-    () => filtered.filter(c => c.saved_id && selectedIds.has(c.saved_id)),
+    () => filtered.filter(c => selectedIds.has(customerKey(c))),
     [filtered, selectedIds]
   );
 
   const handleDelete = async (targets: Customer[]) => {
     setDeleting(true);
     try {
+      // 1) Slet kartotek-poster (gemte privat-/erhvervskunder).
       const privIds = targets.filter(c => c.type === "private" && c.saved_id).map(c => c.saved_id!);
       const bizIds = targets.filter(c => c.type === "business" && c.saved_id).map(c => c.saved_id!);
+
+      // 2) For kunder uden kartotek-post (kun kendt fra ordrer) – slet alle deres
+      //    ordrer + abonnementer for denne virksomhed, så de forsvinder fra listen.
+      const ordersOnlyEmails = targets
+        .filter(c => !c.saved_id)
+        .map(c => c.email.toLowerCase());
+
       const promises: Promise<any>[] = [];
       if (privIds.length) promises.push(Promise.resolve(supabase.from("private_customers").delete().in("id", privIds)));
       if (bizIds.length) promises.push(Promise.resolve(supabase.from("business_customers").delete().in("id", bizIds)));
+
+      // Slet ordrer + abonnementer for kunder uden kartotek-post
+      for (const email of ordersOnlyEmails) {
+        // Find ordrer for kunden hos denne virksomhed
+        const { data: customerOrders } = await supabase
+          .from("orders")
+          .select("id")
+          .eq("business_id", businessId)
+          .ilike("customer_email", email);
+        const orderIds = (customerOrders || []).map((o: any) => o.id);
+        if (orderIds.length > 0) {
+          // Slet abonnementer der er knyttet til ordrerne først
+          await supabase.from("subscriptions").delete().in("order_id", orderIds);
+          // Order_items ryddes via cascade i de fleste tilfælde, ellers manuelt
+          await supabase.from("order_items").delete().in("order_id", orderIds);
+          await supabase.from("orders").delete().in("id", orderIds);
+        }
+      }
+
       const results = await Promise.all(promises);
       const firstError = results.find((r: any) => r?.error)?.error;
       if (firstError) throw firstError;
       qc.invalidateQueries({ queryKey: ["customers", businessId] });
       qc.invalidateQueries({ queryKey: ["saved-customers", businessId] });
+      qc.invalidateQueries({ queryKey: ["orders"] });
       toast.success(targets.length === 1 ? "Kunde slettet" : `${targets.length} kunder slettet`);
       setSelectedIds(new Set());
       setConfirmDelete(null);
@@ -495,8 +526,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     openEditDialog(c);
   };
 
-  const eligibleSelectable = filtered.filter(c => c.saved_id);
-  const allSelected = eligibleSelectable.length > 0 && selectedIds.size === eligibleSelectable.length;
+  const allSelected = filtered.length > 0 && selectedIds.size === filtered.length;
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -605,7 +635,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
               <div className="flex items-center gap-3 min-w-0">
-                {eligibleSelectable.length > 0 && (
+                {filtered.length > 0 && (
                   <Checkbox
                     checked={allSelected}
                     onCheckedChange={toggleSelectAll}
@@ -635,7 +665,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                 const typeDot = c.type === "business" ? "bg-blue-500" : c.type === "private" ? "bg-emerald-500" : "bg-muted-foreground/40";
                 const displayName = c.type === "business" && c.company_name ? c.company_name : c.name;
                 const metaParts: string[] = [];
-                if (c.last_order_at) metaParts.push(`Sidst: ${fmtDate(c.last_order_at)}`);
+                if (c.last_order_at) metaParts.push(`Sidste bestilling: ${fmtDate(c.last_order_at)}`);
                 if (c.city) metaParts.push(c.city);
                 else if (c.email) metaParts.push(c.email);
                 return (
@@ -646,13 +676,11 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                   >
                     {/* Checkbox — fast plads også når tom, så rækker linjer ud */}
                     <div className="shrink-0 w-4 flex items-center justify-center">
-                      {c.saved_id && (
-                        <Checkbox
-                          checked={selectedIds.has(c.saved_id)}
-                          onCheckedChange={() => toggleSelect(c.saved_id!)}
-                          aria-label={`Vælg ${c.name}`}
-                        />
-                      )}
+                      <Checkbox
+                        checked={selectedIds.has(customerKey(c))}
+                        onCheckedChange={() => toggleSelect(customerKey(c))}
+                        aria-label={`Vælg ${c.name}`}
+                      />
                     </div>
 
                     {/* Navn + type + meta — klik åbner detaljer */}
@@ -712,47 +740,63 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                     </div>
 
                     {/* Handlinger */}
-                    <div className="flex items-center justify-end gap-1 shrink-0">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                    {/* Inline handlings-knapper — synlige for hver kunde, så ingen
+                        dropdown er nødvendig. Tooltips forklarer hver handling. */}
+                    <div className="flex items-center justify-end gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
                           <button
-                            onClick={(e) => e.stopPropagation()}
-                            className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                            aria-label="Handlinger"
+                            type="button"
+                            onClick={() => setSelectedEmail(c.email)}
+                            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                            aria-label="Se detaljer"
                           >
-                            <MoreHorizontal className="h-4 w-4" />
+                            <ExternalLink className="h-4 w-4" />
                           </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem onClick={() => setSelectedEmail(c.email)} className="text-foreground focus:text-foreground">
-                            <ExternalLink className="h-4 w-4 mr-2" /> Se detaljer
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openCreateOrderForCustomer(c)} className="text-foreground focus:text-foreground">
-                            <ShoppingBag className="h-4 w-4 mr-2" /> Opret bestilling
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openEditDialog(c)} className="text-foreground focus:text-foreground">
-                            <Pencil className="h-4 w-4 mr-2" /> Rediger kunde
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          {c.saved_id ? (
-                            <DropdownMenuItem
-                              onClick={() => setConfirmDelete({ open: true, targets: [c] })}
-                              className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" /> Slet kunde
-                            </DropdownMenuItem>
-                          ) : (
-                            <DropdownMenuItem
-                              disabled
-                              className="text-muted-foreground"
-                              title="Kunden er kun kendt fra ordrer og findes ikke i dit kartotek. Tilføj kunden først via 'Rediger kunde', hvorefter du kan slette den."
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" /> Kan ikke slettes
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>Se detaljer</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => openCreateOrderForCustomer(c)}
+                            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                            aria-label="Opret bestilling"
+                          >
+                            <ShoppingBag className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Opret bestilling</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => openEditDialog(c)}
+                            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                            aria-label="Rediger kunde"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Rediger kunde</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDelete({ open: true, targets: [c] })}
+                            className="rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                            aria-label="Slet kunde"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {c.saved_id ? "Slet kunde" : "Slet kunde og alle bestillinger"}
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
                 );
@@ -787,8 +831,9 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
               Slet {confirmDelete?.targets.length === 1 ? "kunde" : `${confirmDelete?.targets.length} kunder`}?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Kundeoplysninger fjernes fra dit kartotek. Tidligere bestillinger og abonnementer bevares,
-              men kunden vil ikke længere fremgå af kundelisten.
+              {confirmDelete?.targets.some(t => !t.saved_id)
+                ? "Kunder uden kartotek-post slettes sammen med alle deres bestillinger og abonnementer. Gemte kartotek-kunder fjernes fra kartoteket — deres bestillinger bevares."
+                : "Kundeoplysninger fjernes fra dit kartotek. Tidligere bestillinger og abonnementer bevares, men kunden vil ikke længere fremgå af kundelisten."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
