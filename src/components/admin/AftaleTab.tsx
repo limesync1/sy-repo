@@ -1262,7 +1262,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                       </div>
                     </div>
                   </div>
-                </button>
+                </div>
 
                 {/* Expanded content */}
                 {isExpanded && (
