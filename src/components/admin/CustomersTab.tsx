@@ -550,24 +550,27 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
 
       {/* Bulk actions bar */}
       {selectedCustomers.length > 0 && (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent/5 px-4 py-2.5">
-          <div className="text-sm text-foreground">
-            <span className="font-semibold">{selectedCustomers.length}</span> kunde{selectedCustomers.length === 1 ? "" : "r"} valgt
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())} className="h-8 text-xs">
-              Fravælg alle
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setConfirmDelete({ open: true, targets: selectedCustomers })}
-              className="h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30"
-            >
-              <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Slet valgte
-            </Button>
-          </div>
-        </div>
+        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+          <CardContent className="flex items-center justify-between gap-3 p-3">
+            <div className="text-sm text-foreground">
+              <span className="font-semibold">{selectedCustomers.length}</span> kunde{selectedCustomers.length === 1 ? "" : "r"} valgt
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())}
+                className="h-8 rounded-lg text-xs text-foreground hover:bg-secondary hover:text-foreground">
+                Fravælg alle
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmDelete({ open: true, targets: selectedCustomers })}
+                className="h-8 rounded-lg border-border text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Slet valgte
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* List */}
