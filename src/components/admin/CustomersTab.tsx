@@ -181,6 +181,7 @@ const useCustomers = (businessId: string) => {
           if (!existing.zip_code && p.zip_code) existing.zip_code = p.zip_code;
           if (!existing.city && p.city) existing.city = p.city;
           existing.notes = p.notes;
+          existing.avatar_url = p.avatar_url ?? existing.avatar_url ?? null;
         } else {
           grouped.set(key, {
             email: p.email,
@@ -199,6 +200,7 @@ const useCustomers = (businessId: string) => {
             type: "private",
             saved_id: p.id,
             notes: p.notes,
+            avatar_url: p.avatar_url ?? null,
           });
         }
       });
@@ -219,6 +221,7 @@ const useCustomers = (businessId: string) => {
           if (!existing.zip_code && b.zip_code) existing.zip_code = b.zip_code;
           if (!existing.city && b.city) existing.city = b.city;
           existing.notes = b.notes;
+          existing.avatar_url = b.avatar_url ?? existing.avatar_url ?? null;
         } else {
           grouped.set(key, {
             email: b.email,
@@ -240,6 +243,7 @@ const useCustomers = (businessId: string) => {
             cvr: b.cvr,
             contact_name: b.contact_name,
             notes: b.notes,
+            avatar_url: b.avatar_url ?? null,
           });
         }
       });
