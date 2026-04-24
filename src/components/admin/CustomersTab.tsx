@@ -662,9 +662,20 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                       className="min-w-0 text-left"
                     >
                       <div className="flex items-center gap-2 flex-wrap">
-                        {c.type === "business"
-                          ? <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                          : <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+                        {/* Avatar/logo — falder tilbage til ikon hvis intet billede */}
+                        {c.avatar_url ? (
+                          <img
+                            src={c.avatar_url}
+                            alt=""
+                            className="h-7 w-7 rounded-full object-cover border border-border shrink-0"
+                          />
+                        ) : (
+                          <div className="h-7 w-7 rounded-full bg-secondary border border-border flex items-center justify-center shrink-0">
+                            {c.type === "business"
+                              ? <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                              : <User className="h-3.5 w-3.5 text-muted-foreground" />}
+                          </div>
+                        )}
                         <span className="text-sm font-medium text-foreground truncate">{displayName}</span>
                         {typeLabel && (
                           <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0">
