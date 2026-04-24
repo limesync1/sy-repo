@@ -397,8 +397,7 @@ const EmployeeRow = ({
 
   return (
     <TooltipProvider delayDuration={200}>
-    <Card className={`rounded-xl ${employee.is_active ? "" : "opacity-60"}`}>
-      <CardContent className="p-4 flex items-center justify-between gap-3">
+    <div className={`group flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5 ${employee.is_active ? "" : "opacity-60"}`}>
         <div className="flex items-center gap-3 min-w-0">
           {/* Avatar / farve-prik med hover-overlay til upload */}
           <div className="relative h-10 w-10 shrink-0 group/avatar">
@@ -541,7 +540,6 @@ const EmployeeRow = ({
             <Trash2 className="h-4 w-4" />
           </button></TooltipTrigger><TooltipContent>Slet medarbejder</TooltipContent></Tooltip>
         </div>
-      </CardContent>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-md">
