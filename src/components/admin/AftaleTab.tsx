@@ -1673,7 +1673,8 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
         businessId={businessId}
         businessName={businessName}
       />
-    </div>
+      </div>
+    </DndContext>
   );
 };
 
