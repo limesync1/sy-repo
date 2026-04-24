@@ -1133,6 +1133,8 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                   if (!canDragToRoute) return;
                   e.dataTransfer.effectAllowed = "link";
                   e.dataTransfer.setData("application/x-order-id", order.id);
+                  // Tekst-fallback til drop-targets der ikke understøtter custom MIME.
+                  e.dataTransfer.setData("text/plain", order.id);
                   setDraggingOrderId(order.id);
                 }}
                 onDragEnd={() => { setDraggingOrderId(null); setDragOverRouteId(null); }}
@@ -1142,9 +1144,19 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
               >
                 {/* Header — samme struktur som ServiceRow på Services-fanen:
                     ikon + navn + meta i én kolonne; status, beløb og chevron i højre side. */}
-                <button
+                {/* Brug div+role=button i stedet for <button> så HTML5-drag på det
+                    ydre Card-element ikke blokeres af knap-elementets event-håndtering. */}
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
-                  className="w-full text-left transition-colors hover:bg-secondary/40"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setExpandedOrder(isExpanded ? null : order.id);
+                    }
+                  }}
+                  className="block w-full cursor-pointer text-left transition-colors hover:bg-secondary/40"
                 >
                   <div className="grid gap-2.5 p-3.5 sm:p-4">
                     <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
