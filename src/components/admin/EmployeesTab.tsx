@@ -76,6 +76,33 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
     );
   };
 
+  // Hooks skal kaldes før early return — derfor beregner vi filtered her,
+  // og bruger employees direkte i deps så det er stabilt.
+  const all = employees || [];
+  const activeEmployees = all.filter((e) => e.is_active);
+  const inactiveEmployees = all.filter((e) => !e.is_active);
+  const linkedCount = all.filter((e) => !!e.user_id).length;
+  const pendingCount = all.filter((e) => !e.user_id).length;
+
+  const filtered = useMemo(() => {
+    let list = employees || [];
+    if (statusFilter === "active")   list = list.filter((e) => e.is_active);
+    if (statusFilter === "inactive") list = list.filter((e) => !e.is_active);
+    if (statusFilter === "linked")   list = list.filter((e) => !!e.user_id);
+    if (statusFilter === "pending")  list = list.filter((e) => !e.user_id);
+    if (!search.trim()) return list;
+    const q = search.toLowerCase();
+    return list.filter((e) =>
+      (e.name || "").toLowerCase().includes(q) ||
+      (e.email || "").toLowerCase().includes(q) ||
+      (e.phone || "").toLowerCase().includes(q) ||
+      (e.title || "").toLowerCase().includes(q),
+    );
+  }, [employees, search, statusFilter]);
+
+  const filteredActive = filtered.filter((e) => e.is_active);
+  const filteredInactive = filtered.filter((e) => !e.is_active);
+
   if (!routePlanningEnabled) {
     return (
       <div className="max-w-3xl space-y-6">
@@ -91,31 +118,6 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
       </div>
     );
   }
-
-  const all = employees || [];
-  const activeEmployees = all.filter((e) => e.is_active);
-  const inactiveEmployees = all.filter((e) => !e.is_active);
-  const linkedCount = all.filter((e) => !!e.user_id).length;
-  const pendingCount = all.filter((e) => !e.user_id).length;
-
-  const filtered = useMemo(() => {
-    let list = all;
-    if (statusFilter === "active")   list = list.filter((e) => e.is_active);
-    if (statusFilter === "inactive") list = list.filter((e) => !e.is_active);
-    if (statusFilter === "linked")   list = list.filter((e) => !!e.user_id);
-    if (statusFilter === "pending")  list = list.filter((e) => !e.user_id);
-    if (!search.trim()) return list;
-    const q = search.toLowerCase();
-    return list.filter((e) =>
-      (e.name || "").toLowerCase().includes(q) ||
-      (e.email || "").toLowerCase().includes(q) ||
-      (e.phone || "").toLowerCase().includes(q) ||
-      (e.title || "").toLowerCase().includes(q),
-    );
-  }, [all, search, statusFilter]);
-
-  const filteredActive = filtered.filter((e) => e.is_active);
-  const filteredInactive = filtered.filter((e) => !e.is_active);
 
   return (
     <div className="space-y-4">
