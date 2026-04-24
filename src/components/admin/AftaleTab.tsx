@@ -16,6 +16,11 @@ import {
   Play, Pause, Search, Route as RouteIcon, MapPin, Plus as PlusIcon,
   GripVertical,
 } from "lucide-react";
+import {
+  DndContext, PointerSensor, useSensor, useSensors,
+  pointerWithin, useDraggable, useDroppable,
+  type DragStartEvent, type DragEndEvent,
+} from "@dnd-kit/core";
 import { INTERVAL_LABELS } from "@/types/service";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
 import { useRoutesForRange, useStopsForRoutes, useAddStop, useCreateRoute } from "@/hooks/useRoutes";
@@ -230,6 +235,41 @@ const ROUTE_STATUS_LABELS: Record<string, string> = {
 };
 const formatStopStatus = (s?: string | null) => (s ? STOP_STATUS_LABELS[s] || s : "");
 const formatRouteStatus = (s?: string | null) => (s ? ROUTE_STATUS_LABELS[s] || s : "");
+
+/* ─── Drag & drop helpers (samme @dnd-kit setup som Ruteplanlæggeren) ─── */
+const OrderDragHandle = ({ orderId }: { orderId: string }) => {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `order-${orderId}`,
+    data: { type: "order", orderId },
+  });
+  return (
+    <button
+      ref={setNodeRef}
+      type="button"
+      {...listeners}
+      {...attributes}
+      onClick={(e) => e.stopPropagation()}
+      aria-label="Træk aftalen til en rute"
+      title="Træk til en rute i Rute-pool"
+      className={`flex h-9 w-5 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground active:cursor-grabbing ${
+        isDragging ? "opacity-40" : ""
+      }`}
+    >
+      <GripVertical className="h-4 w-4" />
+    </button>
+  );
+};
+
+const PoolRouteDropZone = ({
+  routeId, children,
+}: { routeId: string; children: (state: { isOver: boolean; isActive: boolean }) => React.ReactNode }) => {
+  const { setNodeRef, isOver, active } = useDroppable({
+    id: `pool-route-${routeId}`,
+    data: { type: "pool-route", routeId },
+  });
+  const isActive = !!active && active.data.current?.type === "order";
+  return <div ref={setNodeRef}>{children({ isOver, isActive })}</div>;
+};
 
 /* ─── What can the business DO at each stage? ─── */
 const getActions = (order: any): { canRespond: boolean; canProgress: boolean; nextStatus: string | null; nextLabel: string | null } => {
@@ -610,7 +650,6 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   // Vi tracker hvilken aftale der pt. trækkes (for visuel feedback) og hvilken
   // rute der "hovers" over, så vi kan highlighte dropzonen.
   const [draggingOrderId, setDraggingOrderId] = useState<string | null>(null);
-  const [dragOverRouteId, setDragOverRouteId] = useState<string | null>(null);
 
   // Ruter for de næste 14 dage (incl. i dag) — det vindue virksomhedsejeren
   // typisk planlægger inden for. Sidebar-poolen viser disse ruter.
@@ -954,7 +993,26 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   };
 
   return (
-    <div className="space-y-5">
+    <DndContext
+      sensors={useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))}
+      collisionDetection={pointerWithin}
+      onDragEnd={(e: DragEndEvent) => {
+        const { active, over } = e;
+        setDraggingOrderId(null);
+        if (!over) return;
+        const a: any = active.data.current;
+        const o: any = over.data.current;
+        if (a?.type === "order" && o?.type === "pool-route") {
+          handleDropOrderOnRoute(a.orderId, o.routeId);
+        }
+      }}
+      onDragStart={(e: DragStartEvent) => {
+        const a: any = e.active.data.current;
+        if (a?.type === "order") setDraggingOrderId(a.orderId);
+      }}
+      onDragCancel={() => { setDraggingOrderId(null); }}
+    >
+      <div className="space-y-5">
       <PageHeader
         title="Aftaler"
         description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende services` : ""}`}
@@ -1129,26 +1187,12 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
             return (
               <Card
                 key={order.id}
-                draggable={canDragToRoute}
-                onDragStart={(e) => {
-                  if (!canDragToRoute) return;
-                  e.dataTransfer.effectAllowed = "link";
-                  e.dataTransfer.setData("application/x-order-id", order.id);
-                  // Tekst-fallback til drop-targets der ikke understøtter custom MIME.
-                  e.dataTransfer.setData("text/plain", order.id);
-                  setDraggingOrderId(order.id);
-                }}
-                onDragEnd={() => { setDraggingOrderId(null); setDragOverRouteId(null); }}
                 className={`surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden ${
-                  canDragToRoute ? "cursor-grab active:cursor-grabbing" : ""
-                } ${draggingOrderId === order.id ? "opacity-60" : ""} ${
-                  canDragToRoute ? "select-none" : ""
+                  draggingOrderId === order.id ? "opacity-60" : ""
                 }`}
               >
                 {/* Header — samme struktur som ServiceRow på Services-fanen:
                     ikon + navn + meta i én kolonne; status, beløb og chevron i højre side. */}
-                {/* Brug div+role=button i stedet for <button> så HTML5-drag på det
-                    ydre Card-element ikke blokeres af knap-elementets event-håndtering. */}
                 <div
                   role="button"
                   tabIndex={0}
@@ -1164,27 +1208,8 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                   <div className="grid gap-2.5 p-3.5 sm:p-4">
                     <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex min-w-0 items-start gap-2.5">
-                        {/* Eksplicit drag-håndtag — gør det helt tydeligt at kortet
-                            kan trækkes, og fungerer som primær gribepunkt for HTML5-drag. */}
-                        {canDragToRoute && (
-                          <div
-                            draggable
-                            onDragStart={(e) => {
-                              e.stopPropagation();
-                              e.dataTransfer.effectAllowed = "link";
-                              e.dataTransfer.setData("application/x-order-id", order.id);
-                              e.dataTransfer.setData("text/plain", order.id);
-                              setDraggingOrderId(order.id);
-                            }}
-                            onDragEnd={() => { setDraggingOrderId(null); setDragOverRouteId(null); }}
-                            onClick={(e) => e.stopPropagation()}
-                            title="Træk til en rute i Rute-pool"
-                            className="flex h-9 w-5 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground active:cursor-grabbing"
-                            aria-label="Træk aftalen til en rute"
-                          >
-                            <GripVertical className="h-4 w-4" />
-                          </div>
-                        )}
+                        {/* Drag-håndtag (samme @dnd-kit-mønster som Ruteplanlæggeren). */}
+                        {canDragToRoute && <OrderDragHandle orderId={order.id} />}
                         {/* Ikon-badge — viser service-kategori-ikon (samme som Services-fanen) */}
                         <div
                           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground"
@@ -1552,54 +1577,41 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                 const stopsForRoute = (poolStops || []).filter((s: any) => s.route_id === route.id);
                 const rDate = new Date(route.route_date);
                 const isToday = rDate.toDateString() === new Date().toDateString();
-                const isHover = dragOverRouteId === route.id;
                 return (
-                  <div
-                    key={route.id}
-                    onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "link"; }}
-                    onDragEnter={() => setDragOverRouteId(route.id)}
-                    onDragLeave={(e) => {
-                      // Kun fjern højlight hvis vi forlader hele kortet (ikke et child element)
-                      if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
-                        setDragOverRouteId((c) => (c === route.id ? null : c));
-                      }
-                    }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const id = e.dataTransfer.getData("application/x-order-id");
-                      setDragOverRouteId(null);
-                      setDraggingOrderId(null);
-                      if (id) handleDropOrderOnRoute(id, route.id);
-                    }}
-                    className={`rounded-lg border bg-card p-2.5 transition-colors ${
-                      isHover
-                        ? "border-foreground/40 bg-secondary ring-2 ring-foreground/10"
-                        : draggingOrderId
-                        ? "border-dashed border-foreground/30"
-                        : "border-border"
-                    }`}
-                    style={!isHover ? { borderLeft: `3px solid ${route.color}` } : undefined}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-foreground">
-                          {route.name || "Rute"}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {isToday ? "I dag · " : ""}
-                          {rDate.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" })}
-                        </p>
+                  <PoolRouteDropZone key={route.id} routeId={route.id}>
+                    {({ isOver, isActive }) => (
+                      <div
+                        className={`rounded-lg border bg-card p-2.5 transition-colors ${
+                          isOver
+                            ? "border-foreground/40 bg-secondary ring-2 ring-foreground/10"
+                            : isActive
+                            ? "border-dashed border-foreground/30"
+                            : "border-border"
+                        }`}
+                        style={!isOver ? { borderLeft: `3px solid ${route.color}` } : undefined}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-foreground">
+                              {route.name || "Rute"}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">
+                              {isToday ? "I dag · " : ""}
+                              {rDate.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" })}
+                            </p>
+                          </div>
+                          <span className="shrink-0 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                            {stopsForRoute.length} stop
+                          </span>
+                        </div>
+                        {isOver && (
+                          <p className="mt-2 rounded-md bg-foreground/5 px-2 py-1 text-center text-[11px] font-medium text-foreground">
+                            Slip her for at lægge aftalen på ruten
+                          </p>
+                        )}
                       </div>
-                      <span className="shrink-0 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                        {stopsForRoute.length} stop
-                      </span>
-                    </div>
-                    {isHover && (
-                      <p className="mt-2 rounded-md bg-foreground/5 px-2 py-1 text-center text-[11px] font-medium text-foreground">
-                        Slip her for at lægge aftalen på ruten
-                      </p>
                     )}
-                  </div>
+                  </PoolRouteDropZone>
                 );
               })}
             </div>
@@ -1613,7 +1625,8 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
         businessId={businessId}
         businessName={businessName}
       />
-    </div>
+      </div>
+    </DndContext>
   );
 };
 
