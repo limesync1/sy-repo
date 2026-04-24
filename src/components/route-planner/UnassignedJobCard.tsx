@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import {
-  GripVertical, MapPin, Calendar as CalendarIcon, Clock, Phone,
+  GripVertical, MapPin, CalendarClock, Clock, Phone,
   StickyNote, Hourglass, ChevronDown, ChevronRight, User, Repeat, Route as RouteIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +33,7 @@ type Props = {
     estimated_duration_minutes?: number | null;
     notes?: string | null;
     preferred_route_name?: string | null;
+    next_service_date?: string | null;
     order_items?: OrderItem[] | null;
   };
   onClick?: () => void;
@@ -48,23 +49,36 @@ const INTERVAL_LABELS: Record<string, string> = {
   engangskøb: "Engangs",
 };
 
-const formatPreferredDate = (d: string) => {
-  const date = parseISO(d);
-  if (isToday(date)) return "I dag";
-  if (isTomorrow(date)) return "I morgen";
-  const diff = differenceInDays(date, new Date());
-  if (diff > 0 && diff < 7) return format(date, "EEEE", { locale: da });
-  return format(date, "d. MMM", { locale: da });
-};
-
-/** Get urgency styling based on preferred date */
-const getUrgency = (d?: string | null) => {
+/** Beregn tydeligt label for hvornår jobbet skal udføres næste gang.
+ *  Viser ugedag + dato + relativ tid, så ejeren hurtigt kan se hvilken
+ *  rute / dag aftalen hører hjemme på. */
+const getSchedule = (d?: string | null) => {
   if (!d) return null;
   const date = parseISO(d);
-  if (isPast(date) && !isToday(date)) return { label: "Forsinket", className: "border-destructive/40 text-destructive bg-destructive/5" };
-  if (isToday(date)) return { label: "I dag", className: "border-orange-300 text-orange-700 bg-orange-50" };
-  if (isTomorrow(date)) return { label: "I morgen", className: "border-amber-300 text-amber-700 bg-amber-50" };
-  return { label: format(date, "d. MMM", { locale: da }), className: "border-border text-muted-foreground bg-secondary/40" };
+  const diff = differenceInDays(date, new Date());
+  let relative: string;
+  if (isPast(date) && !isToday(date)) relative = `${Math.abs(diff)} dage forsinket`;
+  else if (isToday(date)) relative = "i dag";
+  else if (isTomorrow(date)) relative = "i morgen";
+  else if (diff > 0 && diff < 7) relative = `om ${diff} dage`;
+  else relative = `om ${diff} dage`;
+
+  const dayLabel = isToday(date) ? "I dag"
+    : isTomorrow(date) ? "I morgen"
+    : format(date, "EEE d. MMM", { locale: da });
+
+  const tone =
+    isPast(date) && !isToday(date)
+      ? "border-destructive/40 text-destructive bg-destructive/5"
+      : isToday(date)
+      ? "border-orange-300 text-orange-700 bg-orange-50"
+      : isTomorrow(date)
+      ? "border-amber-300 text-amber-700 bg-amber-50"
+      : diff <= 7
+      ? "border-primary/30 text-primary bg-primary/5"
+      : "border-border text-foreground bg-secondary/60";
+
+  return { dayLabel, relative, tone };
 };
 
 export const UnassignedJobCard = ({ job, onClick }: Props) => {
@@ -91,7 +105,10 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
     estimatedMin = (eh * 60 + em) - (sh * 60 + sm);
   }
 
-  const urgency = getUrgency(job.preferred_date);
+  // Foretrukken dato — recurring abonnementer bruger next_service_date som "skal udføres senest".
+  // For engangs aftaler bruges kundens preferred_date.
+  const scheduleDate = job.next_service_date || job.preferred_date || null;
+  const schedule = getSchedule(scheduleDate);
   const hasGps = job.latitude != null && job.longitude != null;
 
   return (
@@ -145,14 +162,34 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
             </p>
           )}
 
-          {/* Compact badge row */}
+          {/* Tydeligt skema-banner — viser hvornår aftalen skal udføres næste gang.
+              Hjælper ejeren med at se hvilken rute / dag aftalen hører hjemme på. */}
+          {schedule && (
+            <div className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium ${schedule.tone}`}>
+              <CalendarClock className="h-3 w-3 shrink-0" />
+              <span className="font-semibold">{schedule.dayLabel}</span>
+              <span className="opacity-80">· {schedule.relative}</span>
+              {job.preferred_time_start && (
+                <span className="opacity-80 ml-auto">
+                  {job.preferred_time_start.slice(0, 5)}
+                  {job.preferred_time_end && `–${job.preferred_time_end.slice(0, 5)}`}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Foreslået rute — vises tydeligt så ejeren kan se hvilken rute aftalen
+              normalt hører hjemme på (baseret på abonnementets preferred_route). */}
+          {job.preferred_route_name && (
+            <div className="flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent/5 px-2 py-1 text-[11px] font-medium text-accent">
+              <RouteIcon className="h-3 w-3 shrink-0" />
+              <span>Læg på rute:</span>
+              <span className="font-semibold truncate">{job.preferred_route_name}</span>
+            </div>
+          )}
+
+          {/* Compact badge row — interval, varighed osv. */}
           <div className="flex items-center gap-1 flex-wrap">
-            {urgency && (
-              <Badge variant="outline" className={`h-4 text-[10px] px-1.5 gap-0.5 ${urgency.className}`}>
-                <CalendarIcon className="h-2.5 w-2.5" />
-                {urgency.label}
-              </Badge>
-            )}
             {/* Interval badge — viser engangs vs abonnement */}
             {(() => {
               const interval = items.find((it: any) => it.details?.interval)?.details?.interval;
@@ -172,7 +209,8 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
                 </Badge>
               );
             })()}
-            {job.preferred_time_start && (
+            {/* Tidsvindue vises kun her hvis der ikke er nogen schedule-banner ovenfor */}
+            {!schedule && job.preferred_time_start && (
               <Badge variant="outline" className="h-4 text-[10px] px-1.5 gap-0.5 border-border text-muted-foreground">
                 <Clock className="h-2.5 w-2.5" />
                 {job.preferred_time_start.slice(0, 5)}
@@ -183,12 +221,6 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
               <Hourglass className="h-2.5 w-2.5" />
               ~{formatDurationMin(estimatedMin, { short: true })}
             </Badge>
-            {job.preferred_route_name && (
-              <Badge variant="outline" className="h-4 text-[10px] px-1.5 gap-0.5 border-accent/40 text-accent bg-accent/5">
-                <RouteIcon className="h-2.5 w-2.5" />
-                Sædvanlig: {job.preferred_route_name}
-              </Badge>
-            )}
           </div>
         </button>
       </div>

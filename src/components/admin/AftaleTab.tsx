@@ -293,7 +293,7 @@ const CustomerOrderSummary = ({ order }: { order: any }) => {
   return (
     <div className="rounded-xl border border-border overflow-hidden">
       <div className="px-4 py-2.5 bg-muted/40 border-b border-border">
-        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bestilte services</span>
+        <span className="text-sm font-semibold text-foreground">Bestilte services</span>
       </div>
       {items.map((item: any) => (
         <div key={item.id} className="border-b border-border last:border-b-0 px-4 py-3">
@@ -1053,7 +1053,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                                   </span>
                                 )}
                                 {typeof routeStop.sequence === "number" && (
-                                  <span className="opacity-80">· #{routeStop.sequence + 1}</span>
+                                  <span className="opacity-80">· Stop #{routeStop.sequence + 1}</span>
                                 )}
                               </span>
                             )}
@@ -1068,18 +1068,28 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
 
                           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                             <span>{date.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}</span>
-                            {itemCount > 0 && <span>· {itemCount} {itemCount === 1 ? "service" : "services"}</span>}
-                            {nextDate && daysUntilNext !== null && (
-                              <span className={`inline-flex items-center gap-1 font-medium ${
-                                daysUntilNext <= 0 ? "text-destructive" : daysUntilNext <= 3 ? "text-amber-600" : "text-accent"
-                              }`}>
-                                <CalendarClock className="h-3 w-3" />
-                                <span className="text-muted-foreground font-normal">Næste udførelse:</span>
-                                {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
-                                <span>· {daysUntilNext <= 0 ? "i dag!" : daysUntilNext === 1 ? "i morgen" : `om ${daysUntilNext} dage`}</span>
-                              </span>
-                            )}
                           </div>
+
+                          {/* Næste udførelse — fremhævet blok så det er nemt at se hvornår
+                              kunden skal serviceres næste gang. */}
+                          {nextDate && daysUntilNext !== null && (
+                            <div className={`mt-1.5 inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium ${
+                              daysUntilNext <= 0
+                                ? "border-destructive/30 bg-destructive/10 text-destructive"
+                                : daysUntilNext <= 3
+                                ? "border-amber-300/50 bg-amber-50 text-amber-700"
+                                : "border-border bg-secondary/60 text-foreground"
+                            }`}>
+                              <CalendarClock className="h-3.5 w-3.5" />
+                              <span className="opacity-80">Næste udførelse:</span>
+                              <span className="font-semibold">
+                                {nextDate.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" })}
+                              </span>
+                              <span className="opacity-80">
+                                · {daysUntilNext <= 0 ? "i dag" : daysUntilNext === 1 ? "i morgen" : `om ${daysUntilNext} dage`}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
 
