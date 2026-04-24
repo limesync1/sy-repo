@@ -1286,7 +1286,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Indstillinger"
         description="Administrer din virksomheds profil og oplysninger."
@@ -1336,6 +1336,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           )}
       </SectionCard>
 
+      <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
       {/* General */}
       <SectionCard title="Generelt" icon={<Settings />}>
         <div className="space-y-4">
@@ -1509,6 +1510,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             })}
         </div>
       </SectionCard>
+      </div>
 
       {/* Sticky save bar */}
       {hasChanges && (
