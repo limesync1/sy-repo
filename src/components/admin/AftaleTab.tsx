@@ -1144,10 +1144,11 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                     )}
                   </div>
                 )}
-              </Card>
+              </div>
             );
           })}
-        </div>
+          </div>
+        </Card>
       ) : (
         <EmptyState
           icon={<ShoppingCart />}
