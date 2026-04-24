@@ -17,7 +17,7 @@ import {
   GripVertical,
 } from "lucide-react";
 import {
-  DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
+  DndContext, PointerSensor, useSensor, useSensors,
   pointerWithin, useDraggable, useDroppable,
   type DragStartEvent, type DragEndEvent,
 } from "@dnd-kit/core";
@@ -650,7 +650,6 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   // Vi tracker hvilken aftale der pt. trækkes (for visuel feedback) og hvilken
   // rute der "hovers" over, så vi kan highlighte dropzonen.
   const [draggingOrderId, setDraggingOrderId] = useState<string | null>(null);
-  const [dragOverRouteId, setDragOverRouteId] = useState<string | null>(null);
 
   // Ruter for de næste 14 dage (incl. i dag) — det vindue virksomhedsejeren
   // typisk planlægger inden for. Sidebar-poolen viser disse ruter.
