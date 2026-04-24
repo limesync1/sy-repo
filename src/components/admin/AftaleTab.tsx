@@ -1053,7 +1053,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                                   </span>
                                 )}
                                 {typeof routeStop.sequence === "number" && (
-                                  <span className="opacity-80">· #{routeStop.sequence + 1}</span>
+                                  <span className="opacity-80">· Stop #{routeStop.sequence + 1}</span>
                                 )}
                               </span>
                             )}
