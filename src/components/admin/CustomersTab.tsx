@@ -424,6 +424,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         zip_code: c.zip_code,
         city: c.city,
         notes: c.notes,
+        avatar_url: c.avatar_url ?? null,
       });
     } else {
       setEditing({
@@ -439,6 +440,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         zip_code: c.zip_code,
         city: c.city,
         notes: c.notes,
+        avatar_url: c.avatar_url ?? null,
       });
     }
     setEditDialogOpen(true);
