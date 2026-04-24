@@ -754,8 +754,8 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
             <SheetHeader className="border-b border-border p-5">
               <SheetTitle className="text-left">
                 <div className="flex items-start gap-3">
-                  <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center text-base font-semibold text-accent shrink-0">
-                    {customer.name.charAt(0).toUpperCase()}
+                  <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center text-base font-semibold text-foreground shrink-0">
+                    {customer.type === "business" ? <Building2 className="h-5 w-5" /> : customer.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="text-lg font-bold text-foreground truncate">{customer.name}</h3>
@@ -819,7 +819,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                     const renderSub = (s: SubRow) => {
                       const pref = s.preferred_route_id ? data.preferredRoutes[s.preferred_route_id] : null;
                       return (
-                        <div key={s.id} className={`rounded-xl border p-3 ${s.status === "paused" ? "border-amber-300/60 bg-amber-50/40" : "border-border bg-card"}`}>
+                        <div key={s.id} className="rounded-xl border border-border bg-card p-3">
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-semibold text-foreground truncate">{s.service_name}</p>
@@ -923,7 +923,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                       </h4>
                       <div className="space-y-2">
                         {data.orders.map(o => (
-                          <div key={o.id} className={`rounded-xl border p-3 space-y-1.5 ${o.is_paused ? "border-amber-300/60 bg-amber-50/30" : "border-border bg-card"}`}>
+                          <div key={o.id} className="rounded-xl border border-border bg-card p-3 space-y-1.5">
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0 flex-1">
                                 <p className="text-xs text-muted-foreground flex items-center gap-1.5">
