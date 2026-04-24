@@ -999,7 +999,6 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       onDragEnd={(e: DragEndEvent) => {
         const { active, over } = e;
         setDraggingOrderId(null);
-        setDragOverRouteId(null);
         if (!over) return;
         const a: any = active.data.current;
         const o: any = over.data.current;
@@ -1011,7 +1010,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
         const a: any = e.active.data.current;
         if (a?.type === "order") setDraggingOrderId(a.orderId);
       }}
-      onDragCancel={() => { setDraggingOrderId(null); setDragOverRouteId(null); }}
+      onDragCancel={() => { setDraggingOrderId(null); }}
     >
       <div className="space-y-5">
       <PageHeader
