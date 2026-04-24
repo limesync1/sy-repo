@@ -593,30 +593,51 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         />
       ) : (
         <>
-          {/* Select all bar */}
-          {eligibleSelectable.length > 0 && (
-            <div className="flex items-center gap-2.5 px-1">
-              <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Vælg alle" />
-              <span className="text-xs text-muted-foreground">
-                {allSelected ? `Alle ${eligibleSelectable.length} valgt` : `Vælg alle (${eligibleSelectable.length})`}
-              </span>
+          {/* Kundeliste — samme struktur som "Seneste bestillinger" på Overblik:
+              ét stort kort med header-bar, og rækker adskilt af divide-y */}
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
+              <div className="flex items-center gap-3 min-w-0">
+                {eligibleSelectable.length > 0 && (
+                  <Checkbox
+                    checked={allSelected}
+                    onCheckedChange={toggleSelectAll}
+                    aria-label="Vælg alle"
+                  />
+                )}
+                <div className="min-w-0">
+                  <h3 className="text-sm font-semibold text-foreground">
+                    {typeFilter === "private" ? "Private kunder" : typeFilter === "business" ? "Erhvervskunder" : "Alle kunder"}
+                  </h3>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {filtered.length} {filtered.length === 1 ? "kunde" : "kunder"}
+                    {selectedCustomers.length > 0 && ` · ${selectedCustomers.length} valgt`}
+                  </p>
+                </div>
+              </div>
+              <div className="hidden sm:flex items-center gap-4 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <span className="w-20 text-right">Bestillinger</span>
+                <span className="w-24 text-right">Omsætning</span>
+                <span className="w-6" />
+              </div>
             </div>
-          )}
 
-          {/* Customer cards — matcher Aftaler: navn øverst, dato/services nedenunder, status+pris+chevron til højre */}
-          <div className="space-y-2.5">
-            {filtered.map((c) => {
-              const typeLabel = c.type === "business" ? "Erhverv" : c.type === "private" ? "Privat" : null;
-              const typeDot = c.type === "business" ? "bg-blue-500" : c.type === "private" ? "bg-emerald-500" : "bg-muted-foreground/40";
-              const metaParts: string[] = [];
-              if (c.last_order_at) metaParts.push(fmtDate(c.last_order_at));
-              if (c.orders_count > 0) metaParts.push(`${c.orders_count} ${c.orders_count === 1 ? "ordre" : "ordrer"}`);
-              else metaParts.push("Ingen bestillinger endnu");
-              if (c.city) metaParts.push(c.city);
-              return (
-                <Card key={c.email} className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden transition-all">
-                  <div className="flex items-center gap-3 px-4 py-3.5">
-                    {/* Checkbox (kun for gemte kunder, ensartet plads) */}
+            <div className="divide-y divide-border">
+              {filtered.map((c) => {
+                const typeLabel = c.type === "business" ? "Erhverv" : c.type === "private" ? "Privat" : null;
+                const typeDot = c.type === "business" ? "bg-blue-500" : c.type === "private" ? "bg-emerald-500" : "bg-muted-foreground/40";
+                const displayName = c.type === "business" && c.company_name ? c.company_name : c.name;
+                const metaParts: string[] = [];
+                if (c.last_order_at) metaParts.push(`Sidst: ${fmtDate(c.last_order_at)}`);
+                if (c.city) metaParts.push(c.city);
+                else if (c.email) metaParts.push(c.email);
+                return (
+                  <div
+                    key={c.email}
+                    className="group grid w-full gap-3 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5
+                               sm:grid-cols-[auto_minmax(0,1fr)_auto_auto_auto] sm:items-center"
+                  >
+                    {/* Checkbox — fast plads også når tom, så rækker linjer ud */}
                     <div className="shrink-0 w-4 flex items-center justify-center">
                       {c.saved_id && (
                         <Checkbox
@@ -627,53 +648,53 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                       )}
                     </div>
 
-                    {/* Hovedindhold — klik åbner detalje-sheet */}
+                    {/* Navn + type + meta — klik åbner detaljer */}
                     <button
+                      type="button"
                       onClick={() => setSelectedEmail(c.email)}
-                      className="flex-1 min-w-0 text-left"
+                      className="min-w-0 text-left"
                     >
                       <div className="flex items-center gap-2 flex-wrap">
                         {c.type === "business"
                           ? <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                           : <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
-                        <span className="text-sm font-semibold text-foreground truncate">
-                          {c.type === "business" && c.company_name ? c.company_name : c.name}
-                        </span>
+                        <span className="text-sm font-medium text-foreground truncate">{displayName}</span>
                         {typeLabel && (
                           <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0">
                             <span className={`h-1.5 w-1.5 rounded-full ${typeDot}`} />
                             {typeLabel}
                           </span>
                         )}
+                        {c.active_subs > 0 && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            {c.active_subs} abo.
+                          </span>
+                        )}
+                        {c.paused_subs > 0 && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0">
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                            {c.paused_subs} pauseret
+                          </span>
+                        )}
                       </div>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                        {metaParts.map((part, i) => (
-                          <span key={i}>{i > 0 && <span className="mr-3">·</span>}{part}</span>
-                        ))}
+                      <div className="mt-0.5 text-xs text-muted-foreground truncate">
+                        {metaParts.join(" · ") || "Ingen bestillinger endnu"}
                       </div>
                     </button>
 
-                    {/* Højre: stats + pris + chevron, ligesom Aftaler */}
-                    <div className="flex items-center gap-2 shrink-0">
-                      {c.active_subs > 0 && (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-foreground">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                          {c.active_subs} abo.
-                        </span>
-                      )}
-                      {c.paused_subs > 0 && (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-foreground">
-                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                          {c.paused_subs} pause
-                        </span>
-                      )}
-                      <div className="text-right ml-1">
-                        <span className="text-sm font-bold text-foreground tabular-nums">
-                          {c.total_revenue > 0 ? fmtKr(c.total_revenue) : "—"}
-                        </span>
-                      </div>
+                    {/* Bestillinger */}
+                    <div className="hidden sm:block w-20 text-right text-sm tabular-nums text-foreground">
+                      {c.orders_count > 0 ? c.orders_count : <span className="text-muted-foreground">—</span>}
+                    </div>
 
-                      {/* Handlinger samlet i en dropdown — fjerner visuel støj fra rækken */}
+                    {/* Omsætning */}
+                    <div className="hidden sm:block w-24 text-right text-sm font-semibold tabular-nums text-foreground">
+                      {c.total_revenue > 0 ? fmtKr(c.total_revenue) : <span className="font-normal text-muted-foreground">—</span>}
+                    </div>
+
+                    {/* Handlinger */}
+                    <div className="flex items-center justify-end gap-1 shrink-0">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button
@@ -707,14 +728,13 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>
-
                       <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     </div>
                   </div>
-                </Card>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          </Card>
         </>
       )}
 
