@@ -950,7 +950,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       </div>
 
       {/* Søgefelt — leder efter kunde, service, adresse osv. */}
-      <div className="relative">
+      <div className="grid gap-5 lg:grid-cols-[7fr_3fr]">
+        <div className="space-y-5 min-w-0">
+        <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={search}
@@ -958,7 +960,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
           placeholder="Søg efter kunde, e-mail, service eller adresse..."
           className="h-10 pl-9 rounded-lg"
         />
-      </div>
+        </div>
 
       {/* Filtre — placeret under stats-kortene, så de er lette at scanne */}
       <div className="flex flex-wrap gap-2">
