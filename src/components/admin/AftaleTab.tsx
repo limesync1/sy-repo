@@ -196,6 +196,39 @@ const PRICING_LABELS: Record<string, string> = {
   prisberegner: "Prisberegner",
 };
 
+/* ─── Service category icons (samme system som Services-fanen) ─── */
+const CATEGORY_ICONS: Record<string, string> = {
+  "Rengøring": "🧹",
+  "Håndværker": "🔨",
+  "Flyttehjælp": "🚚",
+  "Haveservice": "🌿",
+  "Maler": "🎨",
+  "VVS": "💧",
+  "Elektriker": "⚡",
+  "Sikkerhed": "🛡️",
+};
+const DEFAULT_CATEGORY_ICON = "🧰";
+
+/* ─── Danske labels for rute- og stop-status ─── */
+const STOP_STATUS_LABELS: Record<string, string> = {
+  pending: "Afventer",
+  planned: "Planlagt",
+  in_progress: "I gang",
+  arrived: "Ankommet",
+  completed: "Udført",
+  skipped: "Sprunget over",
+  cancelled: "Annulleret",
+};
+const ROUTE_STATUS_LABELS: Record<string, string> = {
+  draft: "Kladde",
+  planned: "Planlagt",
+  in_progress: "I gang",
+  completed: "Afsluttet",
+  cancelled: "Annulleret",
+};
+const formatStopStatus = (s?: string | null) => (s ? STOP_STATUS_LABELS[s] || s : "");
+const formatRouteStatus = (s?: string | null) => (s ? ROUTE_STATUS_LABELS[s] || s : "");
+
 /* ─── What can the business DO at each stage? ─── */
 const getActions = (order: any): { canRespond: boolean; canProgress: boolean; nextStatus: string | null; nextLabel: string | null } => {
   const status = order.status;
