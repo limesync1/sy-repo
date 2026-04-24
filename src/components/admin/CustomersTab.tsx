@@ -665,7 +665,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                 const typeDot = c.type === "business" ? "bg-blue-500" : c.type === "private" ? "bg-emerald-500" : "bg-muted-foreground/40";
                 const displayName = c.type === "business" && c.company_name ? c.company_name : c.name;
                 const metaParts: string[] = [];
-                if (c.last_order_at) metaParts.push(`Sidst: ${fmtDate(c.last_order_at)}`);
+                if (c.last_order_at) metaParts.push(`Sidste bestilling: ${fmtDate(c.last_order_at)}`);
                 if (c.city) metaParts.push(c.city);
                 else if (c.email) metaParts.push(c.email);
                 return (
@@ -676,13 +676,11 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                   >
                     {/* Checkbox — fast plads også når tom, så rækker linjer ud */}
                     <div className="shrink-0 w-4 flex items-center justify-center">
-                      {c.saved_id && (
-                        <Checkbox
-                          checked={selectedIds.has(c.saved_id)}
-                          onCheckedChange={() => toggleSelect(c.saved_id!)}
-                          aria-label={`Vælg ${c.name}`}
-                        />
-                      )}
+                      <Checkbox
+                        checked={selectedIds.has(customerKey(c))}
+                        onCheckedChange={() => toggleSelect(customerKey(c))}
+                        aria-label={`Vælg ${c.name}`}
+                      />
                     </div>
 
                     {/* Navn + type + meta — klik åbner detaljer */}
