@@ -977,7 +977,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                                 daysUntilNext <= 0 ? "text-destructive" : daysUntilNext <= 3 ? "text-amber-600" : "text-accent"
                               }`}>
                                 <CalendarClock className="h-3 w-3" />
-                                {daysUntilNext <= 0 ? "I dag!" : daysUntilNext === 1 ? "I morgen" : `om ${daysUntilNext} dage`}
+                                <span className="text-muted-foreground font-normal">Næste udførelse:</span>
+                                {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
+                                <span>· {daysUntilNext <= 0 ? "i dag!" : daysUntilNext === 1 ? "i morgen" : `om ${daysUntilNext} dage`}</span>
                               </span>
                             )}
                           </div>
