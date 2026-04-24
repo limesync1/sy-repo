@@ -992,6 +992,16 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
             const routeInfo = routeStop?.route;
             const routeDate = routeInfo?.route_date ? new Date(routeInfo.route_date) : null;
             const routeIsToday = routeDate ? routeDate.toDateString() === new Date().toDateString() : false;
+            // Find primær service-kategori for at vælge ikon — bruger første order_item
+            // der har et matchende service med kategori. Falder tilbage til standard-ikon.
+            const primaryCategory = (() => {
+              for (const it of items) {
+                const svc = it.service_id ? servicesById[it.service_id] : undefined;
+                if (svc?.service_category) return svc.service_category;
+              }
+              return null;
+            })();
+            const categoryIcon = (primaryCategory && CATEGORY_ICONS[primaryCategory]) || DEFAULT_CATEGORY_ICON;
 
             return (
               <Card key={order.id} className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
