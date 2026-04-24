@@ -47,6 +47,7 @@ type Customer = {
   cvr?: string | null;
   contact_name?: string | null;
   notes?: string | null;
+  avatar_url?: string | null;
 };
 
 type OrderRow = {
@@ -106,11 +107,11 @@ const useCustomers = (businessId: string) => {
           .eq("business_id", businessId),
         supabase
           .from("private_customers")
-          .select("id, name, email, phone, address, zip_code, city, notes")
+          .select("id, name, email, phone, address, zip_code, city, notes, avatar_url")
           .eq("business_id", businessId),
         supabase
           .from("business_customers")
-          .select("id, company_name, cvr, contact_name, email, phone, address, zip_code, city, notes")
+          .select("id, company_name, cvr, contact_name, email, phone, address, zip_code, city, notes, avatar_url")
           .eq("business_id", businessId),
       ]);
       if (ordersRes.error) throw ordersRes.error;
@@ -180,6 +181,7 @@ const useCustomers = (businessId: string) => {
           if (!existing.zip_code && p.zip_code) existing.zip_code = p.zip_code;
           if (!existing.city && p.city) existing.city = p.city;
           existing.notes = p.notes;
+          existing.avatar_url = p.avatar_url ?? existing.avatar_url ?? null;
         } else {
           grouped.set(key, {
             email: p.email,
@@ -198,6 +200,7 @@ const useCustomers = (businessId: string) => {
             type: "private",
             saved_id: p.id,
             notes: p.notes,
+            avatar_url: p.avatar_url ?? null,
           });
         }
       });
@@ -218,6 +221,7 @@ const useCustomers = (businessId: string) => {
           if (!existing.zip_code && b.zip_code) existing.zip_code = b.zip_code;
           if (!existing.city && b.city) existing.city = b.city;
           existing.notes = b.notes;
+          existing.avatar_url = b.avatar_url ?? existing.avatar_url ?? null;
         } else {
           grouped.set(key, {
             email: b.email,
@@ -239,6 +243,7 @@ const useCustomers = (businessId: string) => {
             cvr: b.cvr,
             contact_name: b.contact_name,
             notes: b.notes,
+            avatar_url: b.avatar_url ?? null,
           });
         }
       });
@@ -419,6 +424,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         zip_code: c.zip_code,
         city: c.city,
         notes: c.notes,
+        avatar_url: c.avatar_url ?? null,
       });
     } else {
       setEditing({
@@ -434,6 +440,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         zip_code: c.zip_code,
         city: c.city,
         notes: c.notes,
+        avatar_url: c.avatar_url ?? null,
       });
     }
     setEditDialogOpen(true);
@@ -655,9 +662,20 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                       className="min-w-0 text-left"
                     >
                       <div className="flex items-center gap-2 flex-wrap">
-                        {c.type === "business"
-                          ? <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                          : <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+                        {/* Avatar/logo — falder tilbage til ikon hvis intet billede */}
+                        {c.avatar_url ? (
+                          <img
+                            src={c.avatar_url}
+                            alt=""
+                            className="h-7 w-7 rounded-full object-cover border border-border shrink-0"
+                          />
+                        ) : (
+                          <div className="h-7 w-7 rounded-full bg-secondary border border-border flex items-center justify-center shrink-0">
+                            {c.type === "business"
+                              ? <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                              : <User className="h-3.5 w-3.5 text-muted-foreground" />}
+                          </div>
+                        )}
                         <span className="text-sm font-medium text-foreground truncate">{displayName}</span>
                         {typeLabel && (
                           <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0">
@@ -715,16 +733,22 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                           <DropdownMenuItem onClick={() => openEditDialog(c)} className="text-foreground focus:text-foreground">
                             <Pencil className="h-4 w-4 mr-2" /> Rediger kunde
                           </DropdownMenuItem>
-                          {c.saved_id && (
-                            <>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => setConfirmDelete({ open: true, targets: [c] })}
-                                className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" /> Slet kunde
-                              </DropdownMenuItem>
-                            </>
+                          <DropdownMenuSeparator />
+                          {c.saved_id ? (
+                            <DropdownMenuItem
+                              onClick={() => setConfirmDelete({ open: true, targets: [c] })}
+                              className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" /> Slet kunde
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem
+                              disabled
+                              className="text-muted-foreground"
+                              title="Kunden er kun kendt fra ordrer og findes ikke i dit kartotek. Tilføj kunden først via 'Rediger kunde', hvorefter du kan slette den."
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" /> Kan ikke slettes
+                            </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -800,9 +824,17 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
             <SheetHeader className="border-b border-border p-5">
               <SheetTitle className="text-left">
                 <div className="flex items-start gap-3">
-                  <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center text-base font-semibold text-foreground shrink-0">
-                    {customer.type === "business" ? <Building2 className="h-5 w-5" /> : customer.name.charAt(0).toUpperCase()}
-                  </div>
+                  {customer.avatar_url ? (
+                    <img
+                      src={customer.avatar_url}
+                      alt=""
+                      className="h-12 w-12 rounded-lg object-cover border border-border shrink-0"
+                    />
+                  ) : (
+                    <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center text-base font-semibold text-foreground shrink-0">
+                      {customer.type === "business" ? <Building2 className="h-5 w-5" /> : (customer.name?.charAt(0)?.toUpperCase() || "?")}
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <h3 className="text-lg font-bold text-foreground truncate">{customer.name}</h3>
                     <p className="text-xs text-muted-foreground font-normal">Kunde siden {fmtDate(customer.first_order_at)}</p>

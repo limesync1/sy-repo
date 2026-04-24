@@ -877,9 +877,35 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
         </Card>
       )}
 
-      {/* Orders list */}
+      {/* Orders list — samme struktur som "Seneste bestillinger" på Overblik:
+          ét stort kort med header-bar + rækker adskilt af divide-y. Klik på en
+          række folder ordren ud inline. */}
       {filteredOrders && filteredOrders.length > 0 ? (
-        <div className="space-y-3">
+        <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold text-foreground">
+                {filter === "all" ? "Alle aftaler"
+                  : filter === "action_needed" ? "Kræver handling"
+                  : filter === "waiting" ? "Afventer kunde"
+                  : filter === "confirmed" ? "Aftalte"
+                  : filter === "in_progress" ? "I gang"
+                  : filter === "completed" ? "Udførte"
+                  : filter === "cancelled" ? "Annullerede"
+                  : "Aftaler"}
+              </h3>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {filteredOrders.length} {filteredOrders.length === 1 ? "aftale" : "aftaler"} · klik for at se detaljer
+              </p>
+            </div>
+            <div className="hidden sm:flex items-center gap-4 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <span className="w-24 text-right">Status</span>
+              <span className="w-24 text-right">Beløb</span>
+              <span className="w-4" />
+            </div>
+          </div>
+
+          <div className="divide-y divide-border">
           {filteredOrders.map((order) => {
             const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
             const isExpanded = expandedOrder === order.id;
@@ -896,15 +922,15 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
             const daysUntilNext = nextDate ? Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
 
             return (
-              <Card key={order.id} className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden transition-all">
+              <div key={order.id} className="bg-card transition-colors">
                 {/* Order header */}
                 <button onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
-                  className="w-full text-left px-4 py-3.5 transition-colors hover:bg-secondary/60">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0 flex-1">
+                  className="w-full text-left px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5">
+                  <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:items-center">
+                    <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="text-sm font-semibold text-foreground truncate">{order.customer_name}</span>
+                        <span className="text-sm font-medium text-foreground truncate">{order.customer_name}</span>
                         {hasRecurring && (
                           <Badge variant="secondary" className="text-[10px] gap-1 shrink-0">
                             <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
@@ -912,7 +938,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                           </Badge>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
                         <span>{date.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}</span>
                         {itemCount > 0 && <span>· {itemCount} {itemCount === 1 ? "service" : "services"}</span>}
                         {nextDate && daysUntilNext !== null && (
@@ -925,15 +951,27 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs font-medium ${cfg.bg} ${cfg.color}`}>
+
+                    <div className="hidden sm:flex w-24 justify-end">
+                      <span className={`inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-[11px] font-medium ${cfg.bg} ${cfg.color}`}>
                         <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
                         {cfg.label}
                       </span>
-                      <div className="text-right ml-1">
-                        <span className="text-sm font-bold text-foreground">{currentTotal} kr</span>
-                      </div>
-                      {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                    </div>
+                    <div className="hidden sm:block w-24 text-right text-sm font-semibold tabular-nums text-foreground">
+                      {currentTotal} kr
+                    </div>
+                    <div className="flex items-center justify-end w-4 text-muted-foreground">
+                      {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </div>
+
+                    {/* Mobile-only fallback rad: status + beløb under navnet */}
+                    <div className="flex items-center gap-2 sm:hidden">
+                      <span className={`inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-[11px] font-medium ${cfg.bg} ${cfg.color}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
+                        {cfg.label}
+                      </span>
+                      <span className="ml-auto text-sm font-semibold tabular-nums text-foreground">{currentTotal} kr</span>
                     </div>
                   </div>
                 </button>
@@ -1106,10 +1144,11 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                     )}
                   </div>
                 )}
-              </Card>
+              </div>
             );
           })}
-        </div>
+          </div>
+        </Card>
       ) : (
         <EmptyState
           icon={<ShoppingCart />}
