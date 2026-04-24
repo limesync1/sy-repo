@@ -105,7 +105,10 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
     estimatedMin = (eh * 60 + em) - (sh * 60 + sm);
   }
 
-  const urgency = getUrgency(job.preferred_date);
+  // Foretrukken dato — recurring abonnementer bruger next_service_date som "skal udføres senest".
+  // For engangs aftaler bruges kundens preferred_date.
+  const scheduleDate = job.next_service_date || job.preferred_date || null;
+  const schedule = getSchedule(scheduleDate);
   const hasGps = job.latitude != null && job.longitude != null;
 
   return (
