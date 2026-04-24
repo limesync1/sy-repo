@@ -824,9 +824,17 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
             <SheetHeader className="border-b border-border p-5">
               <SheetTitle className="text-left">
                 <div className="flex items-start gap-3">
-                  <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center text-base font-semibold text-foreground shrink-0">
-                    {customer.type === "business" ? <Building2 className="h-5 w-5" /> : customer.name.charAt(0).toUpperCase()}
-                  </div>
+                  {customer.avatar_url ? (
+                    <img
+                      src={customer.avatar_url}
+                      alt=""
+                      className="h-12 w-12 rounded-lg object-cover border border-border shrink-0"
+                    />
+                  ) : (
+                    <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center text-base font-semibold text-foreground shrink-0">
+                      {customer.type === "business" ? <Building2 className="h-5 w-5" /> : (customer.name?.charAt(0)?.toUpperCase() || "?")}
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <h3 className="text-lg font-bold text-foreground truncate">{customer.name}</h3>
                     <p className="text-xs text-muted-foreground font-normal">Kunde siden {fmtDate(customer.first_order_at)}</p>
