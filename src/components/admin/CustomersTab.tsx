@@ -635,7 +635,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
               <div className="flex items-center gap-3 min-w-0">
-                {eligibleSelectable.length > 0 && (
+                {filtered.length > 0 && (
                   <Checkbox
                     checked={allSelected}
                     onCheckedChange={toggleSelectAll}
