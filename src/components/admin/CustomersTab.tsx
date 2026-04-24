@@ -722,7 +722,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Annullér</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting} className="text-foreground hover:bg-secondary hover:text-foreground">Annullér</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => confirmDelete && handleDelete(confirmDelete.targets)}
               disabled={deleting}
