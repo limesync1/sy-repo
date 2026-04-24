@@ -498,26 +498,54 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         }
       />
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <StatCard label="Kunder i alt" value={stats.total} icon={<User />} tone="accent" />
-        <StatCard label="Med abonnement" value={stats.recurring} icon={<Repeat />} tone="emerald" />
-        <StatCard label="Samlet omsætning" value={fmtKr(stats.totalRev)} icon={<TrendingUp />} tone="amber" />
+      {/* Stats + filters */}
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kunder i alt</p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{stats.total}</p>
+            </CardContent>
+          </Card>
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Med abonnement</p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{stats.recurring}</p>
+            </CardContent>
+          </Card>
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Samlet omsætning</p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{fmtKr(stats.totalRev)}</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex flex-wrap gap-2 lg:justify-end">
+          {[
+            { key: "all", label: "Alle", count: stats.total },
+            { key: "private", label: "Privat", count: stats.privateCount },
+            { key: "business", label: "Erhverv", count: stats.businessCount },
+          ].map(({ key, label, count }) => (
+            <button
+              key={key}
+              onClick={() => setTypeFilter(key as any)}
+              className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                typeFilter === key
+                  ? "border-border bg-secondary text-foreground"
+                  : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+              }`}
+            >
+              {label}
+              {count > 0 && <span className="ml-1.5 tabular-nums">{count}</span>}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Search */}
       <div className="flex items-center gap-2 flex-wrap">
         <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, firma, CVR eller by..." />
-        <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as any)}>
-          <SelectTrigger className="w-[180px] rounded-lg h-10">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Alle kunder ({stats.total})</SelectItem>
-            <SelectItem value="private">Privatkunder ({stats.privateCount})</SelectItem>
-            <SelectItem value="business">Erhvervskunder ({stats.businessCount})</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Bulk actions bar */}
