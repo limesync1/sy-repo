@@ -604,10 +604,23 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
     o.status === "pending" && o.business_response === "adjusted" && !o.customer_response
   ) || [];
 
-  const filteredOrders = filter === "all" ? orders
+  const baseFilteredOrders = filter === "all" ? orders
     : filter === "action_needed" ? actionNeeded
     : filter === "waiting" ? waitingForCustomer
     : orders?.filter(o => o.status === filter);
+
+  // Søgning på kundenavn, e-mail, telefon, adresse og service-navne
+  const q = search.trim().toLowerCase();
+  const filteredOrders = !q ? baseFilteredOrders : baseFilteredOrders?.filter((o: any) => {
+    if ((o.customer_name || "").toLowerCase().includes(q)) return true;
+    if ((o.customer_email || "").toLowerCase().includes(q)) return true;
+    if ((o.customer_phone || "").toLowerCase().includes(q)) return true;
+    if ((o.address || "").toLowerCase().includes(q)) return true;
+    if ((o.city || "").toLowerCase().includes(q)) return true;
+    if ((o.company_name || "").toLowerCase().includes(q)) return true;
+    const items = (o.order_items || []) as any[];
+    return items.some((it: any) => (it.service_name || "").toLowerCase().includes(q));
+  });
 
   const initAdjustedItems = (order: any) => {
     const items = (order.order_items || []).map((item: any) =>
