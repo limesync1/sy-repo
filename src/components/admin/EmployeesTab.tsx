@@ -406,7 +406,12 @@ const EmployeeRow = ({
 
   return (
     <TooltipProvider delayDuration={200}>
-    <div className={`group flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5 ${employee.is_active ? "" : "opacity-60"}`}>
+    <div
+      className={`group grid w-full gap-3 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5
+                  sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center
+                  ${employee.is_active ? "" : "opacity-60"}`}
+    >
+        {/* Navn + kontakt + farve-styring (venstre kolonne) */}
         <div className="flex items-center gap-3 min-w-0">
           {/* Avatar / farve-prik med hover-overlay til upload */}
           <div className="relative h-10 w-10 shrink-0 group/avatar">
@@ -440,12 +445,6 @@ const EmployeeRow = ({
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm font-medium text-foreground truncate">{employee.name}</p>
-              {linked && (
-                <Badge variant="outline" className="h-5 text-[10px] gap-1 border-emerald-500/30 text-emerald-700 bg-emerald-50">
-                  <CheckCircle2 className="h-2.5 w-2.5" />
-                  Konto aktiv
-                </Badge>
-              )}
               {employee.title && (
                 <span className="text-xs text-muted-foreground">· {employee.title}</span>
               )}
@@ -505,7 +504,24 @@ const EmployeeRow = ({
             )}
           </div>
         </div>
-        <div className="flex items-center gap-1 shrink-0">
+
+        {/* Kontostatus-kolonne — matcher kunder-kolonnerne (right-aligned, fast bredde) */}
+        <div className="hidden sm:flex w-28 items-center justify-end">
+          {linked ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Konto aktiv
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              Afventer
+            </span>
+          )}
+        </div>
+
+        {/* Handlinger — samme stil som kunder-rækken */}
+        <div className="flex items-center justify-end gap-0.5 shrink-0 sm:w-[136px]">
           <Tooltip><TooltipTrigger asChild><button
             onClick={() => {
               setEditName(employee.name || "");
