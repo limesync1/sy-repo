@@ -668,7 +668,7 @@ const EmployeeRow = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Card>
+    </div>
     </TooltipProvider>
   );
 };
