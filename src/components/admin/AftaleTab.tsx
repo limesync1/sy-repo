@@ -1084,9 +1084,25 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
               return null;
             })();
             const categoryIcon = (primaryCategory && CATEGORY_ICONS[primaryCategory]) || DEFAULT_CATEGORY_ICON;
+            // Aftalen kan kun trækkes til en rute hvis den ikke allerede ligger på
+            // en rute, og den ikke er afsluttet/annulleret.
+            const canDragToRoute = !routeStop && !["completed", "cancelled"].includes(order.status);
 
             return (
-              <Card key={order.id} className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
+              <Card
+                key={order.id}
+                draggable={canDragToRoute}
+                onDragStart={(e) => {
+                  if (!canDragToRoute) return;
+                  e.dataTransfer.effectAllowed = "link";
+                  e.dataTransfer.setData("application/x-order-id", order.id);
+                  setDraggingOrderId(order.id);
+                }}
+                onDragEnd={() => { setDraggingOrderId(null); setDragOverRouteId(null); }}
+                className={`surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden ${
+                  canDragToRoute ? "cursor-grab active:cursor-grabbing" : ""
+                } ${draggingOrderId === order.id ? "opacity-60" : ""}`}
+              >
                 {/* Header — samme struktur som ServiceRow på Services-fanen:
                     ikon + navn + meta i én kolonne; status, beløb og chevron i højre side. */}
                 <button
