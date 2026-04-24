@@ -6,11 +6,10 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Mail, Phone, Briefcase, UserPlus, X,
-  Trash2, Power, PowerOff, CheckCircle2, Pencil, KeyRound, Users,
+  Trash2, Power, PowerOff, Pencil, KeyRound, Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
