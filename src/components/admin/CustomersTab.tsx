@@ -733,16 +733,22 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                           <DropdownMenuItem onClick={() => openEditDialog(c)} className="text-foreground focus:text-foreground">
                             <Pencil className="h-4 w-4 mr-2" /> Rediger kunde
                           </DropdownMenuItem>
-                          {c.saved_id && (
-                            <>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => setConfirmDelete({ open: true, targets: [c] })}
-                                className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" /> Slet kunde
-                              </DropdownMenuItem>
-                            </>
+                          <DropdownMenuSeparator />
+                          {c.saved_id ? (
+                            <DropdownMenuItem
+                              onClick={() => setConfirmDelete({ open: true, targets: [c] })}
+                              className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" /> Slet kunde
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem
+                              disabled
+                              className="text-muted-foreground"
+                              title="Kunden er kun kendt fra ordrer og findes ikke i dit kartotek. Tilføj kunden først via 'Rediger kunde', hvorefter du kan slette den."
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" /> Kan ikke slettes
+                            </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>
