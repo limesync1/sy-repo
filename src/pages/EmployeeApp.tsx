@@ -281,57 +281,77 @@ const EmployeeApp = () => {
           const startTime = r.planned_start_time?.slice(0, 5) || "08:00";
 
           return (
-            <Card key={r.id} className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-              {/* Header strip — calendar pill look with route color */}
-              <div
-                className="px-4 py-2.5 flex items-center gap-2 text-background"
-                style={{ background: color }}
-              >
-                <RouteIcon className="h-4 w-4" />
-                <span className="font-semibold text-sm flex-1 truncate">
-                  {r.name || `Rute ${format(parseISO(r.route_date), "d. MMM", { locale: da })}`}
+            <Card
+              key={r.id}
+              className="surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm transition-shadow hover:shadow-md"
+            >
+              {/* Header bar — neutral admin-style med farvet rute-prik */}
+              <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 sm:px-5">
+                <span
+                  className="h-7 w-7 shrink-0 rounded-lg border border-border flex items-center justify-center"
+                  style={{ background: color }}
+                  aria-hidden
+                >
+                  <RouteIcon className="h-3.5 w-3.5 text-background" />
                 </span>
-                <span className="text-xs bg-background/20 px-2 py-0.5 rounded-full tabular-nums font-semibold">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-sm font-semibold text-foreground truncate">
+                    {r.name || `Rute ${format(parseISO(r.route_date), "d. MMM", { locale: da })}`}
+                  </h3>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {total > 0
+                      ? `${done} af ${total} stop færdige`
+                      : "Ingen stop"}
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs font-semibold tabular-nums text-foreground shrink-0">
                   {done}/{total}
                 </span>
               </div>
 
-              {/* Map preview */}
+              {/* Kort-preview */}
               <RouteMiniMap stops={myStops} startCoord={startCoord} color={color} />
 
               {/* Body */}
-              <div className="p-4 space-y-3">
-                <div className="flex items-center gap-3 text-sm flex-wrap">
-                  <span className="flex items-center gap-1.5 text-muted-foreground">
+              <div className="space-y-4 p-4 sm:p-5">
+                {/* Meta-rad: start, varighed, distance */}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+                  <span className="inline-flex items-center gap-1.5 text-muted-foreground">
                     <Clock className="h-3.5 w-3.5" />
-                    Start <span className="font-medium text-foreground tabular-nums">{startTime}</span>
+                    Start <span className="font-semibold text-foreground tabular-nums">{startTime}</span>
                   </span>
                   {r.total_duration_minutes != null && r.total_duration_minutes > 0 && (
                     <span className="text-muted-foreground tabular-nums">
-                      ~{Math.round(r.total_duration_minutes / 60)}t {r.total_duration_minutes % 60}min
+                      Varighed{" "}
+                      <span className="font-semibold text-foreground">
+                        ~{Math.round(r.total_duration_minutes / 60)}t {r.total_duration_minutes % 60}min
+                      </span>
                     </span>
                   )}
                   {r.total_distance_km != null && r.total_distance_km > 0 && (
                     <span className="text-muted-foreground tabular-nums">
-                      {r.total_distance_km.toFixed(1)} km
+                      Distance <span className="font-semibold text-foreground">{r.total_distance_km.toFixed(1)} km</span>
                     </span>
                   )}
                 </div>
 
                 {r.start_address && (
-                  <p className="text-xs text-muted-foreground flex items-start gap-1">
-                    <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                    <span className="truncate">{r.start_address}</span>
-                  </p>
+                  <div className="flex items-start gap-2 rounded-lg border border-border bg-secondary/40 px-3 py-2 text-xs">
+                    <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-medium text-muted-foreground">Startadresse</p>
+                      <p className="truncate text-foreground">{r.start_address}</p>
+                    </div>
+                  </div>
                 )}
 
-                {/* Progress bar */}
+                {/* Fremskridt */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">Fremskridt</span>
-                    <span className="font-semibold tabular-nums">{progress}%</span>
+                    <span className="font-semibold tabular-nums text-foreground">{progress}%</span>
                   </div>
-                  <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
                     <div
                       className="h-full transition-all duration-500"
                       style={{ width: `${progress}%`, background: color }}
@@ -339,43 +359,51 @@ const EmployeeApp = () => {
                   </div>
                 </div>
 
-                {/* Stop preview list */}
+                {/* Stop-preview liste — divide-y row-stil ligesom kunder/aftaler */}
                 {total > 0 && (
-                  <div className="space-y-1 pt-1">
-                    {myStops.slice(0, 4).map((s, i) => (
-                      <div key={s.id} className="flex items-center gap-2 text-xs">
-                        <span
-                          className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold shrink-0 ${
-                            s.status === "completed"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-secondary text-muted-foreground"
-                          }`}
-                        >
-                          {s.status === "completed" ? <CheckCircle2 className="h-3 w-3" /> : i + 1}
-                        </span>
-                        <span
-                          className={`truncate flex-1 ${s.status === "completed" ? "line-through text-muted-foreground" : ""}`}
-                        >
-                          {s.customer_name || "Stop"}
-                        </span>
-                      </div>
-                    ))}
-                    {myStops.length > 4 && (
-                      <p className="text-[11px] text-muted-foreground pl-7">
-                        +{myStops.length - 4} flere stop
-                      </p>
-                    )}
+                  <div className="overflow-hidden rounded-lg border border-border bg-card">
+                    <div className="divide-y divide-border">
+                      {myStops.slice(0, 4).map((s, i) => (
+                        <div key={s.id} className="flex items-center gap-3 px-3 py-2">
+                          <span
+                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                              s.status === "completed"
+                                ? "bg-emerald-500/10 text-emerald-600"
+                                : "bg-secondary text-foreground"
+                            }`}
+                          >
+                            {s.status === "completed" ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}
+                          </span>
+                          <span
+                            className={`min-w-0 flex-1 truncate text-xs ${
+                              s.status === "completed" ? "text-muted-foreground line-through" : "text-foreground"
+                            }`}
+                          >
+                            {s.customer_name || "Stop"}
+                          </span>
+                          {s.address && (
+                            <span className="hidden sm:inline-block text-[11px] text-muted-foreground truncate max-w-[40%]">
+                              {s.address}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                      {myStops.length > 4 && (
+                        <div className="px-3 py-2 text-[11px] text-muted-foreground">
+                          +{myStops.length - 4} flere stop
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
-                {/* Action buttons */}
+                {/* Handlinger */}
                 <div className="flex gap-2 pt-1">
                   <Button
                     asChild
                     size="lg"
-                    className="flex-1 gap-2 h-12 font-semibold"
+                    className="h-11 flex-1 gap-2 rounded-lg bg-foreground text-background font-semibold shadow-sm hover:bg-foreground/90"
                     disabled={total === 0}
-                    style={!allDone && total > 0 ? { background: color } : undefined}
                   >
                     <Link to={`/medarbejder/rute/${r.id}`}>
                       {allDone ? (
@@ -387,7 +415,12 @@ const EmployeeApp = () => {
                       )}
                     </Link>
                   </Button>
-                  <Button asChild size="lg" variant="outline" className="h-12 px-3">
+                  <Button
+                    asChild
+                    size="lg"
+                    variant="outline"
+                    className="h-11 rounded-lg border-border px-3 text-foreground hover:bg-secondary"
+                  >
                     <Link
                       to={`/medarbejder/rute/${r.id}/print`}
                       aria-label="Udskriv liste"
