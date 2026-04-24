@@ -162,14 +162,34 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
             </p>
           )}
 
-          {/* Compact badge row */}
+          {/* Tydeligt skema-banner — viser hvornår aftalen skal udføres næste gang.
+              Hjælper ejeren med at se hvilken rute / dag aftalen hører hjemme på. */}
+          {schedule && (
+            <div className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium ${schedule.tone}`}>
+              <CalendarClock className="h-3 w-3 shrink-0" />
+              <span className="font-semibold">{schedule.dayLabel}</span>
+              <span className="opacity-80">· {schedule.relative}</span>
+              {job.preferred_time_start && (
+                <span className="opacity-80 ml-auto">
+                  {job.preferred_time_start.slice(0, 5)}
+                  {job.preferred_time_end && `–${job.preferred_time_end.slice(0, 5)}`}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Foreslået rute — vises tydeligt så ejeren kan se hvilken rute aftalen
+              normalt hører hjemme på (baseret på abonnementets preferred_route). */}
+          {job.preferred_route_name && (
+            <div className="flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent/5 px-2 py-1 text-[11px] font-medium text-accent">
+              <RouteIcon className="h-3 w-3 shrink-0" />
+              <span>Læg på rute:</span>
+              <span className="font-semibold truncate">{job.preferred_route_name}</span>
+            </div>
+          )}
+
+          {/* Compact badge row — interval, varighed osv. */}
           <div className="flex items-center gap-1 flex-wrap">
-            {urgency && (
-              <Badge variant="outline" className={`h-4 text-[10px] px-1.5 gap-0.5 ${urgency.className}`}>
-                <CalendarIcon className="h-2.5 w-2.5" />
-                {urgency.label}
-              </Badge>
-            )}
             {/* Interval badge — viser engangs vs abonnement */}
             {(() => {
               const interval = items.find((it: any) => it.details?.interval)?.details?.interval;
@@ -189,7 +209,8 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
                 </Badge>
               );
             })()}
-            {job.preferred_time_start && (
+            {/* Tidsvindue vises kun her hvis der ikke er nogen schedule-banner ovenfor */}
+            {!schedule && job.preferred_time_start && (
               <Badge variant="outline" className="h-4 text-[10px] px-1.5 gap-0.5 border-border text-muted-foreground">
                 <Clock className="h-2.5 w-2.5" />
                 {job.preferred_time_start.slice(0, 5)}
@@ -200,12 +221,6 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
               <Hourglass className="h-2.5 w-2.5" />
               ~{formatDurationMin(estimatedMin, { short: true })}
             </Badge>
-            {job.preferred_route_name && (
-              <Badge variant="outline" className="h-4 text-[10px] px-1.5 gap-0.5 border-accent/40 text-accent bg-accent/5">
-                <RouteIcon className="h-2.5 w-2.5" />
-                Sædvanlig: {job.preferred_route_name}
-              </Badge>
-            )}
           </div>
         </button>
       </div>
