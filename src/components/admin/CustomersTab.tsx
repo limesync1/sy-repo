@@ -471,16 +471,44 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
   const handleDelete = async (targets: Customer[]) => {
     setDeleting(true);
     try {
+      // 1) Slet kartotek-poster (gemte privat-/erhvervskunder).
       const privIds = targets.filter(c => c.type === "private" && c.saved_id).map(c => c.saved_id!);
       const bizIds = targets.filter(c => c.type === "business" && c.saved_id).map(c => c.saved_id!);
+
+      // 2) For kunder uden kartotek-post (kun kendt fra ordrer) – slet alle deres
+      //    ordrer + abonnementer for denne virksomhed, så de forsvinder fra listen.
+      const ordersOnlyEmails = targets
+        .filter(c => !c.saved_id)
+        .map(c => c.email.toLowerCase());
+
       const promises: Promise<any>[] = [];
       if (privIds.length) promises.push(Promise.resolve(supabase.from("private_customers").delete().in("id", privIds)));
       if (bizIds.length) promises.push(Promise.resolve(supabase.from("business_customers").delete().in("id", bizIds)));
+
+      // Slet ordrer + abonnementer for kunder uden kartotek-post
+      for (const email of ordersOnlyEmails) {
+        // Find ordrer for kunden hos denne virksomhed
+        const { data: customerOrders } = await supabase
+          .from("orders")
+          .select("id")
+          .eq("business_id", businessId)
+          .ilike("customer_email", email);
+        const orderIds = (customerOrders || []).map((o: any) => o.id);
+        if (orderIds.length > 0) {
+          // Slet abonnementer der er knyttet til ordrerne først
+          await supabase.from("subscriptions").delete().in("order_id", orderIds);
+          // Order_items ryddes via cascade i de fleste tilfælde, ellers manuelt
+          await supabase.from("order_items").delete().in("order_id", orderIds);
+          await supabase.from("orders").delete().in("id", orderIds);
+        }
+      }
+
       const results = await Promise.all(promises);
       const firstError = results.find((r: any) => r?.error)?.error;
       if (firstError) throw firstError;
       qc.invalidateQueries({ queryKey: ["customers", businessId] });
       qc.invalidateQueries({ queryKey: ["saved-customers", businessId] });
+      qc.invalidateQueries({ queryKey: ["orders"] });
       toast.success(targets.length === 1 ? "Kunde slettet" : `${targets.length} kunder slettet`);
       setSelectedIds(new Set());
       setConfirmDelete(null);
