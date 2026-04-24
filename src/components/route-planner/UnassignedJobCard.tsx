@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import {
-  GripVertical, MapPin, Calendar as CalendarIcon, Clock, Phone,
+  GripVertical, MapPin, CalendarClock, Clock, Phone,
   StickyNote, Hourglass, ChevronDown, ChevronRight, User, Repeat, Route as RouteIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +33,7 @@ type Props = {
     estimated_duration_minutes?: number | null;
     notes?: string | null;
     preferred_route_name?: string | null;
+    next_service_date?: string | null;
     order_items?: OrderItem[] | null;
   };
   onClick?: () => void;
@@ -48,23 +49,36 @@ const INTERVAL_LABELS: Record<string, string> = {
   engangskøb: "Engangs",
 };
 
-const formatPreferredDate = (d: string) => {
-  const date = parseISO(d);
-  if (isToday(date)) return "I dag";
-  if (isTomorrow(date)) return "I morgen";
-  const diff = differenceInDays(date, new Date());
-  if (diff > 0 && diff < 7) return format(date, "EEEE", { locale: da });
-  return format(date, "d. MMM", { locale: da });
-};
-
-/** Get urgency styling based on preferred date */
-const getUrgency = (d?: string | null) => {
+/** Beregn tydeligt label for hvornår jobbet skal udføres næste gang.
+ *  Viser ugedag + dato + relativ tid, så ejeren hurtigt kan se hvilken
+ *  rute / dag aftalen hører hjemme på. */
+const getSchedule = (d?: string | null) => {
   if (!d) return null;
   const date = parseISO(d);
-  if (isPast(date) && !isToday(date)) return { label: "Forsinket", className: "border-destructive/40 text-destructive bg-destructive/5" };
-  if (isToday(date)) return { label: "I dag", className: "border-orange-300 text-orange-700 bg-orange-50" };
-  if (isTomorrow(date)) return { label: "I morgen", className: "border-amber-300 text-amber-700 bg-amber-50" };
-  return { label: format(date, "d. MMM", { locale: da }), className: "border-border text-muted-foreground bg-secondary/40" };
+  const diff = differenceInDays(date, new Date());
+  let relative: string;
+  if (isPast(date) && !isToday(date)) relative = `${Math.abs(diff)} dage forsinket`;
+  else if (isToday(date)) relative = "i dag";
+  else if (isTomorrow(date)) relative = "i morgen";
+  else if (diff > 0 && diff < 7) relative = `om ${diff} dage`;
+  else relative = `om ${diff} dage`;
+
+  const dayLabel = isToday(date) ? "I dag"
+    : isTomorrow(date) ? "I morgen"
+    : format(date, "EEE d. MMM", { locale: da });
+
+  const tone =
+    isPast(date) && !isToday(date)
+      ? "border-destructive/40 text-destructive bg-destructive/5"
+      : isToday(date)
+      ? "border-orange-300 text-orange-700 bg-orange-50"
+      : isTomorrow(date)
+      ? "border-amber-300 text-amber-700 bg-amber-50"
+      : diff <= 7
+      ? "border-primary/30 text-primary bg-primary/5"
+      : "border-border text-foreground bg-secondary/60";
+
+  return { dayLabel, relative, tone };
 };
 
 export const UnassignedJobCard = ({ job, onClick }: Props) => {
