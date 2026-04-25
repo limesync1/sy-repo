@@ -1624,8 +1624,16 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       ) : (
         <EmptyState
           icon={<ShoppingCart />}
-          title={filter === "all" ? "Ingen aftaler endnu" : "Ingen aftaler med dette filter"}
-          description="Aftaler vises her når kunder bestiller."
+          title={
+            filter === "all" || filter === "active"
+              ? "Ingen aftaler endnu"
+              : "Ingen aftaler i dette filter"
+          }
+          description={
+            filter === "active"
+              ? "Du har ingen åbne aftaler lige nu. Skift til Alle for at se afsluttede sager."
+              : "Aftaler vises her når kunder bestiller."
+          }
         />
       )}
         </div>
