@@ -6,6 +6,7 @@ import Testimonials from "@/components/landing/Testimonials";
 import WhyUs from "@/components/landing/WhyUs";
 import GetQuotes from "@/components/landing/GetQuotes";
 import Footer from "@/components/landing/Footer";
+import Stats from "@/components/landing/Stats";
 import SEO from "@/components/SEO";
 
 const Index = () => {
@@ -18,6 +19,7 @@ const Index = () => {
         keywords="serviceydere, find serviceydere, tilbud, rengøring, håndværker, flyttehjælp, haveservice, maler, vvs, elektriker, danmark"
       />
       <HeroSection />
+      <Stats />
       <Categories />
       <RecentBusinesses />
       <HowItWorks />
