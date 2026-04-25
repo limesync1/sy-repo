@@ -1590,34 +1590,34 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {routeStarted && !allDone && nextStop && (
           <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pb-[50px] pointer-events-none">
             <Card
-              className="overflow-hidden pointer-events-auto rounded-xl border-border shadow-xl"
+              className="overflow-hidden pointer-events-auto rounded-2xl border-border shadow-2xl"
             >
-              {/* Segmenteret progress — slankere, neutral palette */}
-              <div className="flex gap-0.5 px-3 pt-2 pb-1.5 bg-secondary/60">
+              {/* Segmenteret progress — tydeligere segmenter, native-følelse */}
+              <div className="flex gap-1 px-3.5 pt-2.5 pb-2 bg-card border-b border-border/60">
                 {sortedStops.map((s, i) => (
                   <div
                     key={s.id}
-                    className="flex-1 h-1 rounded-full transition-all"
+                    className="flex-1 h-1.5 rounded-full transition-all"
                     style={{
                       background:
                         s.status === "completed"
                           ? "hsl(142 70% 45%)"
                           : i === nextStopIdx
                             ? themeColor
-                            : "hsl(220 14% 88%)",
+                            : "hsl(220 14% 90%)",
                     }}
                   />
                 ))}
               </div>
               <button
                 type="button"
-                className="w-full flex items-center gap-3 px-4 py-3 bg-card hover:bg-secondary/40 transition-colors border-b border-border"
+                className="w-full flex items-center gap-3 px-4 py-3.5 bg-card hover:bg-secondary/40 transition-colors border-b border-border"
                 onClick={() => setCollapsed((c) => !c)}
                 aria-expanded={!collapsed}
                 aria-label={collapsed ? "Vis stop-detaljer" : "Skjul stop-detaljer"}
               >
                 <span
-                  className="flex h-10 w-10 items-center justify-center rounded-lg text-background text-sm font-bold shrink-0"
+                  className="flex h-11 w-11 items-center justify-center rounded-xl text-background text-base font-bold shrink-0 shadow-sm"
                   style={{ background: themeColor }}
                 >
                   {nextStopIdx + 1}
@@ -1656,14 +1656,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               </button>
 
               {!collapsed && (
-                <div className="p-3 space-y-3">
+                <div className="p-3.5 space-y-3">
                   {/* Adresse + service */}
                   {(nextStop.address || (nextStop.service_summary && stripPrices(nextStop.service_summary))) && (
-                    <div className="rounded-xl bg-secondary/30 p-2.5 space-y-1.5">
+                    <div className="rounded-xl bg-secondary/40 border border-border/60 p-3 space-y-1.5">
                       {nextStop.address && (
-                        <p className="text-[13px] flex items-start gap-1.5 leading-tight">
+                        <p className="text-[13px] flex items-start gap-1.5 leading-snug">
                           <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
-                          <span className="font-medium">{nextStop.address}</span>
+                          <span className="font-semibold text-foreground">{nextStop.address}</span>
                         </p>
                       )}
                       {nextStop.service_summary && stripPrices(nextStop.service_summary) && (
@@ -1674,51 +1674,51 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     </div>
                   )}
 
-                  {/* Info-grid: km, tid, ETA — clean admin-stil. */}
+                  {/* Info-grid: km, tid, ETA */}
                   {(directions || etaLabel) && (
                     <div className="grid grid-cols-3 divide-x divide-border rounded-xl border border-border bg-background overflow-hidden">
-                        <div className="px-2 py-1.5 text-center">
-                          <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
-                          <p className="text-[13px] font-bold tabular-nums mt-0.5">
+                        <div className="px-2 py-2 text-center">
+                          <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Distance</p>
+                          <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
                             {directions?.distance_m != null ? formatKm(directions.distance_m) : "—"}
                           </p>
                         </div>
-                        <div className="px-2 py-1.5 text-center">
-                          <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Tid</p>
-                          <p className="text-[13px] font-bold tabular-nums mt-0.5">
+                        <div className="px-2 py-2 text-center">
+                          <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Tid</p>
+                          <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
                             {(() => {
                               const d = directions ? pickDuration(directions, false) : null;
                               return d != null ? formatMin(d) : "—";
                             })()}
                           </p>
                         </div>
-                        <div className="px-2 py-1.5 text-center">
-                          <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Ankomst</p>
-                          <p className="text-[13px] font-bold tabular-nums mt-0.5 text-foreground">
+                        <div className="px-2 py-2 text-center">
+                          <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Ankomst</p>
+                          <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
                             {etaLabel || "—"}
                           </p>
                         </div>
                     </div>
                   )}
 
-                  {/* Sekundære handlinger — kompakt, admin-stil */}
+                  {/* Sekundære handlinger — kompakt, ikon-først */}
                   <div className="grid grid-cols-3 gap-2">
                     <Button
                       onClick={() => handleNavigate(nextStop)}
                       variant="outline"
                       size="sm"
-                      className="gap-1.5 h-9 rounded-lg text-xs border-border"
+                      className="gap-1.5 h-10 rounded-xl text-xs font-semibold border-border hover:bg-secondary"
                     >
                       <Navigation className="h-3.5 w-3.5" /> Maps
                     </Button>
                     {nextStop.customer_phone ? (
-                      <Button asChild variant="outline" size="sm" className="gap-1.5 h-9 rounded-lg text-xs border-border">
+                      <Button asChild variant="outline" size="sm" className="gap-1.5 h-10 rounded-xl text-xs font-semibold border-border hover:bg-secondary">
                         <a href={`tel:${nextStop.customer_phone}`}>
                           <Phone className="h-3.5 w-3.5" /> Ring
                         </a>
                       </Button>
                     ) : (
-                      <Button variant="outline" size="sm" disabled className="gap-1.5 h-9 rounded-lg text-xs border-border">
+                      <Button variant="outline" size="sm" disabled className="gap-1.5 h-10 rounded-xl text-xs font-semibold border-border">
                         <Phone className="h-3.5 w-3.5" /> Ring
                       </Button>
                     )}
@@ -1726,9 +1726,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       onClick={() => setSelectedId(nextStop.id)}
                       variant="outline"
                       size="sm"
-                      className="h-9 rounded-lg text-xs border-border"
+                      className="gap-1.5 h-10 rounded-xl text-xs font-semibold border-border hover:bg-secondary"
                     >
-                      Detaljer
+                      <Info className="h-3.5 w-3.5" /> Detaljer
                     </Button>
                   </div>
 
@@ -1738,10 +1738,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <Button
                     onClick={() => handleComplete(nextStop)}
                     size="lg"
-                    className={`w-full gap-2 h-12 text-base font-semibold rounded-xl transition-all ${
+                    className={`w-full gap-2 h-13 min-h-[52px] text-base font-bold rounded-2xl transition-all active:scale-[0.99] ${
                       isAtNextStop
-                        ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
-                        : "bg-foreground text-background hover:bg-foreground/90 shadow-md"
+                        ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30"
+                        : "bg-foreground text-background hover:bg-foreground/90 shadow-lg"
                     }`}
                     disabled={updateStatus.isPending}
                   >
