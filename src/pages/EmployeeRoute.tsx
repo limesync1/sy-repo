@@ -526,16 +526,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return haversineMeters(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
   }, [userPos, nextStop?.id, nextStop?.latitude, nextStop?.longitude]);
 
-  // Adaptiv ankomst-tærskel.  Vi bruger en stram basisradius (35 m) der
-  // matcher den faktiske præcision vi opnår med vores GPS-filter, men
-  // udvider den hvis fix'et er kendt unøjagtigt — så brugere indendørs
-  // eller i bymæssige "kløfter" stadig markeres som fremme uden at
-  // bygninger på den anden side af gaden bliver inkluderet ved godt fix.
-  const ARRIVAL_BASE_M = 35;
-  const ARRIVAL_MAX_M = 90;
+  // Adaptiv ankomst-tærskel.  Geokodede adresser er ofte 30-80 m skæve i
+  // forhold til den faktiske husdør (især på små danske veje), så tærsklen
+  // skal dække både GPS-usikkerhed og pin-usikkerhed.  Basis = 80 m.
+  // Vi udvider yderligere hvis GPS rapporterer dårlig accuracy, så
+  // indendørs / bymæssige "kløfter" stadig fanges.
+  const ARRIVAL_BASE_M = 80;
+  const ARRIVAL_MAX_M = 150;
   const arrivalThresholdM = useMemo(() => {
-    const accBuffer = userAccuracyM != null ? Math.min(userAccuracyM * 0.6, 50) : 25;
-    return Math.min(ARRIVAL_MAX_M, Math.max(ARRIVAL_BASE_M, ARRIVAL_BASE_M + accBuffer - 25));
+    const accBuffer = userAccuracyM != null ? Math.max(0, userAccuracyM - 15) : 0;
+    return Math.min(ARRIVAL_MAX_M, ARRIVAL_BASE_M + accBuffer);
   }, [userAccuracyM]);
   const isAtNextStop = distanceToNextM != null && distanceToNextM <= arrivalThresholdM;
 
