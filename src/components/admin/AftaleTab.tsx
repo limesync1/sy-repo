@@ -986,21 +986,33 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
     }
   };
 
-  // Opret en ny rute "i farten" fra sidebar — bruges når brugeren ingen
-  // eksisterende rute har til den dato de vil planlægge.
-  const handleQuickCreateRoute = async (dateIso: string) => {
+  // Opret en ny rute via dialog — samme flow som "Opret rute" på ruteplanlæggeren.
+  // Brugeren vælger navn (valgfrit), dato og farve.
+  const handleConfirmCreateRoute = async () => {
+    if (!businessId) return;
     try {
-      const route = await createRoute.mutateAsync({
+      await createRoute.mutateAsync({
         business_id: businessId,
-        route_date: dateIso,
-        name: `Rute ${new Date(dateIso).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}`,
+        route_date: newRouteDate,
+        name: newRouteName.trim() || null,
+        color: newRouteColor,
       });
-      toast.success("Ny rute oprettet");
-      return route;
+      toast.success("Rute oprettet");
+      setNewRouteName("");
+      setCreateRouteOpen(false);
     } catch (e: any) {
       toast.error(e?.message || "Kunne ikke oprette ruten");
-      return null;
     }
+  };
+
+  // Når dialogen åbnes, foreslå en ledig farve for den valgte dato — så to
+  // ruter på samme dag ikke får samme farve.
+  const openCreateRouteDialog = () => {
+    const usedColorsThisDay = (poolRoutes || [])
+      .filter((r: any) => r.route_date === newRouteDate)
+      .map((r: any) => r.color);
+    setNewRouteColor(pickAvailableColor(usedColorsThisDay));
+    setCreateRouteOpen(true);
   };
 
   return (
