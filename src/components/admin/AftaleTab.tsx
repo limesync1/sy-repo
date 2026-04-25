@@ -1451,8 +1451,9 @@ const AftaleTab = ({
                       )}
                     </div>
 
-                    {/* Rute-info — vis på hvilken rute denne aftale er placeret. */}
-                    {routeInfo ? (
+                    {/* Rute-info — vis på hvilken rute denne aftale er placeret.
+                        Hele blokken skjules når ruteplanlægning er deaktiveret. */}
+                    {routePlanningEnabled && routeInfo ? (
                       <div
                         className="rounded-xl border px-4 py-3 space-y-1.5"
                         style={{ borderColor: `${routeInfo.color}40`, backgroundColor: `${routeInfo.color}0d` }}
@@ -1494,7 +1495,7 @@ const AftaleTab = ({
                           )}
                         </div>
                       </div>
-                    ) : !["completed", "cancelled"].includes(order.status) && (
+                    ) : routePlanningEnabled && !["completed", "cancelled"].includes(order.status) && (
                       <div className="rounded-xl border border-dashed border-border px-4 py-3 flex items-center gap-2 text-xs text-muted-foreground">
                         <MapPin className="h-3.5 w-3.5" />
                         Denne aftale er endnu ikke planlagt på en rute.
