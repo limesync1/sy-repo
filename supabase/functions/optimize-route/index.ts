@@ -287,9 +287,9 @@ Deno.serve(async (req) => {
     // 1) Opdater route_stops: sequence, planned_arrival/departure, distance/travel
     // 2) Synkronisér route_stop_assignees (kun hvis stoppet ikke var pinned)
     let globalSeq = 0;
-    const writes: Promise<any>[] = [];
+    const writes: PromiseLike<any>[] = [];
 
-    for (const [empId, scheduled] of plan.per_employee.entries()) {
+    for (const [, scheduled] of plan.per_employee.entries()) {
       for (const sched of scheduled) {
         const stop = validStops.find((s) => s.id === sched.stop_id)!;
         const arrivalIso = timeToDateIso(route.route_date, sched.arrival_min);

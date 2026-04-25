@@ -56,7 +56,7 @@ const RouteAssignedEmail = ({
   return (
     <Html lang="da" dir="ltr">
       <Head />
-      <Preview>Din rute for {routeDate} er klar — {stopCount} stop</Preview>
+      <Preview>{`Din rute for ${routeDate} er klar — ${stopCount} stop`}</Preview>
       <Body style={main}>
         <Container style={wrapper}>
           <Section style={headerBar}>
