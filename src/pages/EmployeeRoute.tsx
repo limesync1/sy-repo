@@ -1257,26 +1257,26 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           </MapContainer>
         )}
 
-        {/* ─── Floating right-side controls ─── */}
+        {/* ─── Floating right-side controls — admin-stil rounded-xl, neutral ─── */}
         <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
           {routeStarted && !allDone && (
             <Button
               size="icon" variant="secondary"
               onClick={() => setListOpen((v) => !v)}
-              className="h-11 w-11 rounded-full shadow-lg bg-background hover:bg-secondary border border-border"
+              className="h-10 w-10 rounded-xl shadow-md bg-card hover:bg-secondary border border-border text-foreground"
               aria-label="Vis liste"
             >
-              <List className="h-5 w-5" />
+              <List className="h-4 w-4" />
             </Button>
           )}
           {routeStarted && !allDone && (
             <Button
               size="icon" variant="secondary"
               onClick={() => setAudioEnabled((v) => !v)}
-              className="h-11 w-11 rounded-full shadow-lg bg-background hover:bg-secondary border border-border"
+              className="h-10 w-10 rounded-xl shadow-md bg-card hover:bg-secondary border border-border text-foreground"
               aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
             >
-              {audioEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+              {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
             </Button>
           )}
           {routeStarted && (
@@ -1284,12 +1284,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               size="icon"
               variant={followMode ? "default" : "secondary"}
               onClick={() => setFollowMode((v) => !v)}
-              className={`h-11 w-11 rounded-full shadow-lg border ${followMode ? "border-transparent text-background hover:opacity-90" : "bg-background hover:bg-secondary border-border"}`}
+              className={`h-10 w-10 rounded-xl shadow-md border ${followMode ? "border-transparent text-background hover:opacity-90" : "bg-card hover:bg-secondary border-border text-foreground"}`}
               style={followMode ? { background: themeColor } : undefined}
               aria-label={followMode ? "Slå live-følg fra" : "Slå live-følg til"}
               title={followMode ? "Følger din position" : "Recentrer"}
             >
-              <Crosshair className="h-5 w-5" />
+              <Crosshair className="h-4 w-4" />
             </Button>
           )}
         </div>
@@ -1297,32 +1297,31 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Fullscreen drive mode: floating top overlays (back pill + maneuver banner + traffic alert) ─── */}
         {routeStarted && !allDone && (
           <>
-            {/* Back pill — top-left */}
+            {/* Back + progress — admin-stil rounded-xl med h-10 */}
             <div className="absolute top-3 left-3 z-[1000] flex items-center gap-2">
               <Button
                 asChild
                 size="icon"
                 variant="secondary"
-                className="h-11 w-11 rounded-full shadow-lg bg-background hover:bg-secondary border border-border"
+                className="h-10 w-10 rounded-xl shadow-md bg-card hover:bg-secondary border border-border text-foreground"
               >
                 <Link to="/medarbejder" aria-label="Tilbage">
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="h-4 w-4" />
                 </Link>
               </Button>
-              {/* Compact progress pill — neutral bg, kun farvet dot for rute-id (matcher Serviceydere brand) */}
-              <div className="flex items-center gap-2 pl-2.5 pr-3 h-11 rounded-full bg-background border border-border shadow-lg">
+              <div className="flex items-center gap-2 pl-2.5 pr-3 h-10 rounded-xl bg-card border border-border shadow-md">
                 <span
-                  className="h-2.5 w-2.5 rounded-full shrink-0"
+                  className="h-2 w-2 rounded-full shrink-0"
                   style={{ background: routeBadgeColor }}
                   aria-hidden
                 />
-                <span className="text-sm font-bold text-foreground tabular-nums leading-none">
+                <span className="text-sm font-semibold text-foreground tabular-nums leading-none">
                   {completedCount}<span className="text-muted-foreground/70 font-medium">/{sortedStops.length}</span>
                 </span>
                 {estimatedEndAt && (
                   <>
                     <span className="h-3 w-px bg-border" aria-hidden />
-                    <span className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground tabular-nums leading-none">
+                    <span className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground tabular-nums leading-none">
                       <Flag className="h-3 w-3" />{estimatedEndAt}
                     </span>
                   </>
