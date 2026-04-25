@@ -848,7 +848,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Når man cykler langt mellem to drej skal banneret IKKE blokere skærmen.
   // Vi viser det når næste manøvre er <800 m væk, OG den ikke er en "depart"
   // (kør ud) som kun giver mening de første sekunder af turen.
+  // Når brugeren er fremme ved næste stop er turn-by-turn irrelevant —
+  // vis kun "Du er fremme"-tilstanden, ikke et drej-banner der peger
+  // tilbage mod en vej-snappet rute.  Matcher Google Maps' adfærd.
   const showManeuverBanner = !!maneuver
+    && !isAtNextStop
     && maneuver.distanceToManeuverM <= 800
     && (maneuver.currentStep.maneuver.type || "").toLowerCase() !== "depart";
   useEffect(() => {
@@ -1059,8 +1063,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               </>
             )}
 
-            {/* Route line — aktivt leg */}
-            {legLine.length > 1 && (
+            {/* Route line — aktivt leg.  Skjules når man er fremme:
+                Mapbox-geometrien snapper til vejnetværket og kan slutte
+                lidt fra selve adresse-pin'en (især når pin'en ligger på
+                en bygning væk fra vejen).  Når man er inden for ankomst-
+                zonen er en linje "tilbage til vejen" kun forvirrende. */}
+            {legLine.length > 1 && !isAtNextStop && (
               <>
                 {/* Outer white casing for contrast */}
                 <Polyline
@@ -1078,6 +1086,22 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   pathOptions={{ color: themeColor, weight: 7, opacity: 1, lineCap: "round", lineJoin: "round" }}
                 />
               </>
+            )}
+
+            {/* Ankomst-indikator: lille stiplet linje fra puck til pin
+                så det er entydigt hvilken adresse man er ankommet til,
+                også når Mapbox' rute-geometri ville pege en anden vej. */}
+            {isAtNextStop && displayPos && nextStop?.latitude != null && nextStop?.longitude != null && (
+              <Polyline
+                positions={[displayPos, [Number(nextStop.latitude), Number(nextStop.longitude)]]}
+                pathOptions={{
+                  color: "hsl(142 70% 45%)",
+                  weight: 4,
+                  opacity: 0.9,
+                  dashArray: "2 8",
+                  lineCap: "round",
+                }}
+              />
             )}
 
             {/* Other stops */}
