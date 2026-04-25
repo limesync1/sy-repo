@@ -25,10 +25,13 @@ export const useSmoothPosition = (
   const toHeadingRef = useRef<number | null>(targetHeading);
   const startTimeRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
-  // Lidt længere end typisk GPS-cadence (~1s) så vi altid har et nyt
-  // target før det gamle "stopper" — det fjerner mikropauser hvor puck'en
-  // står stille i et par frames mellem GPS-fixes.
-  const DURATION_MS = 1300;
+  // Adaptiv tween-varighed: vi måler den faktiske afstand mellem GPS-
+  // fixes og bruger det som mål.  Det giver kontinuerlig bevægelse uden
+  // hverken at lagge bagud (for lang varighed) eller stoppe op mellem
+  // fixes (for kort varighed).  Vi clamp'er til 700-1700 ms som rimelige
+  // grænser for typiske mobile GPS-cadencer (1-3 s).
+  const lastUpdateRef = useRef<number>(0);
+  const durationRef = useRef<number>(1100);
 
   // Snapshot start values whenever a new target arrives.
   useEffect(() => {
@@ -52,10 +55,21 @@ export const useSmoothPosition = (
       fromHeadingRef.current = cur;
       toHeadingRef.current = cur + delta;
     }
-    startTimeRef.current = performance.now();
+    const nowTs = performance.now();
+    // Mål den observerede GPS-cadence; brug den som tween-varighed med
+    // en lille buffer (~120%) så vi altid har lidt at glide på når næste
+    // fix er forsinket.  Første fix → fald tilbage til 1100 ms.
+    if (lastUpdateRef.current > 0) {
+      const observed = nowTs - lastUpdateRef.current;
+      const next = Math.max(700, Math.min(1700, observed * 1.2));
+      // Glat også varighed med EMA — undgår at en enkelt outlier ændrer alt.
+      durationRef.current = durationRef.current * 0.6 + next * 0.4;
+    }
+    lastUpdateRef.current = nowTs;
+    startTimeRef.current = nowTs;
     if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     const tick = (now: number) => {
-      const t = Math.min(1, (now - startTimeRef.current) / DURATION_MS);
+      const t = Math.min(1, (now - startTimeRef.current) / durationRef.current);
       // Blødere ease-in-out (smoothstep) — undgår både ryk i starten og
       // det "halse-stop" en ren ease-out giver lige før næste GPS-fix.
       const e = t * t * (3 - 2 * t);

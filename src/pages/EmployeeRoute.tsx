@@ -27,6 +27,9 @@ import {
 import { ManeuverIcon, maneuverLabel } from "@/components/employee-route/ManeuverIcon";
 import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuver";
 import { useSmoothPosition } from "@/components/employee-route/useSmoothPosition";
+import { useGpsFilter, type FilteredFix } from "@/components/employee-route/useGpsFilter";
+import { smoothPolyline } from "@/components/employee-route/smoothPolyline";
+import { useSmoothZoom } from "@/components/employee-route/useSmoothZoom";
 import { useQueryClient } from "@tanstack/react-query";
 import { LiveStatusBadge, EtaDetailsButton, pickDuration } from "@/components/route/EtaBreakdown";
 
@@ -263,6 +266,19 @@ const FlyToStop = ({ target }: { target: [number, number] | null }) => {
   return null;
 };
 
+/**
+ * Hastigheds-adaptiv, glidende zoom under aktiv navigation.  Skal være
+ * inde i <MapContainer> så vi har adgang til map-instansen via useMap().
+ */
+const SmoothZoomController = ({
+  enabled,
+  speedMps,
+}: { enabled: boolean; speedMps: number }) => {
+  const map = useMap();
+  useSmoothZoom(map, enabled, speedMps);
+  return null;
+};
+
 const formatKm = (m: number | null) => (m == null ? "—" : m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`);
 const formatMin = (s: number | null) => (s == null ? "—" : s < 60 ? "<1 min" : `${Math.round(s / 60)} min`);
 
@@ -316,6 +332,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const [collapsed, setCollapsed] = useState(false);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [userHeading, setUserHeading] = useState<number | null>(null);
+  // Rå GPS-fix fra browseren — sendes gennem useGpsFilter som udjævner
+  // jitter inden vi bruger positionen til map/animation/distance-tjek.
+  const [rawFix, setRawFix] = useState<{
+    lat: number; lng: number; accuracy: number;
+    heading: number | null; speed: number | null; t: number;
+  } | null>(null);
   const [routeStarted, setRouteStarted] = useState(false);
   const [followMode, setFollowMode] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
@@ -384,16 +406,35 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     if (!navigator.geolocation) return;
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
-        setUserPos([pos.coords.latitude, pos.coords.longitude]);
-        if (typeof pos.coords.heading === "number" && !Number.isNaN(pos.coords.heading)) {
-          setUserHeading(pos.coords.heading);
-        }
+        // Send rå fix gennem GPS-filteret nedenfor.  Vi bevarer adgangen
+        // til accuracy + speed så filtret kan adaptive sin smoothing.
+        setRawFix({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: typeof pos.coords.accuracy === "number" ? pos.coords.accuracy : 20,
+          heading: typeof pos.coords.heading === "number" && !Number.isNaN(pos.coords.heading)
+            ? pos.coords.heading : null,
+          speed: typeof pos.coords.speed === "number" && !Number.isNaN(pos.coords.speed)
+            ? pos.coords.speed : null,
+          t: pos.timestamp ?? Date.now(),
+        });
       },
       () => {},
       { enableHighAccuracy: true, maximumAge: 1500, timeout: 10000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
   }, [routeStarted, geoPermission]);
+
+  // Kør rå GPS-fixes gennem jitter-filteret.  Output er en udjævnet
+  // position + heading + estimeret hastighed (sidstnævnte bruges også
+  // til den hastigheds-adaptive zoom).
+  const filtered: FilteredFix | null = useGpsFilter(rawFix);
+  useEffect(() => {
+    if (!filtered) return;
+    setUserPos(filtered.pos);
+    if (filtered.heading != null) setUserHeading(filtered.heading);
+  }, [filtered?.pos[0], filtered?.pos[1], filtered?.heading]);
+  const userSpeedMps = filtered?.speedMps ?? 0;
 
   /* Bryd follow ved manuel kortinteraktion */
   const breakFollow = () => { if (followMode) setFollowMode(false); };
@@ -474,7 +515,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   });
   const previewLine: [number, number][] = useMemo(() => {
     if (!previewDirections?.geometry?.coordinates) return [];
-    return previewDirections.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
+    const raw = previewDirections.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
+    // Spline-glat ruten så drej og bløde sving fremstår uden "knæk".
+    return smoothPolyline(raw);
   }, [previewDirections]);
 
   const distanceToNextM: number | null = useMemo(() => {
@@ -516,7 +559,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   const legLine: [number, number][] = useMemo(() => {
     if (!directions?.geometry?.coordinates) return [];
-    return directions.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
+    const raw = directions.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
+    return smoothPolyline(raw);
   }, [directions]);
 
   /* ── Off-route detection (Google-Maps-stil rerouting) ──────────────
@@ -985,6 +1029,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <FitTo points={allPoints} enabled={!routeStarted} />
             {/* Live follow when driving */}
             <FollowUser active={routeStarted && followMode} userPos={displayPos} />
+            {/* Hastigheds-adaptiv, glidende zoom — kun mens follow er aktiv. */}
+            <SmoothZoomController
+              enabled={routeStarted && followMode}
+              speedMps={userSpeedMps}
+            />
 
             {startCoord && <Marker position={startCoord} icon={startIcon} />}
 
