@@ -80,14 +80,14 @@ export const StatCard = ({
   };
   return (
     <Card className="rounded-xl border-border shadow-sm">
-      <CardContent className="p-4 flex items-center gap-3">
-        <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center shrink-0 [&_svg]:h-5 [&_svg]:w-5", tones[tone])}>
+      <CardContent className="flex min-h-[92px] items-center gap-3 p-4">
+        <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg [&_svg]:h-5 [&_svg]:w-5", tones[tone])}>
           {icon}
         </div>
-        <div className="min-w-0">
-          <p className="text-xs text-muted-foreground truncate">{label}</p>
-          <p className="text-xl font-bold text-foreground tracking-tight tabular-nums">{value}</p>
-          {hint && <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{hint}</p>}
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-medium leading-snug text-muted-foreground">{label}</p>
+          <p className="mt-1 break-words text-2xl font-bold leading-tight text-foreground tracking-tight tabular-nums sm:text-xl">{value}</p>
+          {hint && <p className="mt-1 text-xs leading-snug text-muted-foreground">{hint}</p>}
         </div>
       </CardContent>
     </Card>

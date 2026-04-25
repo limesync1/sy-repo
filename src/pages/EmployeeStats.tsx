@@ -217,8 +217,8 @@ const EmployeeStats = () => {
         ) : (
           <>
             {/* Indtjening (medarbejderens egen andel) */}
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-              <div className="col-span-2 lg:col-span-1">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="sm:col-span-2 lg:col-span-1">
                 <StatCard
                   label="Min indtjening"
                   value={formatKr(s.commission)}
@@ -244,7 +244,7 @@ const EmployeeStats = () => {
             </div>
 
             {/* Sekundær række */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <StatCard
                 label="Arbejdsdage"
                 value={s.workdaysCount}
