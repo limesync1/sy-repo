@@ -152,24 +152,45 @@ const Admin = () => {
 /* ─── Main Dashboard ─── */
 const AdminDashboard = () => {
   const { data: business, isLoading } = useMyBusiness();
-  const [activeTab, setActiveTab] = useState<AdminTabKey>("dashboard");
+  // Læs ?tab=xxx synkront ved første render så vi ALDRIG flasher "Overblik" når
+  // brugeren navigerer fra fx Ruteplanlæggeren til en anden fane.
+  const initialTab = ((): AdminTabKey => {
+    if (typeof window === "undefined") return "dashboard";
+    const t = new URLSearchParams(window.location.search).get("tab") as AdminTabKey | null;
+    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","settings"];
+    return t && allowed.includes(t) ? t : "dashboard";
+  })();
+  const [activeTab, setActiveTab] = useState<AdminTabKey>(initialTab);
 
-  // Understøt ?tab=xxx i URL'en så ruteplanlæggerens sidebar kan navigere
-  // direkte til en bestemt fane når man klikker fx "Aftaler".
+  // Hold URL'en synkroniseret med aktiv fane (uden at trigge en ekstra render-cyklus).
+  // Bruges også når brugeren klikker browserens tilbage-pil.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const t = params.get("tab") as AdminTabKey | null;
-    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","settings"];
-    if (t && allowed.includes(t)) setActiveTab(t);
+    const onPop = () => {
+      const t = new URLSearchParams(window.location.search).get("tab") as AdminTabKey | null;
+      const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","settings"];
+      setActiveTab(t && allowed.includes(t) ? t : "dashboard");
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
   }, []);
+
+  const handleTabChange = (tab: AdminTabKey) => {
+    setActiveTab(tab);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (tab === "dashboard") url.searchParams.delete("tab");
+      else url.searchParams.set("tab", tab);
+      window.history.replaceState({}, "", url.toString());
+    }
+  };
 
   if (isLoading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
   if (!business) return <CreateBusinessForm />;
 
   const renderContent = () => {
     switch (activeTab) {
-      case "dashboard": return <DashboardWrapper business={business} onNavigate={(t) => setActiveTab(t as AdminTabKey)} />;
+      case "dashboard": return <DashboardWrapper business={business} onNavigate={(t) => handleTabChange(t as AdminTabKey)} />;
       case "services": return <ServicesTab businessId={business.id} business={business} />;
       case "orders": return <AftaleTab businessId={business.id} businessName={business.name} />;
       case "customers": return <CustomersTab businessId={business.id} businessName={business.name} />;
@@ -181,7 +202,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <AdminShell business={business} activeTab={activeTab} onTabChange={setActiveTab}>
+    <AdminShell business={business} activeTab={activeTab} onTabChange={handleTabChange}>
       {renderContent()}
     </AdminShell>
   );
