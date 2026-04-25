@@ -2,24 +2,22 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, MapPin, Sparkles, Wrench, Truck, TreePine, Paintbrush, Droplets, Zap, ShieldCheck, Hammer, Building2 } from "lucide-react";
+import { Search, MapPin, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserLocation } from "@/contexts/LocationContext";
+import { topCategories, industryIcon } from "@/lib/service-taxonomy";
 
-const CATEGORIES = [
-  { label: "Rengøring", icon: Sparkles },
-  { label: "Håndværker", icon: Wrench },
-  { label: "Flyttehjælp", icon: Truck },
-  { label: "Haveservice", icon: TreePine },
-  { label: "Maler", icon: Paintbrush },
-  { label: "VVS", icon: Droplets },
-  { label: "Elektriker", icon: Zap },
-  { label: "Sikkerhed", icon: ShieldCheck },
-  { label: "Tømrer", icon: Hammer },
-];
+/** Top-brancher hentes fra det kanoniske taksonomi-katalog så landing, søgning
+ *  og virksomhedspanelet altid viser præcis de samme brancher. */
+const CATEGORIES = topCategories().map((ind) => ({
+  label: ind.label,
+  key: ind.key,
+  icon: ind.icon,
+}));
 
 type Suggestion =
   | { type: "category"; label: string; icon: any }
+  | { type: "category"; label: string; icon: string; key: string }
   | { type: "business"; label: string; slug: string; city: string | null; logo: string | null }
   | { type: "city"; label: string };
 
