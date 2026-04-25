@@ -1261,26 +1261,26 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           </MapContainer>
         )}
 
-        {/* ─── Floating right-side controls — admin-stil rounded-xl, neutral ─── */}
+        {/* ─── Floating right-side controls — runde pills, native-følelse ─── */}
         <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
           {routeStarted && !allDone && (
             <Button
               size="icon" variant="secondary"
               onClick={() => setListOpen((v) => !v)}
-              className="h-10 w-10 rounded-xl shadow-md bg-card hover:bg-secondary border border-border text-foreground"
+              className="h-11 w-11 rounded-full shadow-lg bg-card hover:bg-secondary border border-border text-foreground transition-transform active:scale-95"
               aria-label="Vis liste"
             >
-              <List className="h-4 w-4" />
+              <List className="h-[18px] w-[18px]" />
             </Button>
           )}
           {routeStarted && !allDone && (
             <Button
               size="icon" variant="secondary"
               onClick={() => setAudioEnabled((v) => !v)}
-              className="h-10 w-10 rounded-xl shadow-md bg-card hover:bg-secondary border border-border text-foreground"
+              className="h-11 w-11 rounded-full shadow-lg bg-card hover:bg-secondary border border-border text-foreground transition-transform active:scale-95"
               aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
             >
-              {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              {audioEnabled ? <Volume2 className="h-[18px] w-[18px]" /> : <VolumeX className="h-[18px] w-[18px]" />}
             </Button>
           )}
           {routeStarted && (
@@ -1288,12 +1288,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               size="icon"
               variant={followMode ? "default" : "secondary"}
               onClick={() => setFollowMode((v) => !v)}
-              className={`h-10 w-10 rounded-xl shadow-md border ${followMode ? "border-transparent text-background hover:opacity-90" : "bg-card hover:bg-secondary border-border text-foreground"}`}
+              className={`h-11 w-11 rounded-full shadow-lg border transition-transform active:scale-95 ${followMode ? "border-transparent text-background hover:opacity-90" : "bg-card hover:bg-secondary border-border text-foreground"}`}
               style={followMode ? { background: themeColor } : undefined}
               aria-label={followMode ? "Slå live-følg fra" : "Slå live-følg til"}
               title={followMode ? "Følger din position" : "Recentrer"}
             >
-              <Crosshair className="h-4 w-4" />
+              <Crosshair className="h-[18px] w-[18px]" />
             </Button>
           )}
         </div>
@@ -1301,31 +1301,34 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Fullscreen drive mode: floating top overlays (back pill + maneuver banner + traffic alert) ─── */}
         {routeStarted && !allDone && (
           <>
-            {/* Back + progress — admin-stil rounded-xl med h-10 */}
+            {/* Back + progress — runde pills, native-følelse */}
             <div className="absolute top-3 left-3 z-[1000] flex items-center gap-2">
               <Button
                 asChild
                 size="icon"
                 variant="secondary"
-                className="h-10 w-10 rounded-xl shadow-md bg-card hover:bg-secondary border border-border text-foreground"
+                className="h-11 w-11 rounded-full shadow-lg bg-card hover:bg-secondary border border-border text-foreground transition-transform active:scale-95"
               >
                 <Link to="/medarbejder" aria-label="Tilbage">
-                  <ArrowLeft className="h-4 w-4" />
+                  <ArrowLeft className="h-[18px] w-[18px]" />
                 </Link>
               </Button>
-              <div className="flex items-center gap-2 pl-2.5 pr-3 h-10 rounded-xl bg-card border border-border shadow-md">
-                <span
-                  className="h-2 w-2 rounded-full shrink-0"
-                  style={{ background: routeBadgeColor }}
-                  aria-hidden
-                />
-                <span className="text-sm font-semibold text-foreground tabular-nums leading-none">
-                  {completedCount}<span className="text-muted-foreground/70 font-medium">/{sortedStops.length}</span>
-                </span>
+              <div className="flex items-center gap-2.5 pl-3 pr-3.5 h-11 rounded-full bg-card border border-border shadow-lg">
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full shrink-0"
+                    style={{ background: routeBadgeColor }}
+                    aria-hidden
+                  />
+                  <span className="text-sm font-bold text-foreground tabular-nums leading-none">
+                    {completedCount}
+                    <span className="text-muted-foreground/60 font-semibold">/{sortedStops.length}</span>
+                  </span>
+                </div>
                 {estimatedEndAt && (
                   <>
-                    <span className="h-3 w-px bg-border" aria-hidden />
-                    <span className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground tabular-nums leading-none">
+                    <span className="h-4 w-px bg-border" aria-hidden />
+                    <span className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground tabular-nums leading-none">
                       <Flag className="h-3 w-3" />{estimatedEndAt}
                     </span>
                   </>
@@ -1335,35 +1338,35 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {/* Maneuver banner — floating top center */}
             {showManeuverBanner && maneuver && nextStop && (
-              <div className="absolute top-[68px] left-3 right-[68px] z-[1000] pointer-events-none">
-                <Card className="overflow-hidden shadow-md rounded-xl pointer-events-auto bg-card border-border pointer-events-auto">
+              <div className="absolute top-[72px] left-3 right-[72px] z-[1000] pointer-events-none">
+                <Card className="overflow-hidden shadow-xl rounded-2xl pointer-events-auto bg-card border-border animate-in fade-in slide-in-from-top-2 duration-300">
                   <div className="flex items-stretch">
-                    <div className="flex flex-col items-center justify-center w-20 shrink-0 bg-foreground text-background py-3">
+                    <div className="flex flex-col items-center justify-center w-[88px] shrink-0 bg-foreground text-background py-3.5 px-1">
                       <ManeuverIcon
                         type={maneuver.currentStep.maneuver.type}
                         modifier={maneuver.currentStep.maneuver.modifier}
-                        className="h-10 w-10"
+                        className="h-11 w-11"
                       />
-                      <span className="text-[11px] font-semibold tracking-wide mt-1 tabular-nums">
+                      <span className="text-[13px] font-bold tracking-tight mt-1.5 tabular-nums leading-none">
                         {formatKm(maneuver.distanceToManeuverM)}
                       </span>
                     </div>
-                    <div className="flex-1 min-w-0 px-3 py-3">
-                      <p className="font-semibold text-base leading-tight truncate text-foreground">
+                    <div className="flex-1 min-w-0 px-3.5 py-3">
+                      <p className="font-bold text-[17px] leading-tight truncate text-foreground">
                         {maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
                       </p>
                       {maneuver.currentStep.name && (
-                        <p className="text-sm text-muted-foreground truncate mt-0.5">
+                        <p className="text-[13px] text-muted-foreground truncate mt-0.5">
                           ad <span className="font-semibold text-foreground">{maneuver.currentStep.name}</span>
                         </p>
                       )}
                       {maneuver.nextStep && (
-                        <div className="flex items-center gap-1.5 mt-1.5 pt-1.5 border-t border-border text-[11px] text-muted-foreground">
-                          <span>Derefter:</span>
+                        <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-border text-[11px] text-muted-foreground">
+                          <span className="font-semibold uppercase tracking-wide text-[10px]">Derefter</span>
                           <ManeuverIcon
                             type={maneuver.nextStep.maneuver.type}
                             modifier={maneuver.nextStep.maneuver.modifier}
-                            className="h-3.5 w-3.5"
+                            className="h-3.5 w-3.5 text-foreground"
                           />
                           <span className="truncate">
                             {maneuverLabel(maneuver.nextStep.maneuver.type, maneuver.nextStep.maneuver.modifier)}
