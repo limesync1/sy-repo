@@ -177,11 +177,11 @@ const DynamicBusinessContent = () => {
             </div>
           </div>
 
-          {/* Identity row — logo + navn + meta sammen, så hierarki er klart.
-              Logo og tekstblok ligger på samme baseline lige under cover. */}
-          <div className="relative -mt-8 flex flex-col gap-5 pb-6 md:-mt-10 md:flex-row md:items-end md:gap-6 md:pb-8">
-            {/* Logo */}
-            <div className="relative z-10 shrink-0">
+          {/* Identity row — kun logoet overlapper coveret. Tekstkolonnen sidder
+              i sin egen flow nedenunder, så branche-chips aldrig lander oven i billedet. */}
+          <div className="relative flex flex-col gap-4 pb-6 md:flex-row md:items-start md:gap-6 md:pb-8">
+            {/* Logo — alene om at overlappe cover */}
+            <div className="relative z-10 -mt-10 shrink-0 md:-mt-12">
               <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card shadow-xl md:h-24 md:w-24">
                 {business.logo_url ? (
                   <img src={business.logo_url} alt={`${business.name} logo`} className="h-full w-full object-contain p-2" loading="eager" />
@@ -201,8 +201,8 @@ const DynamicBusinessContent = () => {
               )}
             </div>
 
-            {/* Tekst-kolonne */}
-            <div className="min-w-0 flex-1">
+            {/* Tekst-kolonne — sidder i normal flow, så chips ikke kolliderer med cover */}
+            <div className="min-w-0 flex-1 pt-1 md:pt-3">
               {/* Brancher som diskrete chips øverst */}
               {(business.categories?.[0] || business.category) && (
                 <div className="mb-2 flex flex-wrap gap-1.5">
@@ -262,7 +262,7 @@ const DynamicBusinessContent = () => {
 
             {/* CTA — kun på md+, knappen flyttes ind i sidebar på mobil for et renere hero */}
             {business.phone && services && services.length > 0 && (
-              <div className="hidden shrink-0 md:flex md:flex-col md:gap-2">
+              <div className="hidden shrink-0 md:flex md:flex-col md:gap-2 md:pt-3">
                 <a href={`tel:${business.phone}`}>
                   <Button
                     size="lg"
