@@ -4,16 +4,11 @@
 import {
   Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow,
   CloudLightning, CloudFog, Snowflake, Wind, Thermometer, Droplets,
-  CheckCircle2, AlertTriangle, XCircle, Sunrise, Sunset,
+  Sunrise, Sunset,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import {
-  type WeatherDay,
-  windowCleaningSuitability,
-  algaeTreatmentSuitability,
-  type WorkSuitability,
-} from "@/hooks/useWeather";
+import { type WeatherDay } from "@/hooks/useWeather";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 
@@ -53,17 +48,6 @@ const TONE_BG: Record<string, string> = {
   fog: "bg-zinc-100 text-zinc-600 ring-zinc-200",
 };
 
-const SUITABILITY_ICON: Record<WorkSuitability["level"], typeof CheckCircle2> = {
-  good: CheckCircle2,
-  warning: AlertTriangle,
-  bad: XCircle,
-};
-const SUITABILITY_COLOR: Record<WorkSuitability["level"], string> = {
-  good: "text-emerald-600",
-  warning: "text-amber-600",
-  bad: "text-red-600",
-};
-
 type Props = {
   weather: WeatherDay;
   /** "compact" = kun ikon (måneds-visning), "full" = ikon + temp (uge) */
@@ -76,9 +60,6 @@ export const WeatherBadge = ({ weather, size = "compact", className }: Props) =>
   const tempMaxStr = `${Math.round(weather.tempMax)}°`;
   const tempMinStr = `${Math.round(weather.tempMin)}°`;
   const isFrost = weather.tempMin <= 0;
-
-  const windows = windowCleaningSuitability(weather);
-  const algae = algaeTreatmentSuitability(weather);
 
   return (
     <Tooltip delayDuration={150}>
@@ -103,24 +84,17 @@ export const WeatherBadge = ({ weather, size = "compact", className }: Props) =>
         </div>
       </TooltipTrigger>
       <TooltipContent side="bottom" align="end" className="p-0 max-w-[280px]">
-        <WeatherTooltipContent
-          weather={weather}
-          label={label}
-          windows={windows}
-          algae={algae}
-        />
+        <WeatherTooltipContent weather={weather} label={label} />
       </TooltipContent>
     </Tooltip>
   );
 };
 
 const WeatherTooltipContent = ({
-  weather, label, windows, algae,
+  weather, label,
 }: {
   weather: WeatherDay;
   label: string;
-  windows: WorkSuitability;
-  algae: WorkSuitability;
 }) => {
   const dateLabel = format(parseISO(weather.date), "EEEE d. MMMM", { locale: da });
   return (
@@ -134,7 +108,7 @@ const WeatherTooltipContent = ({
       </div>
 
       {/* Målinger */}
-      <div className="px-3 py-2 grid grid-cols-2 gap-x-3 gap-y-1.5 border-b">
+      <div className="px-3 py-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
         <Metric
           icon={Thermometer}
           label="Temperatur"
@@ -172,7 +146,7 @@ const WeatherTooltipContent = ({
 
       {/* Sol op/ned hvis tilgængeligt */}
       {(weather.sunrise || weather.sunset) && (
-        <div className="px-3 py-1.5 grid grid-cols-2 gap-x-3 border-b text-[10px] text-muted-foreground">
+        <div className="px-3 py-1.5 grid grid-cols-2 gap-x-3 border-t text-[10px] text-muted-foreground">
           {weather.sunrise && (
             <div className="flex items-center gap-1">
               <Sunrise className="h-3 w-3" />
@@ -187,12 +161,6 @@ const WeatherTooltipContent = ({
           )}
         </div>
       )}
-
-      {/* Praktiske vurderinger */}
-      <div className="px-3 py-2 space-y-1.5">
-        <SuitabilityRow title="Vinduespolering" verdict={windows} />
-        <SuitabilityRow title="Algebehandling" verdict={algae} />
-      </div>
     </div>
   );
 };
@@ -224,26 +192,3 @@ const Metric = ({
     </p>
   </div>
 );
-
-const SuitabilityRow = ({ title, verdict }: { title: string; verdict: WorkSuitability }) => {
-  const Icon = SUITABILITY_ICON[verdict.level];
-  const color = SUITABILITY_COLOR[verdict.level];
-  return (
-    <div>
-      <div className="flex items-center gap-1.5">
-        <Icon className={cn("h-3 w-3 shrink-0", color)} strokeWidth={2.4} />
-        <span className="text-[11px] font-semibold">{title}</span>
-        <span className={cn("text-[10px] font-medium ml-auto", color)}>
-          {verdict.label}
-        </span>
-      </div>
-      <ul className="mt-0.5 ml-4 space-y-0.5">
-        {verdict.reasons.map((r, i) => (
-          <li key={i} className="text-[10px] text-muted-foreground leading-snug">
-            {r}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-};
