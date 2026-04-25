@@ -23,7 +23,7 @@ import {
 } from "@/lib/service-taxonomy";
 
 const DAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"] as const;
-type Day = typeof DAYS[number];
+const WEEKDAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag"] as const;
 
 // Header offset i topbaren (h-14 = 56px) + lille luft, bruges både til sticky
 // sidebar og smooth-scroll så ankret lander præcist under headeren.
