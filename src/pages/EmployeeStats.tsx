@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import {
   Calendar as CalendarIcon, CheckCircle2, Clock,
   MapPin, Route as RouteIcon, Wallet, ChevronDown,
+  ListChecks,
 } from "lucide-react";
 import {
   format, parseISO,
@@ -91,10 +92,10 @@ const PAYMENT_LABEL: Record<string, string> = {
 };
 
 const PAYMENT_BADGE: Record<string, string> = {
-  paid: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-  settling: "bg-blue-500/10 text-blue-700 border-blue-500/20",
-  pending: "bg-amber-500/10 text-amber-700 border-amber-500/20",
-  unknown: "bg-secondary text-muted-foreground border-border",
+  paid: "bg-feature-cool text-feature-cool-foreground border-transparent",
+  settling: "bg-feature-lilac text-feature-lilac-foreground border-transparent",
+  pending: "bg-feature-warm text-feature-warm-foreground border-transparent",
+  unknown: "bg-secondary text-muted-foreground border-transparent",
 };
 
 const EmployeeStats = () => {
@@ -131,7 +132,8 @@ const EmployeeStats = () => {
   })();
 
   const rangePicker = (
-    <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border bg-card p-1 shadow-sm">
+    <div className="w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm sm:w-auto">
+      <div className="flex gap-1 overflow-x-auto p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {(Object.keys(RANGE_LABELS) as Array<Exclude<RangeKey, "custom">>).map((k) => (
         <Button
           key={k}
@@ -139,7 +141,7 @@ const EmployeeStats = () => {
           variant="ghost"
           onClick={() => { setRange(k); setCustomRange(undefined); }}
           className={cn(
-            "h-8 rounded-md px-3 text-xs font-medium transition-colors",
+            "h-9 shrink-0 rounded-lg px-3 text-xs font-semibold transition-colors active:scale-[0.98]",
             range === k
               ? "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm"
               : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -154,7 +156,7 @@ const EmployeeStats = () => {
             size="sm"
             variant="ghost"
             className={cn(
-              "h-8 gap-1.5 rounded-md px-3 text-xs font-medium transition-colors",
+              "h-9 shrink-0 gap-1.5 rounded-lg px-3 text-xs font-semibold transition-colors active:scale-[0.98]",
               range === "custom"
                 ? "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm"
                 : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -181,6 +183,7 @@ const EmployeeStats = () => {
           />
         </PopoverContent>
       </Popover>
+      </div>
     </div>
   );
 
