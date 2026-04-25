@@ -1118,15 +1118,16 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
           3) Planlægning og lifecycle. Tomme tællinger skjules ikke for fast layout. */}
       <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
         {(() => {
-          const groups: { key: string; label: string; count: number; tone?: "danger" | "warning" }[][] = [
+          type Chip = { key: string; label: string; count: number; tone?: "danger" | "warning" };
+          const groups: Chip[][] = [
             [
               { key: "active", label: "Aktive", count: activeOrders.length },
               { key: "all", label: "Alle", count: counts.all || 0 },
             ],
-            [
-              { key: "action_needed", label: "Kræver handling", count: actionNeeded.length, tone: "danger" },
-              { key: "waiting", label: "Afventer kunde", count: waitingForCustomer.length, tone: "warning" },
-            ].filter(b => b.count > 0),
+            ([
+              { key: "action_needed", label: "Kræver handling", count: actionNeeded.length, tone: "danger" as const },
+              { key: "waiting", label: "Afventer kunde", count: waitingForCustomer.length, tone: "warning" as const },
+            ] as Chip[]).filter(b => b.count > 0),
             [
               { key: "not_planned", label: "Ikke planlagt", count: notPlannedOrders.length },
               { key: "in_route", label: "På rute", count: inRouteOrders.length },
