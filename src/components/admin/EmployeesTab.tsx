@@ -238,6 +238,26 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   className="h-10"
                 />
               </div>
+              <div>
+                <FieldLabel>Provision (%)</FieldLabel>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    max={100}
+                    step="0.5"
+                    value={commissionPct}
+                    onChange={(e) => setCommissionPct(e.target.value)}
+                    placeholder="fx 10"
+                    className="h-10 pr-9"
+                  />
+                  <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Andel af omsætningen for udførte opgaver. Lad være tom for 0 %.
+                </p>
+              </div>
             </div>
             <p className="text-xs text-muted-foreground">
               Der genereres automatisk en sikker adgangskode, og medarbejderen
