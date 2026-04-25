@@ -1244,16 +1244,46 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               className="overflow-hidden shadow-2xl rounded-2xl border-t-2"
               style={{ borderTopColor: themeColor }}
             >
-              {/* Kalender-stil header */}
-              <div className="px-4 pt-3 pb-2 bg-secondary/30">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold flex-1">
-                    Næste stop · {nextStopIdx + 1} af {sortedStops.length}
-                  </p>
-                  <Badge variant="secondary" className="text-[9px] h-4 px-1.5 tabular-nums">
+              {/* Dagens overblik — øverste sektion */}
+              <div className="px-4 pt-3 pb-3 bg-gradient-to-b from-secondary/50 to-secondary/10">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-bold truncate">
+                      Dagens rute · {todayLabel}
+                    </p>
+                  </div>
+                  <Badge variant="secondary" className="text-[9px] h-4 px-1.5 tabular-nums font-bold shrink-0">
                     {sortedStops.length} stop
                   </Badge>
                 </div>
+                {/* Day-stats: total km, total tid, forventet slut */}
+                <div className="grid grid-cols-3 gap-1.5 mb-3">
+                  <div className="rounded-lg bg-background/80 backdrop-blur border px-2 py-1.5 text-center">
+                    <p className="text-[8px] uppercase text-muted-foreground font-bold tracking-wide">Stop</p>
+                    <p className="text-sm font-bold tabular-nums">
+                      {remainingStops.length}
+                      {completedCount > 0 && (
+                        <span className="text-muted-foreground font-medium">/{sortedStops.length}</span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-background/80 backdrop-blur border px-2 py-1.5 text-center">
+                    <p className="text-[8px] uppercase text-muted-foreground font-bold tracking-wide">Distance</p>
+                    <p className="text-sm font-bold tabular-nums">
+                      {route?.total_distance_km != null ? `${route.total_distance_km.toFixed(1)} km` : "—"}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-background/80 backdrop-blur border px-2 py-1.5 text-center">
+                    <p className="text-[8px] uppercase text-muted-foreground font-bold tracking-wide">Slut ca.</p>
+                    <p className="text-sm font-bold tabular-nums" style={{ color: themeColor }}>
+                      {estimatedEndAt || "—"}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-[9px] uppercase tracking-wide text-muted-foreground font-bold mb-1.5">
+                  Først til
+                </p>
                 <div className="flex items-start gap-2.5">
                   <span
                     className="flex h-10 w-10 items-center justify-center rounded-xl text-background text-sm font-bold shrink-0 shadow-sm"
@@ -1262,7 +1292,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     {nextStopIdx + 1}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate leading-tight">
+                    <p className="font-bold text-sm truncate leading-tight">
                       {nextStop.customer_name || "Stop"}
                     </p>
                     {nextStop.address && (
@@ -1292,12 +1322,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 </div>
               </div>
 
-              {/* Info-grid: km, tid, ETA */}
+              {/* Info-grid: km, tid, ETA — for første leg */}
               {(directions || etaLabel) && (
                 <>
                   {directions && (
                     <div className="flex items-center justify-between gap-2 px-3 py-1.5 bg-background border-t">
-                      <LiveStatusBadge info={directions} compact />
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-[9px] uppercase tracking-wide text-muted-foreground font-bold shrink-0">
+                          Til 1. stop
+                        </span>
+                        <LiveStatusBadge info={directions} compact />
+                      </div>
                       <div className="flex items-center gap-1">
                         {showRawTime && (
                           <Badge variant="outline" className="h-5 px-1.5 text-[9px] font-medium">
@@ -1343,13 +1378,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <Button
                   onClick={handleStartRoute}
                   size="lg"
-                  className="w-full gap-2 h-13 text-base font-bold rounded-xl shadow-lg hover:shadow-xl transition-shadow"
+                  className="w-full gap-2 h-14 text-base font-bold rounded-xl shadow-lg hover:shadow-xl active:scale-[0.99] transition-all text-background"
                   style={{ background: themeColor }}
                 >
-                  <Play className="h-5 w-5 fill-current" /> Start rute
+                  <Play className="h-5 w-5 fill-current" /> Start dagens rute
                 </Button>
                 <p className="text-[10px] text-muted-foreground text-center mt-2">
-                  Live navigation · auto-zoom · stemmevejledning
+                  Live navigation · GPS-følg · stemmevejledning
                 </p>
               </div>
             </Card>
