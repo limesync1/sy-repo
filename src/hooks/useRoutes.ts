@@ -70,6 +70,10 @@ export type RouteStop = {
   assignee_ids?: string[];
   /** Lead-medarbejder på aftalen (kan være forskellig fra assigned_employee_id ved race). */
   lead_employee_id?: string | null;
+  /** Betalings-/ordrestatus til medarbejderens aftaleliste. */
+  order_status?: string | null;
+  /** Aftalens fulde beløb, inkl. evt. justering. */
+  order_amount?: number | null;
 };
 
 export type RouteEmployee = {
@@ -1297,7 +1301,33 @@ export const useMyDayStops = (date: string) => {
         if (linkedRouteIds.has(s.route_id)) return true;
         return !s.assigned_employee_id;
       });
-      return filtered as RouteStop[];
+      const orderIds = Array.from(
+        new Set(filtered.map((s: any) => s.order_id).filter(Boolean)),
+      );
+      if (orderIds.length === 0) return filtered as RouteStop[];
+
+      const { data: orderRows } = await supabase
+        .from("orders")
+        .select("id,status,total_amount,adjusted_amount")
+        .in("id", orderIds);
+      const orderMap = new Map(
+        (orderRows || []).map((o: any) => [
+          o.id,
+          {
+            status: o.status as string | null,
+            amount: Number(o.adjusted_amount ?? o.total_amount ?? 0),
+          },
+        ]),
+      );
+
+      return filtered.map((s: any) => {
+        const order = s.order_id ? orderMap.get(s.order_id) : null;
+        return {
+          ...s,
+          order_status: order?.status ?? null,
+          order_amount: order?.amount ?? null,
+        };
+      }) as RouteStop[];
     },
   });
 };

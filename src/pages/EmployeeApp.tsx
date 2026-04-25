@@ -5,6 +5,8 @@ import { useMyDayRoutes, useMyDayStops, type RouteStop } from "@/hooks/useRoutes
 import { useMyWorkday, useStartWorkday, useEndWorkday } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Calendar as CalendarIcon, Play, Printer, MapPin, Clock, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
@@ -18,20 +20,30 @@ import "leaflet/dist/leaflet.css";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
+
+const formatKr = (n?: number | null) => `${Math.round(n || 0).toLocaleString("da-DK")} kr`;
+
+const paymentMeta = (status?: string | null) => {
+  if (status === "completed") return { label: "Betalt", className: "bg-feature-cool text-feature-cool-foreground border-transparent" };
+  if (status === "confirmed" || status === "in_progress") return { label: "Afregnes", className: "bg-feature-lilac text-feature-lilac-foreground border-transparent" };
+  if (status === "pending") return { label: "Afventer", className: "bg-feature-warm text-feature-warm-foreground border-transparent" };
+  return { label: "Status ukendt", className: "bg-secondary text-muted-foreground border-transparent" };
+};
 
 const miniStopIcon = (n: number, color: string, done: boolean) =>
   L.divIcon({
     className: "",
-    html: `<div style="width:22px;height:22px;border-radius:50%;background:${done ? "hsl(142 70% 45%)" : color};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:10px;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3);">${done ? "✓" : n}</div>`,
+    html: `<div style="width:22px;height:22px;border-radius:50%;background:${done ? "hsl(var(--feature-cool-foreground))" : color};display:flex;align-items:center;justify-content:center;color:hsl(var(--background));font-weight:700;font-size:10px;border:2px solid hsl(var(--background));box-shadow:0 1px 4px hsl(var(--foreground) / .3);">${done ? "✓" : n}</div>`,
     iconSize: [22, 22],
     iconAnchor: [11, 11],
   });
 
 const startIcon = L.divIcon({
   className: "",
-  html: `<div style="width:14px;height:14px;border-radius:50%;background:hsl(222 47% 11%);border:3px solid white;box-shadow:0 1px 4px rgba(0,0,0,.4);"></div>`,
+  html: `<div style="width:14px;height:14px;border-radius:50%;background:hsl(var(--foreground));border:3px solid hsl(var(--background));box-shadow:0 1px 4px hsl(var(--foreground) / .35);"></div>`,
   iconSize: [14, 14],
   iconAnchor: [7, 7],
 });
@@ -64,7 +76,7 @@ const RouteMiniMap = ({
   const bounds = L.latLngBounds(points.map((p) => L.latLng(p[0], p[1])));
 
   return (
-    <div className="h-44 w-full relative">
+    <div className="relative z-0 h-40 w-full isolate overflow-hidden bg-secondary/40 sm:h-44">
       <MapContainer
         bounds={bounds}
         boundsOptions={{ padding: [20, 20] }}
@@ -75,6 +87,7 @@ const RouteMiniMap = ({
         doubleClickZoom={false}
         zoomControl={false}
         attributionControl={false}
+        className="relative z-0"
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         {startCoord && <Marker position={startCoord} icon={startIcon} />}
@@ -99,6 +112,7 @@ const RouteMiniMap = ({
 const EmployeeApp = () => {
   const { user, loading } = useAuth();
   const [date, setDate] = useState(todayStr());
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const { data: routes = [], isLoading: routesLoading } = useMyDayRoutes(date);
   const { data: stops = [], isLoading: stopsLoading } = useMyDayStops(date);
   const { data: workday } = useMyWorkday(date);
@@ -134,25 +148,49 @@ const EmployeeApp = () => {
   // Date navigator — placeret inde i indholdet ved siden af titlen
   // (samme PageHeader-mønster som virksomhedspanelet bruger).
   const dateNav = (
-    <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border bg-card p-1 shadow-sm">
+    <div className="w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm sm:w-auto">
+      <div className="flex items-center gap-1 overflow-x-auto p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <Button
         size="icon"
         variant="ghost"
-        className="h-8 w-8 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
+        className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:scale-[0.98]"
         onClick={() => setDate(format(addDays(dateObj, -1), "yyyy-MM-dd"))}
         aria-label="Forrige dag"
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
-      <div className="px-2 min-w-0">
-        <p className="text-xs font-semibold capitalize leading-tight tabular-nums whitespace-nowrap text-foreground">
-          {isCurrentDay ? "I dag" : format(dateObj, "EEE d. MMM", { locale: da })}
-        </p>
-      </div>
+      <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-9 shrink-0 gap-1.5 rounded-lg px-3 text-xs font-semibold text-foreground transition-colors hover:bg-secondary active:scale-[0.98]"
+          >
+            <CalendarIcon className="h-3.5 w-3.5" />
+            <span className="capitalize tabular-nums">
+              {isCurrentDay ? "I dag" : format(dateObj, "EEE d. MMM", { locale: da })}
+            </span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="center">
+          <Calendar
+            mode="single"
+            selected={dateObj}
+            onSelect={(selected) => {
+              if (!selected) return;
+              setDate(format(selected, "yyyy-MM-dd"));
+              setCalendarOpen(false);
+            }}
+            locale={da}
+            weekStartsOn={1}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
       <Button
         size="icon"
         variant="ghost"
-        className="h-8 w-8 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
+        className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:scale-[0.98]"
         onClick={() => setDate(format(addDays(dateObj, 1), "yyyy-MM-dd"))}
         aria-label="Næste dag"
       >
@@ -164,19 +202,20 @@ const EmployeeApp = () => {
           variant="ghost"
           onClick={() => setDate(todayStr())}
           className={cn(
-            "h-8 rounded-md px-3 text-xs font-medium transition-colors",
+            "h-9 shrink-0 rounded-lg px-3 text-xs font-semibold transition-colors active:scale-[0.98]",
             "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm",
           )}
         >
           Gå til i dag
         </Button>
       )}
+      </div>
     </div>
   );
 
   return (
     <EmployeeShell activeTab="today" title="Min dag">
-      <div className="mx-auto max-w-3xl space-y-4 pb-16">
+      <div className="mx-auto max-w-5xl space-y-4 pb-20">
         <PageHeader
           title={<span className="capitalize">{format(dateObj, "EEEE d. MMMM", { locale: da })}</span>}
           description={
@@ -196,7 +235,7 @@ const EmployeeApp = () => {
                   className={cn(
                     "h-10 w-10 shrink-0 rounded-lg flex items-center justify-center [&_svg]:h-5 [&_svg]:w-5",
                     dayStarted && !dayEnded
-                      ? "bg-emerald-500/10 text-emerald-600"
+                      ? "bg-feature-cool text-feature-cool-foreground"
                       : dayEnded
                         ? "bg-secondary text-muted-foreground"
                         : "bg-secondary text-foreground",
@@ -246,15 +285,15 @@ const EmployeeApp = () => {
         )}
 
         {(routesLoading || stopsLoading) && (
-          <Card className="p-8 text-center text-muted-foreground">
+          <Card className="rounded-xl border-border p-8 text-center text-muted-foreground shadow-sm">
             <Loader />
             <p className="text-sm mt-2">Indlæser dine ruter...</p>
           </Card>
         )}
 
         {!routesLoading && !stopsLoading && routes.length === 0 && (
-          <Card className="p-10 text-center">
-            <div className="h-16 w-16 rounded-2xl bg-secondary mx-auto flex items-center justify-center mb-4">
+          <Card className="rounded-xl border-dashed border-border p-10 text-center shadow-sm">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
               <CalendarIcon className="h-8 w-8 text-muted-foreground" />
             </div>
             <p className="text-base font-semibold mb-1">Ingen ruter denne dag</p>
@@ -264,13 +303,14 @@ const EmployeeApp = () => {
           </Card>
         )}
 
+        <div className="grid gap-4 lg:grid-cols-2">
         {routes.map((r) => {
           const myStops = (stopsByRoute.get(r.id) || []).sort((a, b) => a.sequence - b.sequence);
           const done = myStops.filter((s) => s.status === "completed").length;
           const total = myStops.length;
           const allDone = total > 0 && done === total;
           const progress = total > 0 ? Math.round((done / total) * 100) : 0;
-          const color = r.color || "hsl(184 90% 42%)";
+          const color = r.color || "hsl(var(--accent))";
           const startCoord: [number, number] | null =
             r.start_latitude != null && r.start_longitude != null
               ? [Number(r.start_latitude), Number(r.start_longitude)]
@@ -378,6 +418,7 @@ const EmployeeApp = () => {
                         const arrivalLabel = s.planned_arrival
                           ? format(new Date(s.planned_arrival), "HH:mm")
                           : null;
+                        const pay = paymentMeta(s.order_status);
                         return (
                           <div
                             key={s.id}
@@ -388,7 +429,7 @@ const EmployeeApp = () => {
                             <span
                               className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
                                 s.status === "completed"
-                                  ? "bg-emerald-500/10 text-emerald-600"
+                                  ? "bg-feature-cool text-feature-cool-foreground"
                                   : isNext
                                     ? "bg-foreground text-background ring-2 ring-foreground/15"
                                     : "bg-secondary text-foreground"
@@ -411,11 +452,21 @@ const EmployeeApp = () => {
                                   </span>
                                 )}
                               </p>
-                              {s.address && (
-                                <p className="truncate text-[11px] text-muted-foreground">
-                                  {s.address}
-                                </p>
-                              )}
+                              <div className="mt-1 flex min-w-0 flex-wrap items-center gap-1.5">
+                                {s.address && (
+                                  <p className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+                                    {s.address}
+                                  </p>
+                                )}
+                                <Badge variant="outline" className={cn("h-5 shrink-0 px-1.5 text-[10px] font-medium", pay.className)}>
+                                  {pay.label}
+                                </Badge>
+                                {s.order_amount != null && (
+                                  <span className="shrink-0 rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground">
+                                    {formatKr(s.order_amount)}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             {arrivalLabel && (
                               <span className="shrink-0 rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground">
@@ -470,6 +521,7 @@ const EmployeeApp = () => {
             </Card>
           );
         })}
+        </div>
       </div>
     </EmployeeShell>
   );

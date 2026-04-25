@@ -30,7 +30,7 @@ export const PageHeader = ({
         <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
       )}
     </div>
-    {action && <div className="shrink-0">{action}</div>}
+    {action && <div className="w-full sm:w-auto sm:shrink-0">{action}</div>}
   </div>
 );
 
@@ -73,10 +73,10 @@ export const StatCard = ({
   const tones: Record<string, string> = {
     neutral: "bg-secondary text-foreground",
     accent: "bg-accent/10 text-accent",
-    emerald: "bg-emerald-500/10 text-emerald-600",
-    amber: "bg-amber-500/10 text-amber-600",
-    blue: "bg-blue-500/10 text-blue-600",
-    violet: "bg-violet-500/10 text-violet-600",
+    emerald: "bg-feature-cool text-feature-cool-foreground",
+    amber: "bg-feature-warm text-feature-warm-foreground",
+    blue: "bg-accent/10 text-accent",
+    violet: "bg-feature-lilac text-feature-lilac-foreground",
   };
   return (
     <Card className="rounded-xl border-border shadow-sm">

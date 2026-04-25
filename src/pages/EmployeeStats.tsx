@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import {
   Calendar as CalendarIcon, CheckCircle2, Clock,
   MapPin, Route as RouteIcon, Wallet, ChevronDown,
+  ListChecks,
 } from "lucide-react";
 import {
   format, parseISO,
@@ -27,6 +28,7 @@ import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type RangeKey = "today" | "week" | "month" | "year" | "all" | "custom";
 
@@ -91,10 +93,10 @@ const PAYMENT_LABEL: Record<string, string> = {
 };
 
 const PAYMENT_BADGE: Record<string, string> = {
-  paid: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-  settling: "bg-blue-500/10 text-blue-700 border-blue-500/20",
-  pending: "bg-amber-500/10 text-amber-700 border-amber-500/20",
-  unknown: "bg-secondary text-muted-foreground border-border",
+  paid: "bg-feature-cool text-feature-cool-foreground border-transparent",
+  settling: "bg-feature-lilac text-feature-lilac-foreground border-transparent",
+  pending: "bg-feature-warm text-feature-warm-foreground border-transparent",
+  unknown: "bg-secondary text-muted-foreground border-transparent",
 };
 
 const EmployeeStats = () => {
@@ -103,6 +105,7 @@ const EmployeeStats = () => {
   const [range, setRange] = useState<RangeKey>("month");
   const [customRange, setCustomRange] = useState<DateRange | undefined>();
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const isMobile = useIsMobile();
   const { from, to } = useMemo(
     () => computeRange(range, customRange),
     [range, customRange],
@@ -131,7 +134,8 @@ const EmployeeStats = () => {
   })();
 
   const rangePicker = (
-    <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border bg-card p-1 shadow-sm">
+    <div className="w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm sm:w-auto">
+      <div className="flex gap-1 overflow-x-auto p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {(Object.keys(RANGE_LABELS) as Array<Exclude<RangeKey, "custom">>).map((k) => (
         <Button
           key={k}
@@ -139,7 +143,7 @@ const EmployeeStats = () => {
           variant="ghost"
           onClick={() => { setRange(k); setCustomRange(undefined); }}
           className={cn(
-            "h-8 rounded-md px-3 text-xs font-medium transition-colors",
+            "h-9 shrink-0 rounded-lg px-3 text-xs font-semibold transition-colors active:scale-[0.98]",
             range === k
               ? "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm"
               : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -154,7 +158,7 @@ const EmployeeStats = () => {
             size="sm"
             variant="ghost"
             className={cn(
-              "h-8 gap-1.5 rounded-md px-3 text-xs font-medium transition-colors",
+              "h-9 shrink-0 gap-1.5 rounded-lg px-3 text-xs font-semibold transition-colors active:scale-[0.98]",
               range === "custom"
                 ? "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm"
                 : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -173,7 +177,7 @@ const EmployeeStats = () => {
               if (r?.from) setRange("custom");
               if (r?.from && r?.to) setCalendarOpen(false);
             }}
-            numberOfMonths={2}
+            numberOfMonths={isMobile ? 1 : 2}
             locale={da}
             weekStartsOn={1}
             initialFocus
@@ -181,6 +185,7 @@ const EmployeeStats = () => {
           />
         </PopoverContent>
       </Popover>
+      </div>
     </div>
   );
 
@@ -191,7 +196,7 @@ const EmployeeStats = () => {
 
   return (
     <EmployeeShell activeTab="stats" title="Statistik">
-      <div className="mx-auto max-w-5xl space-y-5 pb-16">
+      <div className="mx-auto max-w-5xl space-y-4 pb-20 sm:space-y-5">
         <PageHeader
           title={<span className="capitalize">{headerLabel}</span>}
           description={
@@ -212,14 +217,16 @@ const EmployeeStats = () => {
         ) : (
           <>
             {/* Indtjening (medarbejderens egen andel) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <StatCard
-                label="Min indtjening"
-                value={formatKr(s.commission)}
-                icon={<Wallet />}
-                tone="emerald"
-                hint={`Fra ${s.stopsCompleted} udførte opgaver`}
-              />
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+              <div className="col-span-2 lg:col-span-1">
+                <StatCard
+                  label="Min indtjening"
+                  value={formatKr(s.commission)}
+                  icon={<Wallet />}
+                  tone="emerald"
+                  hint={`Fra ${s.stopsCompleted} udførte opgaver`}
+                />
+              </div>
               <StatCard
                 label="Ruter"
                 value={s.routesCount}
@@ -237,7 +244,7 @@ const EmployeeStats = () => {
             </div>
 
             {/* Sekundær række */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <StatCard
                 label="Arbejdsdage"
                 value={s.workdaysCount}
@@ -261,11 +268,14 @@ const EmployeeStats = () => {
             {/* Daglig oversigt */}
             <Card className="rounded-xl border-border shadow-sm">
               <CardContent className="p-0">
-                <div className="flex items-end justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
-                  <div className="min-w-0">
+                <div className="flex items-start gap-3 border-b border-border px-4 py-3 sm:px-5">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
+                    <ListChecks className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
                     <h3 className="text-sm font-semibold text-foreground">Daglig aktivitet</h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      Færdige opgaver pr. dag — udfold for at se indtjening og betalingsstatus.
+                      Udfold en dag for at se hver aftale, betaling og din udbetaling.
                     </p>
                   </div>
                 </div>
@@ -283,7 +293,7 @@ const EmployeeStats = () => {
                           <CollapsibleTrigger asChild>
                             <button
                               type="button"
-                              className="grid w-full gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center sm:gap-4 sm:px-5"
+                              className="grid w-full gap-3 px-4 py-3.5 text-left transition-colors hover:bg-secondary/60 active:bg-secondary sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center sm:gap-4 sm:px-5"
                             >
                               <div className="min-w-0">
                                 <p className="text-sm font-semibold text-foreground capitalize">
@@ -293,7 +303,7 @@ const EmployeeStats = () => {
                                   {d.stops} {d.stops === 1 ? "opgave" : "opgaver"}
                                 </p>
                               </div>
-                              <div className="hidden sm:block">
+                              <div className="block">
                                 <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
                                   <div
                                     className="h-full bg-foreground transition-all"
@@ -301,7 +311,7 @@ const EmployeeStats = () => {
                                   />
                                 </div>
                               </div>
-                              <div className="flex items-center justify-between gap-3 sm:justify-end">
+                              <div className="flex items-center justify-between gap-3 rounded-lg bg-secondary/50 px-3 py-2 sm:justify-end sm:bg-transparent sm:p-0">
                                 <div className="text-right">
                                   <p className="text-sm font-bold tabular-nums text-foreground">
                                     {formatKr(d.earnings)}
@@ -313,7 +323,7 @@ const EmployeeStats = () => {
                             </button>
                           </CollapsibleTrigger>
                           <CollapsibleContent>
-                            <div className="border-t border-border bg-secondary/30 px-4 py-2 sm:px-5">
+                            <div className="border-t border-border bg-secondary/30 px-3 py-2 sm:px-5">
                               {d.entries.length === 0 ? (
                                 <p className="py-3 text-center text-xs text-muted-foreground">
                                   Ingen detaljer
@@ -323,7 +333,7 @@ const EmployeeStats = () => {
                                   {d.entries.map((e) => (
                                     <li
                                       key={e.stopId}
-                                      className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 py-2.5 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:gap-4"
+                                      className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 rounded-lg px-2 py-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:gap-4"
                                     >
                                       <div className="min-w-0">
                                         <p className="truncate text-sm font-medium text-foreground">
@@ -339,15 +349,15 @@ const EmployeeStats = () => {
                                           {PAYMENT_LABEL[e.paymentStatus]}
                                         </Badge>
                                       </div>
-                                      <div className="hidden text-right sm:block">
+                                      <div className="text-right">
                                         <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Aftale</p>
                                         <p className="text-xs font-medium tabular-nums text-muted-foreground">
                                           {formatKr(e.orderAmount)}
                                         </p>
                                       </div>
-                                      <div className="text-right">
+                                      <div className="col-span-2 flex items-center justify-between rounded-md bg-card px-3 py-2 text-right sm:col-span-1 sm:block sm:bg-transparent sm:p-0">
                                         <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Min andel</p>
-                                        <p className="text-sm font-bold tabular-nums text-emerald-600">
+                                        <p className="text-sm font-bold tabular-nums text-foreground">
                                           {formatKr(e.share)}
                                         </p>
                                       </div>
