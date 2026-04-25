@@ -27,6 +27,9 @@ import {
 import { ManeuverIcon, maneuverLabel } from "@/components/employee-route/ManeuverIcon";
 import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuver";
 import { useSmoothPosition } from "@/components/employee-route/useSmoothPosition";
+import { useGpsFilter, type FilteredFix } from "@/components/employee-route/useGpsFilter";
+import { smoothPolyline } from "@/components/employee-route/smoothPolyline";
+import { useSmoothZoom } from "@/components/employee-route/useSmoothZoom";
 import { useQueryClient } from "@tanstack/react-query";
 import { LiveStatusBadge, EtaDetailsButton, pickDuration } from "@/components/route/EtaBreakdown";
 
