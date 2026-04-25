@@ -31,7 +31,7 @@ import { useGpsFilter, type FilteredFix } from "@/components/employee-route/useG
 import { smoothPolyline } from "@/components/employee-route/smoothPolyline";
 import { useSmoothZoom } from "@/components/employee-route/useSmoothZoom";
 import { useQueryClient } from "@tanstack/react-query";
-import { LiveStatusBadge, EtaDetailsButton, pickDuration } from "@/components/route/EtaBreakdown";
+import { pickDuration } from "@/components/route/EtaBreakdown";
 
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
