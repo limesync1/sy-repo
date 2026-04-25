@@ -1088,6 +1088,22 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               </>
             )}
 
+            {/* Ankomst-indikator: lille stiplet linje fra puck til pin
+                så det er entydigt hvilken adresse man er ankommet til,
+                også når Mapbox' rute-geometri ville pege en anden vej. */}
+            {isAtNextStop && displayPos && nextStop?.latitude != null && nextStop?.longitude != null && (
+              <Polyline
+                positions={[displayPos, [Number(nextStop.latitude), Number(nextStop.longitude)]]}
+                pathOptions={{
+                  color: "hsl(142 70% 45%)",
+                  weight: 4,
+                  opacity: 0.9,
+                  dashArray: "2 8",
+                  lineCap: "round",
+                }}
+              />
+            )}
+
             {/* Other stops */}
             {sortedStops.map((s, i) => {
               if (s.latitude == null || s.longitude == null) return null;
