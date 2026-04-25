@@ -215,7 +215,7 @@ const EmployeeApp = () => {
 
   return (
     <EmployeeShell activeTab="today" title="Min dag">
-      <div className="mx-auto max-w-5xl space-y-4 pb-16">
+      <div className="mx-auto max-w-5xl space-y-4 pb-20">
         <PageHeader
           title={<span className="capitalize">{format(dateObj, "EEEE d. MMMM", { locale: da })}</span>}
           description={
@@ -235,7 +235,7 @@ const EmployeeApp = () => {
                   className={cn(
                     "h-10 w-10 shrink-0 rounded-lg flex items-center justify-center [&_svg]:h-5 [&_svg]:w-5",
                     dayStarted && !dayEnded
-                      ? "bg-emerald-500/10 text-emerald-600"
+                      ? "bg-feature-cool text-feature-cool-foreground"
                       : dayEnded
                         ? "bg-secondary text-muted-foreground"
                         : "bg-secondary text-foreground",
@@ -285,15 +285,15 @@ const EmployeeApp = () => {
         )}
 
         {(routesLoading || stopsLoading) && (
-          <Card className="p-8 text-center text-muted-foreground">
+          <Card className="rounded-xl border-border p-8 text-center text-muted-foreground shadow-sm">
             <Loader />
             <p className="text-sm mt-2">Indlæser dine ruter...</p>
           </Card>
         )}
 
         {!routesLoading && !stopsLoading && routes.length === 0 && (
-          <Card className="p-10 text-center">
-            <div className="h-16 w-16 rounded-2xl bg-secondary mx-auto flex items-center justify-center mb-4">
+          <Card className="rounded-xl border-dashed border-border p-10 text-center shadow-sm">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
               <CalendarIcon className="h-8 w-8 text-muted-foreground" />
             </div>
             <p className="text-base font-semibold mb-1">Ingen ruter denne dag</p>
