@@ -810,7 +810,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {/* Fit overview when not started */}
             <FitTo points={allPoints} enabled={!routeStarted} />
             {/* Live follow when driving */}
-            <FollowUser active={routeStarted && followMode} userPos={userPos} />
+            <FollowUser active={routeStarted && followMode} userPos={displayPos} />
 
             {startCoord && <Marker position={startCoord} icon={startIcon} />}
 
@@ -851,11 +851,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             })}
 
             {/* User position — Google Maps puck when driving */}
-            {userPos && routeStarted && derivedHeading != null && (
-              <Marker position={userPos} icon={navPuckIcon(derivedHeading)} />
+            {displayPos && routeStarted && displayHeading != null && (
+              <Marker position={displayPos} icon={navPuckIcon(displayHeading)} />
             )}
-            {userPos && (!routeStarted || derivedHeading == null) && (
-              <Marker position={userPos} icon={userDotIcon} />
+            {displayPos && (!routeStarted || displayHeading == null) && (
+              <Marker position={displayPos} icon={userDotIcon} />
             )}
 
             {/* Detect manual user interaction to break follow */}
