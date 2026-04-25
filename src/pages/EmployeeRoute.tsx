@@ -266,6 +266,19 @@ const FlyToStop = ({ target }: { target: [number, number] | null }) => {
   return null;
 };
 
+/**
+ * Hastigheds-adaptiv, glidende zoom under aktiv navigation.  Skal være
+ * inde i <MapContainer> så vi har adgang til map-instansen via useMap().
+ */
+const SmoothZoomController = ({
+  enabled,
+  speedMps,
+}: { enabled: boolean; speedMps: number }) => {
+  const map = useMap();
+  useSmoothZoom(map, enabled, speedMps);
+  return null;
+};
+
 const formatKm = (m: number | null) => (m == null ? "—" : m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`);
 const formatMin = (s: number | null) => (s == null ? "—" : s < 60 ? "<1 min" : `${Math.round(s / 60)} min`);
 
