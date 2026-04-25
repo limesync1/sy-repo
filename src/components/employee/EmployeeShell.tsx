@@ -99,7 +99,7 @@ export const EmployeeShell = ({
                 <AvatarImage src={employee.avatar_url} alt={displayName} className="rounded-lg object-cover" />
               ) : null}
               <AvatarFallback
-                className="rounded-lg text-white font-bold text-sm"
+                className="rounded-lg text-background font-bold text-sm"
                 style={{ background: accentColor }}
               >
                 {initials}
