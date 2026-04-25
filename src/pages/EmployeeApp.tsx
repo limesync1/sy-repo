@@ -171,14 +171,16 @@ const EmployeeApp = () => {
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <div className="flex-1 text-center">
-              <p className="text-sm font-semibold capitalize leading-tight">
-                {format(dateObj, "EEEE", { locale: da })}
+              <div className="flex items-center justify-center gap-2">
+                <p className="text-sm font-semibold capitalize leading-tight">
+                  {format(dateObj, "EEEE", { locale: da })}
+                </p>
                 {isCurrentDay && (
-                  <Badge variant="default" className="ml-2 text-[10px] h-4 px-1.5">
+                  <Badge variant="default" className="text-[10px] h-4 px-1.5">
                     I dag
                   </Badge>
                 )}
-              </p>
+              </div>
               <p className="text-xs text-muted-foreground tabular-nums">
                 {format(dateObj, "d. MMMM yyyy", { locale: da })}
               </p>
