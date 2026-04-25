@@ -159,10 +159,10 @@ const DynamicBusinessContent = () => {
 
       {/* ── Hero ── */}
       <header className="relative border-b border-border bg-background">
-        <div className="mx-auto max-w-7xl px-4 pt-3 sm:px-6 lg:px-8 md:pt-4">
-          {/* Cover image with gradient */}
+        <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8 md:pt-6">
+          {/* Cover image med blød gradient */}
           <div className="relative overflow-hidden rounded-[1.75rem] border border-border bg-secondary shadow-[0_26px_60px_-40px_hsl(var(--foreground)/0.22)]">
-            <div className={`relative w-full ${hasCover ? "h-44 sm:h-52 md:h-64 lg:h-72" : "h-24 md:h-28"}`}>
+            <div className={`relative w-full ${hasCover ? "h-48 sm:h-56 md:h-72 lg:h-80" : "h-24 md:h-28"}`}>
               {hasCover && (
                 <>
                   <img
@@ -171,16 +171,18 @@ const DynamicBusinessContent = () => {
                     className="h-full w-full object-cover"
                     loading="eager"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 via-transparent to-transparent" />
                 </>
               )}
             </div>
           </div>
 
-          {/* Logo overlaps cover */}
-          <div className="relative -mt-6 mb-2 flex items-end md:-mt-8 md:mb-3">
-            <div className="relative shrink-0">
-              <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card shadow-xl md:h-20 md:w-20">
+          {/* Identity row — logo + navn + meta sammen, så hierarki er klart.
+              Logo og tekstblok ligger på samme baseline lige under cover. */}
+          <div className="relative -mt-8 flex flex-col gap-5 pb-6 md:-mt-10 md:flex-row md:items-end md:gap-6 md:pb-8">
+            {/* Logo */}
+            <div className="relative z-10 shrink-0">
+              <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card shadow-xl md:h-24 md:w-24">
                 {business.logo_url ? (
                   <img src={business.logo_url} alt={`${business.name} logo`} className="h-full w-full object-contain p-2" loading="eager" />
                 ) : (
@@ -190,18 +192,20 @@ const DynamicBusinessContent = () => {
                 )}
               </div>
               {business.is_verified && (
-                <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-accent text-accent-foreground ring-4 ring-background shadow-md" title="Verificeret virksomhed">
+                <span
+                  className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-accent text-accent-foreground ring-4 ring-background shadow-md"
+                  title="Verificeret virksomhed"
+                >
                   <BadgeCheck className="h-4 w-4" strokeWidth={3} />
                 </span>
               )}
             </div>
-          </div>
 
-          {/* Identity row — clean, below cover */}
-          <div className="flex flex-col gap-3 pb-4 md:flex-row md:items-end md:justify-between md:gap-5 md:pb-6">
+            {/* Tekst-kolonne */}
             <div className="min-w-0 flex-1">
+              {/* Brancher som diskrete chips øverst */}
               {(business.categories?.[0] || business.category) && (
-                <div className="mb-2.5 flex flex-wrap gap-1.5">
+                <div className="mb-2 flex flex-wrap gap-1.5">
                   {(business.categories?.length ? business.categories : [business.category]).filter(Boolean).slice(0, 3).map((c) => (
                     <span key={c} className="inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-[11px] font-semibold text-foreground/70">
                       {c}
@@ -210,8 +214,8 @@ const DynamicBusinessContent = () => {
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <h1 className="text-[1.95rem] font-extrabold leading-tight tracking-tight text-foreground md:text-[2.35rem] lg:text-[2.7rem]">
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <h1 className="text-[1.85rem] font-extrabold leading-tight tracking-tight text-foreground md:text-[2.25rem] lg:text-[2.6rem]">
                   {business.name}
                 </h1>
                 {business.is_verified && (
@@ -222,7 +226,8 @@ const DynamicBusinessContent = () => {
                 )}
               </div>
 
-              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
+              {/* Meta-rækken — rating, by, antal services */}
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-muted-foreground">
                 {avgRating ? (
                   <span className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-foreground text-foreground" />
@@ -249,28 +254,27 @@ const DynamicBusinessContent = () => {
                   </>
                 )}
               </div>
+
               {business.description && (
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground line-clamp-2 md:text-[0.95rem]">{business.description}</p>
               )}
             </div>
 
-            {services && services.length > 0 && (
-               <div className="grid shrink-0 gap-2 sm:flex sm:flex-wrap">
-                {business.phone && (
-                  <a href={`tel:${business.phone}`}>
-                    <Button
-                      size="lg"
-                      variant="outline"
-                        className="h-12 w-full gap-2 rounded-full border-border bg-card px-5 text-sm font-medium text-foreground transition-all hover:border-foreground/40 hover:bg-secondary sm:w-auto"
-                    >
-                      <Phone className="h-4 w-4" /> Ring
-                    </Button>
-                  </a>
-                )}
+            {/* CTA — kun på md+, knappen flyttes ind i sidebar på mobil for et renere hero */}
+            {business.phone && services && services.length > 0 && (
+              <div className="hidden shrink-0 md:flex md:flex-col md:gap-2">
+                <a href={`tel:${business.phone}`}>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="h-11 gap-2 rounded-full border-border bg-card px-5 text-sm font-semibold text-foreground transition-all hover:border-foreground/40 hover:bg-secondary"
+                  >
+                    <Phone className="h-4 w-4" /> Ring nu
+                  </Button>
+                </a>
               </div>
             )}
           </div>
-
         </div>
       </header>
 
