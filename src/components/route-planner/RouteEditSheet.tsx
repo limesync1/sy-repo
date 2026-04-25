@@ -13,14 +13,15 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Loader2, Sparkles, Trash2, Check } from "lucide-react";
-import { Palette, CalendarDays, Pencil } from "lucide-react";
+import { Palette, CalendarDays, Pencil, Clock as ClockIcon, Gauge } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useUpdateRoute, useDeleteRoute, useOptimizeRoute, type Route } from "@/hooks/useRoutes";
+import { useUpdateRoute, useDeleteRoute, useOptimizeRoute, useDirections, type Route, type RouteStop } from "@/hooks/useRoutes";
 import { DatePickerField } from "./DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
+import { LiveStatusBadge, EtaDetailsButton, pickDuration } from "@/components/route/EtaBreakdown";
 
 export type RouteEmployeeOption = { id: string; name: string };
 
@@ -29,6 +30,8 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   stopCount: number;
+  /** Stops på ruten — bruges til at beregne live ETA for hele ruten. */
+  stops?: RouteStop[];
 };
 
 /** Navngivne farver — bruges i picker, til tooltips og demo-data. */
@@ -72,12 +75,16 @@ export const pickAvailableColor = (usedColors: string[]): string => {
 };
 
 export const RouteEditSheet = ({
-  route, open, onOpenChange, stopCount,
+  route, open, onOpenChange, stopCount, stops = [],
 }: Props) => {
   const [name, setName] = useState("");
   const [color, setColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [date, setDate] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [showRawTime, setShowRawTime] = useState(false);
+  // depart_at ISO — null = "nu". Når brugeren ændrer afgangstid, kan ETA flytte
+  // sig (myldretid kontra midt-på-dagen).
+  const [departAt, setDepartAt] = useState<string | null>(null);
   const initialSyncDone = useRef(false);
 
   const updateRoute = useUpdateRoute();
@@ -90,7 +97,27 @@ export const RouteEditSheet = ({
     setColor(route.color || ROUTE_COLOR_PALETTE[0]);
     setDate(route.route_date);
     initialSyncDone.current = false;
+    // Reset depart_at hver gang en ny rute åbnes
+    setDepartAt(null);
   }, [route?.id]);
+
+  // Beregn waypoints for hele ruten — start (hvis sat) + alle stop i rækkefølge.
+  const waypoints = useMemo(() => {
+    if (!route || stops.length < 2) return null;
+    const sorted = [...stops]
+      .filter((s) => s.latitude != null && s.longitude != null)
+      .sort((a, b) => a.sequence - b.sequence)
+      .map((s) => ({ lat: Number(s.latitude), lng: Number(s.longitude) }));
+    if (route.start_latitude != null && route.start_longitude != null) {
+      sorted.unshift({ lat: Number(route.start_latitude), lng: Number(route.start_longitude) });
+    }
+    return sorted.length >= 2 ? sorted : null;
+  }, [route, stops]);
+
+  const { data: routeDirections } = useDirections(waypoints, {
+    departAt: departAt || undefined,
+    businessId: route?.business_id,
+  });
 
   const dirty =
     (route?.name || "") !== name ||
@@ -138,6 +165,27 @@ export const RouteEditSheet = ({
       );
     } catch { /* */ }
   };
+
+  const formatMinShort = (s: number) => {
+    const m = Math.round(s / 60);
+    if (m < 60) return `${m} min`;
+    return `${Math.floor(m / 60)}t ${m % 60}m`;
+  };
+
+  // Forslag til afgangstider — "nu" + næste 3 timer i halve trin på dagen.
+  const departOptions = useMemo(() => {
+    if (!date) return [] as Array<{ label: string; value: string | null }>;
+    const base = parseISO(`${date}T08:00:00`);
+    const opts: Array<{ label: string; value: string | null }> = [
+      { label: "Nu", value: null },
+    ];
+    [7, 8, 9, 12, 14, 15, 16, 17].forEach((h) => {
+      const d = new Date(base);
+      d.setHours(h, 0, 0, 0);
+      opts.push({ label: `${String(h).padStart(2, "0")}:00`, value: d.toISOString() });
+    });
+    return opts;
+  }, [date]);
 
   return (
     <>
