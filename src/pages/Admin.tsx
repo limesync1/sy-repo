@@ -693,8 +693,21 @@ const ServiceForm = ({
 
   // Underkategorier — først fra taxonomien, ellers fra legacy SERVICE_CATEGORIES
   const taxonomyIndustry = findIndustry(serviceCategory);
+  // Hvis virksomheden har valgt specifikke underkategorier i Indstillinger,
+  // filtrér så vi KUN viser dem her (giver præcis dynamisk filtrering).
+  // Faldback: alle underkategorier i branchen.
+  const allowedSubsForCategory = selectedSubcategoriesByIndustry[serviceCategory];
+  const allTaxonomySubs = taxonomyIndustry?.subcategories.map((s) => s.label) ?? [];
+  const filteredTaxonomySubs = allowedSubsForCategory && allowedSubsForCategory.length > 0
+    ? allTaxonomySubs.filter((s) => allowedSubsForCategory.includes(s))
+    : allTaxonomySubs;
+  // Behold eksisterende underkategori, hvis service redigeres med en værdi
+  // der ikke længere er i listen
   const subcategoryOptions = taxonomyIndustry
-    ? taxonomyIndustry.subcategories.map((s) => s.label)
+    ? Array.from(new Set([
+        ...filteredTaxonomySubs,
+        ...(existingService?.subcategory && filteredTaxonomySubs.length > 0 ? [existingService.subcategory] : []),
+      ]))
     : serviceCategory && SERVICE_CATEGORIES[serviceCategory]
       ? Object.keys(SERVICE_CATEGORIES[serviceCategory])
       : [];
