@@ -17,19 +17,23 @@ import {
   ChevronDown, ChevronUp, Clock, Mail, Phone, ArrowRight,
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
   Play, Pause, Search, Route as RouteIcon, MapPin, Plus as PlusIcon,
-  GripVertical, Loader2, Tag, Palette,
+  GripVertical, Loader2, Tag, Palette, Trash2,
 } from "lucide-react";
 import {
-  DndContext, PointerSensor, useSensor, useSensors,
+  DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
   pointerWithin, useDraggable, useDroppable,
   type DragStartEvent, type DragEndEvent,
 } from "@dnd-kit/core";
 import { INTERVAL_LABELS } from "@/types/service";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
-import { useRoutesForRange, useStopsForRoutes, useAddStop, useCreateRoute } from "@/hooks/useRoutes";
+import { useRoutesForRange, useStopsForRoutes, useAddStop, useCreateRoute, useDeleteRoute } from "@/hooks/useRoutes";
 import { ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   buildPricingSnapshot,
   getSmartStep,
