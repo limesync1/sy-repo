@@ -15,6 +15,7 @@ import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { TrafficOverridesSection } from "./TrafficOverridesSection";
 
 const CATEGORIES = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS", "Elektriker", "Sikkerhed"];
 const CATEGORY_ICONS: Record<string, string> = {
@@ -499,6 +500,25 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
               <ToggleSwitch checked={routePlanningEnabled} onChange={() => setRoutePlanningEnabled((v) => !v)} />
             </div>
+
+            {routePlanningEnabled && (
+              <div className="mt-4 rounded-lg border border-border bg-card p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                    <Route className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">Trafik-buffer pr. område</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Mapbox' rejsetid er tæt på Google Maps, men undervurderer
+                      ofte trafikken i Storkøbenhavn og bymidter. Tilføj
+                      område-overrides for at finjustere ETA pr. postnummer.
+                    </p>
+                  </div>
+                </div>
+                <TrafficOverridesSection businessId={business.id} />
+              </div>
+            )}
           </SectionCard>
         </div>
       </div>
