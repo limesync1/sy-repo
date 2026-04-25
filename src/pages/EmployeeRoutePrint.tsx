@@ -1,9 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer, Loader2, MapPin, Phone, Clock, StickyNote, Calendar, User, Building2, Route as RouteIcon, Timer } from "lucide-react";
+import { ArrowLeft, Printer, Loader2, MapPin, Phone, Clock, StickyNote, Calendar, User, Building2, Route as RouteIcon, Timer, Rows3, Rows2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { stripPrices } from "@/lib/employee-display";
@@ -12,6 +12,7 @@ const EmployeeRoutePrint = () => {
   const { routeId } = useParams<{ routeId: string }>();
   const { user, loading } = useAuth();
   const { data, isLoading } = useMyRouteData(routeId);
+  const [compact, setCompact] = useState(false);
 
   useEffect(() => {
     document.title = "Ruteliste — print";
@@ -32,7 +33,7 @@ const EmployeeRoutePrint = () => {
   const businessName = (route as any).businesses?.name || "";
 
   return (
-    <div className="min-h-screen bg-muted/30 print:bg-white">
+    <div className={`min-h-screen bg-muted/30 print:bg-white print-root ${compact ? "is-compact" : ""}`}>
       {/* Action bar — hidden on print */}
       <div className="print:hidden sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="container mx-auto px-4 py-3 flex items-center gap-3">
@@ -48,8 +49,20 @@ const EmployeeRoutePrint = () => {
           </Button>
           <div className="flex-1 min-w-0">
             <h1 className="font-semibold text-sm tracking-tight truncate">Print ruteliste</h1>
-            <p className="text-xs text-muted-foreground">{sorted.length} stop · klar til udskrift</p>
+            <p className="text-xs text-muted-foreground">
+              {sorted.length} stop · A4 · {compact ? "kompakt" : "standard"}
+            </p>
           </div>
+          <Button
+            onClick={() => setCompact((v) => !v)}
+            size="sm"
+            variant="outline"
+            className="h-9 rounded-lg gap-2 hidden sm:inline-flex"
+            title="Skift mellem kompakt og standard tæthed"
+          >
+            {compact ? <Rows3 className="h-4 w-4" /> : <Rows2 className="h-4 w-4" />}
+            {compact ? "Standard" : "Kompakt"}
+          </Button>
           <Button
             onClick={() => window.print()}
             size="sm"
@@ -61,9 +74,9 @@ const EmployeeRoutePrint = () => {
       </div>
 
       {/* Printable content */}
-      <div className="max-w-3xl mx-auto p-4 sm:p-6 print:p-0 print:max-w-none">
+      <div className="print-sheet max-w-3xl mx-auto p-4 sm:p-6 print:p-0 print:max-w-none">
         {/* Header card */}
-        <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden mb-5 print:rounded-none print:shadow-none print:border-black print:mb-4">
+        <div className="print-header rounded-2xl border border-border bg-card shadow-sm overflow-hidden mb-5 print:rounded-none print:shadow-none print:border-black print:mb-4 print:break-inside-avoid">
           <div className="px-5 sm:px-6 pt-5 pb-4 border-b border-border print:border-black">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="min-w-0">
@@ -154,7 +167,7 @@ const EmployeeRoutePrint = () => {
             Ingen stop på ruten.
           </div>
         ) : (
-          <ol className="space-y-3">
+          <ol className="print-stops space-y-3 print:space-y-2">
             {sorted.map((s, i) => {
               const cleanedSummary = s.service_summary ? stripPrices(s.service_summary) : "";
               const arrival = s.planned_arrival
@@ -163,11 +176,11 @@ const EmployeeRoutePrint = () => {
               return (
                 <li
                   key={s.id}
-                  className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden print:rounded-none print:shadow-none print:border-black print:break-inside-avoid"
+                  className="print-stop rounded-2xl border border-border bg-card shadow-sm overflow-hidden print:rounded-none print:shadow-none print:border-black print:break-inside-avoid"
                 >
                   <div className="flex">
                     {/* Sequence rail */}
-                    <div className="shrink-0 w-14 sm:w-16 bg-muted/40 print:bg-white border-r border-border print:border-black flex flex-col items-center justify-start pt-4 pb-4 gap-3">
+                    <div className="print-rail shrink-0 w-14 sm:w-16 bg-muted/40 print:bg-white border-r border-border print:border-black flex flex-col items-center justify-start pt-4 pb-4 gap-3">
                       <div className="w-9 h-9 rounded-full bg-foreground text-background print:bg-white print:text-black print:border-2 print:border-black flex items-center justify-center text-sm font-semibold">
                         {i + 1}
                       </div>
@@ -178,7 +191,7 @@ const EmployeeRoutePrint = () => {
                     </div>
 
                     {/* Body */}
-                    <div className="flex-1 min-w-0 p-4 sm:p-5">
+                    <div className="print-body flex-1 min-w-0 p-4 sm:p-5">
                       <div className="flex items-start justify-between gap-3 flex-wrap">
                         <div className="min-w-0">
                           <h3 className="font-semibold text-base text-foreground print:text-black truncate">
@@ -199,7 +212,7 @@ const EmployeeRoutePrint = () => {
                       </div>
 
                       {/* Detail grid */}
-                      <div className="mt-3 grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                      <div className="print-meta mt-3 grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
                         {s.customer_phone && (
                           <div className="flex items-start gap-2 text-foreground print:text-black">
                             <Phone className="h-3.5 w-3.5 mt-0.5 text-muted-foreground print:text-black/70 shrink-0" />
@@ -215,7 +228,7 @@ const EmployeeRoutePrint = () => {
                       </div>
 
                       {cleanedSummary && (
-                        <div className="mt-3 rounded-lg bg-muted/50 print:bg-white border border-border print:border-black px-3 py-2 text-sm text-foreground print:text-black">
+                        <div className="print-task mt-3 rounded-lg bg-muted/50 print:bg-white border border-border print:border-black px-3 py-2 text-sm text-foreground print:text-black">
                           <p className="text-[11px] uppercase tracking-wider text-muted-foreground print:text-black/70 font-medium mb-0.5">
                             Opgave
                           </p>
@@ -224,14 +237,14 @@ const EmployeeRoutePrint = () => {
                       )}
 
                       {s.notes && (
-                        <div className="mt-2 flex items-start gap-2 text-sm text-foreground print:text-black">
+                        <div className="print-note mt-2 flex items-start gap-2 text-sm text-foreground print:text-black">
                           <StickyNote className="h-3.5 w-3.5 mt-0.5 text-muted-foreground print:text-black/70 shrink-0" />
                           <p className="italic">{s.notes}</p>
                         </div>
                       )}
 
                       {/* Notes lines */}
-                      <div className="mt-4 print:mt-5">
+                      <div className="print-signature mt-4 print:mt-3">
                         <p className="text-[11px] uppercase tracking-wider text-muted-foreground print:text-black/70 font-medium mb-1.5">
                           Noter / underskrift
                         </p>
@@ -247,30 +260,119 @@ const EmployeeRoutePrint = () => {
         )}
 
         {/* Footer */}
-        <div className="mt-8 pt-4 border-t border-border text-xs text-muted-foreground print:text-black print:border-black flex items-center justify-between flex-wrap gap-2">
+        <div className="print-footer mt-8 pt-4 border-t border-border text-xs text-muted-foreground print:text-black print:border-black flex items-center justify-between flex-wrap gap-2">
           <p>Udskrevet {new Date().toLocaleString("da-DK")}</p>
-          <p className="font-medium">Serviceydere</p>
+          <p className="font-medium">Serviceydere · {sorted.length} stop</p>
         </div>
       </div>
 
-      {/* Print styles */}
+      {/* Dedikeret print-stylesheet — kalibreret til A4 */}
       <style>{`
+        /* Skærm-tæthed når brugeren slår "Kompakt" til (preview af print) */
+        .print-root.is-compact .print-body { padding: 0.875rem 1rem; }
+        .print-root.is-compact .print-rail { padding-top: 0.875rem; padding-bottom: 0.875rem; }
+        .print-root.is-compact .print-meta { margin-top: 0.5rem; }
+        .print-root.is-compact .print-task { margin-top: 0.5rem; padding: 0.375rem 0.625rem; }
+        .print-root.is-compact .print-signature { margin-top: 0.625rem; }
+        .print-root.is-compact .print-stops > li + li { margin-top: 0.5rem; }
+
         @media print {
-          @page { margin: 1.5cm; }
-          body { background: white !important; }
+          /* A4 sidedimensionering — fast margin og pænt header/footer-areal */
+          @page {
+            size: A4 portrait;
+            margin: 14mm 14mm 16mm 14mm;
+          }
+
+          /* Globale typograf-resets for forudsigelig tæthed */
+          html, body {
+            background: #fff !important;
+            color: #000 !important;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            font-size: 10.5pt;
+            line-height: 1.35;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+
+          /* Skjul alt udenfor print-roden så vi undgår uønskede elementer */
+          .print-root { background: #fff !important; }
+
+          /* Eksakt typografi-skala (i pt for stabilitet på A4) */
+          .print-root h1 { font-size: 16pt; line-height: 1.2; margin: 0; }
+          .print-root h3 { font-size: 11pt; line-height: 1.25; margin: 0; }
+          .print-root p, .print-root span, .print-root div { font-size: 10pt; }
+          .print-root .text-\\[11px\\] { font-size: 8pt !important; letter-spacing: 0.04em; }
+          .print-root .text-xs { font-size: 8.5pt !important; }
+          .print-root .text-sm { font-size: 9.5pt !important; }
+          .print-root .text-base { font-size: 10.5pt !important; }
+          .print-root .text-2xl { font-size: 16pt !important; }
+
+          /* Faste, ensartede linjeafstande mellem blokke */
+          .print-header { margin-bottom: 6mm !important; }
+          .print-header .px-5,
+          .print-header .sm\\:px-6 { padding-left: 6mm !important; padding-right: 6mm !important; }
+          .print-header .pt-5 { padding-top: 4mm !important; }
+          .print-header .pb-4 { padding-bottom: 3mm !important; }
+          .print-header .py-3 { padding-top: 3mm !important; padding-bottom: 3mm !important; }
+
+          .print-stops > li + li { margin-top: 3mm !important; }
+          .print-stop { box-shadow: none !important; }
+          .print-rail { padding: 4mm 0 !important; gap: 3mm !important; width: 14mm !important; }
+          .print-body { padding: 4mm 5mm !important; }
+
+          .print-meta { margin-top: 2.5mm !important; gap: 1.5mm 6mm !important; }
+          .print-task { margin-top: 2.5mm !important; padding: 2mm 3mm !important; border-radius: 0 !important; background: #fff !important; }
+          .print-note { margin-top: 1.5mm !important; }
+          .print-signature { margin-top: 3mm !important; }
+          .print-signature > div { height: 5mm !important; margin-top: 1mm !important; }
+          .print-signature > div:first-of-type { margin-top: 0 !important; }
+
+          .print-footer { margin-top: 6mm !important; padding-top: 2mm !important; }
+
+          /* Ingen runde hjørner / skygger på print */
+          .print-root .rounded-2xl,
+          .print-root .rounded-lg,
+          .print-root .rounded-md,
+          .print-root .rounded-full,
+          .print-root .rounded { border-radius: 0 !important; }
+          .print-root .shadow-sm { box-shadow: none !important; }
+
+          /* Hold cirkel-nummer og checkbox runde alligevel — de skal være tydelige */
+          .print-rail > div:first-child { border-radius: 9999px !important; width: 9mm !important; height: 9mm !important; }
+          .print-rail > div:nth-child(2) { width: 7mm !important; height: 7mm !important; border-radius: 1mm !important; }
+
+          /* Sørg for at intet stop bliver klippet over to sider */
+          .print-stop, .print-header, .print-footer {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+          }
+          /* Undgå at headeren efterlades alene nederst på en side */
+          .print-header { break-after: avoid; page-break-after: avoid; }
+          /* Undgå "orphan"-overskrifter i stop */
+          .print-body h3 { break-after: avoid; page-break-after: avoid; }
+
+          /* Skjul interaktive elementer */
           .print\\:hidden { display: none !important; }
+
+          /* Eksisterende utility overrides */
           .print\\:p-0 { padding: 0 !important; }
           .print\\:max-w-none { max-width: none !important; }
           .print\\:text-black { color: #000 !important; }
+          .print\\:text-black\\/70 { color: rgba(0,0,0,0.7) !important; }
           .print\\:border-black { border-color: #000 !important; }
           .print\\:rounded-none { border-radius: 0 !important; }
           .print\\:break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
           .print\\:mt-4 { margin-top: 1rem !important; }
           .print\\:mt-5 { margin-top: 1.25rem !important; }
+          .print\\:mt-3 { margin-top: 0.75rem !important; }
           .print\\:mb-4 { margin-bottom: 1rem !important; }
           .print\\:bg-white { background: #fff !important; }
           .print\\:shadow-none { box-shadow: none !important; }
           .print\\:divide-black\\/40 > * + * { border-color: rgba(0,0,0,0.4) !important; }
+          .print\\:space-y-2 > * + * { margin-top: 0.5rem !important; }
+
+          /* Tydelig sort streg på alle borders inde i print-roden */
+          .print-root [class*="border"] { border-color: #000 !important; }
         }
       `}</style>
     </div>
