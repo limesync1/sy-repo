@@ -19,9 +19,15 @@ const HeroSection = () => {
           height={960}
           loading="eager"
         />
-        {/* Overlay for læsbarhed — let-til-tung gradient fra venstre, så teksten står skarpt */}
-        <div className="absolute inset-0 bg-gradient-to-r from-foreground/92 via-foreground/72 to-foreground/40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/75 via-transparent to-transparent" />
+        {/* Overlay for læsbarhed.
+            Tre lag for at sikre at hvid tekst aldrig forsvinder ind i lyse partier
+            af baggrundsbilledet (himmel, glas-reflekser, mursten):
+            1) En kraftig venstre→højre gradient der dækker tekst-kolonnen.
+            2) En bundskygge der løfter CTA'er og trust-strip.
+            3) Et globalt mørkt slør der jævner kontrasten ud overalt. */}
+        <div className="absolute inset-0 bg-gradient-to-r from-foreground/95 via-foreground/85 to-foreground/55" />
+        <div className="absolute inset-0 bg-gradient-to-t from-foreground/85 via-foreground/30 to-transparent" />
+        <div className="absolute inset-0 bg-foreground/30" />
       </div>
 
       <SiteNav />
