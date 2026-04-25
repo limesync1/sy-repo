@@ -1539,33 +1539,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 </div>
               </div>
 
-              {/* Info-grid: km, tid, ETA — for første leg */}
+              {/* Info-grid: km, tid, ETA — for første leg.  Vi viser kun de tre
+                  tal der betyder noget, og bruger altid den korrigerede ETA
+                  (med DK trafik-buffer) — ingen toggle, ingen badges. */}
               {(directions || etaLabel) && (
                 <>
-                  {directions && (
-                    <div className="flex items-center justify-between gap-2 px-3 py-1.5 bg-background border-t">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-[9px] uppercase tracking-wide text-muted-foreground font-bold shrink-0">
-                          Til 1. stop
-                        </span>
-                        <LiveStatusBadge info={directions} compact />
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {showRawTime && (
-                          <Badge variant="outline" className="h-5 px-1.5 text-[9px] font-medium">
-                            Rå Mapbox
-                          </Badge>
-                        )}
-                        <EtaDetailsButton
-                          info={directions}
-                          showRaw={showRawTime}
-                          onToggleRaw={setShowRawTime}
-                          compact
-                        />
-                      </div>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-3 divide-x bg-background border-t border-b">
+                  <div className="grid grid-cols-3 divide-x divide-border bg-background border-t border-b border-border">
                     <div className="px-2 py-2 text-center">
                       <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
                       <p className="text-sm font-bold tabular-nums mt-0.5">
@@ -1576,14 +1555,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Køretid</p>
                       <p className="text-sm font-bold tabular-nums mt-0.5">
                         {(() => {
-                          const d = directions ? pickDuration(directions, showRawTime) : null;
+                          const d = directions ? pickDuration(directions, false) : null;
                           return d != null ? formatMin(d) : "—";
                         })()}
                       </p>
                     </div>
                     <div className="px-2 py-2 text-center">
                       <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Ankomst</p>
-                      <p className="text-sm font-bold tabular-nums mt-0.5" style={{ color: themeColor }}>
+                      <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
                         {etaLabel || "—"}
                       </p>
                     </div>
