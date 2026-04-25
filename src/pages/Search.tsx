@@ -16,15 +16,7 @@ import {
   Star,
   ShieldCheck,
   SlidersHorizontal,
-  Sparkles,
-  Wrench,
-  Truck,
-  TreePine,
-  Paintbrush,
-  Droplets,
-  Zap,
   Building2,
-  Hammer,
   X,
   Navigation,
   Map as MapIcon,
@@ -36,18 +28,15 @@ import ResultsMap from "@/components/search/ResultsMap";
 import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
+import { topCategories } from "@/lib/service-taxonomy";
 
-const CATEGORIES = [
-  { label: "Rengøring", icon: Sparkles },
-  { label: "Håndværker", icon: Wrench },
-  { label: "Flyttehjælp", icon: Truck },
-  { label: "Haveservice", icon: TreePine },
-  { label: "Maler", icon: Paintbrush },
-  { label: "VVS", icon: Droplets },
-  { label: "Elektriker", icon: Zap },
-  { label: "Tømrer", icon: Hammer },
-  { label: "Sikkerhed", icon: ShieldCheck },
-];
+/** Brancher hentes fra det kanoniske taksonomi-katalog så de matcher
+ *  præcis det virksomheder kan vælge i panelet. */
+const CATEGORIES = topCategories().map((ind) => ({
+  label: ind.label,
+  key: ind.key,
+  icon: ind.icon,
+}));
 
 const BusinessCard = ({
   biz,
