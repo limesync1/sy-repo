@@ -606,6 +606,8 @@ export const useDeleteRoute = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["routes"] });
+      qc.invalidateQueries({ queryKey: ["routes-range"] });
+      qc.invalidateQueries({ queryKey: ["my-day-routes"] });
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["route-employees-bulk"] });
       qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
