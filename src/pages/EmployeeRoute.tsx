@@ -133,11 +133,13 @@ const NavPuckMarker = ({
   }, [map]);
 
   // Update position smoothly (no re-mount).
+  const lat = position[0];
+  const lng = position[1];
   useEffect(() => {
     const m = markerRef.current;
     if (!m) return;
-    m.setLatLng(position);
-  }, [position[0], position[1]]);
+    m.setLatLng([lat, lng]);
+  }, [lat, lng]);
 
   // Update heading by mutating CSS transform on the inner rotation element.
   // This avoids any react-leaflet reconciliation and gives a buttery-smooth
