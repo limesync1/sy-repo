@@ -1157,12 +1157,16 @@ export const useMyDayRoutes = (date: string) => {
         supabase.from("route_employees").select("route_id").eq("employee_id", emp.id),
         supabase.from("routes").select("id").eq("employee_id", emp.id).eq("route_date", date),
       ]);
-      const routeIds = Array.from(
-        new Set([
-          ...((linksRes.data || []).map((l: any) => l.route_id)),
-          ...((legacyRes.data || []).map((r: any) => r.id)),
-        ]),
-      );
+      // Sæt af rute-ID'er hvor medarbejderen eksplicit er TILKNYTTET som
+      // kører (junction-tabel eller legacy single-employee column). Disse
+      // ruter skal ALTID være synlige for medarbejderen — også når der
+      // (endnu) ikke er individuelle stop-niveau-assignees, fx på en
+      // teamrute hvor stops er fælles eller endnu uafgjorte.
+      const linkedRouteIds = new Set<string>([
+        ...((linksRes.data || []).map((l: any) => l.route_id)),
+        ...((legacyRes.data || []).map((r: any) => r.id)),
+      ]);
+      const routeIds = Array.from(linkedRouteIds);
       if (routeIds.length === 0) return [];
       const { data, error } = await supabase
         .from("routes")
@@ -1182,20 +1186,30 @@ export const useMyDayRoutes = (date: string) => {
         .from("route_stops")
         .select("id, route_id, assigned_employee_id")
         .in("route_id", todayRouteIds);
-      const routeStopCounts = new Map<string, number>();
-      const routeVisibleCounts = new Map<string, number>();
-      (stops || []).forEach((s: any) => {
-        routeStopCounts.set(s.route_id, (routeStopCounts.get(s.route_id) || 0) + 1);
-        const belongsToEmployee = myStopIds.has(s.id) || s.assigned_employee_id === emp.id;
-        if (belongsToEmployee || !s.assigned_employee_id) {
-          routeVisibleCounts.set(s.route_id, (routeVisibleCounts.get(s.route_id) || 0) + 1);
-        }
-      });
+      // Hvis ruten har stop tildelt SPECIFIKT til andre medarbejdere og
+      // INTET er tildelt vores medarbejder (heller ikke utildelte stop
+      // som kunne tilfalde dem), så er ruten reelt ikke længere deres —
+      // selv hvis junction-row'en stadig findes. I alle andre tilfælde
+      // viser vi ruten.
       const visibleRouteIds = new Set<string>();
       routes.forEach((r) => {
-        const totalStops = routeStopCounts.get(r.id) || 0;
-        const visibleStops = routeVisibleCounts.get(r.id) || 0;
-        if (totalStops > 0 && (visibleStops > 0 || myStopIds.size === 0)) {
+        const routeStops = (stops || []).filter((s: any) => s.route_id === r.id);
+        if (routeStops.length === 0) {
+          // Ny/tom rute — vis stadig så man ikke får et "tomhul" i kalenderen.
+          visibleRouteIds.add(r.id);
+          return;
+        }
+        const hasMine = routeStops.some(
+          (s: any) => myStopIds.has(s.id) || s.assigned_employee_id === emp.id,
+        );
+        const hasUnassigned = routeStops.some((s: any) => !s.assigned_employee_id);
+        const allAssignedToOthers = routeStops.every(
+          (s: any) =>
+            s.assigned_employee_id &&
+            s.assigned_employee_id !== emp.id &&
+            !myStopIds.has(s.id),
+        );
+        if (hasMine || hasUnassigned || !allAssignedToOthers) {
           visibleRouteIds.add(r.id);
         }
       });
