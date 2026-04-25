@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   Mail, Phone, Briefcase, UserPlus, X,
-  Trash2, Power, PowerOff, Pencil, KeyRound, Users,
+  Trash2, Power, PowerOff, Pencil, KeyRound, Users, Percent,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
@@ -41,11 +41,12 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [title, setTitle] = useState("");
+  const [commissionPct, setCommissionPct] = useState<string>("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "linked" | "pending">("all");
 
   const resetForm = () => {
-    setName(""); setEmail(""); setPhone(""); setTitle("");
+    setName(""); setEmail(""); setPhone(""); setTitle(""); setCommissionPct("");
     setShowForm(false);
   };
 
@@ -54,8 +55,13 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
       toast.error("Navn og email er påkrævet");
       return;
     }
+    const pctNum = commissionPct.trim() === "" ? 0 : Number(commissionPct.replace(",", "."));
+    if (Number.isNaN(pctNum) || pctNum < 0 || pctNum > 100) {
+      toast.error("Provision skal være et tal mellem 0 og 100");
+      return;
+    }
     create.mutate(
-      { business_id: businessId, name, email, phone, title },
+      { business_id: businessId, name, email, phone, title, commission_pct: pctNum },
       {
         onSuccess: ({ emailSent, accountAlreadyExisted }) => {
           const base = accountAlreadyExisted
@@ -232,6 +238,26 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   className="h-10"
                 />
               </div>
+              <div>
+                <FieldLabel>Provision (%)</FieldLabel>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    max={100}
+                    step="0.5"
+                    value={commissionPct}
+                    onChange={(e) => setCommissionPct(e.target.value)}
+                    placeholder="fx 10"
+                    className="h-10 pr-9"
+                  />
+                  <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Andel af omsætningen for udførte opgaver. Lad være tom for 0 %.
+                </p>
+              </div>
             </div>
             <p className="text-xs text-muted-foreground">
               Der genereres automatisk en sikker adgangskode, og medarbejderen
@@ -348,6 +374,9 @@ const EmployeeRow = ({
   const [editEmail, setEditEmail] = useState(employee.email || "");
   const [editPhone, setEditPhone] = useState(employee.phone || "");
   const [editTitle, setEditTitle] = useState(employee.title || "");
+  const [editCommission, setEditCommission] = useState<string>(
+    employee.commission_pct != null ? String(employee.commission_pct) : "0",
+  );
   const resetPw = useResetEmployeePassword();
   const fallbackColor = employee.color || "#64748b";
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -459,6 +488,12 @@ const EmployeeRow = ({
                   {employee.phone}
                 </span>
               )}
+              {Number(employee.commission_pct) > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-foreground tabular-nums">
+                  <Percent className="h-2.5 w-2.5" />
+                  {Number(employee.commission_pct)}% provision
+                </span>
+              )}
             </div>
             {/* Farve / billede-styring */}
             <div className="mt-1.5 flex items-center gap-2">
@@ -527,6 +562,7 @@ const EmployeeRow = ({
               setEditEmail(employee.email || "");
               setEditPhone(employee.phone || "");
               setEditTitle(employee.title || "");
+              setEditCommission(employee.commission_pct != null ? String(employee.commission_pct) : "0");
               setEditOpen(true);
             }}
             className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
@@ -601,6 +637,25 @@ const EmployeeRow = ({
               <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Titel</label>
               <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="h-10" />
             </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Provision (%)</label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  max={100}
+                  step="0.5"
+                  value={editCommission}
+                  onChange={(e) => setEditCommission(e.target.value)}
+                  className="h-10 pr-9"
+                />
+                <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Andel af omsætningen for udførte opgaver. Mellem 0 og 100.
+              </p>
+            </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="ghost" onClick={() => setEditOpen(false)}>Annuller</Button>
@@ -608,6 +663,11 @@ const EmployeeRow = ({
               onClick={() => {
                 if (!editName.trim() || !editEmail.trim()) {
                   toast.error("Navn og email er påkrævet");
+                  return;
+                }
+                const pctNum = editCommission.trim() === "" ? 0 : Number(editCommission.replace(",", "."));
+                if (Number.isNaN(pctNum) || pctNum < 0 || pctNum > 100) {
+                  toast.error("Provision skal være et tal mellem 0 og 100");
                   return;
                 }
                 onUpdate.mutate(
@@ -618,6 +678,7 @@ const EmployeeRow = ({
                     email: editEmail.trim().toLowerCase(),
                     phone: editPhone.trim() || null,
                     title: editTitle.trim() || null,
+                    commission_pct: pctNum,
                   } as any,
                   {
                     onSuccess: () => {

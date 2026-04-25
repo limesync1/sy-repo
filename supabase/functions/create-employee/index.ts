@@ -46,6 +46,12 @@ Deno.serve(async (req) => {
   const email = String(body.email || '').trim().toLowerCase()
   const phone = body.phone ? String(body.phone).trim() : null
   const title = body.title ? String(body.title).trim() : null
+  const commissionPctRaw = body.commission_pct
+  let commissionPct = 0
+  if (commissionPctRaw != null && commissionPctRaw !== '') {
+    const n = Number(commissionPctRaw)
+    if (Number.isFinite(n)) commissionPct = Math.min(100, Math.max(0, n))
+  }
 
   if (!businessId || !name || !email) {
     return new Response(JSON.stringify({ error: 'business_id, name and email are required' }), {
@@ -152,6 +158,7 @@ Deno.serve(async (req) => {
       email,
       phone,
       title,
+      commission_pct: commissionPct,
       home_address: homeAddress,
       home_latitude: homeLat,
       home_longitude: homeLng,

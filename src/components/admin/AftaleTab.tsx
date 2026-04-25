@@ -8,13 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   ShoppingCart, Pencil, Minus, Plus, Check, X, MessageSquare,
   ChevronDown, ChevronUp, Clock, Mail, Phone, ArrowRight,
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
   Play, Pause, Search, Route as RouteIcon, MapPin, Plus as PlusIcon,
-  GripVertical,
+  GripVertical, Loader2, Tag, Palette,
 } from "lucide-react";
 import {
   DndContext, PointerSensor, useSensor, useSensors,
@@ -24,6 +27,9 @@ import {
 import { INTERVAL_LABELS } from "@/types/service";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
 import { useRoutesForRange, useStopsForRoutes, useAddStop, useCreateRoute } from "@/hooks/useRoutes";
+import { ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
+import { DatePickerField } from "@/components/route-planner/DatePickerField";
+import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import {
   buildPricingSnapshot,
   getSmartStep,
@@ -645,6 +651,11 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   const [responseMessage, setResponseMessage] = useState("");
   const [adjustedItems, setAdjustedItems] = useState<Record<string, AdjustmentItem[]>>({});
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
+  // Opret-rute dialog (samme design som ruteplanlægger).
+  const [createRouteOpen, setCreateRouteOpen] = useState(false);
+  const [newRouteName, setNewRouteName] = useState("");
+  const [newRouteDate, setNewRouteDate] = useState(new Date().toISOString().slice(0, 10));
+  const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
 
   // ─── Drag & drop til rute-pool ───
   // Vi tracker hvilken aftale der pt. trækkes (for visuel feedback) og hvilken
@@ -975,21 +986,33 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
     }
   };
 
-  // Opret en ny rute "i farten" fra sidebar — bruges når brugeren ingen
-  // eksisterende rute har til den dato de vil planlægge.
-  const handleQuickCreateRoute = async (dateIso: string) => {
+  // Opret en ny rute via dialog — samme flow som "Opret rute" på ruteplanlæggeren.
+  // Brugeren vælger navn (valgfrit), dato og farve.
+  const handleConfirmCreateRoute = async () => {
+    if (!businessId) return;
     try {
-      const route = await createRoute.mutateAsync({
+      await createRoute.mutateAsync({
         business_id: businessId,
-        route_date: dateIso,
-        name: `Rute ${new Date(dateIso).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}`,
+        route_date: newRouteDate,
+        name: newRouteName.trim() || null,
+        color: newRouteColor,
       });
-      toast.success("Ny rute oprettet");
-      return route;
+      toast.success("Rute oprettet");
+      setNewRouteName("");
+      setCreateRouteOpen(false);
     } catch (e: any) {
       toast.error(e?.message || "Kunne ikke oprette ruten");
-      return null;
     }
+  };
+
+  // Når dialogen åbnes, foreslå en ledig farve for den valgte dato — så to
+  // ruter på samme dag ikke får samme farve.
+  const openCreateRouteDialog = () => {
+    const usedColorsThisDay = (poolRoutes || [])
+      .filter((r: any) => r.route_date === newRouteDate)
+      .map((r: any) => r.color);
+    setNewRouteColor(pickAvailableColor(usedColorsThisDay));
+    setCreateRouteOpen(true);
   };
 
   return (
@@ -1582,9 +1605,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
               </div>
               <button
                 type="button"
-                onClick={() => handleQuickCreateRoute(fromIso)}
+                onClick={openCreateRouteDialog}
                 className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-medium text-foreground hover:bg-secondary"
-                title="Opret en ny rute i dag"
+                title="Opret en ny rute"
               >
                 <PlusIcon className="h-3 w-3" /> Ny rute
               </button>
@@ -1647,6 +1670,76 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
         businessId={businessId}
         businessName={businessName}
       />
+
+      {/* Opret-rute dialog — samme design og felter som ruteplanlæggerens "Opret rute". */}
+      <Dialog open={createRouteOpen} onOpenChange={setCreateRouteOpen}>
+        <DialogContent className="max-w-md p-0 gap-0 overflow-hidden flex flex-col">
+          <DialogHeader className="px-5 py-4 border-b shrink-0 space-y-0">
+            <SheetHeaderBlock
+              icon={<RouteIcon className="h-4 w-4" />}
+              accent={newRouteColor}
+              title={<DialogTitle className="text-base">Opret ny rute</DialogTitle>}
+              description={
+                <DialogDescription className="text-xs leading-snug">
+                  Ruten starter fra virksomhedens adresse. Du kan tilkoble medarbejdere og aftaler bagefter.
+                </DialogDescription>
+              }
+            />
+          </DialogHeader>
+
+          <div className="px-5 py-3 space-y-2.5 bg-secondary/20">
+            <Section icon={<Tag className="h-3.5 w-3.5" />} title="Detaljer">
+              <div className="space-y-2.5">
+                <Field label="Navn (valgfrit)">
+                  <Input
+                    placeholder="fx Nord, Aarhus C, Mandag-team..."
+                    value={newRouteName}
+                    onChange={(e) => setNewRouteName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleConfirmCreateRoute(); }}
+                    className="h-8"
+                    autoFocus
+                  />
+                </Field>
+                <Field label="Dato" required>
+                  <DatePickerField value={newRouteDate} onChange={setNewRouteDate} />
+                </Field>
+              </div>
+            </Section>
+
+            <Section
+              icon={<Palette className="h-3.5 w-3.5" />}
+              title="Farve"
+              hint={ROUTE_COLORS.find((c) => c.value === newRouteColor)?.name || "Brugerdefineret"}
+            >
+              <div className="grid grid-cols-12 gap-1.5">
+                {ROUTE_COLORS.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setNewRouteColor(c.value)}
+                    title={c.name}
+                    className={`relative aspect-square rounded transition-all hover:scale-110 ring-offset-1 ring-offset-background ${newRouteColor === c.value ? "ring-2 ring-foreground shadow-sm" : "hover:ring-1 hover:ring-foreground/30"}`}
+                    style={{ background: c.value }}
+                    aria-label={`Vælg farve ${c.name}`}
+                  />
+                ))}
+              </div>
+            </Section>
+          </div>
+
+          <SheetFooterBar>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setCreateRouteOpen(false)} disabled={createRoute.isPending}>
+                Annullér
+              </Button>
+              <Button onClick={handleConfirmCreateRoute} disabled={createRoute.isPending}>
+                {createRoute.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+                Opret rute
+              </Button>
+            </div>
+          </SheetFooterBar>
+        </DialogContent>
+      </Dialog>
       </div>
     </DndContext>
   );
