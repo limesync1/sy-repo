@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   Mail, Phone, Briefcase, UserPlus, X,
-  Trash2, Power, PowerOff, Pencil, KeyRound, Users,
+  Trash2, Power, PowerOff, Pencil, KeyRound, Users, Percent,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
@@ -41,11 +41,12 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [title, setTitle] = useState("");
+  const [commissionPct, setCommissionPct] = useState<string>("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "linked" | "pending">("all");
 
   const resetForm = () => {
-    setName(""); setEmail(""); setPhone(""); setTitle("");
+    setName(""); setEmail(""); setPhone(""); setTitle(""); setCommissionPct("");
     setShowForm(false);
   };
 
@@ -54,8 +55,13 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
       toast.error("Navn og email er påkrævet");
       return;
     }
+    const pctNum = commissionPct.trim() === "" ? 0 : Number(commissionPct.replace(",", "."));
+    if (Number.isNaN(pctNum) || pctNum < 0 || pctNum > 100) {
+      toast.error("Provision skal være et tal mellem 0 og 100");
+      return;
+    }
     create.mutate(
-      { business_id: businessId, name, email, phone, title },
+      { business_id: businessId, name, email, phone, title, commission_pct: pctNum },
       {
         onSuccess: ({ emailSent, accountAlreadyExisted }) => {
           const base = accountAlreadyExisted
