@@ -291,7 +291,7 @@ const EmployeeStats = () => {
                           <CollapsibleTrigger asChild>
                             <button
                               type="button"
-                              className="grid w-full gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center sm:gap-4 sm:px-5"
+                              className="grid w-full gap-3 px-4 py-3.5 text-left transition-colors hover:bg-secondary/60 active:bg-secondary sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center sm:gap-4 sm:px-5"
                             >
                               <div className="min-w-0">
                                 <p className="text-sm font-semibold text-foreground capitalize">
@@ -301,7 +301,7 @@ const EmployeeStats = () => {
                                   {d.stops} {d.stops === 1 ? "opgave" : "opgaver"}
                                 </p>
                               </div>
-                              <div className="hidden sm:block">
+                              <div className="block">
                                 <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
                                   <div
                                     className="h-full bg-foreground transition-all"
@@ -309,7 +309,7 @@ const EmployeeStats = () => {
                                   />
                                 </div>
                               </div>
-                              <div className="flex items-center justify-between gap-3 sm:justify-end">
+                              <div className="flex items-center justify-between gap-3 rounded-lg bg-secondary/50 px-3 py-2 sm:justify-end sm:bg-transparent sm:p-0">
                                 <div className="text-right">
                                   <p className="text-sm font-bold tabular-nums text-foreground">
                                     {formatKr(d.earnings)}
@@ -321,7 +321,7 @@ const EmployeeStats = () => {
                             </button>
                           </CollapsibleTrigger>
                           <CollapsibleContent>
-                            <div className="border-t border-border bg-secondary/30 px-4 py-2 sm:px-5">
+                            <div className="border-t border-border bg-secondary/30 px-3 py-2 sm:px-5">
                               {d.entries.length === 0 ? (
                                 <p className="py-3 text-center text-xs text-muted-foreground">
                                   Ingen detaljer
@@ -331,7 +331,7 @@ const EmployeeStats = () => {
                                   {d.entries.map((e) => (
                                     <li
                                       key={e.stopId}
-                                      className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 py-2.5 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:gap-4"
+                                      className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 rounded-lg px-2 py-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:gap-4"
                                     >
                                       <div className="min-w-0">
                                         <p className="truncate text-sm font-medium text-foreground">
@@ -347,15 +347,15 @@ const EmployeeStats = () => {
                                           {PAYMENT_LABEL[e.paymentStatus]}
                                         </Badge>
                                       </div>
-                                      <div className="hidden text-right sm:block">
+                                      <div className="text-right">
                                         <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Aftale</p>
                                         <p className="text-xs font-medium tabular-nums text-muted-foreground">
                                           {formatKr(e.orderAmount)}
                                         </p>
                                       </div>
-                                      <div className="text-right">
+                                      <div className="col-span-2 flex items-center justify-between rounded-md bg-card px-3 py-2 text-right sm:col-span-1 sm:block sm:bg-transparent sm:p-0">
                                         <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Min andel</p>
-                                        <p className="text-sm font-bold tabular-nums text-emerald-600">
+                                        <p className="text-sm font-bold tabular-nums text-foreground">
                                           {formatKr(e.share)}
                                         </p>
                                       </div>
