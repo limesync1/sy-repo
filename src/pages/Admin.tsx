@@ -467,7 +467,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   );
 };
 
-const ServiceRow = ({ service, businessIndustries, orderCount, onDelete }: { service: any; businessIndustries: string[]; orderCount: number; onDelete: () => void }) => {
+const ServiceRow = ({ service, businessIndustries, selectedSubcategoriesByIndustry, orderCount, onDelete }: { service: any; businessIndustries: string[]; selectedSubcategoriesByIndustry?: Record<string, string[]>; orderCount: number; onDelete: () => void }) => {
   const [editing, setEditing] = useState(false);
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
   const intervalLabels: Record<string, string> = {
@@ -565,7 +565,7 @@ const ServiceRow = ({ service, businessIndustries, orderCount, onDelete }: { ser
       </CardContent>
       {editing && (
         <div className="border-t border-border bg-secondary/30 p-4 sm:p-5">
-          <ServiceForm businessId={service.business_id} businessIndustries={businessIndustries} existingService={service} onClose={() => setEditing(false)} />
+          <ServiceForm businessId={service.business_id} businessIndustries={businessIndustries} selectedSubcategoriesByIndustry={selectedSubcategoriesByIndustry} existingService={service} onClose={() => setEditing(false)} />
         </div>
       )}
     </Card>
@@ -620,11 +620,13 @@ const CalculatorPreview = ({ steps }: { steps: any[] }) => {
 const ServiceForm = ({
   businessId,
   businessIndustries = [],
+  selectedSubcategoriesByIndustry = {},
   existingService,
   onClose,
 }: {
   businessId: string;
   businessIndustries?: string[];
+  selectedSubcategoriesByIndustry?: Record<string, string[]>;
   existingService?: any;
   onClose: () => void;
 }) => {
