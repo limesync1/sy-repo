@@ -16,12 +16,14 @@ import { PageHeader, PrimaryButton, SectionCard, FieldLabel } from "@/components
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { TrafficOverridesSection } from "./TrafficOverridesSection";
+import {
+  INDUSTRY_GROUPS,
+  ALL_INDUSTRIES,
+  industryIcon,
+  customIndustryKeys,
+  findIndustry,
+} from "@/lib/service-taxonomy";
 
-const CATEGORIES = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS", "Elektriker", "Sikkerhed"];
-const CATEGORY_ICONS: Record<string, string> = {
-  "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
-  "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
-};
 const DAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
 
 // ─── Sub-nav sektioner ───
