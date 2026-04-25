@@ -16,15 +16,7 @@ import {
   Star,
   ShieldCheck,
   SlidersHorizontal,
-  Sparkles,
-  Wrench,
-  Truck,
-  TreePine,
-  Paintbrush,
-  Droplets,
-  Zap,
   Building2,
-  Hammer,
   X,
   Navigation,
   Map as MapIcon,
@@ -36,18 +28,15 @@ import ResultsMap from "@/components/search/ResultsMap";
 import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
+import { topCategories } from "@/lib/service-taxonomy";
 
-const CATEGORIES = [
-  { label: "Rengøring", icon: Sparkles },
-  { label: "Håndværker", icon: Wrench },
-  { label: "Flyttehjælp", icon: Truck },
-  { label: "Haveservice", icon: TreePine },
-  { label: "Maler", icon: Paintbrush },
-  { label: "VVS", icon: Droplets },
-  { label: "Elektriker", icon: Zap },
-  { label: "Tømrer", icon: Hammer },
-  { label: "Sikkerhed", icon: ShieldCheck },
-];
+/** Brancher hentes fra det kanoniske taksonomi-katalog så de matcher
+ *  præcis det virksomheder kan vælge i panelet. */
+const CATEGORIES = topCategories().map((ind) => ({
+  label: ind.label,
+  key: ind.key,
+  icon: ind.icon,
+}));
 
 const BusinessCard = ({
   biz,
@@ -320,19 +309,20 @@ const SearchPage = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 overflow-x-auto py-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {CATEGORIES.map((cat) => {
-              const Icon = cat.icon;
-              const active = selectedCategory === cat.label;
+              // Sammenlign mod kanonisk `key` (det der gemmes på businesses)
+              // så chip'en matcher uanset hvordan branchen vises.
+              const active = selectedCategory === cat.key;
               return (
                 <button
-                  key={cat.label}
-                  onClick={() => handleCategoryClick(cat.label)}
+                  key={cat.key}
+                  onClick={() => handleCategoryClick(cat.key)}
                   className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all ${
                     active
                       ? "border-foreground bg-foreground text-background hover:bg-foreground/90"
                       : "border-border bg-card text-foreground hover:border-foreground/40 hover:bg-secondary active:bg-secondary/70"
                   }`}
                 >
-                  <Icon className="h-3.5 w-3.5" />
+                  <span aria-hidden className="text-base leading-none">{cat.icon}</span>
                   {cat.label}
                   {active && <X className="h-3 w-3 ml-0.5 opacity-70" />}
                 </button>

@@ -642,7 +642,18 @@ const LinkedSubscriptionInfo = ({ orderId, subscriptions }: { orderId: string; s
 /* ═══════════════════════════════════════════════════ */
 /*  Main AftaleTab — unified view                     */
 /* ═══════════════════════════════════════════════════ */
-const AftaleTab = ({ businessId, businessName }: { businessId: string; businessName: string }) => {
+const AftaleTab = ({
+  businessId,
+  businessName,
+  routePlanningEnabled = false,
+}: {
+  businessId: string;
+  businessName: string;
+  /** Når falsk skjules ALT rute-relateret UI: rute-pool sidebar, drag handles,
+   *  filter-chips ("Ikke planlagt"/"På rute"), badges på aftaler og
+   *  rute-info-blokken i den udfoldede aftale. */
+  routePlanningEnabled?: boolean;
+}) => {
   const { data: orders, isLoading } = useOrders(businessId);
   const { data: services } = useServices(businessId);
   const { data: subscriptions } = useBusinessSubscriptions(businessId);
@@ -679,9 +690,16 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   const fromIso = today.toISOString().slice(0, 10);
   const toDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
   const toIso = toDate.toISOString().slice(0, 10);
-  const { data: poolRoutes } = useRoutesForRange(businessId, fromIso, toIso);
+  // Når ruteplanlægning er deaktiveret skal vi hverken hente ruter eller stops —
+  // sidebar'en skjules helt og badges/blokke renderes ikke. Vi sender et tomt id
+  // ind så `useRoutesForRange` blot returnerer en tom liste.
+  const { data: poolRoutes } = useRoutesForRange(
+    routePlanningEnabled ? businessId : "",
+    fromIso,
+    toIso,
+  );
   const poolRouteIds = (poolRoutes || []).map((r) => r.id);
-  const { data: poolStops } = useStopsForRoutes(poolRouteIds);
+  const { data: poolStops } = useStopsForRoutes(routePlanningEnabled ? poolRouteIds : []);
   const addStop = useAddStop();
   const createRoute = useCreateRoute();
   const deleteRoute = useDeleteRoute();
@@ -689,7 +707,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   // Hent route-stops for alle ordrer i denne forretning, så vi kan vise hvilken
   // rute hver aftale er placeret på (dato, rute-navn, sekvens og status).
   const { data: routeStops } = useQuery({
-    queryKey: ["aftaler-route-stops", businessId],
+    queryKey: ["aftaler-route-stops", businessId, routePlanningEnabled],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("route_stops")
@@ -698,7 +716,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       if (error) throw error;
       return data || [];
     },
-    enabled: !!businessId,
+    enabled: !!businessId && routePlanningEnabled,
   });
 
   // Map: order_id → første tilknyttede stop (en aftale ligger typisk på én rute).
@@ -1115,7 +1133,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       </div>
 
       {/* Søgefelt — leder efter kunde, service, adresse osv. */}
-      <div className="grid gap-5 lg:grid-cols-[7fr_3fr]">
+      <div className={`grid gap-5 ${routePlanningEnabled ? "lg:grid-cols-[7fr_3fr]" : ""}`}>
         <div className="space-y-5 min-w-0">
         <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -1142,9 +1160,14 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
               { key: "action_needed", label: "Kræver handling", count: actionNeeded.length, tone: "danger" as const },
               { key: "waiting", label: "Afventer kunde", count: waitingForCustomer.length, tone: "warning" as const },
             ] as Chip[]).filter(b => b.count > 0),
+            // Rute-relaterede filtre vises kun når ruteplanlægning er slået til.
             [
-              { key: "not_planned", label: "Ikke planlagt", count: notPlannedOrders.length },
-              { key: "in_route", label: "På rute", count: inRouteOrders.length },
+              ...(routePlanningEnabled
+                ? [
+                    { key: "not_planned", label: "Ikke planlagt", count: notPlannedOrders.length },
+                    { key: "in_route", label: "På rute", count: inRouteOrders.length },
+                  ]
+                : []),
               { key: "in_progress", label: "I gang", count: counts.in_progress || 0 },
               { key: "completed", label: "Udførte", count: counts.completed || 0 },
               { key: "cancelled", label: "Annullerede", count: counts.cancelled || 0 },
@@ -1280,9 +1303,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
               return null;
             })();
             const categoryIcon = (primaryCategory && CATEGORY_ICONS[primaryCategory]) || DEFAULT_CATEGORY_ICON;
-            // Aftalen kan kun trækkes til en rute hvis den ikke allerede ligger på
-            // en rute, og den ikke er afsluttet/annulleret.
-            const canDragToRoute = !routeStop && !["completed", "cancelled"].includes(order.status);
+            // Aftalen kan kun trækkes til en rute hvis ruteplanlægning er slået
+            // til, den ikke allerede ligger på en rute, og ikke er afsluttet/annulleret.
+            const canDragToRoute = routePlanningEnabled && !routeStop && !["completed", "cancelled"].includes(order.status);
 
             return (
               <Card
@@ -1331,7 +1354,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                                 {cycles > 0 && <span className="ml-0.5">· #{cycles}</span>}
                               </span>
                             )}
-                            {routeInfo && (
+                            {routePlanningEnabled && routeInfo && (
                               <span
                                 className="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-medium"
                                 style={{
@@ -1428,8 +1451,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                       )}
                     </div>
 
-                    {/* Rute-info — vis på hvilken rute denne aftale er placeret. */}
-                    {routeInfo ? (
+                    {/* Rute-info — vis på hvilken rute denne aftale er placeret.
+                        Hele blokken skjules når ruteplanlægning er deaktiveret. */}
+                    {routePlanningEnabled && routeInfo ? (
                       <div
                         className="rounded-xl border px-4 py-3 space-y-1.5"
                         style={{ borderColor: `${routeInfo.color}40`, backgroundColor: `${routeInfo.color}0d` }}
@@ -1471,7 +1495,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                           )}
                         </div>
                       </div>
-                    ) : !["completed", "cancelled"].includes(order.status) && (
+                    ) : routePlanningEnabled && !["completed", "cancelled"].includes(order.status) && (
                       <div className="rounded-xl border border-dashed border-border px-4 py-3 flex items-center gap-2 text-xs text-muted-foreground">
                         <MapPin className="h-3.5 w-3.5" />
                         Denne aftale er endnu ikke planlagt på en rute.
@@ -1655,7 +1679,8 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
         {/* ─── Sidebar: Rute-pool ───
             Viser ruter for de næste 14 dage. Aftaler kan trækkes direkte
             fra venstre kolonne over på en rute her — så er den planlagt.
-            Dette er en lettere arbejdsgang end at åbne ruteplanlæggeren. */}
+            Skjules helt når ruteplanlægning er deaktiveret. */}
+        {routePlanningEnabled && (
         <aside className="lg:sticky lg:top-4 lg:self-start">
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between gap-2 border-b border-border bg-secondary/40 px-4 py-3">
@@ -1740,6 +1765,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
             </div>
           </Card>
         </aside>
+        )}
       </div>
 
       <CreateManualOrderDialog

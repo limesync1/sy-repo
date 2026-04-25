@@ -2,24 +2,21 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, MapPin, Sparkles, Wrench, Truck, TreePine, Paintbrush, Droplets, Zap, ShieldCheck, Hammer, Building2 } from "lucide-react";
+import { Search, MapPin, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserLocation } from "@/contexts/LocationContext";
+import { topCategories } from "@/lib/service-taxonomy";
 
-const CATEGORIES = [
-  { label: "Rengøring", icon: Sparkles },
-  { label: "Håndværker", icon: Wrench },
-  { label: "Flyttehjælp", icon: Truck },
-  { label: "Haveservice", icon: TreePine },
-  { label: "Maler", icon: Paintbrush },
-  { label: "VVS", icon: Droplets },
-  { label: "Elektriker", icon: Zap },
-  { label: "Sikkerhed", icon: ShieldCheck },
-  { label: "Tømrer", icon: Hammer },
-];
+/** Top-brancher hentes fra det kanoniske taksonomi-katalog så landing, søgning
+ *  og virksomhedspanelet altid viser præcis de samme brancher. */
+const CATEGORIES = topCategories().map((ind) => ({
+  label: ind.label,
+  key: ind.key,
+  icon: ind.icon,
+}));
 
 type Suggestion =
-  | { type: "category"; label: string; icon: any }
+  | { type: "category"; label: string; icon: string; key: string }
   | { type: "business"; label: string; slug: string; city: string | null; logo: string | null }
   | { type: "city"; label: string };
 
@@ -66,14 +63,14 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
     const term = q.trim().toLowerCase();
     if (!term) {
       // Empty — show top categories
-      return CATEGORIES.slice(0, 6).map((c) => ({ type: "category" as const, label: c.label, icon: c.icon }));
+      return CATEGORIES.slice(0, 6).map((c) => ({ type: "category" as const, label: c.label, icon: c.icon, key: c.key }));
     }
     const results: Suggestion[] = [];
 
     // Category matches
     CATEGORIES.filter((c) => c.label.toLowerCase().includes(term))
       .slice(0, 3)
-      .forEach((c) => results.push({ type: "category", label: c.label, icon: c.icon }));
+      .forEach((c) => results.push({ type: "category", label: c.label, icon: c.icon, key: c.key }));
 
     // City matches
     (index?.cities || [])
@@ -114,7 +111,9 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
     if (s.type === "business") {
       navigate(`/b/${s.slug}`);
     } else if (s.type === "category") {
-      navigate(`/search?category=${encodeURIComponent(s.label)}`);
+      // Brug branche-key (kanonisk værdi i `businesses.categories`) frem for det
+      // viste label, så filtreringen i søge-siden matcher 1:1.
+      navigate(`/search?category=${encodeURIComponent(s.key)}`);
     } else {
       navigate(`/search?q=${encodeURIComponent(s.label)}`);
     }
@@ -204,8 +203,8 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                   >
                     {s.type === "category" && (
                       <>
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                          <s.icon className="h-4 w-4" />
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-base">
+                          <span aria-hidden>{s.icon}</span>
                         </span>
                         <span className="flex-1">
                           <div className="font-semibold text-foreground">{s.label}</div>
