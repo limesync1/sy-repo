@@ -1819,6 +1819,60 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
         </DialogContent>
       </Dialog>
       </div>
+
+      {/* Slet rute bekræftelse — samme UX som i Ruteplanlæggeren. */}
+      <AlertDialog open={!!routeToDelete} onOpenChange={(o) => !o && setRouteToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Slet rute?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{routeToDelete?.name}</strong> og alle dens stops slettes permanent.
+              Tilkoblede medarbejdere fjernes fra ruten, og aftalerne ryger tilbage i aftalepoolen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annullér</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (routeToDelete) {
+                  deleteRoute.mutate(routeToDelete.id, {
+                    onSuccess: () => toast.success(`${routeToDelete.name} slettet`),
+                  });
+                  setRouteToDelete(null);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Slet rute
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* DragOverlay — viser et flydende kort med kundenavn og pris mens
+          aftalen trækkes (samme visuelle feedback som Ruteplanlæggeren). */}
+      <DragOverlay>
+        {draggingOrderId && activeDragOrder && (
+          <div
+            className="rounded-md border border-accent bg-card px-2.5 py-2 shadow-xl w-[200px] cursor-grabbing"
+            style={{ transform: "rotate(-2deg)" }}
+          >
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-xs font-semibold truncate text-foreground">
+                {activeDragOrder.customer_name || "Aftale"}
+              </p>
+              <span className="text-[10px] font-bold text-accent shrink-0 tabular-nums">
+                {Math.round(Number(activeDragOrder.total_amount || 0))} kr
+              </span>
+            </div>
+            {activeDragOrder.address && (
+              <p className="mt-0.5 text-[10px] text-muted-foreground truncate">
+                {activeDragOrder.address}
+              </p>
+            )}
+          </div>
+        )}
+      </DragOverlay>
     </DndContext>
   );
 };
