@@ -989,8 +989,30 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               </div>
             )}
 
+            {/* Reroute-banner — Google Maps-stil "genberegner" prompt */}
+            {isRerouting && (
+              <div className="absolute top-[68px] left-3 right-[68px] z-[1001] pointer-events-none">
+                <div
+                  className="rounded-2xl shadow-2xl border bg-background/95 backdrop-blur px-3 py-2.5 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-200"
+                >
+                  <div
+                    className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: themeColor }}
+                  >
+                    <Loader2 className="h-4.5 w-4.5 animate-spin text-background" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold leading-tight">Genberegner rute</p>
+                    <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
+                      Du afveg fra ruten — finder bedste vej fra din nuværende position
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Trafik-banner — Serviceydere amber, kvalitativ severity */}
-            {trafficAlert && (() => {
+            {!isRerouting && trafficAlert && (() => {
               const sev = trafficAlert.severity;
               const sevLabel = sev === "let" ? "Let trafik" : sev === "moderat" ? "Moderat trafik" : "Tæt trafik";
               const sevDots = sev === "let" ? 1 : sev === "moderat" ? 2 : 3;
