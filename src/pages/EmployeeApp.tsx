@@ -382,7 +382,7 @@ const EmployeeApp = () => {
                           <div
                             key={s.id}
                             className={`flex items-center gap-3 px-3 py-2.5 ${
-                              isNext ? "bg-accent/5" : ""
+                              isNext ? "bg-secondary/60" : ""
                             }`}
                           >
                             <span
@@ -390,7 +390,7 @@ const EmployeeApp = () => {
                                 s.status === "completed"
                                   ? "bg-emerald-500/10 text-emerald-600"
                                   : isNext
-                                    ? "bg-accent text-accent-foreground ring-2 ring-accent/30"
+                                    ? "bg-foreground text-background ring-2 ring-foreground/15"
                                     : "bg-secondary text-foreground"
                               }`}
                             >
@@ -406,7 +406,7 @@ const EmployeeApp = () => {
                               >
                                 {s.customer_name || "Stop"}
                                 {isNext && s.status !== "completed" && (
-                                  <span className="ml-1.5 text-[9px] font-bold uppercase tracking-wide text-accent">
+                                  <span className="ml-1.5 text-[9px] font-bold uppercase tracking-wide text-foreground">
                                     Næste
                                   </span>
                                 )}
