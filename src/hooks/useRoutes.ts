@@ -1153,10 +1153,15 @@ export const useMyDayRoutes = (date: string) => {
       if (!emp) return [];
       // Find ruter via junction-tabel (nye ruter, evt. team) ELLER legacy
       // routes.employee_id-kolonne (ældre ruter / demo-data).
-      const [linksRes, legacyRes] = await Promise.all([
+      const [linksRes, legacyRes, stopAssignRes] = await Promise.all([
         supabase.from("route_employees").select("route_id").eq("employee_id", emp.id),
         supabase.from("routes").select("id").eq("employee_id", emp.id).eq("route_date", date),
+        supabase.from("route_stop_assignees").select("stop_id").eq("employee_id", emp.id),
       ]);
+      const assignedStopIds = (stopAssignRes.data || []).map((a: any) => a.stop_id);
+      const { data: assignedStopRoutes } = assignedStopIds.length > 0
+        ? await supabase.from("route_stops").select("route_id").in("id", assignedStopIds)
+        : { data: [] as any[] };
       // Sæt af rute-ID'er hvor medarbejderen eksplicit er TILKNYTTET som
       // kører (junction-tabel eller legacy single-employee column). Disse
       // ruter skal ALTID være synlige for medarbejderen — også når der
@@ -1165,6 +1170,7 @@ export const useMyDayRoutes = (date: string) => {
       const linkedRouteIds = new Set<string>([
         ...((linksRes.data || []).map((l: any) => l.route_id)),
         ...((legacyRes.data || []).map((r: any) => r.id)),
+        ...((assignedStopRoutes || []).map((s: any) => s.route_id)),
       ]);
       const routeIds = Array.from(linkedRouteIds);
       if (routeIds.length === 0) return [];
@@ -1230,13 +1236,19 @@ export const useMyDayStops = (date: string) => {
         .eq("user_id", user.user.id)
         .maybeSingle();
       if (!emp) return [];
-      const [linksRes, legacyRes] = await Promise.all([
+      const [linksRes, legacyRes, stopAssignRes] = await Promise.all([
         supabase.from("route_employees").select("route_id").eq("employee_id", emp.id),
         supabase.from("routes").select("id").eq("employee_id", emp.id).eq("route_date", date),
+        supabase.from("route_stop_assignees").select("stop_id").eq("employee_id", emp.id),
       ]);
+      const assignedStopIds = (stopAssignRes.data || []).map((a: any) => a.stop_id);
+      const { data: assignedStopRoutes } = assignedStopIds.length > 0
+        ? await supabase.from("route_stops").select("route_id").in("id", assignedStopIds)
+        : { data: [] as any[] };
       const linkedRouteIds = new Set<string>([
         ...((linksRes.data || []).map((l: any) => l.route_id)),
         ...((legacyRes.data || []).map((r: any) => r.id)),
+        ...((assignedStopRoutes || []).map((s: any) => s.route_id)),
       ]);
       const routeIds = Array.from(linkedRouteIds);
       if (routeIds.length === 0) return [];
