@@ -170,7 +170,7 @@ const AdminDashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard": return <DashboardWrapper business={business} onNavigate={(t) => setActiveTab(t as AdminTabKey)} />;
-      case "services": return <ServicesTab businessId={business.id} />;
+      case "services": return <ServicesTab businessId={business.id} business={business} />;
       case "orders": return <AftaleTab businessId={business.id} businessName={business.name} />;
       case "customers": return <CustomersTab businessId={business.id} businessName={business.name} />;
       case "employees": return <EmployeesTab businessId={business.id} businessName={business.name} routePlanningEnabled={!!(business.settings as any)?.route_planning_enabled} />;
@@ -249,11 +249,6 @@ const CreateBusinessForm = () => {
     });
   };
 
-  const CATEGORY_ICONS: Record<string, string> = {
-    "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
-    "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
-  };
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-lg shadow-lg">
@@ -269,17 +264,27 @@ const CreateBusinessForm = () => {
           <Textarea placeholder="Beskrivelse (valgfrit)" value={description} onChange={(e) => setDescription(e.target.value)} />
           <div>
             <label className="mb-2 block text-sm font-medium text-foreground">Vælg brancher (vælg en eller flere)</label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {CATEGORIES.map((c) => (
-                <button key={c} type="button" onClick={() => toggleCategory(c)}
-                  className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-3 text-center transition-all ${
-                    selectedCategories.includes(c)
-                      ? "border-foreground bg-foreground/5 shadow-sm"
-                      : "border-border bg-card hover:border-foreground/30"
-                  }`}>
-                  <span className="text-xl">{CATEGORY_ICONS[c] || "📋"}</span>
-                  <span className="text-xs font-medium text-foreground">{c}</span>
-                </button>
+            <p className="mb-2 text-xs text-muted-foreground">
+              Du kan finjustere og tilføje flere brancher senere i Indstillinger.
+            </p>
+            <div className="max-h-[340px] space-y-3 overflow-y-auto pr-1">
+              {INDUSTRY_GROUPS.map((g) => (
+                <div key={g.label}>
+                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{g.label}</p>
+                  <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                    {g.industries.map((ind) => (
+                      <button key={ind.key} type="button" onClick={() => toggleCategory(ind.key)}
+                        className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 text-left transition-all ${
+                          selectedCategories.includes(ind.key)
+                            ? "border-foreground bg-foreground/5 shadow-sm"
+                            : "border-border bg-card hover:border-foreground/30"
+                        }`}>
+                        <span className="text-base leading-none">{ind.icon}</span>
+                        <span className="truncate text-xs font-medium text-foreground">{ind.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -293,12 +298,18 @@ const CreateBusinessForm = () => {
 };
 
 /* ─── Services Tab ─── */
-const ServicesTab = ({ businessId }: { businessId: string }) => {
+const ServicesTab = ({ businessId, business }: { businessId: string; business: any }) => {
   const { data: services, isLoading } = useServices(businessId);
   const { data: orders } = useOrders(businessId);
   const deleteService = useDeleteService();
   const [showForm, setShowForm] = useState(false);
   const [filterCategory, setFilterCategory] = useState("");
+
+  // Brancher virksomheden har valgt i Indstillinger — styrer hvad der kan oprettes
+  const businessIndustries: string[] =
+    (business?.categories as string[]) ||
+    (business?.category ? [business.category] : []);
+  const hasIndustries = businessIndustries.length > 0;
 
   // Count orders per service
   const orderCountByService: Record<string, number> = {};
@@ -378,17 +389,36 @@ const ServicesTab = ({ businessId }: { businessId: string }) => {
         <div className="hidden" />
       )}
 
+      {showForm && !hasIndustries && (
+        <Card className="surface-admin rounded-xl border-amber-300 bg-amber-50 shadow-sm">
+          <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-2.5">
+              <span className="text-lg leading-none">⚠️</span>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Vælg jeres brancher først</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Når I har valgt brancher i Indstillinger, ser I kun service-typer der passer til jeres virksomhed.
+                </p>
+              </div>
+            </div>
+            <Button asChild size="sm" variant="outline" className="shrink-0 rounded-lg">
+              <a href="/virksomhed?tab=settings">Gå til Indstillinger</a>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {showForm && (
         <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
           <CardContent className="p-5 sm:p-6">
-            <ServiceForm businessId={businessId} onClose={() => setShowForm(false)} />
+            <ServiceForm businessId={businessId} businessIndustries={businessIndustries} onClose={() => setShowForm(false)} />
           </CardContent>
         </Card>
       )}
 
       <div className="space-y-3">
         {filtered?.map((s: any) => (
-          <ServiceRow key={s.id} service={s} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
+          <ServiceRow key={s.id} service={s} businessIndustries={businessIndustries} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
         ))}
         {(!filtered || filtered.length === 0) && !showForm && (
           <EmptyState
