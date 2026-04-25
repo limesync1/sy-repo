@@ -3,7 +3,22 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer, Loader2, Rows3, Rows2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Printer,
+  Loader2,
+  Rows3,
+  Rows2,
+  MapPin,
+  Phone,
+  Clock,
+  Route as RouteIcon,
+  Timer,
+  Flag,
+  ListChecks,
+  StickyNote,
+  ClipboardList,
+} from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { stripPrices } from "@/lib/employee-display";
@@ -76,157 +91,190 @@ const EmployeeRoutePrint = () => {
       {/* The "paper" — emulates an A4 sheet on screen */}
       <div className="px-3 sm:px-6 py-4 sm:py-8 print:p-0">
         <article
-          className="print-sheet mx-auto bg-card text-foreground border border-border shadow-sm
+          className="print-sheet relative mx-auto bg-card text-foreground border border-border shadow-md rounded-md overflow-hidden
                      max-w-[210mm] w-full
-                     px-5 sm:px-10 py-6 sm:py-10
-                     print:bg-white print:text-black print:border-0 print:shadow-none
-                     print:max-w-none print:w-auto print:px-0 print:py-0 print:mx-0"
+                     print:bg-white print:text-black print:border-0 print:shadow-none print:rounded-none
+                     print:max-w-none print:w-auto print:mx-0"
         >
-          {/* ───────── Document header ───────── */}
-          <header className="print-header pb-4 border-b-2 border-foreground print:border-black">
-            <div className="flex items-start justify-between gap-6">
-              <div className="min-w-0">
-                <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-muted-foreground print:text-black/60 font-medium">
-                  Ruteliste
-                </p>
-                <h1 className="mt-1 text-[22px] sm:text-[26px] leading-tight font-semibold tracking-tight text-foreground print:text-black">
-                  {route.name || "Rute"}
-                </h1>
-                <p className="mt-1 text-sm text-muted-foreground print:text-black/70 capitalize">
-                  {format(parseISO(route.route_date), "EEEE d. MMMM yyyy", { locale: da })}
-                </p>
-              </div>
-              {businessName && (
-                <div className="text-right shrink-0">
-                  <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-muted-foreground print:text-black/60 font-medium">
-                    Udført af
+          {/* Top brand stripe */}
+          <div className="print-stripe h-1.5 w-full bg-foreground print:bg-black" />
+
+          <div className="px-5 sm:px-10 py-6 sm:py-9 print:px-0 print:py-0">
+            {/* ───────── Document header ───────── */}
+            <header className="print-header pb-5">
+              <div className="flex items-start justify-between gap-6">
+                <div className="min-w-0">
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground print:border-black/40 print:text-black/70 font-medium">
+                    <ClipboardList className="h-3 w-3" />
+                    Ruteliste
+                  </div>
+                  <h1 className="mt-2.5 text-[24px] sm:text-[28px] leading-tight font-semibold tracking-tight text-foreground print:text-black">
+                    {route.name || "Rute"}
+                  </h1>
+                  <p className="mt-1 text-sm text-muted-foreground print:text-black/70 capitalize">
+                    {format(parseISO(route.route_date), "EEEE d. MMMM yyyy", { locale: da })}
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-foreground print:text-black">
-                    {businessName}
-                  </p>
-                  {employee && (
-                    <p className="text-xs text-muted-foreground print:text-black/70 mt-0.5">
-                      {employee.name}
-                    </p>
-                  )}
                 </div>
+                {businessName && (
+                  <div className="text-right shrink-0">
+                    <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-muted-foreground print:text-black/60 font-medium">
+                      Udført af
+                    </p>
+                    <p className="mt-1 text-[15px] font-semibold text-foreground print:text-black">
+                      {businessName}
+                    </p>
+                    {employee && (
+                      <p className="text-xs text-muted-foreground print:text-black/70 mt-0.5">
+                        {employee.name}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Meta strip with subtle card */}
+              <dl className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3 rounded-lg border border-border bg-muted/40 px-4 py-3 print:bg-transparent print:border-black/30">
+                <MetaItem icon={<Clock className="h-3.5 w-3.5" />} label="Start" value={startTime} />
+                <MetaItem icon={<Flag className="h-3.5 w-3.5" />} label="Stop" value={String(sorted.length)} />
+                <MetaItem icon={<RouteIcon className="h-3.5 w-3.5" />} label="Distance" value={distance} />
+                <MetaItem icon={<Timer className="h-3.5 w-3.5" />} label="Tid i alt" value={totalTime} />
+              </dl>
+
+              {route.start_address && (
+                <p className="mt-3 flex items-start gap-1.5 text-xs text-muted-foreground print:text-black/70">
+                  <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <span>
+                    <span className="font-medium text-foreground print:text-black">Startadresse:</span>{" "}
+                    {route.start_address}
+                  </span>
+                </p>
               )}
+            </header>
+
+            {/* Section divider with label */}
+            <div className="print-section-label flex items-center gap-3 py-2">
+              <ListChecks className="h-4 w-4 text-muted-foreground print:text-black/70" />
+              <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground print:text-black/70 font-semibold">
+                Stop på ruten
+              </span>
+              <div className="flex-1 h-px bg-border print:bg-black/30" />
+              <span className="text-[11px] tabular-nums text-muted-foreground print:text-black/70 font-medium">
+                {sorted.length} {sorted.length === 1 ? "stop" : "stop"}
+              </span>
             </div>
 
-            {/* Inline meta strip — flat, dense, document-like */}
-            <dl className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 text-sm">
-              <MetaItem label="Start" value={startTime} />
-              <MetaItem label="Stop" value={String(sorted.length)} />
-              <MetaItem label="Distance" value={distance} />
-              <MetaItem label="Tid i alt" value={totalTime} />
-            </dl>
+            {/* ───────── Stops list ───────── */}
+            {sorted.length === 0 ? (
+              <p className="py-16 text-center text-sm text-muted-foreground">Ingen stop på ruten.</p>
+            ) : (
+              <ol className="print-stops mt-1">
+                {sorted.map((s, i) => {
+                  const cleanedSummary = s.service_summary ? stripPrices(s.service_summary) : "";
+                  const arrival = s.planned_arrival
+                    ? new Date(s.planned_arrival).toLocaleTimeString("da-DK", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : null;
+                  return (
+                    <li
+                      key={s.id}
+                      className="print-stop py-5 border-b border-border last:border-b-0 print:border-black/25"
+                    >
+                      <div className="flex gap-4">
+                        {/* Number + checkbox column */}
+                        <div className="shrink-0 flex flex-col items-center gap-2 pt-0.5">
+                          <div className="w-9 h-9 rounded-full bg-foreground text-background print:bg-white print:text-black print:border-[1.5px] print:border-black flex items-center justify-center text-[14px] font-semibold tabular-nums shadow-sm print:shadow-none">
+                            {i + 1}
+                          </div>
+                          <div className="w-px flex-1 bg-border print:bg-black/30 min-h-[10px]" />
+                          <div
+                            className="w-6 h-6 border-[1.5px] border-foreground rounded-[5px] print:border-black bg-background print:bg-white"
+                            aria-label="Afkrydsningsfelt"
+                          />
+                        </div>
 
-            {route.start_address && (
-              <p className="mt-3 text-xs text-muted-foreground print:text-black/70">
-                <span className="font-medium text-foreground print:text-black">Startadresse:</span>{" "}
-                {route.start_address}
-              </p>
+                        {/* Body */}
+                        <div className="flex-1 min-w-0">
+                          {/* Title row */}
+                          <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                            <h3 className="font-semibold text-[16px] leading-tight text-foreground print:text-black">
+                              {s.customer_name || "Stop"}
+                            </h3>
+                            {arrival && (
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground print:text-black tabular-nums rounded-md bg-muted px-2 py-1 print:bg-transparent print:border print:border-black/30 print:px-1.5 print:py-0.5">
+                                <Clock className="h-3 w-3" />
+                                kl. {arrival}
+                                {s.duration_minutes > 0 && (
+                                  <span className="text-muted-foreground print:text-black/70">
+                                    {" "}· {s.duration_minutes} min
+                                  </span>
+                                )}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Address & phone with icons */}
+                          <div className="mt-2 grid gap-1 text-sm text-muted-foreground print:text-black/80">
+                            {s.address && (
+                              <p className="flex items-start gap-1.5">
+                                <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                                <span>{s.address}</span>
+                              </p>
+                            )}
+                            {s.customer_phone && (
+                              <p className="flex items-center gap-1.5 tabular-nums">
+                                <Phone className="h-3.5 w-3.5 shrink-0" />
+                                <span>{s.customer_phone}</span>
+                              </p>
+                            )}
+                          </div>
+
+                          {cleanedSummary && (
+                            <div className="mt-3 rounded-md border-l-[3px] border-foreground bg-muted/50 px-3 py-2 text-sm text-foreground print:bg-transparent print:border-l-2 print:border-black print:px-2 print:py-1">
+                              <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground print:text-black/70">
+                                Opgave
+                              </p>
+                              <p className="mt-0.5">{cleanedSummary}</p>
+                            </div>
+                          )}
+
+                          {s.notes && (
+                            <div className="mt-2 flex gap-2 text-sm text-foreground print:text-black">
+                              <StickyNote className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground print:text-black/70" />
+                              <p className="italic">{s.notes}</p>
+                            </div>
+                          )}
+
+                          {/* Signature lines */}
+                          <div className="print-signature mt-3.5">
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground print:text-black/60 font-medium">
+                              Noter / underskrift
+                            </p>
+                            <div className="mt-1.5 border-b border-foreground/30 print:border-black/60 h-5" />
+                            <div className="mt-1 border-b border-foreground/30 print:border-black/60 h-5" />
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
             )}
-          </header>
 
-          {/* ───────── Stops list ───────── */}
-          {sorted.length === 0 ? (
-            <p className="py-16 text-center text-sm text-muted-foreground">Ingen stop på ruten.</p>
-          ) : (
-            <ol className="print-stops mt-2">
-              {sorted.map((s, i) => {
-                const cleanedSummary = s.service_summary ? stripPrices(s.service_summary) : "";
-                const arrival = s.planned_arrival
-                  ? new Date(s.planned_arrival).toLocaleTimeString("da-DK", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-                  : null;
-                return (
-                  <li
-                    key={s.id}
-                    className="print-stop py-4 border-b border-border last:border-b-0 print:border-black/30"
-                  >
-                    <div className="flex gap-4">
-                      {/* Number + checkbox column */}
-                      <div className="shrink-0 flex flex-col items-center gap-2 pt-0.5">
-                        <div className="w-8 h-8 rounded-full bg-foreground text-background print:bg-white print:text-black print:border-[1.5px] print:border-black flex items-center justify-center text-[13px] font-semibold tabular-nums">
-                          {i + 1}
-                        </div>
-                        <div
-                          className="w-6 h-6 border-[1.5px] border-foreground rounded-[4px] print:border-black"
-                          aria-label="Afkrydsningsfelt"
-                        />
-                      </div>
-
-                      {/* Body */}
-                      <div className="flex-1 min-w-0">
-                        {/* Title row */}
-                        <div className="flex items-baseline justify-between gap-3 flex-wrap">
-                          <h3 className="font-semibold text-[15px] leading-tight text-foreground print:text-black">
-                            {s.customer_name || "Stop"}
-                          </h3>
-                          {arrival && (
-                            <span className="text-xs font-medium text-muted-foreground print:text-black tabular-nums">
-                              kl. {arrival}
-                              {s.duration_minutes > 0 && (
-                                <span className="text-muted-foreground/70 print:text-black/60">
-                                  {" "}· {s.duration_minutes} min
-                                </span>
-                              )}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Address & phone — single line, dense */}
-                        <div className="mt-1 text-sm text-muted-foreground print:text-black/80 space-y-0.5">
-                          {s.address && <p>{s.address}</p>}
-                          {s.customer_phone && (
-                            <p className="tabular-nums">Tlf. {s.customer_phone}</p>
-                          )}
-                        </div>
-
-                        {cleanedSummary && (
-                          <p className="mt-2 text-sm text-foreground print:text-black">
-                            <span className="font-medium">Opgave:</span> {cleanedSummary}
-                          </p>
-                        )}
-
-                        {s.notes && (
-                          <p className="mt-1.5 text-sm text-foreground print:text-black">
-                            <span className="font-medium">Note:</span>{" "}
-                            <span className="italic">{s.notes}</span>
-                          </p>
-                        )}
-
-                        {/* Signature lines */}
-                        <div className="print-signature mt-3">
-                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground print:text-black/60 font-medium">
-                            Noter / underskrift
-                          </p>
-                          <div className="mt-1.5 border-b border-foreground/30 print:border-black h-5" />
-                          <div className="mt-1 border-b border-foreground/30 print:border-black h-5" />
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-          )}
-
-          {/* Footer */}
-          <footer className="print-footer mt-6 pt-3 border-t border-border print:border-black flex items-center justify-between flex-wrap gap-2 text-[11px] text-muted-foreground print:text-black/70">
-            <p>Udskrevet {new Date().toLocaleString("da-DK")}</p>
-            <p className="font-medium text-foreground print:text-black">Serviceydere</p>
-          </footer>
+            {/* Footer */}
+            <footer className="print-footer mt-6 pt-3 border-t border-border print:border-black/40 flex items-center justify-between flex-wrap gap-2 text-[11px] text-muted-foreground print:text-black/70">
+              <p>Udskrevet {new Date().toLocaleString("da-DK")}</p>
+              <p className="font-semibold tracking-tight text-foreground print:text-black">Serviceydere</p>
+            </footer>
+          </div>
         </article>
       </div>
 
       {/* Dedikeret print-stylesheet — kalibreret til A4 */}
       <style>{`
         /* Skærm-tæthed når "Kompakt" er aktiv — preview af print-density */
-        .print-root.is-compact .print-stop { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+        .print-root.is-compact .print-stop { padding-top: 0.75rem; padding-bottom: 0.75rem; }
         .print-root.is-compact .print-signature { margin-top: 0.5rem; }
         .print-root.is-compact .print-signature > div { height: 0.875rem !important; }
 
@@ -245,6 +293,7 @@ const EmployeeRoutePrint = () => {
 
           .print-root { background: #fff !important; }
           .print-sheet { border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+          .print-stripe { display: none !important; }
 
           /* Typografi i pt for forudsigelig A4-rendering */
           .print-root h1 { font-size: 16pt; line-height: 1.15; }
@@ -252,9 +301,13 @@ const EmployeeRoutePrint = () => {
           .print-root .text-\\[10px\\] { font-size: 7.5pt !important; }
           .print-root .text-\\[11px\\] { font-size: 8pt !important; letter-spacing: 0.04em; }
           .print-root .text-\\[13px\\] { font-size: 9.5pt !important; }
+          .print-root .text-\\[14px\\] { font-size: 10pt !important; }
           .print-root .text-\\[15px\\] { font-size: 10.5pt !important; }
+          .print-root .text-\\[16px\\] { font-size: 11pt !important; }
           .print-root .text-\\[22px\\] { font-size: 16pt !important; }
+          .print-root .text-\\[24px\\] { font-size: 17pt !important; }
           .print-root .text-\\[26px\\] { font-size: 18pt !important; }
+          .print-root .text-\\[28px\\] { font-size: 19pt !important; }
           .print-root .text-xs { font-size: 8pt !important; }
           .print-root .text-sm { font-size: 9.5pt !important; }
 
@@ -265,11 +318,14 @@ const EmployeeRoutePrint = () => {
           .print-signature > div + div { margin-top: 1mm !important; }
 
           .print-header { padding-bottom: 4mm !important; }
+          .print-section-label { padding: 2mm 0 !important; }
           .print-footer { margin-top: 6mm !important; padding-top: 2mm !important; }
 
           /* Ingen skygger / fade-baggrunde */
           .print-root .shadow-sm { box-shadow: none !important; }
+          .print-root .shadow-md { box-shadow: none !important; }
           .print-root .bg-card { background: #fff !important; }
+          .print-root .bg-muted, .print-root .bg-muted\\/40, .print-root .bg-muted\\/50 { background: transparent !important; }
 
           /* Side-bryd kontrol */
           .print-stop, .print-header, .print-footer {
@@ -292,23 +348,37 @@ const EmployeeRoutePrint = () => {
           .print\\:text-black\\/80 { color: rgba(0,0,0,0.8) !important; }
           .print\\:border-black { border-color: #000 !important; }
           .print\\:border-black\\/30 { border-color: rgba(0,0,0,0.3) !important; }
+          .print\\:border-black\\/25 { border-color: rgba(0,0,0,0.25) !important; }
+          .print\\:border-black\\/40 { border-color: rgba(0,0,0,0.4) !important; }
+          .print\\:border-black\\/60 { border-color: rgba(0,0,0,0.6) !important; }
           .print\\:border-0 { border-width: 0 !important; }
           .print\\:break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
           .print\\:bg-white { background: #fff !important; }
+          .print\\:bg-transparent { background: transparent !important; }
           .print\\:shadow-none { box-shadow: none !important; }
+          .print\\:rounded-none { border-radius: 0 !important; }
         }
       `}</style>
     </div>
   );
 };
 
-/* Flad metadata-celle — ren tekst, ingen ikoner, ingen baggrund */
-const MetaItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
+/* Metadata-celle med ikon */
+const MetaItem = ({
+  icon,
+  label,
+  value,
+}: {
+  icon?: React.ReactNode;
+  label: string;
+  value: React.ReactNode;
+}) => (
   <div className="min-w-0">
-    <dt className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground print:text-black/60 font-medium">
-      {label}
+    <dt className="flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground print:text-black/60 font-medium">
+      {icon}
+      <span>{label}</span>
     </dt>
-    <dd className="mt-0.5 text-[15px] font-semibold text-foreground print:text-black tabular-nums leading-tight">
+    <dd className="mt-1 text-[16px] font-semibold text-foreground print:text-black tabular-nums leading-tight">
       {value}
     </dd>
   </div>
