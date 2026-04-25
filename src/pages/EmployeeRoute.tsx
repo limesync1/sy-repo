@@ -19,12 +19,14 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { toast } from "sonner";
 import { stripPrices } from "@/lib/employee-display";
-import { bearingDegrees, haversineMeters } from "@/lib/geo-distance";
+import { bearingDegrees, haversineMeters, pointToPolylineMeters } from "@/lib/geo-distance";
 import {
   unlockAudio, playArrivalChime, playSuccessChime, playCompleteFanfare, speak,
 } from "@/lib/employee-audio";
 import { ManeuverIcon, maneuverLabel } from "@/components/employee-route/ManeuverIcon";
 import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuver";
+import { useSmoothPosition } from "@/components/employee-route/useSmoothPosition";
+import { useQueryClient } from "@tanstack/react-query";
 
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
@@ -144,12 +146,17 @@ const FollowUser = ({
       const movedM = last
         ? haversineMeters(last[0], last[1], userPos[0], userPos[1])
         : Infinity;
-      if (movedM < 6) return;
+      // 1.5 m threshold — smooth interpolation kalder os hyppigt med små
+      // delta'er (rAF, ~16 ms), og vi vil have kameraet til at glide blødt
+      // sammen med puck'en. Større threshold giver et "bumpy" follow.
+      if (movedM < 1.5) return;
       // Stop evt. igangværende animation så vi ikke "kæmper" mod en gammel pan.
       // (Leaflet's panTo cancellerer ellers mid-flight og giver et hop.)
       // @ts-ignore — _stop er Leaflet-internt, men bredt understøttet.
       if (typeof (map as any)._stop === "function") (map as any)._stop();
-      map.panTo(userPos, { animate: true, duration: 0.6, easeLinearity: 0.25, noMoveStart: true } as any);
+      // Kort, hurtig pan — vi kalder igen næste rAF, så langvarig animation
+      // bliver afbrudt og giver hak. 0.15 s er sweet-spot for smooth follow.
+      map.panTo(userPos, { animate: true, duration: 0.15, easeLinearity: 0.5, noMoveStart: true } as any);
       lastPannedRef.current = userPos;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -229,6 +236,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   >(null);
   const trafficSpokenRef = useRef<string | null>(null);
 
+  // Off-route detection — vi tæller hvor mange GPS-fixes i træk vi har set
+  // brugeren langt fra ruten, så vi kun kalder en reroute når der er reel
+  // afvigelse (ikke et enkelt jitter-fix).
+  const queryClient = useQueryClient();
+  const offRouteStreakRef = useRef(0);
+  const lastRerouteAtRef = useRef(0);
+  const rerouteSpokenStopRef = useRef<string | null>(null);
+  const [isRerouting, setIsRerouting] = useState(false);
+
   /* Geolocation permission — husk på tværs af sessioner.
    * Browseren persisterer selv "granted/denied" pr. origin, men hvis
    * tilstanden er "granted" ønsker vi at starte watcheren med det samme,
@@ -265,7 +281,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         }
       },
       () => {},
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 },
+      { enableHighAccuracy: true, maximumAge: 1500, timeout: 10000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
   }, [routeStarted, geoPermission]);
@@ -366,11 +382,91 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return directions.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
   }, [directions]);
 
+  /* ── Off-route detection (Google-Maps-stil rerouting) ──────────────
+   * Når brugeren afviger >40 m fra ruten i 3+ konsekutive GPS-fixes
+   * tvinger vi en ny rute fra den nuværende position. Vi venter mindst
+   * 8 sek mellem reroutes for ikke at hamre på endpointet ved jitter
+   * eller når man netop har drejet væk.
+   *
+   * Reroute = opdater stableOriginRef + invalidér den gamle
+   * directions-cache, så useDirections automatisk fetcher nyt geometri.
+   */
+  const OFF_ROUTE_THRESHOLD_M = 40;
+  const OFF_ROUTE_STREAK = 3;
+  const REROUTE_COOLDOWN_MS = 8000;
+  useEffect(() => {
+    if (!routeStarted || !userPos || legLine.length < 2 || !nextStop) {
+      offRouteStreakRef.current = 0;
+      return;
+    }
+    // Hvis vi er meget tæt på destinationen, så er rerouting irrelevant —
+    // ankomstlogikken overtager.
+    if (distanceToNextM != null && distanceToNextM < 120) {
+      offRouteStreakRef.current = 0;
+      return;
+    }
+    const dist = pointToPolylineMeters(userPos[0], userPos[1], legLine);
+    if (dist > OFF_ROUTE_THRESHOLD_M) {
+      offRouteStreakRef.current += 1;
+    } else {
+      offRouteStreakRef.current = 0;
+      if (isRerouting) setIsRerouting(false);
+      return;
+    }
+    const now = Date.now();
+    if (
+      offRouteStreakRef.current >= OFF_ROUTE_STREAK &&
+      now - lastRerouteAtRef.current > REROUTE_COOLDOWN_MS
+    ) {
+      lastRerouteAtRef.current = now;
+      offRouteStreakRef.current = 0;
+      setIsRerouting(true);
+      // Tving en ny origin — det invaliderer legWaypoints og udløser ny fetch.
+      stableOriginRef.current = { lat: userPos[0], lng: userPos[1] };
+      // Drop cache for directions så vi ikke får et stalt geometri tilbage.
+      queryClient.invalidateQueries({ queryKey: ["directions"] });
+      // Reset turn-by-turn pointer så vi ikke holder fast i et gammelt step.
+      minStepIndexRef.current = { stopId: nextStop.id, idx: 0 };
+      setMinStepIndex(0);
+      // Reset trafik-baseline — den gamle baseline gælder ikke for ny rute.
+      baselineRef.current = null;
+      setTrafficAlert(null);
+      // Brugerfeedback à la Google Maps.
+      toast.message("Genberegner rute…", { duration: 2500 });
+      if (audioEnabled && rerouteSpokenStopRef.current !== nextStop.id) {
+        rerouteSpokenStopRef.current = nextStop.id;
+        speak("Genberegner ruten");
+      }
+      // Auto-skjul "rerouting" indikator efter 3 sek selv hvis der ikke er
+      // landet et nyt directions-svar (typisk ankommer det inden for 1-2 sek).
+      setTimeout(() => setIsRerouting(false), 3000);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userPos?.[0], userPos?.[1], legLine, nextStop?.id, distanceToNextM, routeStarted, audioEnabled]);
+
+  // Reset reroute-spoken pointer når næste stop ændrer sig så vi får
+  // ny stemmebesked ved næste reroute event.
+  useEffect(() => {
+    rerouteSpokenStopRef.current = null;
+  }, [nextStop?.id]);
+
   const derivedHeading = useMemo(() => {
     if (userHeading != null) return userHeading;
     if (!userPos || !nextStop || nextStop.latitude == null || nextStop.longitude == null) return null;
     return bearingDegrees(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
   }, [userHeading, userPos, nextStop?.id, nextStop?.latitude, nextStop?.longitude]);
+
+  // Smooth user position + heading — interpolerer mellem GPS-fixes for at
+  // undgå at puck'en hopper hver 1-3 sek. Glider ~900 ms med ease-out.
+  const { smoothPos, smoothHeading } = useSmoothPosition(
+    userPos,
+    derivedHeading,
+    routeStarted,
+  );
+  // Brug smooth-versionerne i map-rendering og camera-follow så alt
+  // bevæger sig synkront og uden hak.
+  const displayPos = routeStarted ? (smoothPos ?? userPos) : userPos;
+  const displayHeading = routeStarted ? (smoothHeading ?? derivedHeading) : derivedHeading;
 
   const allPoints: [number, number][] = useMemo(() => {
     const pts: [number, number][] = [];
@@ -719,7 +815,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {/* Fit overview when not started */}
             <FitTo points={allPoints} enabled={!routeStarted} />
             {/* Live follow when driving */}
-            <FollowUser active={routeStarted && followMode} userPos={userPos} />
+            <FollowUser active={routeStarted && followMode} userPos={displayPos} />
 
             {startCoord && <Marker position={startCoord} icon={startIcon} />}
 
@@ -760,11 +856,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             })}
 
             {/* User position — Google Maps puck when driving */}
-            {userPos && routeStarted && derivedHeading != null && (
-              <Marker position={userPos} icon={navPuckIcon(derivedHeading)} />
+            {displayPos && routeStarted && displayHeading != null && (
+              <Marker position={displayPos} icon={navPuckIcon(displayHeading)} />
             )}
-            {userPos && (!routeStarted || derivedHeading == null) && (
-              <Marker position={userPos} icon={userDotIcon} />
+            {displayPos && (!routeStarted || displayHeading == null) && (
+              <Marker position={displayPos} icon={userDotIcon} />
             )}
 
             {/* Detect manual user interaction to break follow */}
@@ -893,8 +989,30 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               </div>
             )}
 
+            {/* Reroute-banner — Google Maps-stil "genberegner" prompt */}
+            {isRerouting && (
+              <div className="absolute top-[68px] left-3 right-[68px] z-[1001] pointer-events-none">
+                <div
+                  className="rounded-2xl shadow-2xl border bg-background/95 backdrop-blur px-3 py-2.5 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-200"
+                >
+                  <div
+                    className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: themeColor }}
+                  >
+                    <Loader2 className="h-4.5 w-4.5 animate-spin text-background" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold leading-tight">Genberegner rute</p>
+                    <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
+                      Du afveg fra ruten — finder bedste vej fra din nuværende position
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Trafik-banner — Serviceydere amber, kvalitativ severity */}
-            {trafficAlert && (() => {
+            {!isRerouting && trafficAlert && (() => {
               const sev = trafficAlert.severity;
               const sevLabel = sev === "let" ? "Let trafik" : sev === "moderat" ? "Moderat trafik" : "Tæt trafik";
               const sevDots = sev === "let" ? 1 : sev === "moderat" ? 2 : 3;
