@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import {
   Sparkles, Settings, Bell, Route, Contact, Image as ImageIcon, Clock,
-  CheckCircle2, AlertCircle, ArrowRight, Building2, Search, Copy,
+  CheckCircle2, AlertCircle, ArrowRight, Building2, Search,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
@@ -22,14 +22,16 @@ import {
   findIndustry,
 } from "@/lib/service-taxonomy";
 
-const DAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
-const WEEKDAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag"];
+const DAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"] as const;
+type Day = typeof DAYS[number];
 
 // Header offset i topbaren (h-14 = 56px) + lille luft, bruges både til sticky
 // sidebar og smooth-scroll så ankret lander præcist under headeren.
 const HEADER_OFFSET = 72;
 
-/* ─── Time helpers — håndterer "08:00 - 16:00" strenge ─── */
+/* ─── Time helpers — håndterer "08:00 - 16:00" strenge ───
+ * Bruges af HoursEditor til at parse eksisterende åbningstider og bygge
+ * normaliserede strenge tilbage. Tilgivende: accepterer "8", "8:0", "08.00". */
 const parseHours = (raw: string): { open: string; close: string } | null => {
   if (!raw) return null;
   const m = raw.match(/(\d{1,2}[:.]?\d{0,2})\s*[-–]\s*(\d{1,2}[:.]?\d{0,2})/);
