@@ -1063,8 +1063,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               </>
             )}
 
-            {/* Route line — aktivt leg */}
-            {legLine.length > 1 && (
+            {/* Route line — aktivt leg.  Skjules når man er fremme:
+                Mapbox-geometrien snapper til vejnetværket og kan slutte
+                lidt fra selve adresse-pin'en (især når pin'en ligger på
+                en bygning væk fra vejen).  Når man er inden for ankomst-
+                zonen er en linje "tilbage til vejen" kun forvirrende. */}
+            {legLine.length > 1 && !isAtNextStop && (
               <>
                 {/* Outer white casing for contrast */}
                 <Polyline
