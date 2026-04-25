@@ -403,6 +403,30 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   const { data: directions } = useDirections(legWaypoints);
 
+  /* ── Preview directions: hele den planlagte rute, vist FØR brugeren
+   * starter med at køre, så medarbejderen tydeligt kan se hele turen
+   * (ikke kun næste leg). Bygges fra startCoord + alle ikke-færdige stop
+   * i rækkefølge. Vi henter den kun når routeStarted=false så vi ikke
+   * dobbelt-fetch'er undervejs.
+   */
+  const previewWaypoints = useMemo(() => {
+    if (routeStarted) return null;
+    const wps: { lat: number; lng: number }[] = [];
+    if (startCoord) wps.push({ lat: startCoord[0], lng: startCoord[1] });
+    for (const s of sortedStops) {
+      if (s.status === "completed") continue;
+      if (s.latitude == null || s.longitude == null) continue;
+      wps.push({ lat: Number(s.latitude), lng: Number(s.longitude) });
+    }
+    return wps.length >= 2 ? wps : null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeStarted, startCoord?.[0], startCoord?.[1], sortedStops]);
+  const { data: previewDirections } = useDirections(previewWaypoints);
+  const previewLine: [number, number][] = useMemo(() => {
+    if (!previewDirections?.geometry?.coordinates) return [];
+    return previewDirections.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
+  }, [previewDirections]);
+
   const distanceToNextM: number | null = useMemo(() => {
     if (!userPos || !nextStop || nextStop.latitude == null || nextStop.longitude == null) return null;
     return haversineMeters(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
@@ -882,7 +906,29 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {startCoord && <Marker position={startCoord} icon={startIcon} />}
 
-            {/* Route line */}
+            {/* Preview-route — vist FØR start, så hele turen er synlig.
+                Tegnet under (lavere z) det aktive leg når begge findes. */}
+            {!routeStarted && previewLine.length > 1 && (
+              <>
+                <Polyline
+                  positions={previewLine}
+                  pathOptions={{ color: "white", weight: 12, opacity: 0.9, lineCap: "round", lineJoin: "round" }}
+                />
+                <Polyline
+                  positions={previewLine}
+                  pathOptions={{
+                    color: themeColor,
+                    weight: 6,
+                    opacity: 0.85,
+                    lineCap: "round",
+                    lineJoin: "round",
+                    dashArray: "2 10",
+                  }}
+                />
+              </>
+            )}
+
+            {/* Route line — aktivt leg */}
             {legLine.length > 1 && (
               <>
                 {/* Outer white casing for contrast */}
@@ -918,9 +964,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               );
             })}
 
-            {/* User position — Google Maps puck when driving */}
+            {/* User position — Google Maps-stil puck når man kører.
+                NavPuckMarker er stabil: kun CSS-transform ændres ved heading-skift,
+                ingen re-mount af DOM = ingen flicker under reroutes. */}
             {displayPos && routeStarted && displayHeading != null && (
-              <Marker position={displayPos} icon={navPuckIcon(displayHeading)} />
+              <NavPuckMarker position={displayPos} heading={displayHeading} />
             )}
             {displayPos && (!routeStarted || displayHeading == null) && (
               <Marker position={displayPos} icon={userDotIcon} />
