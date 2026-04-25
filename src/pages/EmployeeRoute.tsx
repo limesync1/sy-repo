@@ -97,7 +97,7 @@ const stopIcon = (n: number, state: "next" | "done" | "future", color: string, h
 const NAV_PUCK_ICON = L.divIcon({
   className: "",
   html: `
-    <div class="nav-puck-rot" style="position:relative;width:64px;height:64px;transform:rotate(0deg);transform-origin:center;will-change:transform;transition:transform 120ms linear;">
+    <div class="nav-puck-rot" style="position:relative;width:64px;height:64px;transform:rotate(0deg);transform-origin:center;will-change:transform;transition:transform 280ms cubic-bezier(0.22, 1, 0.36, 1);">
       <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:34px solid hsl(184 90% 32% / 0.45);"></div>
       <div style="position:absolute;top:18px;left:18px;width:28px;height:28px;border-radius:50%;background:hsl(184 90% 32%);border:4px solid white;box-shadow:0 4px 14px hsl(184 90% 32% / 0.5), 0 2px 6px rgba(0,0,0,.25);"></div>
     </div>`,
@@ -189,44 +189,61 @@ const FollowUser = ({
 }: { active: boolean; userPos: [number, number] | null }) => {
   const map = useMap();
   const initRef = useRef(false);
-  // Sidste position vi rent faktisk panorerede til — bruges til at undgå
-  // mikro-pan ved GPS-jitter (typisk ±2-5 m), som ellers giver et "glitch"-look
-  // hvor kortet hopper frem og tilbage flere gange i sekundet.
-  const lastPannedRef = useRef<[number, number] | null>(null);
+  // Vi driver kameraet selv via requestAnimationFrame i stedet for at lade
+  // Leaflet's panTo-animation styre — det giver én sammenhængende, blød
+  // bevægelse i stedet for en kæde af korte animationer der konstant
+  // afbryder hinanden (= hak/jitter ved hver GPS-tick).
+  const targetRef = useRef<[number, number] | null>(null);
+  const rafRef = useRef<number | null>(null);
+  // Hold target opdateret uden at restarte rAF-loopet.
   useEffect(() => {
-    if (!active) { initRef.current = false; lastPannedRef.current = null; return; }
+    if (active && userPos) targetRef.current = userPos;
+  }, [active, userPos?.[0], userPos?.[1]]);
+
+  useEffect(() => {
+    if (!active) {
+      initRef.current = false;
+      targetRef.current = null;
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+      return;
+    }
     if (!userPos) return;
-    // Tæt på vejen — så man tydeligt kan se hvilken vej/sidevej man er på.
-    // 18.5 svarer ca. til Google Maps' navigationsmode på mobil.
+    // Tæt zoom (Google-Maps-agtig navigation) første gang vi får et fix.
     const targetZoom = 18.5;
     if (!initRef.current) {
-      // First lock: snap immediately so the user sees themselves centered.
-      map.setView(userPos, targetZoom, { animate: true, duration: 0.4 });
+      map.setView(userPos, targetZoom, { animate: true, duration: 0.45 });
       initRef.current = true;
-      lastPannedRef.current = userPos;
-    } else {
-      // Subsequent updates: ignorér GPS-jitter under 6 m — det er mest støj
-      // og fører til at en igangværende pan-animation bliver afbrudt og
-      // genstartet hvert tick = visuel "glitch" frem og tilbage.
-      const last = lastPannedRef.current;
-      const movedM = last
-        ? haversineMeters(last[0], last[1], userPos[0], userPos[1])
-        : Infinity;
-      // 1.5 m threshold — smooth interpolation kalder os hyppigt med små
-      // delta'er (rAF, ~16 ms), og vi vil have kameraet til at glide blødt
-      // sammen med puck'en. Større threshold giver et "bumpy" follow.
-      if (movedM < 1.5) return;
-      // Stop evt. igangværende animation så vi ikke "kæmper" mod en gammel pan.
-      // (Leaflet's panTo cancellerer ellers mid-flight og giver et hop.)
-      // @ts-ignore — _stop er Leaflet-internt, men bredt understøttet.
-      if (typeof (map as any)._stop === "function") (map as any)._stop();
-      // Kort, hurtig pan — vi kalder igen næste rAF, så langvarig animation
-      // bliver afbrudt og giver hak. 0.15 s er sweet-spot for smooth follow.
-      map.panTo(userPos, { animate: true, duration: 0.15, easeLinearity: 0.5, noMoveStart: true } as any);
-      lastPannedRef.current = userPos;
+      targetRef.current = userPos;
     }
+    // Kør et stille rAF-loop der hver frame trækker kameraets center
+    // mod target med en eksponentiel "easing" (kritisk-dæmpet fjeder).
+    // Det elimineret hak fra både GPS-jitter og fra kæder af korte
+    // panTo-animationer.
+    const FOLLOW_RATE = 0.18; // 0..1 pr. frame — højere = strammere follow
+    const tick = () => {
+      const tgt = targetRef.current;
+      if (tgt) {
+        const c = map.getCenter();
+        const dLat = tgt[0] - c.lat;
+        const dLng = tgt[1] - c.lng;
+        // Stop helt når vi er praktisk talt på target (≈ 0.3 m ved DK-bredde).
+        if (Math.abs(dLat) > 3e-6 || Math.abs(dLng) > 3e-6) {
+          const nextLat = c.lat + dLat * FOLLOW_RATE;
+          const nextLng = c.lng + dLng * FOLLOW_RATE;
+          // Skip Leaflets egen pan-animation (vi animerer selv).
+          map.panTo([nextLat, nextLng], { animate: false, noMoveStart: true } as any);
+        }
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    if (rafRef.current == null) rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, userPos?.[0], userPos?.[1], map]);
+  }, [active, map]);
   return null;
 };
 
@@ -235,7 +252,13 @@ const FlyToStop = ({ target }: { target: [number, number] | null }) => {
   const map = useMap();
   useEffect(() => {
     if (!target) return;
-    map.flyTo(target, Math.max(map.getZoom(), 16), { animate: true, duration: 0.7 });
+    // easeLinearity tæt på 0.25 giver en mere blød ind-/udfasning end
+    // default 0.5 — føles som Google Maps' "fly to" overgang.
+    map.flyTo(target, Math.max(map.getZoom(), 16), {
+      animate: true,
+      duration: 1.1,
+      easeLinearity: 0.25,
+    });
   }, [target, map]);
   return null;
 };
@@ -939,10 +962,23 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             scrollWheelZoom
             zoomControl={false}
             attributionControl={false}
+            zoomSnap={0.25}
+            zoomDelta={0.5}
+            wheelDebounceTime={20}
+            wheelPxPerZoomLevel={120}
+            zoomAnimation
+            fadeAnimation
+            markerZoomAnimation
+            inertia
+            inertiaDeceleration={2400}
+            preferCanvas
           >
             <TileLayer
               url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
               attribution='&copy; OpenStreetMap &copy; CARTO'
+              updateWhenIdle={false}
+              updateWhenZooming={false}
+              keepBuffer={4}
             />
 
             {/* Fit overview when not started */}
