@@ -340,7 +340,29 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   } | null>(null);
   const [routeStarted, setRouteStarted] = useState(false);
   const [followMode, setFollowMode] = useState(true);
-  const [audioEnabled, setAudioEnabled] = useState(true);
+  // Lyd-indstilling persistes i localStorage så valget overlever app-genstart
+  // og lange perioder uden brug.  Initial værdi læses synkront for at undgå
+  // at brugeren først ser "lyd til" og bagefter et flicker.
+  const AUDIO_PREF_KEY = "serviceydere:employee-route:audio-enabled";
+  const [audioEnabled, setAudioEnabledState] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    try {
+      const stored = window.localStorage.getItem(AUDIO_PREF_KEY);
+      if (stored === null) return true; // default = lyd til
+      return stored === "1";
+    } catch {
+      return true;
+    }
+  });
+  const setAudioEnabled = (next: boolean | ((prev: boolean) => boolean)) => {
+    setAudioEnabledState((prev) => {
+      const value = typeof next === "function" ? (next as (p: boolean) => boolean)(prev) : next;
+      try {
+        window.localStorage.setItem(AUDIO_PREF_KEY, value ? "1" : "0");
+      } catch { /* ignorer storage-fejl (privacy mode etc.) */ }
+      return value;
+    });
+  };
   const [autoReturn, setAutoReturn] = useState<number | null>(null);
   // Toggle: vis rå Mapbox-tid (uden DK trafik-buffer) i ETA-grids
   const [showRawTime, setShowRawTime] = useState(false);
