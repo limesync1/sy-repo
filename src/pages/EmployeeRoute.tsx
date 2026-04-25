@@ -1029,6 +1029,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <FitTo points={allPoints} enabled={!routeStarted} />
             {/* Live follow when driving */}
             <FollowUser active={routeStarted && followMode} userPos={displayPos} />
+            {/* Hastigheds-adaptiv, glidende zoom — kun mens follow er aktiv. */}
+            <SmoothZoomController
+              enabled={routeStarted && followMode}
+              speedMps={userSpeedMps}
+            />
 
             {startCoord && <Marker position={startCoord} icon={startIcon} />}
 
