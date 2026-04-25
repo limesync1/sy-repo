@@ -1234,12 +1234,11 @@ export const useMyDayStops = (date: string) => {
         supabase.from("route_employees").select("route_id").eq("employee_id", emp.id),
         supabase.from("routes").select("id").eq("employee_id", emp.id).eq("route_date", date),
       ]);
-      const routeIds = Array.from(
-        new Set([
-          ...((linksRes.data || []).map((l: any) => l.route_id)),
-          ...((legacyRes.data || []).map((r: any) => r.id)),
-        ]),
-      );
+      const linkedRouteIds = new Set<string>([
+        ...((linksRes.data || []).map((l: any) => l.route_id)),
+        ...((legacyRes.data || []).map((r: any) => r.id)),
+      ]);
+      const routeIds = Array.from(linkedRouteIds);
       if (routeIds.length === 0) return [];
       const { data: routes } = await supabase
         .from("routes")
@@ -1273,6 +1272,11 @@ export const useMyDayStops = (date: string) => {
         const routeHasMySpecificStops = routeStops.some((routeStop: any) =>
           myStopIds.has(routeStop.id) || routeStop.assigned_employee_id === emp.id,
         );
+        // Hvis ruten er teamlinket til mig (route_employees), men jeg har
+        // ingen stop-niveau-tildelinger på ruten, så vis ALLE stop som
+        // teamopgaver — ellers ville rutekortet være tomt selvom ruten
+        // er min.
+        if (!routeHasMySpecificStops && linkedRouteIds.has(s.route_id)) return true;
         return !routeHasMySpecificStops;
       });
       return filtered as RouteStop[];
