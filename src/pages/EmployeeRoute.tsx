@@ -377,6 +377,74 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return directions.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
   }, [directions]);
 
+  /* ── Off-route detection (Google-Maps-stil rerouting) ──────────────
+   * Når brugeren afviger >40 m fra ruten i 3+ konsekutive GPS-fixes
+   * tvinger vi en ny rute fra den nuværende position. Vi venter mindst
+   * 8 sek mellem reroutes for ikke at hamre på endpointet ved jitter
+   * eller når man netop har drejet væk.
+   *
+   * Reroute = opdater stableOriginRef + invalidér den gamle
+   * directions-cache, så useDirections automatisk fetcher nyt geometri.
+   */
+  const OFF_ROUTE_THRESHOLD_M = 40;
+  const OFF_ROUTE_STREAK = 3;
+  const REROUTE_COOLDOWN_MS = 8000;
+  useEffect(() => {
+    if (!routeStarted || !userPos || legLine.length < 2 || !nextStop) {
+      offRouteStreakRef.current = 0;
+      return;
+    }
+    // Hvis vi er meget tæt på destinationen, så er rerouting irrelevant —
+    // ankomstlogikken overtager.
+    if (distanceToNextM != null && distanceToNextM < 120) {
+      offRouteStreakRef.current = 0;
+      return;
+    }
+    const dist = pointToPolylineMeters(userPos[0], userPos[1], legLine);
+    if (dist > OFF_ROUTE_THRESHOLD_M) {
+      offRouteStreakRef.current += 1;
+    } else {
+      offRouteStreakRef.current = 0;
+      if (isRerouting) setIsRerouting(false);
+      return;
+    }
+    const now = Date.now();
+    if (
+      offRouteStreakRef.current >= OFF_ROUTE_STREAK &&
+      now - lastRerouteAtRef.current > REROUTE_COOLDOWN_MS
+    ) {
+      lastRerouteAtRef.current = now;
+      offRouteStreakRef.current = 0;
+      setIsRerouting(true);
+      // Tving en ny origin — det invaliderer legWaypoints og udløser ny fetch.
+      stableOriginRef.current = { lat: userPos[0], lng: userPos[1] };
+      // Drop cache for directions så vi ikke får et stalt geometri tilbage.
+      queryClient.invalidateQueries({ queryKey: ["directions"] });
+      // Reset turn-by-turn pointer så vi ikke holder fast i et gammelt step.
+      minStepIndexRef.current = { stopId: nextStop.id, idx: 0 };
+      setMinStepIndex(0);
+      // Reset trafik-baseline — den gamle baseline gælder ikke for ny rute.
+      baselineRef.current = null;
+      setTrafficAlert(null);
+      // Brugerfeedback à la Google Maps.
+      toast.message("Genberegner rute…", { duration: 2500 });
+      if (audioEnabled && rerouteSpokenStopRef.current !== nextStop.id) {
+        rerouteSpokenStopRef.current = nextStop.id;
+        speak("Genberegner ruten");
+      }
+      // Auto-skjul "rerouting" indikator efter 3 sek selv hvis der ikke er
+      // landet et nyt directions-svar (typisk ankommer det inden for 1-2 sek).
+      setTimeout(() => setIsRerouting(false), 3000);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userPos?.[0], userPos?.[1], legLine, nextStop?.id, distanceToNextM, routeStarted, audioEnabled]);
+
+  // Reset reroute-spoken pointer når næste stop ændrer sig så vi får
+  // ny stemmebesked ved næste reroute event.
+  useEffect(() => {
+    rerouteSpokenStopRef.current = null;
+  }, [nextStop?.id]);
+
   const derivedHeading = useMemo(() => {
     if (userHeading != null) return userHeading;
     if (!userPos || !nextStop || nextStop.latitude == null || nextStop.longitude == null) return null;
