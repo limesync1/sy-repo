@@ -528,6 +528,9 @@ export const TOP_CATEGORY_KEYS: string[] = [
   "Flyttehjælp",
   "Skadedyrsbekæmpelse",
   "Anlægsgartner",
+  "Gulvlægger",
+  "Skorstensfejer",
+  "Sikkerhed",
 ];
 
 /** Returnér Industry-objekter for top-kategorierne (filtrerer ukendte). */
