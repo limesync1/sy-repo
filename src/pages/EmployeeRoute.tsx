@@ -1086,15 +1086,23 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 </Link>
               </Button>
               {/* Compact progress pill — neutral bg, kun farvet dot for rute-id (matcher Serviceydere brand) */}
-              <div className="flex items-center gap-2 pl-2 pr-3 h-11 rounded-full bg-background border border-border shadow-lg">
+              <div className="flex items-center gap-2 pl-2.5 pr-3 h-11 rounded-full bg-background border border-border shadow-lg">
                 <span
-                  className="h-2 w-2 rounded-full shrink-0"
+                  className="h-2.5 w-2.5 rounded-full shrink-0"
                   style={{ background: routeBadgeColor }}
                   aria-hidden
                 />
-                <span className="text-xs font-bold text-foreground tabular-nums">
-                  {completedCount}<span className="text-muted-foreground font-medium">/{sortedStops.length}</span>
+                <span className="text-sm font-bold text-foreground tabular-nums leading-none">
+                  {completedCount}<span className="text-muted-foreground/70 font-medium">/{sortedStops.length}</span>
                 </span>
+                {estimatedEndAt && (
+                  <>
+                    <span className="h-3 w-px bg-border" aria-hidden />
+                    <span className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground tabular-nums leading-none">
+                      <Flag className="h-3 w-3" />{estimatedEndAt}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
 
