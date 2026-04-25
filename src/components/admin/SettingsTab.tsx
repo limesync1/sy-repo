@@ -256,29 +256,6 @@ const SettingsTab = ({ business }: { business: any }) => {
     return { checks, done, total: checks.length, pct: Math.round((done / checks.length) * 100) };
   }, [logoUrl, coverUrl, description, phone, email, address, zipCode, selectedCategories, openHours]);
 
-  const save = () => {
-    updateBiz.mutate({
-      id: business.id, name: name.trim(),
-      description: description.trim() || null,
-      phone: phone.trim() || null, email: email.trim() || null,
-      address: address.trim() || null, city: city.trim() || null,
-      zip_code: zipCode.trim() || null,
-      logo_url: logoUrl || null, cover_image_url: coverUrl || null,
-      category: selectedCategories[0] || null,
-      categories: selectedCategories,
-      opening_hours: openHours,
-      notification_settings: notifSettings,
-      settings: {
-        ...((business.settings as any) || {}),
-        route_planning_enabled: routePlanningEnabled,
-        selected_subcategories: selectedSubcategories,
-      },
-    } as any, {
-      onSuccess: () => toast.success("Indstillinger gemt"),
-      onError: (e) => toast.error(e.message),
-    });
-  };
-
   const origCategories = (business.categories as string[]) || (business.category ? [business.category] : []);
   const origNotif = business.notification_settings as Record<string, boolean> || {};
   const origRoutePlanning = !!(business.settings as any)?.route_planning_enabled;
@@ -293,6 +270,60 @@ const SettingsTab = ({ business }: { business: any }) => {
     JSON.stringify(openHours) !== JSON.stringify(business.opening_hours || {}) ||
     routePlanningEnabled !== origRoutePlanning ||
     JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
+
+  // ─── Auto-save ───
+  // Ingen "Gem"-knap, ingen toasts. Vi debouncer ændringer og fyrer en mutation
+  // af når brugeren har holdt pause. Errors vises stadig (ellers ved man ikke
+  // hvorfor noget gik galt) — succes er stille.
+  const saveTimer = useRef<number | null>(null);
+  const lastSaved = useRef<string>("");
+
+  // Stabil signature af alt det vi vil persistere — bruges til at undgå
+  // duplicerede gem ved re-renders med samme data.
+  const buildPayload = useCallback(() => ({
+    id: business.id,
+    name: name.trim() || business.name,
+    description: description.trim() || null,
+    phone: phone.trim() || null,
+    email: email.trim() || null,
+    address: address.trim() || null,
+    city: city.trim() || null,
+    zip_code: zipCode.trim() || null,
+    logo_url: logoUrl || null,
+    cover_image_url: coverUrl || null,
+    category: selectedCategories[0] || null,
+    categories: selectedCategories,
+    opening_hours: openHours,
+    notification_settings: notifSettings,
+    settings: {
+      ...((business.settings as any) || {}),
+      route_planning_enabled: routePlanningEnabled,
+      selected_subcategories: selectedSubcategories,
+    },
+  }), [
+    business.id, business.name, business.settings,
+    name, description, phone, email, address, city, zipCode,
+    logoUrl, coverUrl, selectedCategories, selectedSubcategories,
+    openHours, notifSettings, routePlanningEnabled,
+  ]);
+
+  useEffect(() => {
+    if (!hasChanges) return;
+    const sig = JSON.stringify(buildPayload());
+    if (sig === lastSaved.current) return;
+    if (saveTimer.current) window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(() => {
+      lastSaved.current = sig;
+      updateBiz.mutate(buildPayload() as any, {
+        onError: (e: any) => toast.error(e?.message || "Kunne ikke gemme"),
+      });
+    }, 700);
+    return () => { if (saveTimer.current) window.clearTimeout(saveTimer.current); };
+  }, [hasChanges, buildPayload, updateBiz]);
+
+  // Diskret status til header (gemmer / gemt / ændringer).
+  const saveStatus: "saving" | "saved" | "idle" =
+    updateBiz.isPending ? "saving" : (hasChanges ? "saving" : "saved");
 
   return (
     <div className="space-y-4 pb-24">
