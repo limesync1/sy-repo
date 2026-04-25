@@ -651,6 +651,11 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   const [responseMessage, setResponseMessage] = useState("");
   const [adjustedItems, setAdjustedItems] = useState<Record<string, AdjustmentItem[]>>({});
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
+  // Opret-rute dialog (samme design som ruteplanlægger).
+  const [createRouteOpen, setCreateRouteOpen] = useState(false);
+  const [newRouteName, setNewRouteName] = useState("");
+  const [newRouteDate, setNewRouteDate] = useState(new Date().toISOString().slice(0, 10));
+  const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
 
   // ─── Drag & drop til rute-pool ───
   // Vi tracker hvilken aftale der pt. trækkes (for visuel feedback) og hvilken
