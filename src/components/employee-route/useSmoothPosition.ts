@@ -25,7 +25,10 @@ export const useSmoothPosition = (
   const toHeadingRef = useRef<number | null>(targetHeading);
   const startTimeRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
-  const DURATION_MS = 900;
+  // Lidt længere end typisk GPS-cadence (~1s) så vi altid har et nyt
+  // target før det gamle "stopper" — det fjerner mikropauser hvor puck'en
+  // står stille i et par frames mellem GPS-fixes.
+  const DURATION_MS = 1300;
 
   // Snapshot start values whenever a new target arrives.
   useEffect(() => {
@@ -53,8 +56,9 @@ export const useSmoothPosition = (
     if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     const tick = (now: number) => {
       const t = Math.min(1, (now - startTimeRef.current) / DURATION_MS);
-      // ease-out cubic
-      const e = 1 - Math.pow(1 - t, 3);
+      // Blødere ease-in-out (smoothstep) — undgår både ryk i starten og
+      // det "halse-stop" en ren ease-out giver lige før næste GPS-fix.
+      const e = t * t * (3 - 2 * t);
       const from = fromRef.current;
       const to = toRef.current;
       if (from && to) {
