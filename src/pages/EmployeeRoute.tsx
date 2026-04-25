@@ -15,6 +15,7 @@ import {
   ClipboardList, Info, MessageSquare,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
+import type { Marker as LeafletMarker } from "leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { toast } from "sonner";
@@ -81,17 +82,81 @@ const stopIcon = (n: number, state: "next" | "done" | "future", color: string, h
   });
 };
 
-/** Serviceydere-stil navigation puck (teal accent). */
-const navPuckIcon = (rotation: number) => L.divIcon({
+/**
+ * Serviceydere-stil navigation puck (teal accent).
+ *
+ * Vigtig detalje: vi opretter divIcon'et ÉN gang (stabil reference) — al
+ * heading-rotation sker derefter via en CSS-transform på et indre element
+ * med klasse `.nav-puck-rot`. Det gør at Leaflet IKKE re-renderer markøren
+ * når headingen ændrer sig (hvilket ellers river DOM ned/op hver gang og
+ * giver visuel hak under rute-opdateringer). Komponenten bruger en ref
+ * til markøren og opdaterer transform direkte — samme pattern som Google
+ * Maps' egen puck.
+ */
+const NAV_PUCK_ICON = L.divIcon({
   className: "",
   html: `
-    <div style="position:relative;width:64px;height:64px;transform:rotate(${rotation}deg);transform-origin:center;">
+    <div class="nav-puck-rot" style="position:relative;width:64px;height:64px;transform:rotate(0deg);transform-origin:center;will-change:transform;transition:transform 120ms linear;">
       <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:34px solid hsl(184 90% 32% / 0.45);"></div>
       <div style="position:absolute;top:18px;left:18px;width:28px;height:28px;border-radius:50%;background:hsl(184 90% 32%);border:4px solid white;box-shadow:0 4px 14px hsl(184 90% 32% / 0.5), 0 2px 6px rgba(0,0,0,.25);"></div>
     </div>`,
   iconSize: [64, 64],
   iconAnchor: [32, 32],
 });
+
+/**
+ * Stable nav puck marker — opretter Leaflet-markøren manuelt (uden
+ * react-leaflet's <Marker>) så heading-opdateringer kan skrives direkte
+ * på DOM via en CSS-transform. Position bliver også sat via setLatLng,
+ * så der ikke sker re-mount per GPS-tick.
+ */
+const NavPuckMarker = ({
+  position,
+  heading,
+}: {
+  position: [number, number];
+  heading: number;
+}) => {
+  const map = useMap();
+  const markerRef = useRef<LeafletMarker | null>(null);
+
+  // Mount marker once.
+  useEffect(() => {
+    const m = L.marker(position, { icon: NAV_PUCK_ICON, interactive: false, keyboard: false, zIndexOffset: 1000 });
+    m.addTo(map);
+    markerRef.current = m;
+    return () => {
+      m.remove();
+      markerRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map]);
+
+  // Update position smoothly (no re-mount).
+  const lat = position[0];
+  const lng = position[1];
+  useEffect(() => {
+    const m = markerRef.current;
+    if (!m) return;
+    m.setLatLng([lat, lng]);
+  }, [lat, lng]);
+
+  // Update heading by mutating CSS transform on the inner rotation element.
+  // This avoids any react-leaflet reconciliation and gives a buttery-smooth
+  // rotation under route changes / reroutes.
+  useEffect(() => {
+    const m = markerRef.current;
+    if (!m) return;
+    const el = m.getElement();
+    if (!el) return;
+    const rot = el.querySelector<HTMLElement>(".nav-puck-rot");
+    if (rot) {
+      rot.style.transform = `rotate(${heading}deg)`;
+    }
+  }, [heading]);
+
+  return null;
+};
 
 const userDotIcon = L.divIcon({
   className: "",
@@ -339,6 +404,30 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   }, [legOrigin?.lat, legOrigin?.lng, nextStop?.latitude, nextStop?.longitude]);
 
   const { data: directions } = useDirections(legWaypoints);
+
+  /* ── Preview directions: hele den planlagte rute, vist FØR brugeren
+   * starter med at køre, så medarbejderen tydeligt kan se hele turen
+   * (ikke kun næste leg). Bygges fra startCoord + alle ikke-færdige stop
+   * i rækkefølge. Vi henter den kun når routeStarted=false så vi ikke
+   * dobbelt-fetch'er undervejs.
+   */
+  const previewWaypoints = useMemo(() => {
+    if (routeStarted) return null;
+    const wps: { lat: number; lng: number }[] = [];
+    if (startCoord) wps.push({ lat: startCoord[0], lng: startCoord[1] });
+    for (const s of sortedStops) {
+      if (s.status === "completed") continue;
+      if (s.latitude == null || s.longitude == null) continue;
+      wps.push({ lat: Number(s.latitude), lng: Number(s.longitude) });
+    }
+    return wps.length >= 2 ? wps : null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeStarted, startCoord?.[0], startCoord?.[1], sortedStops]);
+  const { data: previewDirections } = useDirections(previewWaypoints);
+  const previewLine: [number, number][] = useMemo(() => {
+    if (!previewDirections?.geometry?.coordinates) return [];
+    return previewDirections.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
+  }, [previewDirections]);
 
   const distanceToNextM: number | null = useMemo(() => {
     if (!userPos || !nextStop || nextStop.latitude == null || nextStop.longitude == null) return null;
@@ -819,7 +908,29 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {startCoord && <Marker position={startCoord} icon={startIcon} />}
 
-            {/* Route line */}
+            {/* Preview-route — vist FØR start, så hele turen er synlig.
+                Tegnet under (lavere z) det aktive leg når begge findes. */}
+            {!routeStarted && previewLine.length > 1 && (
+              <>
+                <Polyline
+                  positions={previewLine}
+                  pathOptions={{ color: "white", weight: 12, opacity: 0.9, lineCap: "round", lineJoin: "round" }}
+                />
+                <Polyline
+                  positions={previewLine}
+                  pathOptions={{
+                    color: themeColor,
+                    weight: 6,
+                    opacity: 0.85,
+                    lineCap: "round",
+                    lineJoin: "round",
+                    dashArray: "2 10",
+                  }}
+                />
+              </>
+            )}
+
+            {/* Route line — aktivt leg */}
             {legLine.length > 1 && (
               <>
                 {/* Outer white casing for contrast */}
@@ -855,9 +966,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               );
             })}
 
-            {/* User position — Google Maps puck when driving */}
+            {/* User position — Google Maps-stil puck når man kører.
+                NavPuckMarker er stabil: kun CSS-transform ændres ved heading-skift,
+                ingen re-mount af DOM = ingen flicker under reroutes. */}
             {displayPos && routeStarted && displayHeading != null && (
-              <Marker position={displayPos} icon={navPuckIcon(displayHeading)} />
+              <NavPuckMarker position={displayPos} heading={displayHeading} />
             )}
             {displayPos && (!routeStarted || displayHeading == null) && (
               <Marker position={displayPos} icon={userDotIcon} />
