@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -6,25 +7,36 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { LocationProvider } from "@/contexts/LocationContext";
+
+// Forsiden + Login indlæses ivrigt — alt andet er code-splittet via React.lazy
+// så det første sidebesøg ikke trækker hele admin/medarbejder/ruteplanlægger
+// med ned (som tidligere blev bundlet i én stor JS-fil).
 import Index from "./pages/Index";
-import BusinessPage from "./pages/BusinessPage";
-import DynamicBusinessPage from "./pages/DynamicBusinessPage";
 import Auth from "./pages/Auth";
-import Admin from "./pages/Admin";
-import PlatformAdmin from "./pages/PlatformAdmin";
-import CustomerDashboard from "./pages/CustomerDashboard";
-import Search from "./pages/Search";
-import RequestQuote from "./pages/RequestQuote";
-import Unsubscribe from "./pages/Unsubscribe";
-import RoutePlanner from "./pages/RoutePlanner";
-import EmployeeApp from "./pages/EmployeeApp";
-import EmployeeRoute from "./pages/EmployeeRoute";
-import EmployeeRoutePrint from "./pages/EmployeeRoutePrint";
-import EmployeeStats from "./pages/EmployeeStats";
 import NotFound from "./pages/NotFound";
-import ApproveOrder from "./pages/ApproveOrder";
+
+const BusinessPage          = lazy(() => import("./pages/BusinessPage"));
+const DynamicBusinessPage   = lazy(() => import("./pages/DynamicBusinessPage"));
+const Admin                 = lazy(() => import("./pages/Admin"));
+const PlatformAdmin         = lazy(() => import("./pages/PlatformAdmin"));
+const CustomerDashboard     = lazy(() => import("./pages/CustomerDashboard"));
+const Search                = lazy(() => import("./pages/Search"));
+const RequestQuote          = lazy(() => import("./pages/RequestQuote"));
+const Unsubscribe           = lazy(() => import("./pages/Unsubscribe"));
+const RoutePlanner          = lazy(() => import("./pages/RoutePlanner"));
+const EmployeeApp           = lazy(() => import("./pages/EmployeeApp"));
+const EmployeeRoute         = lazy(() => import("./pages/EmployeeRoute"));
+const EmployeeRoutePrint    = lazy(() => import("./pages/EmployeeRoutePrint"));
+const EmployeeStats         = lazy(() => import("./pages/EmployeeStats"));
+const ApproveOrder          = lazy(() => import("./pages/ApproveOrder"));
 
 const queryClient = new QueryClient();
+
+const PageFallback = () => (
+  <div className="flex min-h-screen items-center justify-center text-muted-foreground">
+    Indlæser...
+  </div>
+);
 
 // Helper to preserve query strings on redirect
 const RedirectWithQuery = ({ to }: { to: string }) => {
@@ -41,6 +53,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <Suspense fallback={<PageFallback />}>
             <Routes>
               <Route path="/" element={<Index />} />
 
@@ -73,6 +86,7 @@ const App = () => (
 
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
             </BrowserRouter>
           </TooltipProvider>
         </CartProvider>

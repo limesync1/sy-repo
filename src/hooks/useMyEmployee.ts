@@ -3,25 +3,44 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type Employee = Tables<"employees">;
 
-/** Den indloggede medarbejders egen record (incl. avatar, navn, business). */
+/**
+ * Den indloggede medarbejders egen record (incl. avatar, navn, business).
+ *
+ * Bruger AuthContext'ets allerede-loaded user, så vi UNDGÅR et ekstra
+ * `auth.getUser()` netværkskald pr. hook-instans. Cache-nøglen indeholder
+ * user.id så React Query deduplikerer på tværs af komponenter (sidebar,
+ * dashboard, route-hooks osv.) — alle bruger den samme query.
+ */
 export const useMyEmployee = () => {
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ["my-employee"],
+    queryKey: ["my-employee", user?.id],
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000, // 5 min — medarbejder-record ændres sjældent
     queryFn: async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return null;
+      if (!user) return null;
       const { data, error } = await supabase
         .from("employees")
         .select("*")
-        .eq("user_id", u.user.id)
+        .eq("user_id", user.id)
         .maybeSingle();
       if (error) throw error;
       return data as Employee | null;
     },
   });
+};
+
+/**
+ * Lightweight helper: returnerer KUN medarbejderens id (eller undefined).
+ * Genbruger samme cache-entry som `useMyEmployee` — ingen ekstra request.
+ */
+export const useMyEmployeeId = (): string | undefined => {
+  const { data } = useMyEmployee();
+  return data?.id;
 };
 
 export type EmployeeStats = {

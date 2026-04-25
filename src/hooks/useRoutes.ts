@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 
 export type Route = {
   id: string;
@@ -190,21 +191,16 @@ export type EmployeeWorkday = {
 
 /** Hent dagens åbne arbejdsdag for den loggede medarbejder. */
 export const useMyWorkday = (date: string) => {
+  const employeeId = useMyEmployeeId();
   return useQuery({
-    queryKey: ["my-workday", date],
+    queryKey: ["my-workday", employeeId, date],
+    enabled: !!employeeId,
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return null;
-      const { data: emp } = await supabase
-        .from("employees")
-        .select("id")
-        .eq("user_id", user.user.id)
-        .maybeSingle();
-      if (!emp) return null;
+      if (!employeeId) return null;
       const { data, error } = await supabase
         .from("employee_workdays")
         .select("*")
-        .eq("employee_id", emp.id)
+        .eq("employee_id", employeeId)
         .eq("workday_date", date)
         .maybeSingle();
       if (error) throw error;
@@ -1144,33 +1140,24 @@ export const useDispatchRoute = () => {
 
 /* ─── Employee app: my routes today (via junction table) ─── */
 export const useMyDayRoutes = (date: string) => {
+  const employeeId = useMyEmployeeId();
   return useQuery({
-    queryKey: ["my-day-routes", date],
+    queryKey: ["my-day-routes", employeeId, date],
+    enabled: !!employeeId,
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return [];
-      const { data: emp } = await supabase
-        .from("employees")
-        .select("id")
-        .eq("user_id", user.user.id)
-        .maybeSingle();
-      if (!emp) return [];
+      if (!employeeId) return [];
       // Find ruter via junction-tabel (nye ruter, evt. team) ELLER legacy
       // routes.employee_id-kolonne (ældre ruter / demo-data).
+      // Ét request pr. tabel — ingen duplikater.
       const [linksRes, legacyRes, stopAssignRes] = await Promise.all([
-        supabase.from("route_employees").select("route_id").eq("employee_id", emp.id),
-        supabase.from("routes").select("id").eq("employee_id", emp.id).eq("route_date", date),
-        supabase.from("route_stop_assignees").select("stop_id").eq("employee_id", emp.id),
+        supabase.from("route_employees").select("route_id").eq("employee_id", employeeId),
+        supabase.from("routes").select("id").eq("employee_id", employeeId).eq("route_date", date),
+        supabase.from("route_stop_assignees").select("stop_id").eq("employee_id", employeeId),
       ]);
       const assignedStopIds = (stopAssignRes.data || []).map((a: any) => a.stop_id);
       const { data: assignedStopRoutes } = assignedStopIds.length > 0
         ? await supabase.from("route_stops").select("route_id").in("id", assignedStopIds)
         : { data: [] as any[] };
-      // Sæt af rute-ID'er hvor medarbejderen eksplicit er TILKNYTTET som
-      // kører (junction-tabel eller legacy single-employee column). Disse
-      // ruter skal ALTID være synlige for medarbejderen — også når der
-      // (endnu) ikke er individuelle stop-niveau-assignees, fx på en
-      // teamrute hvor stops er fælles eller endnu uafgjorte.
       const linkedRouteIds = new Set<string>([
         ...((linksRes.data || []).map((l: any) => l.route_id)),
         ...((legacyRes.data || []).map((r: any) => r.id)),
@@ -1187,11 +1174,9 @@ export const useMyDayRoutes = (date: string) => {
       const routes = (data || []) as unknown as Route[];
       if (routes.length === 0) return routes;
       const todayRouteIds = routes.map((r) => r.id);
-      const { data: myAssign } = await supabase
-        .from("route_stop_assignees")
-        .select("stop_id")
-        .eq("employee_id", emp.id);
-      const myStopIds = new Set((myAssign || []).map((a: any) => a.stop_id));
+      // Genbrug stopAssignRes — vi har allerede ALLE stop-tildelinger for
+      // medarbejderen. Filtrer i hukommelsen i stedet for at kalde igen.
+      const myStopIds = new Set(assignedStopIds);
       const { data: stops } = await supabase
         .from("route_stops")
         .select("id, route_id, assigned_employee_id")
@@ -1210,13 +1195,13 @@ export const useMyDayRoutes = (date: string) => {
           return;
         }
         const hasMine = routeStops.some(
-          (s: any) => myStopIds.has(s.id) || s.assigned_employee_id === emp.id,
+          (s: any) => myStopIds.has(s.id) || s.assigned_employee_id === employeeId,
         );
         const hasUnassigned = routeStops.some((s: any) => !s.assigned_employee_id);
         const allAssignedToOthers = routeStops.every(
           (s: any) =>
             s.assigned_employee_id &&
-            s.assigned_employee_id !== emp.id &&
+            s.assigned_employee_id !== employeeId &&
             !myStopIds.has(s.id),
         );
         if (hasMine || hasUnassigned || !allAssignedToOthers) {
@@ -1229,21 +1214,16 @@ export const useMyDayRoutes = (date: string) => {
 };
 
 export const useMyDayStops = (date: string) => {
+  const employeeId = useMyEmployeeId();
   return useQuery({
-    queryKey: ["my-day-stops", date],
+    queryKey: ["my-day-stops", employeeId, date],
+    enabled: !!employeeId,
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return [];
-      const { data: emp } = await supabase
-        .from("employees")
-        .select("id")
-        .eq("user_id", user.user.id)
-        .maybeSingle();
-      if (!emp) return [];
+      if (!employeeId) return [];
       const [linksRes, legacyRes, stopAssignRes] = await Promise.all([
-        supabase.from("route_employees").select("route_id").eq("employee_id", emp.id),
-        supabase.from("routes").select("id").eq("employee_id", emp.id).eq("route_date", date),
-        supabase.from("route_stop_assignees").select("stop_id").eq("employee_id", emp.id),
+        supabase.from("route_employees").select("route_id").eq("employee_id", employeeId),
+        supabase.from("routes").select("id").eq("employee_id", employeeId).eq("route_date", date),
+        supabase.from("route_stop_assignees").select("stop_id").eq("employee_id", employeeId),
       ]);
       const assignedStopIds = (stopAssignRes.data || []).map((a: any) => a.stop_id);
       const { data: assignedStopRoutes } = assignedStopIds.length > 0
@@ -1263,12 +1243,8 @@ export const useMyDayStops = (date: string) => {
         .eq("route_date", date);
       const todayIds = (routes || []).map((r) => r.id);
       if (todayIds.length === 0) return [];
-      // Stops på denne medarbejders ruter — enten tildelt dem (via assignees-tabel) eller utildelt
-      const { data: myAssign } = await supabase
-        .from("route_stop_assignees")
-        .select("stop_id")
-        .eq("employee_id", emp.id);
-      const myStopIds = new Set((myAssign || []).map((a: any) => a.stop_id));
+      // Genbrug stopAssignRes fra ovenfor — undgå et ekstra request.
+      const myStopIds = new Set(assignedStopIds);
       const { data, error } = await supabase
         .from("route_stops")
         .select("*")
@@ -1292,9 +1268,9 @@ export const useMyDayStops = (date: string) => {
       const filtered = (data || []).filter((s: any) => {
         const routeStops = byRoute.get(s.route_id) || [];
         const routeHasMySpecificStops = routeStops.some((rs: any) =>
-          myStopIds.has(rs.id) || rs.assigned_employee_id === emp.id,
+          myStopIds.has(rs.id) || rs.assigned_employee_id === employeeId,
         );
-        const belongsToEmployee = myStopIds.has(s.id) || s.assigned_employee_id === emp.id;
+        const belongsToEmployee = myStopIds.has(s.id) || s.assigned_employee_id === employeeId;
         if (routeHasMySpecificStops) return belongsToEmployee;
         // Ingen specifikke stop til mig på ruten → team-mode (kun hvis
         // ruten er teamlinket; ellers skjul stop tildelt andre).
