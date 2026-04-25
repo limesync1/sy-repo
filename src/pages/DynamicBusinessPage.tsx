@@ -578,11 +578,16 @@ const DynamicBusinessContent = () => {
                       const today = new Date().toLocaleDateString("da-DK", { weekday: "long" });
                       const isToday = day.toLowerCase() === today.toLowerCase();
                       return (
-                        <div key={day} className={`flex justify-between rounded-lg px-2 py-1 ${isToday ? "bg-accent/5 font-medium" : ""}`}>
+                        <div key={day} className={`flex items-center justify-between rounded-lg px-2 py-1.5 ${isToday ? "bg-accent/8" : ""}`}>
                           <span className={isToday ? "text-foreground" : "text-muted-foreground"}>
-                            {day} {isToday && <span className="text-xs text-accent ml-1">i dag</span>}
+                            {day}
+                            {isToday && (
+                              <span className="ml-1.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent">
+                                I dag
+                              </span>
+                            )}
                           </span>
-                          <span className={isToday ? "text-foreground font-semibold" : "font-medium text-foreground"}>{time}</span>
+                          <span className={`tabular-nums ${isToday ? "font-semibold text-foreground" : "font-medium text-foreground"}`}>{time}</span>
                         </div>
                       );
                     })}
@@ -591,31 +596,6 @@ const DynamicBusinessContent = () => {
               </Card>
             )}
 
-            {/* Trust Badges */}
-             <Card className="rounded-[2rem] border-border bg-card/90 shadow-sm">
-              <CardContent className="space-y-3 p-5">
-                {business.is_verified && (
-                  <div className="flex items-center gap-3 text-sm text-foreground">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
-                      <CheckCircle className="h-4 w-4 text-accent" />
-                    </div>
-                    <span className="font-medium">Verificeret virksomhed</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-3 text-sm text-foreground">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
-                    <ShieldCheck className="h-4 w-4 text-accent" />
-                  </div>
-                  <span className="font-medium">Sikker betaling</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-foreground">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
-                    <Star className="h-4 w-4 text-accent" />
-                  </div>
-                  <span className="font-medium">Ægte anmeldelser</span>
-                </div>
-              </CardContent>
-            </Card>
           </aside>
         </div>
       </main>
