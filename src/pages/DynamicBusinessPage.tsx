@@ -10,9 +10,26 @@ import { Separator } from "@/components/ui/separator";
 import { useState, useMemo } from "react";
 import {
   ArrowLeft, Star, Mail, Phone, MapPin, Clock, CheckCircle,
-  ShieldCheck, ArrowDown, Sparkles, BadgeCheck,
+  ArrowDown, Sparkles, BadgeCheck,
 } from "lucide-react";
 import Footer from "@/components/landing/Footer";
+
+/* ─── Opening-hours helpers ───
+ * Sorter åbningstider i kanonisk rækkefølge (Man → Søn) uafhængigt af
+ * hvordan virksomheden tastede dem ind. Vi normaliserer dagen til lowercase
+ * og laver fallback til alfabetisk sortering for ukendte nøgler. */
+const DAY_ORDER: Record<string, number> = {
+  mandag: 0, tirsdag: 1, onsdag: 2, torsdag: 3, fredag: 4, lørdag: 5, søndag: 6,
+  // Engelsk fallback i tilfælde af legacy-data
+  monday: 0, tuesday: 1, wednesday: 2, thursday: 3, friday: 4, saturday: 5, sunday: 6,
+};
+const sortOpeningHours = (entries: [string, string][]): [string, string][] =>
+  [...entries].sort(([a], [b]) => {
+    const ai = DAY_ORDER[a.toLowerCase()] ?? 99;
+    const bi = DAY_ORDER[b.toLowerCase()] ?? 99;
+    if (ai !== bi) return ai - bi;
+    return a.localeCompare(b, "da");
+  });
 
 /* ───── Main Content ───── */
 const DynamicBusinessContent = () => {
@@ -87,7 +104,9 @@ const DynamicBusinessContent = () => {
     ? (reviews.reduce((a, r) => a + r.rating, 0) / reviews.length).toFixed(1)
     : null;
   const openingHours = business.opening_hours && typeof business.opening_hours === "object"
-    ? Object.entries(business.opening_hours as Record<string, string>).filter(([, v]) => v)
+    ? sortOpeningHours(
+        Object.entries(business.opening_hours as Record<string, string>).filter(([, v]) => v)
+      )
     : [];
   const hasCover = !!business.cover_image_url;
 
