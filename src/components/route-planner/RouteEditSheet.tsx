@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { useUpdateRoute, useDeleteRoute, useOptimizeRoute, useDirections, type Route, type RouteStop } from "@/hooks/useRoutes";
 import { DatePickerField } from "./DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
-import { LiveStatusBadge, EtaDetailsButton, pickDuration } from "@/components/route/EtaBreakdown";
+import { pickDuration } from "@/components/route/EtaBreakdown";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -84,7 +84,6 @@ export const RouteEditSheet = ({
   const [color, setColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [date, setDate] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [showRawTime, setShowRawTime] = useState(false);
   // depart_at ISO — null = "nu". Når brugeren ændrer afgangstid, kan ETA flytte
   // sig (myldretid kontra midt-på-dagen).
   const [departAt, setDepartAt] = useState<string | null>(null);
