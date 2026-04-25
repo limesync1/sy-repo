@@ -289,7 +289,7 @@ Deno.serve(async (req) => {
     let globalSeq = 0;
     const writes: PromiseLike<any>[] = [];
 
-    for (const [empId, scheduled] of plan.per_employee.entries()) {
+    for (const [, scheduled] of plan.per_employee.entries()) {
       for (const sched of scheduled) {
         const stop = validStops.find((s) => s.id === sched.stop_id)!;
         const arrivalIso = timeToDateIso(route.route_date, sched.arrival_min);
