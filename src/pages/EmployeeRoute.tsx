@@ -526,8 +526,18 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return haversineMeters(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
   }, [userPos, nextStop?.id, nextStop?.latitude, nextStop?.longitude]);
 
-  const ARRIVAL_THRESHOLD_M = 75;
-  const isAtNextStop = distanceToNextM != null && distanceToNextM <= ARRIVAL_THRESHOLD_M;
+  // Adaptiv ankomst-tærskel.  Vi bruger en stram basisradius (35 m) der
+  // matcher den faktiske præcision vi opnår med vores GPS-filter, men
+  // udvider den hvis fix'et er kendt unøjagtigt — så brugere indendørs
+  // eller i bymæssige "kløfter" stadig markeres som fremme uden at
+  // bygninger på den anden side af gaden bliver inkluderet ved godt fix.
+  const ARRIVAL_BASE_M = 35;
+  const ARRIVAL_MAX_M = 90;
+  const arrivalThresholdM = useMemo(() => {
+    const accBuffer = userAccuracyM != null ? Math.min(userAccuracyM * 0.6, 50) : 25;
+    return Math.min(ARRIVAL_MAX_M, Math.max(ARRIVAL_BASE_M, ARRIVAL_BASE_M + accBuffer - 25));
+  }, [userAccuracyM]);
+  const isAtNextStop = distanceToNextM != null && distanceToNextM <= arrivalThresholdM;
 
   /* Ankomstlyd */
   useEffect(() => {
