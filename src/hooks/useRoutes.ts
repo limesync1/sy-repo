@@ -1339,7 +1339,9 @@ export const useMyRouteData = (routeId: string | undefined) => {
       );
       const stops = (rawStops || []).filter((s: any) => {
         const belongsToEmployee = myStopIds.has(s.id) || s.assigned_employee_id === emp.id;
-        return belongsToEmployee || !s.assigned_employee_id || !routeHasMySpecificStops;
+        // Hvis medarbejderen har specifikke stop på ruten → kun deres egne.
+        // Ellers (team-mode) → vis alle stop på ruten.
+        return routeHasMySpecificStops ? belongsToEmployee : true;
       });
 
       return {
