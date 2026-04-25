@@ -98,8 +98,20 @@ export const useGpsFilter = (raw: Fix | null): FilteredFix | null => {
         stationaryHits: hits,
       };
       if (hits >= STATIONARY_FIXES) {
-        // Frys pucken til ankeret — ingen drift.
-        setOut({ pos: prev.anchor, heading: prev.heading, speedMps: 0 });
+        // Frys pucken til ankeret — ingen drift.  Undgå unødige re-renders
+        // ved kun at opdatere når noget reelt har ændret sig.
+        setOut((prevOut) => {
+          if (
+            prevOut &&
+            prevOut.pos[0] === prev.anchor[0] &&
+            prevOut.pos[1] === prev.anchor[1] &&
+            prevOut.speedMps === 0 &&
+            prevOut.heading === prev.heading
+          ) {
+            return prevOut;
+          }
+          return { pos: prev.anchor, heading: prev.heading, speedMps: 0 };
+        });
         return;
       }
     } else {
