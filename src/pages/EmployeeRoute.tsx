@@ -1399,11 +1399,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               style={{ borderTopColor: themeColor }}
             >
               {/* Segmented progress — kalender-stil dots på toppen */}
-              <div className="flex gap-0.5 px-3 pt-2 bg-secondary/30">
+              <div className="flex gap-0.5 px-3 pt-2 pb-1 bg-secondary/40">
                 {sortedStops.map((s, i) => (
                   <div
                     key={s.id}
-                    className="flex-1 h-1 rounded-full transition-all"
+                    className="flex-1 h-1.5 rounded-full transition-all"
                     style={{
                       background:
                         s.status === "completed"
@@ -1417,32 +1417,46 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               </div>
               <button
                 type="button"
-                className="w-full flex items-center gap-2 px-3 py-2.5 bg-secondary/30 hover:bg-secondary/50 transition-colors border-b"
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-secondary/40 hover:bg-secondary/60 transition-colors border-b"
                 onClick={() => setCollapsed((c) => !c)}
+                aria-expanded={!collapsed}
+                aria-label={collapsed ? "Vis stop-detaljer" : "Skjul stop-detaljer"}
               >
                 <span
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-background text-xs font-bold shrink-0 shadow-sm"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg text-background text-sm font-bold shrink-0 shadow-sm"
                   style={{ background: themeColor }}
                 >
                   {nextStopIdx + 1}
                 </span>
                 <div className="flex-1 text-left min-w-0">
-                  <p className="font-semibold text-sm truncate leading-tight">
+                  <p className="font-bold text-sm truncate leading-tight">
                     {nextStop.customer_name || "Stop"}
                   </p>
-                  <p className="text-[10px] text-muted-foreground tabular-nums">
-                    Stop {nextStopIdx + 1} af {sortedStops.length}
-                  </p>
+                  {nextStop.address ? (
+                    <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
+                      <MapPin className="h-2.5 w-2.5 shrink-0" />
+                      {nextStop.address}
+                    </p>
+                  ) : (
+                    <p className="text-[10px] text-muted-foreground tabular-nums">
+                      Stop {nextStopIdx + 1} af {sortedStops.length}
+                    </p>
+                  )}
                 </div>
                 {isAtNextStop ? (
-                  <Badge className="gap-1 text-[10px] h-5 px-2 border-0" style={{ background: "hsl(142 70% 95%)", color: "hsl(142 70% 25%)" }}>
+                  <Badge className="gap-1 text-[10px] h-6 px-2 border-0 font-bold uppercase tracking-wide" style={{ background: "hsl(142 70% 95%)", color: "hsl(142 70% 25%)" }}>
                     <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: "hsl(142 70% 45%)" }} />
                     Fremme
                   </Badge>
                 ) : distanceToNextM != null ? (
-                  <Badge variant="outline" className="tabular-nums text-[10px] h-5 px-2">
-                    {formatKm(distanceToNextM)}
-                  </Badge>
+                  <div className="text-right shrink-0">
+                    <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wide leading-none">
+                      Næste
+                    </p>
+                    <p className="text-sm font-bold tabular-nums leading-tight mt-0.5" style={{ color: themeColor }}>
+                      {formatKm(distanceToNextM)}
+                    </p>
+                  </div>
                 ) : null}
                 {collapsed ? <ChevronUp className="h-4 w-4 text-muted-foreground ml-1" /> : <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" />}
               </button>
