@@ -28,6 +28,7 @@ import { ManeuverIcon, maneuverLabel } from "@/components/employee-route/Maneuve
 import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuver";
 import { useSmoothPosition } from "@/components/employee-route/useSmoothPosition";
 import { useQueryClient } from "@tanstack/react-query";
+import { LiveStatusBadge, EtaDetailsButton, pickDuration } from "@/components/route/EtaBreakdown";
 
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
@@ -403,7 +404,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [legOrigin?.lat, legOrigin?.lng, nextStop?.latitude, nextStop?.longitude]);
 
-  const { data: directions } = useDirections(legWaypoints);
+  const { data: directions } = useDirections(legWaypoints, {
+    businessId: route?.business_id,
+  });
 
   /* ── Preview directions: hele den planlagte rute, vist FØR brugeren
    * starter med at køre, så medarbejderen tydeligt kan se hele turen
@@ -423,7 +426,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return wps.length >= 2 ? wps : null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeStarted, startCoord?.[0], startCoord?.[1], sortedStops]);
-  const { data: previewDirections } = useDirections(previewWaypoints);
+  const { data: previewDirections } = useDirections(previewWaypoints, {
+    businessId: route?.business_id,
+  });
   const previewLine: [number, number][] = useMemo(() => {
     if (!previewDirections?.geometry?.coordinates) return [];
     return previewDirections.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
