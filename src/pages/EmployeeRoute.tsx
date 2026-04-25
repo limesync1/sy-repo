@@ -1332,23 +1332,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {/* Maneuver banner — floating top center */}
             {showManeuverBanner && maneuver && nextStop && (
               <div className="absolute top-[68px] left-3 right-[68px] z-[1000] pointer-events-none">
-                <Card className="overflow-hidden shadow-2xl rounded-2xl pointer-events-auto bg-background border">
+                <Card className="overflow-hidden shadow-md rounded-xl pointer-events-auto bg-card border-border pointer-events-auto">
                   <div className="flex items-stretch">
-                    <div
-                      className="flex flex-col items-center justify-center w-24 shrink-0 text-background py-3"
-                      style={{ background: themeColor }}
-                    >
+                    <div className="flex flex-col items-center justify-center w-20 shrink-0 bg-foreground text-background py-3">
                       <ManeuverIcon
                         type={maneuver.currentStep.maneuver.type}
                         modifier={maneuver.currentStep.maneuver.modifier}
-                        className="h-11 w-11"
+                        className="h-10 w-10"
                       />
-                      <span className="text-[11px] font-bold tracking-wide mt-1 tabular-nums">
+                      <span className="text-[11px] font-semibold tracking-wide mt-1 tabular-nums">
                         {formatKm(maneuver.distanceToManeuverM)}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0 px-3 py-3">
-                      <p className="font-bold text-base leading-tight truncate">
+                      <p className="font-semibold text-base leading-tight truncate text-foreground">
                         {maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
                       </p>
                       {maneuver.currentStep.name && (
@@ -1357,7 +1354,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                         </p>
                       )}
                       {maneuver.nextStep && (
-                        <div className="flex items-center gap-1.5 mt-1.5 pt-1.5 border-t text-[11px] text-muted-foreground">
+                        <div className="flex items-center gap-1.5 mt-1.5 pt-1.5 border-t border-border text-[11px] text-muted-foreground">
                           <span>Derefter:</span>
                           <ManeuverIcon
                             type={maneuver.nextStep.maneuver.type}
@@ -1894,22 +1891,21 @@ const StopListPanel = ({
   const statusMeta = (s: RouteStop): { label: string; bg: string; text: string; dot: string } => {
     if (s.status === "completed") return {
       label: "Færdig",
-      bg: "hsl(142 70% 95%)",
-      text: "hsl(142 70% 25%)",
-      dot: "hsl(142 70% 45%)",
+      bg: "hsl(var(--muted))",
+      text: "hsl(var(--muted-foreground))",
+      dot: "hsl(142 71% 45%)",
     };
     if (s.id === nextStopId) return {
       label: "Næste",
-      // Light teal background with dark teal text for clear contrast
-      bg: "hsl(184 70% 92%)",
-      text: "hsl(184 90% 22%)",
-      dot: themeColor,
+      bg: "hsl(var(--secondary))",
+      text: "hsl(var(--foreground))",
+      dot: "hsl(var(--foreground))",
     };
     return {
       label: "Klar",
-      bg: "hsl(220 14% 95%)",
-      text: "hsl(220 14% 35%)",
-      dot: "hsl(220 14% 65%)",
+      bg: "hsl(var(--muted))",
+      text: "hsl(var(--muted-foreground))",
+      dot: "hsl(var(--muted-foreground))",
     };
   };
 
@@ -1926,7 +1922,7 @@ const StopListPanel = ({
       aria-hidden={false}
     >
       <div
-        className="pointer-events-auto mx-auto w-full max-w-3xl bg-background shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)] rounded-t-2xl transition-transform duration-300 ease-out border-t border-x border-border"
+        className="pointer-events-auto mx-auto w-full max-w-3xl bg-card shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.12)] rounded-t-xl transition-transform duration-300 ease-out border-t border-x border-border"
         style={{
           transform: open ? "translateY(0)" : "translateY(calc(100% - 46px))",
           maxHeight: "65vh",
@@ -1936,13 +1932,13 @@ const StopListPanel = ({
         <button
           type="button"
           onClick={onToggle}
-          className="w-full flex items-center gap-2 px-3 h-[46px] hover:bg-secondary/60 active:bg-secondary transition-colors rounded-t-2xl relative"
+          className="w-full flex items-center gap-2 px-3 h-[46px] hover:bg-secondary/60 active:bg-secondary transition-colors rounded-t-xl relative"
           aria-expanded={open}
           aria-label={open ? "Skjul stop-liste" : "Vis stop-liste"}
         >
           <span className="h-1 w-10 rounded-full bg-muted-foreground/30 absolute left-1/2 -translate-x-1/2 top-1.5" />
           <List className="h-4 w-4 text-muted-foreground" />
-          <span className="text-xs font-bold text-foreground/90">Alle stop</span>
+          <span className="text-xs font-semibold text-foreground">Alle stop</span>
           <Badge variant="secondary" className="tabular-nums text-[10px] h-4 px-1.5 font-bold">
             {done}/{total}
           </Badge>
@@ -1955,10 +1951,10 @@ const StopListPanel = ({
                 style={{
                   background:
                     s.status === "completed"
-                      ? "hsl(142 70% 45%)"
+                      ? "hsl(142 71% 45%)"
                       : s.id === nextStopId
-                        ? themeColor
-                        : "hsl(220 14% 82%)",
+                        ? "hsl(var(--foreground))"
+                        : "hsl(var(--muted-foreground) / 0.35)",
                 }}
               />
             ))}
@@ -1987,22 +1983,32 @@ const StopListPanel = ({
                 key={s.id}
                 onClick={() => onSelectStop(s)}
                 onDoubleClick={() => onOpenDetails(s)}
-                className={`w-full text-left p-2.5 rounded-xl border flex items-stretch gap-2.5 transition-all hover:bg-muted/50 hover:shadow-sm ${
-                  isHl ? "ring-2 ring-offset-1" : ""
-                } ${isDone ? "opacity-60" : ""}`}
+                className={`w-full text-left p-2.5 rounded-lg border flex items-stretch gap-2.5 transition-all hover:bg-muted/50 ${
+                  isHl ? "ring-2 ring-ring ring-offset-1" : ""
+                } ${isDone ? "opacity-60" : ""} ${
+                  isNext
+                    ? "border-foreground/40 bg-secondary/40"
+                    : "border-border bg-card"
+                }`}
                 style={{
-                  borderColor: isNext ? themeColor : undefined,
-                  background: isNext ? "hsl(184 70% 97%)" : undefined,
                   borderLeftWidth: isNext ? 3 : 1,
-                  borderLeftColor: isNext ? themeColor : isDone ? "hsl(142 70% 45%)" : "hsl(220 14% 90%)",
-                  ...(isHl ? { ["--tw-ring-color" as any]: themeColor } : {}),
+                  borderLeftColor: isNext
+                    ? "hsl(var(--foreground))"
+                    : isDone
+                      ? "hsl(142 71% 45%)"
+                      : "hsl(var(--border))",
                 }}
               >
                 {/* Tids-kolonne — kalender-stil */}
                 <div className="flex flex-col items-center justify-start pt-0.5 w-10 shrink-0">
                   <span
-                    className="flex h-8 w-8 items-center justify-center rounded-lg font-bold text-[12px] shrink-0 text-background shadow-sm"
-                    style={{ background: isDone ? "hsl(142 70% 45%)" : isNext ? themeColor : "hsl(220 14% 65%)" }}
+                    className={`flex h-8 w-8 items-center justify-center rounded-lg font-semibold text-[12px] shrink-0 text-background ${
+                      isDone
+                        ? "bg-emerald-500"
+                        : isNext
+                          ? "bg-foreground"
+                          : "bg-muted-foreground/70"
+                    }`}
                   >
                     {isDone ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
                   </span>
@@ -2018,7 +2024,7 @@ const StopListPanel = ({
                       {s.customer_name || "Stop"}
                     </p>
                     <Badge
-                      className="text-[9px] h-4 px-1.5 border-0 font-bold uppercase tracking-wide gap-1"
+                      className="text-[9px] h-4 px-1.5 border-0 font-semibold uppercase tracking-wide gap-1"
                       style={{ background: meta.bg, color: meta.text }}
                     >
                       <span
@@ -2042,7 +2048,7 @@ const StopListPanel = ({
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onOpenDetails(s); }}
-                  className="text-[10px] font-semibold text-muted-foreground hover:text-foreground shrink-0 px-2 py-1 rounded-md hover:bg-secondary self-center"
+                  className="text-[10px] font-semibold text-muted-foreground hover:text-foreground shrink-0 px-2 py-1 rounded-md hover:bg-secondary self-center transition-colors"
                 >
                   Detaljer
                 </button>
@@ -2148,29 +2154,23 @@ const StopDetailsContent = ({
   return (
     <div className="flex flex-col h-full">
       {/* Header med rute-pille og navn */}
-      <div
-        className="px-5 pt-5 pb-4 border-b"
-        style={{
-          background: isDone ? "linear-gradient(180deg, hsl(142 70% 96%), transparent)" : "linear-gradient(180deg, hsl(184 90% 96%), transparent)",
-        }}
-      >
+      <div className="px-5 pt-5 pb-4 border-b border-border bg-card">
         <div className="flex items-start gap-3">
           <span
-            className="flex h-12 w-12 items-center justify-center rounded-2xl text-background font-bold text-base shrink-0 shadow-sm"
-            style={{ background: isDone ? "hsl(142 70% 45%)" : themeColor }}
+            className={`flex h-12 w-12 items-center justify-center rounded-xl text-background font-semibold text-base shrink-0 ${
+              isDone ? "bg-emerald-500" : "bg-foreground"
+            }`}
           >
             {isDone ? <CheckCircle2 className="h-6 w-6" /> : index + 1}
           </span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-bold text-lg leading-tight truncate">{stop.customer_name || "Stop"}</h3>
+              <h3 className="font-semibold text-lg leading-tight truncate text-foreground">{stop.customer_name || "Stop"}</h3>
               <Badge
                 variant="secondary"
-                className="text-[10px] uppercase tracking-wide font-bold border-0"
-                style={{
-                  background: isDone ? "hsl(142 70% 90%)" : "hsl(184 90% 90%)",
-                  color: isDone ? "hsl(142 70% 25%)" : "hsl(184 90% 25%)",
-                }}
+                className={`text-[10px] uppercase tracking-wide font-semibold border-0 ${
+                  isDone ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400" : ""
+                }`}
               >
                 {isDone ? "Færdig" : "Klar"}
               </Badge>
@@ -2271,10 +2271,7 @@ const StopDetailsContent = ({
                   Besked fra kunden
                 </h4>
               </div>
-              <div
-                className="rounded-xl border-l-4 bg-secondary/40 p-3"
-                style={{ borderLeftColor: themeColor }}
-              >
+              <div className="rounded-xl border border-l-4 border-l-foreground border-border bg-secondary/40 p-3">
                 <p className="text-sm leading-relaxed whitespace-pre-line">{customerNote}</p>
               </div>
             </section>
@@ -2320,14 +2317,13 @@ const StopDetailsContent = ({
       </div>
 
       {/* Sticky footer action */}
-      <div className="border-t bg-background/95 backdrop-blur p-4 shrink-0">
+      <div className="border-t border-border bg-background/95 backdrop-blur p-4 shrink-0">
         {!isDone ? (
           <Button
             onClick={onComplete}
-            className="w-full gap-2 h-12 text-base font-bold rounded-xl shadow-lg"
+            className="w-full gap-2 h-12 text-base font-semibold rounded-xl shadow-md bg-foreground text-background hover:bg-foreground/90"
             size="lg"
             disabled={isPending}
-            style={{ background: themeColor }}
           >
             {isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
             Markér som udført
