@@ -146,12 +146,17 @@ const FollowUser = ({
       const movedM = last
         ? haversineMeters(last[0], last[1], userPos[0], userPos[1])
         : Infinity;
-      if (movedM < 6) return;
+      // 1.5 m threshold — smooth interpolation kalder os hyppigt med små
+      // delta'er (rAF, ~16 ms), og vi vil have kameraet til at glide blødt
+      // sammen med puck'en. Større threshold giver et "bumpy" follow.
+      if (movedM < 1.5) return;
       // Stop evt. igangværende animation så vi ikke "kæmper" mod en gammel pan.
       // (Leaflet's panTo cancellerer ellers mid-flight og giver et hop.)
       // @ts-ignore — _stop er Leaflet-internt, men bredt understøttet.
       if (typeof (map as any)._stop === "function") (map as any)._stop();
-      map.panTo(userPos, { animate: true, duration: 0.6, easeLinearity: 0.25, noMoveStart: true } as any);
+      // Kort, hurtig pan — vi kalder igen næste rAF, så langvarig animation
+      // bliver afbrudt og giver hak. 0.15 s er sweet-spot for smooth follow.
+      map.panTo(userPos, { animate: true, duration: 0.15, easeLinearity: 0.5, noMoveStart: true } as any);
       lastPannedRef.current = userPos;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
