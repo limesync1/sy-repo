@@ -41,11 +41,21 @@ export type FilteredFix = {
   heading: number | null;
   /** Estimeret hastighed i m/s — bruges til speed-adaptiv zoom. */
   speedMps: number;
+  /** Bedste accuracy (m) blandt seneste anvendte fixes — til UI-feedback. */
+  accuracyM: number;
 };
 
 /** Stationær = puck må ikke flytte sig. */
 const STATIONARY_RADIUS_M = 4;
 const STATIONARY_FIXES = 3;
+
+/** Maks accuracy vi overhovedet bruger (m). Værre end dette → ignorer hvis
+ *  vi har noget bedre indenfor de sidste få sekunder. */
+const MAX_USABLE_ACCURACY_M = 60;
+/** Hvor længe et "godt" fix tæller som reference (ms). */
+const RECENT_GOOD_FIX_MS = 6000;
+/** Antal seneste fixes vi vægter sammen for præcis stationær position. */
+const ANCHOR_WINDOW = 5;
 
 export const useGpsFilter = (raw: Fix | null): FilteredFix | null => {
   const [out, setOut] = useState<FilteredFix | null>(null);
@@ -57,11 +67,29 @@ export const useGpsFilter = (raw: Fix | null): FilteredFix | null => {
     lastT: number;
     stationaryHits: number;
     anchor: [number, number];
+    /** Seneste fixes (lat, lng, acc, t) — bruges til weighted-anker når stationær. */
+    recent: Array<{ lat: number; lng: number; acc: number; t: number }>;
+    /** Bedste accuracy set for nylig (til outlier-rejection). */
+    bestRecentAcc: number;
+    bestRecentAccT: number;
   } | null>(null);
 
   useEffect(() => {
     if (!raw) return;
     const prev = stateRef.current;
+
+    // Outlier-rejection: hvis vi har set et væsentligt bedre fix indenfor
+    // de sidste få sekunder, så ignorer dårlige målinger.  Det er typisk
+    // det her der får puck'en til at "hoppe væk" fra en korrekt position
+    // når man står stille indendørs (GPS giver pludselig acc=80m).
+    if (prev && raw.accuracy > MAX_USABLE_ACCURACY_M) {
+      const ageMs = raw.t - prev.bestRecentAccT;
+      if (ageMs < RECENT_GOOD_FIX_MS && raw.accuracy > prev.bestRecentAcc * 2) {
+        // Ignorer fixet helt — behold tidligere position.
+        return;
+      }
+    }
+
     if (!prev) {
       // Første fix: brug råt.
       const init = {
@@ -71,9 +99,12 @@ export const useGpsFilter = (raw: Fix | null): FilteredFix | null => {
         lastT: raw.t,
         stationaryHits: 0,
         anchor: [raw.lat, raw.lng] as [number, number],
+        recent: [{ lat: raw.lat, lng: raw.lng, acc: raw.accuracy, t: raw.t }],
+        bestRecentAcc: raw.accuracy,
+        bestRecentAccT: raw.t,
       };
       stateRef.current = init;
-      setOut({ pos: init.pos, heading: init.heading, speedMps: init.speed });
+      setOut({ pos: init.pos, heading: init.heading, speedMps: init.speed, accuracyM: raw.accuracy });
       return;
     }
 
@@ -85,32 +116,66 @@ export const useGpsFilter = (raw: Fix | null): FilteredFix | null => {
     // Blød hastighed med EMA — undgår at zoom hopper ved enkelt-fix.
     const speed = prev.speed * 0.6 + measuredSpeed * 0.4;
 
+    // Opdater rullende vindue af seneste fixes (bruges til weighted-anker).
+    const recent = [...prev.recent, { lat: raw.lat, lng: raw.lng, acc: raw.accuracy, t: raw.t }]
+      .slice(-ANCHOR_WINDOW);
+
+    // Track bedste accuracy for outlier-rejection.
+    const bestRecentAcc = raw.accuracy < prev.bestRecentAcc || (raw.t - prev.bestRecentAccT) > RECENT_GOOD_FIX_MS
+      ? raw.accuracy
+      : prev.bestRecentAcc;
+    const bestRecentAccT = bestRecentAcc === raw.accuracy ? raw.t : prev.bestRecentAccT;
+
     // Stationær lock — stå helt stille hvis vi er i en lille radius.
     const distFromAnchor = haversineMeters(prev.anchor[0], prev.anchor[1], raw.lat, raw.lng);
     const slow = speed < 0.6; // <2.2 km/t
     const noisyOnly = raw.accuracy >= 5 && distFromAnchor < Math.max(STATIONARY_RADIUS_M, raw.accuracy * 0.7);
     if (slow && noisyOnly) {
       const hits = prev.stationaryHits + 1;
+      // Når vi er stationære: beregn et accuracy-vægtet gennemsnit af de
+      // seneste fixes som anker — det giver en mere præcis position end
+      // det første fix, og kompenserer for at GPS skifter et par meter
+      // mellem fixes selv når brugeren ikke bevæger sig.
+      let weightedLat = 0;
+      let weightedLng = 0;
+      let weightSum = 0;
+      for (const f of recent) {
+        // Vægt = 1/acc² → gode fixes dominerer, dårlige bidrager lidt.
+        const w = 1 / Math.max(f.acc * f.acc, 4);
+        weightedLat += f.lat * w;
+        weightedLng += f.lng * w;
+        weightSum += w;
+      }
+      const refinedAnchor: [number, number] = weightSum > 0
+        ? [weightedLat / weightSum, weightedLng / weightSum]
+        : prev.anchor;
+
       stateRef.current = {
         ...prev,
         speed,
         lastT: raw.t,
         stationaryHits: hits,
+        recent,
+        bestRecentAcc,
+        bestRecentAccT,
+        anchor: refinedAnchor,
       };
       if (hits >= STATIONARY_FIXES) {
-        // Frys pucken til ankeret — ingen drift.  Undgå unødige re-renders
-        // ved kun at opdatere når noget reelt har ændret sig.
+        // Frys pucken til det forfinede anker — meget tæt på den faktiske
+        // adresse selv når GPS sitrer.  Undgå unødige re-renders.
         setOut((prevOut) => {
+          const newAcc = bestRecentAcc;
           if (
             prevOut &&
-            prevOut.pos[0] === prev.anchor[0] &&
-            prevOut.pos[1] === prev.anchor[1] &&
+            Math.abs(prevOut.pos[0] - refinedAnchor[0]) < 1e-7 &&
+            Math.abs(prevOut.pos[1] - refinedAnchor[1]) < 1e-7 &&
             prevOut.speedMps === 0 &&
-            prevOut.heading === prev.heading
+            prevOut.heading === prev.heading &&
+            prevOut.accuracyM === newAcc
           ) {
             return prevOut;
           }
-          return { pos: prev.anchor, heading: prev.heading, speedMps: 0 };
+          return { pos: refinedAnchor, heading: prev.heading, speedMps: 0, accuracyM: newAcc };
         });
         return;
       }
@@ -120,6 +185,9 @@ export const useGpsFilter = (raw: Fix | null): FilteredFix | null => {
         ...prev,
         anchor: [raw.lat, raw.lng],
         stationaryHits: 0,
+        recent,
+        bestRecentAcc,
+        bestRecentAccT,
       };
     }
 
@@ -151,7 +219,7 @@ export const useGpsFilter = (raw: Fix | null): FilteredFix | null => {
       speed,
       lastT: raw.t,
     };
-    setOut({ pos: filteredPos, heading, speedMps: speed });
+    setOut({ pos: filteredPos, heading, speedMps: speed, accuracyM: raw.accuracy });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [raw?.lat, raw?.lng, raw?.t]);
 
