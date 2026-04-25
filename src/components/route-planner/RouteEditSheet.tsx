@@ -13,14 +13,18 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Loader2, Sparkles, Trash2, Check } from "lucide-react";
-import { Palette, CalendarDays, Pencil } from "lucide-react";
+import { Palette, CalendarDays, Pencil, Gauge } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useUpdateRoute, useDeleteRoute, useOptimizeRoute, type Route } from "@/hooks/useRoutes";
+import { useUpdateRoute, useDeleteRoute, useOptimizeRoute, useDirections, type Route, type RouteStop } from "@/hooks/useRoutes";
 import { DatePickerField } from "./DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
+import { LiveStatusBadge, EtaDetailsButton, pickDuration } from "@/components/route/EtaBreakdown";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 export type RouteEmployeeOption = { id: string; name: string };
 
@@ -29,6 +33,8 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   stopCount: number;
+  /** Stops på ruten — bruges til at beregne live ETA for hele ruten. */
+  stops?: RouteStop[];
 };
 
 /** Navngivne farver — bruges i picker, til tooltips og demo-data. */
@@ -72,12 +78,16 @@ export const pickAvailableColor = (usedColors: string[]): string => {
 };
 
 export const RouteEditSheet = ({
-  route, open, onOpenChange, stopCount,
+  route, open, onOpenChange, stopCount, stops = [],
 }: Props) => {
   const [name, setName] = useState("");
   const [color, setColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [date, setDate] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [showRawTime, setShowRawTime] = useState(false);
+  // depart_at ISO — null = "nu". Når brugeren ændrer afgangstid, kan ETA flytte
+  // sig (myldretid kontra midt-på-dagen).
+  const [departAt, setDepartAt] = useState<string | null>(null);
   const initialSyncDone = useRef(false);
 
   const updateRoute = useUpdateRoute();
@@ -90,7 +100,27 @@ export const RouteEditSheet = ({
     setColor(route.color || ROUTE_COLOR_PALETTE[0]);
     setDate(route.route_date);
     initialSyncDone.current = false;
+    // Reset depart_at hver gang en ny rute åbnes
+    setDepartAt(null);
   }, [route?.id]);
+
+  // Beregn waypoints for hele ruten — start (hvis sat) + alle stop i rækkefølge.
+  const waypoints = useMemo(() => {
+    if (!route || stops.length < 2) return null;
+    const sorted = [...stops]
+      .filter((s) => s.latitude != null && s.longitude != null)
+      .sort((a, b) => a.sequence - b.sequence)
+      .map((s) => ({ lat: Number(s.latitude), lng: Number(s.longitude) }));
+    if (route.start_latitude != null && route.start_longitude != null) {
+      sorted.unshift({ lat: Number(route.start_latitude), lng: Number(route.start_longitude) });
+    }
+    return sorted.length >= 2 ? sorted : null;
+  }, [route, stops]);
+
+  const { data: routeDirections } = useDirections(waypoints, {
+    departAt: departAt || undefined,
+    businessId: route?.business_id,
+  });
 
   const dirty =
     (route?.name || "") !== name ||
@@ -118,6 +148,22 @@ export const RouteEditSheet = ({
     return () => window.clearTimeout(timeout);
   }, [route, open, dirty, pendingPayload, updateRoute]);
 
+  // Forslag til afgangstider — "nu" + udvalgte timer på dagen, så brugeren
+  // kan se hvordan ETA ændrer sig (myldretid kontra midt-på-dagen).
+  const departOptions = useMemo(() => {
+    if (!date) return [] as Array<{ label: string; value: string | null }>;
+    const base = parseISO(`${date}T08:00:00`);
+    const opts: Array<{ label: string; value: string | null }> = [
+      { label: "Nu", value: null },
+    ];
+    [7, 8, 9, 12, 14, 15, 16, 17].forEach((h) => {
+      const d = new Date(base);
+      d.setHours(h, 0, 0, 0);
+      opts.push({ label: `kl. ${String(h).padStart(2, "0")}:00`, value: d.toISOString() });
+    });
+    return opts;
+  }, [date]);
+
   if (!route) return null;
 
   const handleDelete = async () => {
@@ -138,6 +184,14 @@ export const RouteEditSheet = ({
       );
     } catch { /* */ }
   };
+
+  const formatMinShort = (s: number) => {
+    const m = Math.round(s / 60);
+    if (m < 60) return `${m} min`;
+    return `${Math.floor(m / 60)}t ${m % 60}m`;
+  };
+
+  const displayDuration = routeDirections ? pickDuration(routeDirections, showRawTime) : null;
 
   return (
     <>
@@ -212,6 +266,63 @@ export const RouteEditSheet = ({
             >
               <DatePickerField value={date} onChange={setDate} />
             </Section>
+
+            {/* ETA-sektion — kun når ruten har nok stops til en beregning */}
+            {waypoints && (
+              <Section
+                icon={<Gauge className="h-3.5 w-3.5" />}
+                title="Estimeret rejsetid"
+                hint={routeDirections ? `${(routeDirections.distance_m! / 1000).toFixed(1)} km` : undefined}
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-card p-3">
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">
+                        {showRawTime ? "Rå Mapbox-tid" : "Korrigeret ETA (DK-buffer)"}
+                      </p>
+                      <p className="text-xl font-bold tabular-nums">
+                        {displayDuration != null ? formatMinShort(displayDuration) : "—"}
+                      </p>
+                    </div>
+                    {routeDirections && (
+                      <div className="flex flex-col items-end gap-1">
+                        <LiveStatusBadge info={routeDirections} compact />
+                        <EtaDetailsButton
+                          info={routeDirections}
+                          showRaw={showRawTime}
+                          onToggleRaw={setShowRawTime}
+                          compact
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1.5">
+                      Afgangstid
+                    </p>
+                    <Select
+                      value={departAt ?? "now"}
+                      onValueChange={(v) => setDepartAt(v === "now" ? null : v)}
+                    >
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departOptions.map((o) => (
+                          <SelectItem key={o.value ?? "now"} value={o.value ?? "now"}>
+                            {o.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="mt-1 text-[10px] text-muted-foreground">
+                      Skift afgangstid for at se hvordan trafikken påvirker ETA.
+                    </p>
+                  </div>
+                </div>
+              </Section>
+            )}
           </div>
 
           {/* Footer actions */}
