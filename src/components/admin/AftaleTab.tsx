@@ -17,19 +17,23 @@ import {
   ChevronDown, ChevronUp, Clock, Mail, Phone, ArrowRight,
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
   Play, Pause, Search, Route as RouteIcon, MapPin, Plus as PlusIcon,
-  GripVertical, Loader2, Tag, Palette,
+  GripVertical, Loader2, Tag, Palette, Trash2,
 } from "lucide-react";
 import {
-  DndContext, PointerSensor, useSensor, useSensors,
+  DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
   pointerWithin, useDraggable, useDroppable,
   type DragStartEvent, type DragEndEvent,
 } from "@dnd-kit/core";
 import { INTERVAL_LABELS } from "@/types/service";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
-import { useRoutesForRange, useStopsForRoutes, useAddStop, useCreateRoute } from "@/hooks/useRoutes";
+import { useRoutesForRange, useStopsForRoutes, useAddStop, useCreateRoute, useDeleteRoute } from "@/hooks/useRoutes";
 import { ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   buildPricingSnapshot,
   getSmartStep,
@@ -243,10 +247,10 @@ const formatStopStatus = (s?: string | null) => (s ? STOP_STATUS_LABELS[s] || s 
 const formatRouteStatus = (s?: string | null) => (s ? ROUTE_STATUS_LABELS[s] || s : "");
 
 /* ─── Drag & drop helpers (samme @dnd-kit setup som Ruteplanlæggeren) ─── */
-const OrderDragHandle = ({ orderId }: { orderId: string }) => {
+const OrderDragHandle = ({ orderId, order }: { orderId: string; order: any }) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `order-${orderId}`,
-    data: { type: "order", orderId },
+    data: { type: "order", orderId, order },
   });
   return (
     <button
@@ -663,6 +667,11 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   // Vi tracker hvilken aftale der pt. trækkes (for visuel feedback) og hvilken
   // rute der "hovers" over, så vi kan highlighte dropzonen.
   const [draggingOrderId, setDraggingOrderId] = useState<string | null>(null);
+  // Aktiv drag-data — bruges af DragOverlay til at vise et "flydende" kort
+  // mens aftalen trækkes hen over rute-poolen (samme UX som Ruteplanlæggeren).
+  const [activeDragOrder, setActiveDragOrder] = useState<any | null>(null);
+  // Bekræftelses-dialog inden en rute slettes permanent.
+  const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
 
   // Ruter for de næste 14 dage (incl. i dag) — det vindue virksomhedsejeren
   // typisk planlægger inden for. Sidebar-poolen viser disse ruter.
@@ -675,6 +684,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   const { data: poolStops } = useStopsForRoutes(poolRouteIds);
   const addStop = useAddStop();
   const createRoute = useCreateRoute();
+  const deleteRoute = useDeleteRoute();
 
   // Hent route-stops for alle ordrer i denne forretning, så vi kan vise hvilken
   // rute hver aftale er placeret på (dato, rute-navn, sekvens og status).
@@ -1032,6 +1042,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       onDragEnd={(e: DragEndEvent) => {
         const { active, over } = e;
         setDraggingOrderId(null);
+        setActiveDragOrder(null);
         const a: any = active.data.current;
         // Kun aftale-drag er understøttet i denne fane.
         if (a?.type !== "order") return;
@@ -1063,9 +1074,12 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       }}
       onDragStart={(e: DragStartEvent) => {
         const a: any = e.active.data.current;
-        if (a?.type === "order") setDraggingOrderId(a.orderId);
+        if (a?.type === "order") {
+          setDraggingOrderId(a.orderId);
+          setActiveDragOrder(a.order || null);
+        }
       }}
-      onDragCancel={() => { setDraggingOrderId(null); }}
+      onDragCancel={() => { setDraggingOrderId(null); setActiveDragOrder(null); }}
     >
       <div className="space-y-5">
       <PageHeader
@@ -1295,7 +1309,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                     <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex min-w-0 items-start gap-2.5">
                         {/* Drag-håndtag (samme @dnd-kit-mønster som Ruteplanlæggeren). */}
-                        {canDragToRoute && <OrderDragHandle orderId={order.id} />}
+                        {canDragToRoute && <OrderDragHandle orderId={order.id} order={order} />}
                         {/* Ikon-badge — viser service-kategori-ikon (samme som Services-fanen) */}
                         <div
                           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground"
@@ -1694,9 +1708,24 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                               {rDate.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" })}
                             </p>
                           </div>
-                          <span className="shrink-0 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                            {stopsForRoute.length} stop
-                          </span>
+                          <div className="flex shrink-0 items-center gap-1">
+                            <span className="rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                              {stopsForRoute.length} stop
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setRouteToDelete({ id: route.id, name: route.name || "Rute" });
+                              }}
+                              aria-label="Slet rute"
+                              title="Slet rute"
+                              className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-transparent text-muted-foreground transition-colors hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </div>
                         {isOver && (
                           <p className="mt-2 rounded-md bg-foreground/5 px-2 py-1 text-center text-[11px] font-medium text-foreground">
@@ -1790,6 +1819,60 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
         </DialogContent>
       </Dialog>
       </div>
+
+      {/* Slet rute bekræftelse — samme UX som i Ruteplanlæggeren. */}
+      <AlertDialog open={!!routeToDelete} onOpenChange={(o) => !o && setRouteToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Slet rute?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{routeToDelete?.name}</strong> og alle dens stops slettes permanent.
+              Tilkoblede medarbejdere fjernes fra ruten, og aftalerne ryger tilbage i aftalepoolen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annullér</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (routeToDelete) {
+                  deleteRoute.mutate(routeToDelete.id, {
+                    onSuccess: () => toast.success(`${routeToDelete.name} slettet`),
+                  });
+                  setRouteToDelete(null);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Slet rute
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* DragOverlay — viser et flydende kort med kundenavn og pris mens
+          aftalen trækkes (samme visuelle feedback som Ruteplanlæggeren). */}
+      <DragOverlay>
+        {draggingOrderId && activeDragOrder && (
+          <div
+            className="rounded-md border border-accent bg-card px-2.5 py-2 shadow-xl w-[200px] cursor-grabbing"
+            style={{ transform: "rotate(-2deg)" }}
+          >
+            <div className="flex items-center justify-between gap-1.5">
+              <p className="text-xs font-semibold truncate text-foreground">
+                {activeDragOrder.customer_name || "Aftale"}
+              </p>
+              <span className="text-[10px] font-bold text-accent shrink-0 tabular-nums">
+                {Math.round(Number(activeDragOrder.total_amount || 0))} kr
+              </span>
+            </div>
+            {activeDragOrder.address && (
+              <p className="mt-0.5 text-[10px] text-muted-foreground truncate">
+                {activeDragOrder.address}
+              </p>
+            )}
+          </div>
+        )}
+      </DragOverlay>
     </DndContext>
   );
 };
