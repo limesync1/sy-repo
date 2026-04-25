@@ -725,6 +725,8 @@ const AftaleTab = ({
     return acc;
   }, {});
 
+  const dndSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+
   if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser aftaler...</p>;
 
   const servicesById = (services || []).reduce<Record<string, BusinessService>>((acc, s) => {
@@ -1055,7 +1057,7 @@ const AftaleTab = ({
 
   return (
     <DndContext
-      sensors={useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))}
+      sensors={dndSensors}
       collisionDetection={pointerWithin}
       onDragEnd={(e: DragEndEvent) => {
         const { active, over } = e;
