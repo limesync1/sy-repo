@@ -1923,24 +1923,24 @@ const StopListPanel = ({
       aria-hidden={false}
     >
       <div
-        className="pointer-events-auto mx-auto w-full max-w-3xl bg-card shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.12)] rounded-t-xl transition-transform duration-300 ease-out border-t border-x border-border"
+        className="pointer-events-auto mx-auto w-full max-w-3xl bg-card shadow-[0_-12px_32px_-12px_rgba(0,0,0,0.18)] rounded-t-2xl transition-transform duration-300 ease-out border-t border-x border-border"
         style={{
           transform: open ? "translateY(0)" : "translateY(calc(100% - 46px))",
           maxHeight: "65vh",
         }}
       >
-        {/* Kompakt rail — kun 38px høj når lukket */}
+        {/* Kompakt rail — kun 46px høj når lukket */}
         <button
           type="button"
           onClick={onToggle}
-          className="w-full flex items-center gap-2 px-3 h-[46px] hover:bg-secondary/60 active:bg-secondary transition-colors rounded-t-xl relative"
+          className="w-full flex items-center gap-2.5 px-4 h-[46px] hover:bg-secondary/60 active:bg-secondary transition-colors rounded-t-2xl relative"
           aria-expanded={open}
           aria-label={open ? "Skjul stop-liste" : "Vis stop-liste"}
         >
-          <span className="h-1 w-10 rounded-full bg-muted-foreground/30 absolute left-1/2 -translate-x-1/2 top-1.5" />
-          <List className="h-4 w-4 text-muted-foreground" />
-          <span className="text-xs font-semibold text-foreground">Alle stop</span>
-          <Badge variant="secondary" className="tabular-nums text-[10px] h-4 px-1.5 font-bold">
+          <span className="h-1 w-10 rounded-full bg-muted-foreground/40 absolute left-1/2 -translate-x-1/2 top-1.5" />
+          <List className="h-[15px] w-[15px] text-muted-foreground" />
+          <span className="text-xs font-bold text-foreground">Alle stop</span>
+          <Badge variant="secondary" className="tabular-nums text-[10px] h-5 px-1.5 font-bold rounded-md">
             {done}/{total}
           </Badge>
           {/* Mini progress dots — kompakt */}
@@ -1984,15 +1984,15 @@ const StopListPanel = ({
                 key={s.id}
                 onClick={() => onSelectStop(s)}
                 onDoubleClick={() => onOpenDetails(s)}
-                className={`w-full text-left p-2.5 rounded-lg border flex items-stretch gap-2.5 transition-all hover:bg-muted/50 ${
+                className={`w-full text-left p-3 rounded-xl border flex items-stretch gap-3 transition-all hover:bg-muted/40 active:scale-[0.99] ${
                   isHl ? "ring-2 ring-ring ring-offset-1" : ""
                 } ${isDone ? "opacity-60" : ""} ${
                   isNext
-                    ? "border-foreground/40 bg-secondary/40"
+                    ? "border-foreground/30 bg-secondary/40 shadow-sm"
                     : "border-border bg-card"
                 }`}
                 style={{
-                  borderLeftWidth: isNext ? 3 : 1,
+                  borderLeftWidth: isNext ? 4 : 1,
                   borderLeftColor: isNext
                     ? "hsl(var(--foreground))"
                     : isDone
@@ -2001,9 +2001,9 @@ const StopListPanel = ({
                 }}
               >
                 {/* Tids-kolonne — kalender-stil */}
-                <div className="flex flex-col items-center justify-start pt-0.5 w-10 shrink-0">
+                <div className="flex flex-col items-center justify-start pt-0.5 w-11 shrink-0">
                   <span
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg font-semibold text-[12px] shrink-0 text-background ${
+                    className={`flex h-9 w-9 items-center justify-center rounded-xl font-bold text-[13px] shrink-0 text-background shadow-sm ${
                       isDone
                         ? "bg-emerald-500"
                         : isNext
@@ -2014,42 +2014,42 @@ const StopListPanel = ({
                     {isDone ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
                   </span>
                   {plannedTime && (
-                    <span className="text-[9px] text-muted-foreground tabular-nums font-semibold mt-1">
+                    <span className="text-[10px] text-muted-foreground tabular-nums font-bold mt-1.5 leading-none">
                       {plannedTime}
                     </span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className={`font-semibold text-sm truncate ${isDone ? "line-through text-muted-foreground" : ""}`}>
+                    <p className={`font-bold text-[14px] truncate ${isDone ? "line-through text-muted-foreground" : "text-foreground"}`}>
                       {s.customer_name || "Stop"}
                     </p>
                     <Badge
-                      className="text-[9px] h-4 px-1.5 border-0 font-semibold uppercase tracking-wide gap-1"
+                      className="text-[9px] h-5 px-2 border-0 font-bold uppercase tracking-wider gap-1 rounded-full"
                       style={{ background: meta.bg, color: meta.text }}
                     >
                       <span
-                        className={`h-1 w-1 rounded-full ${isNext ? "animate-pulse" : ""}`}
+                        className={`h-1.5 w-1.5 rounded-full ${isNext ? "animate-pulse" : ""}`}
                         style={{ background: meta.dot }}
                       />
                       {meta.label}
                     </Badge>
                   </div>
                   {s.address && (
-                    <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
-                      <MapPin className="h-2.5 w-2.5 shrink-0" />{s.address}
+                    <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-1">
+                      <MapPin className="h-3 w-3 shrink-0" />{s.address}
                     </p>
                   )}
                   {s.duration_minutes > 0 && (
                     <p className="text-[10px] text-muted-foreground tabular-nums mt-0.5 flex items-center gap-1">
-                      <Clock className="h-2.5 w-2.5" />~{s.duration_minutes} min
+                      <Clock className="h-3 w-3" />~{s.duration_minutes} min
                     </p>
                   )}
                 </div>
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onOpenDetails(s); }}
-                  className="text-[10px] font-semibold text-muted-foreground hover:text-foreground shrink-0 px-2 py-1 rounded-md hover:bg-secondary self-center transition-colors"
+                  className="text-[10px] font-bold text-muted-foreground hover:text-foreground shrink-0 px-2.5 py-1.5 rounded-lg hover:bg-secondary self-center transition-colors uppercase tracking-wider"
                 >
                   Detaljer
                 </button>
