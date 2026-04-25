@@ -418,6 +418,7 @@ const EmployeeApp = () => {
                         const arrivalLabel = s.planned_arrival
                           ? format(new Date(s.planned_arrival), "HH:mm")
                           : null;
+                        const pay = paymentMeta(s.order_status);
                         return (
                           <div
                             key={s.id}
@@ -428,7 +429,7 @@ const EmployeeApp = () => {
                             <span
                               className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
                                 s.status === "completed"
-                                  ? "bg-emerald-500/10 text-emerald-600"
+                                  ? "bg-feature-cool text-feature-cool-foreground"
                                   : isNext
                                     ? "bg-foreground text-background ring-2 ring-foreground/15"
                                     : "bg-secondary text-foreground"
@@ -451,11 +452,21 @@ const EmployeeApp = () => {
                                   </span>
                                 )}
                               </p>
-                              {s.address && (
-                                <p className="truncate text-[11px] text-muted-foreground">
-                                  {s.address}
-                                </p>
-                              )}
+                              <div className="mt-1 flex min-w-0 flex-wrap items-center gap-1.5">
+                                {s.address && (
+                                  <p className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+                                    {s.address}
+                                  </p>
+                                )}
+                                <Badge variant="outline" className={cn("h-5 shrink-0 px-1.5 text-[10px] font-medium", pay.className)}>
+                                  {pay.label}
+                                </Badge>
+                                {s.order_amount != null && (
+                                  <span className="shrink-0 rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground">
+                                    {formatKr(s.order_amount)}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             {arrivalLabel && (
                               <span className="shrink-0 rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground">
