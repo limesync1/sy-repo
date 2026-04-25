@@ -298,8 +298,8 @@ const SettingsTab = ({ business }: { business: any }) => {
         </a>
       </div>
 
-      {/* ─── Sub-nav chips — samme stil som status-filter på Medarbejdere ─── */}
-      <div className="flex flex-wrap gap-2">
+      {/* ─── Sub-nav chips (mobil/tablet) — sticky sidebar bruges på xl ─── */}
+      <div className="flex flex-wrap gap-2 xl:hidden">
         {SECTIONS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -317,6 +317,33 @@ const SettingsTab = ({ business }: { business: any }) => {
         ))}
       </div>
 
+      {/* ─── To-kolonne på xl: sticky sidebar + indhold ─── */}
+      <div className="grid gap-5 xl:grid-cols-[220px_minmax(0,1fr)] xl:items-start">
+        {/* Sticky sidebar nav (kun xl) */}
+        <aside className="hidden xl:block xl:sticky xl:top-4">
+          <nav className="flex flex-col gap-1 rounded-xl border border-border/80 bg-card p-2 shadow-sm">
+            {SECTIONS.map(({ id, label, icon: Icon, hint }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => scrollToSection(id)}
+                className={`flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors ${
+                  activeSection === id
+                    ? "bg-secondary text-foreground"
+                    : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+                }`}
+              >
+                <Icon className="mt-0.5 h-4 w-4 shrink-0" />
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium leading-tight">{label}</span>
+                  <span className="mt-0.5 block text-[11px] text-muted-foreground">{hint}</span>
+                </span>
+              </button>
+            ))}
+          </nav>
+        </aside>
+
+        <div className="space-y-4">
       {/* ─── CVR Lookup — fuld bredde, øverst ─── */}
       <SectionCard
         title="Automatisk udfyldning fra CVR"
@@ -355,11 +382,11 @@ const SettingsTab = ({ business }: { business: any }) => {
         )}
       </SectionCard>
 
-      {/* ─── Hovedindhold: 2-kolonne grid på store skærme ─── */}
-      <div className="grid gap-4 xl:grid-cols-2 xl:items-start">
-        {/* Generelt */}
+      {/* ─── Hovedindhold: 1-kolonne (sidebar håndterer navigation) ─── */}
+      <div className="grid gap-4">
+        {/* Generelt — kun navn + beskrivelse */}
         <div id="settings-general" className="scroll-mt-6">
-          <SectionCard title="Generelt" icon={<Building2 />} description="Virksomhedsnavn, beskrivelse og brancher.">
+          <SectionCard title="Virksomhed" icon={<Building2 />} description="Virksomhedsnavn og beskrivelse.">
             <div className="space-y-4">
               <div>
                 <FieldLabel>Virksomhedsnavn</FieldLabel>
@@ -370,16 +397,42 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <Textarea placeholder="Hvad gør din virksomhed? Hvad er jeres speciale?" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={500} className="bg-card rounded-lg" />
                 <p className="mt-1 text-xs text-muted-foreground">{description.length}/500 tegn</p>
               </div>
+            </div>
+          </SectionCard>
+        </div>
+
+        {/* Brancher — egen sektion med kategorier underneden */}
+        <div id="settings-industries" className="scroll-mt-6">
+          <SectionCard
+            title="Brancher & kategorier"
+            icon={<Sparkles />}
+            description="Vælg jeres brancher og hvilke konkrete kategorier I tilbyder. Det styrer alt — services, søgning og forslag."
+          >
+            <div className="space-y-5">
               <div>
-                <FieldLabel>Brancher</FieldLabel>
+                <FieldLabel>Hvilke brancher tilhører I?</FieldLabel>
                 <p className="-mt-1 mb-2.5 text-xs text-muted-foreground">
-                  Vælg de brancher der præcist matcher jeres ydelser. Branchevalget styrer hvilke services I kan oprette.
+                  Vælg én eller flere. Default vælges alle underkategorier — du kan justere længere nede.
                 </p>
                 <IndustryPicker
                   selected={selectedCategories}
                   onToggle={toggleSettingsCategory}
                 />
               </div>
+
+              {selectedCategories.length > 0 && (
+                <div className="border-t border-border pt-4">
+                  <FieldLabel>Hvilke kategorier vil I tilbyde?</FieldLabel>
+                  <p className="-mt-1 mb-3 text-xs text-muted-foreground">
+                    Underkategorier I IKKE vælger her bliver heller ikke foreslået, når I opretter services.
+                  </p>
+                  <SubcategoryPicker
+                    selectedIndustries={selectedCategories}
+                    selectedSubcategories={selectedSubcategories}
+                    onToggle={toggleSubcategory}
+                  />
+                </div>
+              )}
             </div>
           </SectionCard>
         </div>
@@ -475,8 +528,8 @@ const SettingsTab = ({ business }: { business: any }) => {
           </SectionCard>
         </div>
 
-        {/* Notifikationer — strækker sig over begge kolonner */}
-        <div id="settings-notifications" className="scroll-mt-6 xl:col-span-2">
+        {/* Notifikationer */}
+        <div id="settings-notifications" className="scroll-mt-6">
           <SectionCard
             title="Notifikationer"
             icon={<Bell />}
@@ -504,8 +557,8 @@ const SettingsTab = ({ business }: { business: any }) => {
           </SectionCard>
         </div>
 
-        {/* Avanceret — strækker sig over begge kolonner */}
-        <div id="settings-advanced" className="scroll-mt-6 xl:col-span-2">
+        {/* Avanceret */}
+        <div id="settings-advanced" className="scroll-mt-6">
           <SectionCard title="Avanceret" icon={<Settings />} description="Aktivér ekstra funktioner til din virksomhed.">
             <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
               <div className="flex items-start gap-3 min-w-0">
@@ -521,26 +574,9 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
               <ToggleSwitch checked={routePlanningEnabled} onChange={() => setRoutePlanningEnabled((v) => !v)} />
             </div>
-
-            {routePlanningEnabled && (
-              <div className="mt-4 rounded-lg border border-border bg-card p-4 space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                    <Route className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground">Trafik-buffer pr. område</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Mapbox' rejsetid er tæt på Google Maps, men undervurderer
-                      ofte trafikken i Storkøbenhavn og bymidter. Tilføj
-                      område-overrides for at finjustere ETA pr. postnummer.
-                    </p>
-                  </div>
-                </div>
-                <TrafficOverridesSection businessId={business.id} />
-              </div>
-            )}
           </SectionCard>
+        </div>
+      </div>
         </div>
       </div>
 
