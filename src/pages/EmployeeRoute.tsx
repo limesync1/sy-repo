@@ -231,6 +231,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   >(null);
   const trafficSpokenRef = useRef<string | null>(null);
 
+  // Off-route detection — vi tæller hvor mange GPS-fixes i træk vi har set
+  // brugeren langt fra ruten, så vi kun kalder en reroute når der er reel
+  // afvigelse (ikke et enkelt jitter-fix).
+  const queryClient = useQueryClient();
+  const offRouteStreakRef = useRef(0);
+  const lastRerouteAtRef = useRef(0);
+  const rerouteSpokenStopRef = useRef<string | null>(null);
+  const [isRerouting, setIsRerouting] = useState(false);
+
   /* Geolocation permission — husk på tværs af sessioner.
    * Browseren persisterer selv "granted/denied" pr. origin, men hvis
    * tilstanden er "granted" ønsker vi at starte watcheren med det samme,
@@ -267,7 +276,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         }
       },
       () => {},
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 },
+      { enableHighAccuracy: true, maximumAge: 1500, timeout: 10000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
   }, [routeStarted, geoPermission]);
