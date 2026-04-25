@@ -730,11 +730,19 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
     o.status === "pending" && o.business_response === "adjusted" && !o.customer_response
   ) || [];
 
-  const baseFilteredOrders = filter === "all" ? orders
+  // En aftale er "aktiv" når den hverken er udført eller annulleret. Det er det
+  // primære arbejdsområde for virksomhedsejeren.
+  const activeOrders = (orders || []).filter(o => !["completed", "cancelled"].includes(o.status));
+  const notPlannedOrders = activeOrders.filter(o => !stopByOrder[o.id]);
+  const inRouteOrders = activeOrders.filter(o => stopByOrder[o.id]);
+
+  const baseFilteredOrders =
+    filter === "all" ? orders
+    : filter === "active" ? activeOrders
     : filter === "action_needed" ? actionNeeded
     : filter === "waiting" ? waitingForCustomer
-    : filter === "in_route" ? orders?.filter(o => stopByOrder[o.id])
-    : filter === "not_planned" ? orders?.filter(o => !stopByOrder[o.id] && !["completed","cancelled"].includes(o.status))
+    : filter === "not_planned" ? notPlannedOrders
+    : filter === "in_route" ? inRouteOrders
     : orders?.filter(o => o.status === filter);
 
   // Søgning på kundenavn, e-mail, telefon, adresse og service-navne
