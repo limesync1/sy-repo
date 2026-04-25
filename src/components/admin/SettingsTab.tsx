@@ -874,3 +874,142 @@ const SubcategoryPicker = ({
     </div>
   );
 };
+
+/* ─── HoursEditor — brugervenlig åbningstider-editor ───
+ * Erstatter den tidligere fri-tekst Input med:
+ *  - Toggle pr. dag (åben / lukket)
+ *  - Time-pickers for fra/til (native <input type="time">)
+ *  - "Anvend på alle åbne dage" knap der kopierer en dags tider
+ *  - Hurtige preset-knapper (Hverdage 8-16, Hver dag 8-18, Lukket weekend)
+ * Gemmer stadig i samme format ("08:00 - 16:00") så resten af systemet er uberørt. */
+const HoursEditor = ({
+  value,
+  onChange,
+}: {
+  value: Record<string, string>;
+  onChange: (next: Record<string, string>) => void;
+}) => {
+  const setDay = (day: string, open: string | null, close: string | null) => {
+    const next = { ...value };
+    if (open && close) next[day] = formatHours(open, close);
+    else delete next[day];
+    onChange(next);
+  };
+
+  const applyToAll = (sourceDay: string) => {
+    const src = parseHours(value[sourceDay] || "");
+    if (!src) return;
+    const next: Record<string, string> = {};
+    DAYS.forEach((d) => {
+      // Bevar lukkede dage som lukkede; sæt åbne dage til samme tider
+      if (value[d] || d === sourceDay) next[d] = formatHours(src.open, src.close);
+    });
+    onChange(next);
+  };
+
+  const applyPreset = (preset: "weekdays" | "everyday" | "clear") => {
+    if (preset === "clear") return onChange({});
+    const open = "08:00";
+    const close = preset === "weekdays" ? "16:00" : "18:00";
+    const days = preset === "weekdays" ? WEEKDAYS : DAYS;
+    const next: Record<string, string> = {};
+    days.forEach((d) => { next[d] = formatHours(open, close); });
+    onChange(next);
+  };
+
+  return (
+    <div className="space-y-3">
+      {/* Hurtige presets — sætter typiske åbningstider med ét klik */}
+      <div className="flex flex-wrap gap-1.5">
+        <button
+          type="button"
+          onClick={() => applyPreset("weekdays")}
+          className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          Hverdage 08–16
+        </button>
+        <button
+          type="button"
+          onClick={() => applyPreset("everyday")}
+          className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          Alle dage 08–18
+        </button>
+        <button
+          type="button"
+          onClick={() => applyPreset("clear")}
+          className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+        >
+          Nulstil alle
+        </button>
+      </div>
+
+      <div className="space-y-1.5">
+        {DAYS.map((day) => {
+          const parsed = parseHours(value[day] || "");
+          const isOpen = !!parsed;
+          const open = parsed?.open || "08:00";
+          const close = parsed?.close || "16:00";
+          return (
+            <div
+              key={day}
+              className={`flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
+                isOpen ? "border-border bg-secondary/40" : "border-border bg-card"
+              }`}
+            >
+              {/* Dag + toggle */}
+              <button
+                type="button"
+                onClick={() => isOpen ? setDay(day, null, null) : setDay(day, open, close)}
+                className="flex items-center gap-2 min-w-[140px] sm:min-w-[160px]"
+              >
+                <span
+                  aria-pressed={isOpen}
+                  className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors ${
+                    isOpen ? "bg-accent" : "bg-border"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm transition-transform mt-0.5 ${
+                      isOpen ? "translate-x-4 ml-0.5" : "translate-x-0.5"
+                    }`}
+                  />
+                </span>
+                <span className="text-sm font-medium text-foreground">{day}</span>
+                {!isOpen && <span className="text-xs text-muted-foreground">Lukket</span>}
+              </button>
+
+              {isOpen && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="time"
+                      value={open}
+                      onChange={(e) => setDay(day, e.target.value || "08:00", close)}
+                      className="h-9 w-[110px] bg-background rounded-lg text-sm tabular-nums"
+                    />
+                    <span className="text-xs text-muted-foreground">til</span>
+                    <Input
+                      type="time"
+                      value={close}
+                      onChange={(e) => setDay(day, open, e.target.value || "16:00")}
+                      className="h-9 w-[110px] bg-background rounded-lg text-sm tabular-nums"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => applyToAll(day)}
+                    className="ml-auto text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                    title="Kopiér disse tider til alle åbne dage"
+                  >
+                    Anvend på alle
+                  </button>
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
