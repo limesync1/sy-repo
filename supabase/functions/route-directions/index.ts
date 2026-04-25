@@ -3,12 +3,74 @@
 // between an ordered list of waypoints. Falls back to a straight line when
 // Mapbox is unavailable.
 
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 type LatLng = { lat: number; lng: number };
+
+type Override = {
+  zip_prefix: string;
+  multiplier: number;
+  label: string | null;
+  hour_start: number | null;
+  hour_end: number | null;
+  weekdays_only: boolean;
+};
+
+/** Reverse-geocode et koordinat → dansk postnummer via Mapbox places. */
+async function lookupZip(lat: number, lng: number, token: string): Promise<string | null> {
+  try {
+    const url =
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json` +
+      `?country=dk&types=postcode&limit=1&access_token=${token}`;
+    const r = await fetch(url, { signal: AbortSignal.timeout(4000) });
+    if (!r.ok) return null;
+    const json = await r.json();
+    const zip = json?.features?.[0]?.text;
+    return typeof zip === "string" ? zip : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Match en zip mod listen af overrides (længste prefix vinder). Returnerer
+ *  den højeste relevante multiplikator (mest konservative ETA). */
+function matchOverride(
+  zip: string | null,
+  overrides: Override[],
+  localTime: Date,
+): { mult: number; label: string | null; zip: string | null } | null {
+  if (!zip || overrides.length === 0) return null;
+  const hour = localTime.getHours() + localTime.getMinutes() / 60;
+  const day = localTime.getDay();
+  const isWeekend = day === 0 || day === 6;
+
+  const candidates = overrides
+    .filter((o) => zip.startsWith(o.zip_prefix))
+    .filter((o) => !o.weekdays_only || !isWeekend)
+    .filter((o) => {
+      if (o.hour_start == null || o.hour_end == null) return true;
+      // Tidsvindue (24-timers, kan krydse midnat hvis end < start)
+      return o.hour_end > o.hour_start
+        ? hour >= o.hour_start && hour < o.hour_end
+        : hour >= o.hour_start || hour < o.hour_end;
+    });
+  if (candidates.length === 0) return null;
+
+  // Vælg længste zip-prefix-match (mest specifik), brug højeste multiplikator
+  // ved tie.
+  candidates.sort((a, b) => {
+    const lenDiff = b.zip_prefix.length - a.zip_prefix.length;
+    if (lenDiff !== 0) return lenDiff;
+    return b.multiplier - a.multiplier;
+  });
+  const winner = candidates[0];
+  return { mult: winner.multiplier, label: winner.label, zip };
+}
 
 /**
  * Realistisk trafik-buffer for danske veje. Mapbox' driving-traffic giver
@@ -49,7 +111,12 @@ function trafficMultiplier(departLocal: Date, distanceKm: number): number {
   return mult;
 }
 
-async function mapboxDirections(coords: LatLng[], token: string, departAt?: string) {
+async function mapboxDirections(
+  coords: LatLng[],
+  token: string,
+  departAt?: string,
+  overrides: Override[] = [],
+) {
   const coordStr = coords.map((c) => `${c.lng},${c.lat}`).join(";");
   // Vi henter ALTERNATIVES og vælger den rute med korteste *real-time* duration
   // (driving-traffic profilen). Det matcher hvordan Google Maps vælger den
@@ -125,8 +192,24 @@ async function mapboxDirections(coords: LatLng[], token: string, departAt?: stri
   const dkOffsetH = isDST ? 2 : 1;
   const localTime = new Date(departDate.getTime() + dkOffsetH * 3600 * 1000);
   const distanceKm = (route.distance ?? 0) / 1000;
-  const mult = trafficMultiplier(localTime, distanceKm);
+  const baseMult = trafficMultiplier(localTime, distanceKm);
+
+  // Slå destination's postnummer op (sidste waypoint) for at se om der er
+  // en bruger-defineret override for området.
+  let overrideMatch: { mult: number; label: string | null; zip: string | null } | null = null;
+  if (overrides.length > 0) {
+    const lastWp = coords[coords.length - 1];
+    const zip = await lookupZip(lastWp.lat, lastWp.lng, token);
+    overrideMatch = matchOverride(zip, overrides, localTime);
+  }
+
+  // Override har forrang over basis-multiplikator (men vi tager den højeste
+  // af de to, så vi ikke ender med ETA der er kortere end basis-modellen).
+  const mult = overrideMatch ? Math.max(baseMult, overrideMatch.mult) : baseMult;
   const adjustedDuration = route.duration * mult;
+  const departIsFuture = departAt
+    ? Math.abs(new Date(departAt).getTime() - Date.now()) > 5 * 60 * 1000
+    : false;
 
   return {
     geometry: route.geometry, // GeoJSON LineString
@@ -137,6 +220,12 @@ async function mapboxDirections(coords: LatLng[], token: string, departAt?: stri
     // duration_typical_s = uden trafik, hvis Mapbox returnerer det
     duration_typical_s: route.duration_typical ?? null,
     traffic_multiplier: mult,
+    base_multiplier: baseMult,
+    override_applied: overrideMatch
+      ? { zip: overrideMatch.zip, label: overrideMatch.label, multiplier: overrideMatch.mult }
+      : null,
+    depart_at: departAt ?? new Date().toISOString(),
+    depart_is_future: departIsFuture,
     steps,
     provider: "mapbox" as const,
     alternatives_count: routes.length,
@@ -150,6 +239,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const wp: LatLng[] = body?.waypoints || [];
     const departAt: string | undefined = typeof body?.depart_at === "string" ? body.depart_at : undefined;
+    const businessId: string | undefined = typeof body?.business_id === "string" ? body.business_id : undefined;
     if (!Array.isArray(wp) || wp.length < 2) {
       return new Response(JSON.stringify({ error: "Mindst 2 waypoints kræves" }), {
         status: 400,
@@ -166,9 +256,38 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Hent eventuelle overrides for denne business
+    let overrides: Override[] = [];
+    if (businessId) {
+      try {
+        const supaUrl = Deno.env.get("SUPABASE_URL");
+        const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        if (supaUrl && serviceKey) {
+          const supa = createClient(supaUrl, serviceKey);
+          const { data } = await supa
+            .from("traffic_buffer_overrides")
+            .select("zip_prefix,multiplier,label,hour_start,hour_end,weekdays_only")
+            .eq("business_id", businessId)
+            .eq("is_active", true);
+          if (data) {
+            overrides = data.map((d: Record<string, unknown>) => ({
+              zip_prefix: String(d.zip_prefix),
+              multiplier: Number(d.multiplier),
+              label: (d.label as string) ?? null,
+              hour_start: d.hour_start as number | null,
+              hour_end: d.hour_end as number | null,
+              weekdays_only: Boolean(d.weekdays_only),
+            }));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load traffic overrides:", err);
+      }
+    }
+
     const token = Deno.env.get("MAPBOX_ACCESS_TOKEN");
     if (token) {
-      const dir = await mapboxDirections(trimmed, token, departAt);
+      const dir = await mapboxDirections(trimmed, token, departAt, overrides);
       if (dir) {
         return new Response(JSON.stringify({ ok: true, ...dir }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
