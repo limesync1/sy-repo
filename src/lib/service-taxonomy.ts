@@ -229,15 +229,16 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
     ],
   },
   {
-    label: "Auto & køretøjer",
+    label: "Auto & køretøjer (mobilt)",
     industries: [
       {
         key: "Autoservice",
-        label: "Autoservice",
+        label: "Mobil bilpleje",
         icon: "🚗",
+        description: "Bilpleje udført på kundens adresse.",
         subcategories: [
-          { label: "Værksted", services: ["Service & olie", "Brems­er", "Dæk­skift"] },
-          { label: "Bilrengøring", services: ["Indvendig rens", "Polering", "Klargøring"] },
+          { label: "Bilrengøring", services: ["Indvendig rens", "Udvendig vask", "Polering", "Klargøring til salg"] },
+          { label: "Mobilt dækskift", services: ["Dækskift på adressen"] },
         ],
       },
     ],
