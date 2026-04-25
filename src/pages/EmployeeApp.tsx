@@ -18,7 +18,7 @@ import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
-import { PageHeader } from "@/components/admin/shared/AdminUI";
+import { PageHeader, StatCard } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
@@ -153,7 +153,7 @@ const EmployeeApp = () => {
       <Button
         size="icon"
         variant="ghost"
-        className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:scale-[0.98]"
+        className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
         onClick={() => setDate(format(addDays(dateObj, -1), "yyyy-MM-dd"))}
         aria-label="Forrige dag"
       >
@@ -164,7 +164,7 @@ const EmployeeApp = () => {
           <Button
             size="sm"
             variant="ghost"
-            className="h-9 shrink-0 gap-1.5 rounded-lg px-3 text-xs font-semibold text-foreground transition-colors hover:bg-secondary active:scale-[0.98]"
+            className="h-9 shrink-0 gap-1.5 rounded-lg px-3 text-xs font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] data-[state=open]:bg-secondary"
           >
             <CalendarIcon className="h-3.5 w-3.5" />
             <span className="capitalize tabular-nums">
@@ -190,7 +190,7 @@ const EmployeeApp = () => {
       <Button
         size="icon"
         variant="ghost"
-        className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:scale-[0.98]"
+        className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
         onClick={() => setDate(format(addDays(dateObj, 1), "yyyy-MM-dd"))}
         aria-label="Næste dag"
       >
@@ -202,8 +202,8 @@ const EmployeeApp = () => {
           variant="ghost"
           onClick={() => setDate(todayStr())}
           className={cn(
-            "h-9 shrink-0 rounded-lg px-3 text-xs font-semibold transition-colors active:scale-[0.98]",
-            "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm",
+            "h-9 shrink-0 rounded-lg px-3 text-xs font-semibold shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]",
+            "bg-foreground text-background hover:bg-foreground/90 hover:text-background",
           )}
         >
           Gå til i dag
@@ -226,56 +226,73 @@ const EmployeeApp = () => {
           action={dateNav}
         />
 
+        {/* Top-overblik: stat-kort + arbejdsdag-handling — samme stil som virksomhedspanelet */}
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            label="Stop i dag"
+            value={`${completedStops}/${totalStops}`}
+            icon={<CheckCircle2 />}
+            tone="emerald"
+            hint={totalStops > 0 ? `${Math.round((completedStops / Math.max(totalStops, 1)) * 100)}% gennemført` : "Ingen stop"}
+          />
+          <StatCard
+            label="Ruter"
+            value={routes.length}
+            icon={<RouteIcon />}
+            tone="violet"
+            hint={routes.length > 0 ? `${routes.length === 1 ? "1 rute planlagt" : `${routes.length} ruter planlagt`}` : "Ingen ruter"}
+          />
+          <StatCard
+            label="Næste start"
+            value={routes[0]?.planned_start_time?.slice(0, 5) || "—"}
+            icon={<Clock />}
+            tone="blue"
+            hint={routes[0]?.name || (routes[0] ? "Første rute" : "Ingen ruter")}
+          />
+          <StatCard
+            label="Arbejdsdag"
+            value={dayEnded ? "Afsluttet" : dayStarted ? "I gang" : "Ikke startet"}
+            icon={<PlayCircle />}
+            tone={dayStarted && !dayEnded ? "emerald" : dayEnded ? "neutral" : "amber"}
+            hint={
+              workday?.started_at && dayEnded
+                ? `${format(new Date(workday.started_at), "HH:mm")}–${format(new Date(workday!.ended_at!), "HH:mm")} · ${workday.duration_minutes ?? 0} min`
+                : workday?.started_at && !dayEnded
+                  ? `Start ${format(new Date(workday.started_at), "HH:mm")}${elapsedLabel ? ` · ${elapsedLabel}` : ""}`
+                  : isCurrentDay ? "Tryk Start dag når du er klar" : null
+            }
+          />
+        </div>
+
         {/* Start dag / Stop dag — kun for i dag */}
-        {isCurrentDay && (
+        {isCurrentDay && !dayEnded && (
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-            <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4 sm:p-5">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div
-                  className={cn(
-                    "h-10 w-10 shrink-0 rounded-lg flex items-center justify-center [&_svg]:h-5 [&_svg]:w-5",
-                    dayStarted && !dayEnded
-                      ? "bg-feature-cool text-feature-cool-foreground"
-                      : dayEnded
-                        ? "bg-secondary text-muted-foreground"
-                        : "bg-secondary text-foreground",
-                  )}
-                >
-                  <Clock />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Arbejdsdag
-                  </p>
-                  <p className="mt-0.5 text-sm font-semibold text-foreground">
-                    {dayEnded ? "Afsluttet" : dayStarted ? "I gang" : "Ikke startet"}
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
-                    {workday?.started_at && (
-                      <>Start {format(new Date(workday.started_at), "HH:mm")}</>
-                    )}
-                    {workday?.ended_at && (
-                      <> · Slut {format(new Date(workday.ended_at), "HH:mm")} · {workday.duration_minutes ?? 0} min</>
-                    )}
-                    {elapsedLabel && !dayEnded && <> · {elapsedLabel}</>}
-                  </p>
-                </div>
+            <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Arbejdsdag</p>
+                <p className="mt-1 text-base font-semibold text-foreground">
+                  {dayStarted ? "Du er i gang" : "Klar til at starte?"}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {dayStarted
+                    ? "Husk at stoppe dagen når du er færdig — så bliver tiden registreret korrekt."
+                    : "Start din arbejdsdag for at registrere tid og fremgang på dine ruter."}
+                </p>
               </div>
-              {!dayStarted && !dayEnded && (
+              {!dayStarted ? (
                 <Button
                   onClick={() => startDay.mutate(date)}
                   disabled={startDay.isPending}
-                  className="h-10 w-full rounded-lg bg-foreground text-background font-semibold shadow-sm hover:bg-foreground/90 sm:w-auto sm:px-5"
+                  className="h-10 w-full shrink-0 gap-2 rounded-lg bg-foreground px-5 text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
                 >
                   <PlayCircle className="h-4 w-4" /> Start dag
                 </Button>
-              )}
-              {dayStarted && (
+              ) : (
                 <Button
                   variant="outline"
                   onClick={() => endDay.mutate(date)}
                   disabled={endDay.isPending}
-                  className="h-10 w-full rounded-lg border-border text-foreground hover:bg-secondary hover:text-foreground sm:w-auto sm:px-5"
+                  className="h-10 w-full shrink-0 gap-2 rounded-lg border-border bg-card px-5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
                 >
                   <StopCircle className="h-4 w-4" /> Stop dag
                 </Button>
@@ -324,7 +341,7 @@ const EmployeeApp = () => {
           return (
             <Card
               key={r.id}
-              className="surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm transition-shadow hover:shadow-md"
+              className="group surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md"
             >
               {/* Header bar — neutral admin-style med farvet rute-prik */}
               <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 sm:px-5">
@@ -490,7 +507,7 @@ const EmployeeApp = () => {
                   <Button
                     asChild
                     size="lg"
-                    className="h-11 flex-1 gap-2 rounded-lg bg-foreground text-background font-semibold shadow-sm hover:bg-foreground/90"
+                    className="h-11 flex-1 gap-2 rounded-lg bg-foreground font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                     disabled={total === 0}
                   >
                     <Link to={`/medarbejder/rute/${r.id}`}>
@@ -507,7 +524,7 @@ const EmployeeApp = () => {
                     asChild
                     size="lg"
                     variant="outline"
-                    className="h-11 rounded-lg border-border px-3 text-foreground hover:bg-secondary"
+                    className="h-11 shrink-0 rounded-lg border-border bg-card px-3 text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                   >
                     <Link
                       to={`/medarbejder/rute/${r.id}/print`}
