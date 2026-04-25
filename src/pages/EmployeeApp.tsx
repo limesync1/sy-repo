@@ -5,6 +5,8 @@ import { useMyDayRoutes, useMyDayStops, type RouteStop } from "@/hooks/useRoutes
 import { useMyWorkday, useStartWorkday, useEndWorkday } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Calendar as CalendarIcon, Play, Printer, MapPin, Clock, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
@@ -18,8 +20,18 @@ import "leaflet/dist/leaflet.css";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
+
+const formatKr = (n?: number | null) => `${Math.round(n || 0).toLocaleString("da-DK")} kr`;
+
+const paymentMeta = (status?: string | null) => {
+  if (status === "completed") return { label: "Betalt", className: "bg-feature-cool text-feature-cool-foreground border-transparent" };
+  if (status === "confirmed" || status === "in_progress") return { label: "Afregnes", className: "bg-feature-lilac text-feature-lilac-foreground border-transparent" };
+  if (status === "pending") return { label: "Afventer", className: "bg-feature-warm text-feature-warm-foreground border-transparent" };
+  return { label: "Status ukendt", className: "bg-secondary text-muted-foreground border-transparent" };
+};
 
 const miniStopIcon = (n: number, color: string, done: boolean) =>
   L.divIcon({
@@ -64,7 +76,7 @@ const RouteMiniMap = ({
   const bounds = L.latLngBounds(points.map((p) => L.latLng(p[0], p[1])));
 
   return (
-    <div className="h-44 w-full relative">
+    <div className="relative z-0 h-40 w-full isolate overflow-hidden bg-secondary/40 sm:h-44">
       <MapContainer
         bounds={bounds}
         boundsOptions={{ padding: [20, 20] }}
@@ -75,6 +87,7 @@ const RouteMiniMap = ({
         doubleClickZoom={false}
         zoomControl={false}
         attributionControl={false}
+        className="relative z-0"
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         {startCoord && <Marker position={startCoord} icon={startIcon} />}
