@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import {
   Sparkles, Settings, Bell, Route, Contact, Image as ImageIcon, Clock,
-  CheckCircle2, AlertCircle, ArrowRight, Building2,
+  CheckCircle2, AlertCircle, ArrowRight, Building2, Search, Check,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
@@ -343,23 +343,13 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
               <div>
                 <FieldLabel>Brancher</FieldLabel>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {CATEGORIES.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => toggleSettingsCategory(c)}
-                      className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition-all ${
-                        selectedCategories.includes(c)
-                          ? "border-foreground bg-foreground/5 shadow-sm"
-                          : "border-border bg-card hover:border-foreground/30"
-                      }`}
-                    >
-                      <span className="text-lg">{CATEGORY_ICONS[c] || "📋"}</span>
-                      <span className="text-xs font-medium text-foreground">{c}</span>
-                    </button>
-                  ))}
-                </div>
+                <p className="-mt-1 mb-2.5 text-xs text-muted-foreground">
+                  Vælg de brancher der præcist matcher jeres ydelser. Branchevalget styrer hvilke services I kan oprette.
+                </p>
+                <IndustryPicker
+                  selected={selectedCategories}
+                  onToggle={toggleSettingsCategory}
+                />
               </div>
             </div>
           </SectionCard>
