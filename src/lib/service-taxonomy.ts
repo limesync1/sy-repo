@@ -34,8 +34,6 @@ export interface Industry {
   label: string;
   /** Emoji-ikon — bruges i chips, kort og services-liste */
   icon: string;
-  /** Kort beskrivelse til help-text når man hovrer/vælger */
-  description?: string;
   /** Underbrancher — chips ved service-oprettelse */
   subcategories: IndustrySubcategory[];
 }
@@ -55,7 +53,6 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         key: "Rengøring",
         label: "Rengøring",
         icon: "🧹",
-        description: "Privat- og erhvervsrengøring, hovedrengøring m.m.",
         subcategories: [
           { label: "Privatrengøring", services: ["Ugentlig hjemmerengøring", "14-dages rengøring", "Månedlig rengøring", "Engangs­rengøring"] },
           { label: "Hovedrengøring", services: ["Forårs­rengøring", "Hovedrengøring villa", "Hovedrengøring lejlighed"] },
@@ -74,7 +71,6 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         key: "Vinduespudsning",
         label: "Vinduespudsning",
         icon: "🪟",
-        description: "Inde og ude, både privat og erhverv.",
         subcategories: [
           { label: "Privat vinduespudsning", services: ["Indvendig vinduespudsning", "Udvendig vinduespudsning", "Helhedspakke (inde + ude)", "Karm­rengøring"] },
           { label: "Erhverv vinduespudsning", services: ["Butiks­vinduer", "Kontor­facader", "Restaurant­vinduer"] },
@@ -88,7 +84,6 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         key: "Algebehandling",
         label: "Algebehandling & tagrens",
         icon: "🌧️",
-        description: "Behandling af tag, fliser, facade m.m.",
         subcategories: [
           { label: "Tagrens", services: ["Tag­rens med højtryk", "Mekanisk tag­rens", "Tag­maling efter rens"] },
           { label: "Algebehandling tag", services: ["Alge­behandling tegl", "Alge­behandling beton", "Alge­behandling eternit"] },
@@ -115,7 +110,6 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         key: "Skorstensfejer",
         label: "Skorstensfejer",
         icon: "🏠",
-        description: "Fejning, eftersyn og rens af skorsten og brændeovn.",
         subcategories: [
           { label: "Fejning", services: ["Lov­pligtig fejning", "Ekstra fejning", "Sod­sugning"] },
           { label: "Eftersyn", services: ["Brænde­ovn­syn", "Pille­ovn­syn", "Røg­rør"] },
@@ -130,7 +124,6 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         key: "Haveservice",
         label: "Haveservice",
         icon: "🌿",
-        description: "Vedligehold af haver og grønne arealer.",
         subcategories: [
           { label: "Græs­pleje", services: ["Græs­slåning", "Vertikal­skæring", "Topdressing", "Ny græs­plæne", "Rulle­græs"] },
           { label: "Hæk & buske", services: ["Hække­klipning", "Beskæring buske", "Form­klipning"] },
@@ -159,7 +152,6 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         key: "Gravstedspleje",
         label: "Gravsteds­pleje",
         icon: "🌷",
-        description: "Vedligehold og pyntning af gravsteder.",
         subcategories: [
           { label: "Vedligehold", services: ["Lugning gravsted", "Plæne­klip omkring grav", "Polering af gravsten"] },
           { label: "Pyntning", services: ["Forårs­pyntning", "Sommer­pyntning", "Jule­pyntning"] },
@@ -271,7 +263,6 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         key: "Isolering",
         label: "Isolering",
         icon: "🧊",
-        description: "Efter­isolering af loft, hulmur og krybe­kælder.",
         subcategories: [
           { label: "Loft", services: ["Loft­isolering", "Skrå vægge"] },
           { label: "Hulmur", services: ["Hulmurs­isolering"] },
@@ -315,7 +306,6 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         key: "Autoservice",
         label: "Mobil bilpleje",
         icon: "🚗",
-        description: "Bilpleje udført på kundens adresse.",
         subcategories: [
           { label: "Bilrengøring", services: ["Indvendig rens", "Udvendig håndvask", "Klargøring til salg", "Lugt­fjernelse"] },
           { label: "Polering & coating", services: ["Polering", "Keramisk coating", "Lak­for­segling"] },
