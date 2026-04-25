@@ -66,7 +66,7 @@ export const EmployeeShell = ({
   const accentColor = employee?.color || "hsl(var(--foreground))";
 
   return (
-    <div className="flex min-h-screen bg-secondary/50">
+    <div className="isolate flex min-h-screen overflow-x-hidden bg-secondary/50">
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
@@ -146,7 +146,7 @@ export const EmployeeShell = ({
       </aside>
 
       {/* Main */}
-      <div className="flex flex-1 flex-col min-w-0">
+      <div className="relative z-0 flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card px-5 sm:px-6">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -165,7 +165,7 @@ export const EmployeeShell = ({
 
         <main
           className={cn(
-            "flex-1 min-w-0",
+            "relative z-0 flex-1 min-w-0",
             contentPadding ? "p-4 sm:p-6" : "",
             contentClassName,
           )}
