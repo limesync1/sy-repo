@@ -36,14 +36,14 @@ const paymentMeta = (status?: string | null) => {
 const miniStopIcon = (n: number, color: string, done: boolean) =>
   L.divIcon({
     className: "",
-    html: `<div style="width:22px;height:22px;border-radius:50%;background:${done ? "hsl(142 70% 45%)" : color};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:10px;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3);">${done ? "✓" : n}</div>`,
+    html: `<div style="width:22px;height:22px;border-radius:50%;background:${done ? "hsl(var(--feature-cool-foreground))" : color};display:flex;align-items:center;justify-content:center;color:hsl(var(--background));font-weight:700;font-size:10px;border:2px solid hsl(var(--background));box-shadow:0 1px 4px hsl(var(--foreground) / .3);">${done ? "✓" : n}</div>`,
     iconSize: [22, 22],
     iconAnchor: [11, 11],
   });
 
 const startIcon = L.divIcon({
   className: "",
-  html: `<div style="width:14px;height:14px;border-radius:50%;background:hsl(222 47% 11%);border:3px solid white;box-shadow:0 1px 4px rgba(0,0,0,.4);"></div>`,
+  html: `<div style="width:14px;height:14px;border-radius:50%;background:hsl(var(--foreground));border:3px solid hsl(var(--background));box-shadow:0 1px 4px hsl(var(--foreground) / .35);"></div>`,
   iconSize: [14, 14],
   iconAnchor: [7, 7],
 });
@@ -310,7 +310,7 @@ const EmployeeApp = () => {
           const total = myStops.length;
           const allDone = total > 0 && done === total;
           const progress = total > 0 ? Math.round((done / total) * 100) : 0;
-          const color = r.color || "hsl(184 90% 42%)";
+          const color = r.color || "hsl(var(--accent))";
           const startCoord: [number, number] | null =
             r.start_latitude != null && r.start_longitude != null
               ? [Number(r.start_latitude), Number(r.start_longitude)]
