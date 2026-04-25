@@ -1332,23 +1332,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {/* Maneuver banner — floating top center */}
             {showManeuverBanner && maneuver && nextStop && (
               <div className="absolute top-[68px] left-3 right-[68px] z-[1000] pointer-events-none">
-                <Card className="overflow-hidden shadow-2xl rounded-2xl pointer-events-auto bg-background border">
+                <Card className="overflow-hidden shadow-md rounded-xl pointer-events-auto bg-card border-border pointer-events-auto">
                   <div className="flex items-stretch">
-                    <div
-                      className="flex flex-col items-center justify-center w-24 shrink-0 text-background py-3"
-                      style={{ background: themeColor }}
-                    >
+                    <div className="flex flex-col items-center justify-center w-20 shrink-0 bg-foreground text-background py-3">
                       <ManeuverIcon
                         type={maneuver.currentStep.maneuver.type}
                         modifier={maneuver.currentStep.maneuver.modifier}
-                        className="h-11 w-11"
+                        className="h-10 w-10"
                       />
-                      <span className="text-[11px] font-bold tracking-wide mt-1 tabular-nums">
+                      <span className="text-[11px] font-semibold tracking-wide mt-1 tabular-nums">
                         {formatKm(maneuver.distanceToManeuverM)}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0 px-3 py-3">
-                      <p className="font-bold text-base leading-tight truncate">
+                      <p className="font-semibold text-base leading-tight truncate text-foreground">
                         {maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
                       </p>
                       {maneuver.currentStep.name && (
@@ -1357,7 +1354,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                         </p>
                       )}
                       {maneuver.nextStep && (
-                        <div className="flex items-center gap-1.5 mt-1.5 pt-1.5 border-t text-[11px] text-muted-foreground">
+                        <div className="flex items-center gap-1.5 mt-1.5 pt-1.5 border-t border-border text-[11px] text-muted-foreground">
                           <span>Derefter:</span>
                           <ManeuverIcon
                             type={maneuver.nextStep.maneuver.type}
