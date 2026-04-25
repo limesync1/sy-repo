@@ -16,7 +16,6 @@ const CATEGORIES = topCategories().map((ind) => ({
 }));
 
 type Suggestion =
-  | { type: "category"; label: string; icon: any }
   | { type: "category"; label: string; icon: string; key: string }
   | { type: "business"; label: string; slug: string; city: string | null; logo: string | null }
   | { type: "city"; label: string };
@@ -64,14 +63,14 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
     const term = q.trim().toLowerCase();
     if (!term) {
       // Empty — show top categories
-      return CATEGORIES.slice(0, 6).map((c) => ({ type: "category" as const, label: c.label, icon: c.icon }));
+      return CATEGORIES.slice(0, 6).map((c) => ({ type: "category" as const, label: c.label, icon: c.icon, key: c.key }));
     }
     const results: Suggestion[] = [];
 
     // Category matches
     CATEGORIES.filter((c) => c.label.toLowerCase().includes(term))
       .slice(0, 3)
-      .forEach((c) => results.push({ type: "category", label: c.label, icon: c.icon }));
+      .forEach((c) => results.push({ type: "category", label: c.label, icon: c.icon, key: c.key }));
 
     // City matches
     (index?.cities || [])
