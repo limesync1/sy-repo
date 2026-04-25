@@ -266,39 +266,16 @@ export const RouteEditSheet = ({
             {/* Rejsetid — kort og enkel: "Estimeret rejsetid: 34 min" */}
             {waypoints && (
               <Section icon={<Gauge className="h-3.5 w-3.5" />} title="Rejsetid">
-                <div className="space-y-2">
-                  <div>
-                    <p className="text-sm">
-                      <span className="text-muted-foreground">Estimeret rejsetid: </span>
-                      <span className="font-semibold text-foreground tabular-nums">
-                        {displayDuration != null ? formatTravelTime(displayDuration) : "—"}
-                      </span>
-                    </p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground">
-                      Beregnet ud fra valgt starttid og forventede trafikforhold.
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1.5">
-                      Starttid
-                    </p>
-                    <Select
-                      value={departAt ?? "now"}
-                      onValueChange={(v) => setDepartAt(v === "now" ? null : v)}
-                    >
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {departOptions.map((o) => (
-                          <SelectItem key={o.value ?? "now"} value={o.value ?? "now"}>
-                            {o.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div>
+                  <p className="text-sm">
+                    <span className="text-muted-foreground">Estimeret rejsetid: </span>
+                    <span className="font-semibold text-foreground tabular-nums">
+                      {displayDuration != null ? formatTravelTime(displayDuration) : "—"}
+                    </span>
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                    Beregnet ud fra rutens planlagte start og forventede trafikforhold.
+                  </p>
                 </div>
               </Section>
             )}
