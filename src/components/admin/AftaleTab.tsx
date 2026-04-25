@@ -1133,7 +1133,7 @@ const AftaleTab = ({
       </div>
 
       {/* Søgefelt — leder efter kunde, service, adresse osv. */}
-      <div className="grid gap-5 lg:grid-cols-[7fr_3fr]">
+      <div className={`grid gap-5 ${routePlanningEnabled ? "lg:grid-cols-[7fr_3fr]" : ""}`}>
         <div className="space-y-5 min-w-0">
         <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -1160,9 +1160,14 @@ const AftaleTab = ({
               { key: "action_needed", label: "Kræver handling", count: actionNeeded.length, tone: "danger" as const },
               { key: "waiting", label: "Afventer kunde", count: waitingForCustomer.length, tone: "warning" as const },
             ] as Chip[]).filter(b => b.count > 0),
+            // Rute-relaterede filtre vises kun når ruteplanlægning er slået til.
             [
-              { key: "not_planned", label: "Ikke planlagt", count: notPlannedOrders.length },
-              { key: "in_route", label: "På rute", count: inRouteOrders.length },
+              ...(routePlanningEnabled
+                ? [
+                    { key: "not_planned", label: "Ikke planlagt", count: notPlannedOrders.length },
+                    { key: "in_route", label: "På rute", count: inRouteOrders.length },
+                  ]
+                : []),
               { key: "in_progress", label: "I gang", count: counts.in_progress || 0 },
               { key: "completed", label: "Udførte", count: counts.completed || 0 },
               { key: "cancelled", label: "Annullerede", count: counts.cancelled || 0 },
