@@ -548,25 +548,30 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return haversineMeters(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
   }, [userPos, nextStop?.id, nextStop?.latitude, nextStop?.longitude]);
 
-  // Adaptiv ankomst-tærskel — afvejer to behov:
+  // Dynamisk ankomstradius — afvejer to konkurrerende behov:
   //   1) Skal kunne skelne mellem to nabohuse i et villakvarter (typisk
   //      15-25 m mellem matrikler) og lejligheder i samme kompleks.
   //   2) Skal stadig fange brugeren når GPS er upålidelig (indendørs,
   //      gade-kløfter) eller når pin'en er sat lidt skævt af geokoderen.
   //
-  // Strategi: stram basis (25 m) der KUN udvider sig når GPS-accuracy
-  // selv siger den er upålidelig.  Loft = 60 m så vi aldrig krydser ind
-  // i naboejendomme uden grund.  Når GPS er præcis (acc <15 m) får vi
-  // den ønskede granularitet til villakvarterer/etageejendomme.
-  const ARRIVAL_BASE_M = 25;
-  const ARRIVAL_MAX_M = 60;
+  // Formel:
+  //   - Ved meget præcist fix (acc ≤ 10 m): 18 m radius — tæt nok til at
+  //     skelne nabohuse.
+  //   - Ved typisk udendørs (acc 10-25 m): 20-35 m — stadig granular.
+  //   - Ved dårligt fix (acc > 25 m): glidende op mod 60 m loft.
+  //
+  // Vi bruger en glat "1.4 × accuracy + offset"-formel clamped til
+  // [TIGHT_MIN, LOOSE_MAX] i stedet for en hård tærskel — det giver en
+  // mere forudsigelig oplevelse end tidligere step-funktion.
+  const TIGHT_MIN_M = 18;
+  const LOOSE_MAX_M = 60;
   const arrivalThresholdM = useMemo(() => {
-    // Når accuracy er ukendt, antag et moderat fix (~20 m).
     const acc = userAccuracyM ?? 20;
-    // Læg kun det "ekstra" usikkerhed på basisradius — accuracy under
-    // 15 m anses som perfekt og giver ingen udvidelse.
-    const accBuffer = Math.max(0, acc - 15);
-    return Math.min(ARRIVAL_MAX_M, ARRIVAL_BASE_M + accBuffer);
+    // 1.4× giver ~95% sandsynlighed for at den rigtige position er
+    // indenfor radius (acc er 1-sigma → 2-sigma ≈ 1.96×, vi vælger 1.4
+    // for at være konservative og ikke overlappe naboer).
+    const dynamic = Math.round(acc * 1.4 + 4);
+    return Math.max(TIGHT_MIN_M, Math.min(LOOSE_MAX_M, dynamic));
   }, [userAccuracyM]);
   const inArrivalRadius = distanceToNextM != null && distanceToNextM <= arrivalThresholdM;
 
