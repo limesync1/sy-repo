@@ -2073,6 +2073,7 @@ const StopDetailsContent = ({
   isPending: boolean;
 }) => {
   const { data: order, isLoading: loadingOrder } = useOrderForStop(stop.order_id);
+  const { data: meEmployee } = useMyEmployee();
   const isDone = stop.status === "completed";
 
   // Fuld adresse: vej + postnummer + by (auto-strip dubletter hvis address allerede indeholder zip)
@@ -2148,6 +2149,28 @@ const StopDetailsContent = ({
 
   // Note fra kunden: orders.notes (kundens egen besked til virksomheden)
   const customerNote: string | null = (order as any)?.notes || null;
+
+  // Pris-sektion: Vis kundens samlede beløb og medarbejderens egen andel.
+  // Andel = (totalbeløb × commission_pct/100) / antal kollegaer på opgaven.
+  // Vi ekskluderer moms ikke separat — beløbet er det kunden skal betale.
+  const orderTotal = useMemo(() => {
+    if (!order) return 0;
+    const adj = (order as any).adjusted_amount;
+    const tot = (order as any).total_amount;
+    return Number(adj ?? tot ?? 0);
+  }, [order]);
+
+  const sharers = useMemo(() => {
+    const n = stop.assignee_ids?.length || 0;
+    return Math.max(n || (stop.required_staff || 1), 1);
+  }, [stop.assignee_ids, stop.required_staff]);
+
+  const myCommissionPct = Number(meEmployee?.commission_pct || 0);
+  const myShare = orderTotal > 0 && myCommissionPct > 0
+    ? (orderTotal * (myCommissionPct / 100)) / sharers
+    : 0;
+  const formatKr = (n: number) =>
+    `${Math.round(n).toLocaleString("da-DK")} kr`;
 
   return (
     <div className="flex flex-col h-full">
@@ -2271,6 +2294,41 @@ const StopDetailsContent = ({
               </div>
               <div className="rounded-xl border border-l-4 border-l-foreground border-border bg-secondary/40 p-3">
                 <p className="text-sm leading-relaxed whitespace-pre-line">{customerNote}</p>
+              </div>
+            </section>
+          )}
+
+          {/* Beløb — hvad kunden betaler + medarbejderens egen andel */}
+          {orderTotal > 0 && (
+            <section>
+              <div className="flex items-center gap-2 mb-2">
+                <Wallet className="h-4 w-4 text-muted-foreground" />
+                <h4 className="text-[11px] uppercase tracking-wide font-bold text-muted-foreground">
+                  Beløb
+                </h4>
+              </div>
+              <div className="rounded-xl border bg-card p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Aftalens beløb</span>
+                  <span className="text-sm font-semibold tabular-nums text-foreground">
+                    {formatKr(orderTotal)}
+                  </span>
+                </div>
+                {myCommissionPct > 0 && (
+                  <div className="flex items-center justify-between border-t border-border pt-2">
+                    <span className="text-sm text-muted-foreground">
+                      Min andel
+                      {sharers > 1 && (
+                        <span className="text-[10px] text-muted-foreground/80 ml-1">
+                          (delt med {sharers - 1} kollega{sharers - 1 === 1 ? "" : "er"})
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-base font-bold tabular-nums text-emerald-600">
+                      {formatKr(myShare)}
+                    </span>
+                  </div>
+                )}
               </div>
             </section>
           )}
