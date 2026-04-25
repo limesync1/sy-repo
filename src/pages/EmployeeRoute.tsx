@@ -962,10 +962,23 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             scrollWheelZoom
             zoomControl={false}
             attributionControl={false}
+            zoomSnap={0.25}
+            zoomDelta={0.5}
+            wheelDebounceTime={20}
+            wheelPxPerZoomLevel={120}
+            zoomAnimation
+            fadeAnimation
+            markerZoomAnimation
+            inertia
+            inertiaDeceleration={2400}
+            preferCanvas
           >
             <TileLayer
               url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
               attribution='&copy; OpenStreetMap &copy; CARTO'
+              updateWhenIdle={false}
+              updateWhenZooming={false}
+              keepBuffer={4}
             />
 
             {/* Fit overview when not started */}
