@@ -457,3 +457,27 @@ export const knownIndustryKeys = (keys: string[]): string[] =>
 /** Returner gamle/custom branche-keys (dem der ikke matcher kataloget) */
 export const customIndustryKeys = (keys: string[]): string[] =>
   keys.filter((k) => !findIndustry(k));
+
+/* ───────────── Top-kategorier til forsiden / søgning ─────────────
+ * Brugt af SearchSuggest, Search-siden og lignende steder hvor vi vil
+ * vise en kompakt række af de mest populære servicebrancher.
+ * Listen styres ét sted så landing, søg og forslag altid er ens.
+ */
+export const TOP_CATEGORY_KEYS: string[] = [
+  "Rengøring",
+  "Vinduespudsning",
+  "Algebehandling",
+  "Haveservice",
+  "Tømrer",
+  "Murer",
+  "Maler",
+  "VVS",
+  "Elektriker",
+  "Flyttehjælp",
+  "Skadedyrsbekæmpelse",
+  "Anlægsgartner",
+];
+
+/** Returnér Industry-objekter for top-kategorierne (filtrerer ukendte). */
+export const topCategories = (): Industry[] =>
+  TOP_CATEGORY_KEYS.map((k) => findIndustry(k)).filter((i): i is Industry => !!i);
