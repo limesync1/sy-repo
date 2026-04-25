@@ -502,7 +502,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   });
   const previewLine: [number, number][] = useMemo(() => {
     if (!previewDirections?.geometry?.coordinates) return [];
-    return previewDirections.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
+    const raw = previewDirections.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
+    // Spline-glat ruten så drej og bløde sving fremstår uden "knæk".
+    return smoothPolyline(raw);
   }, [previewDirections]);
 
   const distanceToNextM: number | null = useMemo(() => {
@@ -544,7 +546,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   const legLine: [number, number][] = useMemo(() => {
     if (!directions?.geometry?.coordinates) return [];
-    return directions.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
+    const raw = directions.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
+    return smoothPolyline(raw);
   }, [directions]);
 
   /* ── Off-route detection (Google-Maps-stil rerouting) ──────────────
