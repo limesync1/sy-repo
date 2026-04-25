@@ -103,7 +103,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     upcoming_service: true,
     subscription_change: true,
     new_review: false,
-    ...(business.notification_settings as Record<string, boolean> || {}),
+    ...((business.notification_settings as Record<string, boolean>) || {}),
   });
   const [routePlanningEnabled, setRoutePlanningEnabled] = useState<boolean>(
     !!(business.settings as any)?.route_planning_enabled
@@ -118,8 +118,9 @@ const SettingsTab = ({ business }: { business: any }) => {
   // Postnummer auto-udfyld by
   const [zipLoading, setZipLoading] = useState(false);
 
-  // Aktivt sub-nav (kun visuelt, alle sektioner er stadig synlige — chip scroller hen til sektionen)
+  // Aktivt sub-nav — opdateres både ved klik og automatisk via scroll-observer.
   const [activeSection, setActiveSection] = useState<string>("general");
+  const isProgrammaticScroll = useRef(false);
 
   const toggleSettingsCategory = (c: string) => {
     setSelectedCategories((prev) => {
