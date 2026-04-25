@@ -25,9 +25,18 @@ import CustomersTab from "@/components/admin/CustomersTab";
 import SettingsTab from "@/components/admin/SettingsTab";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
+import {
+  INDUSTRY_GROUPS,
+  ALL_INDUSTRIES,
+  findIndustry,
+  industryIcon,
+  subcategoriesForIndustries,
+  stepTemplatesForIndustries,
+} from "@/lib/service-taxonomy";
 
 /* ─── Constants ─── */
-const CATEGORIES = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS", "Elektriker", "Sikkerhed"];
+// Branche-katalog ligger centralt i src/lib/service-taxonomy.ts.
+// CreateBusinessForm bruger en kompakt visning af de mest brugte herfra.
 
 const STEP_TEMPLATES: Record<string, { label: string; steps: Array<{ label: string; unit: string; price_per_unit: number; min_value: number; max_value: number; default_value: number }> }[]> = {
   "Rengøring": [
