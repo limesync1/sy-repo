@@ -1676,28 +1676,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     </div>
                   )}
 
-                  {/* Info-grid: km, tid, ETA — kalender-stil */}
+                  {/* Info-grid: km, tid, ETA — clean admin-stil. */}
                   {(directions || etaLabel) && (
-                    <div className="space-y-1.5">
-                      {directions && (
-                        <div className="flex items-center justify-between gap-2 px-1">
-                          <LiveStatusBadge info={directions} compact />
-                          <div className="flex items-center gap-1">
-                            {showRawTime && (
-                              <Badge variant="outline" className="h-5 px-1.5 text-[9px] font-medium">
-                                Rå Mapbox
-                              </Badge>
-                            )}
-                            <EtaDetailsButton
-                              info={directions}
-                              showRaw={showRawTime}
-                              onToggleRaw={setShowRawTime}
-                              compact
-                            />
-                          </div>
-                        </div>
-                      )}
-                      <div className="grid grid-cols-3 divide-x rounded-xl border bg-background overflow-hidden">
+                    <div className="grid grid-cols-3 divide-x divide-border rounded-xl border border-border bg-background overflow-hidden">
                         <div className="px-2 py-1.5 text-center">
                           <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
                           <p className="text-[13px] font-bold tabular-nums mt-0.5">
@@ -1708,18 +1689,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                           <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Tid</p>
                           <p className="text-[13px] font-bold tabular-nums mt-0.5">
                             {(() => {
-                              const d = directions ? pickDuration(directions, showRawTime) : null;
+                              const d = directions ? pickDuration(directions, false) : null;
                               return d != null ? formatMin(d) : "—";
                             })()}
                           </p>
                         </div>
                         <div className="px-2 py-1.5 text-center">
                           <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Ankomst</p>
-                          <p className="text-[13px] font-bold tabular-nums mt-0.5" style={{ color: themeColor }}>
+                          <p className="text-[13px] font-bold tabular-nums mt-0.5 text-foreground">
                             {etaLabel || "—"}
                           </p>
                         </div>
-                      </div>
                     </div>
                   )}
 
