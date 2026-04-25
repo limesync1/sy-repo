@@ -192,7 +192,13 @@ const AdminDashboard = () => {
     switch (activeTab) {
       case "dashboard": return <DashboardWrapper business={business} onNavigate={(t) => handleTabChange(t as AdminTabKey)} />;
       case "services": return <ServicesTab businessId={business.id} business={business} />;
-      case "orders": return <AftaleTab businessId={business.id} businessName={business.name} />;
+      case "orders": return (
+        <AftaleTab
+          businessId={business.id}
+          businessName={business.name}
+          routePlanningEnabled={!!(business.settings as any)?.route_planning_enabled}
+        />
+      );
       case "customers": return <CustomersTab businessId={business.id} businessName={business.name} />;
       case "employees": return <EmployeesTab businessId={business.id} businessName={business.name} routePlanningEnabled={!!(business.settings as any)?.route_planning_enabled} />;
       case "reviews": return <ReviewsWrapper businessId={business.id} />;
