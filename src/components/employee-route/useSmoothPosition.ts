@@ -25,10 +25,13 @@ export const useSmoothPosition = (
   const toHeadingRef = useRef<number | null>(targetHeading);
   const startTimeRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
-  // Lidt længere end typisk GPS-cadence (~1s) så vi altid har et nyt
-  // target før det gamle "stopper" — det fjerner mikropauser hvor puck'en
-  // står stille i et par frames mellem GPS-fixes.
-  const DURATION_MS = 1300;
+  // Adaptiv tween-varighed: vi måler den faktiske afstand mellem GPS-
+  // fixes og bruger det som mål.  Det giver kontinuerlig bevægelse uden
+  // hverken at lagge bagud (for lang varighed) eller stoppe op mellem
+  // fixes (for kort varighed).  Vi clamp'er til 700-1700 ms som rimelige
+  // grænser for typiske mobile GPS-cadencer (1-3 s).
+  const lastUpdateRef = useRef<number>(0);
+  const durationRef = useRef<number>(1100);
 
   // Snapshot start values whenever a new target arrives.
   useEffect(() => {
