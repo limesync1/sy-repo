@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { useUpdateRoute, useDeleteRoute, useOptimizeRoute, useDirections, type Route, type RouteStop } from "@/hooks/useRoutes";
 import { DatePickerField } from "./DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
-import { LiveStatusBadge, EtaDetailsButton, pickDuration } from "@/components/route/EtaBreakdown";
+import { pickDuration } from "@/components/route/EtaBreakdown";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -84,7 +84,6 @@ export const RouteEditSheet = ({
   const [color, setColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [date, setDate] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [showRawTime, setShowRawTime] = useState(false);
   // depart_at ISO — null = "nu". Når brugeren ændrer afgangstid, kan ETA flytte
   // sig (myldretid kontra midt-på-dagen).
   const [departAt, setDepartAt] = useState<string | null>(null);
@@ -185,13 +184,24 @@ export const RouteEditSheet = ({
     } catch { /* */ }
   };
 
-  const formatMinShort = (s: number) => {
-    const m = Math.round(s / 60);
+  /**
+   * Skriv rejsetid på almindeligt dansk:
+   *  - <60 min  → "34 min"
+   *  - =60 min  → "1 time"
+   *  - >60 min  → "1 time og 12 min" / "2 timer og 5 min"
+   */
+  const formatTravelTime = (s: number): string => {
+    const m = Math.max(0, Math.round(s / 60));
     if (m < 60) return `${m} min`;
-    return `${Math.floor(m / 60)}t ${m % 60}m`;
+    const h = Math.floor(m / 60);
+    const r = m % 60;
+    const hourLabel = h === 1 ? "1 time" : `${h} timer`;
+    if (r === 0) return hourLabel;
+    return `${hourLabel} og ${r} min`;
   };
 
-  const displayDuration = routeDirections ? pickDuration(routeDirections, showRawTime) : null;
+  // Brug altid den korrigerede ETA (med DK trafik-buffer) — ingen toggle længere.
+  const displayDuration = routeDirections ? pickDuration(routeDirections, false) : null;
 
   return (
     <>
@@ -267,35 +277,16 @@ export const RouteEditSheet = ({
               <DatePickerField value={date} onChange={setDate} />
             </Section>
 
-            {/* ETA-sektion — kun når ruten har nok stops til en beregning */}
+            {/* Rejsetid — kort og enkel: "Estimeret rejsetid: 34 min" */}
             {waypoints && (
-              <Section
-                icon={<Gauge className="h-3.5 w-3.5" />}
-                title="Estimeret rejsetid"
-                hint={routeDirections ? `${(routeDirections.distance_m! / 1000).toFixed(1)} km` : undefined}
-              >
+              <Section icon={<Gauge className="h-3.5 w-3.5" />} title="Rejsetid">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-card p-3">
-                    <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground">
-                        {showRawTime ? "Rå Mapbox-tid" : "Korrigeret ETA (DK-buffer)"}
-                      </p>
-                      <p className="text-xl font-bold tabular-nums">
-                        {displayDuration != null ? formatMinShort(displayDuration) : "—"}
-                      </p>
-                    </div>
-                    {routeDirections && (
-                      <div className="flex flex-col items-end gap-1">
-                        <LiveStatusBadge info={routeDirections} compact />
-                        <EtaDetailsButton
-                          info={routeDirections}
-                          showRaw={showRawTime}
-                          onToggleRaw={setShowRawTime}
-                          compact
-                        />
-                      </div>
-                    )}
-                  </div>
+                  <p className="text-sm">
+                    <span className="text-muted-foreground">Estimeret rejsetid: </span>
+                    <span className="font-semibold text-foreground tabular-nums">
+                      {displayDuration != null ? formatTravelTime(displayDuration) : "—"}
+                    </span>
+                  </p>
 
                   <div>
                     <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1.5">
@@ -316,9 +307,6 @@ export const RouteEditSheet = ({
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="mt-1 text-[10px] text-muted-foreground">
-                      Skift afgangstid for at se hvordan trafikken påvirker ETA.
-                    </p>
                   </div>
                 </div>
               </Section>
