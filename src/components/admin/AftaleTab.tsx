@@ -1679,7 +1679,8 @@ const AftaleTab = ({
         {/* ─── Sidebar: Rute-pool ───
             Viser ruter for de næste 14 dage. Aftaler kan trækkes direkte
             fra venstre kolonne over på en rute her — så er den planlagt.
-            Dette er en lettere arbejdsgang end at åbne ruteplanlæggeren. */}
+            Skjules helt når ruteplanlægning er deaktiveret. */}
+        {routePlanningEnabled && (
         <aside className="lg:sticky lg:top-4 lg:self-start">
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between gap-2 border-b border-border bg-secondary/40 px-4 py-3">
@@ -1764,6 +1765,7 @@ const AftaleTab = ({
             </div>
           </Card>
         </aside>
+        )}
       </div>
 
       <CreateManualOrderDialog
