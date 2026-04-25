@@ -19,6 +19,8 @@ import {
 import { da } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import type { Route, RouteStop } from "@/hooks/useRoutes";
+import { WeatherBadge } from "./WeatherBadge";
+import type { WeatherDay } from "@/hooks/useWeather";
 
 export type CalendarRoute = Route & {
   stops: RouteStop[];
@@ -38,13 +40,15 @@ type Props = {
   optimizingRouteId?: string | null;
   /** Sat til 'job' når brugeren trækker en aftale fra aftalepoolen — får drop-targets til at lyse op. */
   draggingType?: "job" | "route" | null;
+  /** Map fra yyyy-MM-dd → vejrudsigt for dagen. */
+  weatherByDate?: Map<string, WeatherDay>;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
-  onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType,
+  onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, weatherByDate,
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
@@ -123,6 +127,7 @@ export const MonthWeekCalendar = ({
                     optimizingRouteId={optimizingRouteId}
                     compact={view === "month"}
                     draggingType={draggingType}
+                    weather={weatherByDate?.get(dateStr) ?? null}
                   />
                 );
               })}
@@ -148,11 +153,12 @@ type DayCellProps = {
   optimizingRouteId?: string | null;
   compact: boolean;
   draggingType?: "job" | "route" | null;
+  weather?: WeatherDay | null;
 };
 
 const DayCell = ({
   date, dateStr, routes, inMonth, today,
-  onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType,
+  onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, weather,
 }: DayCellProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `day:${dateStr}`,
@@ -187,15 +193,20 @@ const DayCell = ({
         >
           {format(date, "d")}
         </span>
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onCreateRoute(dateStr); }}
-          className="opacity-0 group-hover:opacity-100 transition-opacity h-5 w-5 inline-flex items-center justify-center rounded hover:bg-accent/10 text-muted-foreground hover:text-accent"
-          aria-label="Opret rute"
-          title="Opret rute denne dag"
-        >
-          <Plus className="h-3 w-3" />
-        </button>
+        <div className="flex items-center gap-1">
+          {weather && inMonth && (
+            <WeatherBadge weather={weather} size={compact ? "compact" : "full"} />
+          )}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onCreateRoute(dateStr); }}
+            className="opacity-0 group-hover:opacity-100 transition-opacity h-5 w-5 inline-flex items-center justify-center rounded hover:bg-accent/10 text-muted-foreground hover:text-accent"
+            aria-label="Opret rute"
+            title="Opret rute denne dag"
+          >
+            <Plus className="h-3 w-3" />
+          </button>
+        </div>
       </div>
 
       {/* Rute-piller */}

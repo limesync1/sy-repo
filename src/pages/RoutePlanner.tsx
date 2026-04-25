@@ -56,6 +56,7 @@ import { supabase } from "@/integrations/supabase/client";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AdminShell } from "@/components/admin/shared/AdminShell";
+import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -108,6 +109,31 @@ const Planner = () => {
   const { data: calendarRoutesRaw = [] } = useRoutesForRange(businessId, calendarRange.start, calendarRange.end);
   const calendarRouteIds = useMemo(() => calendarRoutesRaw.map((r) => r.id), [calendarRoutesRaw]);
   const { data: calendarStops = [] } = useStopsForRoutes(calendarRouteIds);
+
+  // Vejrudsigt — bruger gennemsnit af stop-koordinater i det viste interval,
+  // ellers Danmarks centrum. Open-Meteo kan levere op til 16 dage frem.
+  const weatherCenter = useMemo(() => {
+    const coords = calendarStops
+      .filter((s) => s.latitude != null && s.longitude != null)
+      .map((s) => [Number(s.latitude), Number(s.longitude)] as [number, number]);
+    if (coords.length === 0) return { lat: 56.0, lng: 10.5 }; // Danmark
+    const lat = coords.reduce((a, [la]) => a + la, 0) / coords.length;
+    const lng = coords.reduce((a, [, lo]) => a + lo, 0) / coords.length;
+    return { lat, lng };
+  }, [calendarStops]);
+
+  const { data: weatherDays = [] } = useWeatherForecast({
+    startDate: calendarRange.start,
+    endDate: calendarRange.end,
+    latitude: weatherCenter.lat,
+    longitude: weatherCenter.lng,
+  });
+
+  const weatherByDate = useMemo(() => {
+    const m = new Map<string, WeatherDay>();
+    for (const d of weatherDays) m.set(d.date, d);
+    return m;
+  }, [weatherDays]);
 
   const createRoute = useCreateRoute();
   const deleteRoute = useDeleteRoute();
@@ -827,6 +853,7 @@ const Planner = () => {
                   }}
                   optimizingRouteId={optimizingRouteId}
                   draggingType={activeDragData?.type === "job" ? "job" : activeDragData?.type === "route" ? "route" : null}
+                  weatherByDate={weatherByDate}
                 />
               </ResizablePanel>
             </ResizablePanelGroup>
