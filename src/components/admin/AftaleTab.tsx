@@ -642,7 +642,18 @@ const LinkedSubscriptionInfo = ({ orderId, subscriptions }: { orderId: string; s
 /* ═══════════════════════════════════════════════════ */
 /*  Main AftaleTab — unified view                     */
 /* ═══════════════════════════════════════════════════ */
-const AftaleTab = ({ businessId, businessName }: { businessId: string; businessName: string }) => {
+const AftaleTab = ({
+  businessId,
+  businessName,
+  routePlanningEnabled = false,
+}: {
+  businessId: string;
+  businessName: string;
+  /** Når falsk skjules ALT rute-relateret UI: rute-pool sidebar, drag handles,
+   *  filter-chips ("Ikke planlagt"/"På rute"), badges på aftaler og
+   *  rute-info-blokken i den udfoldede aftale. */
+  routePlanningEnabled?: boolean;
+}) => {
   const { data: orders, isLoading } = useOrders(businessId);
   const { data: services } = useServices(businessId);
   const { data: subscriptions } = useBusinessSubscriptions(businessId);
