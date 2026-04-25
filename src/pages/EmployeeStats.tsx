@@ -8,7 +8,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
 import { useMyEmployee, useMyEmployeeStats } from "@/hooks/useMyEmployee";
-import { StatCard } from "@/components/admin/shared/AdminUI";
+import { StatCard, PageHeader } from "@/components/admin/shared/AdminUI";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -115,7 +115,7 @@ const EmployeeStats = () => {
   })();
 
   const rangePicker = (
-    <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-0.5 flex-wrap">
+    <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border bg-card p-1 shadow-sm">
       {(Object.keys(RANGE_LABELS) as Array<Exclude<RangeKey, "custom">>).map((k) => (
         <Button
           key={k}
@@ -123,8 +123,10 @@ const EmployeeStats = () => {
           variant="ghost"
           onClick={() => { setRange(k); setCustomRange(undefined); }}
           className={cn(
-            "h-7 px-2.5 text-[11px] font-semibold",
-            range === k ? "bg-secondary text-foreground" : "text-muted-foreground",
+            "h-8 rounded-md px-3 text-xs font-medium transition-colors",
+            range === k
+              ? "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm"
+              : "text-muted-foreground hover:bg-secondary hover:text-foreground",
           )}
         >
           {RANGE_LABELS[k]}
@@ -136,11 +138,13 @@ const EmployeeStats = () => {
             size="sm"
             variant="ghost"
             className={cn(
-              "h-7 px-2.5 text-[11px] font-semibold gap-1.5",
-              range === "custom" ? "bg-secondary text-foreground" : "text-muted-foreground",
+              "h-8 gap-1.5 rounded-md px-3 text-xs font-medium transition-colors",
+              range === "custom"
+                ? "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm"
+                : "text-muted-foreground hover:bg-secondary hover:text-foreground",
             )}
           >
-            <CalendarIcon className="h-3 w-3" />
+            <CalendarIcon className="h-3.5 w-3.5" />
             {range === "custom" ? customLabel : "Vælg datoer"}
           </Button>
         </PopoverTrigger>
@@ -170,17 +174,17 @@ const EmployeeStats = () => {
     range === "custom" && customRange?.from ? customLabel : RANGE_LABELS[range as Exclude<RangeKey, "custom">];
 
   return (
-    <EmployeeShell activeTab="stats" title="Statistik" topbarRight={rangePicker}>
+    <EmployeeShell activeTab="stats" title="Statistik">
       <div className="mx-auto max-w-5xl space-y-5 pb-16">
-        {/* Header */}
-        <div className="space-y-1">
-          <h2 className="text-2xl font-semibold text-foreground capitalize">
-            {headerLabel}
-          </h2>
-          <p className="text-sm text-muted-foreground tabular-nums">
-            {format(parseISO(from), "d. MMM yyyy", { locale: da })} – {format(parseISO(to), "d. MMM yyyy", { locale: da })}
-          </p>
-        </div>
+        <PageHeader
+          title={<span className="capitalize">{headerLabel}</span>}
+          description={
+            <span className="tabular-nums">
+              {format(parseISO(from), "d. MMM yyyy", { locale: da })} – {format(parseISO(to), "d. MMM yyyy", { locale: da })}
+            </span>
+          }
+          action={rangePicker}
+        />
 
         {isLoading || !s ? (
           <Card className="p-10 text-center text-muted-foreground">
