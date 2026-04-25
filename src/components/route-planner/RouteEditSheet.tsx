@@ -200,7 +200,8 @@ export const RouteEditSheet = ({
     return `${hourLabel} og ${r} min`;
   };
 
-  const displayDuration = routeDirections ? pickDuration(routeDirections, showRawTime) : null;
+  // Brug altid den korrigerede ETA (med DK trafik-buffer) — ingen toggle længere.
+  const displayDuration = routeDirections ? pickDuration(routeDirections, false) : null;
 
   return (
     <>
