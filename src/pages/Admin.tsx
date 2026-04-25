@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import {
   Plus, Trash2,
-  Sparkles, Calculator,
+  Sparkles, Calculator, Wrench,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import DashboardTab from "@/components/admin/DashboardTab";
