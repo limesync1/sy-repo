@@ -147,11 +147,48 @@ const SettingsTab = ({ business }: { business: any }) => {
     });
   };
 
-  const scrollToSection = (id: string) => {
-    setActiveSection(id);
+  // Smooth, accurate anchor-scroll. Bruger window.scrollTo med eksplicit offset
+  // (header-højde) i stedet for scrollIntoView, så ankret lander præcist under
+  // den sticky topbaren — uafhængigt af scroll-mt værdier.
+  const scrollToSection = useCallback((id: string) => {
     const el = document.getElementById(`settings-${id}`);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+    if (!el) return;
+    setActiveSection(id);
+    isProgrammaticScroll.current = true;
+    const top = el.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
+    window.scrollTo({ top, behavior: "smooth" });
+    // Slip observerens "lock" igen efter animationen er færdig.
+    window.setTimeout(() => { isProgrammaticScroll.current = false; }, 700);
+  }, []);
+
+  // Auto-detect aktiv sektion via IntersectionObserver — så sidebar fremhæver
+  // den sektion der er i viewporten mens man scroller manuelt.
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (isProgrammaticScroll.current) return;
+        // Vælg den øverste synlige sektion.
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible[0]) {
+          const id = visible[0].target.id.replace("settings-", "");
+          setActiveSection(id);
+        }
+      },
+      {
+        // Top-margin matcher header-offset så vi skifter aktivt punkt præcist
+        // når sektionen krydser under headeren.
+        rootMargin: `-${HEADER_OFFSET + 8}px 0px -60% 0px`,
+        threshold: 0,
+      },
+    );
+    SECTIONS.forEach(({ id }) => {
+      const el = document.getElementById(`settings-${id}`);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, []);
 
   const lookupCvr = async () => {
     const q = cvrQuery.trim();
