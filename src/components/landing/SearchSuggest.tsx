@@ -147,11 +147,11 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
   return (
     <div ref={wrapRef} className="relative w-full max-w-2xl">
       <div
-        className={`flex items-center overflow-hidden rounded-full border bg-card shadow-2xl transition-shadow ${
-          isHero ? "border-border h-14 md:h-16" : "border-border h-13"
+        className={`flex items-center overflow-hidden rounded-full border border-border bg-card shadow-[0_18px_50px_-18px_rgba(0,0,0,0.35)] ring-1 ring-black/5 transition-shadow focus-within:shadow-[0_22px_60px_-18px_rgba(0,0,0,0.45)] ${
+          isHero ? "h-14 md:h-16" : "h-12 md:h-14"
         }`}
       >
-        <div className="pl-5 pr-3 text-muted-foreground">
+        <div className="pl-5 pr-2 text-muted-foreground sm:pr-3">
           <Search className="h-5 w-5" />
         </div>
         <input
@@ -161,12 +161,12 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
           onChange={(e) => { setQ(e.target.value); setOpen(true); setActiveIdx(-1); }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
-          className="h-full flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground"
+          className="h-full min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground"
         />
-        <div className="pr-2">
+        <div className="pr-1.5 sm:pr-2">
           <Button
             onClick={() => submit()}
-            className="h-10 gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-accent-foreground hover:bg-accent/90 md:h-11 md:px-6"
+            className="h-10 gap-2 rounded-full bg-accent px-4 text-sm font-semibold text-accent-foreground shadow-sm hover:bg-accent/90 md:h-11 md:px-6"
           >
             <Search className="h-4 w-4" />
             <span className="hidden sm:inline">Søg</span>
@@ -183,13 +183,13 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
 
       {/* Suggestions dropdown */}
       {open && suggestions.length > 0 && (
-        <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-[0_24px_60px_-12px_rgba(0,0,0,0.35)] ring-1 ring-black/5">
           {!q.trim() && (
-            <div className="border-b border-border px-4 pt-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="border-b border-border bg-secondary/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               Populære kategorier
             </div>
           )}
-          <ul className="max-h-[420px] overflow-y-auto py-1.5">
+          <ul className="max-h-[min(60vh,460px)] overflow-y-auto overscroll-contain py-1.5">
             {suggestions.map((s, i) => {
               const active = activeIdx === i;
               return (
