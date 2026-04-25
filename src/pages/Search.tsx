@@ -309,19 +309,20 @@ const SearchPage = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 overflow-x-auto py-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {CATEGORIES.map((cat) => {
-              const Icon = cat.icon;
-              const active = selectedCategory === cat.label;
+              // Sammenlign mod kanonisk `key` (det der gemmes på businesses)
+              // så chip'en matcher uanset hvordan branchen vises.
+              const active = selectedCategory === cat.key;
               return (
                 <button
-                  key={cat.label}
-                  onClick={() => handleCategoryClick(cat.label)}
+                  key={cat.key}
+                  onClick={() => handleCategoryClick(cat.key)}
                   className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all ${
                     active
                       ? "border-foreground bg-foreground text-background hover:bg-foreground/90"
                       : "border-border bg-card text-foreground hover:border-foreground/40 hover:bg-secondary active:bg-secondary/70"
                   }`}
                 >
-                  <Icon className="h-3.5 w-3.5" />
+                  <span aria-hidden className="text-base leading-none">{cat.icon}</span>
                   {cat.label}
                   {active && <X className="h-3 w-3 ml-0.5 opacity-70" />}
                 </button>
