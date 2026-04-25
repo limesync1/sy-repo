@@ -57,10 +57,17 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         icon: "🧹",
         description: "Privat- og erhvervsrengøring, hovedrengøring m.m.",
         subcategories: [
-          { label: "Privatrengøring", services: ["Hjemmerengøring", "Hovedrengøring", "Flytterengøring", "Dødsbo­rengøring"] },
-          { label: "Erhvervsrengøring", services: ["Kontorrengøring", "Butiksrengøring", "Industrirengøring", "Klinikrengøring"] },
-          { label: "Trappevask", services: ["Trappevask boligforening", "Opgangsrengøring"] },
-          { label: "Specialrengøring", services: ["Byggerengøring", "Brand- og vandskaderengøring", "Insektbekæmpelse"] },
+          { label: "Privatrengøring", services: ["Ugentlig hjemmerengøring", "14-dages rengøring", "Månedlig rengøring", "Engangs­rengøring"] },
+          { label: "Hovedrengøring", services: ["Forårs­rengøring", "Hovedrengøring villa", "Hovedrengøring lejlighed"] },
+          { label: "Flytterengøring", services: ["Flytterengøring lejlighed", "Flytterengøring villa", "Flytterengøring med garanti"] },
+          { label: "Dødsbo­rengøring", services: ["Dødsbo­rengøring", "Tømning af dødsbo", "Bortskaffelse af indbo"] },
+          { label: "Kontorrengøring", services: ["Daglig kontor­rengøring", "Ugentlig kontor­rengøring", "Mødelokale­rengøring"] },
+          { label: "Erhvervsrengøring", services: ["Butiks­rengøring", "Industri­rengøring", "Lager­rengøring", "Klinik- og tandlæge­rengøring", "Skole- og institutions­rengøring", "Restaurations­rengøring"] },
+          { label: "Trappevask", services: ["Trappevask bolig­forening", "Opgangs­rengøring", "Fælles­arealer"] },
+          { label: "Byggerengøring", services: ["Bygge­rengøring under arbejde", "Slut­rengøring nybyg", "Aflevering­srengøring"] },
+          { label: "Specialrengøring", services: ["Brand- og vandskade­rengøring", "Hoarder­rengøring", "Mikrofiber­rengøring", "Desinficering / corona­rengøring"] },
+          { label: "Tæpperens", services: ["Tæpperens i hjemmet", "Møbelpolstring­srens", "Bilsæder rens"] },
+          { label: "Måtte- og gardin­service", services: ["Måtte­service", "Gardin­vask"] },
         ],
       },
       {
@@ -69,9 +76,12 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         icon: "🪟",
         description: "Inde og ude, både privat og erhverv.",
         subcategories: [
-          { label: "Privat vinduespudsning", services: ["Indvendig vinduespudsning", "Udvendig vinduespudsning", "Helhedspakke (inde + ude)"] },
-          { label: "Erhverv vinduespudsning", services: ["Butiksvinduer", "Kontor­facader", "Glasfacader / højhuse"] },
-          { label: "Rentvandsanlæg", services: ["Vinduespudsning med rentvandsanlæg"] },
+          { label: "Privat vinduespudsning", services: ["Indvendig vinduespudsning", "Udvendig vinduespudsning", "Helhedspakke (inde + ude)", "Karm­rengøring"] },
+          { label: "Erhverv vinduespudsning", services: ["Butiks­vinduer", "Kontor­facader", "Restaurant­vinduer"] },
+          { label: "Glasfacader & højhuse", services: ["Glas­facader", "Højde­arbejde med lift", "Reb­arbejde / klatre­service"] },
+          { label: "Rentvands­anlæg", services: ["Vinduespudsning med rent­vandsanlæg", "Stang­pudsning op til 20m"] },
+          { label: "Solceller", services: ["Solcelle­rens", "Inspektion af solceller"] },
+          { label: "Ovenlys & glas­tage", services: ["Ovenlys­vinduer", "Glas­tag", "Vinter­haver"] },
         ],
       },
       {
@@ -80,9 +90,13 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         icon: "🌧️",
         description: "Behandling af tag, fliser, facade m.m.",
         subcategories: [
-          { label: "Tag", services: ["Algebehandling tag", "Tagrens", "Imprægnering tag"] },
-          { label: "Fliser & belægning", services: ["Algebehandling fliser", "Højtryksrens fliser", "Imprægnering belægning"] },
-          { label: "Facade", services: ["Facaderens", "Algebehandling facade"] },
+          { label: "Tagrens", services: ["Tag­rens med højtryk", "Mekanisk tag­rens", "Tag­maling efter rens"] },
+          { label: "Algebehandling tag", services: ["Alge­behandling tegl", "Alge­behandling beton", "Alge­behandling eternit"] },
+          { label: "Imprægnering tag", services: ["Imprægnering efter rens", "Nano­imprægnering"] },
+          { label: "Fliserens", services: ["Højtryks­rens fliser", "Alge­behandling fliser", "Fuge­rens"] },
+          { label: "Belægning", services: ["Imprægnering belægning", "Granit & natursten", "Indkørsel rens"] },
+          { label: "Facaderens", services: ["Facade­rens", "Alge­behandling facade", "Graffiti­fjernelse"] },
+          { label: "Tagrender", services: ["Tag­rende­rensning", "Inspektion tag­render", "Løv­filter montering"] },
         ],
       },
       {
@@ -90,9 +104,21 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         label: "Skadedyrsbekæmpelse",
         icon: "🐀",
         subcategories: [
-          { label: "Insekter", services: ["Hvepse­bekæmpelse", "Myrebekæmpelse", "Vægge­lus"] },
-          { label: "Gnavere", services: ["Rotter", "Mus"] },
-          { label: "Forebyggende", services: ["Sikrings­aftale", "Rådgivning"] },
+          { label: "Insekter", services: ["Hvepse­bekæmpelse", "Myre­bekæmpelse", "Vægge­lus", "Sølv­fisk", "Kakerlakker", "Møl"] },
+          { label: "Gnavere", services: ["Rotte­bekæmpelse", "Muse­bekæmpelse", "Mår i loft"] },
+          { label: "Fugle", services: ["Due­sikring", "Fugle­net"] },
+          { label: "Forebyggende", services: ["Sikrings­aftale erhverv", "Rotte­spærre", "Rådgivning & inspektion"] },
+          { label: "Træskadedyr", services: ["Borebille­behandling", "Hus­bukke", "Råd­svamp"] },
+        ],
+      },
+      {
+        key: "Skorstensfejer",
+        label: "Skorstensfejer",
+        icon: "🏠",
+        description: "Fejning, eftersyn og rens af skorsten og brændeovn.",
+        subcategories: [
+          { label: "Fejning", services: ["Lov­pligtig fejning", "Ekstra fejning", "Sod­sugning"] },
+          { label: "Eftersyn", services: ["Brænde­ovn­syn", "Pille­ovn­syn", "Røg­rør"] },
         ],
       },
     ],
@@ -106,10 +132,15 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         icon: "🌿",
         description: "Vedligehold af haver og grønne arealer.",
         subcategories: [
-          { label: "Havevedligehold", services: ["Græsslåning", "Hækkeklipning", "Lugning", "Beskæring"] },
-          { label: "Træfældning", services: ["Træfældning", "Stub­fræsning", "Topkapning"] },
-          { label: "Anlæg", services: ["Beplantning", "Belægning", "Haveprojekt"] },
-          { label: "Snerydning", services: ["Snerydning", "Saltning", "Glatfører­bekæmpelse"] },
+          { label: "Græs­pleje", services: ["Græs­slåning", "Vertikal­skæring", "Topdressing", "Ny græs­plæne", "Rulle­græs"] },
+          { label: "Hæk & buske", services: ["Hække­klipning", "Beskæring buske", "Form­klipning"] },
+          { label: "Beskæring & træ­pleje", services: ["Beskæring frugt­træer", "Krone­beskæring", "Stamme­opstamning"] },
+          { label: "Træfældning", services: ["Træ­fældning", "Stub­fræsning", "Top­kapning", "Sektions­fældning"] },
+          { label: "Lugning & oprydning", services: ["Lugning bede", "Have­oprydning", "Bortkørsel af haveaffald"] },
+          { label: "Have­anlæg", services: ["Beplantning", "Bede­anlæg", "Have­projekt", "Drivhus opstilling"] },
+          { label: "Vinter­service", services: ["Sne­rydning", "Saltning", "Glatfører­bekæmpelse", "Vinter­abonnement"] },
+          { label: "Løvsugning", services: ["Løv­sugning", "Bortkørsel af løv"] },
+          { label: "Vand­anlæg", services: ["Damme & bassiner", "Vandings­anlæg"] },
         ],
       },
       {
@@ -117,8 +148,21 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         label: "Anlægsgartner",
         icon: "🌳",
         subcategories: [
-          { label: "Belægning", services: ["Fliser", "Granit­belægning", "Indkørsel"] },
-          { label: "Beplantning", services: ["Træer & buske", "Græsplæne", "Bede"] },
+          { label: "Belægning", services: ["Fliser & klinker", "Granit­belægning", "Indkørsel", "Terrasser"] },
+          { label: "Støtte­mure & trapper", services: ["Støtte­mur", "Have­trapper", "Granit­kanter"] },
+          { label: "Beplantning", services: ["Træer & buske", "Græs­plæne", "Bede­anlæg"] },
+          { label: "Jordarbejde", services: ["Afgravning", "Drænarbejde", "Terræn­regulering"] },
+          { label: "Hegn & læhegn", services: ["Hegn­opsætning", "Læ­hegn", "Pergola"] },
+        ],
+      },
+      {
+        key: "Gravstedspleje",
+        label: "Gravsteds­pleje",
+        icon: "🌷",
+        description: "Vedligehold og pyntning af gravsteder.",
+        subcategories: [
+          { label: "Vedligehold", services: ["Lugning gravsted", "Plæne­klip omkring grav", "Polering af gravsten"] },
+          { label: "Pyntning", services: ["Forårs­pyntning", "Sommer­pyntning", "Jule­pyntning"] },
         ],
       },
     ],
@@ -131,8 +175,12 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         label: "Tømrer",
         icon: "🔨",
         subcategories: [
-          { label: "Tømrer­arbejde", services: ["Tilbygning", "Tag­arbejde", "Altan", "Indvendig snedkeri"] },
-          { label: "Vinduer & døre", services: ["Vindues­montering", "Dør­montering"] },
+          { label: "Tag­arbejde", services: ["Nyt tag", "Udskift­ning af tagsten", "Tag­reparation", "Under­tag"] },
+          { label: "Tilbygning & udestue", services: ["Tilbygning", "Udestue", "Carport / skur", "Altan"] },
+          { label: "Vinduer & døre", services: ["Vindues­montering", "Dør­montering", "Termo­ruder"] },
+          { label: "Indvendig snedkeri", services: ["Indbygget skab", "Køkken­montering", "Trappe­renovering"] },
+          { label: "Reparation", services: ["Råd­skader", "Spær & lægter", "Bjælkelag"] },
+          { label: "Terrasse & dæk", services: ["Trædæk", "Komposit­terrasse"] },
         ],
       },
       {
@@ -140,9 +188,12 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         label: "Murer",
         icon: "🧱",
         subcategories: [
-          { label: "Murværk", services: ["Nyt murværk", "Reparation", "Skorstene"] },
-          { label: "Fliser", services: ["Bade­værelse fliser", "Køkken fliser", "Klinker"] },
-          { label: "Facade", services: ["Facaderenovering", "Pudsning"] },
+          { label: "Murværk", services: ["Nyt murværk", "Reparation murværk", "Sokkel­arbejde"] },
+          { label: "Skorstene", services: ["Ny skorsten", "Skorstens­reparation"] },
+          { label: "Fliser & klinker", services: ["Bade­værelse fliser", "Køkken fliser", "Klinker", "Mosaik"] },
+          { label: "Pudsning", services: ["Indvendig pudsning", "Udvendig pudsning", "Filt­sning"] },
+          { label: "Facade", services: ["Facade­renovering", "Fuge­renovering", "Sand­blæsning"] },
+          { label: "Bade­værelse", services: ["Total­renovering bad", "Vådrums­membran"] },
         ],
       },
       {
@@ -150,9 +201,11 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         label: "Maler",
         icon: "🎨",
         subcategories: [
-          { label: "Indvendig maling", services: ["Vægmaling", "Loftmaling", "Lakering"] },
-          { label: "Udvendig maling", services: ["Facade­maling", "Vinduer & døre", "Træværk"] },
-          { label: "Tapetsering", services: ["Tapetsering", "Fibervæv"] },
+          { label: "Indvendig maling", services: ["Væg­maling", "Loft­maling", "Træværk indvendig", "Radiator­lakering"] },
+          { label: "Udvendig maling", services: ["Facade­maling", "Vinduer & døre", "Træværk udvendig", "Stake­hegn"] },
+          { label: "Tapetsering", services: ["Tapet­sering", "Fiber­væv", "Glas­væv"] },
+          { label: "Spartling & forarbejde", services: ["Vægspartling", "Loft­spartling", "Reparation revner"] },
+          { label: "Specialmaling", services: ["Effekt­maling", "Tavle­maling", "Beton­gulv lakering"] },
         ],
       },
       {
@@ -160,9 +213,13 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         label: "VVS",
         icon: "🚰",
         subcategories: [
-          { label: "Vand & sanitet", services: ["Vandhane", "Toilet", "Bade­værelse"] },
-          { label: "Varme", services: ["Radiator", "Gulvvarme", "Varmepumpe"] },
-          { label: "Kloak & afløb", services: ["Kloak­service", "Afløb", "Drænarbejde"] },
+          { label: "Vand & sanitet", services: ["Vand­hane", "Toilet udskift­ning", "Bruser & kabine", "Vand­skade"] },
+          { label: "Bade­værelse", services: ["Bade­værelses­renovering", "Vådrums­installation"] },
+          { label: "Varme & kedel", services: ["Radiator", "Gulv­varme", "Gas­kedel", "Olie­fyr udskift­ning"] },
+          { label: "Varmepumpe", services: ["Luft til luft", "Luft til vand", "Jord­varme", "Service­aftale varmepumpe"] },
+          { label: "Kloak & afløb", services: ["Kloak­service", "Afløbs­rens", "TV-inspektion", "Drænarbejde"] },
+          { label: "Brønd & septik", services: ["Septik­tank tømning", "Brønd­rens", "Pumpe­brønd"] },
+          { label: "Akut VVS", services: ["Akut udkald", "Vand­bruds­hjælp"] },
         ],
       },
       {
@@ -170,9 +227,13 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         label: "Elektriker",
         icon: "⚡",
         subcategories: [
-          { label: "El-installation", services: ["Stikkontakter", "Belysning", "El-tavle"] },
-          { label: "Smart home", services: ["Smart belysning", "Lade­standere"] },
-          { label: "El-tjek", services: ["Eftersyns­rapport", "Sikkerhedsgennemgang"] },
+          { label: "El-installation", services: ["Stik­kontakter", "Belysning", "El-tavle", "Ny installation nybyg"] },
+          { label: "Belysning", services: ["LED-belysning", "Spots", "Have­belysning", "Indbygnings­spot"] },
+          { label: "Smart home", services: ["Smart belysning", "Hue / smart kontakter", "Smart­varme"] },
+          { label: "Ladeløsninger", services: ["Lade­standere bil", "Lade­boks villa", "Lade­løsning erhverv"] },
+          { label: "Solceller", services: ["Solcelle­anlæg", "Batteri / hybrid", "Service af solceller"] },
+          { label: "El-tjek & autorisation", services: ["El-eftersyn", "Termografi", "El-rapport hus­handel"] },
+          { label: "Akut el", services: ["Akut udkald el", "Strøm­svigt"] },
         ],
       },
       {
@@ -180,9 +241,10 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         label: "Gulvlægger",
         icon: "🪵",
         subcategories: [
-          { label: "Trægulve", services: ["Trægulv", "Slibning & lakering"] },
-          { label: "Vinyl & laminat", services: ["Vinylgulv", "Laminat"] },
-          { label: "Industri­gulve", services: ["Epoxygulv", "Industrimaling"] },
+          { label: "Trægulve", services: ["Plank­egulv", "Park­et", "Slibning & lakering", "Olie­behandling"] },
+          { label: "Vinyl & laminat", services: ["Vinyl­gulv", "Laminat", "LVT design­gulv"] },
+          { label: "Tæppe & linoleum", services: ["Væg-til-væg tæppe", "Linoleum"] },
+          { label: "Industri­gulve", services: ["Epoxy­gulv", "Beton­slibning", "Industri­maling"] },
         ],
       },
       {
@@ -190,8 +252,9 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         label: "Glarmester",
         icon: "🪞",
         subcategories: [
-          { label: "Vinduer", services: ["Termoruder", "Vindues­reparation"] },
-          { label: "Spejle & glas", services: ["Spejle", "Glasvægge", "Brusedøre"] },
+          { label: "Vinduer", services: ["Termo­ruder", "Vindues­reparation", "Akut vindues­skade"] },
+          { label: "Spejle & glas", services: ["Spejle", "Glas­vægge", "Bruse­døre", "Glas­hylder"] },
+          { label: "Erhverv", services: ["Butiks­ruder", "Sikrings­glas", "Folie­montage"] },
         ],
       },
       {
@@ -199,7 +262,20 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         label: "Smed",
         icon: "⚙️",
         subcategories: [
-          { label: "Stålarbejde", services: ["Hegn", "Gelænder", "Carport"] },
+          { label: "Stål­arbejde", services: ["Hegn", "Gelænder", "Carport", "Trapper"] },
+          { label: "Konstruktion", services: ["Stål­bjælker", "Specialkonstruktion"] },
+          { label: "Reparation", services: ["Svejs­ning", "Reparation port"] },
+        ],
+      },
+      {
+        key: "Isolering",
+        label: "Isolering",
+        icon: "🧊",
+        description: "Efter­isolering af loft, hulmur og krybe­kælder.",
+        subcategories: [
+          { label: "Loft", services: ["Loft­isolering", "Skrå vægge"] },
+          { label: "Hulmur", services: ["Hulmurs­isolering"] },
+          { label: "Krybe­kælder & terræn­dæk", services: ["Krybe­kælder", "Terræn­dæk"] },
         ],
       },
     ],
@@ -212,9 +288,12 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         label: "Flyttehjælp",
         icon: "📦",
         subcategories: [
-          { label: "Privat flytning", services: ["Lokal flytning", "Langdistance flytning", "Udlandsflytning"] },
-          { label: "Erhvervsflytning", services: ["Kontor­flytning", "Lager­flytning"] },
-          { label: "Pakke & opbevaring", services: ["Pakke­service", "Opbevaring"] },
+          { label: "Privat flytning", services: ["Lokal flytning", "Langdistance flytning", "Udlands­flytning", "Senior­flytning"] },
+          { label: "Erhvervs­flytning", services: ["Kontor­flytning", "Lager­flytning", "Maskin­flytning"] },
+          { label: "Klaver & specialflytning", services: ["Klaver­flytning", "Pengeskab", "Tunge løft"] },
+          { label: "Pakke & udpakning", services: ["Pakke­service", "Udpaknings­hjælp", "Møbel­demontering"] },
+          { label: "Opbevaring", services: ["Korttids­opbevaring", "Langtids­opbevaring", "Container­opbevaring"] },
+          { label: "Bortskaffelse", services: ["Tømning ved flytning", "Bortskaffelse af møbler"] },
         ],
       },
       {
@@ -222,8 +301,9 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         label: "Vognmand & kurer",
         icon: "🚚",
         subcategories: [
-          { label: "Levering", services: ["Pakke­levering", "Møbeltransport"] },
-          { label: "Bortskaffelse", services: ["Affalds­kørsel", "Container­udlejning"] },
+          { label: "Levering", services: ["Pakke­levering", "Møbel­transport", "Hvide­vare­levering & montage"] },
+          { label: "Container & affald", services: ["Container­udlejning", "Affalds­kørsel", "Genbrugs­plads­kørsel"] },
+          { label: "Kran & lift", services: ["Kran­bil", "Lift­vogn"] },
         ],
       },
     ],
@@ -237,8 +317,11 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         icon: "🚗",
         description: "Bilpleje udført på kundens adresse.",
         subcategories: [
-          { label: "Bilrengøring", services: ["Indvendig rens", "Udvendig vask", "Polering", "Klargøring til salg"] },
-          { label: "Mobilt dækskift", services: ["Dækskift på adressen"] },
+          { label: "Bilrengøring", services: ["Indvendig rens", "Udvendig håndvask", "Klargøring til salg", "Lugt­fjernelse"] },
+          { label: "Polering & coating", services: ["Polering", "Keramisk coating", "Lak­for­segling"] },
+          { label: "Mobilt dækskift", services: ["Dækskift på adressen", "Hjul­opbevaring"] },
+          { label: "Stenslag & småskader", services: ["Sten­slag rude", "Smart­repair lak", "Felgreparation"] },
+          { label: "Start­hjælp & vej­hjælp", services: ["Start­hjælp", "Mobil mekaniker"] },
         ],
       },
     ],
@@ -251,9 +334,10 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         label: "Sikkerhed",
         icon: "🛡️",
         subcategories: [
-          { label: "Alarm­systemer", services: ["Tyveri­alarm", "Brand­alarm"] },
-          { label: "Video­overvågning", services: ["IP-kamera", "Overvågnings­system"] },
-          { label: "Adgang & lås", services: ["Lås­smed", "Adgangs­kontrol"] },
+          { label: "Alarm­systemer", services: ["Tyveri­alarm", "Brand­alarm", "Vand­alarm"] },
+          { label: "Video­overvågning", services: ["IP-kamera", "Overvågnings­system", "Dørtelefon med video"] },
+          { label: "Lås­smed", services: ["Lås­udskift­ning", "Cylinder­service", "Sikrings­dør", "Akut lås­ning"] },
+          { label: "Adgangs­kontrol", services: ["Brik­system", "Kode­låse"] },
         ],
       },
     ],
@@ -266,8 +350,10 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
         label: "IT-service (på adresse)",
         icon: "💻",
         subcategories: [
-          { label: "Installation", services: ["TV & lyd montering", "Smart home installation", "Wi-Fi opsætning"] },
-          { label: "Netværk", services: ["Netværks­installation", "Kabel­træk"] },
+          { label: "AV-montering", services: ["TV-montering", "Surround / lyd­anlæg", "Projektor & lærred"] },
+          { label: "Smart home", services: ["Smart home opsætning", "Stemme­styring", "Smart belysning"] },
+          { label: "Netværk & Wi-Fi", services: ["Wi-Fi opsætning", "Mesh-netværk", "Kabel­træk", "Server­skab"] },
+          { label: "PC-hjælp", services: ["PC-hjælp på adressen", "Backup & flytning af data"] },
         ],
       },
     ],
@@ -365,6 +451,32 @@ export const STEP_TEMPLATES_BY_INDUSTRY: Record<string, StepTemplate[]> = {
       { label: "Mandskab", unit: "timer", price_per_unit: 400, min_value: 1, max_value: 12, default_value: 4 },
     ]},
   ],
+  "Skorstensfejer": [
+    { label: "Lovpligtig fejning", steps: [
+      { label: "Antal skorstene", unit: "stk", price_per_unit: 350, min_value: 1, max_value: 5, default_value: 1 },
+    ]},
+  ],
+  "Isolering": [
+    { label: "Loftisolering", steps: [
+      { label: "Loftareal", unit: "m²", price_per_unit: 120, min_value: 20, max_value: 400, default_value: 120 },
+      { label: "Isoleringstykkelse", unit: "mm", price_per_unit: 0.5, min_value: 100, max_value: 500, default_value: 300 },
+    ]},
+    { label: "Hulmursisolering", steps: [
+      { label: "Facadeareal", unit: "m²", price_per_unit: 180, min_value: 20, max_value: 400, default_value: 100 },
+    ]},
+  ],
+  "Gravstedspleje": [
+    { label: "Årlig gravstedspleje", steps: [
+      { label: "Antal besøg pr. år", unit: "stk", price_per_unit: 250, min_value: 1, max_value: 24, default_value: 8 },
+      { label: "Gravsteds­størrelse", unit: "m²", price_per_unit: 80, min_value: 1, max_value: 20, default_value: 4 },
+    ]},
+  ],
+  "Autoservice": [
+    { label: "Mobil bilrengøring", steps: [
+      { label: "Bil­størrelse", unit: "stk", price_per_unit: 600, min_value: 1, max_value: 3, default_value: 1 },
+      { label: "Polering", unit: "timer", price_per_unit: 500, min_value: 0, max_value: 6, default_value: 0 },
+    ]},
+  ],
 };
 
 /* ───────────── Hjælpefunktioner ───────────── */
@@ -416,6 +528,9 @@ export const TOP_CATEGORY_KEYS: string[] = [
   "Flyttehjælp",
   "Skadedyrsbekæmpelse",
   "Anlægsgartner",
+  "Gulvlægger",
+  "Skorstensfejer",
+  "Sikkerhed",
 ];
 
 /** Returnér Industry-objekter for top-kategorierne (filtrerer ukendte). */
