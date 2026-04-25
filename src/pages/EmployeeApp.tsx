@@ -112,6 +112,7 @@ const RouteMiniMap = ({
 const EmployeeApp = () => {
   const { user, loading } = useAuth();
   const [date, setDate] = useState(todayStr());
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const { data: routes = [], isLoading: routesLoading } = useMyDayRoutes(date);
   const { data: stops = [], isLoading: stopsLoading } = useMyDayStops(date);
   const { data: workday } = useMyWorkday(date);
@@ -147,25 +148,49 @@ const EmployeeApp = () => {
   // Date navigator — placeret inde i indholdet ved siden af titlen
   // (samme PageHeader-mønster som virksomhedspanelet bruger).
   const dateNav = (
-    <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border bg-card p-1 shadow-sm">
+    <div className="w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm sm:w-auto">
+      <div className="flex items-center gap-1 overflow-x-auto p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <Button
         size="icon"
         variant="ghost"
-        className="h-8 w-8 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
+        className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:scale-[0.98]"
         onClick={() => setDate(format(addDays(dateObj, -1), "yyyy-MM-dd"))}
         aria-label="Forrige dag"
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
-      <div className="px-2 min-w-0">
-        <p className="text-xs font-semibold capitalize leading-tight tabular-nums whitespace-nowrap text-foreground">
-          {isCurrentDay ? "I dag" : format(dateObj, "EEE d. MMM", { locale: da })}
-        </p>
-      </div>
+      <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-9 shrink-0 gap-1.5 rounded-lg px-3 text-xs font-semibold text-foreground transition-colors hover:bg-secondary active:scale-[0.98]"
+          >
+            <CalendarIcon className="h-3.5 w-3.5" />
+            <span className="capitalize tabular-nums">
+              {isCurrentDay ? "I dag" : format(dateObj, "EEE d. MMM", { locale: da })}
+            </span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="center">
+          <Calendar
+            mode="single"
+            selected={dateObj}
+            onSelect={(selected) => {
+              if (!selected) return;
+              setDate(format(selected, "yyyy-MM-dd"));
+              setCalendarOpen(false);
+            }}
+            locale={da}
+            weekStartsOn={1}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
       <Button
         size="icon"
         variant="ghost"
-        className="h-8 w-8 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
+        className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:scale-[0.98]"
         onClick={() => setDate(format(addDays(dateObj, 1), "yyyy-MM-dd"))}
         aria-label="Næste dag"
       >
@@ -177,19 +202,20 @@ const EmployeeApp = () => {
           variant="ghost"
           onClick={() => setDate(todayStr())}
           className={cn(
-            "h-8 rounded-md px-3 text-xs font-medium transition-colors",
+            "h-9 shrink-0 rounded-lg px-3 text-xs font-semibold transition-colors active:scale-[0.98]",
             "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm",
           )}
         >
           Gå til i dag
         </Button>
       )}
+      </div>
     </div>
   );
 
   return (
     <EmployeeShell activeTab="today" title="Min dag">
-      <div className="mx-auto max-w-3xl space-y-4 pb-16">
+      <div className="mx-auto max-w-5xl space-y-4 pb-16">
         <PageHeader
           title={<span className="capitalize">{format(dateObj, "EEEE d. MMMM", { locale: da })}</span>}
           description={
