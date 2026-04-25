@@ -5,7 +5,6 @@ import { useMyDayRoutes, useMyDayStops, type RouteStop } from "@/hooks/useRoutes
 import { useMyWorkday, useStartWorkday, useEndWorkday } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Calendar as CalendarIcon, Play, Printer, MapPin, Clock, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
