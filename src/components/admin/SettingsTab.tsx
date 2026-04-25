@@ -1,7 +1,7 @@
 // SettingsTab — virksomhedens indstillinger, opbygget med samme designsprog
 // som Overblik / Aftaler / Kunder / Medarbejdere / Anmeldelser:
 // PageHeader, surface-admin cards, sub-nav chips og konsistent spacing.
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,10 +9,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import {
   Sparkles, Settings, Bell, Route, Contact, Image as ImageIcon, Clock,
-  CheckCircle2, AlertCircle, ArrowRight, Building2, Search,
+  CheckCircle2, AlertCircle, ArrowRight, Building2, Search, Copy,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
-import { PageHeader, PrimaryButton, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
+import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -23,9 +23,29 @@ import {
 } from "@/lib/service-taxonomy";
 
 const DAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
+const WEEKDAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag"];
+
+// Header offset i topbaren (h-14 = 56px) + lille luft, bruges både til sticky
+// sidebar og smooth-scroll så ankret lander præcist under headeren.
+const HEADER_OFFSET = 72;
+
+/* ─── Time helpers — håndterer "08:00 - 16:00" strenge ─── */
+const parseHours = (raw: string): { open: string; close: string } | null => {
+  if (!raw) return null;
+  const m = raw.match(/(\d{1,2}[:.]?\d{0,2})\s*[-–]\s*(\d{1,2}[:.]?\d{0,2})/);
+  if (!m) return null;
+  const norm = (s: string) => {
+    const cleaned = s.replace(".", ":");
+    if (/^\d{1,2}$/.test(cleaned)) return `${cleaned.padStart(2, "0")}:00`;
+    const [h, mm] = cleaned.split(":");
+    return `${(h || "0").padStart(2, "0")}:${(mm || "00").padStart(2, "0")}`;
+  };
+  return { open: norm(m[1]), close: norm(m[2]) };
+};
+const formatHours = (open: string, close: string) => `${open} - ${close}`;
 
 // ─── Sub-nav sektioner ───
-// Vises som sticky sidebar (xl) eller chip-rækken (mobil/tablet).
+// Vises som sticky sidebar (lg+) eller chip-rækken (mobil).
 const SECTIONS = [
   { id: "general",       label: "Virksomhed",     icon: Building2, hint: "Navn og beskrivelse" },
   { id: "industries",    label: "Brancher",       icon: Sparkles,  hint: "Hvad I tilbyder" },
