@@ -1891,22 +1891,21 @@ const StopListPanel = ({
   const statusMeta = (s: RouteStop): { label: string; bg: string; text: string; dot: string } => {
     if (s.status === "completed") return {
       label: "Færdig",
-      bg: "hsl(142 70% 95%)",
-      text: "hsl(142 70% 25%)",
-      dot: "hsl(142 70% 45%)",
+      bg: "hsl(var(--muted))",
+      text: "hsl(var(--muted-foreground))",
+      dot: "hsl(142 71% 45%)",
     };
     if (s.id === nextStopId) return {
       label: "Næste",
-      // Light teal background with dark teal text for clear contrast
-      bg: "hsl(184 70% 92%)",
-      text: "hsl(184 90% 22%)",
-      dot: themeColor,
+      bg: "hsl(var(--secondary))",
+      text: "hsl(var(--foreground))",
+      dot: "hsl(var(--foreground))",
     };
     return {
       label: "Klar",
-      bg: "hsl(220 14% 95%)",
-      text: "hsl(220 14% 35%)",
-      dot: "hsl(220 14% 65%)",
+      bg: "hsl(var(--muted))",
+      text: "hsl(var(--muted-foreground))",
+      dot: "hsl(var(--muted-foreground))",
     };
   };
 
