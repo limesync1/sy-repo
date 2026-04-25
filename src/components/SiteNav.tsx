@@ -173,7 +173,7 @@ const SiteNav = ({ active, right }: Props) => {
                   size="sm"
                   variant="outline"
                   onClick={handleSignOut}
-                  className="hidden rounded-full sm:inline-flex"
+                  className="hidden rounded-full border-border bg-background text-foreground hover:bg-secondary hover:text-foreground sm:inline-flex"
                 >
                   <LogOut className="mr-1.5 h-4 w-4" />Log ud
                 </Button>

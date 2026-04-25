@@ -26,9 +26,13 @@ type Suggestion =
 interface Props {
   variant?: "hero" | "page";
   defaultQuery?: string;
+  /** Hide the helper "Søger automatisk nær …" line below the input. */
+  showNearLabel?: boolean;
+  /** Override the input placeholder (defaults to a near-aware string). */
+  placeholder?: string;
 }
 
-const SearchSuggest = ({ variant = "hero", defaultQuery = "" }: Props) => {
+const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = true, placeholder }: Props) => {
   const [q, setQ] = useState(defaultQuery);
   const [open, setOpen] = useState(false);
   const [activeIdx, setActiveIdx] = useState(-1);
@@ -152,7 +156,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "" }: Props) => {
         </div>
         <input
           type="text"
-          placeholder={nearLabel ? `Søg efter service nær ${nearLabel}…` : "Søg efter service, virksomhed eller by…"}
+          placeholder={placeholder ?? (nearLabel ? `Søg efter service nær ${nearLabel}…` : "Søg efter service, virksomhed eller by…")}
           value={q}
           onChange={(e) => { setQ(e.target.value); setOpen(true); setActiveIdx(-1); }}
           onFocus={() => setOpen(true)}
@@ -170,7 +174,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "" }: Props) => {
         </div>
       </div>
 
-      {nearLabel && (
+      {showNearLabel && nearLabel && (
         <div className="mt-2 flex items-center gap-2 px-2 text-xs text-muted-foreground">
           <MapPin className="h-3.5 w-3.5 text-accent" />
           Søger automatisk nær {nearLabel}
