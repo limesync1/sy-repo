@@ -399,14 +399,16 @@ const SettingsTab = ({ business }: { business: any }) => {
         </a>
       </div>
 
-      {/* ─── Sub-nav chips (mobil/tablet) — sticky sidebar bruges på xl ─── */}
-      <div className="flex flex-wrap gap-2 xl:hidden">
-        {SECTIONS.map(({ id, label, icon: Icon }) => (
+      {/* ─── Sub-nav chips (mobil/tablet) — sticky sidebar bruges på lg ─── */}
+      {/* Bliver sticky lige under topbaren (h-14) så den følger med ned. */}
+      <div className="sticky top-14 z-20 -mx-4 sm:-mx-6 lg:hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border px-4 sm:px-6 py-2">
+        <div className="flex flex-nowrap gap-2 overflow-x-auto pb-0.5">
+          {SECTIONS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             type="button"
             onClick={() => scrollToSection(id)}
-            className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 ${
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 ${
               activeSection === id
                 ? "border-border bg-secondary text-foreground"
                 : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -415,20 +417,23 @@ const SettingsTab = ({ business }: { business: any }) => {
             <Icon />
             {label}
           </button>
-        ))}
+          ))}
+        </div>
       </div>
 
-      {/* ─── To-kolonne på xl: sticky sidebar + indhold ─── */}
-      <div className="grid gap-5 xl:grid-cols-[220px_minmax(0,1fr)] xl:items-start">
-        {/* Sticky sidebar nav (kun xl) */}
-        <aside className="hidden xl:block xl:sticky xl:top-4">
+      {/* ─── To-kolonne på lg+: sticky sidebar + indhold ─── */}
+      <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-start">
+        {/* Sticky sidebar nav (kun lg+) — top-offset matcher den sticky topbar
+            (h-14 = 56px) + lille luft, så den klistrer fast lige under headeren
+            mens man scroller. */}
+        <aside className="hidden lg:block lg:sticky lg:top-[72px] lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto">
           <nav className="flex flex-col gap-1 rounded-xl border border-border/80 bg-card p-2 shadow-sm">
             {SECTIONS.map(({ id, label, icon: Icon, hint }) => (
               <button
                 key={id}
                 type="button"
                 onClick={() => scrollToSection(id)}
-                className={`flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors ${
+                className={`flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors w-full ${
                   activeSection === id
                     ? "bg-secondary text-foreground"
                     : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
