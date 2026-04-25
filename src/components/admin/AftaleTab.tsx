@@ -1299,7 +1299,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                     <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex min-w-0 items-start gap-2.5">
                         {/* Drag-håndtag (samme @dnd-kit-mønster som Ruteplanlæggeren). */}
-                        {canDragToRoute && <OrderDragHandle orderId={order.id} />}
+                        {canDragToRoute && <OrderDragHandle orderId={order.id} order={order} />}
                         {/* Ikon-badge — viser service-kategori-ikon (samme som Services-fanen) */}
                         <div
                           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground"
