@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Calendar as CalendarIcon, LogOut, Play, Printer, MapPin, Clock, CheckCircle2,
+  Calendar as CalendarIcon, Play, Printer, MapPin, Clock, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
   Users, User as UserIcon,
 } from "lucide-react";
@@ -16,6 +16,7 @@ import { da } from "date-fns/locale";
 import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { EmployeeShell } from "@/components/employee/EmployeeShell";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -95,7 +96,7 @@ const RouteMiniMap = ({
 };
 
 const EmployeeApp = () => {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading } = useAuth();
   const [date, setDate] = useState(todayStr());
   const { data: routes = [], isLoading: routesLoading } = useMyDayRoutes(date);
   const { data: stops = [], isLoading: stopsLoading } = useMyDayStops(date);
@@ -129,87 +130,60 @@ const EmployeeApp = () => {
     ? formatDistanceStrict(new Date(workday.started_at), new Date(), { locale: da, unit: "minute" })
     : null;
 
+  // Date navigator i topbar-right — kompakt så det matcher AdminShells topbar.
+  const dateNav = (
+    <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-0.5">
+      <Button
+        size="icon"
+        variant="ghost"
+        className="h-7 w-7 rounded-md"
+        onClick={() => setDate(format(addDays(dateObj, -1), "yyyy-MM-dd"))}
+        aria-label="Forrige dag"
+      >
+        <ChevronLeft className="h-3.5 w-3.5" />
+      </Button>
+      <div className="px-2 min-w-0">
+        <p className="text-xs font-semibold capitalize leading-tight tabular-nums whitespace-nowrap">
+          {isCurrentDay ? "I dag" : format(dateObj, "EEE d. MMM", { locale: da })}
+        </p>
+      </div>
+      <Button
+        size="icon"
+        variant="ghost"
+        className="h-7 w-7 rounded-md"
+        onClick={() => setDate(format(addDays(dateObj, 1), "yyyy-MM-dd"))}
+        aria-label="Næste dag"
+      >
+        <ChevronRight className="h-3.5 w-3.5" />
+      </Button>
+      {!isCurrentDay && (
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setDate(todayStr())}
+          className="h-7 px-2 text-[11px] font-semibold"
+        >
+          I dag
+        </Button>
+      )}
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-secondary/50">
-      {/* ── Topbar — samme visuelle sprog som virksomhedspanelet (AdminShell) ── */}
-      <header className="sticky top-0 z-30 bg-card border-b border-border">
-        <div className="container mx-auto px-5 sm:px-6 max-w-3xl">
-          <div className="flex h-14 items-center gap-3">
-            <Link to="/" className="flex items-center gap-2 shrink-0">
-              <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-7" />
-            </Link>
-            <div className="hidden sm:block h-6 w-px bg-border" aria-hidden />
-            <div className="flex-1 min-w-0">
-              <h1 className="text-lg font-semibold text-foreground truncate">Min dag</h1>
-            </div>
-            <p className="hidden md:block text-xs text-muted-foreground tabular-nums shrink-0">
-              {totalStops > 0
-                ? `${completedStops} af ${totalStops} stop færdige`
-                : "Ingen stop planlagt"}
-            </p>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={signOut}
-              className="gap-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Log ud</span>
-            </Button>
-          </div>
+    <EmployeeShell activeTab="today" title="Min dag" topbarRight={dateNav}>
+      <div className="mx-auto max-w-3xl space-y-4 pb-16">
+        {/* Sub-header: dato + status — matcher virksomhedspanelets "Her er status for X" */}
+        <div className="space-y-1">
+          <h2 className="text-2xl font-semibold text-foreground capitalize">
+            {format(dateObj, "EEEE d. MMMM", { locale: da })}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {totalStops > 0
+              ? `${completedStops} af ${totalStops} stop færdige`
+              : "Ingen stop planlagt"}
+          </p>
         </div>
 
-        {/* Day picker bar — calendar-pill style */}
-        <div className="container mx-auto px-5 sm:px-6 pb-3 max-w-3xl">
-          <div className="flex items-center gap-1 bg-secondary rounded-xl p-1 border border-border">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 rounded-lg"
-              onClick={() => setDate(format(addDays(dateObj, -1), "yyyy-MM-dd"))}
-              aria-label="Forrige dag"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <div className="flex-1 text-center">
-              <div className="flex items-center justify-center gap-2">
-                <p className="text-sm font-semibold capitalize leading-tight">
-                  {format(dateObj, "EEEE", { locale: da })}
-                </p>
-                {isCurrentDay && (
-                  <Badge variant="default" className="text-[10px] h-4 px-1.5">
-                    I dag
-                  </Badge>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground tabular-nums">
-                {format(dateObj, "d. MMMM yyyy", { locale: da })}
-              </p>
-            </div>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 rounded-lg"
-              onClick={() => setDate(format(addDays(dateObj, 1), "yyyy-MM-dd"))}
-              aria-label="Næste dag"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            {!isCurrentDay && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setDate(todayStr())}
-                className="h-8 ml-1 text-xs"
-              >
-                I dag
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-5 sm:px-6 py-5 space-y-4 max-w-3xl pb-16">
         {/* Start dag / Stop dag — kun for i dag */}
         {isCurrentDay && (
           <Card className="p-4 flex items-center gap-3">
@@ -479,8 +453,8 @@ const EmployeeApp = () => {
             </Card>
           );
         })}
-      </main>
-    </div>
+      </div>
+    </EmployeeShell>
   );
 };
 
