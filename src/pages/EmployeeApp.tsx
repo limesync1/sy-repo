@@ -129,35 +129,38 @@ const EmployeeApp = () => {
     : null;
 
   return (
-    <div className="min-h-screen bg-secondary/40">
-      {/* ── Header — planner-calendar styled ── */}
-      <header className="bg-background border-b sticky top-0 z-30">
-        <div className="container mx-auto px-4 py-3 max-w-3xl flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0">
-            <RouteIcon className="h-5 w-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h1 className="font-semibold text-base leading-tight">Min dag</h1>
-            <p className="text-xs text-muted-foreground truncate">
+    <div className="min-h-screen bg-secondary/50">
+      {/* ── Topbar — samme visuelle sprog som virksomhedspanelet (AdminShell) ── */}
+      <header className="sticky top-0 z-30 bg-card border-b border-border">
+        <div className="container mx-auto px-5 sm:px-6 max-w-3xl">
+          <div className="flex h-14 items-center gap-3">
+            <Link to="/" className="flex items-center gap-2 shrink-0">
+              <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-7" />
+            </Link>
+            <div className="hidden sm:block h-6 w-px bg-border" aria-hidden />
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg font-semibold text-foreground truncate">Min dag</h1>
+            </div>
+            <p className="hidden md:block text-xs text-muted-foreground tabular-nums shrink-0">
               {totalStops > 0
                 ? `${completedStops} af ${totalStops} stop færdige`
                 : "Ingen stop planlagt"}
             </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={signOut}
+              className="gap-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Log ud</span>
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={signOut}
-            className="gap-1.5"
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Log ud</span>
-          </Button>
         </div>
 
         {/* Day picker bar — calendar-pill style */}
-        <div className="container mx-auto px-4 pb-3 max-w-3xl">
-          <div className="flex items-center gap-1 bg-secondary/50 rounded-xl p-1">
+        <div className="container mx-auto px-5 sm:px-6 pb-3 max-w-3xl">
+          <div className="flex items-center gap-1 bg-secondary rounded-xl p-1 border border-border">
             <Button
               size="icon"
               variant="ghost"
@@ -203,7 +206,7 @@ const EmployeeApp = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-5 space-y-4 max-w-3xl pb-16">
+      <main className="container mx-auto px-5 sm:px-6 py-5 space-y-4 max-w-3xl pb-16">
         {/* Start dag / Stop dag — kun for i dag */}
         {isCurrentDay && (
           <Card className="p-4 flex items-center gap-3">
