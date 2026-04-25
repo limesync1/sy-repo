@@ -48,19 +48,22 @@ const startIcon = L.divIcon({
 });
 
 const stopIcon = (n: number, state: "next" | "done" | "future", color: string, highlighted = false) => {
-  // Serviceydere-stil: pin-form (afrundet teardrop) i stedet for ren cirkel
+  // Admin-panel-stil: neutral foreground for "next", muted-grå for "future",
+  // grøn for "done".  Vi bruger samme palette som AdminShell/StatCard så
+  // medarbejder-appen visuelt er en del af samme design-system — ikke en
+  // separat brand-farve.
   const bg =
     state === "done"
       ? "hsl(142 70% 45%)"
       : state === "next"
-        ? "hsl(184 90% 32%)" // accent (Serviceydere teal)
-        : "hsl(0 0% 13%)";   // foreground (mørk neutral)
-  const opacity = state === "future" ? 0.85 : 1;
+        ? "hsl(0 0% 13%)" // foreground (admin-stil)
+        : "hsl(220 9% 46%)"; // muted-foreground for kommende stop
+  const opacity = state === "future" ? 0.9 : 1;
   const ring = state === "next"
-    ? `0 0 0 4px hsl(184 90% 32% / 0.18), 0 0 0 9px hsl(184 90% 32% / 0.08)`
+    ? `0 0 0 4px hsl(0 0% 13% / 0.15), 0 0 0 9px hsl(0 0% 13% / 0.06)`
     : "none";
-  // Highlighted: brug Serviceydere accent-ring i stedet for gul, så det matcher branden.
-  const hlRing = highlighted ? `, 0 0 0 4px hsl(184 90% 32%), 0 0 0 8px hsl(184 90% 32% / 0.25)` : "";
+  // Highlighted: neutral foreground-ring i stedet for accent.
+  const hlRing = highlighted ? `, 0 0 0 4px hsl(0 0% 13%), 0 0 0 8px hsl(0 0% 13% / 0.18)` : "";
   const size = highlighted ? 44 : state === "next" ? 42 : 34;
   const fontSize = state === "next" ? 15 : 12;
   const inner =
@@ -101,8 +104,8 @@ const NAV_PUCK_ICON = L.divIcon({
   className: "",
   html: `
     <div class="nav-puck-rot" style="position:relative;width:64px;height:64px;transform:rotate(0deg);transform-origin:center;will-change:transform;transition:transform 280ms cubic-bezier(0.22, 1, 0.36, 1);">
-      <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:34px solid hsl(184 90% 32% / 0.45);"></div>
-      <div style="position:absolute;top:18px;left:18px;width:28px;height:28px;border-radius:50%;background:hsl(184 90% 32%);border:4px solid white;box-shadow:0 4px 14px hsl(184 90% 32% / 0.5), 0 2px 6px rgba(0,0,0,.25);"></div>
+      <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:34px solid hsl(217 91% 60% / 0.45);"></div>
+      <div style="position:absolute;top:18px;left:18px;width:28px;height:28px;border-radius:50%;background:hsl(217 91% 60%);border:4px solid white;box-shadow:0 4px 14px hsl(217 91% 60% / 0.45), 0 2px 6px rgba(0,0,0,.25);"></div>
     </div>`,
   iconSize: [64, 64],
   iconAnchor: [32, 32],
@@ -164,7 +167,7 @@ const NavPuckMarker = ({
 
 const userDotIcon = L.divIcon({
   className: "",
-  html: `<div style="width:18px;height:18px;border-radius:50%;background:hsl(184 90% 32%);border:3px solid white;box-shadow:0 0 0 7px hsl(184 90% 32% / 0.22),0 2px 6px rgba(0,0,0,.25);"></div>`,
+  html: `<div style="width:18px;height:18px;border-radius:50%;background:hsl(217 91% 60%);border:3px solid white;box-shadow:0 0 0 7px hsl(217 91% 60% / 0.22),0 2px 6px rgba(0,0,0,.25);"></div>`,
   iconSize: [18, 18],
   iconAnchor: [9, 9],
 });
