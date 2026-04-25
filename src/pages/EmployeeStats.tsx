@@ -1,7 +1,8 @@
 // EmployeeStats — medarbejderens egen statistik-side.
-// Viser nøgletal (ruter, stop, indtjening, arbejdstid, distance) over en
-// valgbar periode (uge/måned/år/alt) — i samme StatCard-stil som
-// virksomhedspanelets dashboard.
+// Viser nøgletal (indtjening, ruter, opgaver, arbejdstid, distance) over en
+// valgbar periode (i dag/uge/måned/år/alt) eller et frit kalenderinterval.
+// Medarbejderen ser ALDRIG sin provisionsprocent, omsætning eller snit pr.
+// opgave — kun det beløb hans provision faktisk har givet ham.
 import { useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,35 +11,61 @@ import { useMyEmployee, useMyEmployeeStats } from "@/hooks/useMyEmployee";
 import { StatCard } from "@/components/admin/shared/AdminUI";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
-  Calendar as CalendarIcon, CheckCircle2, Clock, DollarSign,
-  MapPin, Route as RouteIcon, TrendingUp, Wallet,
+  Calendar as CalendarIcon, CheckCircle2, Clock,
+  MapPin, Route as RouteIcon, Wallet,
 } from "lucide-react";
-import { format, parseISO, startOfWeek, startOfMonth, startOfYear, endOfWeek, endOfMonth, endOfYear } from "date-fns";
+import {
+  format, parseISO,
+  startOfWeek, startOfMonth, startOfYear,
+  endOfWeek, endOfMonth, endOfYear,
+} from "date-fns";
 import { da } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import type { DateRange } from "react-day-picker";
 
-type RangeKey = "week" | "month" | "year" | "all";
+type RangeKey = "today" | "week" | "month" | "year" | "all" | "custom";
 
-const RANGE_LABELS: Record<RangeKey, string> = {
+const RANGE_LABELS: Record<Exclude<RangeKey, "custom">, string> = {
+  today: "I dag",
   week: "Denne uge",
   month: "Denne måned",
   year: "I år",
-  all: "Alt",
+  all: "I alt",
 };
 
-const computeRange = (key: RangeKey): { from: string; to: string } => {
+const fmtDate = (d: Date) => format(d, "yyyy-MM-dd");
+
+const computeRange = (
+  key: RangeKey,
+  custom?: DateRange,
+): { from: string; to: string } => {
   const today = new Date();
-  const fmt = (d: Date) => format(d, "yyyy-MM-dd");
   switch (key) {
+    case "today":
+      return { from: fmtDate(today), to: fmtDate(today) };
     case "week":
-      return { from: fmt(startOfWeek(today, { weekStartsOn: 1 })), to: fmt(endOfWeek(today, { weekStartsOn: 1 })) };
+      return {
+        from: fmtDate(startOfWeek(today, { weekStartsOn: 1 })),
+        to: fmtDate(endOfWeek(today, { weekStartsOn: 1 })),
+      };
     case "month":
-      return { from: fmt(startOfMonth(today)), to: fmt(endOfMonth(today)) };
+      return { from: fmtDate(startOfMonth(today)), to: fmtDate(endOfMonth(today)) };
     case "year":
-      return { from: fmt(startOfYear(today)), to: fmt(endOfYear(today)) };
+      return { from: fmtDate(startOfYear(today)), to: fmtDate(endOfYear(today)) };
+    case "custom":
+      if (custom?.from) {
+        return {
+          from: fmtDate(custom.from),
+          to: fmtDate(custom.to ?? custom.from),
+        };
+      }
+      return { from: fmtDate(today), to: fmtDate(today) };
     case "all":
     default:
-      return { from: "2000-01-01", to: fmt(today) };
+      return { from: "2000-01-01", to: fmtDate(today) };
   }
 };
 
@@ -58,7 +85,12 @@ const EmployeeStats = () => {
   const { user, loading } = useAuth();
   const { data: employee, isLoading: empLoading } = useMyEmployee();
   const [range, setRange] = useState<RangeKey>("month");
-  const { from, to } = useMemo(() => computeRange(range), [range]);
+  const [customRange, setCustomRange] = useState<DateRange | undefined>();
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const { from, to } = useMemo(
+    () => computeRange(range, customRange),
+    [range, customRange],
+  );
   const { data: stats, isLoading: statsLoading } = useMyEmployeeStats(
     employee?.id,
     employee?.commission_pct ?? 0,
@@ -75,26 +107,67 @@ const EmployeeStats = () => {
   }
   if (!user) return <Navigate to="/log-ind" replace />;
 
+  const customLabel = (() => {
+    if (!customRange?.from) return "Vælg datoer";
+    const f = format(customRange.from, "d. MMM", { locale: da });
+    if (!customRange.to || fmtDate(customRange.to) === fmtDate(customRange.from)) return f;
+    return `${f} – ${format(customRange.to, "d. MMM", { locale: da })}`;
+  })();
+
   const rangePicker = (
-    <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-0.5">
-      {(Object.keys(RANGE_LABELS) as RangeKey[]).map((k) => (
+    <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-0.5 flex-wrap">
+      {(Object.keys(RANGE_LABELS) as Array<Exclude<RangeKey, "custom">>).map((k) => (
         <Button
           key={k}
           size="sm"
           variant="ghost"
-          onClick={() => setRange(k)}
-          className={`h-7 px-2.5 text-[11px] font-semibold ${
-            range === k ? "bg-secondary text-foreground" : "text-muted-foreground"
-          }`}
+          onClick={() => { setRange(k); setCustomRange(undefined); }}
+          className={cn(
+            "h-7 px-2.5 text-[11px] font-semibold",
+            range === k ? "bg-secondary text-foreground" : "text-muted-foreground",
+          )}
         >
           {RANGE_LABELS[k]}
         </Button>
       ))}
+      <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            size="sm"
+            variant="ghost"
+            className={cn(
+              "h-7 px-2.5 text-[11px] font-semibold gap-1.5",
+              range === "custom" ? "bg-secondary text-foreground" : "text-muted-foreground",
+            )}
+          >
+            <CalendarIcon className="h-3 w-3" />
+            {range === "custom" ? customLabel : "Vælg datoer"}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="end">
+          <Calendar
+            mode="range"
+            selected={customRange}
+            onSelect={(r) => {
+              setCustomRange(r);
+              if (r?.from) setRange("custom");
+              if (r?.from && r?.to) setCalendarOpen(false);
+            }}
+            numberOfMonths={2}
+            locale={da}
+            weekStartsOn={1}
+            initialFocus
+            className={cn("p-3 pointer-events-auto")}
+          />
+        </PopoverContent>
+      </Popover>
     </div>
   );
 
   const isLoading = empLoading || statsLoading;
   const s = stats;
+  const headerLabel =
+    range === "custom" && customRange?.from ? customLabel : RANGE_LABELS[range as Exclude<RangeKey, "custom">];
 
   return (
     <EmployeeShell activeTab="stats" title="Statistik" topbarRight={rangePicker}>
@@ -102,7 +175,7 @@ const EmployeeStats = () => {
         {/* Header */}
         <div className="space-y-1">
           <h2 className="text-2xl font-semibold text-foreground capitalize">
-            {RANGE_LABELS[range]}
+            {headerLabel}
           </h2>
           <p className="text-sm text-muted-foreground tabular-nums">
             {format(parseISO(from), "d. MMM yyyy", { locale: da })} – {format(parseISO(to), "d. MMM yyyy", { locale: da })}
@@ -118,25 +191,14 @@ const EmployeeStats = () => {
           </Card>
         ) : (
           <>
-            {/* Nøgletal */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Indtjening (medarbejderens egen andel) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <StatCard
-                label="Indtjening"
+                label="Min indtjening"
                 value={formatKr(s.commission)}
                 icon={<Wallet />}
                 tone="emerald"
-                hint={
-                  employee?.commission_pct
-                    ? `${employee.commission_pct}% pr. opgave – delt med kolleger`
-                    : "Ingen provision sat"
-                }
-              />
-              <StatCard
-                label="Omsætning"
-                value={formatKr(s.revenue)}
-                icon={<DollarSign />}
-                tone="blue"
-                hint={`${s.stopsCompleted} udførte opgaver`}
+                hint={`Fra ${s.stopsCompleted} udførte opgaver`}
               />
               <StatCard
                 label="Ruter"
@@ -155,7 +217,7 @@ const EmployeeStats = () => {
             </div>
 
             {/* Sekundær række */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <StatCard
                 label="Arbejdsdage"
                 value={s.workdaysCount}
@@ -172,12 +234,6 @@ const EmployeeStats = () => {
                 label="Distance"
                 value={`${s.totalDistanceKm.toFixed(0)} km`}
                 icon={<MapPin />}
-                tone="neutral"
-              />
-              <StatCard
-                label="Snit pr. opgave"
-                value={s.stopsCompleted > 0 ? formatKr(s.revenue / s.stopsCompleted) : "–"}
-                icon={<TrendingUp />}
                 tone="neutral"
               />
             </div>
