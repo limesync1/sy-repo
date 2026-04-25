@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type RangeKey = "today" | "week" | "month" | "year" | "all" | "custom";
 
@@ -104,6 +105,7 @@ const EmployeeStats = () => {
   const [range, setRange] = useState<RangeKey>("month");
   const [customRange, setCustomRange] = useState<DateRange | undefined>();
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const isMobile = useIsMobile();
   const { from, to } = useMemo(
     () => computeRange(range, customRange),
     [range, customRange],
@@ -175,7 +177,7 @@ const EmployeeStats = () => {
               if (r?.from) setRange("custom");
               if (r?.from && r?.to) setCalendarOpen(false);
             }}
-            numberOfMonths={2}
+            numberOfMonths={isMobile ? 1 : 2}
             locale={da}
             weekStartsOn={1}
             initialFocus
@@ -194,7 +196,7 @@ const EmployeeStats = () => {
 
   return (
     <EmployeeShell activeTab="stats" title="Statistik">
-      <div className="mx-auto max-w-5xl space-y-5 pb-16">
+      <div className="mx-auto max-w-5xl space-y-4 pb-20 sm:space-y-5">
         <PageHeader
           title={<span className="capitalize">{headerLabel}</span>}
           description={
