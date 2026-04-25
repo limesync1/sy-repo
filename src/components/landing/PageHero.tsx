@@ -34,8 +34,8 @@ const PageHero = ({
 }: PageHeroProps) => {
   const padding =
     size === "compact"
-      ? "pb-10 pt-8 sm:pb-14 sm:pt-12 lg:pb-16 lg:pt-16"
-      : "pb-16 pt-12 sm:pb-20 sm:pt-16 lg:pb-24 lg:pt-20";
+      ? "pb-6 pt-6 sm:pb-8 sm:pt-8 lg:pb-10 lg:pt-10"
+      : "pb-10 pt-8 sm:pb-12 sm:pt-10 lg:pb-16 lg:pt-12";
 
   return (
     <section className="relative isolate overflow-hidden bg-foreground text-background">
@@ -62,17 +62,17 @@ const PageHero = ({
               {eyebrow}
             </span>
           )}
-          <h1 className="mt-5 text-[2.4rem] font-semibold leading-[1.05] text-background sm:text-[3.25rem] lg:text-[3.75rem]">
+          <h1 className="mt-3 text-[1.85rem] font-semibold leading-[1.1] text-background sm:text-[2.4rem] lg:text-[2.85rem]">
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-4 max-w-xl text-[15px] leading-7 text-background/85 sm:text-base">
+            <p className="mt-3 max-w-xl text-sm leading-6 text-background/85 sm:text-[15px]">
               {subtitle}
             </p>
           )}
-          {children && <div className="mt-7 w-full max-w-2xl">{children}</div>}
+          {children && <div className="mt-5 w-full max-w-2xl">{children}</div>}
           {actions && (
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               {actions}
             </div>
           )}
