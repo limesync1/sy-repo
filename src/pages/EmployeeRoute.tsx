@@ -435,6 +435,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     if (filtered.heading != null) setUserHeading(filtered.heading);
   }, [filtered?.pos[0], filtered?.pos[1], filtered?.heading]);
   const userSpeedMps = filtered?.speedMps ?? 0;
+  const userAccuracyM = filtered?.accuracyM ?? null;
 
   /* Bryd follow ved manuel kortinteraktion */
   const breakFollow = () => { if (followMode) setFollowMode(false); };
