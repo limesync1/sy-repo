@@ -451,6 +451,18 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return bearingDegrees(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
   }, [userHeading, userPos, nextStop?.id, nextStop?.latitude, nextStop?.longitude]);
 
+  // Smooth user position + heading — interpolerer mellem GPS-fixes for at
+  // undgå at puck'en hopper hver 1-3 sek. Glider ~900 ms med ease-out.
+  const { smoothPos, smoothHeading } = useSmoothPosition(
+    userPos,
+    derivedHeading,
+    routeStarted,
+  );
+  // Brug smooth-versionerne i map-rendering og camera-follow så alt
+  // bevæger sig synkront og uden hak.
+  const displayPos = routeStarted ? (smoothPos ?? userPos) : userPos;
+  const displayHeading = routeStarted ? (smoothHeading ?? derivedHeading) : derivedHeading;
+
   const allPoints: [number, number][] = useMemo(() => {
     const pts: [number, number][] = [];
     if (startCoord) pts.push(startCoord);
