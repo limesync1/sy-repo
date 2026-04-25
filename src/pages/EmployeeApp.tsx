@@ -303,6 +303,7 @@ const EmployeeApp = () => {
           </Card>
         )}
 
+        <div className="grid gap-4 lg:grid-cols-2">
         {routes.map((r) => {
           const myStops = (stopsByRoute.get(r.id) || []).sort((a, b) => a.sequence - b.sequence);
           const done = myStops.filter((s) => s.status === "completed").length;
@@ -509,6 +510,7 @@ const EmployeeApp = () => {
             </Card>
           );
         })}
+        </div>
       </div>
     </EmployeeShell>
   );
