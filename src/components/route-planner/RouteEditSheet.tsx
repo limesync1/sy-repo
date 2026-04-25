@@ -266,6 +266,63 @@ export const RouteEditSheet = ({
             >
               <DatePickerField value={date} onChange={setDate} />
             </Section>
+
+            {/* ETA-sektion — kun når ruten har nok stops til en beregning */}
+            {waypoints && (
+              <Section
+                icon={<Gauge className="h-3.5 w-3.5" />}
+                title="Estimeret rejsetid"
+                hint={routeDirections ? `${(routeDirections.distance_m! / 1000).toFixed(1)} km` : undefined}
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-card p-3">
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">
+                        {showRawTime ? "Rå Mapbox-tid" : "Korrigeret ETA (DK-buffer)"}
+                      </p>
+                      <p className="text-xl font-bold tabular-nums">
+                        {displayDuration != null ? formatMinShort(displayDuration) : "—"}
+                      </p>
+                    </div>
+                    {routeDirections && (
+                      <div className="flex flex-col items-end gap-1">
+                        <LiveStatusBadge info={routeDirections} compact />
+                        <EtaDetailsButton
+                          info={routeDirections}
+                          showRaw={showRawTime}
+                          onToggleRaw={setShowRawTime}
+                          compact
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1.5">
+                      Afgangstid
+                    </p>
+                    <Select
+                      value={departAt ?? "now"}
+                      onValueChange={(v) => setDepartAt(v === "now" ? null : v)}
+                    >
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departOptions.map((o) => (
+                          <SelectItem key={o.value ?? "now"} value={o.value ?? "now"}>
+                            {o.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="mt-1 text-[10px] text-muted-foreground">
+                      Skift afgangstid for at se hvordan trafikken påvirker ETA.
+                    </p>
+                  </div>
+                </div>
+              </Section>
+            )}
           </div>
 
           {/* Footer actions */}
