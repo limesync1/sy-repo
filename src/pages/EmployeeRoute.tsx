@@ -31,7 +31,7 @@ import { useGpsFilter, type FilteredFix } from "@/components/employee-route/useG
 import { smoothPolyline } from "@/components/employee-route/smoothPolyline";
 import { useSmoothZoom } from "@/components/employee-route/useSmoothZoom";
 import { useQueryClient } from "@tanstack/react-query";
-import { LiveStatusBadge, EtaDetailsButton, pickDuration } from "@/components/route/EtaBreakdown";
+import { pickDuration } from "@/components/route/EtaBreakdown";
 
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
@@ -364,8 +364,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     });
   };
   const [autoReturn, setAutoReturn] = useState<number | null>(null);
-  // Toggle: vis rå Mapbox-tid (uden DK trafik-buffer) i ETA-grids
-  const [showRawTime, setShowRawTime] = useState(false);
   const arrivedAnnouncedRef = useRef<Set<string>>(new Set());
   const finishedAnnouncedRef = useRef(false);
   const lastSpokenStepRef = useRef<string | null>(null);
@@ -1049,52 +1047,67 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-hidden">
-      {/* ─── Compact header — kun synlig før rute starter eller ved færdig ─── */}
+      {/* ─── Compact header — admin-stil (h-14, neutral palette).  Kun
+          synlig før rute starter eller ved færdig.  Lyd-knappen findes
+          som floating control under kørsel — ingen dubletter her. ─── */}
       {(!routeStarted || allDone) && (
-      <header className="relative shrink-0 z-30 bg-background border-b">
-        <div className="flex items-center gap-2 px-3 py-2.5 bg-background">
-          <Button asChild variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-secondary shrink-0">
-            <Link to="/medarbejder" aria-label="Tilbage"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
+        <header className="relative shrink-0 z-30 bg-card border-b border-border">
+          <div className="flex h-14 items-center gap-3 px-4">
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground shrink-0"
+            >
+              <Link to="/medarbejder" aria-label="Tilbage">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
 
-          {/* Header-pille: rute-navn + dato + progress */}
-          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-secondary text-foreground text-xs font-semibold shrink min-w-0 border">
-            <span
-              className="h-2 w-2 rounded-full shrink-0"
-              style={{ background: routeBadgeColor }}
-              aria-hidden
-            />
-            <span className="truncate font-bold">{route.name || "Rute"}</span>
-            <span className="px-1.5 py-0.5 rounded-full bg-background tabular-nums text-[10px] border shrink-0">
-              {completedCount}/{sortedStops.length}
-            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span
+                  className="h-2.5 w-2.5 rounded-full shrink-0"
+                  style={{ background: routeBadgeColor }}
+                  aria-hidden
+                />
+                <h1 className="text-sm font-semibold text-foreground truncate">
+                  {route.name || "Rute"}
+                </h1>
+              </div>
+              <p className="text-[11px] text-muted-foreground tabular-nums">
+                {completedCount} af {sortedStops.length} stop færdige
+              </p>
+            </div>
+
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-9 w-9 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+              onClick={() => setListOpen((v) => !v)}
+              aria-label="Vis liste"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-9 w-9 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+              onClick={() => setAudioEnabled((v) => !v)}
+              aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
+            >
+              {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
           </div>
 
-          <div className="flex-1" />
-
-          <Button
-            size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-secondary"
-            onClick={() => setListOpen((v) => !v)} aria-label="Vis liste"
-          >
-            <List className="h-4 w-4" />
-          </Button>
-          <Button
-            size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-secondary"
-            onClick={() => setAudioEnabled((v) => !v)}
-            aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
-          >
-            {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-          </Button>
-        </div>
-
-        {/* Progress bar — route color */}
-        <div className="h-1.5 w-full bg-secondary" aria-hidden>
-          <div
-            className="h-full transition-all duration-500 ease-out"
-            style={{ width: `${progress}%`, background: themeColor }}
-          />
-        </div>
-      </header>
+          {/* Progress bar — neutral baggrund + rute-farve indikator */}
+          <div className="h-1 w-full bg-secondary" aria-hidden>
+            <div
+              className="h-full transition-all duration-500 ease-out"
+              style={{ width: `${progress}%`, background: themeColor }}
+            />
+          </div>
+        </header>
       )}
 
       {/* ─── Map fills everything ─── */}
@@ -1244,26 +1257,26 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           </MapContainer>
         )}
 
-        {/* ─── Floating right-side controls ─── */}
+        {/* ─── Floating right-side controls — admin-stil rounded-xl, neutral ─── */}
         <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
           {routeStarted && !allDone && (
             <Button
               size="icon" variant="secondary"
               onClick={() => setListOpen((v) => !v)}
-              className="h-11 w-11 rounded-full shadow-lg bg-background hover:bg-secondary border border-border"
+              className="h-10 w-10 rounded-xl shadow-md bg-card hover:bg-secondary border border-border text-foreground"
               aria-label="Vis liste"
             >
-              <List className="h-5 w-5" />
+              <List className="h-4 w-4" />
             </Button>
           )}
           {routeStarted && !allDone && (
             <Button
               size="icon" variant="secondary"
               onClick={() => setAudioEnabled((v) => !v)}
-              className="h-11 w-11 rounded-full shadow-lg bg-background hover:bg-secondary border border-border"
+              className="h-10 w-10 rounded-xl shadow-md bg-card hover:bg-secondary border border-border text-foreground"
               aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
             >
-              {audioEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+              {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
             </Button>
           )}
           {routeStarted && (
@@ -1271,12 +1284,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               size="icon"
               variant={followMode ? "default" : "secondary"}
               onClick={() => setFollowMode((v) => !v)}
-              className={`h-11 w-11 rounded-full shadow-lg border ${followMode ? "border-transparent text-background hover:opacity-90" : "bg-background hover:bg-secondary border-border"}`}
+              className={`h-10 w-10 rounded-xl shadow-md border ${followMode ? "border-transparent text-background hover:opacity-90" : "bg-card hover:bg-secondary border-border text-foreground"}`}
               style={followMode ? { background: themeColor } : undefined}
               aria-label={followMode ? "Slå live-følg fra" : "Slå live-følg til"}
               title={followMode ? "Følger din position" : "Recentrer"}
             >
-              <Crosshair className="h-5 w-5" />
+              <Crosshair className="h-4 w-4" />
             </Button>
           )}
         </div>
@@ -1284,32 +1297,31 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Fullscreen drive mode: floating top overlays (back pill + maneuver banner + traffic alert) ─── */}
         {routeStarted && !allDone && (
           <>
-            {/* Back pill — top-left */}
+            {/* Back + progress — admin-stil rounded-xl med h-10 */}
             <div className="absolute top-3 left-3 z-[1000] flex items-center gap-2">
               <Button
                 asChild
                 size="icon"
                 variant="secondary"
-                className="h-11 w-11 rounded-full shadow-lg bg-background hover:bg-secondary border border-border"
+                className="h-10 w-10 rounded-xl shadow-md bg-card hover:bg-secondary border border-border text-foreground"
               >
                 <Link to="/medarbejder" aria-label="Tilbage">
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="h-4 w-4" />
                 </Link>
               </Button>
-              {/* Compact progress pill — neutral bg, kun farvet dot for rute-id (matcher Serviceydere brand) */}
-              <div className="flex items-center gap-2 pl-2.5 pr-3 h-11 rounded-full bg-background border border-border shadow-lg">
+              <div className="flex items-center gap-2 pl-2.5 pr-3 h-10 rounded-xl bg-card border border-border shadow-md">
                 <span
-                  className="h-2.5 w-2.5 rounded-full shrink-0"
+                  className="h-2 w-2 rounded-full shrink-0"
                   style={{ background: routeBadgeColor }}
                   aria-hidden
                 />
-                <span className="text-sm font-bold text-foreground tabular-nums leading-none">
+                <span className="text-sm font-semibold text-foreground tabular-nums leading-none">
                   {completedCount}<span className="text-muted-foreground/70 font-medium">/{sortedStops.length}</span>
                 </span>
                 {estimatedEndAt && (
                   <>
                     <span className="h-3 w-px bg-border" aria-hidden />
-                    <span className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground tabular-nums leading-none">
+                    <span className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground tabular-nums leading-none">
                       <Flag className="h-3 w-3" />{estimatedEndAt}
                     </span>
                   </>
@@ -1455,117 +1467,80 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Pre-start CTA: big start button at the bottom ─── */}
         {!routeStarted && !allDone && nextStop && (
           <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pb-[50px]">
-            <Card
-              className="overflow-hidden shadow-2xl rounded-2xl border-t-2"
-              style={{ borderTopColor: themeColor }}
-            >
+            <Card className="overflow-hidden rounded-xl border-border shadow-xl">
               {/* Dagens overblik — øverste sektion */}
-              <div className="px-4 pt-3 pb-3 bg-gradient-to-b from-secondary/50 to-secondary/10">
-                <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="px-4 pt-3.5 pb-3 bg-card border-b border-border">
+                {/* Header-rad: titel + antal stop */}
+                <div className="flex items-center justify-between gap-2 mb-3">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
-                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-bold truncate">
+                    <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <p className="text-[11px] text-muted-foreground font-medium truncate">
                       Dagens rute · {todayLabel}
                     </p>
                   </div>
-                  <Badge variant="secondary" className="text-[9px] h-4 px-1.5 tabular-nums font-bold shrink-0">
+                  <Badge variant="secondary" className="text-[10px] h-5 px-1.5 tabular-nums font-semibold shrink-0">
                     {sortedStops.length} stop
                   </Badge>
                 </div>
-                {/* Day-stats: total km, total tid, forventet slut */}
+
+                {/* Tre nøgletal — admin-stil grid uden flashy farver */}
                 <div className="grid grid-cols-3 gap-1.5 mb-3">
-                  <div className="rounded-lg bg-background/80 backdrop-blur border px-2 py-1.5 text-center">
-                    <p className="text-[8px] uppercase text-muted-foreground font-bold tracking-wide">Stop</p>
-                    <p className="text-sm font-bold tabular-nums">
+                  <div className="rounded-lg bg-secondary/60 border border-border px-2 py-1.5 text-center">
+                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Stop</p>
+                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
                       {remainingStops.length}
                       {completedCount > 0 && (
                         <span className="text-muted-foreground font-medium">/{sortedStops.length}</span>
                       )}
                     </p>
                   </div>
-                  <div className="rounded-lg bg-background/80 backdrop-blur border px-2 py-1.5 text-center">
-                    <p className="text-[8px] uppercase text-muted-foreground font-bold tracking-wide">Distance</p>
-                    <p className="text-sm font-bold tabular-nums">
+                  <div className="rounded-lg bg-secondary/60 border border-border px-2 py-1.5 text-center">
+                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
+                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
                       {route?.total_distance_km != null && route.total_distance_km > 0
                         ? `${route.total_distance_km.toFixed(1)} km`
                         : "—"}
                     </p>
                   </div>
-                  <div className="rounded-lg bg-background/80 backdrop-blur border px-2 py-1.5 text-center">
-                    <p className="text-[8px] uppercase text-muted-foreground font-bold tracking-wide">Slut ca.</p>
-                    <p className="text-sm font-bold tabular-nums" style={{ color: themeColor }}>
+                  <div className="rounded-lg bg-secondary/60 border border-border px-2 py-1.5 text-center">
+                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Slut ca.</p>
+                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
                       {estimatedEndAt || "—"}
                     </p>
                   </div>
                 </div>
-                <p className="text-[9px] uppercase tracking-wide text-muted-foreground font-bold mb-1.5">
-                  Først til
-                </p>
+
+                {/* Først til — fremhævet på neutral baggrund */}
                 <div className="flex items-start gap-2.5">
                   <span
-                    className="flex h-10 w-10 items-center justify-center rounded-xl text-background text-sm font-bold shrink-0 shadow-sm"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg text-background text-sm font-bold shrink-0"
                     style={{ background: themeColor }}
                   >
                     {nextStopIdx + 1}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm truncate leading-tight">
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold leading-none">
+                      Først til
+                    </p>
+                    <p className="font-semibold text-sm text-foreground truncate leading-tight mt-0.5">
                       {nextStop.customer_name || "Stop"}
                     </p>
                     {nextStop.address && (
                       <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
-                        <MapPin className="h-2.5 w-2.5 shrink-0" />{nextStop.address}
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        {nextStop.address}
                       </p>
                     )}
                   </div>
                 </div>
-
-                {/* Segmented progress — kalender-stil */}
-                <div className="flex gap-0.5 mt-2.5">
-                  {sortedStops.map((s, i) => (
-                    <div
-                      key={s.id}
-                      className="flex-1 h-1 rounded-full transition-all"
-                      style={{
-                        background:
-                          s.status === "completed"
-                            ? "hsl(142 70% 45%)"
-                            : i === nextStopIdx
-                              ? themeColor
-                              : "hsl(220 14% 88%)",
-                      }}
-                    />
-                  ))}
-                </div>
               </div>
 
-              {/* Info-grid: km, tid, ETA — for første leg */}
+              {/* Info-grid: km, tid, ETA — for første leg.  Vi viser kun de tre
+                  tal der betyder noget, og bruger altid den korrigerede ETA
+                  (med DK trafik-buffer) — ingen toggle, ingen badges. */}
               {(directions || etaLabel) && (
                 <>
-                  {directions && (
-                    <div className="flex items-center justify-between gap-2 px-3 py-1.5 bg-background border-t">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-[9px] uppercase tracking-wide text-muted-foreground font-bold shrink-0">
-                          Til 1. stop
-                        </span>
-                        <LiveStatusBadge info={directions} compact />
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {showRawTime && (
-                          <Badge variant="outline" className="h-5 px-1.5 text-[9px] font-medium">
-                            Rå Mapbox
-                          </Badge>
-                        )}
-                        <EtaDetailsButton
-                          info={directions}
-                          showRaw={showRawTime}
-                          onToggleRaw={setShowRawTime}
-                          compact
-                        />
-                      </div>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-3 divide-x bg-background border-t border-b">
+                  <div className="grid grid-cols-3 divide-x divide-border bg-background border-t border-b border-border">
                     <div className="px-2 py-2 text-center">
                       <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
                       <p className="text-sm font-bold tabular-nums mt-0.5">
@@ -1576,14 +1551,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Køretid</p>
                       <p className="text-sm font-bold tabular-nums mt-0.5">
                         {(() => {
-                          const d = directions ? pickDuration(directions, showRawTime) : null;
+                          const d = directions ? pickDuration(directions, false) : null;
                           return d != null ? formatMin(d) : "—";
                         })()}
                       </p>
                     </div>
                     <div className="px-2 py-2 text-center">
                       <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Ankomst</p>
-                      <p className="text-sm font-bold tabular-nums mt-0.5" style={{ color: themeColor }}>
+                      <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
                         {etaLabel || "—"}
                       </p>
                     </div>
@@ -1595,12 +1570,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <Button
                   onClick={handleStartRoute}
                   size="lg"
-                  className="w-full gap-2 h-14 text-base font-bold rounded-xl shadow-lg hover:shadow-xl active:scale-[0.99] transition-all text-background"
-                  style={{ background: themeColor }}
+                  className="w-full gap-2 h-12 text-base font-semibold rounded-xl shadow-md hover:shadow-lg active:scale-[0.99] transition-all bg-foreground text-background hover:bg-foreground/90"
                 >
                   <Play className="h-5 w-5 fill-current" /> Start dagens rute
                 </Button>
-                <p className="text-[10px] text-muted-foreground text-center mt-2">
+                <p className="text-[11px] text-muted-foreground text-center mt-2">
                   Live navigation · GPS-følg · stemmevejledning
                 </p>
               </div>
@@ -1612,15 +1586,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {routeStarted && !allDone && nextStop && (
           <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pb-[50px] pointer-events-none">
             <Card
-              className="overflow-hidden shadow-2xl pointer-events-auto rounded-2xl border-t-2"
-              style={{ borderTopColor: themeColor }}
+              className="overflow-hidden pointer-events-auto rounded-xl border-border shadow-xl"
             >
-              {/* Segmented progress — kalender-stil dots på toppen */}
-              <div className="flex gap-0.5 px-3 pt-2 pb-1 bg-secondary/40">
+              {/* Segmenteret progress — slankere, neutral palette */}
+              <div className="flex gap-0.5 px-3 pt-2 pb-1.5 bg-secondary/60">
                 {sortedStops.map((s, i) => (
                   <div
                     key={s.id}
-                    className="flex-1 h-1.5 rounded-full transition-all"
+                    className="flex-1 h-1 rounded-full transition-all"
                     style={{
                       background:
                         s.status === "completed"
@@ -1634,44 +1607,44 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               </div>
               <button
                 type="button"
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-secondary/40 hover:bg-secondary/60 transition-colors border-b"
+                className="w-full flex items-center gap-3 px-4 py-3 bg-card hover:bg-secondary/40 transition-colors border-b border-border"
                 onClick={() => setCollapsed((c) => !c)}
                 aria-expanded={!collapsed}
                 aria-label={collapsed ? "Vis stop-detaljer" : "Skjul stop-detaljer"}
               >
                 <span
-                  className="flex h-9 w-9 items-center justify-center rounded-lg text-background text-sm font-bold shrink-0 shadow-sm"
+                  className="flex h-10 w-10 items-center justify-center rounded-lg text-background text-sm font-bold shrink-0"
                   style={{ background: themeColor }}
                 >
                   {nextStopIdx + 1}
                 </span>
                 <div className="flex-1 text-left min-w-0">
-                  <p className="font-bold text-sm truncate leading-tight">
+                  <p className="font-semibold text-sm text-foreground truncate leading-tight">
                     {nextStop.customer_name || "Stop"}
                   </p>
                   {nextStop.address ? (
-                    <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
-                      <MapPin className="h-2.5 w-2.5 shrink-0" />
+                    <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
+                      <MapPin className="h-3 w-3 shrink-0" />
                       {nextStop.address}
                     </p>
                   ) : (
-                    <p className="text-[10px] text-muted-foreground tabular-nums">
+                    <p className="text-[11px] text-muted-foreground tabular-nums">
                       Stop {nextStopIdx + 1} af {sortedStops.length}
                     </p>
                   )}
                 </div>
                 {isAtNextStop ? (
-                  <Badge className="gap-1 text-[10px] h-6 px-2 border-0 font-bold uppercase tracking-wide" style={{ background: "hsl(142 70% 95%)", color: "hsl(142 70% 25%)" }}>
-                    <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: "hsl(142 70% 45%)" }} />
+                  <Badge className="gap-1 text-[10px] h-6 px-2 border-0 font-semibold uppercase tracking-wide bg-emerald-500/10 text-emerald-600">
+                    <span className="h-1.5 w-1.5 rounded-full animate-pulse bg-emerald-500" />
                     Fremme
                   </Badge>
                 ) : distanceToNextM != null ? (
                   <div className="text-right shrink-0">
-                    <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wide leading-none">
-                      Næste
-                    </p>
-                    <p className="text-sm font-bold tabular-nums leading-tight mt-0.5" style={{ color: themeColor }}>
+                    <p className="text-sm font-semibold text-foreground tabular-nums leading-tight">
                       {formatKm(distanceToNextM)}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground leading-tight">
+                      til næste
                     </p>
                   </div>
                 ) : null}
@@ -1697,28 +1670,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     </div>
                   )}
 
-                  {/* Info-grid: km, tid, ETA — kalender-stil */}
+                  {/* Info-grid: km, tid, ETA — clean admin-stil. */}
                   {(directions || etaLabel) && (
-                    <div className="space-y-1.5">
-                      {directions && (
-                        <div className="flex items-center justify-between gap-2 px-1">
-                          <LiveStatusBadge info={directions} compact />
-                          <div className="flex items-center gap-1">
-                            {showRawTime && (
-                              <Badge variant="outline" className="h-5 px-1.5 text-[9px] font-medium">
-                                Rå Mapbox
-                              </Badge>
-                            )}
-                            <EtaDetailsButton
-                              info={directions}
-                              showRaw={showRawTime}
-                              onToggleRaw={setShowRawTime}
-                              compact
-                            />
-                          </div>
-                        </div>
-                      )}
-                      <div className="grid grid-cols-3 divide-x rounded-xl border bg-background overflow-hidden">
+                    <div className="grid grid-cols-3 divide-x divide-border rounded-xl border border-border bg-background overflow-hidden">
                         <div className="px-2 py-1.5 text-center">
                           <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
                           <p className="text-[13px] font-bold tabular-nums mt-0.5">
@@ -1729,53 +1683,68 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                           <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Tid</p>
                           <p className="text-[13px] font-bold tabular-nums mt-0.5">
                             {(() => {
-                              const d = directions ? pickDuration(directions, showRawTime) : null;
+                              const d = directions ? pickDuration(directions, false) : null;
                               return d != null ? formatMin(d) : "—";
                             })()}
                           </p>
                         </div>
                         <div className="px-2 py-1.5 text-center">
                           <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Ankomst</p>
-                          <p className="text-[13px] font-bold tabular-nums mt-0.5" style={{ color: themeColor }}>
+                          <p className="text-[13px] font-bold tabular-nums mt-0.5 text-foreground">
                             {etaLabel || "—"}
                           </p>
                         </div>
-                      </div>
                     </div>
                   )}
 
+                  {/* Sekundære handlinger — kompakt, admin-stil */}
                   <div className="grid grid-cols-3 gap-2">
-                    <Button onClick={() => handleNavigate(nextStop)} variant="outline" size="sm" className="gap-1 h-9 rounded-lg text-xs">
+                    <Button
+                      onClick={() => handleNavigate(nextStop)}
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 h-9 rounded-lg text-xs border-border"
+                    >
                       <Navigation className="h-3.5 w-3.5" /> Maps
                     </Button>
                     {nextStop.customer_phone ? (
-                      <Button asChild variant="outline" size="sm" className="gap-1 h-9 rounded-lg text-xs">
-                        <a href={`tel:${nextStop.customer_phone}`}><Phone className="h-3.5 w-3.5" /> Ring</a>
+                      <Button asChild variant="outline" size="sm" className="gap-1.5 h-9 rounded-lg text-xs border-border">
+                        <a href={`tel:${nextStop.customer_phone}`}>
+                          <Phone className="h-3.5 w-3.5" /> Ring
+                        </a>
                       </Button>
                     ) : (
-                      <Button variant="outline" size="sm" disabled className="gap-1 h-9 rounded-lg text-xs">
+                      <Button variant="outline" size="sm" disabled className="gap-1.5 h-9 rounded-lg text-xs border-border">
                         <Phone className="h-3.5 w-3.5" /> Ring
                       </Button>
                     )}
-                    <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" size="sm" className="h-9 rounded-lg text-xs">
+                    <Button
+                      onClick={() => setSelectedId(nextStop.id)}
+                      variant="outline"
+                      size="sm"
+                      className="h-9 rounded-lg text-xs border-border"
+                    >
                       Detaljer
                     </Button>
                   </div>
 
+                  {/* Primær CTA — neutral foreground (admin-stil) når man kører,
+                      grøn ankomst-indikator når man er fremme.  Ingen pulserende
+                      ring (forvirrende), kun en let glow når fremme. */}
                   <Button
                     onClick={() => handleComplete(nextStop)}
                     size="lg"
-                    className={`w-full gap-2 h-13 text-base font-bold rounded-xl shadow-lg hover:shadow-xl transition-all ${isAtNextStop ? "ring-4 ring-offset-2 animate-pulse" : ""}`}
-                    style={{
-                      background: isAtNextStop ? "hsl(142 70% 45%)" : themeColor,
-                      ...(isAtNextStop ? { ["--tw-ring-color" as any]: "hsl(142 70% 45% / 0.4)" } : {}),
-                    }}
+                    className={`w-full gap-2 h-12 text-base font-semibold rounded-xl transition-all ${
+                      isAtNextStop
+                        ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
+                        : "bg-foreground text-background hover:bg-foreground/90 shadow-md"
+                    }`}
                     disabled={updateStatus.isPending}
                   >
                     {updateStatus.isPending ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
-                      <CheckCircle2 className="h-6 w-6" />
+                      <CheckCircle2 className="h-5 w-5" />
                     )}
                     {isAtNextStop ? "Du er fremme — markér udført" : "Markér som udført"}
                   </Button>
