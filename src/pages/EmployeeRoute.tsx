@@ -364,8 +364,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     });
   };
   const [autoReturn, setAutoReturn] = useState<number | null>(null);
-  // Toggle: vis rå Mapbox-tid (uden DK trafik-buffer) i ETA-grids
-  const [showRawTime, setShowRawTime] = useState(false);
   const arrivedAnnouncedRef = useRef<Set<string>>(new Set());
   const finishedAnnouncedRef = useRef(false);
   const lastSpokenStepRef = useRef<string | null>(null);
