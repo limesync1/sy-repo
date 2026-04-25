@@ -1708,9 +1708,24 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
                               {rDate.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" })}
                             </p>
                           </div>
-                          <span className="shrink-0 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                            {stopsForRoute.length} stop
-                          </span>
+                          <div className="flex shrink-0 items-center gap-1">
+                            <span className="rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                              {stopsForRoute.length} stop
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setRouteToDelete({ id: route.id, name: route.name || "Rute" });
+                              }}
+                              aria-label="Slet rute"
+                              title="Slet rute"
+                              className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-transparent text-muted-foreground transition-colors hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </div>
                         {isOver && (
                           <p className="mt-2 rounded-md bg-foreground/5 px-2 py-1 text-center text-[11px] font-medium text-foreground">
