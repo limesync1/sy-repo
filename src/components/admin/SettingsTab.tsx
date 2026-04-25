@@ -622,7 +622,6 @@ const IndustryPicker = ({
         industries: g.industries.filter(
           (i) =>
             i.label.toLowerCase().includes(q) ||
-            (i.description?.toLowerCase().includes(q) ?? false) ||
             i.subcategories.some(
               (s) =>
                 s.label.toLowerCase().includes(q) ||
@@ -709,7 +708,6 @@ const IndustryPicker = ({
                     key={i.key}
                     type="button"
                     onClick={() => onToggle(i.key)}
-                    title={i.description}
                     className={`group flex items-center gap-2 rounded-xl border px-2.5 py-2 text-left transition-all ${
                       isOn
                         ? "border-foreground bg-foreground/5 shadow-sm"
@@ -721,11 +719,6 @@ const IndustryPicker = ({
                       <span className="block truncate text-xs font-medium text-foreground">
                         {i.label}
                       </span>
-                      {i.description && (
-                        <span className="block truncate text-[10px] text-muted-foreground">
-                          {i.description}
-                        </span>
-                      )}
                     </span>
                   </button>
                 );
