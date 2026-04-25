@@ -243,6 +243,24 @@ const FlyToStop = ({ target }: { target: [number, number] | null }) => {
 const formatKm = (m: number | null) => (m == null ? "—" : m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`);
 const formatMin = (s: number | null) => (s == null ? "—" : s < 60 ? "<1 min" : `${Math.round(s / 60)} min`);
 
+/** Format total minutes as "Xt Ymin" / "Y min". Useful for rute-totals. */
+const formatHoursMin = (mins: number | null | undefined): string => {
+  if (mins == null || !Number.isFinite(mins)) return "—";
+  const m = Math.round(mins);
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  return r === 0 ? `${h}t` : `${h}t ${r}min`;
+};
+
+/** Format absolute time (HH:mm) from Date in da-DK locale. */
+const formatClock = (d: Date): string =>
+  d.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+
+/** Format date as "ma. 25. apr". */
+const formatDayDate = (d: Date): string =>
+  d.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" });
+
 /* ─────────────────────────────────────────────────────────── */
 const EmployeeRoute = () => {
   const { user, loading } = useAuth();
