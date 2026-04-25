@@ -893,8 +893,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               aria-hidden
             />
             <span className="truncate font-bold">{route.name || "Rute"}</span>
-            <span className="text-muted-foreground font-medium hidden xs:inline">·</span>
-            <span className="text-muted-foreground font-medium hidden xs:inline truncate">{todayLabel}</span>
             <span className="px-1.5 py-0.5 rounded-full bg-background tabular-nums text-[10px] border shrink-0">
               {completedCount}/{sortedStops.length}
             </span>
