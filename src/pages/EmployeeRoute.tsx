@@ -625,6 +625,28 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return eta.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
   }, [directions?.duration_s]);
 
+  /* ── Rute-totals: samlet distance/varighed for resterende stop.
+   * Vises i pre-start oversigt og i header-pillen så medarbejderen
+   * altid kan se hvad der venter på dagen. */
+  const remainingStops = useMemo(
+    () => sortedStops.filter((s) => s.status !== "completed"),
+    [sortedStops],
+  );
+  const remainingServiceMinutes = useMemo(
+    () => remainingStops.reduce((sum, s) => sum + (s.duration_minutes || 0), 0),
+    [remainingStops],
+  );
+  /** Estimeret sluttid på dagen — service-tid + planlagt køretid (hvis kendt). */
+  const estimatedEndAt: string | null = useMemo(() => {
+    if (remainingStops.length === 0) return null;
+    const driveMin = route?.total_duration_minutes ?? 0;
+    const totalMin = driveMin + remainingServiceMinutes;
+    if (totalMin <= 0) return null;
+    const end = new Date(Date.now() + totalMin * 60 * 1000);
+    return formatClock(end);
+  }, [remainingStops.length, remainingServiceMinutes, route?.total_duration_minutes]);
+  const todayLabel = useMemo(() => formatDayDate(new Date()), []);
+
   /* Trafik-overvågning — robust mod GPS-jitter, omkørsel og korte ture.
    *
    * Vi vil kun vise "trafik" når den ekstra ventetid med stor sandsynlighed
