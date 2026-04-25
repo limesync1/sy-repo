@@ -196,7 +196,7 @@ const EmployeeStats = () => {
 
   return (
     <EmployeeShell activeTab="stats" title="Statistik">
-      <div className="mx-auto max-w-5xl space-y-4 pb-20 sm:space-y-5">
+      <div className="mx-auto max-w-5xl space-y-4 pb-24 sm:space-y-5 sm:pb-20">
         <PageHeader
           title={<span className="capitalize">{headerLabel}</span>}
           description={
@@ -216,35 +216,54 @@ const EmployeeStats = () => {
           </Card>
         ) : (
           <>
-            {/* Indtjening (medarbejderens egen andel) */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="sm:col-span-2 lg:col-span-1">
-                <StatCard
-                  label="Min indtjening"
-                  value={formatKr(s.commission)}
-                  icon={<Wallet />}
-                  tone="emerald"
-                  hint={`Fra ${s.stopsCompleted} udførte opgaver`}
-                />
+            {/* Hero: medarbejderens egen indtjening — fremhævet som det vigtigste tal */}
+            <Card className="overflow-hidden rounded-xl border-border shadow-sm">
+              <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-feature-cool text-feature-cool-foreground sm:h-14 sm:w-14">
+                    <Wallet className="h-6 w-6 sm:h-7 sm:w-7" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Min indtjening
+                    </p>
+                    <p className="mt-0.5 text-3xl font-bold tracking-tight tabular-nums text-foreground sm:text-4xl">
+                      {formatKr(s.commission)}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Fra {s.stopsCompleted} {s.stopsCompleted === 1 ? "udført opgave" : "udførte opgaver"}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-1 sm:gap-1 sm:text-right">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Periode</p>
+                    <p className="text-sm font-semibold tabular-nums text-foreground">{headerLabel}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Gennemført</p>
+                    <p className="text-sm font-semibold tabular-nums text-foreground">
+                      {s.stopsTotal > 0 ? `${Math.round((s.stopsCompleted / s.stopsTotal) * 100)}%` : "—"}
+                    </p>
+                  </div>
+                </div>
               </div>
+            </Card>
+
+            {/* Sekundære nøgletal — kompakt 2-kolonne på mobil, 5-kolonne på desktop */}
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5">
               <StatCard
                 label="Ruter"
                 value={s.routesCount}
                 icon={<RouteIcon />}
                 tone="violet"
-                hint={s.totalDistanceKm > 0 ? `${s.totalDistanceKm.toFixed(0)} km kørt` : null}
               />
               <StatCard
                 label="Opgaver"
                 value={`${s.stopsCompleted}/${s.stopsTotal}`}
                 icon={<CheckCircle2 />}
                 tone="amber"
-                hint={s.stopsTotal > 0 ? `${Math.round((s.stopsCompleted / s.stopsTotal) * 100)}% gennemført` : null}
               />
-            </div>
-
-            {/* Sekundær række */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <StatCard
                 label="Arbejdsdage"
                 value={s.workdaysCount}
