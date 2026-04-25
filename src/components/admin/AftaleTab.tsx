@@ -643,7 +643,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   const { data: services } = useServices(businessId);
   const { data: subscriptions } = useBusinessSubscriptions(businessId);
   const qc = useQueryClient();
-  const [filter, setFilter] = useState<string>("all");
+  // Default-filter: "active" — viser åbne aftaler (ikke udført/annulleret) så
+  // listen ikke bliver overvældet af afsluttede sager.
+  const [filter, setFilter] = useState<string>("active");
   const [search, setSearch] = useState("");
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
