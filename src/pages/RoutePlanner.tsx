@@ -565,17 +565,13 @@ const Planner = () => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="min-h-screen bg-secondary/30 flex flex-col">
-        {/* Header */}
-        <header className="bg-background border-b sticky top-0 z-30">
-          <div className="px-4 py-2 flex items-center gap-3 flex-wrap">
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/virksomhed"><ArrowLeft className="h-4 w-4 mr-1" />Tilbage</Link>
-            </Button>
-            <h1 className="text-base font-semibold flex items-center gap-2">
-              <MapIcon className="h-4 w-4 text-primary" />Ruteplanlægger
-            </h1>
-
+      <AdminShell
+        business={business}
+        activeTab="routes"
+        contentPadding={false}
+        contentClassName="flex flex-col overflow-hidden"
+        topbarRight={
+          <div className="flex items-center gap-1.5 flex-wrap justify-end">
             <Tabs value={view} onValueChange={(v) => setView(v as any)}>
               <TabsList className="h-7">
                 <TabsTrigger value="month" className="text-xs h-5 px-2">Måned</TabsTrigger>
@@ -614,7 +610,7 @@ const Planner = () => {
               <Button variant="outline" size="sm" className="h-7" onClick={() => setDate(todayStr())}>I dag</Button>
             </div>
 
-            <div className="ml-auto flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5">
               <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="h-7 gap-1">
@@ -717,9 +713,9 @@ const Planner = () => {
               </Tooltip>
             </div>
           </div>
-        </header>
-
-        <div className="flex-1 overflow-hidden p-3" style={{ height: "calc(100vh - 50px)" }}>
+        }
+      >
+        <div className="flex-1 overflow-hidden p-3" style={{ height: "calc(100vh - 56px)" }}>
             <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg">
               {/* Sidebar: Aftalepool */}
               <ResizablePanel defaultSize={20} minSize={14} maxSize={36} className="overflow-hidden">
