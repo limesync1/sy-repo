@@ -247,10 +247,10 @@ const formatStopStatus = (s?: string | null) => (s ? STOP_STATUS_LABELS[s] || s 
 const formatRouteStatus = (s?: string | null) => (s ? ROUTE_STATUS_LABELS[s] || s : "");
 
 /* ─── Drag & drop helpers (samme @dnd-kit setup som Ruteplanlæggeren) ─── */
-const OrderDragHandle = ({ orderId }: { orderId: string }) => {
+const OrderDragHandle = ({ orderId, order }: { orderId: string; order: any }) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `order-${orderId}`,
-    data: { type: "order", orderId },
+    data: { type: "order", orderId, order },
   });
   return (
     <button
