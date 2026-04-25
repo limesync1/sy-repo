@@ -1468,87 +1468,71 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Pre-start CTA: big start button at the bottom ─── */}
         {!routeStarted && !allDone && nextStop && (
           <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pb-[50px]">
-            <Card
-              className="overflow-hidden shadow-2xl rounded-2xl border-t-2"
-              style={{ borderTopColor: themeColor }}
-            >
+            <Card className="overflow-hidden rounded-xl border-border shadow-xl">
               {/* Dagens overblik — øverste sektion */}
-              <div className="px-4 pt-3 pb-3 bg-gradient-to-b from-secondary/50 to-secondary/10">
-                <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="px-4 pt-3.5 pb-3 bg-card border-b border-border">
+                {/* Header-rad: titel + antal stop */}
+                <div className="flex items-center justify-between gap-2 mb-3">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
-                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-bold truncate">
+                    <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <p className="text-[11px] text-muted-foreground font-medium truncate">
                       Dagens rute · {todayLabel}
                     </p>
                   </div>
-                  <Badge variant="secondary" className="text-[9px] h-4 px-1.5 tabular-nums font-bold shrink-0">
+                  <Badge variant="secondary" className="text-[10px] h-5 px-1.5 tabular-nums font-semibold shrink-0">
                     {sortedStops.length} stop
                   </Badge>
                 </div>
-                {/* Day-stats: total km, total tid, forventet slut */}
+
+                {/* Tre nøgletal — admin-stil grid uden flashy farver */}
                 <div className="grid grid-cols-3 gap-1.5 mb-3">
-                  <div className="rounded-lg bg-background/80 backdrop-blur border px-2 py-1.5 text-center">
-                    <p className="text-[8px] uppercase text-muted-foreground font-bold tracking-wide">Stop</p>
-                    <p className="text-sm font-bold tabular-nums">
+                  <div className="rounded-lg bg-secondary/60 border border-border px-2 py-1.5 text-center">
+                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Stop</p>
+                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
                       {remainingStops.length}
                       {completedCount > 0 && (
                         <span className="text-muted-foreground font-medium">/{sortedStops.length}</span>
                       )}
                     </p>
                   </div>
-                  <div className="rounded-lg bg-background/80 backdrop-blur border px-2 py-1.5 text-center">
-                    <p className="text-[8px] uppercase text-muted-foreground font-bold tracking-wide">Distance</p>
-                    <p className="text-sm font-bold tabular-nums">
+                  <div className="rounded-lg bg-secondary/60 border border-border px-2 py-1.5 text-center">
+                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
+                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
                       {route?.total_distance_km != null && route.total_distance_km > 0
                         ? `${route.total_distance_km.toFixed(1)} km`
                         : "—"}
                     </p>
                   </div>
-                  <div className="rounded-lg bg-background/80 backdrop-blur border px-2 py-1.5 text-center">
-                    <p className="text-[8px] uppercase text-muted-foreground font-bold tracking-wide">Slut ca.</p>
-                    <p className="text-sm font-bold tabular-nums" style={{ color: themeColor }}>
+                  <div className="rounded-lg bg-secondary/60 border border-border px-2 py-1.5 text-center">
+                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Slut ca.</p>
+                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
                       {estimatedEndAt || "—"}
                     </p>
                   </div>
                 </div>
-                <p className="text-[9px] uppercase tracking-wide text-muted-foreground font-bold mb-1.5">
-                  Først til
-                </p>
+
+                {/* Først til — fremhævet på neutral baggrund */}
                 <div className="flex items-start gap-2.5">
                   <span
-                    className="flex h-10 w-10 items-center justify-center rounded-xl text-background text-sm font-bold shrink-0 shadow-sm"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg text-background text-sm font-bold shrink-0"
                     style={{ background: themeColor }}
                   >
                     {nextStopIdx + 1}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm truncate leading-tight">
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold leading-none">
+                      Først til
+                    </p>
+                    <p className="font-semibold text-sm text-foreground truncate leading-tight mt-0.5">
                       {nextStop.customer_name || "Stop"}
                     </p>
                     {nextStop.address && (
                       <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
-                        <MapPin className="h-2.5 w-2.5 shrink-0" />{nextStop.address}
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        {nextStop.address}
                       </p>
                     )}
                   </div>
-                </div>
-
-                {/* Segmented progress — kalender-stil */}
-                <div className="flex gap-0.5 mt-2.5">
-                  {sortedStops.map((s, i) => (
-                    <div
-                      key={s.id}
-                      className="flex-1 h-1 rounded-full transition-all"
-                      style={{
-                        background:
-                          s.status === "completed"
-                            ? "hsl(142 70% 45%)"
-                            : i === nextStopIdx
-                              ? themeColor
-                              : "hsl(220 14% 88%)",
-                      }}
-                    />
-                  ))}
                 </div>
               </div>
 
@@ -1587,12 +1571,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <Button
                   onClick={handleStartRoute}
                   size="lg"
-                  className="w-full gap-2 h-14 text-base font-bold rounded-xl shadow-lg hover:shadow-xl active:scale-[0.99] transition-all text-background"
-                  style={{ background: themeColor }}
+                  className="w-full gap-2 h-12 text-base font-semibold rounded-xl shadow-md hover:shadow-lg active:scale-[0.99] transition-all bg-foreground text-background hover:bg-foreground/90"
                 >
                   <Play className="h-5 w-5 fill-current" /> Start dagens rute
                 </Button>
-                <p className="text-[10px] text-muted-foreground text-center mt-2">
+                <p className="text-[11px] text-muted-foreground text-center mt-2">
                   Live navigation · GPS-følg · stemmevejledning
                 </p>
               </div>
