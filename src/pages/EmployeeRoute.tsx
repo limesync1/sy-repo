@@ -1715,38 +1715,54 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     </div>
                   )}
 
+                  {/* Sekundære handlinger — kompakt, admin-stil */}
                   <div className="grid grid-cols-3 gap-2">
-                    <Button onClick={() => handleNavigate(nextStop)} variant="outline" size="sm" className="gap-1 h-9 rounded-lg text-xs">
+                    <Button
+                      onClick={() => handleNavigate(nextStop)}
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 h-9 rounded-lg text-xs border-border"
+                    >
                       <Navigation className="h-3.5 w-3.5" /> Maps
                     </Button>
                     {nextStop.customer_phone ? (
-                      <Button asChild variant="outline" size="sm" className="gap-1 h-9 rounded-lg text-xs">
-                        <a href={`tel:${nextStop.customer_phone}`}><Phone className="h-3.5 w-3.5" /> Ring</a>
+                      <Button asChild variant="outline" size="sm" className="gap-1.5 h-9 rounded-lg text-xs border-border">
+                        <a href={`tel:${nextStop.customer_phone}`}>
+                          <Phone className="h-3.5 w-3.5" /> Ring
+                        </a>
                       </Button>
                     ) : (
-                      <Button variant="outline" size="sm" disabled className="gap-1 h-9 rounded-lg text-xs">
+                      <Button variant="outline" size="sm" disabled className="gap-1.5 h-9 rounded-lg text-xs border-border">
                         <Phone className="h-3.5 w-3.5" /> Ring
                       </Button>
                     )}
-                    <Button onClick={() => setSelectedId(nextStop.id)} variant="outline" size="sm" className="h-9 rounded-lg text-xs">
+                    <Button
+                      onClick={() => setSelectedId(nextStop.id)}
+                      variant="outline"
+                      size="sm"
+                      className="h-9 rounded-lg text-xs border-border"
+                    >
                       Detaljer
                     </Button>
                   </div>
 
+                  {/* Primær CTA — neutral foreground (admin-stil) når man kører,
+                      grøn ankomst-indikator når man er fremme.  Ingen pulserende
+                      ring (forvirrende), kun en let glow når fremme. */}
                   <Button
                     onClick={() => handleComplete(nextStop)}
                     size="lg"
-                    className={`w-full gap-2 h-13 text-base font-bold rounded-xl shadow-lg hover:shadow-xl transition-all ${isAtNextStop ? "ring-4 ring-offset-2 animate-pulse" : ""}`}
-                    style={{
-                      background: isAtNextStop ? "hsl(142 70% 45%)" : themeColor,
-                      ...(isAtNextStop ? { ["--tw-ring-color" as any]: "hsl(142 70% 45% / 0.4)" } : {}),
-                    }}
+                    className={`w-full gap-2 h-12 text-base font-semibold rounded-xl transition-all ${
+                      isAtNextStop
+                        ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
+                        : "bg-foreground text-background hover:bg-foreground/90 shadow-md"
+                    }`}
                     disabled={updateStatus.isPending}
                   >
                     {updateStatus.isPending ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
-                      <CheckCircle2 className="h-6 w-6" />
+                      <CheckCircle2 className="h-5 w-5" />
                     )}
                     {isAtNextStop ? "Du er fremme — markér udført" : "Markér som udført"}
                   </Button>
