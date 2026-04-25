@@ -1337,11 +1337,36 @@ export const useMyRouteData = (routeId: string | undefined) => {
       const routeHasMySpecificStops = (rawStops || []).some((s: any) =>
         myStopIds.has(s.id) || s.assigned_employee_id === emp.id,
       );
-      const stops = (rawStops || []).filter((s: any) => {
+      const filteredStops = (rawStops || []).filter((s: any) => {
         const belongsToEmployee = myStopIds.has(s.id) || s.assigned_employee_id === emp.id;
         // Hvis medarbejderen har specifikke stop på ruten → kun deres egne.
         // Ellers (team-mode) → vis alle stop på ruten.
         return routeHasMySpecificStops ? belongsToEmployee : true;
+      });
+
+      // Join alle assignees for de viste stops, så UI kan beregne fx
+      // medarbejderens egen andel af aftalens beløb (delt med kolleger).
+      const stopIds = filteredStops.map((s: any) => s.id);
+      let assigneeMap = new Map<string, { ids: string[]; lead: string | null }>();
+      if (stopIds.length > 0) {
+        const { data: assignees } = await supabase
+          .from("route_stop_assignees")
+          .select("stop_id, employee_id, is_lead")
+          .in("stop_id", stopIds);
+        (assignees || []).forEach((a: any) => {
+          const entry = assigneeMap.get(a.stop_id) || { ids: [], lead: null };
+          entry.ids.push(a.employee_id);
+          if (a.is_lead) entry.lead = a.employee_id;
+          assigneeMap.set(a.stop_id, entry);
+        });
+      }
+      const stops = filteredStops.map((s: any) => {
+        const entry = assigneeMap.get(s.id);
+        return {
+          ...s,
+          assignee_ids: entry?.ids || (s.assigned_employee_id ? [s.assigned_employee_id] : []),
+          lead_employee_id: entry?.lead ?? s.assigned_employee_id ?? null,
+        };
       });
 
       return {
