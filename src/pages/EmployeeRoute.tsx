@@ -243,6 +243,24 @@ const FlyToStop = ({ target }: { target: [number, number] | null }) => {
 const formatKm = (m: number | null) => (m == null ? "—" : m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`);
 const formatMin = (s: number | null) => (s == null ? "—" : s < 60 ? "<1 min" : `${Math.round(s / 60)} min`);
 
+/** Format total minutes as "Xt Ymin" / "Y min". Useful for rute-totals. */
+const formatHoursMin = (mins: number | null | undefined): string => {
+  if (mins == null || !Number.isFinite(mins)) return "—";
+  const m = Math.round(mins);
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  return r === 0 ? `${h}t` : `${h}t ${r}min`;
+};
+
+/** Format absolute time (HH:mm) from Date in da-DK locale. */
+const formatClock = (d: Date): string =>
+  d.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+
+/** Format date as "ma. 25. apr". */
+const formatDayDate = (d: Date): string =>
+  d.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" });
+
 /* ─────────────────────────────────────────────────────────── */
 const EmployeeRoute = () => {
   const { user, loading } = useAuth();
@@ -607,6 +625,31 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return eta.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
   }, [directions?.duration_s]);
 
+  /* ── Rute-totals: samlet distance/varighed for resterende stop.
+   * Vises i pre-start oversigt og i header-pillen så medarbejderen
+   * altid kan se hvad der venter på dagen. */
+  const remainingStops = useMemo(
+    () => sortedStops.filter((s) => s.status !== "completed"),
+    [sortedStops],
+  );
+  const remainingServiceMinutes = useMemo(
+    () => remainingStops.reduce((sum, s) => sum + (s.duration_minutes || 0), 0),
+    [remainingStops],
+  );
+  /** Estimeret sluttid på dagen — service-tid + planlagt køretid (hvis kendt). */
+  const estimatedEndAt: string | null = useMemo(() => {
+    if (remainingStops.length === 0) return null;
+    const driveMin = route?.total_duration_minutes ?? 0;
+    // Kun vis hvis vi rent faktisk har en planlagt drive-tid > 0 (ellers er
+    // ruten ikke optimeret endnu og estimatet bliver misvisende).
+    if (driveMin <= 0) return null;
+    const totalMin = driveMin + remainingServiceMinutes;
+    if (totalMin <= 0) return null;
+    const end = new Date(Date.now() + totalMin * 60 * 1000);
+    return formatClock(end);
+  }, [remainingStops.length, remainingServiceMinutes, route?.total_duration_minutes]);
+  const todayLabel = useMemo(() => formatDayDate(new Date()), []);
+
   /* Trafik-overvågning — robust mod GPS-jitter, omkørsel og korte ture.
    *
    * Vi vil kun vise "trafik" når den ekstra ventetid med stor sandsynlighed
@@ -842,24 +885,18 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <Link to="/medarbejder" aria-label="Tilbage"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
 
-          {/* Header-pille: neutral foreground (Serviceydere primary) med farvet dot der signalerer rute-identitet */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary text-foreground text-xs font-semibold shrink-0 max-w-[55%] border">
+          {/* Header-pille: rute-navn + dato + progress */}
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-secondary text-foreground text-xs font-semibold shrink min-w-0 border">
             <span
               className="h-2 w-2 rounded-full shrink-0"
               style={{ background: routeBadgeColor }}
               aria-hidden
             />
-            <span className="truncate">{route.name || "Rute"}</span>
-            <span className="px-1.5 py-0.5 rounded-full bg-background tabular-nums text-[10px] border">
+            <span className="truncate font-bold">{route.name || "Rute"}</span>
+            <span className="px-1.5 py-0.5 rounded-full bg-background tabular-nums text-[10px] border shrink-0">
               {completedCount}/{sortedStops.length}
             </span>
           </div>
-
-          {etaLabel && nextStop && (
-            <Badge variant="outline" className="tabular-nums hidden sm:inline-flex bg-background">
-              <Clock className="h-3 w-3 mr-1" /> {etaLabel}
-            </Badge>
-          )}
 
           <div className="flex-1" />
 
@@ -879,7 +916,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         </div>
 
         {/* Progress bar — route color */}
-        <div className="h-1 w-full bg-secondary" aria-hidden>
+        <div className="h-1.5 w-full bg-secondary" aria-hidden>
           <div
             className="h-full transition-all duration-500 ease-out"
             style={{ width: `${progress}%`, background: themeColor }}
@@ -1050,15 +1087,23 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 </Link>
               </Button>
               {/* Compact progress pill — neutral bg, kun farvet dot for rute-id (matcher Serviceydere brand) */}
-              <div className="flex items-center gap-2 pl-2 pr-3 h-11 rounded-full bg-background border border-border shadow-lg">
+              <div className="flex items-center gap-2 pl-2.5 pr-3 h-11 rounded-full bg-background border border-border shadow-lg">
                 <span
-                  className="h-2 w-2 rounded-full shrink-0"
+                  className="h-2.5 w-2.5 rounded-full shrink-0"
                   style={{ background: routeBadgeColor }}
                   aria-hidden
                 />
-                <span className="text-xs font-bold text-foreground tabular-nums">
-                  {completedCount}<span className="text-muted-foreground font-medium">/{sortedStops.length}</span>
+                <span className="text-sm font-bold text-foreground tabular-nums leading-none">
+                  {completedCount}<span className="text-muted-foreground/70 font-medium">/{sortedStops.length}</span>
                 </span>
+                {estimatedEndAt && (
+                  <>
+                    <span className="h-3 w-px bg-border" aria-hidden />
+                    <span className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground tabular-nums leading-none">
+                      <Flag className="h-3 w-3" />{estimatedEndAt}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
 
@@ -1204,16 +1249,48 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               className="overflow-hidden shadow-2xl rounded-2xl border-t-2"
               style={{ borderTopColor: themeColor }}
             >
-              {/* Kalender-stil header */}
-              <div className="px-4 pt-3 pb-2 bg-secondary/30">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold flex-1">
-                    Næste stop · {nextStopIdx + 1} af {sortedStops.length}
-                  </p>
-                  <Badge variant="secondary" className="text-[9px] h-4 px-1.5 tabular-nums">
+              {/* Dagens overblik — øverste sektion */}
+              <div className="px-4 pt-3 pb-3 bg-gradient-to-b from-secondary/50 to-secondary/10">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-bold truncate">
+                      Dagens rute · {todayLabel}
+                    </p>
+                  </div>
+                  <Badge variant="secondary" className="text-[9px] h-4 px-1.5 tabular-nums font-bold shrink-0">
                     {sortedStops.length} stop
                   </Badge>
                 </div>
+                {/* Day-stats: total km, total tid, forventet slut */}
+                <div className="grid grid-cols-3 gap-1.5 mb-3">
+                  <div className="rounded-lg bg-background/80 backdrop-blur border px-2 py-1.5 text-center">
+                    <p className="text-[8px] uppercase text-muted-foreground font-bold tracking-wide">Stop</p>
+                    <p className="text-sm font-bold tabular-nums">
+                      {remainingStops.length}
+                      {completedCount > 0 && (
+                        <span className="text-muted-foreground font-medium">/{sortedStops.length}</span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-background/80 backdrop-blur border px-2 py-1.5 text-center">
+                    <p className="text-[8px] uppercase text-muted-foreground font-bold tracking-wide">Distance</p>
+                    <p className="text-sm font-bold tabular-nums">
+                      {route?.total_distance_km != null && route.total_distance_km > 0
+                        ? `${route.total_distance_km.toFixed(1)} km`
+                        : "—"}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-background/80 backdrop-blur border px-2 py-1.5 text-center">
+                    <p className="text-[8px] uppercase text-muted-foreground font-bold tracking-wide">Slut ca.</p>
+                    <p className="text-sm font-bold tabular-nums" style={{ color: themeColor }}>
+                      {estimatedEndAt || "—"}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-[9px] uppercase tracking-wide text-muted-foreground font-bold mb-1.5">
+                  Først til
+                </p>
                 <div className="flex items-start gap-2.5">
                   <span
                     className="flex h-10 w-10 items-center justify-center rounded-xl text-background text-sm font-bold shrink-0 shadow-sm"
@@ -1222,7 +1299,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     {nextStopIdx + 1}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate leading-tight">
+                    <p className="font-bold text-sm truncate leading-tight">
                       {nextStop.customer_name || "Stop"}
                     </p>
                     {nextStop.address && (
@@ -1252,12 +1329,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 </div>
               </div>
 
-              {/* Info-grid: km, tid, ETA */}
+              {/* Info-grid: km, tid, ETA — for første leg */}
               {(directions || etaLabel) && (
                 <>
                   {directions && (
                     <div className="flex items-center justify-between gap-2 px-3 py-1.5 bg-background border-t">
-                      <LiveStatusBadge info={directions} compact />
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-[9px] uppercase tracking-wide text-muted-foreground font-bold shrink-0">
+                          Til 1. stop
+                        </span>
+                        <LiveStatusBadge info={directions} compact />
+                      </div>
                       <div className="flex items-center gap-1">
                         {showRawTime && (
                           <Badge variant="outline" className="h-5 px-1.5 text-[9px] font-medium">
@@ -1303,13 +1385,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <Button
                   onClick={handleStartRoute}
                   size="lg"
-                  className="w-full gap-2 h-13 text-base font-bold rounded-xl shadow-lg hover:shadow-xl transition-shadow"
+                  className="w-full gap-2 h-14 text-base font-bold rounded-xl shadow-lg hover:shadow-xl active:scale-[0.99] transition-all text-background"
                   style={{ background: themeColor }}
                 >
-                  <Play className="h-5 w-5 fill-current" /> Start rute
+                  <Play className="h-5 w-5 fill-current" /> Start dagens rute
                 </Button>
                 <p className="text-[10px] text-muted-foreground text-center mt-2">
-                  Live navigation · auto-zoom · stemmevejledning
+                  Live navigation · GPS-følg · stemmevejledning
                 </p>
               </div>
             </Card>
@@ -1324,11 +1406,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               style={{ borderTopColor: themeColor }}
             >
               {/* Segmented progress — kalender-stil dots på toppen */}
-              <div className="flex gap-0.5 px-3 pt-2 bg-secondary/30">
+              <div className="flex gap-0.5 px-3 pt-2 pb-1 bg-secondary/40">
                 {sortedStops.map((s, i) => (
                   <div
                     key={s.id}
-                    className="flex-1 h-1 rounded-full transition-all"
+                    className="flex-1 h-1.5 rounded-full transition-all"
                     style={{
                       background:
                         s.status === "completed"
@@ -1342,32 +1424,46 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               </div>
               <button
                 type="button"
-                className="w-full flex items-center gap-2 px-3 py-2.5 bg-secondary/30 hover:bg-secondary/50 transition-colors border-b"
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-secondary/40 hover:bg-secondary/60 transition-colors border-b"
                 onClick={() => setCollapsed((c) => !c)}
+                aria-expanded={!collapsed}
+                aria-label={collapsed ? "Vis stop-detaljer" : "Skjul stop-detaljer"}
               >
                 <span
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-background text-xs font-bold shrink-0 shadow-sm"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg text-background text-sm font-bold shrink-0 shadow-sm"
                   style={{ background: themeColor }}
                 >
                   {nextStopIdx + 1}
                 </span>
                 <div className="flex-1 text-left min-w-0">
-                  <p className="font-semibold text-sm truncate leading-tight">
+                  <p className="font-bold text-sm truncate leading-tight">
                     {nextStop.customer_name || "Stop"}
                   </p>
-                  <p className="text-[10px] text-muted-foreground tabular-nums">
-                    Stop {nextStopIdx + 1} af {sortedStops.length}
-                  </p>
+                  {nextStop.address ? (
+                    <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
+                      <MapPin className="h-2.5 w-2.5 shrink-0" />
+                      {nextStop.address}
+                    </p>
+                  ) : (
+                    <p className="text-[10px] text-muted-foreground tabular-nums">
+                      Stop {nextStopIdx + 1} af {sortedStops.length}
+                    </p>
+                  )}
                 </div>
                 {isAtNextStop ? (
-                  <Badge className="gap-1 text-[10px] h-5 px-2 border-0" style={{ background: "hsl(142 70% 95%)", color: "hsl(142 70% 25%)" }}>
+                  <Badge className="gap-1 text-[10px] h-6 px-2 border-0 font-bold uppercase tracking-wide" style={{ background: "hsl(142 70% 95%)", color: "hsl(142 70% 25%)" }}>
                     <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: "hsl(142 70% 45%)" }} />
                     Fremme
                   </Badge>
                 ) : distanceToNextM != null ? (
-                  <Badge variant="outline" className="tabular-nums text-[10px] h-5 px-2">
-                    {formatKm(distanceToNextM)}
-                  </Badge>
+                  <div className="text-right shrink-0">
+                    <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wide leading-none">
+                      Næste
+                    </p>
+                    <p className="text-sm font-bold tabular-nums leading-tight mt-0.5" style={{ color: themeColor }}>
+                      {formatKm(distanceToNextM)}
+                    </p>
+                  </div>
                 ) : null}
                 {collapsed ? <ChevronUp className="h-4 w-4 text-muted-foreground ml-1" /> : <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" />}
               </button>
@@ -1653,29 +1749,30 @@ const StopListPanel = ({
       <div
         className="pointer-events-auto mx-auto w-full max-w-3xl bg-background shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)] rounded-t-2xl transition-transform duration-300 ease-out border-t border-x border-border"
         style={{
-          transform: open ? "translateY(0)" : "translateY(calc(100% - 42px))",
-          maxHeight: "60vh",
+          transform: open ? "translateY(0)" : "translateY(calc(100% - 46px))",
+          maxHeight: "65vh",
         }}
       >
         {/* Kompakt rail — kun 38px høj når lukket */}
         <button
           type="button"
           onClick={onToggle}
-          className="w-full flex items-center gap-2 px-3 h-[42px] hover:bg-secondary/60 active:bg-secondary transition-colors rounded-t-2xl relative"
+          className="w-full flex items-center gap-2 px-3 h-[46px] hover:bg-secondary/60 active:bg-secondary transition-colors rounded-t-2xl relative"
           aria-expanded={open}
+          aria-label={open ? "Skjul stop-liste" : "Vis stop-liste"}
         >
-          <span className="h-1 w-9 rounded-full bg-muted-foreground/30 absolute left-1/2 -translate-x-1/2 top-1.5" />
-          <List className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-[11px] font-semibold text-foreground/80">Alle stop</span>
-          <Badge variant="secondary" className="tabular-nums text-[9px] h-3.5 px-1 font-bold">
+          <span className="h-1 w-10 rounded-full bg-muted-foreground/30 absolute left-1/2 -translate-x-1/2 top-1.5" />
+          <List className="h-4 w-4 text-muted-foreground" />
+          <span className="text-xs font-bold text-foreground/90">Alle stop</span>
+          <Badge variant="secondary" className="tabular-nums text-[10px] h-4 px-1.5 font-bold">
             {done}/{total}
           </Badge>
           {/* Mini progress dots — kompakt */}
           <div className="flex-1 flex gap-0.5 items-center justify-end overflow-hidden">
-            {stops.slice(0, 10).map((s) => (
+            {stops.slice(0, 12).map((s) => (
               <span
                 key={s.id}
-                className="h-1 w-1 rounded-full shrink-0"
+                className="h-1.5 w-1.5 rounded-full shrink-0"
                 style={{
                   background:
                     s.status === "completed"
@@ -1686,16 +1783,16 @@ const StopListPanel = ({
                 }}
               />
             ))}
-            {stops.length > 10 && (
-              <span className="text-[8px] text-muted-foreground tabular-nums ml-0.5">+{stops.length - 10}</span>
+            {stops.length > 12 && (
+              <span className="text-[9px] text-muted-foreground tabular-nums ml-0.5 font-bold">+{stops.length - 12}</span>
             )}
           </div>
-          {open ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />}
+          {open ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronUp className="h-4 w-4 text-muted-foreground" />}
         </button>
 
         <div
-          className="overflow-y-auto p-2 space-y-1 border-t"
-          style={{ maxHeight: "calc(60vh - 38px)" }}
+          className="overflow-y-auto p-2 space-y-1.5 border-t"
+          style={{ maxHeight: "calc(65vh - 46px)" }}
         >
           {stops.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-6">Ingen stop på denne rute.</p>
