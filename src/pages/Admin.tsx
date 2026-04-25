@@ -437,7 +437,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   );
 };
 
-const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCount: number; onDelete: () => void }) => {
+const ServiceRow = ({ service, businessIndustries, orderCount, onDelete }: { service: any; businessIndustries: string[]; orderCount: number; onDelete: () => void }) => {
   const [editing, setEditing] = useState(false);
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
   const intervalLabels: Record<string, string> = {
@@ -450,17 +450,7 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
 
   const intervals = service.interval_options || [];
   const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
-  const categoryIcons: Record<string, string> = {
-    "Rengøring": "🧹",
-    "Håndværker": "🔨",
-    "Flyttehjælp": "🚚",
-    "Haveservice": "🌿",
-    "Maler": "🎨",
-    "VVS": "💧",
-    "Elektriker": "⚡",
-    "Sikkerhed": "🛡️",
-  };
-  const categoryIcon = categoryIcons[service.service_category] || "🧰";
+  const categoryIcon = industryIcon(service.service_category);
   const intervalSummary = intervals.length > 0
     ? intervals.slice(0, 2).map((interval: string) => intervalLabels[interval] || interval).join(", ") + (intervals.length > 2 ? ` +${intervals.length - 2}` : "")
     : "Ikke angivet";
@@ -545,7 +535,7 @@ const ServiceRow = ({ service, orderCount, onDelete }: { service: any; orderCoun
       </CardContent>
       {editing && (
         <div className="border-t border-border bg-secondary/30 p-4 sm:p-5">
-          <ServiceForm businessId={service.business_id} existingService={service} onClose={() => setEditing(false)} />
+          <ServiceForm businessId={service.business_id} businessIndustries={businessIndustries} existingService={service} onClose={() => setEditing(false)} />
         </div>
       )}
     </Card>
