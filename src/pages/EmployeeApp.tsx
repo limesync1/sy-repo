@@ -145,77 +145,76 @@ const EmployeeApp = () => {
     ? formatDistanceStrict(new Date(workday.started_at), new Date(), { locale: da, unit: "minute" })
     : null;
 
-  // Date navigator — placeret inde i indholdet ved siden af titlen
-  // (samme PageHeader-mønster som virksomhedspanelet bruger).
+  // Date navigator — kompakt, klar visuel struktur:
+  //  [‹]  [📅 dato (popover)]  [›]   [Gå til i dag?]
   const dateNav = (
-    <div className="w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm sm:w-auto">
-      <div className="flex items-center gap-1 overflow-x-auto p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <Button
-        size="icon"
-        variant="ghost"
-        className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
-        onClick={() => setDate(format(addDays(dateObj, -1), "yyyy-MM-dd"))}
-        aria-label="Forrige dag"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
-      <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-9 shrink-0 gap-1.5 rounded-lg px-3 text-xs font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] data-[state=open]:bg-secondary"
-          >
-            <CalendarIcon className="h-3.5 w-3.5" />
-            <span className="capitalize tabular-nums">
-              {isCurrentDay ? "I dag" : format(dateObj, "EEE d. MMM", { locale: da })}
-            </span>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="center">
-          <Calendar
-            mode="single"
-            selected={dateObj}
-            onSelect={(selected) => {
-              if (!selected) return;
-              setDate(format(selected, "yyyy-MM-dd"));
-              setCalendarOpen(false);
-            }}
-            locale={da}
-            weekStartsOn={1}
-            initialFocus
-          />
-        </PopoverContent>
-      </Popover>
-      <Button
-        size="icon"
-        variant="ghost"
-        className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
-        onClick={() => setDate(format(addDays(dateObj, 1), "yyyy-MM-dd"))}
-        aria-label="Næste dag"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </Button>
+    <div className="flex w-full items-center gap-2 sm:w-auto">
+      <div className="flex flex-1 items-center gap-1 rounded-xl border border-border bg-card p-1 shadow-sm sm:flex-initial">
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
+          onClick={() => setDate(format(addDays(dateObj, -1), "yyyy-MM-dd"))}
+          aria-label="Forrige dag"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-9 flex-1 min-w-0 gap-1.5 rounded-lg px-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] data-[state=open]:bg-secondary sm:flex-initial"
+            >
+              <CalendarIcon className="h-3.5 w-3.5 shrink-0" />
+              <span className="capitalize tabular-nums truncate">
+                {isCurrentDay ? "I dag" : format(dateObj, "EEE d. MMM", { locale: da })}
+              </span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="center">
+            <Calendar
+              mode="single"
+              selected={dateObj}
+              onSelect={(selected) => {
+                if (!selected) return;
+                setDate(format(selected, "yyyy-MM-dd"));
+                setCalendarOpen(false);
+              }}
+              locale={da}
+              weekStartsOn={1}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
+          onClick={() => setDate(format(addDays(dateObj, 1), "yyyy-MM-dd"))}
+          aria-label="Næste dag"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
       {!isCurrentDay && (
         <Button
           size="sm"
-          variant="ghost"
           onClick={() => setDate(todayStr())}
           className={cn(
-            "h-9 shrink-0 rounded-lg px-3 text-xs font-semibold shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]",
-            "bg-foreground text-background hover:bg-foreground/90 hover:text-background",
+            "h-10 shrink-0 rounded-xl px-3 text-xs font-semibold shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]",
+            "bg-foreground text-background hover:bg-foreground/90 hover:text-background sm:h-9 sm:rounded-lg",
           )}
         >
-          Gå til i dag
+          I dag
         </Button>
       )}
-      </div>
     </div>
   );
 
   return (
     <EmployeeShell activeTab="today" title="Min dag">
-      <div className="mx-auto max-w-5xl space-y-4 pb-20">
+      <div className="mx-auto max-w-5xl space-y-4 pb-24 sm:pb-20">
         <PageHeader
           title={<span className="capitalize">{format(dateObj, "EEEE d. MMMM", { locale: da })}</span>}
           description={
@@ -227,7 +226,7 @@ const EmployeeApp = () => {
         />
 
         {/* Top-overblik: stat-kort + arbejdsdag-handling — samme stil som virksomhedspanelet */}
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
           <StatCard
             label="Stop i dag"
             value={`${completedStops}/${totalStops}`}
