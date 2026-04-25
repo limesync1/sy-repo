@@ -11,11 +11,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  Plus, Trash2, LogOut,
-  Sparkles, Calculator, LayoutDashboard, Wrench, ShoppingCart,
-  Star, Settings, Menu, X, ExternalLink, Bell, Users, Route, Contact,
+  Plus, Trash2,
+  Sparkles, Calculator,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import DashboardTab from "@/components/admin/DashboardTab";
@@ -25,6 +24,7 @@ import EmployeesTab from "@/components/admin/EmployeesTab";
 import CustomersTab from "@/components/admin/CustomersTab";
 import SettingsTab from "@/components/admin/SettingsTab";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
+import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
 
 /* ─── Constants ─── */
 const CATEGORIES = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS", "Elektriker", "Sikkerhed"];
@@ -132,17 +132,6 @@ const SERVICE_CATEGORIES: Record<string, Record<string, string[]>> = {
   },
 };
 
-const NAV_ITEMS = [
-  { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
-  { value: "services", label: "Services", icon: Wrench },
-  { value: "orders", label: "Aftaler", icon: ShoppingCart },
-  { value: "customers", label: "Kunder", icon: Contact },
-  { value: "routes", label: "Ruter", icon: Route, requiresRoutePlanning: true, href: "/virksomhed/ruter" as string | undefined },
-  { value: "employees", label: "Medarbejdere", icon: Users, requiresRoutePlanning: true },
-  { value: "reviews", label: "Anmeldelser", icon: Star },
-  { value: "settings", label: "Indstillinger", icon: Settings },
-];
-
 /* ─── Entry ─── */
 const Admin = () => {
   const { user, loading } = useAuth();
@@ -153,16 +142,21 @@ const Admin = () => {
 
 /* ─── Main Dashboard ─── */
 const AdminDashboard = () => {
-  const { signOut } = useAuth();
   const { data: business, isLoading } = useMyBusiness();
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<AdminTabKey>("dashboard");
+
+  // Understøt ?tab=xxx i URL'en så ruteplanlæggerens sidebar kan navigere
+  // direkte til en bestemt fane når man klikker fx "Aftaler".
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const t = params.get("tab") as AdminTabKey | null;
+    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","settings"];
+    if (t && allowed.includes(t)) setActiveTab(t);
+  }, []);
 
   if (isLoading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
   if (!business) return <CreateBusinessForm />;
-
-  const routePlanningEnabled = !!(business.settings as any)?.route_planning_enabled;
-  const visibleNav = NAV_ITEMS.filter((n) => !n.requiresRoutePlanning || routePlanningEnabled);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -170,117 +164,17 @@ const AdminDashboard = () => {
       case "services": return <ServicesTab businessId={business.id} />;
       case "orders": return <AftaleTab businessId={business.id} businessName={business.name} />;
       case "customers": return <CustomersTab businessId={business.id} businessName={business.name} />;
-      case "employees": return <EmployeesTab businessId={business.id} businessName={business.name} routePlanningEnabled={routePlanningEnabled} />;
+      case "employees": return <EmployeesTab businessId={business.id} businessName={business.name} routePlanningEnabled={!!(business.settings as any)?.route_planning_enabled} />;
       case "reviews": return <ReviewsWrapper businessId={business.id} />;
       case "settings": return <SettingsTab business={business} />;
       default: return null;
     }
   };
 
-  const currentNav = visibleNav.find(n => n.value === activeTab) || NAV_ITEMS.find(n => n.value === activeTab);
-
   return (
-    <div className="flex min-h-screen bg-secondary/50">
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
-
-      {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-border bg-background transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        {/* Sidebar header */}
-        <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-7" />
-          </Link>
-          <button onClick={() => setSidebarOpen(false)} className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Business info */}
-        <div className="mx-3 mt-3 mb-3 shrink-0 rounded-xl border border-border bg-card px-3 py-3 shadow-sm">
-          <div className="flex items-center gap-2">
-            {business.logo_url ? (
-              <img src={business.logo_url} alt="" className="h-9 w-9 shrink-0 rounded-lg border border-border object-contain bg-background p-1" />
-            ) : (
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground font-bold text-sm">
-                {business.name.charAt(0)}
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-foreground">{business.name}</p>
-              {business.categories && business.categories.length > 0 && <p className="truncate text-xs text-muted-foreground">{(business.categories as string[]).join(", ")}</p>}
-            </div>
-          </div>
-        </div>
-
-        {/* Nav items — pt-1/pb-2 så aktiv-ringen på første/sidste punkt
-            ikke beskæres af overflow-grænsen. */}
-        <nav className="flex-1 space-y-1 px-3 pt-1 pb-2 overflow-y-auto">
-          {visibleNav.map((item: any) => {
-            const isActive = activeTab === item.value;
-            const baseClasses = `flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-              isActive
-                ? "bg-secondary text-foreground shadow-sm ring-1 ring-border"
-                : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
-            }`;
-            if (item.href) {
-              return (
-                <Link key={item.value} to={item.href} onClick={() => setSidebarOpen(false)} className={baseClasses}>
-                  <item.icon className="h-4 w-4 shrink-0" />
-                  {item.label}
-                </Link>
-              );
-            }
-            return (
-              <button
-                key={item.value}
-                onClick={() => { setActiveTab(item.value); setSidebarOpen(false); }}
-                className={baseClasses}
-              >
-                <item.icon className="h-4 w-4 shrink-0" />
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Sidebar footer — always visible */}
-        <div className="shrink-0 border-t border-border px-3 py-3 space-y-1">
-          <Link
-            to={`/v/${business.slug}`}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          >
-            <ExternalLink className="h-4 w-4 shrink-0" />
-            Se din side
-          </Link>
-          <button
-            onClick={signOut}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            Log ud
-          </button>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <div className="flex flex-1 flex-col min-w-0">
-        {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card px-5 sm:px-6">
-          <button onClick={() => setSidebarOpen(true)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors lg:hidden">
-            <Menu className="h-5 w-5" />
-          </button>
-          <h1 className="text-lg font-semibold text-foreground">{currentNav?.label}</h1>
-        </header>
-
-        {/* Page content */}
-        <main className="flex-1 p-4 sm:p-6">
-          {renderContent()}
-        </main>
-      </div>
-    </div>
+    <AdminShell business={business} activeTab={activeTab} onTabChange={setActiveTab}>
+      {renderContent()}
+    </AdminShell>
   );
 };
 
