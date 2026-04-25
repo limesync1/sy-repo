@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-  ChevronLeft, ChevronRight, Calendar as CalendarIcon, ArrowLeft,
+  ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   Loader2, MapIcon, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
   ShoppingBag, Route as RouteIcon, Tag, Palette,
 } from "lucide-react";
@@ -55,6 +55,7 @@ import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
 import { supabase } from "@/integrations/supabase/client";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
+import { AdminShell } from "@/components/admin/shared/AdminShell";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
