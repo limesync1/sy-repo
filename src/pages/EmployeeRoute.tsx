@@ -848,7 +848,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Når man cykler langt mellem to drej skal banneret IKKE blokere skærmen.
   // Vi viser det når næste manøvre er <800 m væk, OG den ikke er en "depart"
   // (kør ud) som kun giver mening de første sekunder af turen.
+  // Når brugeren er fremme ved næste stop er turn-by-turn irrelevant —
+  // vis kun "Du er fremme"-tilstanden, ikke et drej-banner der peger
+  // tilbage mod en vej-snappet rute.  Matcher Google Maps' adfærd.
   const showManeuverBanner = !!maneuver
+    && !isAtNextStop
     && maneuver.distanceToManeuverM <= 800
     && (maneuver.currentStep.maneuver.type || "").toLowerCase() !== "depart";
   useEffect(() => {
