@@ -13,7 +13,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Loader2, Sparkles, Trash2, Check } from "lucide-react";
-import { Palette, CalendarDays, Pencil, Clock as ClockIcon, Gauge } from "lucide-react";
+import { Palette, CalendarDays, Pencil, Gauge } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
@@ -22,6 +22,9 @@ import { useUpdateRoute, useDeleteRoute, useOptimizeRoute, useDirections, type R
 import { DatePickerField } from "./DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 import { LiveStatusBadge, EtaDetailsButton, pickDuration } from "@/components/route/EtaBreakdown";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 export type RouteEmployeeOption = { id: string; name: string };
 
@@ -145,6 +148,22 @@ export const RouteEditSheet = ({
     return () => window.clearTimeout(timeout);
   }, [route, open, dirty, pendingPayload, updateRoute]);
 
+  // Forslag til afgangstider — "nu" + udvalgte timer på dagen, så brugeren
+  // kan se hvordan ETA ændrer sig (myldretid kontra midt-på-dagen).
+  const departOptions = useMemo(() => {
+    if (!date) return [] as Array<{ label: string; value: string | null }>;
+    const base = parseISO(`${date}T08:00:00`);
+    const opts: Array<{ label: string; value: string | null }> = [
+      { label: "Nu", value: null },
+    ];
+    [7, 8, 9, 12, 14, 15, 16, 17].forEach((h) => {
+      const d = new Date(base);
+      d.setHours(h, 0, 0, 0);
+      opts.push({ label: `kl. ${String(h).padStart(2, "0")}:00`, value: d.toISOString() });
+    });
+    return opts;
+  }, [date]);
+
   if (!route) return null;
 
   const handleDelete = async () => {
@@ -172,20 +191,7 @@ export const RouteEditSheet = ({
     return `${Math.floor(m / 60)}t ${m % 60}m`;
   };
 
-  // Forslag til afgangstider — "nu" + næste 3 timer i halve trin på dagen.
-  const departOptions = useMemo(() => {
-    if (!date) return [] as Array<{ label: string; value: string | null }>;
-    const base = parseISO(`${date}T08:00:00`);
-    const opts: Array<{ label: string; value: string | null }> = [
-      { label: "Nu", value: null },
-    ];
-    [7, 8, 9, 12, 14, 15, 16, 17].forEach((h) => {
-      const d = new Date(base);
-      d.setHours(h, 0, 0, 0);
-      opts.push({ label: `${String(h).padStart(2, "0")}:00`, value: d.toISOString() });
-    });
-    return opts;
-  }, [date]);
+  const displayDuration = routeDirections ? pickDuration(routeDirections, showRawTime) : null;
 
   return (
     <>
