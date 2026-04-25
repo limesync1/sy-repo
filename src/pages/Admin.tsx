@@ -337,6 +337,9 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
     (business?.categories as string[]) ||
     (business?.category ? [business.category] : []);
   const hasIndustries = businessIndustries.length > 0;
+  // Underkategorier valgt i Indstillinger pr. branche — finkornet styring
+  const selectedSubcategoriesByIndustry: Record<string, string[]> =
+    ((business?.settings as any)?.selected_subcategories as Record<string, string[]>) || {};
 
   // Count orders per service
   const orderCountByService: Record<string, number> = {};
@@ -438,14 +441,14 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
       {showForm && (
         <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
           <CardContent className="p-5 sm:p-6">
-            <ServiceForm businessId={businessId} businessIndustries={businessIndustries} onClose={() => setShowForm(false)} />
+            <ServiceForm businessId={businessId} businessIndustries={businessIndustries} selectedSubcategoriesByIndustry={selectedSubcategoriesByIndustry} onClose={() => setShowForm(false)} />
           </CardContent>
         </Card>
       )}
 
       <div className="space-y-3">
         {filtered?.map((s: any) => (
-          <ServiceRow key={s.id} service={s} businessIndustries={businessIndustries} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
+          <ServiceRow key={s.id} service={s} businessIndustries={businessIndustries} selectedSubcategoriesByIndustry={selectedSubcategoriesByIndustry} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
         ))}
         {(!filtered || filtered.length === 0) && !showForm && (
           <EmptyState
@@ -464,7 +467,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   );
 };
 
-const ServiceRow = ({ service, businessIndustries, orderCount, onDelete }: { service: any; businessIndustries: string[]; orderCount: number; onDelete: () => void }) => {
+const ServiceRow = ({ service, businessIndustries, selectedSubcategoriesByIndustry, orderCount, onDelete }: { service: any; businessIndustries: string[]; selectedSubcategoriesByIndustry?: Record<string, string[]>; orderCount: number; onDelete: () => void }) => {
   const [editing, setEditing] = useState(false);
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
   const intervalLabels: Record<string, string> = {
@@ -562,7 +565,7 @@ const ServiceRow = ({ service, businessIndustries, orderCount, onDelete }: { ser
       </CardContent>
       {editing && (
         <div className="border-t border-border bg-secondary/30 p-4 sm:p-5">
-          <ServiceForm businessId={service.business_id} businessIndustries={businessIndustries} existingService={service} onClose={() => setEditing(false)} />
+          <ServiceForm businessId={service.business_id} businessIndustries={businessIndustries} selectedSubcategoriesByIndustry={selectedSubcategoriesByIndustry} existingService={service} onClose={() => setEditing(false)} />
         </div>
       )}
     </Card>
@@ -617,11 +620,13 @@ const CalculatorPreview = ({ steps }: { steps: any[] }) => {
 const ServiceForm = ({
   businessId,
   businessIndustries = [],
+  selectedSubcategoriesByIndustry = {},
   existingService,
   onClose,
 }: {
   businessId: string;
   businessIndustries?: string[];
+  selectedSubcategoriesByIndustry?: Record<string, string[]>;
   existingService?: any;
   onClose: () => void;
 }) => {
@@ -688,8 +693,21 @@ const ServiceForm = ({
 
   // Underkategorier — først fra taxonomien, ellers fra legacy SERVICE_CATEGORIES
   const taxonomyIndustry = findIndustry(serviceCategory);
+  // Hvis virksomheden har valgt specifikke underkategorier i Indstillinger,
+  // filtrér så vi KUN viser dem her (giver præcis dynamisk filtrering).
+  // Faldback: alle underkategorier i branchen.
+  const allowedSubsForCategory = selectedSubcategoriesByIndustry[serviceCategory];
+  const allTaxonomySubs = taxonomyIndustry?.subcategories.map((s) => s.label) ?? [];
+  const filteredTaxonomySubs = allowedSubsForCategory && allowedSubsForCategory.length > 0
+    ? allTaxonomySubs.filter((s) => allowedSubsForCategory.includes(s))
+    : allTaxonomySubs;
+  // Behold eksisterende underkategori, hvis service redigeres med en værdi
+  // der ikke længere er i listen
   const subcategoryOptions = taxonomyIndustry
-    ? taxonomyIndustry.subcategories.map((s) => s.label)
+    ? Array.from(new Set([
+        ...filteredTaxonomySubs,
+        ...(existingService?.subcategory && filteredTaxonomySubs.length > 0 ? [existingService.subcategory] : []),
+      ]))
     : serviceCategory && SERVICE_CATEGORIES[serviceCategory]
       ? Object.keys(SERVICE_CATEGORIES[serviceCategory])
       : [];

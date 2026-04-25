@@ -15,24 +15,25 @@ import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { TrafficOverridesSection } from "./TrafficOverridesSection";
 import {
   INDUSTRY_GROUPS,
   ALL_INDUSTRIES,
   customIndustryKeys,
+  findIndustry,
 } from "@/lib/service-taxonomy";
 
 const DAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
 
 // ─── Sub-nav sektioner ───
-// Hver chip svarer til ét område på siden. Klik scroller blødt til sektionen.
+// Vises som sticky sidebar (xl) eller chip-rækken (mobil/tablet).
 const SECTIONS = [
-  { id: "general",       label: "Generelt",       icon: Building2 },
-  { id: "contact",       label: "Kontakt",        icon: Contact },
-  { id: "branding",      label: "Branding",       icon: ImageIcon },
-  { id: "hours",         label: "Åbningstider",   icon: Clock },
-  { id: "notifications", label: "Notifikationer", icon: Bell },
-  { id: "advanced",      label: "Avanceret",      icon: Route },
+  { id: "general",       label: "Virksomhed",     icon: Building2, hint: "Navn og beskrivelse" },
+  { id: "industries",    label: "Brancher",       icon: Sparkles,  hint: "Hvad I tilbyder" },
+  { id: "contact",       label: "Kontakt",        icon: Contact,   hint: "Adresse og kontakt" },
+  { id: "branding",      label: "Branding",       icon: ImageIcon, hint: "Logo og cover" },
+  { id: "hours",         label: "Åbningstider",   icon: Clock,     hint: "Hverdage og weekend" },
+  { id: "notifications", label: "Notifikationer", icon: Bell,      hint: "Email-varsler" },
+  { id: "advanced",      label: "Avanceret",      icon: Route,     hint: "Ekstra funktioner" },
 ] as const;
 
 /* ─── Toggle-switch (delt mellem notifikations- og rute-felter) ─── */
@@ -70,6 +71,12 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     (business.categories as string[]) || (business.category ? [business.category] : [])
   );
+  // selected_subcategories: { [industryKey]: string[] }
+  // Bestemmer hvilke underkategorier virksomheden vil tilbyde og dermed hvilke
+  // der bliver foreslået ved oprettelse af services.
+  const [selectedSubcategories, setSelectedSubcategories] = useState<Record<string, string[]>>(
+    ((business.settings as any)?.selected_subcategories as Record<string, string[]>) || {}
+  );
   const [openHours, setOpenHours] = useState<Record<string, string>>(business.opening_hours || {});
   const [notifSettings, setNotifSettings] = useState<Record<string, boolean>>({
     new_order: true,
@@ -95,7 +102,28 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [activeSection, setActiveSection] = useState<string>("general");
 
   const toggleSettingsCategory = (c: string) => {
-    setSelectedCategories((prev) => prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]);
+    setSelectedCategories((prev) => {
+      const next = prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c];
+      // Når man fravælger en branche, ryd dens underkategori-valg
+      if (prev.includes(c)) {
+        setSelectedSubcategories((s) => { const n = { ...s }; delete n[c]; return n; });
+      } else {
+        // Default: vælg ALLE underkategorier i den nyvalgte branche
+        const ind = findIndustry(c);
+        if (ind) {
+          setSelectedSubcategories((s) => ({ ...s, [c]: ind.subcategories.map((x) => x.label) }));
+        }
+      }
+      return next;
+    });
+  };
+
+  const toggleSubcategory = (industryKey: string, sub: string) => {
+    setSelectedSubcategories((prev) => {
+      const cur = prev[industryKey] || [];
+      const next = cur.includes(sub) ? cur.filter((x) => x !== sub) : [...cur, sub];
+      return { ...prev, [industryKey]: next };
+    });
   };
 
   const scrollToSection = (id: string) => {
@@ -185,6 +213,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       settings: {
         ...((business.settings as any) || {}),
         route_planning_enabled: routePlanningEnabled,
+        selected_subcategories: selectedSubcategories,
       },
     } as any, {
       onSuccess: () => toast.success("Indstillinger gemt"),
@@ -195,12 +224,14 @@ const SettingsTab = ({ business }: { business: any }) => {
   const origCategories = (business.categories as string[]) || (business.category ? [business.category] : []);
   const origNotif = business.notification_settings as Record<string, boolean> || {};
   const origRoutePlanning = !!(business.settings as any)?.route_planning_enabled;
+  const origSubcats = ((business.settings as any)?.selected_subcategories as Record<string, string[]>) || {};
   const hasChanges = name !== business.name || description !== (business.description || "") ||
     phone !== (business.phone || "") || email !== (business.email || "") ||
     address !== (business.address || "") || city !== (business.city || "") ||
     zipCode !== (business.zip_code || "") || logoUrl !== (business.logo_url || "") ||
     coverUrl !== (business.cover_image_url || "") ||
     JSON.stringify([...selectedCategories].sort()) !== JSON.stringify([...origCategories].sort()) ||
+    JSON.stringify(selectedSubcategories) !== JSON.stringify(origSubcats) ||
     JSON.stringify(openHours) !== JSON.stringify(business.opening_hours || {}) ||
     routePlanningEnabled !== origRoutePlanning ||
     JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
@@ -267,8 +298,8 @@ const SettingsTab = ({ business }: { business: any }) => {
         </a>
       </div>
 
-      {/* ─── Sub-nav chips — samme stil som status-filter på Medarbejdere ─── */}
-      <div className="flex flex-wrap gap-2">
+      {/* ─── Sub-nav chips (mobil/tablet) — sticky sidebar bruges på xl ─── */}
+      <div className="flex flex-wrap gap-2 xl:hidden">
         {SECTIONS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -286,6 +317,33 @@ const SettingsTab = ({ business }: { business: any }) => {
         ))}
       </div>
 
+      {/* ─── To-kolonne på xl: sticky sidebar + indhold ─── */}
+      <div className="grid gap-5 xl:grid-cols-[220px_minmax(0,1fr)] xl:items-start">
+        {/* Sticky sidebar nav (kun xl) */}
+        <aside className="hidden xl:block xl:sticky xl:top-4">
+          <nav className="flex flex-col gap-1 rounded-xl border border-border/80 bg-card p-2 shadow-sm">
+            {SECTIONS.map(({ id, label, icon: Icon, hint }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => scrollToSection(id)}
+                className={`flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors ${
+                  activeSection === id
+                    ? "bg-secondary text-foreground"
+                    : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+                }`}
+              >
+                <Icon className="mt-0.5 h-4 w-4 shrink-0" />
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium leading-tight">{label}</span>
+                  <span className="mt-0.5 block text-[11px] text-muted-foreground">{hint}</span>
+                </span>
+              </button>
+            ))}
+          </nav>
+        </aside>
+
+        <div className="space-y-4">
       {/* ─── CVR Lookup — fuld bredde, øverst ─── */}
       <SectionCard
         title="Automatisk udfyldning fra CVR"
@@ -324,11 +382,11 @@ const SettingsTab = ({ business }: { business: any }) => {
         )}
       </SectionCard>
 
-      {/* ─── Hovedindhold: 2-kolonne grid på store skærme ─── */}
-      <div className="grid gap-4 xl:grid-cols-2 xl:items-start">
-        {/* Generelt */}
+      {/* ─── Hovedindhold: 1-kolonne (sidebar håndterer navigation) ─── */}
+      <div className="grid gap-4">
+        {/* Generelt — kun navn + beskrivelse */}
         <div id="settings-general" className="scroll-mt-6">
-          <SectionCard title="Generelt" icon={<Building2 />} description="Virksomhedsnavn, beskrivelse og brancher.">
+          <SectionCard title="Virksomhed" icon={<Building2 />} description="Virksomhedsnavn og beskrivelse.">
             <div className="space-y-4">
               <div>
                 <FieldLabel>Virksomhedsnavn</FieldLabel>
@@ -339,16 +397,42 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <Textarea placeholder="Hvad gør din virksomhed? Hvad er jeres speciale?" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={500} className="bg-card rounded-lg" />
                 <p className="mt-1 text-xs text-muted-foreground">{description.length}/500 tegn</p>
               </div>
+            </div>
+          </SectionCard>
+        </div>
+
+        {/* Brancher — egen sektion med kategorier underneden */}
+        <div id="settings-industries" className="scroll-mt-6">
+          <SectionCard
+            title="Brancher & kategorier"
+            icon={<Sparkles />}
+            description="Vælg jeres brancher og hvilke konkrete kategorier I tilbyder. Det styrer alt — services, søgning og forslag."
+          >
+            <div className="space-y-5">
               <div>
-                <FieldLabel>Brancher</FieldLabel>
+                <FieldLabel>Hvilke brancher tilhører I?</FieldLabel>
                 <p className="-mt-1 mb-2.5 text-xs text-muted-foreground">
-                  Vælg de brancher der præcist matcher jeres ydelser. Branchevalget styrer hvilke services I kan oprette.
+                  Vælg én eller flere. Default vælges alle underkategorier — du kan justere længere nede.
                 </p>
                 <IndustryPicker
                   selected={selectedCategories}
                   onToggle={toggleSettingsCategory}
                 />
               </div>
+
+              {selectedCategories.length > 0 && (
+                <div className="border-t border-border pt-4">
+                  <FieldLabel>Hvilke kategorier vil I tilbyde?</FieldLabel>
+                  <p className="-mt-1 mb-3 text-xs text-muted-foreground">
+                    Underkategorier I IKKE vælger her bliver heller ikke foreslået, når I opretter services.
+                  </p>
+                  <SubcategoryPicker
+                    selectedIndustries={selectedCategories}
+                    selectedSubcategories={selectedSubcategories}
+                    onToggle={toggleSubcategory}
+                  />
+                </div>
+              )}
             </div>
           </SectionCard>
         </div>
@@ -444,8 +528,8 @@ const SettingsTab = ({ business }: { business: any }) => {
           </SectionCard>
         </div>
 
-        {/* Notifikationer — strækker sig over begge kolonner */}
-        <div id="settings-notifications" className="scroll-mt-6 xl:col-span-2">
+        {/* Notifikationer */}
+        <div id="settings-notifications" className="scroll-mt-6">
           <SectionCard
             title="Notifikationer"
             icon={<Bell />}
@@ -473,8 +557,8 @@ const SettingsTab = ({ business }: { business: any }) => {
           </SectionCard>
         </div>
 
-        {/* Avanceret — strækker sig over begge kolonner */}
-        <div id="settings-advanced" className="scroll-mt-6 xl:col-span-2">
+        {/* Avanceret */}
+        <div id="settings-advanced" className="scroll-mt-6">
           <SectionCard title="Avanceret" icon={<Settings />} description="Aktivér ekstra funktioner til din virksomhed.">
             <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
               <div className="flex items-start gap-3 min-w-0">
@@ -490,26 +574,9 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
               <ToggleSwitch checked={routePlanningEnabled} onChange={() => setRoutePlanningEnabled((v) => !v)} />
             </div>
-
-            {routePlanningEnabled && (
-              <div className="mt-4 rounded-lg border border-border bg-card p-4 space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                    <Route className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground">Trafik-buffer pr. område</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Mapbox' rejsetid er tæt på Google Maps, men undervurderer
-                      ofte trafikken i Storkøbenhavn og bymidter. Tilføj
-                      område-overrides for at finjustere ETA pr. postnummer.
-                    </p>
-                  </div>
-                </div>
-                <TrafficOverridesSection businessId={business.id} />
-              </div>
-            )}
           </SectionCard>
+        </div>
+      </div>
         </div>
       </div>
 
@@ -673,6 +740,68 @@ const IndustryPicker = ({
           </div>
         )}
       </div>
+    </div>
+  );
+};
+
+/* ─── SubcategoryPicker — fingranuleret kategori-valg pr. valgt branche ───
+ * Viser ét kort pr. valgt branche, med toggle-chips for alle underkategorier.
+ * Bestemmer præcist hvilke kategorier der bliver foreslået ved oprettelse af
+ * services i Servicekataloget. */
+const SubcategoryPicker = ({
+  selectedIndustries,
+  selectedSubcategories,
+  onToggle,
+}: {
+  selectedIndustries: string[];
+  selectedSubcategories: Record<string, string[]>;
+  onToggle: (industryKey: string, sub: string) => void;
+}) => {
+  const industries = selectedIndustries
+    .map((k) => ALL_INDUSTRIES.find((i) => i.key === k))
+    .filter((i): i is NonNullable<typeof i> => !!i);
+
+  if (industries.length === 0) return null;
+
+  return (
+    <div className="grid gap-3 lg:grid-cols-2">
+      {industries.map((ind) => {
+        const picked = selectedSubcategories[ind.key] || [];
+        return (
+          <div
+            key={ind.key}
+            className="rounded-xl border border-border bg-card p-3"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-base leading-none">{ind.icon}</span>
+              <span className="text-sm font-semibold text-foreground">{ind.label}</span>
+              <span className="ml-auto text-[11px] font-medium text-muted-foreground tabular-nums">
+                {picked.length}/{ind.subcategories.length}
+              </span>
+            </div>
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
+              {ind.subcategories.map((sc) => {
+                const isOn = picked.includes(sc.label);
+                return (
+                  <button
+                    key={sc.label}
+                    type="button"
+                    onClick={() => onToggle(ind.key, sc.label)}
+                    className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
+                      isOn
+                        ? "border-foreground bg-foreground/5 text-foreground"
+                        : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    }`}
+                  >
+                    {isOn && <span aria-hidden>✓</span>}
+                    <span>{sc.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };

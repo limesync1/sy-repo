@@ -1,6 +1,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Servicebranche-katalog — kurateret efter dansk CVR-branchestruktur
-// med fokus på serviceydende virksomheder (B2C + B2B).
+// med fokus på UDKØRENDE serviceydende virksomheder (B2C + B2B) —
+// dvs. virksomheder der udfører services på kundens adresse (privat eller
+// erhverv). Salons, klinikker, restauranter og rene online-services hører
+// ikke hjemme her.
 //
 // Struktur:
 //   gruppe (visuel gruppering ved valg)
@@ -226,15 +229,16 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
     ],
   },
   {
-    label: "Auto & køretøjer",
+    label: "Auto & køretøjer (mobilt)",
     industries: [
       {
         key: "Autoservice",
-        label: "Autoservice",
+        label: "Mobil bilpleje",
         icon: "🚗",
+        description: "Bilpleje udført på kundens adresse.",
         subcategories: [
-          { label: "Værksted", services: ["Service & olie", "Brems­er", "Dæk­skift"] },
-          { label: "Bilrengøring", services: ["Indvendig rens", "Polering", "Klargøring"] },
+          { label: "Bilrengøring", services: ["Indvendig rens", "Udvendig vask", "Polering", "Klargøring til salg"] },
+          { label: "Mobilt dækskift", services: ["Dækskift på adressen"] },
         ],
       },
     ],
@@ -255,79 +259,15 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
     ],
   },
   {
-    label: "Wellness & personlig pleje",
-    industries: [
-      {
-        key: "Frisør",
-        label: "Frisør & barber",
-        icon: "💇",
-        subcategories: [
-          { label: "Frisør", services: ["Klip", "Farve", "Striber"] },
-          { label: "Barber", services: ["Skæg­trimning", "Hot towel"] },
-        ],
-      },
-      {
-        key: "Massage",
-        label: "Massage & velvære",
-        icon: "💆",
-        subcategories: [
-          { label: "Massage", services: ["Klassisk massage", "Sports­massage", "Lymfedrænage"] },
-          { label: "Behandling", services: ["Ansigts­behandling", "Fodpleje"] },
-        ],
-      },
-      {
-        key: "Hundepleje",
-        label: "Hundepleje",
-        icon: "🐕",
-        subcategories: [
-          { label: "Trimning", services: ["Trimning", "Klipning", "Bad"] },
-          { label: "Pasning", services: ["Hunde­luftning", "Pasning"] },
-        ],
-      },
-    ],
-  },
-  {
     label: "IT & digital",
     industries: [
       {
         key: "IT-service",
-        label: "IT-service",
+        label: "IT-service (på adresse)",
         icon: "💻",
         subcategories: [
-          { label: "Support", services: ["PC-support", "Netværk", "Backup"] },
-          { label: "Installation", services: ["TV & lyd", "Smart home", "Wi-Fi"] },
-        ],
-      },
-      {
-        key: "Webudvikling",
-        label: "Webudvikling & marketing",
-        icon: "🌐",
-        subcategories: [
-          { label: "Web", services: ["Hjemmeside", "Webshop", "Vedligehold"] },
-          { label: "Marketing", services: ["SEO", "Google Ads", "Sociale medier"] },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Event & catering",
-    industries: [
-      {
-        key: "Catering",
-        label: "Catering",
-        icon: "🍽️",
-        subcategories: [
-          { label: "Selskaber", services: ["Buffet", "Tre-retters menu", "Reception"] },
-          { label: "Møder & frokost", services: ["Mødeforplejning", "Frokost­ordning"] },
-        ],
-      },
-      {
-        key: "Event",
-        label: "Event & udlejning",
-        icon: "🎉",
-        subcategories: [
-          { label: "Udlejning", services: ["Telt­udlejning", "Borde & stole", "Lyd & lys"] },
-          { label: "Bemanding", services: ["Tjenere", "Bartendere"] },
+          { label: "Installation", services: ["TV & lyd montering", "Smart home installation", "Wi-Fi opsætning"] },
+          { label: "Netværk", services: ["Netværks­installation", "Kabel­træk"] },
         ],
       },
     ],
