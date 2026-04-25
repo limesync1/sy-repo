@@ -1433,6 +1433,56 @@ export type Database = {
         }
         Relationships: []
       }
+      traffic_buffer_overrides: {
+        Row: {
+          business_id: string
+          created_at: string
+          hour_end: number | null
+          hour_start: number | null
+          id: string
+          is_active: boolean
+          label: string | null
+          multiplier: number
+          updated_at: string
+          weekdays_only: boolean
+          zip_prefix: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          hour_end?: number | null
+          hour_start?: number | null
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          multiplier?: number
+          updated_at?: string
+          weekdays_only?: boolean
+          zip_prefix: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          hour_end?: number | null
+          hour_start?: number | null
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          multiplier?: number
+          updated_at?: string
+          weekdays_only?: boolean
+          zip_prefix?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "traffic_buffer_overrides_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
