@@ -1,4 +1,4 @@
-import { Search, BarChart3, CalendarCheck } from "lucide-react";
+import { Search, BarChart3, CalendarCheck, ArrowRight } from "lucide-react";
 
 const steps = [
   {
@@ -20,24 +20,32 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section className="bg-secondary py-12 md:py-14">
+    <section className="bg-secondary py-14 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-5 max-w-2xl">
+        <div className="mb-6 max-w-2xl">
           <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">Sådan fungerer det</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground md:text-base">Et enkelt flow fra søgning til bestilling.</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground md:text-base">Et enkelt flow fra søgning til bestilling — typisk på under 5 minutter.</p>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="relative grid gap-4 md:grid-cols-3 md:gap-6">
+          {/* Forbindelseslinje på desktop */}
+          <div aria-hidden className="pointer-events-none absolute inset-x-12 top-12 hidden h-px bg-gradient-to-r from-border via-border to-border md:block" />
           {steps.map((step, i) => (
-            <div key={step.title} className="rounded-[24px] border border-border bg-card p-5 shadow-sm">
+            <div key={step.title} className="relative rounded-[24px] border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-foreground">
+                <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-foreground text-background shadow-sm">
                   <step.icon className="h-5 w-5" />
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-card bg-accent text-[10px] font-bold text-accent-foreground">
+                    {i + 1}
+                  </span>
                 </div>
                 <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Trin {i + 1}</div>
               </div>
               <h3 className="mt-4 text-lg font-semibold text-foreground">{step.title}</h3>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.description}</p>
+              {i < steps.length - 1 && (
+                <ArrowRight aria-hidden className="absolute -right-3 top-1/2 hidden h-5 w-5 -translate-y-1/2 rounded-full bg-card p-0.5 text-muted-foreground shadow-sm md:block" />
+              )}
             </div>
           ))}
         </div>
