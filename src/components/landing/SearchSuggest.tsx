@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Search, MapPin, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserLocation } from "@/contexts/LocationContext";
-import { topCategories, industryIcon } from "@/lib/service-taxonomy";
+import { topCategories } from "@/lib/service-taxonomy";
 
 /** Top-brancher hentes fra det kanoniske taksonomi-katalog så landing, søgning
  *  og virksomhedspanelet altid viser præcis de samme brancher. */
@@ -111,7 +111,9 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
     if (s.type === "business") {
       navigate(`/b/${s.slug}`);
     } else if (s.type === "category") {
-      navigate(`/search?category=${encodeURIComponent(s.label)}`);
+      // Brug branche-key (kanonisk værdi i `businesses.categories`) frem for det
+      // viste label, så filtreringen i søge-siden matcher 1:1.
+      navigate(`/search?category=${encodeURIComponent(s.key)}`);
     } else {
       navigate(`/search?q=${encodeURIComponent(s.label)}`);
     }
@@ -201,8 +203,8 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                   >
                     {s.type === "category" && (
                       <>
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                          <s.icon className="h-4 w-4" />
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-base">
+                          <span aria-hidden>{s.icon}</span>
                         </span>
                         <span className="flex-1">
                           <div className="font-semibold text-foreground">{s.label}</div>
