@@ -587,7 +587,17 @@ const CalculatorPreview = ({ steps }: { steps: any[] }) => {
 };
 
 /* ─── Service Form ─── */
-const ServiceForm = ({ businessId, existingService, onClose }: { businessId: string; existingService?: any; onClose: () => void }) => {
+const ServiceForm = ({
+  businessId,
+  businessIndustries = [],
+  existingService,
+  onClose,
+}: {
+  businessId: string;
+  businessIndustries?: string[];
+  existingService?: any;
+  onClose: () => void;
+}) => {
   const { user } = useAuth();
   const createService = useCreateService();
   const updateService = useUpdateService();
@@ -623,12 +633,54 @@ const ServiceForm = ({ businessId, existingService, onClose }: { businessId: str
     );
   };
 
-  const categoryOptions = Object.keys(SERVICE_CATEGORIES);
-  const subcategoryOptions = serviceCategory && SERVICE_CATEGORIES[serviceCategory]
-    ? Object.keys(SERVICE_CATEGORIES[serviceCategory]) : [];
-  const productSuggestions = serviceCategory && subcategory && SERVICE_CATEGORIES[serviceCategory]?.[subcategory]
-    ? SERVICE_CATEGORIES[serviceCategory][subcategory] : [];
-  const availableTemplates = STEP_TEMPLATES[serviceCategory] || [];
+  // ── Branchefiltrering ──────────────────────────────────────────────
+  // Vi viser kun kategorier/underkategorier/forslag som matcher virksomhedens
+  // valgte brancher. Hvis der er en eksisterende service med en gammel/custom
+  // kategori, beholder vi den så den ikke forsvinder fra valgmulighederne.
+  const selectedIndustries = (businessIndustries || []).filter(Boolean);
+  const hasIndustrySelection = selectedIndustries.length > 0;
+
+  const matchedIndustries = selectedIndustries
+    .map((k) => findIndustry(k))
+    .filter((i): i is NonNullable<ReturnType<typeof findIndustry>> => !!i);
+
+  // Kategorier = brancher fra taxonomien + evt. eksisterende kategori (legacy)
+  const taxonomyCategoryKeys = matchedIndustries.map((i) => i.key);
+  const legacyCategoryKeys = Object.keys(SERVICE_CATEGORIES).filter(
+    (k) => selectedIndustries.includes(k) && !taxonomyCategoryKeys.includes(k),
+  );
+  const existingCategoryKey =
+    existingService?.service_category &&
+    !taxonomyCategoryKeys.includes(existingService.service_category) &&
+    !legacyCategoryKeys.includes(existingService.service_category)
+      ? [existingService.service_category]
+      : [];
+  const categoryOptions = hasIndustrySelection
+    ? Array.from(new Set([...taxonomyCategoryKeys, ...legacyCategoryKeys, ...existingCategoryKey]))
+    : Object.keys(SERVICE_CATEGORIES);
+
+  // Underkategorier — først fra taxonomien, ellers fra legacy SERVICE_CATEGORIES
+  const taxonomyIndustry = findIndustry(serviceCategory);
+  const subcategoryOptions = taxonomyIndustry
+    ? taxonomyIndustry.subcategories.map((s) => s.label)
+    : serviceCategory && SERVICE_CATEGORIES[serviceCategory]
+      ? Object.keys(SERVICE_CATEGORIES[serviceCategory])
+      : [];
+
+  // Service-forslag (navne) for valgt underkategori
+  const taxonomySubcategory = taxonomyIndustry?.subcategories.find((s) => s.label === subcategory);
+  const productSuggestions = taxonomySubcategory
+    ? taxonomySubcategory.services
+    : serviceCategory && subcategory && SERVICE_CATEGORIES[serviceCategory]?.[subcategory]
+      ? SERVICE_CATEGORIES[serviceCategory][subcategory]
+      : [];
+
+  // Step-templates: brug den nye branche-baserede liste hvis branchen er kendt,
+  // ellers fald tilbage til den lokale STEP_TEMPLATES (legacy keys).
+  const taxonomyTemplates = serviceCategory ? stepTemplatesForIndustries([serviceCategory]) : [];
+  const availableTemplates = taxonomyTemplates.length > 0
+    ? taxonomyTemplates
+    : (STEP_TEMPLATES[serviceCategory] || []);
 
   const totalSteps = pricingType === "prisberegner" ? 5 : 4;
   const FORM_STEPS = [
