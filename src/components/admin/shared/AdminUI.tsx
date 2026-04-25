@@ -79,15 +79,22 @@ export const StatCard = ({
     violet: "bg-feature-lilac text-feature-lilac-foreground",
   };
   return (
-    <Card className="rounded-xl border-border shadow-sm">
-      <CardContent className="flex min-h-[92px] items-center gap-3 p-4">
-        <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg [&_svg]:h-5 [&_svg]:w-5", tones[tone])}>
+    <Card className="rounded-xl border-border shadow-sm transition-colors hover:border-border">
+      <CardContent className="flex items-start gap-2.5 p-3 sm:gap-3 sm:p-4">
+        <div
+          className={cn(
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg [&_svg]:h-4 [&_svg]:w-4 sm:h-10 sm:w-10 sm:[&_svg]:h-5 sm:[&_svg]:w-5",
+            tones[tone],
+          )}
+        >
           {icon}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium leading-snug text-muted-foreground">{label}</p>
-          <p className="mt-1 break-words text-2xl font-bold leading-tight text-foreground tracking-tight tabular-nums sm:text-xl">{value}</p>
-          {hint && <p className="mt-1 text-xs leading-snug text-muted-foreground">{hint}</p>}
+          <p className="text-[11px] font-medium leading-snug text-muted-foreground sm:text-xs">{label}</p>
+          <p className="mt-0.5 break-words text-lg font-bold leading-tight tracking-tight tabular-nums text-foreground sm:mt-1 sm:text-2xl">
+            {value}
+          </p>
+          {hint && <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground sm:mt-1 sm:text-xs">{hint}</p>}
         </div>
       </CardContent>
     </Card>
