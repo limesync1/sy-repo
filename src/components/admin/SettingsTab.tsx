@@ -457,9 +457,13 @@ const SettingsTab = ({ business }: { business: any }) => {
             onKeyDown={(e) => e.key === "Enter" && lookupCvr()}
             className="bg-card h-10 flex-1 rounded-lg"
           />
-          <PrimaryButton onClick={lookupCvr} disabled={cvrLoading || !cvrQuery.trim()}>
+          <Button
+            onClick={lookupCvr}
+            disabled={cvrLoading || !cvrQuery.trim()}
+            className="h-10 rounded-lg bg-foreground text-background hover:bg-foreground/90 text-xs font-medium px-4 shrink-0"
+          >
             {cvrLoading ? "Søger..." : "Søg i CVR"}
-          </PrimaryButton>
+          </Button>
         </div>
         {cvrError && <p className="text-xs text-destructive">{cvrError}</p>}
         {cvrResult && (
@@ -579,16 +583,18 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* Branding */}
         <div id="settings-branding" className="scroll-mt-6">
           <SectionCard title="Branding" icon={<ImageIcon />} description="Logo og coverbillede vises på din virksomhedsside.">
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <div>
+            {/* Side-om-side så cover ikke fylder hele bredden — kun en kompakt
+                preview, da fuld bannervisning ikke er nødvendig her. */}
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+              <div className="shrink-0">
                 <FieldLabel>Logo</FieldLabel>
-                <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-28" objectFit="contain" />
-                <p className="mt-2 text-xs text-muted-foreground">Kvadratisk format anbefales (fx 512×512).</p>
+                <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
+                <p className="mt-2 text-xs text-muted-foreground">Kvadrat (fx 512×512)</p>
               </div>
-              <div>
+              <div className="min-w-0 flex-1 sm:max-w-xs">
                 <FieldLabel>Coverbillede</FieldLabel>
-                <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-full" />
-                <p className="mt-2 text-xs text-muted-foreground">Bredt format (16:9) — vises som banner.</p>
+                <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-full max-w-[260px]" />
+                <p className="mt-2 text-xs text-muted-foreground">Bredt 16:9 — vises som banner på din side</p>
               </div>
             </div>
           </SectionCard>
@@ -596,34 +602,12 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Åbningstider */}
         <div id="settings-hours" className="scroll-mt-6">
-          <SectionCard title="Åbningstider" icon={<Clock />} description="Lad felterne stå tomme for at markere som lukket.">
-            <div className="space-y-1.5">
-              {DAYS.map((day) => {
-                const isWeekend = day === "Lørdag" || day === "Søndag";
-                const isOpen = !!openHours[day];
-                return (
-                  <div key={day} className={`flex items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
-                    isOpen ? "border-border bg-secondary/40" : `border-border bg-card ${isWeekend ? "opacity-70" : ""}`
-                  }`}>
-                    <span className="w-20 text-sm font-medium text-foreground">{day}</span>
-                    <Input
-                      placeholder={isWeekend ? "Lukket" : "Fx 08:00 - 16:00"}
-                      value={openHours[day] || ""}
-                      onChange={(e) => setOpenHours({ ...openHours, [day]: e.target.value })}
-                      className="flex-1 h-9 text-sm bg-background rounded-lg"
-                    />
-                    {isOpen && (
-                      <button
-                        onClick={() => { const h = { ...openHours }; delete h[day]; setOpenHours(h); }}
-                        className="text-xs font-medium text-muted-foreground transition-colors hover:text-destructive"
-                      >
-                        Ryd
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+          <SectionCard
+            title="Åbningstider"
+            icon={<Clock />}
+            description="Slå dage til/fra og vælg fra-/til-tid. Brug ”Anvend på alle” for at kopiere én dags tider til de andre åbne dage."
+          >
+            <HoursEditor value={openHours} onChange={setOpenHours} />
           </SectionCard>
         </div>
 
@@ -678,20 +662,6 @@ const SettingsTab = ({ business }: { business: any }) => {
       </div>
         </div>
       </div>
-
-      {/* Sticky save bar */}
-      {hasChanges && (
-        <div className="sticky bottom-4 z-20">
-          <Card className="rounded-xl border-accent/30 bg-card shadow-lg">
-            <CardContent className="flex items-center justify-between gap-3 p-3">
-              <p className="text-sm text-muted-foreground">Du har ændringer der ikke er gemt.</p>
-              <PrimaryButton onClick={save} disabled={updateBiz.isPending}>
-                {updateBiz.isPending ? "Gemmer..." : "Gem ændringer"}
-              </PrimaryButton>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 };
