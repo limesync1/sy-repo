@@ -882,24 +882,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <Link to="/medarbejder" aria-label="Tilbage"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
 
-          {/* Header-pille: neutral foreground (Serviceydere primary) med farvet dot der signalerer rute-identitet */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary text-foreground text-xs font-semibold shrink-0 max-w-[55%] border">
+          {/* Header-pille: rute-navn + dato + progress */}
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-secondary text-foreground text-xs font-semibold shrink min-w-0 border">
             <span
               className="h-2 w-2 rounded-full shrink-0"
               style={{ background: routeBadgeColor }}
               aria-hidden
             />
-            <span className="truncate">{route.name || "Rute"}</span>
-            <span className="px-1.5 py-0.5 rounded-full bg-background tabular-nums text-[10px] border">
+            <span className="truncate font-bold">{route.name || "Rute"}</span>
+            <span className="text-muted-foreground font-medium hidden xs:inline">·</span>
+            <span className="text-muted-foreground font-medium hidden xs:inline truncate">{todayLabel}</span>
+            <span className="px-1.5 py-0.5 rounded-full bg-background tabular-nums text-[10px] border shrink-0">
               {completedCount}/{sortedStops.length}
             </span>
           </div>
-
-          {etaLabel && nextStop && (
-            <Badge variant="outline" className="tabular-nums hidden sm:inline-flex bg-background">
-              <Clock className="h-3 w-3 mr-1" /> {etaLabel}
-            </Badge>
-          )}
 
           <div className="flex-1" />
 
@@ -919,7 +915,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         </div>
 
         {/* Progress bar — route color */}
-        <div className="h-1 w-full bg-secondary" aria-hidden>
+        <div className="h-1.5 w-full bg-secondary" aria-hidden>
           <div
             className="h-full transition-all duration-500 ease-out"
             style={{ width: `${progress}%`, background: themeColor }}
