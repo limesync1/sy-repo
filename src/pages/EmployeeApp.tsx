@@ -18,7 +18,7 @@ import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
-import { PageHeader } from "@/components/admin/shared/AdminUI";
+import { PageHeader, StatCard } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
@@ -153,7 +153,7 @@ const EmployeeApp = () => {
       <Button
         size="icon"
         variant="ghost"
-        className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:scale-[0.98]"
+        className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
         onClick={() => setDate(format(addDays(dateObj, -1), "yyyy-MM-dd"))}
         aria-label="Forrige dag"
       >
@@ -164,7 +164,7 @@ const EmployeeApp = () => {
           <Button
             size="sm"
             variant="ghost"
-            className="h-9 shrink-0 gap-1.5 rounded-lg px-3 text-xs font-semibold text-foreground transition-colors hover:bg-secondary active:scale-[0.98]"
+            className="h-9 shrink-0 gap-1.5 rounded-lg px-3 text-xs font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97] data-[state=open]:bg-secondary"
           >
             <CalendarIcon className="h-3.5 w-3.5" />
             <span className="capitalize tabular-nums">
@@ -190,7 +190,7 @@ const EmployeeApp = () => {
       <Button
         size="icon"
         variant="ghost"
-        className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:scale-[0.98]"
+        className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
         onClick={() => setDate(format(addDays(dateObj, 1), "yyyy-MM-dd"))}
         aria-label="Næste dag"
       >
@@ -202,8 +202,8 @@ const EmployeeApp = () => {
           variant="ghost"
           onClick={() => setDate(todayStr())}
           className={cn(
-            "h-9 shrink-0 rounded-lg px-3 text-xs font-semibold transition-colors active:scale-[0.98]",
-            "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm",
+            "h-9 shrink-0 rounded-lg px-3 text-xs font-semibold shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]",
+            "bg-foreground text-background hover:bg-foreground/90 hover:text-background",
           )}
         >
           Gå til i dag
