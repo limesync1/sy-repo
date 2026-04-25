@@ -17,6 +17,8 @@ import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
+import { PageHeader } from "@/components/admin/shared/AdminUI";
+import { cn } from "@/lib/utils";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -130,59 +132,61 @@ const EmployeeApp = () => {
     ? formatDistanceStrict(new Date(workday.started_at), new Date(), { locale: da, unit: "minute" })
     : null;
 
-  // Date navigator i topbar-right — kompakt så det matcher AdminShells topbar.
+  // Date navigator — placeret inde i indholdet ved siden af titlen
+  // (samme PageHeader-mønster som virksomhedspanelet bruger).
   const dateNav = (
-    <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-0.5">
+    <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border bg-card p-1 shadow-sm">
       <Button
         size="icon"
         variant="ghost"
-        className="h-7 w-7 rounded-md"
+        className="h-8 w-8 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
         onClick={() => setDate(format(addDays(dateObj, -1), "yyyy-MM-dd"))}
         aria-label="Forrige dag"
       >
-        <ChevronLeft className="h-3.5 w-3.5" />
+        <ChevronLeft className="h-4 w-4" />
       </Button>
       <div className="px-2 min-w-0">
-        <p className="text-xs font-semibold capitalize leading-tight tabular-nums whitespace-nowrap">
+        <p className="text-xs font-semibold capitalize leading-tight tabular-nums whitespace-nowrap text-foreground">
           {isCurrentDay ? "I dag" : format(dateObj, "EEE d. MMM", { locale: da })}
         </p>
       </div>
       <Button
         size="icon"
         variant="ghost"
-        className="h-7 w-7 rounded-md"
+        className="h-8 w-8 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
         onClick={() => setDate(format(addDays(dateObj, 1), "yyyy-MM-dd"))}
         aria-label="Næste dag"
       >
-        <ChevronRight className="h-3.5 w-3.5" />
+        <ChevronRight className="h-4 w-4" />
       </Button>
       {!isCurrentDay && (
         <Button
           size="sm"
           variant="ghost"
           onClick={() => setDate(todayStr())}
-          className="h-7 px-2 text-[11px] font-semibold"
+          className={cn(
+            "h-8 rounded-md px-3 text-xs font-medium transition-colors",
+            "bg-foreground text-background hover:bg-foreground/90 hover:text-background shadow-sm",
+          )}
         >
-          I dag
+          Gå til i dag
         </Button>
       )}
     </div>
   );
 
   return (
-    <EmployeeShell activeTab="today" title="Min dag" topbarRight={dateNav}>
+    <EmployeeShell activeTab="today" title="Min dag">
       <div className="mx-auto max-w-3xl space-y-4 pb-16">
-        {/* Sub-header: dato + status — matcher virksomhedspanelets "Her er status for X" */}
-        <div className="space-y-1">
-          <h2 className="text-2xl font-semibold text-foreground capitalize">
-            {format(dateObj, "EEEE d. MMMM", { locale: da })}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {totalStops > 0
+        <PageHeader
+          title={<span className="capitalize">{format(dateObj, "EEEE d. MMMM", { locale: da })}</span>}
+          description={
+            totalStops > 0
               ? `${completedStops} af ${totalStops} stop færdige`
-              : "Ingen stop planlagt"}
-          </p>
-        </div>
+              : "Ingen stop planlagt"
+          }
+          action={dateNav}
+        />
 
         {/* Start dag / Stop dag — kun for i dag */}
         {isCurrentDay && (
