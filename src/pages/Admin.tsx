@@ -337,6 +337,9 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
     (business?.categories as string[]) ||
     (business?.category ? [business.category] : []);
   const hasIndustries = businessIndustries.length > 0;
+  // Underkategorier valgt i Indstillinger pr. branche — finkornet styring
+  const selectedSubcategoriesByIndustry: Record<string, string[]> =
+    ((business?.settings as any)?.selected_subcategories as Record<string, string[]>) || {};
 
   // Count orders per service
   const orderCountByService: Record<string, number> = {};
@@ -438,14 +441,14 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
       {showForm && (
         <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
           <CardContent className="p-5 sm:p-6">
-            <ServiceForm businessId={businessId} businessIndustries={businessIndustries} onClose={() => setShowForm(false)} />
+            <ServiceForm businessId={businessId} businessIndustries={businessIndustries} selectedSubcategoriesByIndustry={selectedSubcategoriesByIndustry} onClose={() => setShowForm(false)} />
           </CardContent>
         </Card>
       )}
 
       <div className="space-y-3">
         {filtered?.map((s: any) => (
-          <ServiceRow key={s.id} service={s} businessIndustries={businessIndustries} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
+          <ServiceRow key={s.id} service={s} businessIndustries={businessIndustries} selectedSubcategoriesByIndustry={selectedSubcategoriesByIndustry} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
         ))}
         {(!filtered || filtered.length === 0) && !showForm && (
           <EmptyState
