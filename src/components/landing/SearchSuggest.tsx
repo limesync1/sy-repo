@@ -26,9 +26,11 @@ type Suggestion =
 interface Props {
   variant?: "hero" | "page";
   defaultQuery?: string;
+  /** Hide the helper "Søger automatisk nær …" line below the input. */
+  showNearLabel?: boolean;
 }
 
-const SearchSuggest = ({ variant = "hero", defaultQuery = "" }: Props) => {
+const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = true }: Props) => {
   const [q, setQ] = useState(defaultQuery);
   const [open, setOpen] = useState(false);
   const [activeIdx, setActiveIdx] = useState(-1);
@@ -170,7 +172,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "" }: Props) => {
         </div>
       </div>
 
-      {nearLabel && (
+      {showNearLabel && nearLabel && (
         <div className="mt-2 flex items-center gap-2 px-2 text-xs text-muted-foreground">
           <MapPin className="h-3.5 w-3.5 text-accent" />
           Søger automatisk nær {nearLabel}
