@@ -1670,6 +1670,76 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
         businessId={businessId}
         businessName={businessName}
       />
+
+      {/* Opret-rute dialog — samme design og felter som ruteplanlæggerens "Opret rute". */}
+      <Dialog open={createRouteOpen} onOpenChange={setCreateRouteOpen}>
+        <DialogContent className="max-w-md p-0 gap-0 overflow-hidden flex flex-col">
+          <DialogHeader className="px-5 py-4 border-b shrink-0 space-y-0">
+            <SheetHeaderBlock
+              icon={<RouteIcon className="h-4 w-4" />}
+              accent={newRouteColor}
+              title={<DialogTitle className="text-base">Opret ny rute</DialogTitle>}
+              description={
+                <DialogDescription className="text-xs leading-snug">
+                  Ruten starter fra virksomhedens adresse. Du kan tilkoble medarbejdere og aftaler bagefter.
+                </DialogDescription>
+              }
+            />
+          </DialogHeader>
+
+          <div className="px-5 py-3 space-y-2.5 bg-secondary/20">
+            <Section icon={<Tag className="h-3.5 w-3.5" />} title="Detaljer">
+              <div className="space-y-2.5">
+                <Field label="Navn (valgfrit)">
+                  <Input
+                    placeholder="fx Nord, Aarhus C, Mandag-team..."
+                    value={newRouteName}
+                    onChange={(e) => setNewRouteName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleConfirmCreateRoute(); }}
+                    className="h-8"
+                    autoFocus
+                  />
+                </Field>
+                <Field label="Dato" required>
+                  <DatePickerField value={newRouteDate} onChange={setNewRouteDate} />
+                </Field>
+              </div>
+            </Section>
+
+            <Section
+              icon={<Palette className="h-3.5 w-3.5" />}
+              title="Farve"
+              hint={ROUTE_COLORS.find((c) => c.value === newRouteColor)?.name || "Brugerdefineret"}
+            >
+              <div className="grid grid-cols-12 gap-1.5">
+                {ROUTE_COLORS.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setNewRouteColor(c.value)}
+                    title={c.name}
+                    className={`relative aspect-square rounded transition-all hover:scale-110 ring-offset-1 ring-offset-background ${newRouteColor === c.value ? "ring-2 ring-foreground shadow-sm" : "hover:ring-1 hover:ring-foreground/30"}`}
+                    style={{ background: c.value }}
+                    aria-label={`Vælg farve ${c.name}`}
+                  />
+                ))}
+              </div>
+            </Section>
+          </div>
+
+          <SheetFooterBar>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setCreateRouteOpen(false)} disabled={createRoute.isPending}>
+                Annullér
+              </Button>
+              <Button onClick={handleConfirmCreateRoute} disabled={createRoute.isPending}>
+                {createRoute.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+                Opret rute
+              </Button>
+            </div>
+          </SheetFooterBar>
+        </DialogContent>
+      </Dialog>
       </div>
     </DndContext>
   );
