@@ -643,7 +643,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   const { data: services } = useServices(businessId);
   const { data: subscriptions } = useBusinessSubscriptions(businessId);
   const qc = useQueryClient();
-  const [filter, setFilter] = useState<string>("all");
+  // Default-filter: "active" — viser åbne aftaler (ikke udført/annulleret) så
+  // listen ikke bliver overvældet af afsluttede sager.
+  const [filter, setFilter] = useState<string>("active");
   const [search, setSearch] = useState("");
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
@@ -728,11 +730,19 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
     o.status === "pending" && o.business_response === "adjusted" && !o.customer_response
   ) || [];
 
-  const baseFilteredOrders = filter === "all" ? orders
+  // En aftale er "aktiv" når den hverken er udført eller annulleret. Det er det
+  // primære arbejdsområde for virksomhedsejeren.
+  const activeOrders = (orders || []).filter(o => !["completed", "cancelled"].includes(o.status));
+  const notPlannedOrders = activeOrders.filter(o => !stopByOrder[o.id]);
+  const inRouteOrders = activeOrders.filter(o => stopByOrder[o.id]);
+
+  const baseFilteredOrders =
+    filter === "all" ? orders
+    : filter === "active" ? activeOrders
     : filter === "action_needed" ? actionNeeded
     : filter === "waiting" ? waitingForCustomer
-    : filter === "in_route" ? orders?.filter(o => stopByOrder[o.id])
-    : filter === "not_planned" ? orders?.filter(o => !stopByOrder[o.id] && !["completed","cancelled"].includes(o.status))
+    : filter === "not_planned" ? notPlannedOrders
+    : filter === "in_route" ? inRouteOrders
     : orders?.filter(o => o.status === filter);
 
   // Søgning på kundenavn, e-mail, telefon, adresse og service-navne
@@ -1103,32 +1113,63 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
         />
         </div>
 
-      {/* Filtre — placeret under stats-kortene, så de er lette at scanne */}
-      <div className="flex flex-wrap gap-2">
-        {[
-          { key: "all", label: "Alle", count: counts.all || 0 },
-          ...(actionNeeded.length > 0 ? [{ key: "action_needed", label: "Kræver handling", count: actionNeeded.length }] : []),
-          ...(waitingForCustomer.length > 0 ? [{ key: "waiting", label: "Afventer kunde", count: waitingForCustomer.length }] : []),
-          { key: "confirmed", label: "Aftalte", count: counts.confirmed || 0 },
-          { key: "in_progress", label: "I gang", count: counts.in_progress || 0 },
-          { key: "in_route", label: "I rute", count: Object.keys(stopByOrder).length },
-          { key: "not_planned", label: "Ikke planlagt", count: (orders || []).filter(o => !stopByOrder[o.id] && !["completed","cancelled"].includes(o.status)).length },
-          { key: "completed", label: "Udførte", count: counts.completed || 0 },
-          { key: "cancelled", label: "Annullerede", count: counts.cancelled || 0 },
-        ].map(({ key, label, count }) => (
-          <button
-            key={key}
-            onClick={() => setFilter(key)}
-            className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
-              filter === key
-                ? "border-border bg-secondary text-foreground"
-                : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
-            }`}
-          >
-            {label}
-            {count > 0 && <span className="ml-1.5 tabular-nums">{count}</span>}
-          </button>
-        ))}
+      {/* Filtre — opdelt i tre logiske grupper:
+          1) Status-overblik (Aktive/Alle), 2) Hvad kræver din opmærksomhed,
+          3) Planlægning og lifecycle. Tomme tællinger skjules ikke for fast layout. */}
+      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
+        {(() => {
+          type Chip = { key: string; label: string; count: number; tone?: "danger" | "warning" };
+          const groups: Chip[][] = [
+            [
+              { key: "active", label: "Aktive", count: activeOrders.length },
+              { key: "all", label: "Alle", count: counts.all || 0 },
+            ],
+            ([
+              { key: "action_needed", label: "Kræver handling", count: actionNeeded.length, tone: "danger" as const },
+              { key: "waiting", label: "Afventer kunde", count: waitingForCustomer.length, tone: "warning" as const },
+            ] as Chip[]).filter(b => b.count > 0),
+            [
+              { key: "not_planned", label: "Ikke planlagt", count: notPlannedOrders.length },
+              { key: "in_route", label: "På rute", count: inRouteOrders.length },
+              { key: "in_progress", label: "I gang", count: counts.in_progress || 0 },
+              { key: "completed", label: "Udførte", count: counts.completed || 0 },
+              { key: "cancelled", label: "Annullerede", count: counts.cancelled || 0 },
+            ],
+          ].filter(g => g.length > 0);
+
+          return groups.map((group, gi) => (
+            <div key={gi} className="flex flex-wrap items-center gap-1.5">
+              {gi > 0 && <span aria-hidden className="mx-1 h-5 w-px bg-border/80" />}
+              {group.map(({ key, label, count, tone }) => {
+                const isActive = filter === key;
+                const toneRing =
+                  tone === "danger" && count > 0 ? "before:bg-destructive" :
+                  tone === "warning" && count > 0 ? "before:bg-amber-500" :
+                  "";
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setFilter(key)}
+                    className={`relative inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                      toneRing ? `before:absolute before:left-2 before:top-1/2 before:h-1.5 before:w-1.5 before:-translate-y-1/2 before:rounded-full ${toneRing} pl-5` : ""
+                    } ${
+                      isActive
+                        ? "border-foreground/30 bg-foreground text-background shadow-sm"
+                        : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    }`}
+                  >
+                    <span>{label}</span>
+                    <span className={`tabular-nums rounded-md px-1.5 text-[10px] font-semibold ${
+                      isActive ? "bg-background/15 text-background" : "bg-secondary text-foreground/70"
+                    }`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ));
+        })()}
       </div>
 
       {/* Upcoming services alert */}
@@ -1583,8 +1624,16 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       ) : (
         <EmptyState
           icon={<ShoppingCart />}
-          title={filter === "all" ? "Ingen aftaler endnu" : "Ingen aftaler med dette filter"}
-          description="Aftaler vises her når kunder bestiller."
+          title={
+            filter === "all" || filter === "active"
+              ? "Ingen aftaler endnu"
+              : "Ingen aftaler i dette filter"
+          }
+          description={
+            filter === "active"
+              ? "Du har ingen åbne aftaler lige nu. Skift til Alle for at se afsluttede sager."
+              : "Aftaler vises her når kunder bestiller."
+          }
         />
       )}
         </div>
