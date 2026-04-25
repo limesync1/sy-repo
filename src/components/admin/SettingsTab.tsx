@@ -743,3 +743,65 @@ const IndustryPicker = ({
     </div>
   );
 };
+
+/* ─── SubcategoryPicker — fingranuleret kategori-valg pr. valgt branche ───
+ * Viser ét kort pr. valgt branche, med toggle-chips for alle underkategorier.
+ * Bestemmer præcist hvilke kategorier der bliver foreslået ved oprettelse af
+ * services i Servicekataloget. */
+const SubcategoryPicker = ({
+  selectedIndustries,
+  selectedSubcategories,
+  onToggle,
+}: {
+  selectedIndustries: string[];
+  selectedSubcategories: Record<string, string[]>;
+  onToggle: (industryKey: string, sub: string) => void;
+}) => {
+  const industries = selectedIndustries
+    .map((k) => ALL_INDUSTRIES.find((i) => i.key === k))
+    .filter((i): i is NonNullable<typeof i> => !!i);
+
+  if (industries.length === 0) return null;
+
+  return (
+    <div className="grid gap-3 lg:grid-cols-2">
+      {industries.map((ind) => {
+        const picked = selectedSubcategories[ind.key] || [];
+        return (
+          <div
+            key={ind.key}
+            className="rounded-xl border border-border bg-card p-3"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-base leading-none">{ind.icon}</span>
+              <span className="text-sm font-semibold text-foreground">{ind.label}</span>
+              <span className="ml-auto text-[11px] font-medium text-muted-foreground tabular-nums">
+                {picked.length}/{ind.subcategories.length}
+              </span>
+            </div>
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
+              {ind.subcategories.map((sc) => {
+                const isOn = picked.includes(sc.label);
+                return (
+                  <button
+                    key={sc.label}
+                    type="button"
+                    onClick={() => onToggle(ind.key, sc.label)}
+                    className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
+                      isOn
+                        ? "border-foreground bg-foreground/5 text-foreground"
+                        : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    }`}
+                  >
+                    {isOn && <span aria-hidden>✓</span>}
+                    <span>{sc.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
