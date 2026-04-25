@@ -19,12 +19,14 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { toast } from "sonner";
 import { stripPrices } from "@/lib/employee-display";
-import { bearingDegrees, haversineMeters } from "@/lib/geo-distance";
+import { bearingDegrees, haversineMeters, pointToPolylineMeters } from "@/lib/geo-distance";
 import {
   unlockAudio, playArrivalChime, playSuccessChime, playCompleteFanfare, speak,
 } from "@/lib/employee-audio";
 import { ManeuverIcon, maneuverLabel } from "@/components/employee-route/ManeuverIcon";
 import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuver";
+import { useSmoothPosition } from "@/components/employee-route/useSmoothPosition";
+import { useQueryClient } from "@tanstack/react-query";
 
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
