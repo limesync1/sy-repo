@@ -2154,29 +2154,23 @@ const StopDetailsContent = ({
   return (
     <div className="flex flex-col h-full">
       {/* Header med rute-pille og navn */}
-      <div
-        className="px-5 pt-5 pb-4 border-b"
-        style={{
-          background: isDone ? "linear-gradient(180deg, hsl(142 70% 96%), transparent)" : "linear-gradient(180deg, hsl(184 90% 96%), transparent)",
-        }}
-      >
+      <div className="px-5 pt-5 pb-4 border-b border-border bg-card">
         <div className="flex items-start gap-3">
           <span
-            className="flex h-12 w-12 items-center justify-center rounded-2xl text-background font-bold text-base shrink-0 shadow-sm"
-            style={{ background: isDone ? "hsl(142 70% 45%)" : themeColor }}
+            className={`flex h-12 w-12 items-center justify-center rounded-xl text-background font-semibold text-base shrink-0 ${
+              isDone ? "bg-emerald-500" : "bg-foreground"
+            }`}
           >
             {isDone ? <CheckCircle2 className="h-6 w-6" /> : index + 1}
           </span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-bold text-lg leading-tight truncate">{stop.customer_name || "Stop"}</h3>
+              <h3 className="font-semibold text-lg leading-tight truncate text-foreground">{stop.customer_name || "Stop"}</h3>
               <Badge
                 variant="secondary"
-                className="text-[10px] uppercase tracking-wide font-bold border-0"
-                style={{
-                  background: isDone ? "hsl(142 70% 90%)" : "hsl(184 90% 90%)",
-                  color: isDone ? "hsl(142 70% 25%)" : "hsl(184 90% 25%)",
-                }}
+                className={`text-[10px] uppercase tracking-wide font-semibold border-0 ${
+                  isDone ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400" : ""
+                }`}
               >
                 {isDone ? "Færdig" : "Klar"}
               </Badge>
@@ -2277,10 +2271,7 @@ const StopDetailsContent = ({
                   Besked fra kunden
                 </h4>
               </div>
-              <div
-                className="rounded-xl border-l-4 bg-secondary/40 p-3"
-                style={{ borderLeftColor: themeColor }}
-              >
+              <div className="rounded-xl border border-l-4 border-l-foreground border-border bg-secondary/40 p-3">
                 <p className="text-sm leading-relaxed whitespace-pre-line">{customerNote}</p>
               </div>
             </section>
@@ -2326,14 +2317,13 @@ const StopDetailsContent = ({
       </div>
 
       {/* Sticky footer action */}
-      <div className="border-t bg-background/95 backdrop-blur p-4 shrink-0">
+      <div className="border-t border-border bg-background/95 backdrop-blur p-4 shrink-0">
         {!isDone ? (
           <Button
             onClick={onComplete}
-            className="w-full gap-2 h-12 text-base font-bold rounded-xl shadow-lg"
+            className="w-full gap-2 h-12 text-base font-semibold rounded-xl shadow-md bg-foreground text-background hover:bg-foreground/90"
             size="lg"
             disabled={isPending}
-            style={{ background: themeColor }}
           >
             {isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
             Markér som udført
