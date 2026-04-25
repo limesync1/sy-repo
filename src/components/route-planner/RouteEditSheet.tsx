@@ -78,9 +78,6 @@ export const RouteEditSheet = ({
   const [color, setColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [date, setDate] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
-  // depart_at ISO — null = "nu". Når brugeren ændrer afgangstid, kan ETA flytte
-  // sig (myldretid kontra midt-på-dagen).
-  const [departAt, setDepartAt] = useState<string | null>(null);
   const initialSyncDone = useRef(false);
 
   const updateRoute = useUpdateRoute();
@@ -93,9 +90,20 @@ export const RouteEditSheet = ({
     setColor(route.color || ROUTE_COLOR_PALETTE[0]);
     setDate(route.route_date);
     initialSyncDone.current = false;
-    // Reset depart_at hver gang en ny rute åbnes
-    setDepartAt(null);
   }, [route?.id]);
+
+  // Beregn afgangstid automatisk ud fra rutens dato + planlagte starttid.
+  // Hvis ingen starttid er sat, bruges 08:00 som standard. Hvis dato er i dag
+  // og tiden allerede er passeret, bruger vi "nu" så ETA afspejler virkelige
+  // trafikforhold lige nu.
+  const departAt = useMemo<string | null>(() => {
+    if (!route?.route_date) return null;
+    const time = route.planned_start_time?.slice(0, 5) || "08:00";
+    const planned = parseISO(`${route.route_date}T${time}:00`);
+    if (Number.isNaN(planned.getTime())) return null;
+    if (planned.getTime() < Date.now()) return null; // i fortiden → brug "nu"
+    return planned.toISOString();
+  }, [route?.route_date, route?.planned_start_time]);
 
   // Beregn waypoints for hele ruten — start (hvis sat) + alle stop i rækkefølge.
   const waypoints = useMemo(() => {
@@ -140,22 +148,6 @@ export const RouteEditSheet = ({
 
     return () => window.clearTimeout(timeout);
   }, [route, open, dirty, pendingPayload, updateRoute]);
-
-  // Forslag til afgangstider — "nu" + udvalgte timer på dagen, så brugeren
-  // kan se hvordan ETA ændrer sig (myldretid kontra midt-på-dagen).
-  const departOptions = useMemo(() => {
-    if (!date) return [] as Array<{ label: string; value: string | null }>;
-    const base = parseISO(`${date}T08:00:00`);
-    const opts: Array<{ label: string; value: string | null }> = [
-      { label: "Nu", value: null },
-    ];
-    [7, 8, 9, 12, 14, 15, 16, 17].forEach((h) => {
-      const d = new Date(base);
-      d.setHours(h, 0, 0, 0);
-      opts.push({ label: `kl. ${String(h).padStart(2, "0")}:00`, value: d.toISOString() });
-    });
-    return opts;
-  }, [date]);
 
   if (!route) return null;
 
