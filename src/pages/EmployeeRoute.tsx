@@ -546,7 +546,61 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const accBuffer = Math.max(0, acc - 15);
     return Math.min(ARRIVAL_MAX_M, ARRIVAL_BASE_M + accBuffer);
   }, [userAccuracyM]);
-  const isAtNextStop = distanceToNextM != null && distanceToNextM <= arrivalThresholdM;
+  const inArrivalRadius = distanceToNextM != null && distanceToNextM <= arrivalThresholdM;
+
+  // Stabiliseret ankomst — kræv at vi har været inden for radius i mindst
+  // ~12 sekunder før vi flipper "fremme" til true.  Det forhindrer at en
+  // enkelt jitter-måling der lander på naboens matrikel udløser ankomst,
+  // men forsinker ikke detektion mærkbart i praksis (medarbejderen står
+  // typisk stille i flere sekunder ved døren).  Når vi forlader radius
+  // nulstilles timeren straks så efterfølgende jitter ikke "husker" os
+  // som fremme længere.
+  const ARRIVAL_DWELL_MS = 12_000;
+  const arrivalEnteredAtRef = useRef<number | null>(null);
+  const arrivalStableForStopRef = useRef<string | null>(null);
+  const [stableArrival, setStableArrival] = useState(false);
+
+  useEffect(() => {
+    // Skift af stop nulstiller dvælet og den stabile flag.
+    arrivalEnteredAtRef.current = null;
+    arrivalStableForStopRef.current = null;
+    setStableArrival(false);
+  }, [nextStop?.id]);
+
+  useEffect(() => {
+    if (!nextStop) return;
+    if (!inArrivalRadius) {
+      // Ude af radius — nulstil timer og evt. tidligere stabil tilstand.
+      arrivalEnteredAtRef.current = null;
+      if (stableArrival) setStableArrival(false);
+      arrivalStableForStopRef.current = null;
+      return;
+    }
+    // Inde i radius — hvis vi allerede er stabil, gør intet.
+    if (arrivalStableForStopRef.current === nextStop.id) return;
+
+    if (arrivalEnteredAtRef.current == null) {
+      arrivalEnteredAtRef.current = Date.now();
+    }
+    const elapsed = Date.now() - arrivalEnteredAtRef.current;
+    if (elapsed >= ARRIVAL_DWELL_MS) {
+      arrivalStableForStopRef.current = nextStop.id;
+      setStableArrival(true);
+      return;
+    }
+    // Polling-tjek så vi flipper præcis når dvælet er opfyldt, selv om
+    // GPS ikke leverer et nyt fix lige i tide.
+    const remaining = ARRIVAL_DWELL_MS - elapsed;
+    const timeout = window.setTimeout(() => {
+      if (arrivalEnteredAtRef.current != null && nextStop) {
+        arrivalStableForStopRef.current = nextStop.id;
+        setStableArrival(true);
+      }
+    }, remaining + 50);
+    return () => window.clearTimeout(timeout);
+  }, [inArrivalRadius, nextStop?.id, stableArrival]);
+
+  const isAtNextStop = stableArrival;
 
   /* Ankomstlyd */
   useEffect(() => {
