@@ -1261,59 +1261,86 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           </MapContainer>
         )}
 
-        {/* ─── Floating right-side controls — runde pills, native-følelse ─── */}
+        {/* ─── Floating right-side controls — runde pills, native-følelse ───
+           Alle kontroller deler én base-klasse (`floatCtrlBase`) så stik-,
+           skygge-, ring- og active-feedback er 100% ensartet. Aktive states
+           bruger fremhævet baggrund + en lille indikator-prik. */}
         <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
           {routeStarted && !allDone && (
-            <Button
-              size="icon" variant="secondary"
+            <button
+              type="button"
               onClick={() => setListOpen((v) => !v)}
-              className="h-11 w-11 rounded-full shadow-lg bg-card hover:bg-secondary border border-border text-foreground transition-transform active:scale-95"
+              className={`relative h-12 w-12 rounded-full bg-card/95 backdrop-blur-md border border-border/80 text-foreground shadow-[0_6px_20px_-6px_rgba(0,0,0,0.25)] hover:bg-secondary hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.3)] transition-all duration-150 active:scale-[0.93] active:shadow-md flex items-center justify-center ${listOpen ? "ring-2 ring-foreground/15" : ""}`}
               aria-label="Vis liste"
+              aria-pressed={listOpen}
             >
-              <List className="h-[18px] w-[18px]" />
-            </Button>
+              <List className="h-[19px] w-[19px]" strokeWidth={2.25} />
+            </button>
           )}
           {routeStarted && !allDone && (
-            <Button
-              size="icon" variant="secondary"
+            <button
+              type="button"
               onClick={() => setAudioEnabled((v) => !v)}
-              className="h-11 w-11 rounded-full shadow-lg bg-card hover:bg-secondary border border-border text-foreground transition-transform active:scale-95"
+              className={`relative h-12 w-12 rounded-full backdrop-blur-md border shadow-[0_6px_20px_-6px_rgba(0,0,0,0.25)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.3)] transition-all duration-150 active:scale-[0.93] active:shadow-md flex items-center justify-center ${
+                audioEnabled
+                  ? "bg-card/95 border-border/80 text-foreground hover:bg-secondary"
+                  : "bg-muted/95 border-border text-muted-foreground hover:bg-muted"
+              }`}
               aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
+              aria-pressed={!audioEnabled}
+              title={audioEnabled ? "Lyd til — tryk for at slå fra" : "Lyd fra — tryk for at slå til"}
             >
-              {audioEnabled ? <Volume2 className="h-[18px] w-[18px]" /> : <VolumeX className="h-[18px] w-[18px]" />}
-            </Button>
+              {audioEnabled
+                ? <Volume2 className="h-[19px] w-[19px]" strokeWidth={2.25} />
+                : <VolumeX className="h-[19px] w-[19px]" strokeWidth={2.25} />}
+              {!audioEnabled && (
+                <span
+                  aria-hidden
+                  className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-destructive border-2 border-background"
+                />
+              )}
+            </button>
           )}
           {routeStarted && (
-            <Button
-              size="icon"
-              variant={followMode ? "default" : "secondary"}
+            <button
+              type="button"
               onClick={() => setFollowMode((v) => !v)}
-              className={`h-11 w-11 rounded-full shadow-lg border transition-transform active:scale-95 ${followMode ? "border-transparent text-background hover:opacity-90" : "bg-card hover:bg-secondary border-border text-foreground"}`}
+              className={`relative h-12 w-12 rounded-full backdrop-blur-md border shadow-[0_6px_20px_-6px_rgba(0,0,0,0.25)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.3)] transition-all duration-150 active:scale-[0.93] active:shadow-md flex items-center justify-center ${
+                followMode
+                  ? "border-transparent text-background"
+                  : "bg-card/95 border-border/80 text-foreground hover:bg-secondary"
+              }`}
               style={followMode ? { background: themeColor } : undefined}
               aria-label={followMode ? "Slå live-følg fra" : "Slå live-følg til"}
+              aria-pressed={followMode}
               title={followMode ? "Følger din position" : "Recentrer"}
             >
-              <Crosshair className="h-[18px] w-[18px]" />
-            </Button>
+              <Crosshair className="h-[19px] w-[19px]" strokeWidth={2.25} />
+              {followMode && (
+                <span
+                  aria-hidden
+                  className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-background animate-pulse"
+                />
+              )}
+            </button>
           )}
         </div>
 
         {/* ─── Fullscreen drive mode: floating top overlays (back pill + maneuver banner + traffic alert) ─── */}
         {routeStarted && !allDone && (
           <>
-            {/* Back + progress — runde pills, native-følelse */}
+            {/* Back + progress — runde pills, native-følelse.
+               Back-knappen matcher right-side controls i størrelse/skygge så
+               toppen visuelt fremstår som ét sammenhængende kontrolsæt. */}
             <div className="absolute top-3 left-3 z-[1000] flex items-center gap-2">
-              <Button
-                asChild
-                size="icon"
-                variant="secondary"
-                className="h-11 w-11 rounded-full shadow-lg bg-card hover:bg-secondary border border-border text-foreground transition-transform active:scale-95"
+              <Link
+                to="/medarbejder"
+                aria-label="Tilbage"
+                className="h-12 w-12 rounded-full bg-card/95 backdrop-blur-md border border-border/80 text-foreground shadow-[0_6px_20px_-6px_rgba(0,0,0,0.25)] hover:bg-secondary hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.3)] transition-all duration-150 active:scale-[0.93] active:shadow-md flex items-center justify-center"
               >
-                <Link to="/medarbejder" aria-label="Tilbage">
-                  <ArrowLeft className="h-[18px] w-[18px]" />
-                </Link>
-              </Button>
-              <div className="flex items-center gap-2.5 pl-3 pr-3.5 h-11 rounded-full bg-card border border-border shadow-lg">
+                <ArrowLeft className="h-[19px] w-[19px]" strokeWidth={2.25} />
+              </Link>
+              <div className="flex items-center gap-2.5 pl-3 pr-3.5 h-12 rounded-full bg-card/95 backdrop-blur-md border border-border/80 shadow-[0_6px_20px_-6px_rgba(0,0,0,0.25)]">
                 <div className="flex items-center gap-1.5">
                   <span
                     className="h-2.5 w-2.5 rounded-full shrink-0"
