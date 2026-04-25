@@ -34,6 +34,8 @@ import {
 } from "lucide-react";
 import ResultsMap from "@/components/search/ResultsMap";
 import SiteNav from "@/components/SiteNav";
+import PageHero from "@/components/landing/PageHero";
+import Footer from "@/components/landing/Footer";
 
 const CATEGORIES = [
   { label: "Rengøring", icon: Sparkles },
@@ -293,25 +295,25 @@ const SearchPage = () => {
       {/* Header — matches landing */}
       <SiteNav active="search" />
 
-      {/* Search hero — full-width search */}
-      <section className="border-b border-border bg-background py-4 md:py-6">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="surface-panel rounded-[1.5rem] border border-border p-4 text-center shadow-[0_18px_40px_-30px_hsl(var(--foreground)/0.22)] md:p-5">
-            <h1 className="mb-1 text-xl font-bold tracking-tight text-foreground sm:text-2xl md:text-3xl">
-              Find verificerede serviceydere
-            </h1>
-            <p className="mb-3 text-sm text-muted-foreground">Søg på service, virksomhed eller by.</p>
-            <div className="mx-auto flex justify-center">
-              <SearchSuggest variant="hero" defaultQuery={debouncedQuery} />
-            </div>
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground">Viser nær:</span>
-              <LocationChip />
-              <RadiusPicker />
-            </div>
-          </div>
+      {/* Dark hero — matches landing visual language */}
+      <PageHero
+        size="compact"
+        eyebrow="Find services i hele Danmark"
+        title={<>Find verificerede <span className="text-accent">serviceydere</span>.</>}
+        subtitle="Søg på service, virksomhed eller by — sammenlign og book direkte."
+      >
+        <SearchSuggest
+          variant="hero"
+          defaultQuery={debouncedQuery}
+          showNearLabel={false}
+          placeholder="Søg efter service, virksomhed eller by…"
+        />
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-background/80">
+          <span className="font-medium text-background/70">Viser nær</span>
+          <LocationChip />
+          <RadiusPicker />
         </div>
-      </section>
+      </PageHero>
 
       {/* Sticky filter bar */}
       <div className="sticky top-14 sm:top-[65px] z-20 border-b border-border bg-background/95 backdrop-blur-md">
@@ -456,6 +458,8 @@ const SearchPage = () => {
           </div>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 };
