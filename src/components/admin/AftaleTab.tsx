@@ -8,13 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   ShoppingCart, Pencil, Minus, Plus, Check, X, MessageSquare,
   ChevronDown, ChevronUp, Clock, Mail, Phone, ArrowRight,
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
   Play, Pause, Search, Route as RouteIcon, MapPin, Plus as PlusIcon,
-  GripVertical,
+  GripVertical, Loader2, Tag, Palette,
 } from "lucide-react";
 import {
   DndContext, PointerSensor, useSensor, useSensors,
@@ -24,6 +27,9 @@ import {
 import { INTERVAL_LABELS } from "@/types/service";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
 import { useRoutesForRange, useStopsForRoutes, useAddStop, useCreateRoute } from "@/hooks/useRoutes";
+import { ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
+import { DatePickerField } from "@/components/route-planner/DatePickerField";
+import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import {
   buildPricingSnapshot,
   getSmartStep,
