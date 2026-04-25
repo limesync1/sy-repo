@@ -126,22 +126,66 @@ export const useMyEmployeeStats = (
       });
 
       const stopsCompleted = myStops.filter((s: any) => s.status === "completed").length;
-      const completedOrderIds = myStops
-        .filter((s: any) => s.status === "completed" && s.order_id)
-        .map((s: any) => s.order_id);
+      const completedStops = myStops.filter((s: any) => s.status === "completed" && s.order_id);
+      const completedOrderIds = completedStops.map((s: any) => s.order_id);
 
-      // 4) Omsætning fra completede ordrer
-      let revenue = 0;
+      // 4) Omsætning fra completede ordrer (pr. ordre, så vi kan dele pr. stop)
+      const orderAmountMap = new Map<string, number>();
       if (completedOrderIds.length > 0) {
         const { data: orders } = await supabase
           .from("orders")
           .select("id, total_amount, adjusted_amount")
           .in("id", completedOrderIds);
-        revenue = (orders || []).reduce(
-          (sum: number, o: any) => sum + Number(o.adjusted_amount ?? o.total_amount ?? 0),
-          0,
-        );
+        (orders || []).forEach((o: any) => {
+          orderAmountMap.set(o.id, Number(o.adjusted_amount ?? o.total_amount ?? 0));
+        });
       }
+      const revenue = completedStops.reduce(
+        (sum: number, s: any) => sum + (orderAmountMap.get(s.order_id) || 0),
+        0,
+      );
+
+      // 4b) Provision deles ligeligt mellem medarbejderne på hvert stop.
+      //     Vi henter antal assignees pr. completed-stop. Stop uden specifikke
+      //     assignees ("team") deles på antal medarbejdere knyttet til ruten.
+      const completedStopIds = completedStops.map((s: any) => s.id);
+      const assigneeCountByStop = new Map<string, number>();
+      if (completedStopIds.length > 0) {
+        const { data: stopAssignees } = await supabase
+          .from("route_stop_assignees")
+          .select("stop_id")
+          .in("stop_id", completedStopIds);
+        (stopAssignees || []).forEach((a: any) => {
+          assigneeCountByStop.set(a.stop_id, (assigneeCountByStop.get(a.stop_id) || 0) + 1);
+        });
+      }
+      // Antal medarbejdere pr. rute (til team-fallback)
+      const teamSizeByRoute = new Map<string, number>();
+      if (routeIds.length > 0) {
+        const { data: routeTeam } = await supabase
+          .from("route_employees")
+          .select("route_id")
+          .in("route_id", routeIds);
+        (routeTeam || []).forEach((re: any) => {
+          teamSizeByRoute.set(re.route_id, (teamSizeByRoute.get(re.route_id) || 0) + 1);
+        });
+        // Inkludér også legacy-kolonnen routes.employee_id som "én medarbejder"
+        // hvis route_employees-rækker mangler.
+        routeIds.forEach((rid) => {
+          if (!teamSizeByRoute.has(rid)) teamSizeByRoute.set(rid, 1);
+        });
+      }
+
+      const myPctFraction = Number(commissionPct || 0) / 100;
+      const commission = completedStops.reduce((sum: number, s: any) => {
+        const orderAmount = orderAmountMap.get(s.order_id) || 0;
+        // Antal kollegaer der deler provisionen for dette stop
+        const explicit = assigneeCountByStop.get(s.id) || 0;
+        const sharers = explicit > 0
+          ? explicit
+          : Math.max(teamSizeByRoute.get(s.route_id) || 1, 1);
+        return sum + (orderAmount * myPctFraction) / sharers;
+      }, 0);
 
       // 5) Arbejdsdage
       const { data: workdays } = await supabase
@@ -180,8 +224,6 @@ export const useMyEmployeeStats = (
         perDayMap.set(d, row);
       });
       const perDay = Array.from(perDayMap.values()).sort((a, b) => a.date.localeCompare(b.date));
-
-      const commission = revenue * (Number(commissionPct || 0) / 100);
 
       return {
         routesCount: myRouteIds.size,
