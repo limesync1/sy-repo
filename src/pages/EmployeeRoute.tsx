@@ -1278,7 +1278,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <div className="rounded-lg bg-background/80 backdrop-blur border px-2 py-1.5 text-center">
                     <p className="text-[8px] uppercase text-muted-foreground font-bold tracking-wide">Distance</p>
                     <p className="text-sm font-bold tabular-nums">
-                      {route?.total_distance_km != null ? `${route.total_distance_km.toFixed(1)} km` : "—"}
+                      {route?.total_distance_km != null && route.total_distance_km > 0
+                        ? `${route.total_distance_km.toFixed(1)} km`
+                        : "—"}
                     </p>
                   </div>
                   <div className="rounded-lg bg-background/80 backdrop-blur border px-2 py-1.5 text-center">
