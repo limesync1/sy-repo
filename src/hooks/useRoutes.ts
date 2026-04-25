@@ -191,21 +191,16 @@ export type EmployeeWorkday = {
 
 /** Hent dagens åbne arbejdsdag for den loggede medarbejder. */
 export const useMyWorkday = (date: string) => {
+  const employeeId = useMyEmployeeId();
   return useQuery({
-    queryKey: ["my-workday", date],
+    queryKey: ["my-workday", employeeId, date],
+    enabled: !!employeeId,
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return null;
-      const { data: emp } = await supabase
-        .from("employees")
-        .select("id")
-        .eq("user_id", user.user.id)
-        .maybeSingle();
-      if (!emp) return null;
+      if (!employeeId) return null;
       const { data, error } = await supabase
         .from("employee_workdays")
         .select("*")
-        .eq("employee_id", emp.id)
+        .eq("employee_id", employeeId)
         .eq("workday_date", date)
         .maybeSingle();
       if (error) throw error;
