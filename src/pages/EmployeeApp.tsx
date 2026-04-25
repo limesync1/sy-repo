@@ -190,45 +190,59 @@ const EmployeeApp = () => {
 
         {/* Start dag / Stop dag — kun for i dag */}
         {isCurrentDay && (
-          <Card className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
-              <Clock className="h-5 w-5 text-muted-foreground" />
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4 sm:p-5">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div
+                  className={cn(
+                    "h-10 w-10 shrink-0 rounded-lg flex items-center justify-center [&_svg]:h-5 [&_svg]:w-5",
+                    dayStarted && !dayEnded
+                      ? "bg-emerald-500/10 text-emerald-600"
+                      : dayEnded
+                        ? "bg-secondary text-muted-foreground"
+                        : "bg-secondary text-foreground",
+                  )}
+                >
+                  <Clock />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Arbejdsdag
+                  </p>
+                  <p className="mt-0.5 text-sm font-semibold text-foreground">
+                    {dayEnded ? "Afsluttet" : dayStarted ? "I gang" : "Ikke startet"}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
+                    {workday?.started_at && (
+                      <>Start {format(new Date(workday.started_at), "HH:mm")}</>
+                    )}
+                    {workday?.ended_at && (
+                      <> · Slut {format(new Date(workday.ended_at), "HH:mm")} · {workday.duration_minutes ?? 0} min</>
+                    )}
+                    {elapsedLabel && !dayEnded && <> · {elapsedLabel}</>}
+                  </p>
+                </div>
+              </div>
+              {!dayStarted && !dayEnded && (
+                <Button
+                  onClick={() => startDay.mutate(date)}
+                  disabled={startDay.isPending}
+                  className="h-10 w-full rounded-lg bg-foreground text-background font-semibold shadow-sm hover:bg-foreground/90 sm:w-auto sm:px-5"
+                >
+                  <PlayCircle className="h-4 w-4" /> Start dag
+                </Button>
+              )}
+              {dayStarted && (
+                <Button
+                  variant="outline"
+                  onClick={() => endDay.mutate(date)}
+                  disabled={endDay.isPending}
+                  className="h-10 w-full rounded-lg border-border text-foreground hover:bg-secondary hover:text-foreground sm:w-auto sm:px-5"
+                >
+                  <StopCircle className="h-4 w-4" /> Stop dag
+                </Button>
+              )}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold">
-                {dayEnded ? "Arbejdsdag afsluttet" : dayStarted ? "Arbejdsdag i gang" : "Arbejdsdag ikke startet"}
-              </p>
-              <p className="text-xs text-muted-foreground tabular-nums">
-                {workday?.started_at && (
-                  <>Start {format(new Date(workday.started_at), "HH:mm")}</>
-                )}
-                {workday?.ended_at && (
-                  <> · Slut {format(new Date(workday.ended_at), "HH:mm")} · {workday.duration_minutes ?? 0} min</>
-                )}
-                {elapsedLabel && !dayEnded && <> · {elapsedLabel}</>}
-              </p>
-            </div>
-            {!dayStarted && !dayEnded && (
-              <Button
-                size="sm"
-                onClick={() => startDay.mutate(date)}
-                disabled={startDay.isPending}
-                className="gap-1.5"
-              >
-                <PlayCircle className="h-4 w-4" /> Start dag
-              </Button>
-            )}
-            {dayStarted && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => endDay.mutate(date)}
-                disabled={endDay.isPending}
-                className="gap-1.5"
-              >
-                <StopCircle className="h-4 w-4" /> Stop dag
-              </Button>
-            )}
           </Card>
         )}
 
