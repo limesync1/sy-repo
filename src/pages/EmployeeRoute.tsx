@@ -15,6 +15,7 @@ import {
   ClipboardList, Info, MessageSquare,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
+import type { Marker as LeafletMarker } from "leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { toast } from "sonner";
@@ -81,17 +82,79 @@ const stopIcon = (n: number, state: "next" | "done" | "future", color: string, h
   });
 };
 
-/** Serviceydere-stil navigation puck (teal accent). */
-const navPuckIcon = (rotation: number) => L.divIcon({
+/**
+ * Serviceydere-stil navigation puck (teal accent).
+ *
+ * Vigtig detalje: vi opretter divIcon'et ÉN gang (stabil reference) — al
+ * heading-rotation sker derefter via en CSS-transform på et indre element
+ * med klasse `.nav-puck-rot`. Det gør at Leaflet IKKE re-renderer markøren
+ * når headingen ændrer sig (hvilket ellers river DOM ned/op hver gang og
+ * giver visuel hak under rute-opdateringer). Komponenten bruger en ref
+ * til markøren og opdaterer transform direkte — samme pattern som Google
+ * Maps' egen puck.
+ */
+const NAV_PUCK_ICON = L.divIcon({
   className: "",
   html: `
-    <div style="position:relative;width:64px;height:64px;transform:rotate(${rotation}deg);transform-origin:center;">
+    <div class="nav-puck-rot" style="position:relative;width:64px;height:64px;transform:rotate(0deg);transform-origin:center;will-change:transform;transition:transform 120ms linear;">
       <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:34px solid hsl(184 90% 32% / 0.45);"></div>
       <div style="position:absolute;top:18px;left:18px;width:28px;height:28px;border-radius:50%;background:hsl(184 90% 32%);border:4px solid white;box-shadow:0 4px 14px hsl(184 90% 32% / 0.5), 0 2px 6px rgba(0,0,0,.25);"></div>
     </div>`,
   iconSize: [64, 64],
   iconAnchor: [32, 32],
 });
+
+/**
+ * Stable nav puck marker — opretter Leaflet-markøren manuelt (uden
+ * react-leaflet's <Marker>) så heading-opdateringer kan skrives direkte
+ * på DOM via en CSS-transform. Position bliver også sat via setLatLng,
+ * så der ikke sker re-mount per GPS-tick.
+ */
+const NavPuckMarker = ({
+  position,
+  heading,
+}: {
+  position: [number, number];
+  heading: number;
+}) => {
+  const map = useMap();
+  const markerRef = useRef<LeafletMarker | null>(null);
+
+  // Mount marker once.
+  useEffect(() => {
+    const m = L.marker(position, { icon: NAV_PUCK_ICON, interactive: false, keyboard: false, zIndexOffset: 1000 });
+    m.addTo(map);
+    markerRef.current = m;
+    return () => {
+      m.remove();
+      markerRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map]);
+
+  // Update position smoothly (no re-mount).
+  useEffect(() => {
+    const m = markerRef.current;
+    if (!m) return;
+    m.setLatLng(position);
+  }, [position[0], position[1]]);
+
+  // Update heading by mutating CSS transform on the inner rotation element.
+  // This avoids any react-leaflet reconciliation and gives a buttery-smooth
+  // rotation under route changes / reroutes.
+  useEffect(() => {
+    const m = markerRef.current;
+    if (!m) return;
+    const el = m.getElement();
+    if (!el) return;
+    const rot = el.querySelector<HTMLElement>(".nav-puck-rot");
+    if (rot) {
+      rot.style.transform = `rotate(${heading}deg)`;
+    }
+  }, [heading]);
+
+  return null;
+};
 
 const userDotIcon = L.divIcon({
   className: "",
