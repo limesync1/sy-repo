@@ -690,9 +690,16 @@ const AftaleTab = ({
   const fromIso = today.toISOString().slice(0, 10);
   const toDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
   const toIso = toDate.toISOString().slice(0, 10);
-  const { data: poolRoutes } = useRoutesForRange(businessId, fromIso, toIso);
+  // Når ruteplanlægning er deaktiveret skal vi hverken hente ruter eller stops —
+  // sidebar'en skjules helt og badges/blokke renderes ikke. Vi sender et tomt id
+  // ind så `useRoutesForRange` blot returnerer en tom liste.
+  const { data: poolRoutes } = useRoutesForRange(
+    routePlanningEnabled ? businessId : "",
+    fromIso,
+    toIso,
+  );
   const poolRouteIds = (poolRoutes || []).map((r) => r.id);
-  const { data: poolStops } = useStopsForRoutes(poolRouteIds);
+  const { data: poolStops } = useStopsForRoutes(routePlanningEnabled ? poolRouteIds : []);
   const addStop = useAddStop();
   const createRoute = useCreateRoute();
   const deleteRoute = useDeleteRoute();
@@ -700,7 +707,7 @@ const AftaleTab = ({
   // Hent route-stops for alle ordrer i denne forretning, så vi kan vise hvilken
   // rute hver aftale er placeret på (dato, rute-navn, sekvens og status).
   const { data: routeStops } = useQuery({
-    queryKey: ["aftaler-route-stops", businessId],
+    queryKey: ["aftaler-route-stops", businessId, routePlanningEnabled],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("route_stops")
@@ -709,7 +716,7 @@ const AftaleTab = ({
       if (error) throw error;
       return data || [];
     },
-    enabled: !!businessId,
+    enabled: !!businessId && routePlanningEnabled,
   });
 
   // Map: order_id → første tilknyttede stop (en aftale ligger typisk på én rute).
