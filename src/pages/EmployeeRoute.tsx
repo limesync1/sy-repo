@@ -640,6 +640,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const estimatedEndAt: string | null = useMemo(() => {
     if (remainingStops.length === 0) return null;
     const driveMin = route?.total_duration_minutes ?? 0;
+    // Kun vis hvis vi rent faktisk har en planlagt drive-tid > 0 (ellers er
+    // ruten ikke optimeret endnu og estimatet bliver misvisende).
+    if (driveMin <= 0) return null;
     const totalMin = driveMin + remainingServiceMinutes;
     if (totalMin <= 0) return null;
     const end = new Date(Date.now() + totalMin * 60 * 1000);
