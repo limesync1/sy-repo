@@ -15,24 +15,25 @@ import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { TrafficOverridesSection } from "./TrafficOverridesSection";
 import {
   INDUSTRY_GROUPS,
   ALL_INDUSTRIES,
   customIndustryKeys,
+  findIndustry,
 } from "@/lib/service-taxonomy";
 
 const DAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
 
 // ─── Sub-nav sektioner ───
-// Hver chip svarer til ét område på siden. Klik scroller blødt til sektionen.
+// Vises som sticky sidebar (xl) eller chip-rækken (mobil/tablet).
 const SECTIONS = [
-  { id: "general",       label: "Generelt",       icon: Building2 },
-  { id: "contact",       label: "Kontakt",        icon: Contact },
-  { id: "branding",      label: "Branding",       icon: ImageIcon },
-  { id: "hours",         label: "Åbningstider",   icon: Clock },
-  { id: "notifications", label: "Notifikationer", icon: Bell },
-  { id: "advanced",      label: "Avanceret",      icon: Route },
+  { id: "general",       label: "Virksomhed",     icon: Building2, hint: "Navn og beskrivelse" },
+  { id: "industries",    label: "Brancher",       icon: Sparkles,  hint: "Hvad I tilbyder" },
+  { id: "contact",       label: "Kontakt",        icon: Contact,   hint: "Adresse og kontakt" },
+  { id: "branding",      label: "Branding",       icon: ImageIcon, hint: "Logo og cover" },
+  { id: "hours",         label: "Åbningstider",   icon: Clock,     hint: "Hverdage og weekend" },
+  { id: "notifications", label: "Notifikationer", icon: Bell,      hint: "Email-varsler" },
+  { id: "advanced",      label: "Avanceret",      icon: Route,     hint: "Ekstra funktioner" },
 ] as const;
 
 /* ─── Toggle-switch (delt mellem notifikations- og rute-felter) ─── */
@@ -70,6 +71,12 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     (business.categories as string[]) || (business.category ? [business.category] : [])
   );
+  // selected_subcategories: { [industryKey]: string[] }
+  // Bestemmer hvilke underkategorier virksomheden vil tilbyde og dermed hvilke
+  // der bliver foreslået ved oprettelse af services.
+  const [selectedSubcategories, setSelectedSubcategories] = useState<Record<string, string[]>>(
+    ((business.settings as any)?.selected_subcategories as Record<string, string[]>) || {}
+  );
   const [openHours, setOpenHours] = useState<Record<string, string>>(business.opening_hours || {});
   const [notifSettings, setNotifSettings] = useState<Record<string, boolean>>({
     new_order: true,
@@ -95,7 +102,28 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [activeSection, setActiveSection] = useState<string>("general");
 
   const toggleSettingsCategory = (c: string) => {
-    setSelectedCategories((prev) => prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]);
+    setSelectedCategories((prev) => {
+      const next = prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c];
+      // Når man fravælger en branche, ryd dens underkategori-valg
+      if (prev.includes(c)) {
+        setSelectedSubcategories((s) => { const n = { ...s }; delete n[c]; return n; });
+      } else {
+        // Default: vælg ALLE underkategorier i den nyvalgte branche
+        const ind = findIndustry(c);
+        if (ind) {
+          setSelectedSubcategories((s) => ({ ...s, [c]: ind.subcategories.map((x) => x.label) }));
+        }
+      }
+      return next;
+    });
+  };
+
+  const toggleSubcategory = (industryKey: string, sub: string) => {
+    setSelectedSubcategories((prev) => {
+      const cur = prev[industryKey] || [];
+      const next = cur.includes(sub) ? cur.filter((x) => x !== sub) : [...cur, sub];
+      return { ...prev, [industryKey]: next };
+    });
   };
 
   const scrollToSection = (id: string) => {
@@ -185,6 +213,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       settings: {
         ...((business.settings as any) || {}),
         route_planning_enabled: routePlanningEnabled,
+        selected_subcategories: selectedSubcategories,
       },
     } as any, {
       onSuccess: () => toast.success("Indstillinger gemt"),
@@ -195,12 +224,14 @@ const SettingsTab = ({ business }: { business: any }) => {
   const origCategories = (business.categories as string[]) || (business.category ? [business.category] : []);
   const origNotif = business.notification_settings as Record<string, boolean> || {};
   const origRoutePlanning = !!(business.settings as any)?.route_planning_enabled;
+  const origSubcats = ((business.settings as any)?.selected_subcategories as Record<string, string[]>) || {};
   const hasChanges = name !== business.name || description !== (business.description || "") ||
     phone !== (business.phone || "") || email !== (business.email || "") ||
     address !== (business.address || "") || city !== (business.city || "") ||
     zipCode !== (business.zip_code || "") || logoUrl !== (business.logo_url || "") ||
     coverUrl !== (business.cover_image_url || "") ||
     JSON.stringify([...selectedCategories].sort()) !== JSON.stringify([...origCategories].sort()) ||
+    JSON.stringify(selectedSubcategories) !== JSON.stringify(origSubcats) ||
     JSON.stringify(openHours) !== JSON.stringify(business.opening_hours || {}) ||
     routePlanningEnabled !== origRoutePlanning ||
     JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
