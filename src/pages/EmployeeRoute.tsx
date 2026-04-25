@@ -1047,52 +1047,67 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-hidden">
-      {/* ─── Compact header — kun synlig før rute starter eller ved færdig ─── */}
+      {/* ─── Compact header — admin-stil (h-14, neutral palette).  Kun
+          synlig før rute starter eller ved færdig.  Lyd-knappen findes
+          som floating control under kørsel — ingen dubletter her. ─── */}
       {(!routeStarted || allDone) && (
-      <header className="relative shrink-0 z-30 bg-background border-b">
-        <div className="flex items-center gap-2 px-3 py-2.5 bg-background">
-          <Button asChild variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-secondary shrink-0">
-            <Link to="/medarbejder" aria-label="Tilbage"><ArrowLeft className="h-4 w-4" /></Link>
-          </Button>
+        <header className="relative shrink-0 z-30 bg-card border-b border-border">
+          <div className="flex h-14 items-center gap-3 px-4">
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground shrink-0"
+            >
+              <Link to="/medarbejder" aria-label="Tilbage">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
 
-          {/* Header-pille: rute-navn + dato + progress */}
-          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-secondary text-foreground text-xs font-semibold shrink min-w-0 border">
-            <span
-              className="h-2 w-2 rounded-full shrink-0"
-              style={{ background: routeBadgeColor }}
-              aria-hidden
-            />
-            <span className="truncate font-bold">{route.name || "Rute"}</span>
-            <span className="px-1.5 py-0.5 rounded-full bg-background tabular-nums text-[10px] border shrink-0">
-              {completedCount}/{sortedStops.length}
-            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span
+                  className="h-2.5 w-2.5 rounded-full shrink-0"
+                  style={{ background: routeBadgeColor }}
+                  aria-hidden
+                />
+                <h1 className="text-sm font-semibold text-foreground truncate">
+                  {route.name || "Rute"}
+                </h1>
+              </div>
+              <p className="text-[11px] text-muted-foreground tabular-nums">
+                {completedCount} af {sortedStops.length} stop færdige
+              </p>
+            </div>
+
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-9 w-9 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+              onClick={() => setListOpen((v) => !v)}
+              aria-label="Vis liste"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-9 w-9 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+              onClick={() => setAudioEnabled((v) => !v)}
+              aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
+            >
+              {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
           </div>
 
-          <div className="flex-1" />
-
-          <Button
-            size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-secondary"
-            onClick={() => setListOpen((v) => !v)} aria-label="Vis liste"
-          >
-            <List className="h-4 w-4" />
-          </Button>
-          <Button
-            size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-secondary"
-            onClick={() => setAudioEnabled((v) => !v)}
-            aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
-          >
-            {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-          </Button>
-        </div>
-
-        {/* Progress bar — route color */}
-        <div className="h-1.5 w-full bg-secondary" aria-hidden>
-          <div
-            className="h-full transition-all duration-500 ease-out"
-            style={{ width: `${progress}%`, background: themeColor }}
-          />
-        </div>
-      </header>
+          {/* Progress bar — neutral baggrund + rute-farve indikator */}
+          <div className="h-1 w-full bg-secondary" aria-hidden>
+            <div
+              className="h-full transition-all duration-500 ease-out"
+              style={{ width: `${progress}%`, background: themeColor }}
+            />
+          </div>
+        </header>
       )}
 
       {/* ─── Map fills everything ─── */}
