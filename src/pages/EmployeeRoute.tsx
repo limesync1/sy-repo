@@ -526,15 +526,24 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return haversineMeters(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
   }, [userPos, nextStop?.id, nextStop?.latitude, nextStop?.longitude]);
 
-  // Adaptiv ankomst-tærskel.  Geokodede adresser er ofte 30-80 m skæve i
-  // forhold til den faktiske husdør (især på små danske veje), så tærsklen
-  // skal dække både GPS-usikkerhed og pin-usikkerhed.  Basis = 80 m.
-  // Vi udvider yderligere hvis GPS rapporterer dårlig accuracy, så
-  // indendørs / bymæssige "kløfter" stadig fanges.
-  const ARRIVAL_BASE_M = 80;
-  const ARRIVAL_MAX_M = 150;
+  // Adaptiv ankomst-tærskel — afvejer to behov:
+  //   1) Skal kunne skelne mellem to nabohuse i et villakvarter (typisk
+  //      15-25 m mellem matrikler) og lejligheder i samme kompleks.
+  //   2) Skal stadig fange brugeren når GPS er upålidelig (indendørs,
+  //      gade-kløfter) eller når pin'en er sat lidt skævt af geokoderen.
+  //
+  // Strategi: stram basis (25 m) der KUN udvider sig når GPS-accuracy
+  // selv siger den er upålidelig.  Loft = 60 m så vi aldrig krydser ind
+  // i naboejendomme uden grund.  Når GPS er præcis (acc <15 m) får vi
+  // den ønskede granularitet til villakvarterer/etageejendomme.
+  const ARRIVAL_BASE_M = 25;
+  const ARRIVAL_MAX_M = 60;
   const arrivalThresholdM = useMemo(() => {
-    const accBuffer = userAccuracyM != null ? Math.max(0, userAccuracyM - 15) : 0;
+    // Når accuracy er ukendt, antag et moderat fix (~20 m).
+    const acc = userAccuracyM ?? 20;
+    // Læg kun det "ekstra" usikkerhed på basisradius — accuracy under
+    // 15 m anses som perfekt og giver ingen udvidelse.
+    const accBuffer = Math.max(0, acc - 15);
     return Math.min(ARRIVAL_MAX_M, ARRIVAL_BASE_M + accBuffer);
   }, [userAccuracyM]);
   const isAtNextStop = distanceToNextM != null && distanceToNextM <= arrivalThresholdM;
