@@ -374,6 +374,9 @@ const EmployeeRow = ({
   const [editEmail, setEditEmail] = useState(employee.email || "");
   const [editPhone, setEditPhone] = useState(employee.phone || "");
   const [editTitle, setEditTitle] = useState(employee.title || "");
+  const [editCommission, setEditCommission] = useState<string>(
+    employee.commission_pct != null ? String(employee.commission_pct) : "0",
+  );
   const resetPw = useResetEmployeePassword();
   const fallbackColor = employee.color || "#64748b";
   const [confirmDelete, setConfirmDelete] = useState(false);
