@@ -1254,26 +1254,49 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
               {/* Info-grid: km, tid, ETA */}
               {(directions || etaLabel) && (
-                <div className="grid grid-cols-3 divide-x bg-background border-t border-b">
-                  <div className="px-2 py-2 text-center">
-                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
-                    <p className="text-sm font-bold tabular-nums mt-0.5">
-                      {directions?.distance_m != null ? formatKm(directions.distance_m) : "—"}
-                    </p>
+                <>
+                  {directions && (
+                    <div className="flex items-center justify-between gap-2 px-3 py-1.5 bg-background border-t">
+                      <LiveStatusBadge info={directions} compact />
+                      <div className="flex items-center gap-1">
+                        {showRawTime && (
+                          <Badge variant="outline" className="h-5 px-1.5 text-[9px] font-medium">
+                            Rå Mapbox
+                          </Badge>
+                        )}
+                        <EtaDetailsButton
+                          info={directions}
+                          showRaw={showRawTime}
+                          onToggleRaw={setShowRawTime}
+                          compact
+                        />
+                      </div>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-3 divide-x bg-background border-t border-b">
+                    <div className="px-2 py-2 text-center">
+                      <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
+                      <p className="text-sm font-bold tabular-nums mt-0.5">
+                        {directions?.distance_m != null ? formatKm(directions.distance_m) : "—"}
+                      </p>
+                    </div>
+                    <div className="px-2 py-2 text-center">
+                      <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Køretid</p>
+                      <p className="text-sm font-bold tabular-nums mt-0.5">
+                        {(() => {
+                          const d = directions ? pickDuration(directions, showRawTime) : null;
+                          return d != null ? formatMin(d) : "—";
+                        })()}
+                      </p>
+                    </div>
+                    <div className="px-2 py-2 text-center">
+                      <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Ankomst</p>
+                      <p className="text-sm font-bold tabular-nums mt-0.5" style={{ color: themeColor }}>
+                        {etaLabel || "—"}
+                      </p>
+                    </div>
                   </div>
-                  <div className="px-2 py-2 text-center">
-                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Køretid</p>
-                    <p className="text-sm font-bold tabular-nums mt-0.5">
-                      {directions?.duration_s != null ? formatMin(directions.duration_s) : "—"}
-                    </p>
-                  </div>
-                  <div className="px-2 py-2 text-center">
-                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Ankomst</p>
-                    <p className="text-sm font-bold tabular-nums mt-0.5" style={{ color: themeColor }}>
-                      {etaLabel || "—"}
-                    </p>
-                  </div>
-                </div>
+                </>
               )}
 
               <div className="p-3">
