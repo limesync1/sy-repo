@@ -20,6 +20,7 @@ import RoutePlanner from "./pages/RoutePlanner";
 import EmployeeApp from "./pages/EmployeeApp";
 import EmployeeRoute from "./pages/EmployeeRoute";
 import EmployeeRoutePrint from "./pages/EmployeeRoutePrint";
+import EmployeeStats from "./pages/EmployeeStats";
 import NotFound from "./pages/NotFound";
 import ApproveOrder from "./pages/ApproveOrder";
 
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/virksomhed" element={<Admin />} />
               <Route path="/virksomhed/ruter" element={<RoutePlanner />} />
               <Route path="/medarbejder" element={<EmployeeApp />} />
+              <Route path="/medarbejder/statistik" element={<EmployeeStats />} />
               <Route path="/medarbejder/rute/:routeId" element={<EmployeeRoute />} />
               <Route path="/medarbejder/rute/:routeId/print" element={<EmployeeRoutePrint />} />
               <Route path="/min-konto" element={<CustomerDashboard />} />
