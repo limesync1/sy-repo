@@ -631,6 +631,8 @@ const RequestQuote = () => {
           )}
         </section>
       )}
+
+      <Footer />
     </div>
   );
 };
