@@ -15,7 +15,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Calendar as CalendarIcon, CheckCircle2, Clock,
-  MapPin, Route as RouteIcon, Wallet,
+  MapPin, Route as RouteIcon, Wallet, ChevronDown,
 } from "lucide-react";
 import {
   format, parseISO,
@@ -25,6 +25,8 @@ import {
 import { da } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
+import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 type RangeKey = "today" | "week" | "month" | "year" | "all" | "custom";
 
@@ -80,6 +82,20 @@ const formatHours = (minutes: number) => {
 
 const formatKr = (n: number) =>
   `${Math.round(n).toLocaleString("da-DK")} kr`;
+
+const PAYMENT_LABEL: Record<string, string> = {
+  paid: "Betalt",
+  settling: "Afregnes",
+  pending: "Afventer",
+  unknown: "Status ukendt",
+};
+
+const PAYMENT_BADGE: Record<string, string> = {
+  paid: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+  settling: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  pending: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  unknown: "bg-secondary text-muted-foreground border-border",
+};
 
 const EmployeeStats = () => {
   const { user, loading } = useAuth();
@@ -245,11 +261,13 @@ const EmployeeStats = () => {
             {/* Daglig oversigt */}
             <Card className="rounded-xl border-border shadow-sm">
               <CardContent className="p-0">
-                <div className="border-b border-border px-4 py-3 sm:px-5">
-                  <h3 className="text-sm font-semibold text-foreground">Daglig aktivitet</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Færdige opgaver pr. dag i perioden
-                  </p>
+                <div className="flex items-end justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-semibold text-foreground">Daglig aktivitet</h3>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Færdige opgaver pr. dag — udfold for at se indtjening og betalingsstatus.
+                    </p>
+                  </div>
                 </div>
                 {s.perDay.length === 0 ? (
                   <div className="p-10 text-center text-sm text-muted-foreground">
@@ -258,30 +276,88 @@ const EmployeeStats = () => {
                 ) : (
                   <div className="divide-y divide-border">
                     {s.perDay.map((d) => {
-                      const max = Math.max(...s.perDay.map((x) => x.stops));
-                      const pct = max > 0 ? (d.stops / max) * 100 : 0;
+                      const max = Math.max(...s.perDay.map((x) => x.stops), 1);
+                      const pct = (d.stops / max) * 100;
                       return (
-                        <div key={d.date} className="flex items-center gap-3 px-4 py-3 sm:px-5">
-                          <div className="w-24 shrink-0">
-                            <p className="text-xs font-semibold text-foreground capitalize">
-                              {format(parseISO(d.date), "EEE d. MMM", { locale: da })}
-                            </p>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                              <div
-                                className="h-full bg-foreground transition-all"
-                                style={{ width: `${pct}%` }}
-                              />
+                        <Collapsible key={d.date} defaultOpen={s.perDay.length <= 3}>
+                          <CollapsibleTrigger asChild>
+                            <button
+                              type="button"
+                              className="grid w-full gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center sm:gap-4 sm:px-5"
+                            >
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-foreground capitalize">
+                                  {format(parseISO(d.date), "EEEE d. MMM", { locale: da })}
+                                </p>
+                                <p className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">
+                                  {d.stops} {d.stops === 1 ? "opgave" : "opgaver"}
+                                </p>
+                              </div>
+                              <div className="hidden sm:block">
+                                <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+                                  <div
+                                    className="h-full bg-foreground transition-all"
+                                    style={{ width: `${pct}%` }}
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex items-center justify-between gap-3 sm:justify-end">
+                                <div className="text-right">
+                                  <p className="text-sm font-bold tabular-nums text-foreground">
+                                    {formatKr(d.earnings)}
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground">min indtjening</p>
+                                </div>
+                                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform data-[state=open]:rotate-180" />
+                              </div>
+                            </button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <div className="border-t border-border bg-secondary/30 px-4 py-2 sm:px-5">
+                              {d.entries.length === 0 ? (
+                                <p className="py-3 text-center text-xs text-muted-foreground">
+                                  Ingen detaljer
+                                </p>
+                              ) : (
+                                <ul className="divide-y divide-border/60">
+                                  {d.entries.map((e) => (
+                                    <li
+                                      key={e.stopId}
+                                      className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 py-2.5 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:gap-4"
+                                    >
+                                      <div className="min-w-0">
+                                        <p className="truncate text-sm font-medium text-foreground">
+                                          {e.customerName || "Opgave"}
+                                        </p>
+                                        <Badge
+                                          variant="outline"
+                                          className={cn(
+                                            "mt-1 inline-flex h-5 w-fit border px-1.5 text-[10px] font-medium",
+                                            PAYMENT_BADGE[e.paymentStatus],
+                                          )}
+                                        >
+                                          {PAYMENT_LABEL[e.paymentStatus]}
+                                        </Badge>
+                                      </div>
+                                      <div className="hidden text-right sm:block">
+                                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Aftale</p>
+                                        <p className="text-xs font-medium tabular-nums text-muted-foreground">
+                                          {formatKr(e.orderAmount)}
+                                        </p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Min andel</p>
+                                        <p className="text-sm font-bold tabular-nums text-emerald-600">
+                                          {formatKr(e.share)}
+                                        </p>
+                                      </div>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
                             </div>
-                          </div>
-                          <div className="w-16 shrink-0 text-right">
-                            <p className="text-sm font-semibold tabular-nums text-foreground">
-                              {d.stops}
-                            </p>
-                            <p className="text-[10px] text-muted-foreground">opgaver</p>
-                          </div>
-                        </div>
+                          </CollapsibleContent>
+                        </Collapsible>
                       );
                     })}
                   </div>

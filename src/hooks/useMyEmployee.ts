@@ -33,7 +33,21 @@ export type EmployeeStats = {
   totalDistanceKm: number;
   revenue: number;        // omsætning fra completede stop (ordrer)
   commission: number;     // medarbejderens andel (commission_pct)
-  perDay: { date: string; stops: number; revenue: number }[];
+  perDay: {
+    date: string;
+    stops: number;
+    revenue: number;
+    /** Medarbejderens egen indtjening for dagen (sum af shares). */
+    earnings: number;
+    /** En række pr. udført opgave på dagen — bruges i "Daglig aktivitet". */
+    entries: {
+      stopId: string;
+      customerName: string | null;
+      orderAmount: number;
+      share: number;
+      paymentStatus: "paid" | "settling" | "pending" | "unknown";
+    }[];
+  }[];
 };
 
 /** Aggregeret statistik for medarbejder i et datointerval (inkl. begge ender). */
@@ -112,7 +126,7 @@ export const useMyEmployeeStats = (
       // 3) Hent alle stop på de ruter
       const { data: stops } = await supabase
         .from("route_stops")
-        .select("id, route_id, status, assigned_employee_id, completed_at, order_id")
+        .select("id, route_id, status, assigned_employee_id, completed_at, order_id, customer_name")
         .in("route_id", routeIds);
 
       // Filtrér stop som tilhører medarbejderen (specifik tildeling eller team)
@@ -129,15 +143,17 @@ export const useMyEmployeeStats = (
       const completedStops = myStops.filter((s: any) => s.status === "completed" && s.order_id);
       const completedOrderIds = completedStops.map((s: any) => s.order_id);
 
-      // 4) Omsætning fra completede ordrer (pr. ordre, så vi kan dele pr. stop)
+      // 4) Omsætning + status fra completede ordrer (pr. ordre, så vi kan dele pr. stop)
       const orderAmountMap = new Map<string, number>();
+      const orderStatusMap = new Map<string, string>();
       if (completedOrderIds.length > 0) {
         const { data: orders } = await supabase
           .from("orders")
-          .select("id, total_amount, adjusted_amount")
+          .select("id, total_amount, adjusted_amount, status")
           .in("id", completedOrderIds);
         (orders || []).forEach((o: any) => {
           orderAmountMap.set(o.id, Number(o.adjusted_amount ?? o.total_amount ?? 0));
+          orderStatusMap.set(o.id, String(o.status || ""));
         });
       }
       const revenue = completedStops.reduce(
@@ -177,14 +193,17 @@ export const useMyEmployeeStats = (
       }
 
       const myPctFraction = Number(commissionPct || 0) / 100;
+      // Pr. completed stop: hvor mange deler provisionen + medarbejderens andel.
+      const shareByStop = new Map<string, number>();
       const commission = completedStops.reduce((sum: number, s: any) => {
         const orderAmount = orderAmountMap.get(s.order_id) || 0;
-        // Antal kollegaer der deler provisionen for dette stop
         const explicit = assigneeCountByStop.get(s.id) || 0;
         const sharers = explicit > 0
           ? explicit
           : Math.max(teamSizeByRoute.get(s.route_id) || 1, 1);
-        return sum + (orderAmount * myPctFraction) / sharers;
+        const share = (orderAmount * myPctFraction) / sharers;
+        shareByStop.set(s.id, share);
+        return sum + share;
       }, 0);
 
       // 5) Arbejdsdage
@@ -208,22 +227,44 @@ export const useMyEmployeeStats = (
         if (r?.total_distance_km) totalDistanceKm += Number(r.total_distance_km);
       });
 
-      // 7) Per-dag aggregering (til evt. graf eller liste)
-      const perDayMap = new Map<string, { date: string; stops: number; revenue: number }>();
+      // 7) Per-dag aggregering — inkluderer en række pr. udført opgave
+      const perDayMap = new Map<string, EmployeeStats["perDay"][number]>();
       const stopRouteDate = new Map<string, string>();
       myStops.forEach((s: any) => {
         const r = routeMap.get(s.route_id);
         if (r) stopRouteDate.set(s.id, r.route_date);
       });
-      myStops.forEach((s: any) => {
-        if (s.status !== "completed") return;
+      // Sortér så nyeste opgaver vises først pr. dag
+      const sortedCompleted = [...completedStops].sort((a: any, b: any) => {
+        const ta = a.completed_at ? new Date(a.completed_at).getTime() : 0;
+        const tb = b.completed_at ? new Date(b.completed_at).getTime() : 0;
+        return tb - ta;
+      });
+      sortedCompleted.forEach((s: any) => {
         const d = stopRouteDate.get(s.id);
         if (!d) return;
-        const row = perDayMap.get(d) || { date: d, stops: 0, revenue: 0 };
+        const row = perDayMap.get(d) || { date: d, stops: 0, revenue: 0, earnings: 0, entries: [] };
+        const orderAmount = orderAmountMap.get(s.order_id) || 0;
+        const share = shareByStop.get(s.id) || 0;
         row.stops += 1;
+        row.revenue += orderAmount;
+        row.earnings += share;
+        const orderStatus = orderStatusMap.get(s.order_id);
+        const paymentStatus: "paid" | "settling" | "pending" | "unknown" =
+          orderStatus === "completed" ? "paid"
+          : orderStatus === "in_progress" || orderStatus === "confirmed" ? "settling"
+          : orderStatus === "pending" ? "pending"
+          : "unknown";
+        row.entries.push({
+          stopId: s.id,
+          customerName: s.customer_name ?? null,
+          orderAmount,
+          share,
+          paymentStatus,
+        });
         perDayMap.set(d, row);
       });
-      const perDay = Array.from(perDayMap.values()).sort((a, b) => a.date.localeCompare(b.date));
+      const perDay = Array.from(perDayMap.values()).sort((a, b) => b.date.localeCompare(a.date));
 
       return {
         routesCount: myRouteIds.size,

@@ -2172,6 +2172,29 @@ const StopDetailsContent = ({
   const formatKr = (n: number) =>
     `${Math.round(n).toLocaleString("da-DK")} kr`;
 
+  // Betalingsstatus afledt af ordrens status. Medarbejderen ser kun et
+  // simpelt badge — ikke faktura-detaljer. completed = betalt, in_progress
+  // /confirmed = afregnes, pending = afventer.
+  const orderStatus: string = (order as any)?.status || "";
+  const paymentStatus: "paid" | "settling" | "pending" | "unknown" =
+    orderStatus === "completed" ? "paid"
+    : orderStatus === "in_progress" || orderStatus === "confirmed" ? "settling"
+    : orderStatus === "pending" ? "pending"
+    : "unknown";
+  const paymentLabel =
+    paymentStatus === "paid" ? "Betalt"
+    : paymentStatus === "settling" ? "Afregnes"
+    : paymentStatus === "pending" ? "Afventer betaling"
+    : "Status ukendt";
+  const paymentClasses =
+    paymentStatus === "paid"
+      ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20"
+      : paymentStatus === "settling"
+        ? "bg-blue-500/10 text-blue-700 border-blue-500/20"
+        : paymentStatus === "pending"
+          ? "bg-amber-500/10 text-amber-700 border-amber-500/20"
+          : "bg-secondary text-muted-foreground border-border";
+
   return (
     <div className="flex flex-col h-full">
       {/* Header med rute-pille og navn */}
@@ -2308,11 +2331,19 @@ const StopDetailsContent = ({
                 </h4>
               </div>
               <div className="rounded-xl border bg-card p-3 space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <span className="text-sm text-muted-foreground">Aftalens beløb</span>
-                  <span className="text-sm font-semibold tabular-nums text-foreground">
-                    {formatKr(orderTotal)}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className={`h-5 border px-1.5 text-[10px] font-medium ${paymentClasses}`}
+                    >
+                      {paymentLabel}
+                    </Badge>
+                    <span className="text-sm font-semibold tabular-nums text-foreground">
+                      {formatKr(orderTotal)}
+                    </span>
+                  </div>
                 </div>
                 {myCommissionPct > 0 && (
                   <div className="flex items-center justify-between border-t border-border pt-2">

@@ -142,3 +142,23 @@
   font-size: 20px;
   color: hsl(0 0% 45%);
 }
+
+/* ─── Leaflet z-index scoping ───
+   Leaflet's defaults (.leaflet-pane = 400, .leaflet-top/.leaflet-bottom = 1000)
+   hører til INDEN i .leaflet-container — men tile-billeder og controls kan
+   visuelt "lække" over sticky topbars og sidebars, fordi deres z-index er
+   højere end vores app-shell (z-30/z-40). Vi tvinger derfor alt leaflet til
+   at ligge på en lokal stacking-context lavere end navigation. */
+.leaflet-container {
+  z-index: 0;
+  isolation: isolate;
+  position: relative;
+}
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 1 !important;
+}
+.leaflet-control {
+  z-index: 2 !important;
+}
