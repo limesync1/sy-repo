@@ -390,6 +390,7 @@ export type Database = {
           avatar_url: string | null
           business_id: string
           color: string
+          commission_pct: number
           created_at: string
           email: string
           home_address: string | null
@@ -409,6 +410,7 @@ export type Database = {
           avatar_url?: string | null
           business_id: string
           color?: string
+          commission_pct?: number
           created_at?: string
           email: string
           home_address?: string | null
@@ -428,6 +430,7 @@ export type Database = {
           avatar_url?: string | null
           business_id?: string
           color?: string
+          commission_pct?: number
           created_at?: string
           email?: string
           home_address?: string | null
