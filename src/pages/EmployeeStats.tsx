@@ -125,7 +125,11 @@ const EmployeeStats = () => {
                 value={formatKr(s.commission)}
                 icon={<Wallet />}
                 tone="emerald"
-                hint={employee?.commission_pct ? `${employee.commission_pct}% af ${formatKr(s.revenue)}` : "Ingen kommission sat"}
+                hint={
+                  employee?.commission_pct
+                    ? `${employee.commission_pct}% pr. opgave – delt med kolleger`
+                    : "Ingen provision sat"
+                }
               />
               <StatCard
                 label="Omsætning"
