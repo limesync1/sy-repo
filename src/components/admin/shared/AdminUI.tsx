@@ -30,7 +30,7 @@ export const PageHeader = ({
         <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
       )}
     </div>
-    {action && <div className="shrink-0">{action}</div>}
+    {action && <div className="w-full sm:w-auto sm:shrink-0">{action}</div>}
   </div>
 );
 
