@@ -1757,46 +1757,40 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Done state ─── */}
         {allDone && (
           <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pb-[50px]">
-            <Card
-              className="overflow-hidden shadow-2xl rounded-2xl border-t-2"
-              style={{ borderTopColor: "hsl(142 70% 45%)" }}
-            >
+            <Card className="overflow-hidden shadow-xl rounded-xl border-border">
               <div className="p-5 text-center space-y-3">
-                <div
-                  className="h-16 w-16 mx-auto rounded-2xl flex items-center justify-center shadow-lg"
-                  style={{ background: "hsl(142 70% 95%)", color: "hsl(142 70% 30%)" }}
-                >
-                  <CheckCircle2 className="h-9 w-9" />
+                <div className="h-14 w-14 mx-auto rounded-xl flex items-center justify-center bg-secondary">
+                  <CheckCircle2 className="h-8 w-8 text-foreground" />
                 </div>
                 <div>
-                  <p className="font-bold text-lg">Rute færdig 🎉</p>
+                  <p className="font-semibold text-lg text-foreground">Rute færdig</p>
                   <p className="text-sm text-muted-foreground">
                     Alle {sortedStops.length} stop udført
                     {autoReturn != null && autoReturn > 0 && ` · oversigt om ${autoReturn}s`}
                   </p>
                 </div>
                 {/* Mini-stats */}
-                <div className="grid grid-cols-3 divide-x rounded-xl border bg-secondary/30 overflow-hidden">
-                  <div className="px-2 py-2">
-                    <p className="text-[9px] uppercase text-muted-foreground font-semibold">Stop</p>
-                    <p className="text-sm font-bold tabular-nums">{sortedStops.length}</p>
+                <div className="grid grid-cols-3 divide-x divide-border rounded-xl border border-border bg-background overflow-hidden">
+                  <div className="px-2 py-2.5">
+                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Stop</p>
+                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">{sortedStops.length}</p>
                   </div>
-                  <div className="px-2 py-2">
-                    <p className="text-[9px] uppercase text-muted-foreground font-semibold">Distance</p>
-                    <p className="text-sm font-bold tabular-nums">
+                  <div className="px-2 py-2.5">
+                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
+                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
                       {route.total_distance_km != null ? `${route.total_distance_km.toFixed(1)} km` : "—"}
                     </p>
                   </div>
-                  <div className="px-2 py-2">
-                    <p className="text-[9px] uppercase text-muted-foreground font-semibold">Tid</p>
-                    <p className="text-sm font-bold tabular-nums">
+                  <div className="px-2 py-2.5">
+                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Tid</p>
+                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
                       {route.total_duration_minutes != null ? `${route.total_duration_minutes} min` : "—"}
                     </p>
                   </div>
                 </div>
                 <Button
                   size="lg"
-                  className="w-full gap-2 h-12 rounded-xl"
+                  className="w-full gap-2 h-12 rounded-xl bg-foreground text-background hover:bg-foreground/90"
                   onClick={() => { setAutoReturn(null); navigate("/medarbejder"); }}
                 >
                   Til oversigt
