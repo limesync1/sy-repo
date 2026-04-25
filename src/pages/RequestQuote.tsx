@@ -18,6 +18,8 @@ import LocationChip from "@/components/LocationChip";
 import RadiusPicker from "@/components/RadiusPicker";
 import SiteNav from "@/components/SiteNav";
 import { useUserLocation } from "@/contexts/LocationContext";
+import PageHero from "@/components/landing/PageHero";
+import Footer from "@/components/landing/Footer";
 
 const CATEGORIES: { label: string; icon: typeof Sparkles }[] = [
   { label: "Rengøring", icon: Sparkles },
@@ -211,22 +213,14 @@ const RequestQuote = () => {
 
       {/* ─── STEP 1: Hero + form ─── */}
       {!matches && !isLoading && !selectedBusiness && (
-        <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pt-10 pb-16 md:pt-14 md:pb-20">
-          {/* Headline */}
-          <div className="text-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
-              <Sparkles className="h-3 w-3" />
-              AI-drevet matching
-            </span>
-            <h1 className="mt-4 text-4xl font-bold leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-[3.5rem]">
-              Beskriv opgaven – <span className="text-accent">vores AI</span> finder folkene.
-            </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">
-              Få op til 3 skræddersyede tilbud fra verificerede serviceydere. Helt gratis & uforpligtende —
-              klar på <span className="font-semibold text-foreground">3-10 sekunder</span>.
-            </p>
-          </div>
+        <>
+          <PageHero
+            eyebrow="AI-drevet matching"
+            title={<>Beskriv opgaven — <span className="text-accent">vores AI</span> finder folkene.</>}
+            subtitle={<>Få op til 3 skræddersyede tilbud fra verificerede serviceydere. Helt gratis & uforpligtende — klar på <span className="font-semibold text-background">3-10 sekunder</span>.</>}
+          />
 
+          <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pt-10 pb-16 md:pt-12 md:pb-20">
           {/* Form card */}
           <form onSubmit={handleFind} className="surface-panel mt-10 rounded-[2rem] border border-border p-6 shadow-[0_24px_55px_-36px_hsl(var(--foreground)/0.28)] md:p-8">
             {/* Location strip */}
@@ -318,7 +312,8 @@ const RequestQuote = () => {
               </div>
             ))}
           </div>
-        </section>
+          </section>
+        </>
       )}
 
       {/* ─── Loading ─── */}
