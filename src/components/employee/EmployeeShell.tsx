@@ -7,11 +7,13 @@
 //   </EmployeeShell>
 import { Link, useNavigate } from "react-router-dom";
 import { useState, type ReactNode } from "react";
-import { LogOut, Menu, X, Calendar as CalendarIcon, User as UserIcon } from "lucide-react";
+import { LogOut, Menu, X, Calendar as CalendarIcon, BarChart3 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMyEmployee } from "@/hooks/useMyEmployee";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
-export type EmployeeTabKey = "today";
+export type EmployeeTabKey = "today" | "stats";
 
 type NavItem = {
   value: EmployeeTabKey;
@@ -22,6 +24,7 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { value: "today", label: "Min dag", icon: CalendarIcon, href: "/medarbejder" },
+  { value: "stats", label: "Statistik", icon: BarChart3, href: "/medarbejder/statistik" },
 ];
 
 type EmployeeShellProps = {
@@ -43,12 +46,24 @@ export const EmployeeShell = ({
   contentPadding = true, contentClassName, children,
 }: EmployeeShellProps) => {
   const { user, signOut } = useAuth();
+  const { data: employee } = useMyEmployee();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const currentNav = NAV_ITEMS.find((n) => n.value === activeTab);
-  const userLabel = user?.user_metadata?.display_name || user?.email || "Medarbejder";
-  const userInitial = (userLabel as string).charAt(0).toUpperCase();
+  const displayName =
+    employee?.name ||
+    (user?.user_metadata?.display_name as string | undefined) ||
+    user?.email ||
+    "Medarbejder";
+  const subLabel = employee?.title || user?.email || "Medarbejder";
+  const initials = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p.charAt(0).toUpperCase())
+    .join("") || "M";
+  const accentColor = employee?.color || "hsl(var(--foreground))";
 
   return (
     <div className="flex min-h-screen bg-secondary/50">
@@ -79,12 +94,20 @@ export const EmployeeShell = ({
         {/* User info — matcher AdminShells "business info" card */}
         <div className="mx-3 mt-3 mb-3 shrink-0 rounded-xl border border-border bg-card px-3 py-3 shadow-sm">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground font-bold text-sm">
-              {userInitial}
-            </div>
+            <Avatar className="h-10 w-10 shrink-0 rounded-lg ring-2 ring-border" style={{ background: accentColor }}>
+              {employee?.avatar_url ? (
+                <AvatarImage src={employee.avatar_url} alt={displayName} className="rounded-lg object-cover" />
+              ) : null}
+              <AvatarFallback
+                className="rounded-lg text-white font-bold text-sm"
+                style={{ background: accentColor }}
+              >
+                {initials}
+              </AvatarFallback>
+            </Avatar>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-foreground">{userLabel}</p>
-              <p className="truncate text-xs text-muted-foreground">Medarbejder</p>
+              <p className="truncate text-sm font-semibold text-foreground">{displayName}</p>
+              <p className="truncate text-xs text-muted-foreground">{subLabel}</p>
             </div>
           </div>
         </div>
