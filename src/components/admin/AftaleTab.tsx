@@ -1605,9 +1605,9 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
               </div>
               <button
                 type="button"
-                onClick={() => handleQuickCreateRoute(fromIso)}
+                onClick={openCreateRouteDialog}
                 className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-medium text-foreground hover:bg-secondary"
-                title="Opret en ny rute i dag"
+                title="Opret en ny rute"
               >
                 <PlusIcon className="h-3 w-3" /> Ny rute
               </button>
