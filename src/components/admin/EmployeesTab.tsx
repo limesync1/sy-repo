@@ -488,6 +488,12 @@ const EmployeeRow = ({
                   {employee.phone}
                 </span>
               )}
+              {Number(employee.commission_pct) > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-foreground tabular-nums">
+                  <Percent className="h-2.5 w-2.5" />
+                  {Number(employee.commission_pct)}% provision
+                </span>
+              )}
             </div>
             {/* Farve / billede-styring */}
             <div className="mt-1.5 flex items-center gap-2">
