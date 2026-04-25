@@ -1,4 +1,4 @@
-import { ArrowRight, ShieldCheck, Star, Users } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-window-cleaning.webp";
 import { Button } from "@/components/ui/button";
@@ -19,15 +19,12 @@ const HeroSection = () => {
           height={960}
           loading="eager"
         />
-        {/* Overlay for læsbarhed.
-            Tre lag for at sikre at hvid tekst aldrig forsvinder ind i lyse partier
-            af baggrundsbilledet (himmel, glas-reflekser, mursten):
-            1) En kraftig venstre→højre gradient der dækker tekst-kolonnen.
-            2) En bundskygge der løfter CTA'er og trust-strip.
-            3) Et globalt mørkt slør der jævner kontrasten ud overalt. */}
-        <div className="absolute inset-0 bg-gradient-to-r from-foreground/95 via-foreground/85 to-foreground/55" />
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/85 via-foreground/30 to-transparent" />
-        <div className="absolute inset-0 bg-foreground/30" />
+        {/* Overlay for læsbarhed — lettere end før, men stadig nok til at hvid
+            tekst er klart læsbar over varierede partier af baggrundsbilledet.
+            To lag: en venstre→højre gradient der løfter tekst-kolonnen, og et
+            blødt globalt slør der jævner kontrasten ud uden at gøre billedet sort. */}
+        <div className="absolute inset-0 bg-gradient-to-r from-foreground/75 via-foreground/55 to-foreground/15" />
+        <div className="absolute inset-0 bg-foreground/15" />
       </div>
 
       <SiteNav />
@@ -35,11 +32,7 @@ const HeroSection = () => {
       {/* Indhold — venstrejusteret, matcher resten af forsidens sektioner */}
       <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-12 sm:px-6 sm:pb-24 sm:pt-16 lg:px-8 lg:pb-32 lg:pt-24">
         <div className="max-w-2xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-background/25 bg-background/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-background/85 backdrop-blur sm:text-xs">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-            Serviceydere i hele Danmark
-          </span>
-          <h1 className="mt-5 text-[2.4rem] font-semibold leading-[1.04] tracking-tight text-background sm:text-[3.25rem] lg:text-[3.75rem]">
+          <h1 className="text-[2.4rem] font-semibold leading-[1.04] tracking-tight text-background sm:text-[3.25rem] lg:text-[3.75rem]">
             Find den rette serviceyder til opgaven.
           </h1>
           <p className="mt-4 max-w-xl text-[15px] leading-7 text-background/85 sm:text-base">
@@ -71,22 +64,6 @@ const HeroSection = () => {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
-          </div>
-
-          {/* Trust strip — diskret signal under CTA'er */}
-          <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px] text-background/75">
-            <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5 text-accent" />
-              Verificerede udbydere
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Star className="h-3.5 w-3.5 text-accent" />
-              Ægte anmeldelser
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5 text-accent" />
-              Hele Danmark
-            </span>
           </div>
         </div>
       </div>
