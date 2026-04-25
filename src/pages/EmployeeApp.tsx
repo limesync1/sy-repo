@@ -341,7 +341,7 @@ const EmployeeApp = () => {
           return (
             <Card
               key={r.id}
-              className="surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm transition-shadow hover:shadow-md"
+              className="group surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md"
             >
               {/* Header bar — neutral admin-style med farvet rute-prik */}
               <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 sm:px-5">
@@ -507,7 +507,7 @@ const EmployeeApp = () => {
                   <Button
                     asChild
                     size="lg"
-                    className="h-11 flex-1 gap-2 rounded-lg bg-foreground text-background font-semibold shadow-sm hover:bg-foreground/90"
+                    className="h-11 flex-1 gap-2 rounded-lg bg-foreground font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                     disabled={total === 0}
                   >
                     <Link to={`/medarbejder/rute/${r.id}`}>
@@ -524,7 +524,7 @@ const EmployeeApp = () => {
                     asChild
                     size="lg"
                     variant="outline"
-                    className="h-11 rounded-lg border-border px-3 text-foreground hover:bg-secondary"
+                    className="h-11 shrink-0 rounded-lg border-border bg-card px-3 text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                   >
                     <Link
                       to={`/medarbejder/rute/${r.id}/print`}
