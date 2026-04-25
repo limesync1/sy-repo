@@ -55,10 +55,21 @@ export const useSmoothPosition = (
       fromHeadingRef.current = cur;
       toHeadingRef.current = cur + delta;
     }
-    startTimeRef.current = performance.now();
+    const nowTs = performance.now();
+    // Mål den observerede GPS-cadence; brug den som tween-varighed med
+    // en lille buffer (~120%) så vi altid har lidt at glide på når næste
+    // fix er forsinket.  Første fix → fald tilbage til 1100 ms.
+    if (lastUpdateRef.current > 0) {
+      const observed = nowTs - lastUpdateRef.current;
+      const next = Math.max(700, Math.min(1700, observed * 1.2));
+      // Glat også varighed med EMA — undgår at en enkelt outlier ændrer alt.
+      durationRef.current = durationRef.current * 0.6 + next * 0.4;
+    }
+    lastUpdateRef.current = nowTs;
+    startTimeRef.current = nowTs;
     if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     const tick = (now: number) => {
-      const t = Math.min(1, (now - startTimeRef.current) / DURATION_MS);
+      const t = Math.min(1, (now - startTimeRef.current) / durationRef.current);
       // Blødere ease-in-out (smoothstep) — undgår både ryk i starten og
       // det "halse-stop" en ren ease-out giver lige før næste GPS-fix.
       const e = t * t * (3 - 2 * t);
