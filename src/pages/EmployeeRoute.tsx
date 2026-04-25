@@ -1261,26 +1261,26 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           </MapContainer>
         )}
 
-        {/* ─── Floating right-side controls — admin-stil rounded-xl, neutral ─── */}
+        {/* ─── Floating right-side controls — runde pills, native-følelse ─── */}
         <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
           {routeStarted && !allDone && (
             <Button
               size="icon" variant="secondary"
               onClick={() => setListOpen((v) => !v)}
-              className="h-10 w-10 rounded-xl shadow-md bg-card hover:bg-secondary border border-border text-foreground"
+              className="h-11 w-11 rounded-full shadow-lg bg-card hover:bg-secondary border border-border text-foreground transition-transform active:scale-95"
               aria-label="Vis liste"
             >
-              <List className="h-4 w-4" />
+              <List className="h-[18px] w-[18px]" />
             </Button>
           )}
           {routeStarted && !allDone && (
             <Button
               size="icon" variant="secondary"
               onClick={() => setAudioEnabled((v) => !v)}
-              className="h-10 w-10 rounded-xl shadow-md bg-card hover:bg-secondary border border-border text-foreground"
+              className="h-11 w-11 rounded-full shadow-lg bg-card hover:bg-secondary border border-border text-foreground transition-transform active:scale-95"
               aria-label={audioEnabled ? "Slå lyd fra" : "Slå lyd til"}
             >
-              {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              {audioEnabled ? <Volume2 className="h-[18px] w-[18px]" /> : <VolumeX className="h-[18px] w-[18px]" />}
             </Button>
           )}
           {routeStarted && (
@@ -1288,12 +1288,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               size="icon"
               variant={followMode ? "default" : "secondary"}
               onClick={() => setFollowMode((v) => !v)}
-              className={`h-10 w-10 rounded-xl shadow-md border ${followMode ? "border-transparent text-background hover:opacity-90" : "bg-card hover:bg-secondary border-border text-foreground"}`}
+              className={`h-11 w-11 rounded-full shadow-lg border transition-transform active:scale-95 ${followMode ? "border-transparent text-background hover:opacity-90" : "bg-card hover:bg-secondary border-border text-foreground"}`}
               style={followMode ? { background: themeColor } : undefined}
               aria-label={followMode ? "Slå live-følg fra" : "Slå live-følg til"}
               title={followMode ? "Følger din position" : "Recentrer"}
             >
-              <Crosshair className="h-4 w-4" />
+              <Crosshair className="h-[18px] w-[18px]" />
             </Button>
           )}
         </div>
@@ -1301,31 +1301,34 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {/* ─── Fullscreen drive mode: floating top overlays (back pill + maneuver banner + traffic alert) ─── */}
         {routeStarted && !allDone && (
           <>
-            {/* Back + progress — admin-stil rounded-xl med h-10 */}
+            {/* Back + progress — runde pills, native-følelse */}
             <div className="absolute top-3 left-3 z-[1000] flex items-center gap-2">
               <Button
                 asChild
                 size="icon"
                 variant="secondary"
-                className="h-10 w-10 rounded-xl shadow-md bg-card hover:bg-secondary border border-border text-foreground"
+                className="h-11 w-11 rounded-full shadow-lg bg-card hover:bg-secondary border border-border text-foreground transition-transform active:scale-95"
               >
                 <Link to="/medarbejder" aria-label="Tilbage">
-                  <ArrowLeft className="h-4 w-4" />
+                  <ArrowLeft className="h-[18px] w-[18px]" />
                 </Link>
               </Button>
-              <div className="flex items-center gap-2 pl-2.5 pr-3 h-10 rounded-xl bg-card border border-border shadow-md">
-                <span
-                  className="h-2 w-2 rounded-full shrink-0"
-                  style={{ background: routeBadgeColor }}
-                  aria-hidden
-                />
-                <span className="text-sm font-semibold text-foreground tabular-nums leading-none">
-                  {completedCount}<span className="text-muted-foreground/70 font-medium">/{sortedStops.length}</span>
-                </span>
+              <div className="flex items-center gap-2.5 pl-3 pr-3.5 h-11 rounded-full bg-card border border-border shadow-lg">
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full shrink-0"
+                    style={{ background: routeBadgeColor }}
+                    aria-hidden
+                  />
+                  <span className="text-sm font-bold text-foreground tabular-nums leading-none">
+                    {completedCount}
+                    <span className="text-muted-foreground/60 font-semibold">/{sortedStops.length}</span>
+                  </span>
+                </div>
                 {estimatedEndAt && (
                   <>
-                    <span className="h-3 w-px bg-border" aria-hidden />
-                    <span className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground tabular-nums leading-none">
+                    <span className="h-4 w-px bg-border" aria-hidden />
+                    <span className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground tabular-nums leading-none">
                       <Flag className="h-3 w-3" />{estimatedEndAt}
                     </span>
                   </>
@@ -1335,35 +1338,35 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {/* Maneuver banner — floating top center */}
             {showManeuverBanner && maneuver && nextStop && (
-              <div className="absolute top-[68px] left-3 right-[68px] z-[1000] pointer-events-none">
-                <Card className="overflow-hidden shadow-md rounded-xl pointer-events-auto bg-card border-border pointer-events-auto">
+              <div className="absolute top-[72px] left-3 right-[72px] z-[1000] pointer-events-none">
+                <Card className="overflow-hidden shadow-xl rounded-2xl pointer-events-auto bg-card border-border animate-in fade-in slide-in-from-top-2 duration-300">
                   <div className="flex items-stretch">
-                    <div className="flex flex-col items-center justify-center w-20 shrink-0 bg-foreground text-background py-3">
+                    <div className="flex flex-col items-center justify-center w-[88px] shrink-0 bg-foreground text-background py-3.5 px-1">
                       <ManeuverIcon
                         type={maneuver.currentStep.maneuver.type}
                         modifier={maneuver.currentStep.maneuver.modifier}
-                        className="h-10 w-10"
+                        className="h-11 w-11"
                       />
-                      <span className="text-[11px] font-semibold tracking-wide mt-1 tabular-nums">
+                      <span className="text-[13px] font-bold tracking-tight mt-1.5 tabular-nums leading-none">
                         {formatKm(maneuver.distanceToManeuverM)}
                       </span>
                     </div>
-                    <div className="flex-1 min-w-0 px-3 py-3">
-                      <p className="font-semibold text-base leading-tight truncate text-foreground">
+                    <div className="flex-1 min-w-0 px-3.5 py-3">
+                      <p className="font-bold text-[17px] leading-tight truncate text-foreground">
                         {maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier)}
                       </p>
                       {maneuver.currentStep.name && (
-                        <p className="text-sm text-muted-foreground truncate mt-0.5">
+                        <p className="text-[13px] text-muted-foreground truncate mt-0.5">
                           ad <span className="font-semibold text-foreground">{maneuver.currentStep.name}</span>
                         </p>
                       )}
                       {maneuver.nextStep && (
-                        <div className="flex items-center gap-1.5 mt-1.5 pt-1.5 border-t border-border text-[11px] text-muted-foreground">
-                          <span>Derefter:</span>
+                        <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-border text-[11px] text-muted-foreground">
+                          <span className="font-semibold uppercase tracking-wide text-[10px]">Derefter</span>
                           <ManeuverIcon
                             type={maneuver.nextStep.maneuver.type}
                             modifier={maneuver.nextStep.maneuver.modifier}
-                            className="h-3.5 w-3.5"
+                            className="h-3.5 w-3.5 text-foreground"
                           />
                           <span className="truncate">
                             {maneuverLabel(maneuver.nextStep.maneuver.type, maneuver.nextStep.maneuver.modifier)}
@@ -1587,34 +1590,34 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         {routeStarted && !allDone && nextStop && (
           <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pb-[50px] pointer-events-none">
             <Card
-              className="overflow-hidden pointer-events-auto rounded-xl border-border shadow-xl"
+              className="overflow-hidden pointer-events-auto rounded-2xl border-border shadow-2xl"
             >
-              {/* Segmenteret progress — slankere, neutral palette */}
-              <div className="flex gap-0.5 px-3 pt-2 pb-1.5 bg-secondary/60">
+              {/* Segmenteret progress — tydeligere segmenter, native-følelse */}
+              <div className="flex gap-1 px-3.5 pt-2.5 pb-2 bg-card border-b border-border/60">
                 {sortedStops.map((s, i) => (
                   <div
                     key={s.id}
-                    className="flex-1 h-1 rounded-full transition-all"
+                    className="flex-1 h-1.5 rounded-full transition-all"
                     style={{
                       background:
                         s.status === "completed"
                           ? "hsl(142 70% 45%)"
                           : i === nextStopIdx
                             ? themeColor
-                            : "hsl(220 14% 88%)",
+                            : "hsl(220 14% 90%)",
                     }}
                   />
                 ))}
               </div>
               <button
                 type="button"
-                className="w-full flex items-center gap-3 px-4 py-3 bg-card hover:bg-secondary/40 transition-colors border-b border-border"
+                className="w-full flex items-center gap-3 px-4 py-3.5 bg-card hover:bg-secondary/40 transition-colors border-b border-border"
                 onClick={() => setCollapsed((c) => !c)}
                 aria-expanded={!collapsed}
                 aria-label={collapsed ? "Vis stop-detaljer" : "Skjul stop-detaljer"}
               >
                 <span
-                  className="flex h-10 w-10 items-center justify-center rounded-lg text-background text-sm font-bold shrink-0"
+                  className="flex h-11 w-11 items-center justify-center rounded-xl text-background text-base font-bold shrink-0 shadow-sm"
                   style={{ background: themeColor }}
                 >
                   {nextStopIdx + 1}
@@ -1653,14 +1656,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               </button>
 
               {!collapsed && (
-                <div className="p-3 space-y-3">
+                <div className="p-3.5 space-y-3">
                   {/* Adresse + service */}
                   {(nextStop.address || (nextStop.service_summary && stripPrices(nextStop.service_summary))) && (
-                    <div className="rounded-xl bg-secondary/30 p-2.5 space-y-1.5">
+                    <div className="rounded-xl bg-secondary/40 border border-border/60 p-3 space-y-1.5">
                       {nextStop.address && (
-                        <p className="text-[13px] flex items-start gap-1.5 leading-tight">
+                        <p className="text-[13px] flex items-start gap-1.5 leading-snug">
                           <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
-                          <span className="font-medium">{nextStop.address}</span>
+                          <span className="font-semibold text-foreground">{nextStop.address}</span>
                         </p>
                       )}
                       {nextStop.service_summary && stripPrices(nextStop.service_summary) && (
@@ -1671,51 +1674,51 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     </div>
                   )}
 
-                  {/* Info-grid: km, tid, ETA — clean admin-stil. */}
+                  {/* Info-grid: km, tid, ETA */}
                   {(directions || etaLabel) && (
                     <div className="grid grid-cols-3 divide-x divide-border rounded-xl border border-border bg-background overflow-hidden">
-                        <div className="px-2 py-1.5 text-center">
-                          <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
-                          <p className="text-[13px] font-bold tabular-nums mt-0.5">
+                        <div className="px-2 py-2 text-center">
+                          <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Distance</p>
+                          <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
                             {directions?.distance_m != null ? formatKm(directions.distance_m) : "—"}
                           </p>
                         </div>
-                        <div className="px-2 py-1.5 text-center">
-                          <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Tid</p>
-                          <p className="text-[13px] font-bold tabular-nums mt-0.5">
+                        <div className="px-2 py-2 text-center">
+                          <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Tid</p>
+                          <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
                             {(() => {
                               const d = directions ? pickDuration(directions, false) : null;
                               return d != null ? formatMin(d) : "—";
                             })()}
                           </p>
                         </div>
-                        <div className="px-2 py-1.5 text-center">
-                          <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Ankomst</p>
-                          <p className="text-[13px] font-bold tabular-nums mt-0.5 text-foreground">
+                        <div className="px-2 py-2 text-center">
+                          <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Ankomst</p>
+                          <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
                             {etaLabel || "—"}
                           </p>
                         </div>
                     </div>
                   )}
 
-                  {/* Sekundære handlinger — kompakt, admin-stil */}
+                  {/* Sekundære handlinger — kompakt, ikon-først */}
                   <div className="grid grid-cols-3 gap-2">
                     <Button
                       onClick={() => handleNavigate(nextStop)}
                       variant="outline"
                       size="sm"
-                      className="gap-1.5 h-9 rounded-lg text-xs border-border"
+                      className="gap-1.5 h-10 rounded-xl text-xs font-semibold border-border hover:bg-secondary"
                     >
                       <Navigation className="h-3.5 w-3.5" /> Maps
                     </Button>
                     {nextStop.customer_phone ? (
-                      <Button asChild variant="outline" size="sm" className="gap-1.5 h-9 rounded-lg text-xs border-border">
+                      <Button asChild variant="outline" size="sm" className="gap-1.5 h-10 rounded-xl text-xs font-semibold border-border hover:bg-secondary">
                         <a href={`tel:${nextStop.customer_phone}`}>
                           <Phone className="h-3.5 w-3.5" /> Ring
                         </a>
                       </Button>
                     ) : (
-                      <Button variant="outline" size="sm" disabled className="gap-1.5 h-9 rounded-lg text-xs border-border">
+                      <Button variant="outline" size="sm" disabled className="gap-1.5 h-10 rounded-xl text-xs font-semibold border-border">
                         <Phone className="h-3.5 w-3.5" /> Ring
                       </Button>
                     )}
@@ -1723,9 +1726,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       onClick={() => setSelectedId(nextStop.id)}
                       variant="outline"
                       size="sm"
-                      className="h-9 rounded-lg text-xs border-border"
+                      className="gap-1.5 h-10 rounded-xl text-xs font-semibold border-border hover:bg-secondary"
                     >
-                      Detaljer
+                      <Info className="h-3.5 w-3.5" /> Detaljer
                     </Button>
                   </div>
 
@@ -1735,10 +1738,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <Button
                     onClick={() => handleComplete(nextStop)}
                     size="lg"
-                    className={`w-full gap-2 h-12 text-base font-semibold rounded-xl transition-all ${
+                    className={`w-full gap-2 h-13 min-h-[52px] text-base font-bold rounded-2xl transition-all active:scale-[0.99] ${
                       isAtNextStop
-                        ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
-                        : "bg-foreground text-background hover:bg-foreground/90 shadow-md"
+                        ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30"
+                        : "bg-foreground text-background hover:bg-foreground/90 shadow-lg"
                     }`}
                     disabled={updateStatus.isPending}
                   >
@@ -1920,24 +1923,24 @@ const StopListPanel = ({
       aria-hidden={false}
     >
       <div
-        className="pointer-events-auto mx-auto w-full max-w-3xl bg-card shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.12)] rounded-t-xl transition-transform duration-300 ease-out border-t border-x border-border"
+        className="pointer-events-auto mx-auto w-full max-w-3xl bg-card shadow-[0_-12px_32px_-12px_rgba(0,0,0,0.18)] rounded-t-2xl transition-transform duration-300 ease-out border-t border-x border-border"
         style={{
           transform: open ? "translateY(0)" : "translateY(calc(100% - 46px))",
           maxHeight: "65vh",
         }}
       >
-        {/* Kompakt rail — kun 38px høj når lukket */}
+        {/* Kompakt rail — kun 46px høj når lukket */}
         <button
           type="button"
           onClick={onToggle}
-          className="w-full flex items-center gap-2 px-3 h-[46px] hover:bg-secondary/60 active:bg-secondary transition-colors rounded-t-xl relative"
+          className="w-full flex items-center gap-2.5 px-4 h-[46px] hover:bg-secondary/60 active:bg-secondary transition-colors rounded-t-2xl relative"
           aria-expanded={open}
           aria-label={open ? "Skjul stop-liste" : "Vis stop-liste"}
         >
-          <span className="h-1 w-10 rounded-full bg-muted-foreground/30 absolute left-1/2 -translate-x-1/2 top-1.5" />
-          <List className="h-4 w-4 text-muted-foreground" />
-          <span className="text-xs font-semibold text-foreground">Alle stop</span>
-          <Badge variant="secondary" className="tabular-nums text-[10px] h-4 px-1.5 font-bold">
+          <span className="h-1 w-10 rounded-full bg-muted-foreground/40 absolute left-1/2 -translate-x-1/2 top-1.5" />
+          <List className="h-[15px] w-[15px] text-muted-foreground" />
+          <span className="text-xs font-bold text-foreground">Alle stop</span>
+          <Badge variant="secondary" className="tabular-nums text-[10px] h-5 px-1.5 font-bold rounded-md">
             {done}/{total}
           </Badge>
           {/* Mini progress dots — kompakt */}
@@ -1981,15 +1984,15 @@ const StopListPanel = ({
                 key={s.id}
                 onClick={() => onSelectStop(s)}
                 onDoubleClick={() => onOpenDetails(s)}
-                className={`w-full text-left p-2.5 rounded-lg border flex items-stretch gap-2.5 transition-all hover:bg-muted/50 ${
+                className={`w-full text-left p-3 rounded-xl border flex items-stretch gap-3 transition-all hover:bg-muted/40 active:scale-[0.99] ${
                   isHl ? "ring-2 ring-ring ring-offset-1" : ""
                 } ${isDone ? "opacity-60" : ""} ${
                   isNext
-                    ? "border-foreground/40 bg-secondary/40"
+                    ? "border-foreground/30 bg-secondary/40 shadow-sm"
                     : "border-border bg-card"
                 }`}
                 style={{
-                  borderLeftWidth: isNext ? 3 : 1,
+                  borderLeftWidth: isNext ? 4 : 1,
                   borderLeftColor: isNext
                     ? "hsl(var(--foreground))"
                     : isDone
@@ -1998,9 +2001,9 @@ const StopListPanel = ({
                 }}
               >
                 {/* Tids-kolonne — kalender-stil */}
-                <div className="flex flex-col items-center justify-start pt-0.5 w-10 shrink-0">
+                <div className="flex flex-col items-center justify-start pt-0.5 w-11 shrink-0">
                   <span
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg font-semibold text-[12px] shrink-0 text-background ${
+                    className={`flex h-9 w-9 items-center justify-center rounded-xl font-bold text-[13px] shrink-0 text-background shadow-sm ${
                       isDone
                         ? "bg-emerald-500"
                         : isNext
@@ -2011,42 +2014,42 @@ const StopListPanel = ({
                     {isDone ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
                   </span>
                   {plannedTime && (
-                    <span className="text-[9px] text-muted-foreground tabular-nums font-semibold mt-1">
+                    <span className="text-[10px] text-muted-foreground tabular-nums font-bold mt-1.5 leading-none">
                       {plannedTime}
                     </span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className={`font-semibold text-sm truncate ${isDone ? "line-through text-muted-foreground" : ""}`}>
+                    <p className={`font-bold text-[14px] truncate ${isDone ? "line-through text-muted-foreground" : "text-foreground"}`}>
                       {s.customer_name || "Stop"}
                     </p>
                     <Badge
-                      className="text-[9px] h-4 px-1.5 border-0 font-semibold uppercase tracking-wide gap-1"
+                      className="text-[9px] h-5 px-2 border-0 font-bold uppercase tracking-wider gap-1 rounded-full"
                       style={{ background: meta.bg, color: meta.text }}
                     >
                       <span
-                        className={`h-1 w-1 rounded-full ${isNext ? "animate-pulse" : ""}`}
+                        className={`h-1.5 w-1.5 rounded-full ${isNext ? "animate-pulse" : ""}`}
                         style={{ background: meta.dot }}
                       />
                       {meta.label}
                     </Badge>
                   </div>
                   {s.address && (
-                    <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
-                      <MapPin className="h-2.5 w-2.5 shrink-0" />{s.address}
+                    <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-1">
+                      <MapPin className="h-3 w-3 shrink-0" />{s.address}
                     </p>
                   )}
                   {s.duration_minutes > 0 && (
                     <p className="text-[10px] text-muted-foreground tabular-nums mt-0.5 flex items-center gap-1">
-                      <Clock className="h-2.5 w-2.5" />~{s.duration_minutes} min
+                      <Clock className="h-3 w-3" />~{s.duration_minutes} min
                     </p>
                   )}
                 </div>
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onOpenDetails(s); }}
-                  className="text-[10px] font-semibold text-muted-foreground hover:text-foreground shrink-0 px-2 py-1 rounded-md hover:bg-secondary self-center transition-colors"
+                  className="text-[10px] font-bold text-muted-foreground hover:text-foreground shrink-0 px-2.5 py-1.5 rounded-lg hover:bg-secondary self-center transition-colors uppercase tracking-wider"
                 >
                   Detaljer
                 </button>
