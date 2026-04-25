@@ -1356,10 +1356,15 @@ export const useMyRouteData = (routeId: string | undefined) => {
 /* ─── Driving directions geometry between two or more waypoints ─── */
 export const useDirections = (
   waypoints: { lat: number; lng: number }[] | null,
+  options?: { departAt?: string; businessId?: string },
 ) => {
   const key = waypoints?.map((w) => `${w.lat.toFixed(5)},${w.lng.toFixed(5)}`).join("|") || "";
+  const departKey = options?.departAt
+    ? new Date(options.departAt).toISOString().slice(0, 16) // minut-præcision i cache-key
+    : "now";
+  const bizKey = options?.businessId || "none";
   return useQuery({
-    queryKey: ["directions", key],
+    queryKey: ["directions", key, departKey, bizKey],
     enabled: !!waypoints && waypoints.length >= 2,
     // Hold cache i 30 sek — kort nok til at en reroute (samme key, men efter
     // invalidate) faktisk fetches igen, langt nok til at vi ikke spammer
@@ -1369,7 +1374,11 @@ export const useDirections = (
     refetchOnWindowFocus: false,
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke("route-directions", {
-        body: { waypoints },
+        body: {
+          waypoints,
+          ...(options?.departAt ? { depart_at: options.departAt } : {}),
+          ...(options?.businessId ? { business_id: options.businessId } : {}),
+        },
       });
       if (error) throw error;
       return data as {
@@ -1378,6 +1387,14 @@ export const useDirections = (
         geometry: { type: "LineString"; coordinates: [number, number][] };
         distance_m: number | null;
         duration_s: number | null;
+        duration_raw_s?: number | null;
+        duration_typical_s?: number | null;
+        traffic_multiplier?: number;
+        base_multiplier?: number;
+        override_applied?: { zip: string | null; label: string | null; multiplier: number } | null;
+        depart_at?: string;
+        depart_is_future?: boolean;
+        alternatives_count?: number;
         steps?: Array<{
           distance_m: number;
           duration_s: number;
