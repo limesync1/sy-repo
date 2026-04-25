@@ -1277,19 +1277,25 @@ export const useMyDayStops = (date: string) => {
         arr.push(s);
         byRoute.set(s.route_id, arr);
       });
+      // Reglen er enkel og forudsigelig:
+      //  • Hvis medarbejderen har MINDST ÉT specifikt tildelt stop på ruten,
+      //    så viser vi KUN deres egne stop. Aldrig tilfældige uassignede
+      //    eller stop tildelt kolleger — det forvirrer og ser ud som om
+      //    medarbejderen har fået aftaler de ikke skal udføre.
+      //  • Hvis medarbejderen er teamlinket til ruten (junction/legacy)
+      //    men IKKE har specifikke stop, så viser vi alle stop som
+      //    teamopgaver — ellers ville rutekortet være tomt.
       const filtered = (data || []).filter((s: any) => {
-        const belongsToEmployee = myStopIds.has(s.id) || s.assigned_employee_id === emp.id;
-        if (belongsToEmployee || !s.assigned_employee_id) return true;
         const routeStops = byRoute.get(s.route_id) || [];
-        const routeHasMySpecificStops = routeStops.some((routeStop: any) =>
-          myStopIds.has(routeStop.id) || routeStop.assigned_employee_id === emp.id,
+        const routeHasMySpecificStops = routeStops.some((rs: any) =>
+          myStopIds.has(rs.id) || rs.assigned_employee_id === emp.id,
         );
-        // Hvis ruten er teamlinket til mig (route_employees), men jeg har
-        // ingen stop-niveau-tildelinger på ruten, så vis ALLE stop som
-        // teamopgaver — ellers ville rutekortet være tomt selvom ruten
-        // er min.
-        if (!routeHasMySpecificStops && linkedRouteIds.has(s.route_id)) return true;
-        return !routeHasMySpecificStops;
+        const belongsToEmployee = myStopIds.has(s.id) || s.assigned_employee_id === emp.id;
+        if (routeHasMySpecificStops) return belongsToEmployee;
+        // Ingen specifikke stop til mig på ruten → team-mode (kun hvis
+        // ruten er teamlinket; ellers skjul stop tildelt andre).
+        if (linkedRouteIds.has(s.route_id)) return true;
+        return !s.assigned_employee_id;
       });
       return filtered as RouteStop[];
     },
@@ -1333,7 +1339,9 @@ export const useMyRouteData = (routeId: string | undefined) => {
       );
       const stops = (rawStops || []).filter((s: any) => {
         const belongsToEmployee = myStopIds.has(s.id) || s.assigned_employee_id === emp.id;
-        return belongsToEmployee || !s.assigned_employee_id || !routeHasMySpecificStops;
+        // Hvis medarbejderen har specifikke stop på ruten → kun deres egne.
+        // Ellers (team-mode) → vis alle stop på ruten.
+        return routeHasMySpecificStops ? belongsToEmployee : true;
       });
 
       return {
