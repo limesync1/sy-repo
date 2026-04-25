@@ -215,14 +215,16 @@ const EmployeeStats = () => {
         ) : (
           <>
             {/* Indtjening (medarbejderens egen andel) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <StatCard
-                label="Min indtjening"
-                value={formatKr(s.commission)}
-                icon={<Wallet />}
-                tone="emerald"
-                hint={`Fra ${s.stopsCompleted} udførte opgaver`}
-              />
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+              <div className="col-span-2 lg:col-span-1">
+                <StatCard
+                  label="Min indtjening"
+                  value={formatKr(s.commission)}
+                  icon={<Wallet />}
+                  tone="emerald"
+                  hint={`Fra ${s.stopsCompleted} udførte opgaver`}
+                />
+              </div>
               <StatCard
                 label="Ruter"
                 value={s.routesCount}
@@ -240,7 +242,7 @@ const EmployeeStats = () => {
             </div>
 
             {/* Sekundær række */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <StatCard
                 label="Arbejdsdage"
                 value={s.workdaysCount}
@@ -264,11 +266,14 @@ const EmployeeStats = () => {
             {/* Daglig oversigt */}
             <Card className="rounded-xl border-border shadow-sm">
               <CardContent className="p-0">
-                <div className="flex items-end justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
-                  <div className="min-w-0">
+                <div className="flex items-start gap-3 border-b border-border px-4 py-3 sm:px-5">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
+                    <ListChecks className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
                     <h3 className="text-sm font-semibold text-foreground">Daglig aktivitet</h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      Færdige opgaver pr. dag — udfold for at se indtjening og betalingsstatus.
+                      Udfold en dag for at se hver aftale, betaling og din udbetaling.
                     </p>
                   </div>
                 </div>
