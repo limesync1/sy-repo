@@ -9,19 +9,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import {
   Sparkles, Settings, Bell, Route, Contact, Image as ImageIcon, Clock,
-  CheckCircle2, AlertCircle, ArrowRight, Building2,
+  CheckCircle2, AlertCircle, ArrowRight, Building2, Search,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { TrafficOverridesSection } from "./TrafficOverridesSection";
+import {
+  INDUSTRY_GROUPS,
+  ALL_INDUSTRIES,
+  customIndustryKeys,
+} from "@/lib/service-taxonomy";
 
-const CATEGORIES = ["Rengøring", "Håndværker", "Flyttehjælp", "Haveservice", "Maler", "VVS", "Elektriker", "Sikkerhed"];
-const CATEGORY_ICONS: Record<string, string> = {
-  "Rengøring": "🧹", "Håndværker": "🔨", "Flyttehjælp": "📦", "Haveservice": "🌿",
-  "Maler": "🎨", "VVS": "🔧", "Elektriker": "⚡", "Sikkerhed": "🔒",
-};
 const DAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
 
 // ─── Sub-nav sektioner ───
@@ -341,23 +341,13 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
               <div>
                 <FieldLabel>Brancher</FieldLabel>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {CATEGORIES.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => toggleSettingsCategory(c)}
-                      className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition-all ${
-                        selectedCategories.includes(c)
-                          ? "border-foreground bg-foreground/5 shadow-sm"
-                          : "border-border bg-card hover:border-foreground/30"
-                      }`}
-                    >
-                      <span className="text-lg">{CATEGORY_ICONS[c] || "📋"}</span>
-                      <span className="text-xs font-medium text-foreground">{c}</span>
-                    </button>
-                  ))}
-                </div>
+                <p className="-mt-1 mb-2.5 text-xs text-muted-foreground">
+                  Vælg de brancher der præcist matcher jeres ydelser. Branchevalget styrer hvilke services I kan oprette.
+                </p>
+                <IndustryPicker
+                  selected={selectedCategories}
+                  onToggle={toggleSettingsCategory}
+                />
               </div>
             </div>
           </SectionCard>
@@ -541,3 +531,148 @@ const SettingsTab = ({ business }: { business: any }) => {
 };
 
 export default SettingsTab;
+
+/* ─── IndustryPicker — grupperet, søgbar branche-vælger ───
+ * Vises i Settings → Generelt → Brancher.
+ * Brugeren kan filtrere via søgefelt og vælge frit fra alle grupper.
+ * Custom/gamle branche-værdier (der ikke findes i kataloget) vises som en
+ * separat sektion så de ikke forsvinder. */
+const IndustryPicker = ({
+  selected,
+  onToggle,
+}: {
+  selected: string[];
+  onToggle: (key: string) => void;
+}) => {
+  const [query, setQuery] = useState("");
+  const q = query.trim().toLowerCase();
+
+  const groupsFiltered = useMemo(() => {
+    if (!q) return INDUSTRY_GROUPS;
+    return INDUSTRY_GROUPS
+      .map((g) => ({
+        ...g,
+        industries: g.industries.filter(
+          (i) =>
+            i.label.toLowerCase().includes(q) ||
+            (i.description?.toLowerCase().includes(q) ?? false) ||
+            i.subcategories.some(
+              (s) =>
+                s.label.toLowerCase().includes(q) ||
+                s.services.some((sv) => sv.toLowerCase().includes(q))
+            )
+        ),
+      }))
+      .filter((g) => g.industries.length > 0);
+  }, [q]);
+
+  // Custom-værdier der ikke længere findes i kataloget — vis dem så brugeren
+  // ikke mister dem ved opdatering, men gør det nemt at fravælge.
+  const customValues = customIndustryKeys(selected);
+
+  // Selected-summary øverst
+  const knownSelected = selected.filter((k) =>
+    ALL_INDUSTRIES.some((i) => i.key === k)
+  );
+
+  return (
+    <div className="space-y-3">
+      {/* Søgefelt + valgte counter */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Søg branche, fx vinduespudser, alge, tømrer…"
+            className="bg-card h-9 rounded-lg pl-9"
+          />
+        </div>
+        <div className="text-xs text-muted-foreground sm:shrink-0">
+          {selected.length} valgt
+        </div>
+      </div>
+
+      {/* Aktive valg som chips — hurtig oversigt + fravalg */}
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 rounded-lg border border-border bg-secondary/40 p-2">
+          {knownSelected.map((k) => {
+            const ind = ALL_INDUSTRIES.find((i) => i.key === k)!;
+            return (
+              <button
+                key={k}
+                type="button"
+                onClick={() => onToggle(k)}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-foreground transition-colors hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+              >
+                <span>{ind.icon}</span>
+                <span>{ind.label}</span>
+                <span aria-hidden className="text-muted-foreground">×</span>
+              </button>
+            );
+          })}
+          {customValues.map((k) => (
+            <button
+              key={`custom-${k}`}
+              type="button"
+              onClick={() => onToggle(k)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-border bg-card px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+              title="Tidligere valg (ikke i nyt katalog)"
+            >
+              <span>🧰</span>
+              <span>{k}</span>
+              <span aria-hidden>×</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Grupperet liste */}
+      <div className="space-y-3">
+        {groupsFiltered.map((g) => (
+          <div key={g.label}>
+            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              {g.label}
+            </p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+              {g.industries.map((i) => {
+                const isOn = selected.includes(i.key);
+                return (
+                  <button
+                    key={i.key}
+                    type="button"
+                    onClick={() => onToggle(i.key)}
+                    title={i.description}
+                    className={`group flex items-center gap-2 rounded-xl border px-2.5 py-2 text-left transition-all ${
+                      isOn
+                        ? "border-foreground bg-foreground/5 shadow-sm"
+                        : "border-border bg-card hover:border-foreground/30"
+                    }`}
+                  >
+                    <span className="text-base leading-none">{i.icon}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-xs font-medium text-foreground">
+                        {i.label}
+                      </span>
+                      {i.description && (
+                        <span className="block truncate text-[10px] text-muted-foreground">
+                          {i.description}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
+        {groupsFiltered.length === 0 && (
+          <div className="rounded-lg border border-dashed border-border bg-card px-4 py-6 text-center text-sm text-muted-foreground">
+            Ingen brancher matcher "{query}".
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
