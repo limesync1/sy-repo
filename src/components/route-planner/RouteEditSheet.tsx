@@ -5,9 +5,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -22,9 +19,6 @@ import { useUpdateRoute, useDeleteRoute, useOptimizeRoute, useDirections, type R
 import { DatePickerField } from "./DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 import { pickDuration } from "@/components/route/EtaBreakdown";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
 
 export type RouteEmployeeOption = { id: string; name: string };
 
