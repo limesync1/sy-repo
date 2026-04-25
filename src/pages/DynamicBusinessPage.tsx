@@ -12,6 +12,7 @@ import {
   ArrowLeft, Star, Mail, Phone, MapPin, Clock, CheckCircle,
   ShieldCheck, ArrowDown, Sparkles, BadgeCheck,
 } from "lucide-react";
+import Footer from "@/components/landing/Footer";
 
 /* ───── Main Content ───── */
 const DynamicBusinessContent = () => {
@@ -589,11 +590,7 @@ const DynamicBusinessContent = () => {
         </div>
       </main>
 
-      <footer className="border-t border-border bg-secondary/40 py-8">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} {business.name} · Drevet af <Link to="/" className="font-medium text-foreground hover:underline">Serviceydere</Link></p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
