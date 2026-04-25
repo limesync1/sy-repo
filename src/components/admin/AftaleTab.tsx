@@ -1042,6 +1042,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       onDragEnd={(e: DragEndEvent) => {
         const { active, over } = e;
         setDraggingOrderId(null);
+        setActiveDragOrder(null);
         const a: any = active.data.current;
         // Kun aftale-drag er understøttet i denne fane.
         if (a?.type !== "order") return;
@@ -1073,9 +1074,12 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
       }}
       onDragStart={(e: DragStartEvent) => {
         const a: any = e.active.data.current;
-        if (a?.type === "order") setDraggingOrderId(a.orderId);
+        if (a?.type === "order") {
+          setDraggingOrderId(a.orderId);
+          setActiveDragOrder(a.order || null);
+        }
       }}
-      onDragCancel={() => { setDraggingOrderId(null); }}
+      onDragCancel={() => { setDraggingOrderId(null); setActiveDragOrder(null); }}
     >
       <div className="space-y-5">
       <PageHeader
