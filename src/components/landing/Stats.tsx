@@ -35,13 +35,16 @@ const Stats = () => {
   ];
 
   return (
-    <section className="bg-background pb-12 pt-4 md:pb-16">
+    <section className="bg-background pb-2 pt-10 md:pb-4 md:pt-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-6 border-y border-border py-8 md:grid-cols-4 md:gap-4">
-          {stats.map((s) => (
-            <div key={s.label} className="text-center md:text-left">
-              <div className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">{s.value}</div>
-              <div className="mt-0.5 text-xs text-muted-foreground md:text-sm">{s.label}</div>
+        <div className="grid grid-cols-2 gap-4 rounded-[24px] border border-border bg-card px-4 py-6 shadow-sm md:grid-cols-4 md:gap-2 md:px-8">
+          {stats.map((s, i) => (
+            <div
+              key={s.label}
+              className={`text-center md:text-left ${i > 0 ? "md:border-l md:border-border md:pl-6" : ""}`}
+            >
+              <div className="text-2xl font-bold tracking-tight text-foreground tabular-nums md:text-[2rem]">{s.value}</div>
+              <div className="mt-1 text-xs text-muted-foreground md:text-sm">{s.label}</div>
             </div>
           ))}
         </div>
