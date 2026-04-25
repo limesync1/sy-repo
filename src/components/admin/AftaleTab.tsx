@@ -1303,9 +1303,9 @@ const AftaleTab = ({
               return null;
             })();
             const categoryIcon = (primaryCategory && CATEGORY_ICONS[primaryCategory]) || DEFAULT_CATEGORY_ICON;
-            // Aftalen kan kun trækkes til en rute hvis den ikke allerede ligger på
-            // en rute, og den ikke er afsluttet/annulleret.
-            const canDragToRoute = !routeStop && !["completed", "cancelled"].includes(order.status);
+            // Aftalen kan kun trækkes til en rute hvis ruteplanlægning er slået
+            // til, den ikke allerede ligger på en rute, og ikke er afsluttet/annulleret.
+            const canDragToRoute = routePlanningEnabled && !routeStop && !["completed", "cancelled"].includes(order.status);
 
             return (
               <Card
@@ -1354,7 +1354,7 @@ const AftaleTab = ({
                                 {cycles > 0 && <span className="ml-0.5">· #{cycles}</span>}
                               </span>
                             )}
-                            {routeInfo && (
+                            {routePlanningEnabled && routeInfo && (
                               <span
                                 className="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-medium"
                                 style={{
