@@ -1323,7 +1323,12 @@ export const useDirections = (
   return useQuery({
     queryKey: ["directions", key],
     enabled: !!waypoints && waypoints.length >= 2,
-    staleTime: 5 * 60 * 1000,
+    // Hold cache i 30 sek — kort nok til at en reroute (samme key, men efter
+    // invalidate) faktisk fetches igen, langt nok til at vi ikke spammer
+    // endpoint mens stableOrigin holdes konstant mellem GPS-fixes.
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke("route-directions", {
         body: { waypoints },
