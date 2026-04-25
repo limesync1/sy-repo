@@ -667,6 +667,11 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   // Vi tracker hvilken aftale der pt. trækkes (for visuel feedback) og hvilken
   // rute der "hovers" over, så vi kan highlighte dropzonen.
   const [draggingOrderId, setDraggingOrderId] = useState<string | null>(null);
+  // Aktiv drag-data — bruges af DragOverlay til at vise et "flydende" kort
+  // mens aftalen trækkes hen over rute-poolen (samme UX som Ruteplanlæggeren).
+  const [activeDragOrder, setActiveDragOrder] = useState<any | null>(null);
+  // Bekræftelses-dialog inden en rute slettes permanent.
+  const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
 
   // Ruter for de næste 14 dage (incl. i dag) — det vindue virksomhedsejeren
   // typisk planlægger inden for. Sidebar-poolen viser disse ruter.
@@ -679,6 +684,7 @@ const AftaleTab = ({ businessId, businessName }: { businessId: string; businessN
   const { data: poolStops } = useStopsForRoutes(poolRouteIds);
   const addStop = useAddStop();
   const createRoute = useCreateRoute();
+  const deleteRoute = useDeleteRoute();
 
   // Hent route-stops for alle ordrer i denne forretning, så vi kan vise hvilken
   // rute hver aftale er placeret på (dato, rute-navn, sekvens og status).
