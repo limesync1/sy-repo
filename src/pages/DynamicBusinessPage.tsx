@@ -431,82 +431,89 @@ const DynamicBusinessContent = () => {
               </section>
             )}
 
-            {/* Reviews */}
+            {/* Reviews — samlet card med summary + grid, så det føles som ét sammenhængende afsnit */}
             {reviews && reviews.length > 0 && (
-              <section id="reviews" aria-labelledby="reviews-heading">
-                <div className="mb-5 flex items-center justify-between">
-                  <h2 id="reviews-heading" className="text-xl font-bold text-foreground">Anmeldelser</h2>
-                  {avgRating && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <div className="flex gap-0.5">
+              <section
+                id="reviews"
+                aria-labelledby="reviews-heading"
+                className="rounded-[2rem] border border-border bg-card p-4 shadow-[0_22px_50px_-34px_hsl(var(--foreground)/0.2)] md:p-5"
+              >
+                <div className="mb-4 flex items-end justify-between gap-3 border-b border-border pb-4">
+                  <div>
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Hvad kunderne siger</p>
+                    <h2 id="reviews-heading" className="text-[1.5rem] font-bold text-foreground md:text-[1.75rem]">Anmeldelser</h2>
+                  </div>
+                  <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-sm font-medium text-muted-foreground">
+                    {reviewCount} {reviewCount === 1 ? "anmeldelse" : "anmeldelser"}
+                  </span>
+                </div>
+
+                {/* Summary — kun ved 3+ anmeldelser, ellers spilder vi plads */}
+                {reviewCount >= 3 && avgRating && (
+                  <div className="mb-5 grid gap-5 rounded-2xl border border-border bg-secondary/30 p-5 sm:grid-cols-[auto_1fr] sm:items-center sm:gap-8">
+                    <div className="text-center">
+                      <div className="text-4xl font-bold text-foreground tabular-nums">{avgRating}</div>
+                      <div className="mt-1.5 flex justify-center gap-0.5">
                         {[1,2,3,4,5].map((i) => (
                           <Star key={i} className={`h-4 w-4 ${i <= Math.round(Number(avgRating)) ? "fill-accent text-accent" : "text-muted"}`} />
                         ))}
                       </div>
-                      <span className="font-medium text-foreground">{avgRating}</span>
-                      <span className="text-muted-foreground">({reviewCount})</span>
+                      <div className="mt-1.5 text-xs text-muted-foreground">af 5</div>
                     </div>
-                  )}
-                </div>
-
-                {/* Rating distribution */}
-                {reviewCount >= 3 && (
-                  <div className="mb-5 rounded-3xl border border-border bg-secondary/25 p-5 md:p-6">
-                    <div className="flex items-center gap-6">
-                      <div className="text-center">
-                        <div className="text-3xl font-bold text-foreground">{avgRating}</div>
-                        <div className="flex gap-0.5 mt-1">
-                          {[1,2,3,4,5].map((i) => (
-                            <Star key={i} className={`h-3.5 w-3.5 ${i <= Math.round(Number(avgRating)) ? "fill-accent text-accent" : "text-muted"}`} />
-                          ))}
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">{reviewCount} anmeldelser</div>
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        {[5,4,3,2,1].map((rating) => {
-                          const count = reviews.filter(r => r.rating === rating).length;
-                          const pct = reviewCount > 0 ? (count / reviewCount) * 100 : 0;
-                          return (
-                            <div key={rating} className="flex items-center gap-2 text-xs">
-                              <span className="w-3 text-muted-foreground">{rating}</span>
-                              <div className="flex-1 h-2 rounded-full bg-border overflow-hidden">
-                                <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${pct}%` }} />
-                              </div>
-                              <span className="w-6 text-right text-muted-foreground">{count}</span>
+                    <div className="space-y-1.5">
+                      {[5,4,3,2,1].map((rating) => {
+                        const count = reviews.filter(r => r.rating === rating).length;
+                        const pct = reviewCount > 0 ? (count / reviewCount) * 100 : 0;
+                        return (
+                          <div key={rating} className="flex items-center gap-2.5 text-xs">
+                            <span className="inline-flex w-8 items-center gap-0.5 text-muted-foreground tabular-nums">
+                              {rating}<Star className="h-3 w-3 fill-muted-foreground/60 text-muted-foreground/60" />
+                            </span>
+                            <div className="flex-1 h-2 rounded-full bg-border/70 overflow-hidden">
+                              <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${pct}%` }} />
                             </div>
-                          );
-                        })}
-                      </div>
+                            <span className="w-8 text-right text-muted-foreground tabular-nums">{count}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
 
-                  <div className="grid gap-4 sm:grid-cols-2">
+                {/* Anmeldelses-kort */}
+                <div className="grid gap-4 sm:grid-cols-2">
                   {reviews.map((r) => (
-                    <Card key={r.id} className="rounded-2xl border-border bg-card/90 shadow-sm">
-                      <CardContent className="p-4">
-                        <div className="mb-2 flex items-center gap-2">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/10 text-sm font-bold text-accent">
-                            {r.reviewer_name.charAt(0).toUpperCase()}
+                    <article
+                      key={r.id}
+                      className="rounded-2xl border border-border bg-secondary/20 p-4 transition-colors hover:bg-secondary/35"
+                    >
+                      <header className="mb-2 flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10 text-sm font-bold text-accent">
+                          {r.reviewer_name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="truncate text-sm font-semibold text-foreground">{r.reviewer_name}</span>
+                            {r.is_verified && (
+                              <span title="Verificeret kunde" className="inline-flex shrink-0 text-accent">
+                                <CheckCircle className="h-3.5 w-3.5" />
+                              </span>
+                            )}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <span className="block truncate text-sm font-semibold text-foreground">{r.reviewer_name}</span>
-                            <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("da-DK", { year: "numeric", month: "short", day: "numeric" })}</span>
-                          </div>
-                          <div className="flex gap-0.5">
-                            {[1,2,3,4,5].map((i) => (
-                              <Star key={i} className={`h-3.5 w-3.5 ${i <= r.rating ? "fill-accent text-accent" : "text-muted"}`} />
-                            ))}
+                          <div className="mt-0.5 flex items-center gap-1.5">
+                            <div className="flex gap-0.5">
+                              {[1,2,3,4,5].map((i) => (
+                                <Star key={i} className={`h-3 w-3 ${i <= r.rating ? "fill-accent text-accent" : "text-muted"}`} />
+                              ))}
+                            </div>
+                            <span className="text-[11px] text-muted-foreground">
+                              {new Date(r.created_at).toLocaleDateString("da-DK", { year: "numeric", month: "short", day: "numeric" })}
+                            </span>
                           </div>
                         </div>
-                        {r.comment && <p className="text-sm leading-relaxed text-muted-foreground">{r.comment}</p>}
-                        {r.is_verified && (
-                          <div className="mt-2 flex items-center gap-1 text-xs text-accent">
-                            <CheckCircle className="h-3 w-3" /> Verificeret kunde
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
+                      </header>
+                      {r.comment && <p className="text-sm leading-relaxed text-foreground/80">{r.comment}</p>}
+                    </article>
                   ))}
                 </div>
               </section>
