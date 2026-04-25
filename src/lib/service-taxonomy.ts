@@ -451,6 +451,32 @@ export const STEP_TEMPLATES_BY_INDUSTRY: Record<string, StepTemplate[]> = {
       { label: "Mandskab", unit: "timer", price_per_unit: 400, min_value: 1, max_value: 12, default_value: 4 },
     ]},
   ],
+  "Skorstensfejer": [
+    { label: "Lovpligtig fejning", steps: [
+      { label: "Antal skorstene", unit: "stk", price_per_unit: 350, min_value: 1, max_value: 5, default_value: 1 },
+    ]},
+  ],
+  "Isolering": [
+    { label: "Loftisolering", steps: [
+      { label: "Loftareal", unit: "m²", price_per_unit: 120, min_value: 20, max_value: 400, default_value: 120 },
+      { label: "Isoleringstykkelse", unit: "mm", price_per_unit: 0.5, min_value: 100, max_value: 500, default_value: 300 },
+    ]},
+    { label: "Hulmursisolering", steps: [
+      { label: "Facadeareal", unit: "m²", price_per_unit: 180, min_value: 20, max_value: 400, default_value: 100 },
+    ]},
+  ],
+  "Gravstedspleje": [
+    { label: "Årlig gravstedspleje", steps: [
+      { label: "Antal besøg pr. år", unit: "stk", price_per_unit: 250, min_value: 1, max_value: 24, default_value: 8 },
+      { label: "Gravsteds­størrelse", unit: "m²", price_per_unit: 80, min_value: 1, max_value: 20, default_value: 4 },
+    ]},
+  ],
+  "Autoservice": [
+    { label: "Mobil bilrengøring", steps: [
+      { label: "Bil­størrelse", unit: "stk", price_per_unit: 600, min_value: 1, max_value: 3, default_value: 1 },
+      { label: "Polering", unit: "timer", price_per_unit: 500, min_value: 0, max_value: 6, default_value: 0 },
+    ]},
+  ],
 };
 
 /* ───────────── Hjælpefunktioner ───────────── */
