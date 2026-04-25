@@ -562,6 +562,7 @@ const EmployeeRow = ({
               setEditEmail(employee.email || "");
               setEditPhone(employee.phone || "");
               setEditTitle(employee.title || "");
+              setEditCommission(employee.commission_pct != null ? String(employee.commission_pct) : "0");
               setEditOpen(true);
             }}
             className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
@@ -636,6 +637,25 @@ const EmployeeRow = ({
               <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Titel</label>
               <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="h-10" />
             </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Provision (%)</label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  max={100}
+                  step="0.5"
+                  value={editCommission}
+                  onChange={(e) => setEditCommission(e.target.value)}
+                  className="h-10 pr-9"
+                />
+                <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Andel af omsætningen for udførte opgaver. Mellem 0 og 100.
+              </p>
+            </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="ghost" onClick={() => setEditOpen(false)}>Annuller</Button>
@@ -643,6 +663,11 @@ const EmployeeRow = ({
               onClick={() => {
                 if (!editName.trim() || !editEmail.trim()) {
                   toast.error("Navn og email er påkrævet");
+                  return;
+                }
+                const pctNum = editCommission.trim() === "" ? 0 : Number(editCommission.replace(",", "."));
+                if (Number.isNaN(pctNum) || pctNum < 0 || pctNum > 100) {
+                  toast.error("Provision skal være et tal mellem 0 og 100");
                   return;
                 }
                 onUpdate.mutate(
@@ -653,6 +678,7 @@ const EmployeeRow = ({
                     email: editEmail.trim().toLowerCase(),
                     phone: editPhone.trim() || null,
                     title: editTitle.trim() || null,
+                    commission_pct: pctNum,
                   } as any,
                   {
                     onSuccess: () => {
