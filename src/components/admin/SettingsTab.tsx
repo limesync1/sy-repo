@@ -1,7 +1,7 @@
 // SettingsTab — virksomhedens indstillinger, opbygget med samme designsprog
 // som Overblik / Aftaler / Kunder / Medarbejdere / Anmeldelser:
 // PageHeader, surface-admin cards, sub-nav chips og konsistent spacing.
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +12,7 @@ import {
   CheckCircle2, AlertCircle, ArrowRight, Building2, Search,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
-import { PageHeader, PrimaryButton, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
+import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -22,10 +22,32 @@ import {
   findIndustry,
 } from "@/lib/service-taxonomy";
 
-const DAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"];
+const DAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"] as const;
+const WEEKDAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag"] as const;
+
+// Header offset i topbaren (h-14 = 56px) + lille luft, bruges både til sticky
+// sidebar og smooth-scroll så ankret lander præcist under headeren.
+const HEADER_OFFSET = 72;
+
+/* ─── Time helpers — håndterer "08:00 - 16:00" strenge ───
+ * Bruges af HoursEditor til at parse eksisterende åbningstider og bygge
+ * normaliserede strenge tilbage. Tilgivende: accepterer "8", "8:0", "08.00". */
+const parseHours = (raw: string): { open: string; close: string } | null => {
+  if (!raw) return null;
+  const m = raw.match(/(\d{1,2}[:.]?\d{0,2})\s*[-–]\s*(\d{1,2}[:.]?\d{0,2})/);
+  if (!m) return null;
+  const norm = (s: string) => {
+    const cleaned = s.replace(".", ":");
+    if (/^\d{1,2}$/.test(cleaned)) return `${cleaned.padStart(2, "0")}:00`;
+    const [h, mm] = cleaned.split(":");
+    return `${(h || "0").padStart(2, "0")}:${(mm || "00").padStart(2, "0")}`;
+  };
+  return { open: norm(m[1]), close: norm(m[2]) };
+};
+const formatHours = (open: string, close: string) => `${open} - ${close}`;
 
 // ─── Sub-nav sektioner ───
-// Vises som sticky sidebar (xl) eller chip-rækken (mobil/tablet).
+// Vises som sticky sidebar (lg+) eller chip-rækken (mobil).
 const SECTIONS = [
   { id: "general",       label: "Virksomhed",     icon: Building2, hint: "Navn og beskrivelse" },
   { id: "industries",    label: "Brancher",       icon: Sparkles,  hint: "Hvad I tilbyder" },
@@ -83,7 +105,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     upcoming_service: true,
     subscription_change: true,
     new_review: false,
-    ...(business.notification_settings as Record<string, boolean> || {}),
+    ...((business.notification_settings as Record<string, boolean>) || {}),
   });
   const [routePlanningEnabled, setRoutePlanningEnabled] = useState<boolean>(
     !!(business.settings as any)?.route_planning_enabled
@@ -98,8 +120,9 @@ const SettingsTab = ({ business }: { business: any }) => {
   // Postnummer auto-udfyld by
   const [zipLoading, setZipLoading] = useState(false);
 
-  // Aktivt sub-nav (kun visuelt, alle sektioner er stadig synlige — chip scroller hen til sektionen)
+  // Aktivt sub-nav — opdateres både ved klik og automatisk via scroll-observer.
   const [activeSection, setActiveSection] = useState<string>("general");
+  const isProgrammaticScroll = useRef(false);
 
   const toggleSettingsCategory = (c: string) => {
     setSelectedCategories((prev) => {
@@ -126,11 +149,48 @@ const SettingsTab = ({ business }: { business: any }) => {
     });
   };
 
-  const scrollToSection = (id: string) => {
-    setActiveSection(id);
+  // Smooth, accurate anchor-scroll. Bruger window.scrollTo med eksplicit offset
+  // (header-højde) i stedet for scrollIntoView, så ankret lander præcist under
+  // den sticky topbaren — uafhængigt af scroll-mt værdier.
+  const scrollToSection = useCallback((id: string) => {
     const el = document.getElementById(`settings-${id}`);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+    if (!el) return;
+    setActiveSection(id);
+    isProgrammaticScroll.current = true;
+    const top = el.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
+    window.scrollTo({ top, behavior: "smooth" });
+    // Slip observerens "lock" igen efter animationen er færdig.
+    window.setTimeout(() => { isProgrammaticScroll.current = false; }, 700);
+  }, []);
+
+  // Auto-detect aktiv sektion via IntersectionObserver — så sidebar fremhæver
+  // den sektion der er i viewporten mens man scroller manuelt.
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (isProgrammaticScroll.current) return;
+        // Vælg den øverste synlige sektion.
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible[0]) {
+          const id = visible[0].target.id.replace("settings-", "");
+          setActiveSection(id);
+        }
+      },
+      {
+        // Top-margin matcher header-offset så vi skifter aktivt punkt præcist
+        // når sektionen krydser under headeren.
+        rootMargin: `-${HEADER_OFFSET + 8}px 0px -60% 0px`,
+        threshold: 0,
+      },
+    );
+    SECTIONS.forEach(({ id }) => {
+      const el = document.getElementById(`settings-${id}`);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, []);
 
   const lookupCvr = async () => {
     const q = cvrQuery.trim();
@@ -198,29 +258,6 @@ const SettingsTab = ({ business }: { business: any }) => {
     return { checks, done, total: checks.length, pct: Math.round((done / checks.length) * 100) };
   }, [logoUrl, coverUrl, description, phone, email, address, zipCode, selectedCategories, openHours]);
 
-  const save = () => {
-    updateBiz.mutate({
-      id: business.id, name: name.trim(),
-      description: description.trim() || null,
-      phone: phone.trim() || null, email: email.trim() || null,
-      address: address.trim() || null, city: city.trim() || null,
-      zip_code: zipCode.trim() || null,
-      logo_url: logoUrl || null, cover_image_url: coverUrl || null,
-      category: selectedCategories[0] || null,
-      categories: selectedCategories,
-      opening_hours: openHours,
-      notification_settings: notifSettings,
-      settings: {
-        ...((business.settings as any) || {}),
-        route_planning_enabled: routePlanningEnabled,
-        selected_subcategories: selectedSubcategories,
-      },
-    } as any, {
-      onSuccess: () => toast.success("Indstillinger gemt"),
-      onError: (e) => toast.error(e.message),
-    });
-  };
-
   const origCategories = (business.categories as string[]) || (business.category ? [business.category] : []);
   const origNotif = business.notification_settings as Record<string, boolean> || {};
   const origRoutePlanning = !!(business.settings as any)?.route_planning_enabled;
@@ -236,15 +273,79 @@ const SettingsTab = ({ business }: { business: any }) => {
     routePlanningEnabled !== origRoutePlanning ||
     JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
 
+  // ─── Auto-save ───
+  // Ingen "Gem"-knap, ingen toasts. Vi debouncer ændringer og fyrer en mutation
+  // af når brugeren har holdt pause. Errors vises stadig (ellers ved man ikke
+  // hvorfor noget gik galt) — succes er stille.
+  const saveTimer = useRef<number | null>(null);
+  const lastSaved = useRef<string>("");
+
+  // Stabil signature af alt det vi vil persistere — bruges til at undgå
+  // duplicerede gem ved re-renders med samme data.
+  const buildPayload = useCallback(() => ({
+    id: business.id,
+    name: name.trim() || business.name,
+    description: description.trim() || null,
+    phone: phone.trim() || null,
+    email: email.trim() || null,
+    address: address.trim() || null,
+    city: city.trim() || null,
+    zip_code: zipCode.trim() || null,
+    logo_url: logoUrl || null,
+    cover_image_url: coverUrl || null,
+    category: selectedCategories[0] || null,
+    categories: selectedCategories,
+    opening_hours: openHours,
+    notification_settings: notifSettings,
+    settings: {
+      ...((business.settings as any) || {}),
+      route_planning_enabled: routePlanningEnabled,
+      selected_subcategories: selectedSubcategories,
+    },
+  }), [
+    business.id, business.name, business.settings,
+    name, description, phone, email, address, city, zipCode,
+    logoUrl, coverUrl, selectedCategories, selectedSubcategories,
+    openHours, notifSettings, routePlanningEnabled,
+  ]);
+
+  useEffect(() => {
+    if (!hasChanges) return;
+    const sig = JSON.stringify(buildPayload());
+    if (sig === lastSaved.current) return;
+    if (saveTimer.current) window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(() => {
+      lastSaved.current = sig;
+      updateBiz.mutate(buildPayload() as any, {
+        onError: (e: any) => toast.error(e?.message || "Kunne ikke gemme"),
+      });
+    }, 700);
+    return () => { if (saveTimer.current) window.clearTimeout(saveTimer.current); };
+  }, [hasChanges, buildPayload, updateBiz]);
+
+  // Diskret status til header (gemmer / gemt / ændringer).
+  const saveStatus: "saving" | "saved" | "idle" =
+    updateBiz.isPending ? "saving" : (hasChanges ? "saving" : "saved");
+
   return (
     <div className="space-y-4 pb-24">
       <PageHeader
         title="Indstillinger"
         description="Administrer din virksomheds profil, kontakt, branding og notifikationer."
         action={
-          <PrimaryButton onClick={save} disabled={updateBiz.isPending || !hasChanges}>
-            {updateBiz.isPending ? "Gemmer..." : "Gem ændringer"}
-          </PrimaryButton>
+          <div className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-muted-foreground">
+            {saveStatus === "saving" ? (
+              <>
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
+                Gemmer…
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                Alt gemt automatisk
+              </>
+            )}
+          </div>
         }
       />
 
@@ -298,14 +399,16 @@ const SettingsTab = ({ business }: { business: any }) => {
         </a>
       </div>
 
-      {/* ─── Sub-nav chips (mobil/tablet) — sticky sidebar bruges på xl ─── */}
-      <div className="flex flex-wrap gap-2 xl:hidden">
-        {SECTIONS.map(({ id, label, icon: Icon }) => (
+      {/* ─── Sub-nav chips (mobil/tablet) — sticky sidebar bruges på lg ─── */}
+      {/* Bliver sticky lige under topbaren (h-14) så den følger med ned. */}
+      <div className="sticky top-14 z-20 -mx-4 sm:-mx-6 lg:hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border px-4 sm:px-6 py-2">
+        <div className="flex flex-nowrap gap-2 overflow-x-auto pb-0.5">
+          {SECTIONS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             type="button"
             onClick={() => scrollToSection(id)}
-            className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 ${
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 ${
               activeSection === id
                 ? "border-border bg-secondary text-foreground"
                 : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -314,20 +417,23 @@ const SettingsTab = ({ business }: { business: any }) => {
             <Icon />
             {label}
           </button>
-        ))}
+          ))}
+        </div>
       </div>
 
-      {/* ─── To-kolonne på xl: sticky sidebar + indhold ─── */}
-      <div className="grid gap-5 xl:grid-cols-[220px_minmax(0,1fr)] xl:items-start">
-        {/* Sticky sidebar nav (kun xl) */}
-        <aside className="hidden xl:block xl:sticky xl:top-4">
+      {/* ─── To-kolonne på lg+: sticky sidebar + indhold ─── */}
+      <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-start">
+        {/* Sticky sidebar nav (kun lg+) — top-offset matcher den sticky topbar
+            (h-14 = 56px) + lille luft, så den klistrer fast lige under headeren
+            mens man scroller. */}
+        <aside className="hidden lg:block lg:sticky lg:top-[72px] lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto">
           <nav className="flex flex-col gap-1 rounded-xl border border-border/80 bg-card p-2 shadow-sm">
             {SECTIONS.map(({ id, label, icon: Icon, hint }) => (
               <button
                 key={id}
                 type="button"
                 onClick={() => scrollToSection(id)}
-                className={`flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors ${
+                className={`flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors w-full ${
                   activeSection === id
                     ? "bg-secondary text-foreground"
                     : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
@@ -358,9 +464,13 @@ const SettingsTab = ({ business }: { business: any }) => {
             onKeyDown={(e) => e.key === "Enter" && lookupCvr()}
             className="bg-card h-10 flex-1 rounded-lg"
           />
-          <PrimaryButton onClick={lookupCvr} disabled={cvrLoading || !cvrQuery.trim()}>
+          <Button
+            onClick={lookupCvr}
+            disabled={cvrLoading || !cvrQuery.trim()}
+            className="h-10 rounded-lg bg-foreground text-background hover:bg-foreground/90 text-xs font-medium px-4 shrink-0"
+          >
             {cvrLoading ? "Søger..." : "Søg i CVR"}
-          </PrimaryButton>
+          </Button>
         </div>
         {cvrError && <p className="text-xs text-destructive">{cvrError}</p>}
         {cvrResult && (
@@ -480,16 +590,18 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* Branding */}
         <div id="settings-branding" className="scroll-mt-6">
           <SectionCard title="Branding" icon={<ImageIcon />} description="Logo og coverbillede vises på din virksomhedsside.">
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <div>
+            {/* Side-om-side så cover ikke fylder hele bredden — kun en kompakt
+                preview, da fuld bannervisning ikke er nødvendig her. */}
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+              <div className="shrink-0">
                 <FieldLabel>Logo</FieldLabel>
-                <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-28" objectFit="contain" />
-                <p className="mt-2 text-xs text-muted-foreground">Kvadratisk format anbefales (fx 512×512).</p>
+                <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
+                <p className="mt-2 text-xs text-muted-foreground">Kvadrat (fx 512×512)</p>
               </div>
-              <div>
+              <div className="min-w-0 flex-1 sm:max-w-xs">
                 <FieldLabel>Coverbillede</FieldLabel>
-                <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-full" />
-                <p className="mt-2 text-xs text-muted-foreground">Bredt format (16:9) — vises som banner.</p>
+                <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-full max-w-[260px]" />
+                <p className="mt-2 text-xs text-muted-foreground">Bredt 16:9 — vises som banner på din side</p>
               </div>
             </div>
           </SectionCard>
@@ -497,34 +609,12 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Åbningstider */}
         <div id="settings-hours" className="scroll-mt-6">
-          <SectionCard title="Åbningstider" icon={<Clock />} description="Lad felterne stå tomme for at markere som lukket.">
-            <div className="space-y-1.5">
-              {DAYS.map((day) => {
-                const isWeekend = day === "Lørdag" || day === "Søndag";
-                const isOpen = !!openHours[day];
-                return (
-                  <div key={day} className={`flex items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
-                    isOpen ? "border-border bg-secondary/40" : `border-border bg-card ${isWeekend ? "opacity-70" : ""}`
-                  }`}>
-                    <span className="w-20 text-sm font-medium text-foreground">{day}</span>
-                    <Input
-                      placeholder={isWeekend ? "Lukket" : "Fx 08:00 - 16:00"}
-                      value={openHours[day] || ""}
-                      onChange={(e) => setOpenHours({ ...openHours, [day]: e.target.value })}
-                      className="flex-1 h-9 text-sm bg-background rounded-lg"
-                    />
-                    {isOpen && (
-                      <button
-                        onClick={() => { const h = { ...openHours }; delete h[day]; setOpenHours(h); }}
-                        className="text-xs font-medium text-muted-foreground transition-colors hover:text-destructive"
-                      >
-                        Ryd
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+          <SectionCard
+            title="Åbningstider"
+            icon={<Clock />}
+            description="Slå dage til/fra og vælg fra-/til-tid. Brug ”Anvend på alle” for at kopiere én dags tider til de andre åbne dage."
+          >
+            <HoursEditor value={openHours} onChange={setOpenHours} />
           </SectionCard>
         </div>
 
@@ -579,20 +669,6 @@ const SettingsTab = ({ business }: { business: any }) => {
       </div>
         </div>
       </div>
-
-      {/* Sticky save bar */}
-      {hasChanges && (
-        <div className="sticky bottom-4 z-20">
-          <Card className="rounded-xl border-accent/30 bg-card shadow-lg">
-            <CardContent className="flex items-center justify-between gap-3 p-3">
-              <p className="text-sm text-muted-foreground">Du har ændringer der ikke er gemt.</p>
-              <PrimaryButton onClick={save} disabled={updateBiz.isPending}>
-                {updateBiz.isPending ? "Gemmer..." : "Gem ændringer"}
-              </PrimaryButton>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 };
@@ -795,6 +871,145 @@ const SubcategoryPicker = ({
           </div>
         );
       })}
+    </div>
+  );
+};
+
+/* ─── HoursEditor — brugervenlig åbningstider-editor ───
+ * Erstatter den tidligere fri-tekst Input med:
+ *  - Toggle pr. dag (åben / lukket)
+ *  - Time-pickers for fra/til (native <input type="time">)
+ *  - "Anvend på alle åbne dage" knap der kopierer en dags tider
+ *  - Hurtige preset-knapper (Hverdage 8-16, Hver dag 8-18, Lukket weekend)
+ * Gemmer stadig i samme format ("08:00 - 16:00") så resten af systemet er uberørt. */
+const HoursEditor = ({
+  value,
+  onChange,
+}: {
+  value: Record<string, string>;
+  onChange: (next: Record<string, string>) => void;
+}) => {
+  const setDay = (day: string, open: string | null, close: string | null) => {
+    const next = { ...value };
+    if (open && close) next[day] = formatHours(open, close);
+    else delete next[day];
+    onChange(next);
+  };
+
+  const applyToAll = (sourceDay: string) => {
+    const src = parseHours(value[sourceDay] || "");
+    if (!src) return;
+    const next: Record<string, string> = {};
+    DAYS.forEach((d) => {
+      // Bevar lukkede dage som lukkede; sæt åbne dage til samme tider
+      if (value[d] || d === sourceDay) next[d] = formatHours(src.open, src.close);
+    });
+    onChange(next);
+  };
+
+  const applyPreset = (preset: "weekdays" | "everyday" | "clear") => {
+    if (preset === "clear") return onChange({});
+    const open = "08:00";
+    const close = preset === "weekdays" ? "16:00" : "18:00";
+    const days = preset === "weekdays" ? WEEKDAYS : DAYS;
+    const next: Record<string, string> = {};
+    days.forEach((d) => { next[d] = formatHours(open, close); });
+    onChange(next);
+  };
+
+  return (
+    <div className="space-y-3">
+      {/* Hurtige presets — sætter typiske åbningstider med ét klik */}
+      <div className="flex flex-wrap gap-1.5">
+        <button
+          type="button"
+          onClick={() => applyPreset("weekdays")}
+          className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          Hverdage 08–16
+        </button>
+        <button
+          type="button"
+          onClick={() => applyPreset("everyday")}
+          className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          Alle dage 08–18
+        </button>
+        <button
+          type="button"
+          onClick={() => applyPreset("clear")}
+          className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+        >
+          Nulstil alle
+        </button>
+      </div>
+
+      <div className="space-y-1.5">
+        {DAYS.map((day) => {
+          const parsed = parseHours(value[day] || "");
+          const isOpen = !!parsed;
+          const open = parsed?.open || "08:00";
+          const close = parsed?.close || "16:00";
+          return (
+            <div
+              key={day}
+              className={`flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
+                isOpen ? "border-border bg-secondary/40" : "border-border bg-card"
+              }`}
+            >
+              {/* Dag + toggle */}
+              <button
+                type="button"
+                onClick={() => isOpen ? setDay(day, null, null) : setDay(day, open, close)}
+                className="flex items-center gap-2 min-w-[140px] sm:min-w-[160px]"
+              >
+                <span
+                  aria-pressed={isOpen}
+                  className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors ${
+                    isOpen ? "bg-accent" : "bg-border"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm transition-transform mt-0.5 ${
+                      isOpen ? "translate-x-4 ml-0.5" : "translate-x-0.5"
+                    }`}
+                  />
+                </span>
+                <span className="text-sm font-medium text-foreground">{day}</span>
+                {!isOpen && <span className="text-xs text-muted-foreground">Lukket</span>}
+              </button>
+
+              {isOpen && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="time"
+                      value={open}
+                      onChange={(e) => setDay(day, e.target.value || "08:00", close)}
+                      className="h-9 w-[110px] bg-background rounded-lg text-sm tabular-nums"
+                    />
+                    <span className="text-xs text-muted-foreground">til</span>
+                    <Input
+                      type="time"
+                      value={close}
+                      onChange={(e) => setDay(day, open, e.target.value || "16:00")}
+                      className="h-9 w-[110px] bg-background rounded-lg text-sm tabular-nums"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => applyToAll(day)}
+                    className="ml-auto text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                    title="Kopiér disse tider til alle åbne dage"
+                  >
+                    Anvend på alle
+                  </button>
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
