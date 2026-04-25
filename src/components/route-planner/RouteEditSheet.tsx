@@ -281,16 +281,21 @@ export const RouteEditSheet = ({
             {waypoints && (
               <Section icon={<Gauge className="h-3.5 w-3.5" />} title="Rejsetid">
                 <div className="space-y-2">
-                  <p className="text-sm">
-                    <span className="text-muted-foreground">Estimeret rejsetid: </span>
-                    <span className="font-semibold text-foreground tabular-nums">
-                      {displayDuration != null ? formatTravelTime(displayDuration) : "—"}
-                    </span>
-                  </p>
+                  <div>
+                    <p className="text-sm">
+                      <span className="text-muted-foreground">Estimeret rejsetid: </span>
+                      <span className="font-semibold text-foreground tabular-nums">
+                        {displayDuration != null ? formatTravelTime(displayDuration) : "—"}
+                      </span>
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      Beregnet ud fra valgt starttid og forventede trafikforhold.
+                    </p>
+                  </div>
 
                   <div>
                     <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1.5">
-                      Afgangstid
+                      Starttid
                     </p>
                     <Select
                       value={departAt ?? "now"}
