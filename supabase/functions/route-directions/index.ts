@@ -10,16 +10,39 @@ const corsHeaders = {
 
 type LatLng = { lat: number; lng: number };
 
-async function mapboxDirections(coords: LatLng[], token: string) {
+async function mapboxDirections(coords: LatLng[], token: string, departAt?: string) {
   const coordStr = coords.map((c) => `${c.lng},${c.lat}`).join(";");
+  // Vi henter ALTERNATIVES og vælger den rute med korteste *real-time* duration
+  // (driving-traffic profilen). Det matcher hvordan Google Maps vælger den
+  // hurtigste rute lige nu — ikke nødvendigvis den korteste i km.
+  // annotations=congestion giver os live trafik-info pr. segment.
+  const params = new URLSearchParams({
+    geometries: "geojson",
+    overview: "full",
+    steps: "true",
+    language: "da",
+    voice_instructions: "true",
+    banner_instructions: "true",
+    alternatives: coords.length === 2 ? "true" : "false",
+    annotations: "duration,distance,congestion,speed",
+    access_token: token,
+  });
+  if (departAt) params.set("depart_at", departAt);
   const url =
     `https://api.mapbox.com/directions/v5/mapbox/driving-traffic/${coordStr}` +
-    `?geometries=geojson&overview=full&steps=true&language=da&voice_instructions=true&banner_instructions=true&access_token=${token}`;
+    `?${params.toString()}`;
   const r = await fetch(url);
   if (!r.ok) return null;
   const json = await r.json();
-  const route = json?.routes?.[0];
-  if (!route) return null;
+  const routes = json?.routes;
+  if (!routes || routes.length === 0) return null;
+  // Vælg ruten med den laveste duration (real-time trafik). Mapbox returnerer
+  // som regel den hurtigste først, men ved alternatives kan en anden være bedre
+  // pga. live-trafik der lige har ændret sig.
+  const route = routes.reduce(
+    (best: any, r: any) => (r.duration < best.duration ? r : best),
+    routes[0],
+  );
   // Flatten steps across legs into a single ordered list with maneuver info
   type Step = {
     distance_m: number;
@@ -58,8 +81,11 @@ async function mapboxDirections(coords: LatLng[], token: string) {
     geometry: route.geometry, // GeoJSON LineString
     distance_m: route.distance,
     duration_s: route.duration,
+    // duration_typical_s = uden trafik, hvis Mapbox returnerer det
+    duration_typical_s: route.duration_typical ?? null,
     steps,
     provider: "mapbox" as const,
+    alternatives_count: routes.length,
   };
 }
 
@@ -69,6 +95,7 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const wp: LatLng[] = body?.waypoints || [];
+    const departAt: string | undefined = typeof body?.depart_at === "string" ? body.depart_at : undefined;
     if (!Array.isArray(wp) || wp.length < 2) {
       return new Response(JSON.stringify({ error: "Mindst 2 waypoints kræves" }), {
         status: 400,
@@ -87,7 +114,7 @@ Deno.serve(async (req) => {
 
     const token = Deno.env.get("MAPBOX_ACCESS_TOKEN");
     if (token) {
-      const dir = await mapboxDirections(trimmed, token);
+      const dir = await mapboxDirections(trimmed, token, departAt);
       if (dir) {
         return new Response(JSON.stringify({ ok: true, ...dir }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
