@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useMySubscriptions, useUpdateSubscription, useMyProfile, useUpdateProfile,
@@ -799,7 +799,6 @@ const ProfileView = () => {
   const updateProfile = useUpdateProfile();
   const [displayName, setDisplayName] = useState("");
   const [phone, setPhone] = useState("");
-  const [initialized, setInitialized] = useState(false);
   const [settingsTab, setSettingsTab] = useState<"profile" | "notifications" | "account">("profile");
   const [notifSettings, setNotifSettings] = useState<Record<string, boolean>>({
     email_order_status: true,
@@ -809,17 +808,19 @@ const ProfileView = () => {
     email_marketing: false,
   });
 
-  if (isLoading) return <div className="h-40 animate-pulse rounded-2xl bg-secondary/50" />;
-
-  if (profile && !initialized) {
+  // Initialiser felter fra profilen via useEffect — undgår at kalde setState
+  // under render (det var årsagen til at visningsnavn ikke blev sat korrekt).
+  useEffect(() => {
+    if (!profile) return;
     setDisplayName(profile.display_name || "");
     setPhone(profile.phone || "");
     const saved = (profile as any).notification_settings as Record<string, boolean> | null;
     if (saved && typeof saved === "object") {
       setNotifSettings(prev => ({ ...prev, ...saved }));
     }
-    setInitialized(true);
-  }
+  }, [profile]);
+
+  if (isLoading) return <div className="h-40 animate-pulse rounded-2xl bg-secondary/50" />;
 
   const handleSave = () => {
     if (!user) return;
@@ -851,13 +852,13 @@ const ProfileView = () => {
   return (
     <div className="space-y-6">
       {/* Settings tabs */}
-      <div className="flex gap-2 border-b border-border overflow-x-auto">
+      <div className="flex gap-2 border-b border-border overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {settingsTabs.map(({ key, label, icon: Icon }) => (
           <button key={key} onClick={() => setSettingsTab(key)}
-            className={`flex items-center gap-2 px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap border-b-2 -mb-px ${
               settingsTab === key
-                ? "text-foreground border-b-2 border-foreground"
-                : "text-muted-foreground hover:text-foreground"
+                ? "text-foreground border-foreground"
+                : "text-muted-foreground border-transparent hover:text-foreground hover:border-border"
             }`}>
             <Icon className="h-4 w-4" />
             {label}
@@ -867,33 +868,75 @@ const ProfileView = () => {
 
       {/* Profile tab */}
       {settingsTab === "profile" && (
-        <div className="max-w-lg space-y-6">
+        <div className="max-w-2xl space-y-6">
           <Card className="rounded-2xl border-border shadow-sm">
-            <CardContent className="p-6 space-y-5">
-              <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10">
-                  <User className="h-7 w-7 text-accent" />
+            <CardContent className="p-6 sm:p-7 space-y-6">
+              {/* Identitet */}
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-foreground text-background text-xl font-bold shadow-sm">
+                  {(displayName || user?.email || "?").trim().charAt(0).toUpperCase()}
                 </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">{displayName || user?.email?.split("@")[0] || "Bruger"}</h3>
-                  <p className="text-sm text-muted-foreground">{user?.email}</p>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-lg font-semibold text-foreground truncate">
+                    {displayName.trim() || user?.email?.split("@")[0] || "Bruger"}
+                  </h3>
+                  <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
                 </div>
               </div>
+
               <Separator />
-              <div className="space-y-4">
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Visningsnavn</label>
-                  <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Dit navn" className="bg-card" />
+
+              {/* Felter */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label htmlFor="profile-displayname" className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Visningsnavn
+                  </label>
+                  <Input
+                    id="profile-displayname"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="Fx Anna Hansen"
+                    className="bg-card"
+                    autoComplete="name"
+                  />
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    Vises når du sender beskeder eller skriver anmeldelser.
+                  </p>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Telefon</label>
-                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="12 34 56 78" className="bg-card" type="tel" />
+                  <label htmlFor="profile-phone" className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Telefon
+                  </label>
+                  <Input
+                    id="profile-phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="12 34 56 78"
+                    className="bg-card"
+                    type="tel"
+                    autoComplete="tel"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Email
+                  </label>
+                  <Input
+                    value={user?.email || ""}
+                    readOnly
+                    disabled
+                    className="bg-secondary/40 cursor-not-allowed"
+                  />
                 </div>
               </div>
-              <Button onClick={handleSave} disabled={updateProfile.isPending}
-                className="w-full rounded-xl bg-foreground text-background hover:bg-foreground/90">
-                {updateProfile.isPending ? "Gemmer..." : "Gem ændringer"}
-              </Button>
+
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
+                <Button onClick={handleSave} disabled={updateProfile.isPending}
+                  className="rounded-xl bg-foreground px-6 text-background hover:bg-foreground/90">
+                  {updateProfile.isPending ? "Gemmer..." : "Gem ændringer"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
