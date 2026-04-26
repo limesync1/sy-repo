@@ -16,6 +16,7 @@ import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import {
   useBusinessPlan, useReactivateBusinessPlan,
   usePlatformPricing, useUpdateBusinessPlan, useRemovePaymentMethod,
