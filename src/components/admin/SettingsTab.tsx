@@ -657,6 +657,32 @@ const SettingsTab = ({ business }: { business: any }) => {
           </SectionCard>
         </div>
 
+        {/* Fakturering */}
+        <div id="settings-billing" className="scroll-mt-6">
+          <SectionCard
+            title="Fakturering & abonnement"
+            icon={<CreditCard />}
+            description="Administrér din pakke og tilføj betalingskort. Vi bruger Stripe til sikker betalingshåndtering."
+          >
+            <div className="rounded-lg border border-border bg-card p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                  <CreditCard className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-foreground">Betalingskort</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Du er i gratis prøveperiode. Tilføj et betalingskort inden prøven udløber for at fortsætte med at bruge Serviceydere uden afbrydelse.
+                  </p>
+                  <span className="mt-3 inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Stripe-integration kommer snart
+                  </span>
+                </div>
+              </div>
+            </div>
+          </SectionCard>
+        </div>
+
         {/* Avanceret */}
         <div id="settings-advanced" className="scroll-mt-6">
           <SectionCard title="Avanceret" icon={<Settings />} description="Aktivér ekstra funktioner til din virksomhed.">
