@@ -109,7 +109,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     if (digits.length < 13 || digits.length > 19 || !/^\d+$/.test(digits)) {
       toast.error("Indtast et gyldigt kortnummer"); return;
     }
-    if (!/^\d{2}\s*\/\s*\d{2}$/.test(cardExpiry)) {
+    if (!/^\d{2}\s*\/\s*\d{2}$/.test(cardExpiry.trim())) {
       toast.error("Udløbsdato skal være MM/ÅÅ"); return;
     }
     if (!/^\d{3,4}$/.test(cardCvc)) {
@@ -121,9 +121,44 @@ const SettingsTab = ({ business }: { business: any }) => {
       await reactivate.mutateAsync({ businessId: business.id, last4, brand });
       setCardNumber(""); setCardExpiry(""); setCardCvc("");
       setShowCardForm(false);
-      toast.success("Betalingskort gemt");
+      toast.success(plan?.status === "expired"
+        ? "Virksomhed genaktiveret — betalingskort gemt"
+        : "Betalingskort gemt");
     } catch (e: any) {
       toast.error(e?.message || "Kunne ikke gemme kort");
+    }
+  };
+
+  // ─── Auto-format kort-input ───
+  // Stripe-flowet bygges senere; indtil da formaterer vi pænt så brugeren
+  // kan se hvad de skriver og knappen reelt validerer korrekt.
+  const handleCardNumberChange = (val: string) => {
+    const digits = val.replace(/\D/g, "").slice(0, 19);
+    const grouped = digits.match(/.{1,4}/g)?.join(" ") ?? digits;
+    setCardNumber(grouped);
+  };
+  const handleCardExpiryChange = (val: string) => {
+    const digits = val.replace(/\D/g, "").slice(0, 4);
+    if (digits.length <= 2) setCardExpiry(digits);
+    else setCardExpiry(`${digits.slice(0, 2)}/${digits.slice(2)}`);
+  };
+  const handleCardCvcChange = (val: string) => {
+    setCardCvc(val.replace(/\D/g, "").slice(0, 4));
+  };
+
+  // Faktureringsinterval — månedlig / kvartalsvis / årlig (samme som ved
+  // "bliv udbyder"). Skifter rabatten i prisberegningen.
+  const handleBillingPeriodChange = async (period: "monthly" | "quarterly" | "yearly") => {
+    if (!plan?.id || period === planBilling) return;
+    try {
+      await updatePlan.mutateAsync({ businessId: business.id, patch: { billing_period: period } });
+      toast.success(
+        period === "yearly" ? "Skiftet til årlig fakturering" :
+        period === "quarterly" ? "Skiftet til kvartalsvis fakturering" :
+        "Skiftet til månedlig fakturering"
+      );
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke skifte interval");
     }
   };
 
