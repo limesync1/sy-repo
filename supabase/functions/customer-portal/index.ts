@@ -58,50 +58,39 @@ Deno.serve(async (req) => {
 
     const stripe = createStripeClient(body.environment as StripeEnv);
 
-    // Stripe sandbox kræver at en Billing Portal-konfiguration eksisterer før
-    // sessioner kan oprettes. Hvis ingen default findes, opretter vi én med
-    // fornuftige defaults så brugeren kan administrere kort, fakturaer og
-    // opsigelse uden manuel opsætning i Stripe dashboard.
-    let portal;
-    try {
-      portal = await stripe.billingPortal.sessions.create({
-        customer: plan.stripe_customer_id,
-        return_url: body.returnUrl,
-      });
-    } catch (err: any) {
-      const msg = String(err?.message || "");
-      const isMissingConfig =
-        msg.includes("No configuration provided") ||
-        msg.includes("default configuration has not been created") ||
-        msg.includes("test mode default configuration");
-      if (!isMissingConfig) throw err;
-
-      console.log("Creating default Billing Portal configuration for", body.environment);
-      await stripe.billingPortal.configurations.create({
-        business_profile: {
-          headline: "Administrér dit abonnement",
-        },
+    // Vi opretter (eller genbruger) en dedikeret Billing Portal-konfiguration
+    // der KUN tillader kort- og faktura-administration. Alt andet (abonnement,
+    // kundeprofil, opsigelse) er deaktiveret så portalen er minimal.
+    const HEADLINE = "Administrér kort & fakturaer";
+    let configId: string | null = null;
+    const existingConfigs = await stripe.billingPortal.configurations.list({ limit: 100 });
+    const existing = existingConfigs.data.find(
+      (c: any) => c.business_profile?.headline === HEADLINE,
+    );
+    if (existing) {
+      configId = existing.id;
+    } else {
+      const created = await stripe.billingPortal.configurations.create({
+        business_profile: { headline: HEADLINE },
         features: {
-          customer_update: { enabled: true, allowed_updates: ["email", "address", "phone", "tax_id"] },
-          invoice_history: { enabled: true },
+          // Kun kort + fakturaer
           payment_method_update: { enabled: true },
-          subscription_cancel: {
-            enabled: true,
-            mode: "at_period_end",
-            cancellation_reason: {
-              enabled: true,
-              options: ["too_expensive", "missing_features", "switched_service", "unused", "customer_service", "too_complex", "low_quality", "other"],
-            },
-          },
+          invoice_history: { enabled: true },
+          // Alt andet deaktiveret
+          customer_update: { enabled: false },
+          subscription_cancel: { enabled: false },
+          subscription_update: { enabled: false },
         },
         default_return_url: body.returnUrl,
       });
-
-      portal = await stripe.billingPortal.sessions.create({
-        customer: plan.stripe_customer_id,
-        return_url: body.returnUrl,
-      });
+      configId = created.id;
     }
+
+    const portal = await stripe.billingPortal.sessions.create({
+      customer: plan.stripe_customer_id,
+      return_url: body.returnUrl,
+      configuration: configId,
+    });
 
     return new Response(JSON.stringify({ url: portal.url }), {
       status: 200,
