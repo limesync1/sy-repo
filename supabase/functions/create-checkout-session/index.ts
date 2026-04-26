@@ -143,6 +143,7 @@ Deno.serve(async (req) => {
       mode: "subscription",
       line_items: lineItems,
       return_url: body.returnUrl,
+      payment_method_types: ["card"],
       ...(existingPlan?.stripe_customer_id
         ? { customer: existingPlan.stripe_customer_id }
         : { customer_email: biz.email || user.email || undefined }),
