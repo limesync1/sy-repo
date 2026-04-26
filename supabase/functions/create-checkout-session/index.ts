@@ -2,7 +2,6 @@
 // for et virksomhedsabonnement. Klienten åbner et iframe der renderer
 // `clientSecret` direkte i appen (ingen redirect).
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { z } from "npm:zod@3.23.8";
 import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
 
 const corsHeaders = {
@@ -11,15 +10,26 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const BodySchema = z.object({
-  businessId: z.string().uuid(),
-  basePriceId: z.string().regex(/^[a-zA-Z0-9_-]+$/),
-  addonPriceIds: z.array(z.string().regex(/^[a-zA-Z0-9_-]+$/)).default([]),
-  extraEmployeeLogins: z.number().int().min(0).max(50).default(0),
-  extraEmployeePriceId: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional(),
-  returnUrl: z.string().url(),
-  environment: z.enum(["sandbox", "live"]),
-});
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const PRICE_RE = /^[a-zA-Z0-9_-]+$/;
+function parseBody(raw: any) {
+  if (!raw || typeof raw !== "object") throw new Error("Invalid body");
+  const businessId = String(raw.businessId || "");
+  const basePriceId = String(raw.basePriceId || "");
+  const addonPriceIds = Array.isArray(raw.addonPriceIds)
+    ? raw.addonPriceIds.map((s: unknown) => String(s)) : [];
+  const extraEmployeeLogins = Math.max(0, Math.min(50, Number(raw.extraEmployeeLogins) || 0));
+  const extraEmployeePriceId = raw.extraEmployeePriceId ? String(raw.extraEmployeePriceId) : undefined;
+  const returnUrl = String(raw.returnUrl || "");
+  const environment = raw.environment === "live" ? "live" : raw.environment === "sandbox" ? "sandbox" : null;
+  if (!UUID_RE.test(businessId)) throw new Error("Invalid businessId");
+  if (!PRICE_RE.test(basePriceId)) throw new Error("Invalid basePriceId");
+  if (addonPriceIds.some((s: string) => !PRICE_RE.test(s))) throw new Error("Invalid addonPriceIds");
+  if (extraEmployeePriceId && !PRICE_RE.test(extraEmployeePriceId)) throw new Error("Invalid extraEmployeePriceId");
+  if (!/^https?:\/\//.test(returnUrl)) throw new Error("Invalid returnUrl");
+  if (!environment) throw new Error("Invalid environment");
+  return { businessId, basePriceId, addonPriceIds, extraEmployeeLogins, extraEmployeePriceId, returnUrl, environment } as const;
+}
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -40,14 +50,7 @@ Deno.serve(async (req) => {
     if (userErr || !userData.user) throw new Error("Unauthorized");
     const user = userData.user;
 
-    const parsed = BodySchema.safeParse(await req.json());
-    if (!parsed.success) {
-      return new Response(JSON.stringify({ error: parsed.error.flatten() }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const body = parsed.data;
+    const body = parseBody(await req.json());
 
     // Bekræft ejerskab af virksomheden
     const { data: biz, error: bizErr } = await supabase

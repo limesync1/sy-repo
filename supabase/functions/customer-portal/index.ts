@@ -1,7 +1,6 @@
 // customer-portal — opretter en Stripe Billing Portal-session så
 // virksomhedens ejer kan administrere kort, fakturaer og opsigelse.
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { z } from "npm:zod@3.23.8";
 import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
 
 const corsHeaders = {
@@ -10,11 +9,17 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const BodySchema = z.object({
-  businessId: z.string().uuid(),
-  returnUrl: z.string().url(),
-  environment: z.enum(["sandbox", "live"]),
-});
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function parseBody(raw: any) {
+  if (!raw || typeof raw !== "object") throw new Error("Invalid body");
+  const businessId = String(raw.businessId || "");
+  const returnUrl = String(raw.returnUrl || "");
+  const environment = raw.environment === "live" ? "live" : raw.environment === "sandbox" ? "sandbox" : null;
+  if (!UUID_RE.test(businessId)) throw new Error("Invalid businessId");
+  if (!/^https?:\/\//.test(returnUrl)) throw new Error("Invalid returnUrl");
+  if (!environment) throw new Error("Invalid environment");
+  return { businessId, returnUrl, environment } as const;
+}
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -34,14 +39,7 @@ Deno.serve(async (req) => {
     if (userErr || !userData.user) throw new Error("Unauthorized");
     const user = userData.user;
 
-    const parsed = BodySchema.safeParse(await req.json());
-    if (!parsed.success) {
-      return new Response(JSON.stringify({ error: parsed.error.flatten() }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const body = parsed.data;
+    const body = parseBody(await req.json());
 
     // Bekræft ejerskab og find Stripe customer
     const { data: biz } = await supabase

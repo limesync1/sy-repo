@@ -15,6 +15,10 @@ function getSupabase() {
   return _supabase;
 }
 
+// Type assertion helper — vi har ingen Database typer i edge function-konteksten,
+// så vi caster tabellerne til `any` for at undgå "never"-overload-fejl.
+const tbl = (name: string) => (getSupabase() as any).from(name);
+
 function pickPaymentMethod(sub: any): { brand: string | null; last4: string | null } {
   // Stripe lægger default payment method på subscription eller på den
   // tilknyttede customer. Vi prøver begge — webhook payload har dem ikke
@@ -61,16 +65,14 @@ async function upsertFromSubscription(subscription: any, env: StripeEnv) {
   if (brand) patch.stripe_payment_method_brand = brand;
   if (last4) patch.stripe_payment_method_last4 = last4;
 
-  const { error } = await getSupabase()
-    .from("business_plans")
+  const { error } = await tbl("business_plans")
     .update(patch)
     .eq("business_id", businessId);
   if (error) console.error("Failed to update business_plan", error);
 
   // Hvis abonnementet er aktivt → sørg for at virksomheden er aktiv
   if (["active", "trialing"].includes(subscription.status)) {
-    await getSupabase()
-      .from("businesses")
+    await tbl("businesses")
       .update({ is_active: true })
       .eq("id", businessId);
   }
@@ -79,8 +81,7 @@ async function upsertFromSubscription(subscription: any, env: StripeEnv) {
 async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
   const businessId = subscription.metadata?.businessId;
   if (!businessId) return;
-  await getSupabase()
-    .from("business_plans")
+  await tbl("business_plans")
     .update({
       status: "canceled",
       cancel_at_period_end: false,
@@ -92,8 +93,7 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
 
 async function handleInvoicePaid(invoice: any, env: StripeEnv) {
   if (!invoice.customer) return;
-  await getSupabase()
-    .from("business_plans")
+  await tbl("business_plans")
     .update({
       last_payment_at: new Date().toISOString(),
       stripe_environment: env,
@@ -104,8 +104,7 @@ async function handleInvoicePaid(invoice: any, env: StripeEnv) {
 
 async function handleInvoiceFailed(invoice: any, env: StripeEnv) {
   if (!invoice.customer) return;
-  await getSupabase()
-    .from("business_plans")
+  await tbl("business_plans")
     .update({
       last_payment_failed_at: new Date().toISOString(),
       stripe_environment: env,
@@ -120,8 +119,7 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   // selvom subscription.created kommer senere.
   const businessId = session.metadata?.businessId;
   if (!businessId || !session.customer) return;
-  await getSupabase()
-    .from("business_plans")
+  await tbl("business_plans")
     .update({
       stripe_customer_id: session.customer,
       stripe_environment: env,
