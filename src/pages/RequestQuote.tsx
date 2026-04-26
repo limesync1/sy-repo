@@ -103,8 +103,6 @@ const RequestQuote = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<MatchedBusiness | null>(null);
   const [showAllServices, setShowAllServices] = useState(false);
-  const { count } = useCart();
-  const { openSheet } = useCart();
   const { location, radiusKm } = useUserLocation();
 
   const handleFind = async (e: React.FormEvent) => {
