@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2,
   AlertCircle, ShoppingCart, Check, ChevronLeft, Clock, ShieldCheck,
-  Zap, Wrench, Truck, TreePine, Paintbrush, Droplets, Lock, Hammer, Building2,
+  Building2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -20,28 +20,27 @@ import SiteNav from "@/components/SiteNav";
 import { useUserLocation } from "@/contexts/LocationContext";
 import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
+import { topCategories } from "@/lib/service-taxonomy";
 
-const CATEGORIES: { label: string; icon: typeof Sparkles }[] = [
-  { label: "Rengøring", icon: Sparkles },
-  { label: "Håndværker", icon: Wrench },
-  { label: "Flyttehjælp", icon: Truck },
-  { label: "Haveservice", icon: TreePine },
-  { label: "Maler", icon: Paintbrush },
-  { label: "VVS", icon: Droplets },
-  { label: "Elektriker", icon: Zap },
-  { label: "Tømrer", icon: Hammer },
-  { label: "Sikkerhed", icon: Lock },
-];
+/** Brug det kanoniske branchekatalog så /tilbud altid matcher
+ *  præcis det virksomheder kan registrere sig under. */
+const CATEGORIES = topCategories();
 
 const EXAMPLE_PROMPTS: Record<string, string> = {
   "Rengøring": "Fx: Rengøring af 3-værelses lejlighed på 85 m², hver 14. dag i København NV.",
-  "Håndværker": "Fx: Skifte 2 toiletter og opsætte 4 hylder i badeværelset, Aarhus C.",
-  "Flyttehjælp": "Fx: Flytning fra 2-værelses i Odense til 3-værelses i Vejle, lørdag den 5.",
+  "Vinduespudsning": "Fx: Vinduespudsning af villa med 18 vinduer, hver måned, ude og inde.",
+  "Algebehandling": "Fx: Algebehandling af 120 m² tag på parcelhus i Aarhus.",
   "Haveservice": "Fx: Klipning af 200 m² hæk og slåning af 400 m² græsplæne, hver måned.",
+  "Tømrer": "Fx: Bygge en træterrasse på 25 m² i baghaven med trapper.",
+  "Murer": "Fx: Reparation af revner i murværk og opmuring af lille trappe ved indgang.",
   "Maler": "Fx: Maling af stue og soveværelse, ca. 50 m² væg, lyse farver, indvendigt.",
   "VVS": "Fx: Skift af utæt vandhane i køkken og inspektion af afløb i badeværelse.",
-  "Elektriker": "Fx: Installation af 4 LED-lofthængslede lamper og udskiftning af 2 stikkontakter.",
-  "Tømrer": "Fx: Bygge en træterrasse på 25 m² i baghaven med trapper.",
+  "Elektriker": "Fx: Installation af 4 LED-loftslamper og udskiftning af 2 stikkontakter.",
+  "Flyttehjælp": "Fx: Flytning fra 2-værelses i Odense til 3-værelses i Vejle, lørdag den 5.",
+  "Skadedyrsbekæmpelse": "Fx: Bekæmpelse af rotter i kælder, parcelhus i Roskilde.",
+  "Anlægsgartner": "Fx: Anlæg af 60 m² flisebelagt terrasse og plantning af hæk omkring.",
+  "Gulvlægger": "Fx: Lægning af 35 m² laminatgulv i stue og spisestue.",
+  "Skorstensfejer": "Fx: Årlig fejning af brændeovnsskorsten på parcelhus.",
   "Sikkerhed": "Fx: Montering af 4 udendørs sikkerhedskameraer og alarm til parcelhus.",
 };
 
