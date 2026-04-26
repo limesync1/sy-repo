@@ -1,6 +1,5 @@
 import { useParams, Link } from "react-router-dom";
 import { useBusinessBySlug, useServices, useReviews } from "@/hooks/useDatabase";
-import CartSheet from "@/components/business/CartSheet";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
 import BusinessSEO from "@/components/business/BusinessSEO";
 import { Button } from "@/components/ui/button";
@@ -152,7 +151,6 @@ const DynamicBusinessContent = () => {
             <Link to="/virksomheder" className="hidden md:inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:bg-secondary/70">
               <ArrowLeft className="h-3.5 w-3.5" /> Tilbage til søgning
             </Link>
-            <CartSheet businessId={business.id} />
           </div>
         </div>
       </nav>
@@ -267,7 +265,7 @@ const DynamicBusinessContent = () => {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="h-11 gap-2 rounded-full border-border bg-card px-5 text-sm font-semibold text-foreground transition-all hover:border-foreground/40 hover:bg-secondary"
+                    className="h-11 gap-2 rounded-full border-border bg-card px-5 text-sm font-semibold text-foreground transition-all hover:border-foreground/40 hover:bg-secondary hover:text-foreground"
                   >
                     <Phone className="h-4 w-4" /> Ring nu
                   </Button>

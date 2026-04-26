@@ -12,7 +12,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useCart } from "@/contexts/CartContext";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
-import CartSheet from "@/components/business/CartSheet";
 import SEO from "@/components/SEO";
 import LocationChip from "@/components/LocationChip";
 import RadiusPicker from "@/components/RadiusPicker";
@@ -105,6 +104,7 @@ const RequestQuote = () => {
   const [selectedBusiness, setSelectedBusiness] = useState<MatchedBusiness | null>(null);
   const [showAllServices, setShowAllServices] = useState(false);
   const { count } = useCart();
+  const { openSheet } = useCart();
   const { location, radiusKm } = useUserLocation();
 
   const handleFind = async (e: React.FormEvent) => {
@@ -201,14 +201,7 @@ const RequestQuote = () => {
         keywords={`få tilbud, ${category || "serviceydere"}, AI matchning, gratis tilbud, danmark, sammenlign serviceydere`}
       />
       {/* Sticky light nav — shared site nav with working mobile menu */}
-      <SiteNav
-        active="quote"
-        right={
-          <>
-            {count > 0 && <CartSheet />}
-          </>
-        }
-      />
+      <SiteNav active="quote" />
 
       {/* ─── STEP 1: Hero + form ─── */}
       {!matches && !isLoading && !selectedBusiness && (
@@ -623,7 +616,12 @@ const RequestQuote = () => {
                     <p className="text-xs text-muted-foreground">fra {selectedBusiness.business.name}</p>
                   </div>
                 </div>
-                <CartSheet />
+                <Button
+                  onClick={openSheet}
+                  className="rounded-full bg-foreground text-background hover:bg-foreground/90"
+                >
+                  <ShoppingCart className="mr-2 h-4 w-4" /> Se bestilling
+                </Button>
               </div>
             </div>
           )}

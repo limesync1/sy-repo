@@ -13,6 +13,10 @@ interface CartContextType {
   total: number;
   count: number;
   groupedByBusiness: Record<string, { businessName: string; businessLogoUrl?: string; items: CartItem[] }>;
+  /** Om bestillings-sheet'en er åben — styres globalt så addItem kan auto-åbne den. */
+  sheetOpen: boolean;
+  setSheetOpen: (open: boolean) => void;
+  openSheet: () => void;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -42,6 +46,7 @@ const saveCart = (items: CartItem[]) => {
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>(loadCart);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   // Persist to localStorage on every change
   useEffect(() => {
@@ -56,6 +61,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       }
       return [...prev, item];
     });
+    // Slid bestillings-sheet ud fra højre, så brugeren ser hvad de har valgt
+    setSheetOpen(true);
   }, []);
 
   const removeItem = useCallback((serviceId: string) => {
@@ -94,7 +101,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   });
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateItemInterval, clearCart, clearBusinessItems, total, count, groupedByBusiness }}>
+    <CartContext.Provider value={{
+      items, addItem, removeItem, updateItemInterval, clearCart, clearBusinessItems,
+      total, count, groupedByBusiness,
+      sheetOpen, setSheetOpen, openSheet: () => setSheetOpen(true),
+    }}>
       {children}
     </CartContext.Provider>
   );

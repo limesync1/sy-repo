@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2, Loader2, User, MapPin, ShoppingBag, Sparkles, Building2, UserRound } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 import { cn } from "@/lib/utils";
@@ -32,17 +32,18 @@ const calculateNextServiceDate = (interval: string): string => {
   return base.toISOString();
 };
 
-interface CartSheetProps {
-  businessId?: string;
-}
-
-const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
-  const { items, removeItem, clearCart, total, count, groupedByBusiness } = useCart();
+/**
+ * Global bestillings-sheet. Renderes én gang globalt (i App.tsx) og åbnes
+ * automatisk når brugeren tilføjer en service via CartContext. Vi viser
+ * dog også en lille flydende handle på siderne, så brugeren altid kan åbne
+ * deres bestilling igen efter den er lukket.
+ */
+const CartSheet = () => {
+  const { items, removeItem, clearCart, total, count, groupedByBusiness, sheetOpen, setSheetOpen } = useCart();
   const { user } = useAuth();
   const createOrder = useCreateOrder();
   const createSubscription = useCreateSubscription();
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
   const [checkout, setCheckout] = useState(false);
   const [customerType, setCustomerType] = useState<"private" | "business">("private");
   const [name, setName] = useState("");
@@ -313,7 +314,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
     setOrderSuccess(true);
     clearCart();
     setTimeout(() => {
-      setOpen(false);
+      setSheetOpen(false);
       setCheckout(false);
       setOrderSuccess(false);
       setName(""); setEmail(""); setPhone("");
@@ -332,18 +333,7 @@ const CartSheet = ({ businessId: _businessIdProp }: CartSheetProps) => {
   const businessCount = Object.keys(groupedByBusiness).length;
 
   return (
-    <Sheet open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setCheckout(false); setOrderSuccess(false); } }}>
-      <SheetTrigger asChild>
-        <Button variant="outline" className="relative gap-2 border-accent/30 hover:bg-accent/10 hover:text-foreground hover:border-accent">
-          <Package className="h-5 w-5" />
-          Bestilling
-          {count > 0 && (
-            <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground shadow-sm ring-2 ring-background animate-in zoom-in-50">
-              {count}
-            </span>
-          )}
-        </Button>
-      </SheetTrigger>
+    <Sheet open={sheetOpen} onOpenChange={(v) => { setSheetOpen(v); if (!v) { setCheckout(false); setOrderSuccess(false); } }}>
       <SheetContent className="flex w-full flex-col sm:max-w-md p-0 gap-0">
         {/* Header with stepper */}
         <div className="shrink-0 border-b border-border bg-card">
