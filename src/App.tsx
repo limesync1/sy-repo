@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import CartSheet from "@/components/business/CartSheet";
+import CartFab from "@/components/business/CartFab";
 
 // Forsiden + Login indlæses ivrigt — alt andet er code-splittet via React.lazy
 // så det første sidebesøg ikke trækker hele admin/medarbejder/ruteplanlægger
@@ -56,6 +57,8 @@ const App = () => (
           <Sonner />
           {/* Global bestillings-sheet — slides ud fra højre når services tilføjes */}
           <CartSheet />
+          {/* Flydende genåbn-knap når brugeren har items men har lukket sheeten */}
+          <CartFab />
           <BrowserRouter>
             <Suspense fallback={<PageFallback />}>
             <Routes>
