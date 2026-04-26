@@ -21,6 +21,8 @@ import {
   useBusinessPlan, useReactivateBusinessPlan,
   usePlatformPricing, useUpdateBusinessPlan, useRemovePaymentMethod,
 } from "@/hooks/useBusinessPlan";
+import { StripeCheckoutDialog } from "@/components/billing/StripeCheckoutDialog";
+import { getStripeEnvironment } from "@/lib/stripe";
 import {
   INDUSTRY_GROUPS,
   ALL_INDUSTRIES,
@@ -97,53 +99,27 @@ const SettingsTab = ({ business }: { business: any }) => {
   const updatePlan = useUpdateBusinessPlan();
   const { data: pricing } = usePlatformPricing();
 
-  // Lokal state for kortform — bruges kun til at fange last4 + brand så
-  // banneret forsvinder. Den rigtige Stripe-tokenisering sker senere.
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardExpiry, setCardExpiry] = useState("");
-  const [cardCvc, setCardCvc] = useState("");
-  const [showCardForm, setShowCardForm] = useState(false);
+  // Stripe Embedded Checkout-dialog samt loading-state for "Administrér kort".
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false);
 
-  const handleSaveCard = async () => {
-    const digits = cardNumber.replace(/\s+/g, "");
-    if (digits.length < 13 || digits.length > 19 || !/^\d+$/.test(digits)) {
-      toast.error("Indtast et gyldigt kortnummer"); return;
-    }
-    if (!/^\d{2}\s*\/\s*\d{2}$/.test(cardExpiry.trim())) {
-      toast.error("Udløbsdato skal være MM/ÅÅ"); return;
-    }
-    if (!/^\d{3,4}$/.test(cardCvc)) {
-      toast.error("CVC skal være 3-4 cifre"); return;
-    }
+  const openCustomerPortal = async () => {
+    setOpeningPortal(true);
     try {
-      const last4 = digits.slice(-4);
-      const brand = digits.startsWith("4") ? "Visa" : digits.startsWith("5") ? "Mastercard" : "Kort";
-      await reactivate.mutateAsync({ businessId: business.id, last4, brand });
-      setCardNumber(""); setCardExpiry(""); setCardCvc("");
-      setShowCardForm(false);
-      toast.success(plan?.status === "expired"
-        ? "Virksomhed genaktiveret — betalingskort gemt"
-        : "Betalingskort gemt");
+      const { data, error } = await supabase.functions.invoke("customer-portal", {
+        body: {
+          businessId: business.id,
+          returnUrl: `${window.location.origin}/virksomhed?tab=settings`,
+          environment: getStripeEnvironment(),
+        },
+      });
+      if (error || !data?.url) throw new Error((error as any)?.message || data?.error || "Kunne ikke åbne portal");
+      window.location.href = data.url;
     } catch (e: any) {
-      toast.error(e?.message || "Kunne ikke gemme kort");
+      toast.error(e?.message || "Kunne ikke åbne kort-administrationen");
+    } finally {
+      setOpeningPortal(false);
     }
-  };
-
-  // ─── Auto-format kort-input ───
-  // Stripe-flowet bygges senere; indtil da formaterer vi pænt så brugeren
-  // kan se hvad de skriver og knappen reelt validerer korrekt.
-  const handleCardNumberChange = (val: string) => {
-    const digits = val.replace(/\D/g, "").slice(0, 19);
-    const grouped = digits.match(/.{1,4}/g)?.join(" ") ?? digits;
-    setCardNumber(grouped);
-  };
-  const handleCardExpiryChange = (val: string) => {
-    const digits = val.replace(/\D/g, "").slice(0, 4);
-    if (digits.length <= 2) setCardExpiry(digits);
-    else setCardExpiry(`${digits.slice(0, 2)}/${digits.slice(2)}`);
-  };
-  const handleCardCvcChange = (val: string) => {
-    setCardCvc(val.replace(/\D/g, "").slice(0, 4));
   };
 
   // Faktureringsinterval — månedlig / kvartalsvis / årlig (samme som ved
@@ -987,7 +963,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             )}
 
             {/* Aktivt kort — vis brand + last4, og lad brugeren fjerne det */}
-            {plan?.has_payment_method && !showCardForm && (
+            {plan?.has_payment_method && (
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-14 shrink-0 items-center justify-center rounded-md bg-foreground text-background text-[10px] font-semibold uppercase tracking-wider">
@@ -999,8 +975,8 @@ const SettingsTab = ({ business }: { business: any }) => {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => setShowCardForm(true)}>
-                    Skift kort
+                  <Button size="sm" variant="outline" onClick={openCustomerPortal} disabled={openingPortal}>
+                    {openingPortal ? "Åbner..." : "Administrér kort & fakturaer"}
                   </Button>
                   <Button size="sm" variant="outline" onClick={handleRemoveCard} disabled={removeCard.isPending}
                     className="text-destructive hover:text-destructive hover:border-destructive/40">
@@ -1010,66 +986,36 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
             )}
 
-            {/* Kortform — vises kun hvis der ikke er noget kort på fil. */}
-            {(!plan || !plan.has_payment_method || showCardForm) && (
+            {/* Tilføj kort — åbner Stripe Embedded Checkout */}
+            {(!plan || !plan.has_payment_method) && (
               <div className="mt-4 space-y-3 rounded-lg border border-border bg-card p-4">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold text-foreground">
-                    {showCardForm ? "Skift betalingskort" : "Tilføj betalingskort"}
+                    Tilføj betalingskort
                   </p>
                   <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Sikret af Stripe</span>
                 </div>
-                <div>
-                  <FieldLabel>Kortnummer</FieldLabel>
-                  <Input
-                    value={cardNumber}
-                    onChange={(e) => handleCardNumberChange(e.target.value)}
-                    placeholder="1234 5678 9012 3456"
-                    inputMode="numeric"
-                    autoComplete="cc-number"
-                    maxLength={23}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <FieldLabel>Udløb (MM/ÅÅ)</FieldLabel>
-                    <Input
-                      value={cardExpiry}
-                      onChange={(e) => handleCardExpiryChange(e.target.value)}
-                      placeholder="12/27"
-                      inputMode="numeric"
-                      autoComplete="cc-exp"
-                      maxLength={5}
-                    />
-                  </div>
-                  <div>
-                    <FieldLabel>CVC</FieldLabel>
-                    <Input
-                      value={cardCvc}
-                      onChange={(e) => handleCardCvcChange(e.target.value)}
-                      placeholder="123"
-                      inputMode="numeric"
-                      autoComplete="cc-csc"
-                      maxLength={4}
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  {showCardForm && (
-                    <Button variant="outline" onClick={() => { setShowCardForm(false); setCardNumber(""); setCardExpiry(""); setCardCvc(""); }} className="flex-1">
-                      Annullér
-                    </Button>
-                  )}
-                  <Button
-                    onClick={handleSaveCard}
-                    disabled={reactivate.isPending}
-                    className="flex-1 bg-foreground text-background hover:bg-foreground/90"
-                  >
-                    {reactivate.isPending ? "Gemmer..." : plan?.status === "expired" ? "Genaktivér virksomhed" : "Gem betalingskort"}
-                  </Button>
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  Du opkræves ikke før din prøveperiode er slut. Du kan opsige når som helst.
+                </p>
+                <Button
+                  onClick={() => setShowCheckout(true)}
+                  className="w-full bg-foreground text-background hover:bg-foreground/90"
+                >
+                  {plan?.status === "expired" ? "Genaktivér virksomhed med betalingskort" : "Tilføj betalingskort"}
+                </Button>
               </div>
             )}
+
+            <StripeCheckoutDialog
+              open={showCheckout}
+              onClose={() => setShowCheckout(false)}
+              businessId={business.id}
+              billingPeriod={(planBilling as "monthly" | "quarterly" | "yearly") || "monthly"}
+              routePlanning={routePlanningEnabled}
+              accounting={accountingIntegrationEnabled}
+              extraEmployeeLogins={planExtraLogins}
+            />
           </SectionCard>
         </div>
 
