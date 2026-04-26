@@ -104,6 +104,7 @@ const RequestQuote = () => {
   const [selectedBusiness, setSelectedBusiness] = useState<MatchedBusiness | null>(null);
   const [showAllServices, setShowAllServices] = useState(false);
   const { count } = useCart();
+  const { openSheet } = useCart();
   const { location, radiusKm } = useUserLocation();
 
   const handleFind = async (e: React.FormEvent) => {
@@ -615,7 +616,12 @@ const RequestQuote = () => {
                     <p className="text-xs text-muted-foreground">fra {selectedBusiness.business.name}</p>
                   </div>
                 </div>
-                <CartSheet />
+                <Button
+                  onClick={openSheet}
+                  className="rounded-full bg-foreground text-background hover:bg-foreground/90"
+                >
+                  <ShoppingCart className="mr-2 h-4 w-4" /> Se bestilling
+                </Button>
               </div>
             </div>
           )}
