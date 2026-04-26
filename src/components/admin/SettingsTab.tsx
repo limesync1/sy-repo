@@ -96,6 +96,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvc, setCardCvc] = useState("");
+  const [showCardForm, setShowCardForm] = useState(false);
 
   const handleSaveCard = async () => {
     const digits = cardNumber.replace(/\s+/g, "");
@@ -113,9 +114,20 @@ const SettingsTab = ({ business }: { business: any }) => {
       const brand = digits.startsWith("4") ? "Visa" : digits.startsWith("5") ? "Mastercard" : "Kort";
       await reactivate.mutateAsync({ businessId: business.id, last4, brand });
       setCardNumber(""); setCardExpiry(""); setCardCvc("");
+      setShowCardForm(false);
       toast.success("Betalingskort gemt");
     } catch (e: any) {
       toast.error(e?.message || "Kunne ikke gemme kort");
+    }
+  };
+
+  const handleRemoveCard = async () => {
+    if (!confirm("Er du sikker på at du vil fjerne dit betalingskort? Hvis prøveperioden er udløbet bliver din virksomhed deaktiveret.")) return;
+    try {
+      await removeCard.mutateAsync(business.id);
+      toast.success("Betalingskort fjernet");
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke fjerne kort");
     }
   };
 
