@@ -314,7 +314,7 @@ const CartSheet = () => {
     setOrderSuccess(true);
     clearCart();
     setTimeout(() => {
-      setOpen(false);
+      setSheetOpen(false);
       setCheckout(false);
       setOrderSuccess(false);
       setName(""); setEmail(""); setPhone("");
