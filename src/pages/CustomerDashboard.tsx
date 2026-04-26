@@ -85,6 +85,10 @@ const EmptyPanel = ({
 const CustomerDashboard = () => {
   const { user, loading } = useAuth();
   const [tab, setTab] = useState<"orders" | "subscriptions" | "favorites" | "profile">("orders");
+  const { data: orders } = useMyOrders();
+  const proposalCount = (orders || []).filter(
+    (o: any) => o.business_response === "adjusted" && !o.customer_response,
+  ).length;
 
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-secondary/50">
@@ -97,7 +101,7 @@ const CustomerDashboard = () => {
   if (!user) return <Navigate to="/log-ind" replace />;
 
   const tabs = [
-    { key: "orders", label: "Bestillinger", icon: ShoppingCart },
+    { key: "orders", label: "Bestillinger", icon: ShoppingCart, badge: proposalCount },
     { key: "subscriptions", label: "Abonnementer", icon: Package },
     { key: "favorites", label: "Favoritter", icon: Heart },
     { key: "profile", label: "Min profil", icon: Settings },
