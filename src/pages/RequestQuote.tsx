@@ -220,7 +220,7 @@ const RequestQuote = () => {
             subtitle={<>Få op til 3 skræddersyede tilbud fra verificerede serviceydere. Helt gratis & uforpligtende — klar på <span className="font-semibold text-background">3-10 sekunder</span>.</>}
           />
 
-          <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pt-10 pb-16 md:pt-12 md:pb-20">
+          <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 pb-16 md:pt-12 md:pb-20">
           {/* Form card */}
           <form onSubmit={handleFind} className="surface-panel mt-10 rounded-[2rem] border border-border p-6 shadow-[0_24px_55px_-36px_hsl(var(--foreground)/0.28)] md:p-8">
             {/* Location strip */}
@@ -318,7 +318,7 @@ const RequestQuote = () => {
 
       {/* ─── Loading ─── */}
       {isLoading && (
-        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-20">
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20">
           <div className="flex flex-col items-center gap-6 text-center animate-fade-in">
             <div className="relative">
               <div className="absolute inset-0 animate-ping rounded-full bg-accent/15" />
@@ -341,7 +341,7 @@ const RequestQuote = () => {
 
       {/* ─── Error ─── */}
       {error && !isLoading && (
-        <section className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-14">
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">
           <div className="rounded-2xl border border-border bg-card p-8 text-center animate-fade-in">
             <AlertCircle className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
             <p className="mb-4 text-foreground">{error}</p>
@@ -352,7 +352,7 @@ const RequestQuote = () => {
 
       {/* ─── STEP 2: Pick a business ─── */}
       {matches && matches.length > 0 && !isLoading && !selectedBusiness && (
-          <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 md:py-14 animate-fade-in">
+          <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 md:py-14 animate-fade-in">
           <div className="mb-8 text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-1.5 text-sm font-semibold text-accent">
               <Sparkles className="h-4 w-4" />
@@ -486,7 +486,7 @@ const RequestQuote = () => {
 
       {/* ─── STEP 3: Configure services ─── */}
       {selectedBusiness && !isLoading && (
-        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 md:py-12 animate-fade-in">
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 md:py-12 animate-fade-in">
           <Button
             variant="ghost"
             onClick={() => setSelectedBusiness(null)}
