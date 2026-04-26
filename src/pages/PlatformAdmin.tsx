@@ -4,7 +4,7 @@ import { Navigate, Link } from "react-router-dom";
 import { useState } from "react";
 import {
   LayoutDashboard, Building2, Users, ShoppingCart, Star,
-  LogOut, Menu, X, ShieldCheck, Repeat, ChevronRight,
+  LogOut, Menu, X, ShieldCheck, Repeat, ChevronRight, Settings,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import PlatformOverviewTab from "@/components/platform-admin/PlatformOverviewTab";
@@ -13,6 +13,7 @@ import PlatformUsersTab from "@/components/platform-admin/PlatformUsersTab";
 import PlatformOrdersTab from "@/components/platform-admin/PlatformOrdersTab";
 import PlatformSubscriptionsTab from "@/components/platform-admin/PlatformSubscriptionsTab";
 import PlatformReviewsTab from "@/components/platform-admin/PlatformReviewsTab";
+import PlatformSettingsTab from "@/components/platform-admin/PlatformPlatformSettingsTab";
 import { AdminFiltersProvider } from "@/components/platform-admin/lib/AdminFiltersContext";
 import RangePicker from "@/components/platform-admin/RangePicker";
 
@@ -23,6 +24,7 @@ const NAV = [
   { value: "orders", label: "Ordrer", icon: ShoppingCart, hasRange: true },
   { value: "subscriptions", label: "Abonnementer", icon: Repeat, hasRange: false },
   { value: "reviews", label: "Anmeldelser", icon: Star, hasRange: false },
+  { value: "settings", label: "Platform", icon: Settings, hasRange: false },
 ];
 
 const PlatformAdmin = () => {
@@ -120,6 +122,7 @@ const PlatformAdmin = () => {
             {tab === "orders" && <PlatformOrdersTab />}
             {tab === "subscriptions" && <PlatformSubscriptionsTab />}
             {tab === "reviews" && <PlatformReviewsTab />}
+            {tab === "settings" && <PlatformSettingsTab />}
           </main>
         </div>
       </div>
