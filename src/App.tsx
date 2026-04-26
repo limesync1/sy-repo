@@ -29,6 +29,7 @@ const EmployeeRoute         = lazy(() => import("./pages/EmployeeRoute"));
 const EmployeeRoutePrint    = lazy(() => import("./pages/EmployeeRoutePrint"));
 const EmployeeStats         = lazy(() => import("./pages/EmployeeStats"));
 const ApproveOrder          = lazy(() => import("./pages/ApproveOrder"));
+const BusinessOnboarding    = lazy(() => import("./components/admin/BusinessOnboarding"));
 
 const queryClient = new QueryClient();
 
@@ -73,6 +74,7 @@ const App = () => (
               <Route path="/godkend-bestilling/:orderId" element={<ApproveOrder />} />
               <Route path="/v/:slug" element={<DynamicBusinessPage />} />
               <Route path="/demo" element={<BusinessPage />} />
+              <Route path="/opret-virksomhed" element={<BusinessOnboarding />} />
 
               {/* ── Legacy redirects (preserve bookmarks & SEO) ── */}
               <Route path="/auth" element={<RedirectWithQuery to="/log-ind" />} />
