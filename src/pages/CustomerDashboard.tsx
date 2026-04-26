@@ -12,18 +12,20 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  Package, User, Star, LogOut, Pause, Play, XCircle,
-  CalendarClock, ArrowLeft, ExternalLink, ShieldCheck, Settings,
-  Store, ChevronRight, Sparkles, ShoppingCart, Check, X,
+  Package, User, Star, Pause, Play, XCircle, LogOut,
+  CalendarClock, ShieldCheck, Settings,
+  Store, ChevronRight, ShoppingCart, Check, X,
   Clock, AlertTriangle, CheckCircle2, MessageSquare, FileText,
   Bell, Mail, Shield, KeyRound, Heart, Building2, MapPin, Trash2,
 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import SEO from "@/components/SEO";
+import CustomerShell from "@/components/customer/CustomerShell";
+import { PageHeader } from "@/components/admin/shared/AdminUI";
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "Afventer godkendelse", variant: "outline" },
@@ -41,13 +43,13 @@ const ORDER_STATUS: Record<string, { label: string; color: string; icon: typeof 
 };
 
 const CustomerDashboard = () => {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading } = useAuth();
   const [tab, setTab] = useState<"orders" | "subscriptions" | "favorites" | "profile">("orders");
 
   if (loading) return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
+    <div className="flex min-h-screen items-center justify-center bg-secondary/50">
       <div className="flex flex-col items-center gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
         <p className="text-sm text-muted-foreground">Indlæser dit panel...</p>
       </div>
     </div>
@@ -55,86 +57,41 @@ const CustomerDashboard = () => {
   if (!user) return <Navigate to="/log-ind" replace />;
 
   const tabs = [
-    { key: "orders" as const, label: "Bestillinger", icon: ShoppingCart },
-    { key: "subscriptions" as const, label: "Abonnementer", icon: Package },
-    { key: "favorites" as const, label: "Favoritter", icon: Heart },
-    { key: "profile" as const, label: "Min profil", icon: Settings },
+    { key: "orders", label: "Bestillinger", icon: ShoppingCart },
+    { key: "subscriptions", label: "Abonnementer", icon: Package },
+    { key: "favorites", label: "Favoritter", icon: Heart },
+    { key: "profile", label: "Min profil", icon: Settings },
   ];
 
+  const headers: Record<typeof tab, { title: string; description: string }> = {
+    orders: { title: "Bestillinger", description: "Se og besvar dine bestillinger og forslag fra virksomheder." },
+    subscriptions: { title: "Abonnementer", description: "Administrer dine tilbagevendende services." },
+    favorites: { title: "Favoritter", description: "Hurtig adgang til de virksomheder du har gemt." },
+    profile: { title: "Min profil", description: "Opdater dine kontaktoplysninger og notifikationer." },
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <>
       <SEO
         title="Mit kundepanel – Serviceydere"
         description="Administrer dine bestillinger, abonnementer og favoritter på Serviceydere."
         canonicalPath="/min-konto"
         noIndex
       />
-      <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <Link to="/">
-              <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-7" />
-            </Link>
-            <Separator orientation="vertical" className="mx-1 h-5 hidden sm:block" />
-            <span className="hidden text-sm font-medium text-foreground sm:inline">Kundepanel</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 rounded-full border border-border bg-secondary/50 px-3 py-1.5">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-xs font-bold text-accent">
-                {(user.email || "U").charAt(0).toUpperCase()}
-              </div>
-              <span className="text-sm text-foreground">{user.email}</span>
-            </div>
-            <Button variant="ghost" size="sm" onClick={signOut} className="gap-1.5 text-muted-foreground hover:text-foreground">
-              <LogOut className="h-4 w-4" /> <span className="hidden sm:inline">Log ud</span>
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="py-6 sm:py-8">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
-              <Sparkles className="h-5 w-5 text-accent" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground sm:text-2xl">
-                Velkommen, {user.email?.split("@")[0]}
-              </h1>
-              <p className="text-sm text-muted-foreground">Administrer dine bestillinger og services</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-4 gap-2 mb-8 sm:flex sm:gap-2">
-          {tabs.map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              onClick={() => setTab(key)}
-              className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all ${
-                tab === key
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border bg-card text-muted-foreground hover:border-foreground/20 hover:text-foreground"
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-              <span className="hidden sm:inline">{label}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="pb-12">
+      <CustomerShell
+        activeTab={tab}
+        onTabChange={(k) => setTab(k as typeof tab)}
+        tabs={tabs}
+      >
+        <div className="space-y-5">
+          <PageHeader title={headers[tab].title} description={headers[tab].description} />
           {tab === "orders" && <OrdersView />}
           {tab === "subscriptions" && <SubscriptionsView />}
           {tab === "favorites" && <FavoritesView />}
           {tab === "profile" && <ProfileView />}
         </div>
-      </div>
-    </div>
+      </CustomerShell>
+    </>
   );
 };
 
