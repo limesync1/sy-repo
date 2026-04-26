@@ -31,6 +31,7 @@ const CvrLookupField = ({ value, onChange, onResult, className }: Props) => {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "ok" | "notfound" | "error">("idle");
   const [companyName, setCompanyName] = useState<string | null>(null);
+  const [manualName, setManualName] = useState("");
 
   const cleaned = (value || "").replace(/\D/g, "");
   const isValid = cleaned.length === 8;
@@ -60,7 +61,22 @@ const CvrLookupField = ({ value, onChange, onResult, className }: Props) => {
 
   const handleInput = (v: string) => {
     onChange(v);
-    if (status !== "idle") { setStatus("idle"); setCompanyName(null); }
+    if (status !== "idle") { setStatus("idle"); setCompanyName(null); setManualName(""); }
+  };
+
+  const submitManual = (name: string) => {
+    const trimmed = name.trim();
+    if (trimmed.length < 2) return;
+    setCompanyName(trimmed);
+    onResult?.({
+      cvr: cleaned,
+      name: trimmed,
+      address: null,
+      zip_code: null,
+      city: null,
+      phone: null,
+      email: null,
+    });
   };
 
   return (
@@ -100,9 +116,28 @@ const CvrLookupField = ({ value, onChange, onResult, className }: Props) => {
         </span>
       )}
       {status === "error" && (
-        <span className="inline-flex items-center gap-1.5 text-xs text-destructive rounded-md bg-destructive/10 border border-destructive/20 px-2 py-1">
-          <AlertCircle className="h-3 w-3" /> Kunne ikke slå op — prøv igen
-        </span>
+        <div className="space-y-1.5">
+          <span className="inline-flex items-center gap-1.5 text-xs text-destructive rounded-md bg-destructive/10 border border-destructive/20 px-2 py-1">
+            <AlertCircle className="h-3 w-3" /> CVR-tjenesten er midlertidigt nede — indtast firmanavn manuelt
+          </span>
+          <div className="flex gap-2">
+            <Input
+              value={manualName}
+              onChange={(e) => setManualName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); submitManual(manualName); } }}
+              placeholder="Firmanavn"
+              className="h-9"
+            />
+            <Button type="button" size="sm" onClick={() => submitManual(manualName)} disabled={manualName.trim().length < 2} className="h-9 shrink-0">
+              Fortsæt
+            </Button>
+          </div>
+          {companyName && (
+            <span className="inline-flex items-center gap-1.5 text-xs text-accent rounded-md bg-accent/10 border border-accent/20 px-2 py-1">
+              <Check className="h-3 w-3" /> {companyName} (manuelt indtastet)
+            </span>
+          )}
+        </div>
       )}
     </div>
   );
