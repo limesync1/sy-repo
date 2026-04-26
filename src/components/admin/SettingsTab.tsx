@@ -909,11 +909,44 @@ const SettingsTab = ({ business }: { business: any }) => {
             {/* Pris-oversigt — viser hvad brugeren betaler ud fra valgte funktioner */}
             {priceBreakdown && (
               <div className="mt-4 rounded-lg border border-border bg-card p-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-sm font-semibold text-foreground">Din pakke</p>
-                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                    {planBilling === "yearly" ? "Årlig fakturering" : planBilling === "quarterly" ? "Kvartalsvis" : "Månedlig"}
-                  </span>
+                </div>
+                {/* Faktureringsinterval — samme tre valg som ved "bliv udbyder".
+                    Skifter rabatten i prisberegningen og opdateres straks i db. */}
+                <div className="mt-3">
+                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Faktureringsinterval
+                  </p>
+                  <div className="grid grid-cols-3 gap-1.5 rounded-lg border border-border bg-secondary/40 p-1">
+                    {([
+                      { key: "monthly", label: "Månedlig", hint: pricing ? "0% rabat" : "" },
+                      { key: "quarterly", label: "Kvartalsvis", hint: pricing ? `−${pricing.discount_quarterly_pct}%` : "" },
+                      { key: "yearly", label: "Årlig", hint: pricing ? `−${pricing.discount_yearly_pct}%` : "" },
+                    ] as const).map((opt) => {
+                      const isOn = planBilling === opt.key;
+                      return (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          onClick={() => handleBillingPeriodChange(opt.key)}
+                          disabled={updatePlan.isPending}
+                          className={`flex flex-col items-center justify-center rounded-md px-2 py-2 text-xs font-medium transition-colors ${
+                            isOn
+                              ? "bg-foreground text-background shadow-sm"
+                              : "text-muted-foreground hover:bg-card hover:text-foreground"
+                          }`}
+                        >
+                          <span>{opt.label}</span>
+                          {opt.hint && (
+                            <span className={`mt-0.5 text-[10px] ${isOn ? "opacity-80" : "text-muted-foreground"}`}>
+                              {opt.hint}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
                 <ul className="mt-3 space-y-1.5 border-b border-border pb-3">
                   {priceBreakdown.lines.map((l) => (
