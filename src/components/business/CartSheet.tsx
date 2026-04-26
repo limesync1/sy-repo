@@ -333,8 +333,13 @@ const CartSheet = () => {
   const businessCount = Object.keys(groupedByBusiness).length;
 
   return (
-    <Sheet open={sheetOpen} onOpenChange={(v) => { setSheetOpen(v); if (!v) { setCheckout(false); setOrderSuccess(false); } }}>
-      <SheetContent className="flex w-full flex-col sm:max-w-md p-0 gap-0">
+    <Sheet open={sheetOpen} onOpenChange={(v) => { setSheetOpen(v); if (!v) { setCheckout(false); setOrderSuccess(false); } }} modal={false}>
+      <SheetContent
+        hideOverlay
+        onInteractOutside={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => e.preventDefault()}
+        className="flex w-full flex-col sm:max-w-md p-0 gap-0 shadow-2xl"
+      >
         {/* Header with stepper */}
         <div className="shrink-0 border-b border-border bg-card">
           <div className="px-5 py-4">
