@@ -82,6 +82,36 @@ const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: () =>
 const SettingsTab = ({ business }: { business: any }) => {
   const updateBiz = useUpdateBusiness();
   const { user } = useAuth();
+  const { data: plan } = useBusinessPlan(business.id);
+  const reactivate = useReactivateBusinessPlan();
+
+  // Lokal state for kortform — bruges kun til at fange last4 + brand så
+  // banneret forsvinder. Den rigtige Stripe-tokenisering sker senere.
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvc, setCardCvc] = useState("");
+
+  const handleSaveCard = async () => {
+    const digits = cardNumber.replace(/\s+/g, "");
+    if (digits.length < 13 || digits.length > 19 || !/^\d+$/.test(digits)) {
+      toast.error("Indtast et gyldigt kortnummer"); return;
+    }
+    if (!/^\d{2}\s*\/\s*\d{2}$/.test(cardExpiry)) {
+      toast.error("Udløbsdato skal være MM/ÅÅ"); return;
+    }
+    if (!/^\d{3,4}$/.test(cardCvc)) {
+      toast.error("CVC skal være 3-4 cifre"); return;
+    }
+    try {
+      const last4 = digits.slice(-4);
+      const brand = digits.startsWith("4") ? "Visa" : digits.startsWith("5") ? "Mastercard" : "Kort";
+      await reactivate.mutateAsync({ businessId: business.id, last4, brand });
+      setCardNumber(""); setCardExpiry(""); setCardCvc("");
+      toast.success("Betalingskort gemt");
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke gemme kort");
+    }
+  };
 
   // ─── Form state ───
   const [name, setName] = useState(business.name);
