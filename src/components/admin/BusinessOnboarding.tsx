@@ -1,655 +1,620 @@
-import { useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
-  ArrowLeft, ArrowRight, Check, Sparkles, Users, Route, Calculator,
-  Database, UploadCloud, Building2, ShieldCheck, Loader2,
+  Building2, Loader2, Check, Sparkles, Route, Users, Calculator,
+  UploadCloud, ShieldCheck, ArrowRight, Mail, Lock, Search,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCreateBusiness } from "@/hooks/useDatabase";
-import { INDUSTRY_GROUPS, findIndustry } from "@/lib/service-taxonomy";
-import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import SiteNav from "@/components/SiteNav";
+import Footer from "@/components/landing/Footer";
+import SEO from "@/components/SEO";
 
-/**
- * BusinessOnboarding — flertrins-flow til nye virksomheder.
+/* ──────────────────────────────────────────────────────────────────────────
+ * BusinessOnboarding — én side, ingen trin.
  *
- * Inspireret af layoutet på fx skvizbiz.dk/priser, hvor man først konfigurerer
- * sin pakke og dernæst færdiggør oprettelsen. Vi opdeler i fire trin:
- *  1) Velkommen — kort intro og forventningsafstemning.
- *  2) Virksomhed — navn, brancher og beskrivelse.
- *  3) Funktioner — vælg de moduler virksomheden vil bruge fra dag ét.
- *  4) Forventet skala — kundetal og dataimport, så vi kan forberede onboarding.
+ * Brugeren:
+ *   1) Indtaster CVR — vi henter automatisk virksomhedens stamdata fra cvrapi.dk
+ *   2) Vælger funktioner (route planlægning, regnskab, dataimport)
+ *   3) Vælger antal ekstra medarbejderlogins
+ *   4) Vælger faktureringsperiode (månedlig / kvartal -10% / årlig -20%)
+ *   5) Ser pris LIVE i en sticky sidebar
+ *   6) Opretter konto (email + adgangskode) og kommer ind med 14 dages prøve.
  *
- * Alle valgte funktioner gemmes i `businesses.settings.onboarding` samt på
- * de eksisterende feature-flags (`route_planning_enabled`,
- * `accounting_integration_enabled`), så Indstillinger → Avanceret afspejler
- * valgene med det samme. Brugeren kan altid ændre dem senere.
- */
+ * Stripe-betalingskortet tilføjes senere under Indstillinger → Fakturering.
+ * Selve beløbene styres af platform_settings (administreres i platform-admin).
+ * ────────────────────────────────────────────────────────────────────────── */
 
-type FeatureKey =
-  | "route_planning"
-  | "extra_employee_logins"
-  | "accounting_integration"
-  | "data_import";
+type Pricing = {
+  base_price_dkk: number;
+  price_route_planning_dkk: number;
+  price_accounting_integration_dkk: number;
+  price_data_import_dkk: number;
+  price_per_employee_login_dkk: number;
+  discount_quarterly_pct: number;
+  discount_yearly_pct: number;
+  trial_days: number;
+};
 
-type CustomerScale = "lt_25" | "25_100" | "100_500" | "gt_500" | "unsure";
+type FeatureKey = "route_planning" | "accounting_integration" | "data_import";
+type BillingPeriod = "monthly" | "quarterly" | "yearly";
 
 const FEATURES: { key: FeatureKey; icon: typeof Route; title: string; description: string }[] = [
   {
     key: "route_planning",
     icon: Route,
     title: "Ruteplanlægning",
-    description:
-      "Planlæg medarbejdernes daglige ruter automatisk og optimér rækkefølgen baseret på afstand, tidsvinduer og prioriteter.",
-  },
-  {
-    key: "extra_employee_logins",
-    icon: Users,
-    title: "Ekstra medarbejderlogins",
-    description:
-      "Giv hver medarbejder sit eget login med adgang til ruter, opgaver og tidsregistrering på mobilen.",
+    description: "Planlæg medarbejdernes daglige ruter automatisk og optimér rækkefølgen ud fra afstand, tidsvinduer og prioritet.",
   },
   {
     key: "accounting_integration",
     icon: Calculator,
-    title: "Integration med regnskabsprogram",
-    description:
-      "Synkronisér automatisk fakturaer og betalinger med fx e-conomic, Dinero eller Billy, så bogføringen passer hver gang.",
+    title: "Regnskabsintegration",
+    description: "Synkronisér automatisk fakturaer og betalinger med fx e-conomic, Dinero eller Billy. Lanceres snart.",
   },
   {
     key: "data_import",
     icon: UploadCloud,
-    title: "Importér data fra dit nuværende system",
-    description:
-      "Få hjælp til at flytte kunder, services og igangværende abonnementer fra dit gamle system, så du kan komme i gang uden manuelt arbejde.",
+    title: "Dataimport fra dit nuværende system",
+    description: "Vi flytter eksisterende kunder, services og abonnementer fra dit gamle system, så du slipper for manuelt arbejde.",
   },
 ];
 
-const SCALES: { key: CustomerScale; label: string; hint: string }[] = [
-  { key: "lt_25",   label: "Færre end 25 kunder",  hint: "Lige startet eller mindre kundeportefølje." },
-  { key: "25_100",  label: "25 – 100 kunder",      hint: "Etableret virksomhed med fast kundekreds." },
-  { key: "100_500", label: "100 – 500 kunder",     hint: "Voksende drift med flere medarbejdere." },
-  { key: "gt_500",  label: "Mere end 500 kunder",  hint: "Større organisation – vi hjælper med opsætningen." },
-  { key: "unsure",  label: "Ved ikke endnu",       hint: "Vi tager den løbende — ingen forventninger fra start." },
+const BILLING_OPTIONS: { value: BillingPeriod; label: string; sub: string; months: number }[] = [
+  { value: "monthly",   label: "Månedlig",   sub: "Ingen rabat",          months: 1 },
+  { value: "quarterly", label: "Kvartal",    sub: "Spar med rabat",       months: 3 },
+  { value: "yearly",    label: "Årlig",      sub: "Bedste pris",          months: 12 },
 ];
-
-const BASE_STEPS = [
-  { id: "welcome",  label: "Velkommen" },
-  { id: "details",  label: "Virksomhed" },
-  { id: "features", label: "Funktioner" },
-  { id: "scale",    label: "Forventet skala" },
-] as const;
-const ACCOUNT_STEP = { id: "account", label: "Opret konto" } as const;
-type StepId = "welcome" | "details" | "features" | "scale" | "account";
 
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9æøå]+/g, "-").replace(/^-|-$/g, "");
 
+const formatDkk = (n: number) =>
+  new Intl.NumberFormat("da-DK", { maximumFractionDigits: 0 }).format(Math.round(n));
+
 const BusinessOnboarding = () => {
   const { user, signUp } = useAuth();
-  const createBiz = useCreateBusiness();
   const navigate = useNavigate();
 
-  // Når brugeren ikke er logget ind, viser vi også et sidste trin "Opret konto",
-  // så virksomheder først konfigurerer deres setup og derefter opretter loginet.
-  const STEPS = useMemo(
-    () => (user ? [...BASE_STEPS] : [...BASE_STEPS, ACCOUNT_STEP]),
-    [user]
-  );
+  // ─── Pris-tabel fra platform_settings ───
+  const [pricing, setPricing] = useState<Pricing | null>(null);
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.rpc("get_platform_pricing");
+      if (data && data[0]) setPricing(data[0] as Pricing);
+    })();
+  }, []);
 
-  // ─── Step state ───
-  const [stepIdx, setStepIdx] = useState(0);
-  const step: StepId = STEPS[stepIdx].id;
+  // ─── CVR-opslag ───
+  const [cvr, setCvr] = useState("");
+  const [cvrLoading, setCvrLoading] = useState(false);
+  const [cvrData, setCvrData] = useState<{
+    name: string; address: string | null; zip_code: string | null;
+    city: string | null; phone: string | null; email: string | null;
+    industry: string | null;
+  } | null>(null);
+  const [cvrError, setCvrError] = useState("");
+
+  const lookupCvr = async () => {
+    const cleaned = cvr.replace(/\D/g, "");
+    if (cleaned.length !== 8) {
+      setCvrError("CVR skal være 8 cifre");
+      return;
+    }
+    setCvrLoading(true); setCvrError(""); setCvrData(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("cvr-lookup", { body: { cvr: cleaned } });
+      if (error) throw error;
+      if (!data?.found) {
+        setCvrError("Vi kunne ikke finde dette CVR-nummer");
+      } else {
+        setCvrData(data);
+      }
+    } catch {
+      setCvrError("Kunne ikke slå op — prøv igen");
+    } finally {
+      setCvrLoading(false);
+    }
+  };
 
   // ─── Form state ───
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [features, setFeatures] = useState<Record<FeatureKey, boolean>>({
     route_planning: false,
-    extra_employee_logins: false,
     accounting_integration: false,
     data_import: false,
   });
-  const [scale, setScale] = useState<CustomerScale | null>(null);
+  const [extraLogins, setExtraLogins] = useState(0);
+  const [billing, setBilling] = useState<BillingPeriod>("monthly");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [creatingAccount, setCreatingAccount] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const toggleCategory = (k: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k]
-    );
-  };
   const toggleFeature = (k: FeatureKey) =>
-    setFeatures((prev) => ({ ...prev, [k]: !prev[k] }));
+    setFeatures((p) => ({ ...p, [k]: !p[k] }));
 
-  // ─── Validation pr. trin ───
-  const canContinue = useMemo(() => {
-    if (step === "details") return name.trim().length > 0 && selectedCategories.length > 0;
-    if (step === "scale") return !!scale;
-    if (step === "account") return email.trim().length > 3 && password.length >= 6;
-    return true; // welcome + features kan altid gå videre
-  }, [step, name, selectedCategories, scale, email, password]);
-
-  const goNext = () => {
-    if (!canContinue) return;
-    if (stepIdx < STEPS.length - 1) setStepIdx(stepIdx + 1);
-    else handleCreate();
-  };
-  const goBack = () => stepIdx > 0 && setStepIdx(stepIdx - 1);
-
-  // ─── Final create ───
-  const buildBusinessPayload = (ownerId: string) => {
-    const trimmedName = name.trim();
-    return {
-      name: trimmedName,
-      slug: slugify(trimmedName),
-      description: description.trim() || null,
-      owner_id: ownerId,
-      category: selectedCategories[0] || null,
-      categories: selectedCategories,
-      // Feature-flags afspejles direkte i Indstillinger → Avanceret.
-      settings: {
-        route_planning_enabled: features.route_planning,
-        accounting_integration_enabled: features.accounting_integration,
-        onboarding: {
-          completed_at: new Date().toISOString(),
-          extra_employee_logins: features.extra_employee_logins,
-          data_import_requested: features.data_import,
-          expected_customer_scale: scale,
-        },
-      },
-    } as any;
-  };
-
-  const handleCreate = async () => {
-    const trimmedName = name.trim();
-    if (!trimmedName) {
-      toast.error("Indtast et virksomhedsnavn");
-      setStepIdx(1);
-      return;
-    }
-    if (selectedCategories.length === 0) {
-      toast.error("Vælg mindst én branche");
-      setStepIdx(1);
-      return;
-    }
-
-    // 1) Bruger allerede logget ind — opret bare virksomheden direkte.
-    if (user) {
-      createBiz.mutate(buildBusinessPayload(user.id), {
-        onSuccess: () => toast.success("Velkommen ombord! Din virksomhed er oprettet."),
-        onError: (e: any) => toast.error(e?.message || "Kunne ikke oprette virksomhed"),
+  // ─── Live prisberegning ───
+  const breakdown = useMemo(() => {
+    if (!pricing) return null;
+    const lines: { label: string; amount: number }[] = [
+      { label: "Basis (virksomhedsprofil + bestillinger)", amount: pricing.base_price_dkk },
+    ];
+    if (features.route_planning)
+      lines.push({ label: "Ruteplanlægning", amount: pricing.price_route_planning_dkk });
+    if (features.accounting_integration)
+      lines.push({ label: "Regnskabsintegration", amount: pricing.price_accounting_integration_dkk });
+    if (features.data_import && pricing.price_data_import_dkk > 0)
+      lines.push({ label: "Dataimport", amount: pricing.price_data_import_dkk });
+    if (extraLogins > 0)
+      lines.push({
+        label: `${extraLogins} ekstra medarbejderlogin${extraLogins === 1 ? "" : "s"}`,
+        amount: extraLogins * pricing.price_per_employee_login_dkk,
       });
+
+    const monthlySubtotal = lines.reduce((s, l) => s + l.amount, 0);
+    const discountPct =
+      billing === "yearly" ? pricing.discount_yearly_pct
+      : billing === "quarterly" ? pricing.discount_quarterly_pct
+      : 0;
+    const monthlyAfterDiscount = monthlySubtotal * (1 - discountPct / 100);
+    const months = BILLING_OPTIONS.find((o) => o.value === billing)!.months;
+    const periodTotal = monthlyAfterDiscount * months;
+
+    return {
+      lines,
+      monthlySubtotal,
+      discountPct,
+      monthlyAfterDiscount,
+      periodTotal,
+      months,
+    };
+  }, [pricing, features, extraLogins, billing]);
+
+  // ─── Validering ───
+  const canSubmit =
+    !!cvrData &&
+    !!cvrData.name &&
+    (user || (email.trim().length > 3 && password.length >= 6));
+
+  // ─── Submit ───
+  const handleSubmit = async () => {
+    if (!cvrData || !pricing || !breakdown) {
+      toast.error("Indtast og bekræft CVR først");
       return;
     }
-
-    // 2) Public flow — opret kontoen først, derefter virksomheden.
-    if (!email.trim() || password.length < 6) {
+    if (!user && (!email.trim() || password.length < 6)) {
       toast.error("Udfyld e-mail og en adgangskode på mindst 6 tegn");
       return;
     }
-    setCreatingAccount(true);
+
+    setSubmitting(true);
     try {
-      const { error: signUpError } = await signUp(email.trim(), password);
-      if (signUpError) throw signUpError;
-
-      // Hvis e-mail-bekræftelse er slået til, har vi ikke en session endnu.
-      // Vent kort på onAuthStateChange — ellers beder vi brugeren bekræfte mailen.
-      const { data: sessionData } = await supabase.auth.getSession();
-      let activeUserId = sessionData.session?.user.id;
-      if (!activeUserId) {
-        // Forsøg login (auto-confirm sandsynligvis aktiveret).
-        const { data: signInData } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
-        activeUserId = signInData.session?.user.id;
-      }
+      let activeUserId = user?.id;
 
       if (!activeUserId) {
-        toast.success("Konto oprettet! Tjek din e-mail og log derefter ind for at færdiggøre opsætningen.");
-        navigate("/log-ind?mode=business");
-        return;
+        const { error: signUpError } = await signUp(email.trim(), password);
+        if (signUpError) throw signUpError;
+        const { data: sessionData } = await supabase.auth.getSession();
+        activeUserId = sessionData.session?.user.id;
+        if (!activeUserId) {
+          const { data: signInData } = await supabase.auth.signInWithPassword({
+            email: email.trim(), password,
+          });
+          activeUserId = signInData.session?.user.id;
+        }
+        if (!activeUserId) {
+          toast.success("Konto oprettet! Tjek din e-mail og log ind for at færdiggøre opsætningen.");
+          navigate("/log-ind?mode=business");
+          return;
+        }
       }
 
-      const { error: bizError } = await supabase
+      // Opret virksomheden
+      const cleanCvr = cvr.replace(/\D/g, "");
+      const { data: bizData, error: bizError } = await supabase
         .from("businesses")
-        .insert(buildBusinessPayload(activeUserId));
+        .insert({
+          name: cvrData.name,
+          slug: slugify(cvrData.name) + "-" + cleanCvr.slice(-4),
+          owner_id: activeUserId,
+          phone: cvrData.phone || null,
+          email: cvrData.email || null,
+          address: cvrData.address || null,
+          zip_code: cvrData.zip_code || null,
+          city: cvrData.city || null,
+          settings: {
+            cvr: cleanCvr,
+            industry_text: cvrData.industry,
+            route_planning_enabled: features.route_planning,
+            accounting_integration_enabled: features.accounting_integration,
+            onboarding: {
+              completed_at: new Date().toISOString(),
+              data_import_requested: features.data_import,
+            },
+          },
+        })
+        .select("id")
+        .single();
       if (bizError) throw bizError;
 
-      toast.success("Velkommen ombord! Din virksomhed er oprettet.");
+      // Opret abonnement-pakken
+      const trialEnd = new Date();
+      trialEnd.setDate(trialEnd.getDate() + pricing.trial_days);
+      await supabase.from("business_plans").insert({
+        business_id: bizData.id,
+        route_planning_enabled: features.route_planning,
+        accounting_integration_enabled: features.accounting_integration,
+        data_import_requested: features.data_import,
+        extra_employee_logins: extraLogins,
+        billing_period: billing,
+        monthly_price_dkk: breakdown.monthlyAfterDiscount,
+        status: "trialing",
+        trial_ends_at: trialEnd.toISOString(),
+      });
+
+      toast.success(`Velkommen ombord! Du har ${pricing.trial_days} dages gratis prøve.`);
       navigate("/virksomhed");
     } catch (e: any) {
-      toast.error(e?.message || "Kunne ikke oprette konto");
+      toast.error(e?.message || "Kunne ikke oprette virksomhed");
     } finally {
-      setCreatingAccount(false);
+      setSubmitting(false);
     }
   };
 
-  const isLastStep = stepIdx === STEPS.length - 1;
-  const progress = Math.round(((stepIdx + 1) / STEPS.length) * 100);
-
   return (
-    <div className="min-h-screen bg-secondary/40">
-      {/* Topbar */}
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground text-background">
-              <Sparkles className="h-4 w-4" />
-            </div>
-            <span className="text-sm font-semibold text-foreground">Opret din virksomhed</span>
-          </Link>
-          <span className="text-xs font-medium text-muted-foreground tabular-nums">
-            Trin {stepIdx + 1} af {STEPS.length}
-          </span>
-        </div>
-        {/* Progress bar */}
-        <div className="h-1 w-full bg-secondary">
-          <div
-            className="h-full bg-accent transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+    <div className="min-h-screen bg-background">
+      <SEO
+        title="Opret din virksomhed på Serviceydere"
+        description="Opret din virksomhedsprofil på Serviceydere og få adgang til bestillinger, ruteplanlægning og medarbejderlogins."
+        canonicalPath="/opret-virksomhed"
+        noIndex
+      />
+
+      {/* Bruger samme topnav som forsiden, så bredde og look matcher 1:1 */}
+      <header className="bg-foreground text-background">
+        <SiteNav />
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
-        {/* Step indicators */}
-        <ol className="mb-8 hidden items-center justify-between gap-2 sm:flex">
-          {STEPS.map((s, i) => {
-            const done = i < stepIdx;
-            const active = i === stepIdx;
-            return (
-              <li key={s.id} className="flex flex-1 items-center gap-3">
-                <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
-                    done
-                      ? "bg-accent text-accent-foreground"
-                      : active
-                        ? "bg-foreground text-background"
-                        : "bg-secondary text-muted-foreground"
-                  }`}
-                >
-                  {done ? <Check className="h-4 w-4" /> : i + 1}
-                </span>
-                <span
-                  className={`truncate text-xs font-medium ${
-                    active ? "text-foreground" : "text-muted-foreground"
-                  }`}
-                >
-                  {s.label}
-                </span>
-                {i < STEPS.length - 1 && (
-                  <span className="ml-1 hidden h-px flex-1 bg-border md:block" />
-                )}
-              </li>
-            );
-          })}
-        </ol>
-
-        <Card className="rounded-2xl border-border shadow-sm">
-          <CardContent className="p-6 sm:p-8">
-            {step === "welcome" && <WelcomeStep />}
-            {step === "details" && (
-              <DetailsStep
-                name={name}
-                setName={setName}
-                description={description}
-                setDescription={setDescription}
-                selectedCategories={selectedCategories}
-                toggleCategory={toggleCategory}
-              />
-            )}
-            {step === "features" && (
-              <FeaturesStep features={features} toggleFeature={toggleFeature} />
-            )}
-            {step === "scale" && (
-              <ScaleStep scale={scale} setScale={setScale} />
-            )}
-            {step === "account" && (
-              <AccountStep
-                email={email}
-                setEmail={setEmail}
-                password={password}
-                setPassword={setPassword}
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Navigation */}
-        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={goBack}
-            disabled={stepIdx === 0 || createBiz.isPending || creatingAccount}
-            className="gap-2 text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Tilbage
-          </Button>
-          <Button
-            type="button"
-            onClick={goNext}
-            disabled={!canContinue || createBiz.isPending || creatingAccount}
-            className="h-11 gap-2 rounded-xl bg-foreground px-6 text-sm font-semibold text-background hover:bg-foreground/90 sm:w-auto"
-          >
-            {(createBiz.isPending || creatingAccount) ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Opretter…
-              </>
-            ) : isLastStep ? (
-              <>
-                {user ? "Opret virksomhed" : "Opret konto & virksomhed"}
-                <Check className="h-4 w-4" />
-              </>
-            ) : (
-              <>
-                Fortsæt
-                <ArrowRight className="h-4 w-4" />
-              </>
-            )}
-          </Button>
+      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+        {/* Header */}
+        <div className="max-w-3xl">
+          <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
+            <Sparkles className="h-3.5 w-3.5" />
+            14 dages gratis prøve · Intet kort kræves
+          </div>
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+            Opret din virksomhed på Serviceydere
+          </h1>
+          <p className="mt-3 max-w-2xl text-[15px] leading-7 text-muted-foreground sm:text-base">
+            Indtast dit CVR — vi henter automatisk dine virksomhedsoplysninger.
+            Vælg de funktioner du har brug for, og se prisen med det samme.
+          </p>
         </div>
 
-        {!user && (
-          <p className="mt-6 text-center text-xs text-muted-foreground">
-            Har du allerede en konto?{" "}
-            <Link to="/log-ind?mode=business" className="font-medium text-foreground hover:underline">
-              Log ind
-            </Link>
-          </p>
-        )}
+        {/* Layout: form til venstre, sticky pris-summary til højre */}
+        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px]">
+          {/* ─── VENSTRE: form-sektioner ─── */}
+          <div className="space-y-6">
+            {/* 1. CVR */}
+            <Section number={1} title="Find din virksomhed" subtitle="Indtast CVR — vi udfylder resten">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="relative flex-1">
+                  <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={cvr}
+                    onChange={(e) => { setCvr(e.target.value); setCvrError(""); }}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); lookupCvr(); } }}
+                    placeholder="CVR-nummer (8 cifre)"
+                    inputMode="numeric"
+                    maxLength={11}
+                    className="h-12 pl-10 text-base"
+                  />
+                </div>
+                <Button
+                  onClick={lookupCvr}
+                  disabled={cvrLoading || cvr.replace(/\D/g, "").length !== 8}
+                  className="h-12 gap-2 bg-foreground px-6 text-background hover:bg-foreground/90"
+                >
+                  {cvrLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                  Slå op
+                </Button>
+              </div>
+
+              {cvrError && (
+                <p className="mt-3 text-sm text-destructive">{cvrError}</p>
+              )}
+
+              {cvrData && (
+                <div className="mt-4 rounded-xl border border-accent/30 bg-accent/5 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+                      <Check className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-base font-semibold text-foreground">{cvrData.name}</p>
+                      <p className="mt-0.5 text-sm text-muted-foreground">
+                        {[cvrData.address, cvrData.zip_code, cvrData.city].filter(Boolean).join(", ")}
+                      </p>
+                      {cvrData.industry && (
+                        <p className="mt-2 inline-flex rounded-md bg-card px-2 py-0.5 text-xs text-muted-foreground">
+                          {cvrData.industry}
+                        </p>
+                      )}
+                      <p className="mt-3 text-xs text-muted-foreground">
+                        Du kan altid redigere disse oplysninger senere under{" "}
+                        <span className="font-medium text-foreground">Indstillinger</span>.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </Section>
+
+            {/* 2. Funktioner */}
+            <Section number={2} title="Vælg dine funktioner" subtitle="Tilkøb kun det du har brug for">
+              <div className="grid gap-3">
+                {FEATURES.map(({ key, icon: Icon, title, description }) => {
+                  const active = features[key];
+                  const price =
+                    key === "route_planning" ? pricing?.price_route_planning_dkk
+                    : key === "accounting_integration" ? pricing?.price_accounting_integration_dkk
+                    : pricing?.price_data_import_dkk;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => toggleFeature(key)}
+                      className={`group flex items-start gap-4 rounded-xl border p-4 text-left transition-all ${
+                        active ? "border-accent bg-accent/5 shadow-sm" : "border-border bg-card hover:border-foreground/20"
+                      }`}
+                    >
+                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                        active ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground"
+                      }`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <p className="text-sm font-semibold text-foreground">{title}</p>
+                          {price !== undefined && price > 0 && (
+                            <span className="shrink-0 text-xs font-semibold text-foreground tabular-nums">
+                              +{formatDkk(price)} kr/md
+                            </span>
+                          )}
+                          {price === 0 && (
+                            <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-700">
+                              Gratis
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">{description}</p>
+                      </div>
+                      <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
+                        active ? "border-accent bg-accent text-accent-foreground" : "border-border bg-card"
+                      }`} aria-hidden>
+                        {active && <Check className="h-3.5 w-3.5" />}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </Section>
+
+            {/* 3. Medarbejderlogins */}
+            <Section number={3} title="Antal ekstra medarbejderlogins" subtitle="Hver medarbejder kan logge ind på mobilen og se sine ruter">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center rounded-xl border border-border bg-card">
+                  <button
+                    type="button"
+                    onClick={() => setExtraLogins((n) => Math.max(0, n - 1))}
+                    className="flex h-11 w-11 items-center justify-center text-lg font-semibold text-foreground transition-colors hover:bg-secondary"
+                    aria-label="Færre"
+                  >−</button>
+                  <span className="min-w-[3rem] text-center text-base font-semibold tabular-nums text-foreground">
+                    {extraLogins}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setExtraLogins((n) => Math.min(99, n + 1))}
+                    className="flex h-11 w-11 items-center justify-center text-lg font-semibold text-foreground transition-colors hover:bg-secondary"
+                    aria-label="Flere"
+                  >+</button>
+                </div>
+                {pricing && (
+                  <p className="text-sm text-muted-foreground">
+                    {formatDkk(pricing.price_per_employee_login_dkk)} kr/md per medarbejder
+                  </p>
+                )}
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Du tæller selv som ejerlogin og er allerede inkluderet.
+              </p>
+            </Section>
+
+            {/* 4. Faktureringsperiode */}
+            <Section number={4} title="Vælg faktureringsperiode" subtitle="Spar mere ved at betale forud">
+              <div className="grid gap-3 sm:grid-cols-3">
+                {BILLING_OPTIONS.map((opt) => {
+                  const active = billing === opt.value;
+                  const discount = pricing
+                    ? (opt.value === "yearly" ? pricing.discount_yearly_pct
+                    : opt.value === "quarterly" ? pricing.discount_quarterly_pct
+                    : 0)
+                    : 0;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setBilling(opt.value)}
+                      className={`relative rounded-xl border p-4 text-left transition-all ${
+                        active ? "border-foreground bg-foreground/5 shadow-sm" : "border-border bg-card hover:border-foreground/20"
+                      }`}
+                    >
+                      {discount > 0 && (
+                        <span className="absolute -top-2 right-3 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-foreground">
+                          -{discount}%
+                        </span>
+                      )}
+                      <p className="text-sm font-semibold text-foreground">{opt.label}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{opt.sub}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </Section>
+
+            {/* 5. Konto (kun hvis ikke logget ind) */}
+            {!user && (
+              <Section number={5} title="Opret din konto" subtitle="Vi sender ordrebekræftelser og notifikationer hertil">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="relative">
+                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      type="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="navn@virksomhed.dk"
+                      className="h-11 pl-10"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      type="password"
+                      autoComplete="new-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Adgangskode (min. 6 tegn)"
+                      className="h-11 pl-10"
+                    />
+                  </div>
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Har du allerede en konto?{" "}
+                  <Link to="/log-ind?mode=business" className="font-medium text-foreground underline-offset-2 hover:underline">
+                    Log ind
+                  </Link>
+                </p>
+              </Section>
+            )}
+          </div>
+
+          {/* ─── HØJRE: Sticky pris-summary ─── */}
+          <aside className="lg:sticky lg:top-6 lg:self-start">
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Din pakke
+              </p>
+              <h3 className="mt-1 text-lg font-semibold text-foreground">Oversigt</h3>
+
+              {!pricing ? (
+                <div className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Indlæser priser…
+                </div>
+              ) : breakdown && (
+                <>
+                  <ul className="mt-5 space-y-2 border-b border-border pb-4">
+                    {breakdown.lines.map((l) => (
+                      <li key={l.label} className="flex items-baseline justify-between gap-3 text-sm">
+                        <span className="text-muted-foreground">{l.label}</span>
+                        <span className="shrink-0 font-medium text-foreground tabular-nums">
+                          {formatDkk(l.amount)} kr
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="mt-4 space-y-2 text-sm">
+                    <div className="flex items-baseline justify-between text-muted-foreground">
+                      <span>Pris per måned</span>
+                      <span className="tabular-nums">{formatDkk(breakdown.monthlySubtotal)} kr</span>
+                    </div>
+                    {breakdown.discountPct > 0 && (
+                      <div className="flex items-baseline justify-between text-accent">
+                        <span>Rabat ({breakdown.discountPct}%)</span>
+                        <span className="tabular-nums">
+                          −{formatDkk(breakdown.monthlySubtotal - breakdown.monthlyAfterDiscount)} kr/md
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-4 rounded-xl bg-secondary p-4">
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Total pr. måned
+                      </span>
+                      <span className="text-2xl font-semibold text-foreground tabular-nums">
+                        {formatDkk(breakdown.monthlyAfterDiscount)} kr
+                      </span>
+                    </div>
+                    {breakdown.months > 1 && (
+                      <p className="mt-1 text-right text-xs text-muted-foreground tabular-nums">
+                        Faktureres {formatDkk(breakdown.periodTotal)} kr hver{" "}
+                        {breakdown.months === 3 ? "kvartal" : "år"}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-4 flex items-start gap-2 rounded-lg bg-accent/10 p-3">
+                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                    <p className="text-xs leading-5 text-foreground">
+                      <span className="font-semibold">{pricing.trial_days} dages gratis prøve.</span>{" "}
+                      Du tilføjer betalingskort senere under indstillinger.
+                      Ingen binding — opsig når som helst.
+                    </p>
+                  </div>
+                </>
+              )}
+
+              <Button
+                onClick={handleSubmit}
+                disabled={!canSubmit || submitting}
+                className="mt-5 h-12 w-full gap-2 rounded-xl bg-foreground text-base font-semibold text-background hover:bg-foreground/90"
+              >
+                {submitting ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Opretter…</>
+                ) : (
+                  <>Start gratis prøve <ArrowRight className="h-4 w-4" /></>
+                )}
+              </Button>
+
+              {!canSubmit && cvrData === null && (
+                <p className="mt-3 text-center text-xs text-muted-foreground">
+                  Indtast og bekræft CVR for at fortsætte
+                </p>
+              )}
+            </div>
+          </aside>
+        </div>
       </main>
+
+      <Footer />
     </div>
   );
 };
 
-/* ─────────────────────────── Step components ─────────────────────────── */
-
-const WelcomeStep = () => (
-  <div className="text-center">
-    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10">
-      <Sparkles className="h-7 w-7 text-accent" />
-    </div>
-    <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-      Velkommen til Serviceydere
-    </h1>
-    <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-muted-foreground sm:text-base">
-      Vi guider dig igennem få trin, så du kan vælge nøjagtigt hvilke funktioner
-      du har brug for fra start. Du kan altid justere dine valg senere i
-      indstillingerne.
-    </p>
-
-    <div className="mt-8 grid gap-3 text-left sm:grid-cols-3">
-      {[
-        { icon: Building2, title: "Profil",      text: "Navn og brancher" },
-        { icon: Sparkles,  title: "Funktioner",  text: "Vælg dine moduler" },
-        { icon: ShieldCheck, title: "Klar",      text: "Kom i gang med det samme" },
-      ].map(({ icon: Icon, title, text }) => (
-        <div key={title} className="rounded-xl border border-border bg-secondary/40 p-4">
-          <Icon className="h-4 w-4 text-accent" />
-          <p className="mt-2 text-sm font-semibold text-foreground">{title}</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">{text}</p>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-const DetailsStep = ({
-  name, setName, description, setDescription,
-  selectedCategories, toggleCategory,
+/* ─────────── Sub-component: nummereret sektionscard ─────────── */
+const Section = ({
+  number, title, subtitle, children,
 }: {
-  name: string;
-  setName: (v: string) => void;
-  description: string;
-  setDescription: (v: string) => void;
-  selectedCategories: string[];
-  toggleCategory: (k: string) => void;
+  number: number; title: string; subtitle?: string; children: React.ReactNode;
 }) => (
-  <div className="space-y-5">
-    <div>
-      <h2 className="text-xl font-semibold text-foreground sm:text-2xl">Fortæl os om din virksomhed</h2>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Disse oplysninger vises på din offentlige profil. Du kan altid redigere dem senere.
-      </p>
-    </div>
-
-    <div>
-      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Virksomhedsnavn</label>
-      <Input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Fx Nordic Service ApS"
-        className="h-11"
-      />
-    </div>
-
-    <div>
-      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-        Kort beskrivelse <span className="text-muted-foreground/60">(valgfrit)</span>
-      </label>
-      <Textarea
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        placeholder="Hvad gør jeres virksomhed unik? Hvilke kunder hjælper I oftest?"
-        className="min-h-[100px] resize-none"
-      />
-    </div>
-
-    <div>
-      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-        Vælg en eller flere brancher
-      </label>
-      <p className="mb-2 text-xs text-muted-foreground/80">
-        Vi bruger brancherne til at matche jer med relevante kunder.
-      </p>
-      <div className="max-h-[300px] space-y-3 overflow-y-auto rounded-xl border border-border bg-secondary/30 p-3">
-        {INDUSTRY_GROUPS.map((g) => (
-          <div key={g.label}>
-            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-              {g.label}
-            </p>
-            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-              {g.industries.map((ind) => {
-                const active = selectedCategories.includes(ind.key);
-                return (
-                  <button
-                    key={ind.key}
-                    type="button"
-                    onClick={() => toggleCategory(ind.key)}
-                    className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 text-left transition-all ${
-                      active
-                        ? "border-foreground bg-foreground/5 shadow-sm"
-                        : "border-border bg-card hover:border-foreground/30"
-                    }`}
-                  >
-                    <span className="text-base leading-none">{ind.icon}</span>
-                    <span className="truncate text-xs font-medium text-foreground">{ind.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+  <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+    <div className="flex items-baseline gap-3">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
+        {number}
+      </span>
+      <div className="min-w-0">
+        <h2 className="text-base font-semibold text-foreground sm:text-lg">{title}</h2>
+        {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
       </div>
-      {selectedCategories.length > 0 && (
-        <p className="mt-2 text-xs text-muted-foreground">
-          Valgt: {selectedCategories.map((k) => findIndustry(k)?.label || k).join(", ")}
-        </p>
-      )}
     </div>
-  </div>
-);
-
-const FeaturesStep = ({
-  features, toggleFeature,
-}: {
-  features: Record<FeatureKey, boolean>;
-  toggleFeature: (k: FeatureKey) => void;
-}) => (
-  <div className="space-y-5">
-    <div>
-      <h2 className="text-xl font-semibold text-foreground sm:text-2xl">Vælg dine funktioner</h2>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Slå de moduler til, som passer til jeres arbejdsgange. Du kan altid
-        ændre dine valg senere under <span className="font-medium text-foreground">Indstillinger → Avanceret</span>.
-      </p>
-    </div>
-
-    <div className="grid gap-3">
-      {FEATURES.map(({ key, icon: Icon, title, description }) => {
-        const active = features[key];
-        return (
-          <button
-            type="button"
-            key={key}
-            onClick={() => toggleFeature(key)}
-            className={`group flex items-start gap-4 rounded-xl border p-4 text-left transition-all ${
-              active
-                ? "border-accent bg-accent/5 shadow-sm"
-                : "border-border bg-card hover:border-foreground/20"
-            }`}
-          >
-            <div
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                active ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground"
-              }`}
-            >
-              <Icon className="h-5 w-5" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground">{title}</p>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">{description}</p>
-            </div>
-            <span
-              className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
-                active ? "border-accent bg-accent text-accent-foreground" : "border-border bg-card"
-              }`}
-              aria-hidden
-            >
-              {active && <Check className="h-3.5 w-3.5" />}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-
-    <div className="flex items-start gap-3 rounded-xl bg-secondary/60 p-4 text-xs text-muted-foreground">
-      <Database className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-      <p>
-        Nogle funktioner som <span className="font-medium text-foreground">regnskabsintegration</span> er stadig
-        under udvikling — du kan slå dem til nu, og vi aktiverer dem automatisk for dig, så snart de er klar.
-      </p>
-    </div>
-  </div>
-);
-
-const ScaleStep = ({
-  scale, setScale,
-}: {
-  scale: CustomerScale | null;
-  setScale: (s: CustomerScale) => void;
-}) => (
-  <div className="space-y-5">
-    <div>
-      <h2 className="text-xl font-semibold text-foreground sm:text-2xl">Hvor mange kunder forventer I?</h2>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Hjælper os med at forberede den rigtige opsætning. Du kan altid skalere op eller ned senere.
-      </p>
-    </div>
-
-    <div className="grid gap-2">
-      {SCALES.map((s) => {
-        const active = scale === s.key;
-        return (
-          <button
-            key={s.key}
-            type="button"
-            onClick={() => setScale(s.key)}
-            className={`flex items-center justify-between gap-4 rounded-xl border p-4 text-left transition-all ${
-              active
-                ? "border-foreground bg-foreground/5 shadow-sm"
-                : "border-border bg-card hover:border-foreground/20"
-            }`}
-          >
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-foreground">{s.label}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">{s.hint}</p>
-            </div>
-            <span
-              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-                active ? "border-foreground bg-foreground" : "border-border"
-              }`}
-              aria-hidden
-            >
-              {active && <span className="h-2 w-2 rounded-full bg-background" />}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  </div>
-);
-
-const AccountStep = ({
-  email, setEmail, password, setPassword,
-}: {
-  email: string;
-  setEmail: (v: string) => void;
-  password: string;
-  setPassword: (v: string) => void;
-}) => (
-  <div className="space-y-5">
-    <div>
-      <h2 className="text-xl font-semibold text-foreground sm:text-2xl">Opret din virksomhedskonto</h2>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Sidste skridt — vælg en e-mail og en adgangskode, så aktiverer vi din virksomhed med dine valg fra de foregående trin.
-      </p>
-    </div>
-
-    <div>
-      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Arbejds-e-mail</label>
-      <Input
-        type="email"
-        autoComplete="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="navn@virksomhed.dk"
-        className="h-11"
-      />
-    </div>
-
-    <div>
-      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-        Adgangskode <span className="text-muted-foreground/60">(min. 6 tegn)</span>
-      </label>
-      <Input
-        type="password"
-        autoComplete="new-password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="••••••••"
-        className="h-11"
-      />
-    </div>
-
-    <div className="flex items-start gap-3 rounded-xl bg-secondary/60 p-4 text-xs text-muted-foreground">
-      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-      <p>
-        Vi opretter automatisk din virksomhedsprofil, så du kan logge ind med det samme og komme i gang.
-      </p>
-    </div>
-  </div>
+    <div className="mt-4">{children}</div>
+  </section>
 );
 
 export default BusinessOnboarding;
