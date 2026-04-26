@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, Check, Sparkles, Users, Route, Calculator,
-  Database, UploadCloud, Building2, ShieldCheck, Loader2, Mail, Lock,
+  Database, UploadCloud, Building2, ShieldCheck, Loader2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateBusiness } from "@/hooks/useDatabase";
