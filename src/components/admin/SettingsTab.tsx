@@ -17,7 +17,6 @@ import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/A
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBusinessPlan, useReactivateBusinessPlan } from "@/hooks/useBusinessPlan";
-import { Input as UIInput } from "@/components/ui/input";
 import {
   INDUSTRY_GROUPS,
   ALL_INDUSTRIES,
