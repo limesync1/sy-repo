@@ -884,19 +884,26 @@ const SettingsTab = ({ business }: { business: any }) => {
 
             {/* Pris-oversigt — viser hvad brugeren betaler ud fra valgte funktioner */}
             {priceBreakdown && (
-              <div className="mt-4 rounded-lg border border-border bg-card p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-foreground">Din pakke</p>
+              <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card">
+                <div className="flex items-center justify-between gap-3 border-b border-border bg-secondary/30 px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Din pakke</p>
+                    <p className="text-[11px] text-muted-foreground">Vælg hvordan du vil faktureres</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Pris pr. md</p>
+                    <p className="text-lg font-semibold text-foreground tabular-nums leading-tight">
+                      {Math.round(priceBreakdown.monthlyAfterDiscount).toLocaleString("da-DK")} kr
+                    </p>
+                  </div>
                 </div>
+                <div className="p-4">
                 {/* Faktureringsinterval — samme tre valg som ved "bliv udbyder".
                     Skifter rabatten i prisberegningen og opdateres straks i db. */}
-                <div className="mt-3">
-                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Faktureringsinterval
-                  </p>
-                  <div className="grid grid-cols-3 gap-1.5 rounded-lg border border-border bg-secondary/40 p-1">
+                <div>
+                  <div className="grid grid-cols-3 gap-1 rounded-lg border border-border bg-secondary/40 p-1">
                     {([
-                      { key: "monthly", label: "Månedlig", hint: pricing ? "0% rabat" : "" },
+                      { key: "monthly", label: "Månedlig", hint: "" },
                       { key: "quarterly", label: "Kvartalsvis", hint: pricing ? `−${pricing.discount_quarterly_pct}%` : "" },
                       { key: "yearly", label: "Årlig", hint: pricing ? `−${pricing.discount_yearly_pct}%` : "" },
                     ] as const).map((opt) => {
@@ -907,15 +914,15 @@ const SettingsTab = ({ business }: { business: any }) => {
                           type="button"
                           onClick={() => handleBillingPeriodChange(opt.key)}
                           disabled={updatePlan.isPending}
-                          className={`flex flex-col items-center justify-center rounded-md px-2 py-2 text-xs font-medium transition-colors ${
+                          className={`flex flex-col items-center justify-center rounded-md px-2 py-2.5 text-xs font-medium transition-colors ${
                             isOn
                               ? "bg-foreground text-background shadow-sm"
-                              : "text-muted-foreground hover:bg-card hover:text-foreground"
+                              : "text-muted-foreground hover:bg-background hover:text-foreground"
                           }`}
                         >
                           <span>{opt.label}</span>
                           {opt.hint && (
-                            <span className={`mt-0.5 text-[10px] ${isOn ? "opacity-80" : "text-muted-foreground"}`}>
+                            <span className={`mt-0.5 text-[10px] font-semibold ${isOn ? "opacity-80" : "text-accent"}`}>
                               {opt.hint}
                             </span>
                           )}
@@ -924,7 +931,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                     })}
                   </div>
                 </div>
-                <ul className="mt-3 space-y-1.5 border-b border-border pb-3">
+                <ul className="mt-4 space-y-2 border-t border-border pt-3">
                   {priceBreakdown.lines.map((l) => (
                     <li key={l.key} className="flex items-baseline justify-between gap-3 text-sm">
                       <span className="text-muted-foreground">{l.label}</span>
@@ -934,73 +941,91 @@ const SettingsTab = ({ business }: { business: any }) => {
                     </li>
                   ))}
                 </ul>
-                <div className="mt-3 space-y-1 text-sm">
-                  <div className="flex items-baseline justify-between text-muted-foreground">
-                    <span>Pris per måned</span>
-                    <span className="tabular-nums">{Math.round(priceBreakdown.subtotal).toLocaleString("da-DK")} kr</span>
+                {priceBreakdown.discountPct > 0 && (
+                  <div className="mt-3 flex items-baseline justify-between border-t border-border pt-3 text-sm">
+                    <div className="flex items-baseline justify-between gap-3 text-muted-foreground w-full">
+                      <span>Subtotal</span>
+                      <span className="tabular-nums">{Math.round(priceBreakdown.subtotal).toLocaleString("da-DK")} kr/md</span>
+                    </div>
                   </div>
-                  {priceBreakdown.discountPct > 0 && (
-                    <div className="flex items-baseline justify-between text-accent">
-                      <span>Rabat ({priceBreakdown.discountPct}%)</span>
-                      <span className="tabular-nums">
+                )}
+                {priceBreakdown.discountPct > 0 && (
+                  <div className="mt-1.5 flex items-baseline justify-between text-sm">
+                    <span className="inline-flex items-center gap-1.5 text-accent">
+                      <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold">RABAT</span>
+                      <span>{priceBreakdown.discountPct}%</span>
+                    </span>
+                    <span className="font-medium text-accent tabular-nums">
                         −{Math.round(priceBreakdown.subtotal - priceBreakdown.monthlyAfterDiscount).toLocaleString("da-DK")} kr/md
                       </span>
                     </div>
                   )}
-                </div>
-                <div className="mt-3 flex items-baseline justify-between rounded-md bg-secondary/60 px-3 py-2">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    {plan?.status === "trialing" || plan?.status === "trial_ending" ? "Pris efter prøveperiode" : "Total pr. måned"}
-                  </span>
-                  <span className="text-lg font-semibold text-foreground tabular-nums">
-                    {Math.round(priceBreakdown.monthlyAfterDiscount).toLocaleString("da-DK")} kr
-                  </span>
-                </div>
-                <p className="mt-2 text-[11px] text-muted-foreground">
-                  Slå funktioner til/fra under <span className="font-medium text-foreground">Avanceret</span> nedenfor — prisen opdateres automatisk.
+                <p className="mt-3 border-t border-border pt-3 text-[11px] text-muted-foreground">
+                  {plan?.status === "trialing" || plan?.status === "trial_ending"
+                    ? "Prisen opkræves først efter din prøveperiode er slut. "
+                    : ""}
+                  Slå funktioner til/fra under <span className="font-medium text-foreground">Avanceret</span> — prisen opdateres automatisk.
                 </p>
+                </div>
               </div>
             )}
 
             {/* Aktivt kort — vis brand + last4, og lad brugeren fjerne det */}
             {plan?.has_payment_method && (
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-14 shrink-0 items-center justify-center rounded-md bg-foreground text-background text-[10px] font-semibold uppercase tracking-wider">
-                    {plan.payment_brand || "Kort"}
+              <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card">
+                <div className="flex flex-wrap items-center justify-between gap-3 p-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex h-11 w-16 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-foreground to-foreground/80 text-background text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                      {plan.payment_brand || "Kort"}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground tabular-nums">•••• {plan.payment_last4}</p>
+                      <p className="text-xs text-muted-foreground">Aktivt betalingskort</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">•••• •••• •••• {plan.payment_last4}</p>
-                    <p className="text-xs text-muted-foreground">Aktivt betalingskort</p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={openCustomerPortal} disabled={openingPortal}>
-                    {openingPortal ? "Åbner..." : "Administrér kort & fakturaer"}
+                    {openingPortal ? "Åbner..." : "Administrér"}
                   </Button>
-                  <Button size="sm" variant="outline" onClick={handleRemoveCard} disabled={removeCard.isPending}
-                    className="text-destructive hover:text-destructive hover:border-destructive/40">
-                    Fjern
-                  </Button>
+                </div>
+                <div className="flex items-center justify-between gap-3 border-t border-border bg-secondary/20 px-4 py-2.5">
+                  <p className="text-[11px] text-muted-foreground">
+                    Skift kort, se fakturaer eller opsig dit abonnement
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleRemoveCard}
+                    disabled={removeCard.isPending}
+                    className="text-[11px] font-medium text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    Fjern kort
+                  </button>
                 </div>
               </div>
             )}
 
             {/* Tilføj kort — åbner Stripe Embedded Checkout */}
             {(!plan || !plan.has_payment_method) && (
-              <div className="mt-4 space-y-3 rounded-lg border border-border bg-card p-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-foreground">
-                    Tilføj betalingskort
-                  </p>
-                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Sikret af Stripe</span>
+              <div className="mt-4 overflow-hidden rounded-xl border border-dashed border-border bg-gradient-to-br from-card to-secondary/20 p-5">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
+                    <CreditCard className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-foreground">Tilføj betalingskort</p>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-secondary/60 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        🔒 Sikret af Stripe
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                      Du opkræves ikke før din prøveperiode er slut. Du kan opsige når som helst, og dine betalinger håndteres sikkert af Stripe.
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Du opkræves ikke før din prøveperiode er slut. Du kan opsige når som helst.
-                </p>
                 <Button
                   onClick={() => setShowCheckout(true)}
-                  className="w-full bg-foreground text-background hover:bg-foreground/90"
+                  className="mt-4 w-full bg-foreground text-background hover:bg-foreground/90"
+                  size="lg"
                 >
                   {plan?.status === "expired" ? "Genaktivér virksomhed med betalingskort" : "Tilføj betalingskort"}
                 </Button>
