@@ -265,7 +265,7 @@ const DynamicBusinessContent = () => {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="h-11 gap-2 rounded-full border-border bg-card px-5 text-sm font-semibold text-foreground transition-all hover:border-foreground/40 hover:bg-secondary"
+                    className="h-11 gap-2 rounded-full border-border bg-card px-5 text-sm font-semibold text-foreground transition-all hover:border-foreground/40 hover:bg-secondary hover:text-foreground"
                   >
                     <Phone className="h-4 w-4" /> Ring nu
                   </Button>
