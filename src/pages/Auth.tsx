@@ -241,12 +241,21 @@ const Auth = () => {
                 </form>
 
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground">
-                    {isSignUp ? "Har du allerede en konto?" : "Har du ikke en konto?"}{" "}
-                    <button onClick={() => setIsSignUp(!isSignUp)} className="font-medium text-foreground hover:underline">
-                      {isSignUp ? "Log ind" : "Opret konto"}
-                    </button>
-                  </p>
+                  {isBusiness && !isSignUp ? (
+                    <p className="text-sm text-muted-foreground">
+                      Har du ikke en konto?{" "}
+                      <Link to="/opret-virksomhed" className="font-medium text-foreground hover:underline">
+                        Opret virksomhed
+                      </Link>
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      {isSignUp ? "Har du allerede en konto?" : "Har du ikke en konto?"}{" "}
+                      <button onClick={() => setIsSignUp(!isSignUp)} className="font-medium text-foreground hover:underline">
+                        {isSignUp ? "Log ind" : "Opret konto"}
+                      </button>
+                    </p>
+                  )}
                 </div>
               </div>
             )}
