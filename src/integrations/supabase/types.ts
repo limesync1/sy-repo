@@ -1634,42 +1634,6 @@ export type Database = {
         }
         Relationships: []
       }
-      platform_pricing: {
-        Row: {
-          base_price_dkk: number | null
-          discount_quarterly_pct: number | null
-          discount_yearly_pct: number | null
-          price_accounting_integration_dkk: number | null
-          price_data_import_dkk: number | null
-          price_per_employee_login_dkk: number | null
-          price_route_planning_dkk: number | null
-          stripe_publishable_key: string | null
-          trial_days: number | null
-        }
-        Insert: {
-          base_price_dkk?: number | null
-          discount_quarterly_pct?: number | null
-          discount_yearly_pct?: number | null
-          price_accounting_integration_dkk?: number | null
-          price_data_import_dkk?: number | null
-          price_per_employee_login_dkk?: number | null
-          price_route_planning_dkk?: number | null
-          stripe_publishable_key?: string | null
-          trial_days?: number | null
-        }
-        Update: {
-          base_price_dkk?: number | null
-          discount_quarterly_pct?: number | null
-          discount_yearly_pct?: number | null
-          price_accounting_integration_dkk?: number | null
-          price_data_import_dkk?: number | null
-          price_per_employee_login_dkk?: number | null
-          price_route_planning_dkk?: number | null
-          stripe_publishable_key?: string | null
-          trial_days?: number | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
       admin_business_stats: {
@@ -1713,6 +1677,20 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      get_platform_pricing: {
+        Args: never
+        Returns: {
+          base_price_dkk: number
+          discount_quarterly_pct: number
+          discount_yearly_pct: number
+          price_accounting_integration_dkk: number
+          price_data_import_dkk: number
+          price_per_employee_login_dkk: number
+          price_route_planning_dkk: number
+          stripe_publishable_key: string
+          trial_days: number
+        }[]
       }
       has_role: {
         Args: {
