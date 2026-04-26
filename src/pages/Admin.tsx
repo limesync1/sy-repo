@@ -26,6 +26,9 @@ import SettingsTab from "@/components/admin/SettingsTab";
 import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
+import TrialBanner from "@/components/admin/TrialBanner";
+import ReactivateDialog from "@/components/admin/ReactivateDialog";
+import { useBusinessPlan } from "@/hooks/useBusinessPlan";
 import {
   INDUSTRY_GROUPS,
   ALL_INDUSTRIES,
@@ -153,6 +156,7 @@ const Admin = () => {
 /* ─── Main Dashboard ─── */
 const AdminDashboard = () => {
   const { data: business, isLoading } = useMyBusiness();
+  const { data: plan } = useBusinessPlan(business?.id);
   // Læs ?tab=xxx synkront ved første render så vi ALDRIG flasher "Overblik" når
   // brugeren navigerer fra fx Ruteplanlæggeren til en anden fane.
   const initialTab = ((): AdminTabKey => {
@@ -210,7 +214,21 @@ const AdminDashboard = () => {
 
   return (
     <AdminShell business={business} activeTab={activeTab} onTabChange={handleTabChange}>
+      {/* Vises altid i toppen af panelet, undtagen når brugeren allerede er
+          inde på Indstillinger-fanen — så ville knappen "Tilføj kort" pege
+          på samme side. */}
+      {plan && plan.status !== "active" && plan.status !== "unknown" && (
+        <div className="mb-4">
+          <TrialBanner plan={plan} hideAction={activeTab === "settings"} />
+        </div>
+      )}
       {renderContent()}
+
+      {/* Hvis prøven er udløbet og der ikke er noget kort → blokér panelet
+          indtil brugeren har genaktiveret med kortoplysninger. */}
+      {plan?.status === "expired" && (
+        <ReactivateDialog open businessId={business.id} businessName={business.name} />
+      )}
     </AdminShell>
   );
 };

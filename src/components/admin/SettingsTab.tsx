@@ -16,6 +16,7 @@ import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusinessPlan, useReactivateBusinessPlan } from "@/hooks/useBusinessPlan";
 import {
   INDUSTRY_GROUPS,
   ALL_INDUSTRIES,
@@ -81,6 +82,36 @@ const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: () =>
 const SettingsTab = ({ business }: { business: any }) => {
   const updateBiz = useUpdateBusiness();
   const { user } = useAuth();
+  const { data: plan } = useBusinessPlan(business.id);
+  const reactivate = useReactivateBusinessPlan();
+
+  // Lokal state for kortform — bruges kun til at fange last4 + brand så
+  // banneret forsvinder. Den rigtige Stripe-tokenisering sker senere.
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvc, setCardCvc] = useState("");
+
+  const handleSaveCard = async () => {
+    const digits = cardNumber.replace(/\s+/g, "");
+    if (digits.length < 13 || digits.length > 19 || !/^\d+$/.test(digits)) {
+      toast.error("Indtast et gyldigt kortnummer"); return;
+    }
+    if (!/^\d{2}\s*\/\s*\d{2}$/.test(cardExpiry)) {
+      toast.error("Udløbsdato skal være MM/ÅÅ"); return;
+    }
+    if (!/^\d{3,4}$/.test(cardCvc)) {
+      toast.error("CVC skal være 3-4 cifre"); return;
+    }
+    try {
+      const last4 = digits.slice(-4);
+      const brand = digits.startsWith("4") ? "Visa" : digits.startsWith("5") ? "Mastercard" : "Kort";
+      await reactivate.mutateAsync({ businessId: business.id, last4, brand });
+      setCardNumber(""); setCardExpiry(""); setCardCvc("");
+      toast.success("Betalingskort gemt");
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke gemme kort");
+    }
+  };
 
   // ─── Form state ───
   const [name, setName] = useState(business.name);
@@ -664,22 +695,94 @@ const SettingsTab = ({ business }: { business: any }) => {
             icon={<CreditCard />}
             description="Administrér din pakke og tilføj betalingskort. Vi bruger Stripe til sikker betalingshåndtering."
           >
-            <div className="rounded-lg border border-border bg-card p-4">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                  <CreditCard className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-foreground">Betalingskort</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Du er i gratis prøveperiode. Tilføj et betalingskort inden prøven udløber for at fortsætte med at bruge Serviceydere uden afbrydelse.
-                  </p>
-                  <span className="mt-3 inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Stripe-integration kommer snart
-                  </span>
+            {/* Status-banner med dage tilbage */}
+            {plan && plan.status !== "unknown" && (
+              <div
+                className={`rounded-lg border p-4 ${
+                  plan.status === "expired"
+                    ? "border-destructive/30 bg-destructive/5"
+                    : plan.status === "trial_ending"
+                      ? "border-destructive/30 bg-destructive/5"
+                      : plan.status === "active"
+                        ? "border-accent/30 bg-accent/5"
+                        : "border-border bg-card"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                    plan.status === "expired" || plan.status === "trial_ending"
+                      ? "bg-destructive/10 text-destructive"
+                      : "bg-accent/10 text-accent"
+                  }`}>
+                    <CreditCard className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    {plan.status === "active" ? (
+                      <>
+                        <p className="text-sm font-semibold text-foreground">Aktivt abonnement</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Kort på fil: {plan.has_payment_method ? "•••• •••• •••• ••••" : "Ingen"} · {plan.monthly_price_dkk.toLocaleString("da-DK")} kr./md.
+                        </p>
+                      </>
+                    ) : plan.status === "expired" ? (
+                      <>
+                        <p className="text-sm font-semibold text-foreground">Prøveperioden er udløbet</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Tilføj et betalingskort herunder for at genaktivere din virksomhed på Serviceydere.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm font-semibold text-foreground">
+                          {plan.days_left === 1
+                            ? "Sidste dag af din prøveperiode"
+                            : `${plan.days_left} dage tilbage af din prøveperiode`}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Husk at tilføje et betalingskort inden 3 dage — ellers bliver din virksomhed deaktiveret fra Serviceydere.
+                        </p>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Kortform — vises kun hvis der ikke er noget kort på fil. */}
+            {(!plan || !plan.has_payment_method) && (
+              <div className="mt-4 space-y-3 rounded-lg border border-border bg-card p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-foreground">Tilføj betalingskort</p>
+                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Sikret af Stripe</span>
+                </div>
+                <div>
+                  <FieldLabel>Kortnummer</FieldLabel>
+                  <Input
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(e.target.value)}
+                    placeholder="1234 5678 9012 3456"
+                    inputMode="numeric"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <FieldLabel>Udløb (MM/ÅÅ)</FieldLabel>
+                    <Input value={cardExpiry} onChange={(e) => setCardExpiry(e.target.value)} placeholder="12/27" />
+                  </div>
+                  <div>
+                    <FieldLabel>CVC</FieldLabel>
+                    <Input value={cardCvc} onChange={(e) => setCardCvc(e.target.value)} placeholder="123" inputMode="numeric" />
+                  </div>
+                </div>
+                <Button
+                  onClick={handleSaveCard}
+                  disabled={reactivate.isPending}
+                  className="w-full bg-foreground text-background hover:bg-foreground/90"
+                >
+                  {reactivate.isPending ? "Gemmer..." : plan?.status === "expired" ? "Genaktivér virksomhed" : "Gem betalingskort"}
+                </Button>
+              </div>
+            )}
           </SectionCard>
         </div>
 

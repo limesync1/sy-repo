@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useCart } from "@/contexts/CartContext";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
 import SEO from "@/components/SEO";
 import LocationChip from "@/components/LocationChip";
@@ -103,8 +102,6 @@ const RequestQuote = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<MatchedBusiness | null>(null);
   const [showAllServices, setShowAllServices] = useState(false);
-  const { count } = useCart();
-  const { openSheet } = useCart();
   const { location, radiusKm } = useUserLocation();
 
   const handleFind = async (e: React.FormEvent) => {
@@ -603,28 +600,8 @@ const RequestQuote = () => {
             })()}
           </div>
 
-          {/* Cart sticky bar */}
-          {count > 0 && (
-            <div className="sticky bottom-4 z-20 mt-8 rounded-2xl border border-border bg-card/95 p-4 shadow-xl backdrop-blur-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
-                    <Check className="h-5 w-5 text-accent" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{count} {count === 1 ? "service" : "services"} i kurven</p>
-                    <p className="text-xs text-muted-foreground">fra {selectedBusiness.business.name}</p>
-                  </div>
-                </div>
-                <Button
-                  onClick={openSheet}
-                  className="rounded-full bg-foreground text-background hover:bg-foreground/90"
-                >
-                  <ShoppingCart className="mr-2 h-4 w-4" /> Se bestilling
-                </Button>
-              </div>
-            </div>
-          )}
+          {/* Bestillingsoversigten håndteres nu af den globale CartSheet/CartFab,
+              så vi viser ikke længere en sticky kurv-bar her — det er overflødigt. */}
         </section>
       )}
 
