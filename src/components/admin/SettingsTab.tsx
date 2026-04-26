@@ -990,19 +990,35 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <FieldLabel>Kortnummer</FieldLabel>
                   <Input
                     value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value)}
+                    onChange={(e) => handleCardNumberChange(e.target.value)}
                     placeholder="1234 5678 9012 3456"
                     inputMode="numeric"
+                    autoComplete="cc-number"
+                    maxLength={23}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <FieldLabel>Udløb (MM/ÅÅ)</FieldLabel>
-                    <Input value={cardExpiry} onChange={(e) => setCardExpiry(e.target.value)} placeholder="12/27" />
+                    <Input
+                      value={cardExpiry}
+                      onChange={(e) => handleCardExpiryChange(e.target.value)}
+                      placeholder="12/27"
+                      inputMode="numeric"
+                      autoComplete="cc-exp"
+                      maxLength={5}
+                    />
                   </div>
                   <div>
                     <FieldLabel>CVC</FieldLabel>
-                    <Input value={cardCvc} onChange={(e) => setCardCvc(e.target.value)} placeholder="123" inputMode="numeric" />
+                    <Input
+                      value={cardCvc}
+                      onChange={(e) => handleCardCvcChange(e.target.value)}
+                      placeholder="123"
+                      inputMode="numeric"
+                      autoComplete="cc-csc"
+                      maxLength={4}
+                    />
                   </div>
                 </div>
                 <div className="flex gap-2">
