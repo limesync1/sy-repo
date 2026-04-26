@@ -601,4 +601,55 @@ const ScaleStep = ({
   </div>
 );
 
+const AccountStep = ({
+  email, setEmail, password, setPassword,
+}: {
+  email: string;
+  setEmail: (v: string) => void;
+  password: string;
+  setPassword: (v: string) => void;
+}) => (
+  <div className="space-y-5">
+    <div>
+      <h2 className="text-xl font-semibold text-foreground sm:text-2xl">Opret din virksomhedskonto</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Sidste skridt — vælg en e-mail og en adgangskode, så aktiverer vi din virksomhed med dine valg fra de foregående trin.
+      </p>
+    </div>
+
+    <div>
+      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Arbejds-e-mail</label>
+      <Input
+        type="email"
+        autoComplete="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="navn@virksomhed.dk"
+        className="h-11"
+      />
+    </div>
+
+    <div>
+      <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+        Adgangskode <span className="text-muted-foreground/60">(min. 6 tegn)</span>
+      </label>
+      <Input
+        type="password"
+        autoComplete="new-password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="••••••••"
+        className="h-11"
+      />
+    </div>
+
+    <div className="flex items-start gap-3 rounded-xl bg-secondary/60 p-4 text-xs text-muted-foreground">
+      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+      <p>
+        Vi opretter automatisk din virksomhedsprofil, så du kan logge ind med det samme og komme i gang.
+      </p>
+    </div>
+  </div>
+);
+
 export default BusinessOnboarding;
