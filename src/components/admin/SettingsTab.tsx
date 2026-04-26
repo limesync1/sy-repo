@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import {
   Sparkles, Settings, Bell, Route, Contact, Image as ImageIcon, Clock,
   CheckCircle2, AlertCircle, ArrowRight, Building2, Search, Calculator,
+  CreditCard,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
@@ -55,6 +56,7 @@ const SECTIONS = [
   { id: "branding",      label: "Branding",       icon: ImageIcon, hint: "Logo og cover" },
   { id: "hours",         label: "Åbningstider",   icon: Clock,     hint: "Hverdage og weekend" },
   { id: "notifications", label: "Notifikationer", icon: Bell,      hint: "Email-varsler" },
+  { id: "billing",       label: "Fakturering",    icon: CreditCard, hint: "Pakke og betalingskort" },
   { id: "advanced",      label: "Avanceret",      icon: Route,     hint: "Ekstra funktioner" },
 ] as const;
 
