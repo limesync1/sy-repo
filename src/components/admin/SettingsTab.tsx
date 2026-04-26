@@ -1,7 +1,7 @@
 // SettingsTab — virksomhedens indstillinger, opbygget med samme designsprog
 // som Overblik / Aftaler / Kunder / Medarbejdere / Anmeldelser:
 // PageHeader, surface-admin cards, sub-nav chips og konsistent spacing.
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback, forwardRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -66,8 +66,12 @@ const SECTIONS = [
 ] as const;
 
 /* ─── Toggle-switch (delt mellem notifikations- og rute-felter) ─── */
-const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
+const ToggleSwitch = forwardRef<
+  HTMLButtonElement,
+  { checked: boolean; onChange: () => void }
+>(({ checked, onChange }, ref) => (
   <button
+    ref={ref}
     type="button"
     onClick={onChange}
     aria-pressed={checked}
@@ -81,7 +85,8 @@ const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: () =>
       }`}
     />
   </button>
-);
+));
+ToggleSwitch.displayName = "ToggleSwitch";
 
 const SettingsTab = ({ business }: { business: any }) => {
   const updateBiz = useUpdateBusiness();
