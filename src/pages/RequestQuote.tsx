@@ -215,9 +215,8 @@ const RequestQuote = () => {
       {!matches && !isLoading && !selectedBusiness && (
         <>
           <PageHero
-            eyebrow="AI-drevet matching"
-            title={<>Beskriv opgaven — <span className="text-accent">vores AI</span> finder folkene.</>}
-            subtitle="Få op til 3 skræddersyede tilbud fra verificerede serviceydere — gratis og uforpligtende."
+            title="Få op til 3 gratis tilbud."
+            subtitle="Beskriv opgaven, så finder vi de bedste serviceydere til dig — gratis og uforpligtende."
           />
 
           <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 pb-16 md:pt-12 md:pb-20">
