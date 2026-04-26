@@ -12,7 +12,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useCart } from "@/contexts/CartContext";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
-import CartSheet from "@/components/business/CartSheet";
 import SEO from "@/components/SEO";
 import LocationChip from "@/components/LocationChip";
 import RadiusPicker from "@/components/RadiusPicker";
@@ -201,14 +200,7 @@ const RequestQuote = () => {
         keywords={`få tilbud, ${category || "serviceydere"}, AI matchning, gratis tilbud, danmark, sammenlign serviceydere`}
       />
       {/* Sticky light nav — shared site nav with working mobile menu */}
-      <SiteNav
-        active="quote"
-        right={
-          <>
-            {count > 0 && <CartSheet />}
-          </>
-        }
-      />
+      <SiteNav active="quote" />
 
       {/* ─── STEP 1: Hero + form ─── */}
       {!matches && !isLoading && !selectedBusiness && (
