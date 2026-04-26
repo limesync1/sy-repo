@@ -114,11 +114,29 @@ Deno.serve(async (req) => {
       extraEmployeeLogins: String(body.extraEmployeeLogins),
     };
 
-    // Hvis prøveperioden stadig løber, lad Stripe respektere den
-    const trialEnd = existingPlan?.trial_ends_at
+    // Prøveperiode: Stripe må først trække første betaling når trial er udløbet.
+    // 1) Hvis virksomheden allerede har en `trial_ends_at` i fremtiden, brug den.
+    // 2) Ellers fald tilbage på platform-indstillingens `trial_days` for nye virksomheder
+    //    der endnu ikke har en plan-record (eller hvis trial mangler).
+    const nowSec = Math.floor(Date.now() / 1000);
+    let trialEnd: number | null = existingPlan?.trial_ends_at
       ? Math.floor(new Date(existingPlan.trial_ends_at).getTime() / 1000)
       : null;
-    const trialEndIsFuture = trialEnd && trialEnd > Math.floor(Date.now() / 1000) + 60;
+
+    if (!trialEnd || trialEnd <= nowSec + 60) {
+      const { data: pricing } = await supabase
+        .from("platform_settings")
+        .select("trial_days")
+        .eq("id", 1)
+        .maybeSingle();
+      const trialDays = Math.max(0, Number(pricing?.trial_days) || 0);
+      if (trialDays > 0 && !existingPlan?.stripe_customer_id) {
+        // Kun nye virksomheder (uden eksisterende Stripe customer) får default trial.
+        trialEnd = nowSec + trialDays * 24 * 60 * 60;
+      }
+    }
+
+    const trialEndIsFuture = !!trialEnd && trialEnd > nowSec + 60;
 
     const session = await stripe.checkout.sessions.create({
       ui_mode: "embedded",
