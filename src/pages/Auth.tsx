@@ -32,6 +32,12 @@ const Auth = () => {
     return <Navigate to="/virksomhed" replace />;
   }
 
+  // Virksomheds-tilmelding går altid via onboarding-flowet, så de først
+  // konfigurerer deres pakke og derefter opretter loginet.
+  if (mode === "business" && isSignUp) {
+    return <Navigate to="/opret-virksomhed" replace />;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) { toast.error("Udfyld alle felter"); return; }
