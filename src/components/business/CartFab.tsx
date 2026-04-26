@@ -1,14 +1,25 @@
 import { Package } from "lucide-react";
+import { useLocation } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 
 /**
  * Lille flydende handle nederst til højre der lader brugeren genåbne
  * deres bestillings-sheet hvis de lukkede den. Skjult når kurven er tom
  * eller sheeten allerede er åben — vi vil ikke distrahere fra hovedindholdet.
+ *
+ * Vises kun på virksomhedssider (/v/:slug, /demo) eller på tilbudssiden
+ * (/tilbud) hvor brugeren netop har indhentet tilbud. På resten af platformen
+ * (forside, søgning, admin osv.) skal knappen ikke distrahere.
  */
 const CartFab = () => {
   const { count, sheetOpen, openSheet } = useCart();
+  const { pathname } = useLocation();
   if (count === 0 || sheetOpen) return null;
+  const allowed =
+    pathname.startsWith("/v/") ||
+    pathname === "/demo" ||
+    pathname === "/tilbud";
+  if (!allowed) return null;
   return (
     <button
       type="button"
