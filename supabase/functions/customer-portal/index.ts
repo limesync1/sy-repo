@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
     let configId: string | null = null;
     const existingConfigs = await stripe.billingPortal.configurations.list({ limit: 100 });
     const existing = existingConfigs.data.find(
-      (c) => c.business_profile?.headline === HEADLINE,
+      (c: any) => c.business_profile?.headline === HEADLINE,
     );
     if (existing) {
       configId = existing.id;
