@@ -268,6 +268,34 @@ const SettingsTab = ({ business }: { business: any }) => {
     setCvrLoading(false);
   };
 
+  // ─── Auto-fill fra gemt CVR ───
+  // Når en virksomhed er oprettet via "bliv udbyder" gemmer vi CVR-nummeret i
+  // settings.cvr. Hvis der er felter der mangler ved første load, slår vi op
+  // i CVR-registret automatisk og udfylder dem stille — uden at overskrive
+  // noget brugeren allerede selv har skrevet.
+  const cvrAutoFillTried = useRef(false);
+  useEffect(() => {
+    if (cvrAutoFillTried.current) return;
+    const savedCvr = (business.settings as any)?.cvr as string | undefined;
+    if (!savedCvr || savedCvr.length !== 8) return;
+    const missingAny = !address || !zipCode || !city || !phone;
+    if (!missingAny) return;
+    cvrAutoFillTried.current = true;
+    (async () => {
+      try {
+        const { data } = await supabase.functions.invoke("cvr-lookup", { body: { cvr: savedCvr } });
+        if (!data?.found) return;
+        if (!address && data.address) setAddress(data.address);
+        if (!zipCode && data.zip_code) setZipCode(data.zip_code);
+        if (!city && data.city) setCity(data.city);
+        if (!phone && data.phone) setPhone(data.phone.toString().replace(/\s/g, ""));
+        if (!email && data.email) setEmail(data.email);
+      } catch { /* stille — feltet kan altid udfyldes manuelt */ }
+    })();
+    // Vi vil kun køre denne effekt én gang, og kun når business.id ændrer sig.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [business.id]);
+
   const applyCvrData = () => {
     if (!cvrResult) return;
     if (cvrResult.name) setName(cvrResult.name);
