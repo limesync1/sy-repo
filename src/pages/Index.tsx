@@ -1,5 +1,4 @@
 import HeroSection from "@/components/landing/HeroSection";
-import Categories from "@/components/landing/Categories";
 import HowItWorks from "@/components/landing/HowItWorks";
 import RecentBusinesses from "@/components/landing/RecentBusinesses";
 import Testimonials from "@/components/landing/Testimonials";
@@ -7,6 +6,7 @@ import WhyUs from "@/components/landing/WhyUs";
 import GetQuotes from "@/components/landing/GetQuotes";
 import Footer from "@/components/landing/Footer";
 import Stats from "@/components/landing/Stats";
+import ForBusinesses from "@/components/landing/ForBusinesses";
 import SEO from "@/components/SEO";
 
 const Index = () => {
@@ -20,12 +20,12 @@ const Index = () => {
       />
       <HeroSection />
       <Stats />
-      <Categories />
       <RecentBusinesses />
       <HowItWorks />
       <GetQuotes />
       <Testimonials />
       <WhyUs />
+      <ForBusinesses />
       <Footer />
     </div>
   );

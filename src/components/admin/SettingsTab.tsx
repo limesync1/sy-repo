@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import {
   Sparkles, Settings, Bell, Route, Contact, Image as ImageIcon, Clock,
-  CheckCircle2, AlertCircle, ArrowRight, Building2, Search,
+  CheckCircle2, AlertCircle, ArrowRight, Building2, Search, Calculator,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
@@ -109,6 +109,11 @@ const SettingsTab = ({ business }: { business: any }) => {
   });
   const [routePlanningEnabled, setRoutePlanningEnabled] = useState<boolean>(
     !!(business.settings as any)?.route_planning_enabled
+  );
+  // Regnskabsprogram-integration — feature-flag som virksomheden selv kan slå
+  // til/fra. Selve integrationen bygges senere; vi gemmer kun præferencen.
+  const [accountingIntegrationEnabled, setAccountingIntegrationEnabled] = useState<boolean>(
+    !!(business.settings as any)?.accounting_integration_enabled
   );
 
   // CVR lookup
@@ -261,6 +266,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   const origCategories = (business.categories as string[]) || (business.category ? [business.category] : []);
   const origNotif = business.notification_settings as Record<string, boolean> || {};
   const origRoutePlanning = !!(business.settings as any)?.route_planning_enabled;
+  const origAccountingIntegration = !!(business.settings as any)?.accounting_integration_enabled;
   const origSubcats = ((business.settings as any)?.selected_subcategories as Record<string, string[]>) || {};
   const hasChanges = name !== business.name || description !== (business.description || "") ||
     phone !== (business.phone || "") || email !== (business.email || "") ||
@@ -271,6 +277,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     JSON.stringify(selectedSubcategories) !== JSON.stringify(origSubcats) ||
     JSON.stringify(openHours) !== JSON.stringify(business.opening_hours || {}) ||
     routePlanningEnabled !== origRoutePlanning ||
+    accountingIntegrationEnabled !== origAccountingIntegration ||
     JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
 
   // ─── Auto-save ───
@@ -300,13 +307,14 @@ const SettingsTab = ({ business }: { business: any }) => {
     settings: {
       ...((business.settings as any) || {}),
       route_planning_enabled: routePlanningEnabled,
+      accounting_integration_enabled: accountingIntegrationEnabled,
       selected_subcategories: selectedSubcategories,
     },
   }), [
     business.id, business.name, business.settings,
     name, description, phone, email, address, city, zipCode,
     logoUrl, coverUrl, selectedCategories, selectedSubcategories,
-    openHours, notifSettings, routePlanningEnabled,
+    openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled,
   ]);
 
   useEffect(() => {
@@ -650,19 +658,43 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* Avanceret */}
         <div id="settings-advanced" className="scroll-mt-6">
           <SectionCard title="Avanceret" icon={<Settings />} description="Aktivér ekstra funktioner til din virksomhed.">
-            <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
-              <div className="flex items-start gap-3 min-w-0">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                  <Route className="h-5 w-5" />
+            <div className="space-y-3">
+              <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                    <Route className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">Ruteplanlægning</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Tilføjer "Medarbejdere"-fanen og giver adgang til ruteplanlæggeren — opret medarbejder-konti og planlæg daglige ruter med stop hos kunder. Kan optimeres med AI baseret på afstand, tidsvinduer og prioriteter.
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-foreground">Ruteplanlægning</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    Tilføjer "Medarbejdere"-fanen og giver adgang til ruteplanlæggeren — opret medarbejder-konti og planlæg daglige ruter med stop hos kunder. Kan optimeres med AI baseret på afstand, tidsvinduer og prioriteter.
-                  </p>
-                </div>
+                <ToggleSwitch checked={routePlanningEnabled} onChange={() => setRoutePlanningEnabled((v) => !v)} />
               </div>
-              <ToggleSwitch checked={routePlanningEnabled} onChange={() => setRoutePlanningEnabled((v) => !v)} />
+
+              {/* Regnskabsprogram-integration — feature lanceres senere, men kan
+                  slås til/fra her, så virksomheder selv styrer adgangen. */}
+              <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                    <Calculator className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold text-foreground">Integration med regnskabsprogram</p>
+                      <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        Kommer snart
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Forbind din konto med dit regnskabsprogram (fx e-conomic, Dinero eller Billy), så fakturaer og betalinger automatisk synkroniseres. Når funktionen er klar, aktiveres den automatisk for dig — du kan altid slå den fra igen her.
+                    </p>
+                  </div>
+                </div>
+                <ToggleSwitch checked={accountingIntegrationEnabled} onChange={() => setAccountingIntegrationEnabled((v) => !v)} />
+              </div>
             </div>
           </SectionCard>
         </div>
