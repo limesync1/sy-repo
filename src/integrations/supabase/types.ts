@@ -84,17 +84,22 @@ export type Database = {
           accounting_integration_enabled: boolean
           billing_period: string
           business_id: string
+          cancel_at_period_end: boolean
           created_at: string
           current_period_end: string | null
           data_import_requested: boolean
           extra_employee_logins: number
           id: string
+          last_payment_at: string | null
+          last_payment_failed_at: string | null
           monthly_price_dkk: number
           route_planning_enabled: boolean
           status: string
           stripe_customer_id: string | null
+          stripe_environment: string
           stripe_payment_method_brand: string | null
           stripe_payment_method_last4: string | null
+          stripe_price_id: string | null
           stripe_subscription_id: string | null
           trial_ends_at: string | null
           updated_at: string
@@ -103,17 +108,22 @@ export type Database = {
           accounting_integration_enabled?: boolean
           billing_period?: string
           business_id: string
+          cancel_at_period_end?: boolean
           created_at?: string
           current_period_end?: string | null
           data_import_requested?: boolean
           extra_employee_logins?: number
           id?: string
+          last_payment_at?: string | null
+          last_payment_failed_at?: string | null
           monthly_price_dkk?: number
           route_planning_enabled?: boolean
           status?: string
           stripe_customer_id?: string | null
+          stripe_environment?: string
           stripe_payment_method_brand?: string | null
           stripe_payment_method_last4?: string | null
+          stripe_price_id?: string | null
           stripe_subscription_id?: string | null
           trial_ends_at?: string | null
           updated_at?: string
@@ -122,17 +132,22 @@ export type Database = {
           accounting_integration_enabled?: boolean
           billing_period?: string
           business_id?: string
+          cancel_at_period_end?: boolean
           created_at?: string
           current_period_end?: string | null
           data_import_requested?: boolean
           extra_employee_logins?: number
           id?: string
+          last_payment_at?: string | null
+          last_payment_failed_at?: string | null
           monthly_price_dkk?: number
           route_planning_enabled?: boolean
           status?: string
           stripe_customer_id?: string | null
+          stripe_environment?: string
           stripe_payment_method_brand?: string | null
           stripe_payment_method_last4?: string | null
+          stripe_price_id?: string | null
           stripe_subscription_id?: string | null
           trial_ends_at?: string | null
           updated_at?: string
@@ -1669,6 +1684,14 @@ export type Database = {
           _user_id: string
         }
         Returns: undefined
+      }
+      business_has_active_plan: {
+        Args: { _business_id: string }
+        Returns: boolean
+      }
+      business_id_for_stripe_customer: {
+        Args: { _customer_id: string }
+        Returns: string
       }
       delete_email: {
         Args: { message_id: number; queue_name: string }
