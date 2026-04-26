@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck, Download, ChevronDown } from "lucide-react";
+import { Search, CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck, Download, ChevronDown, CreditCard, Clock, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -36,6 +36,19 @@ const PlatformBusinessesTab = () => {
       if (error) throw error;
       const map = new Map<string, any>();
       (data || []).forEach((s: any) => map.set(s.business_id, s));
+      return map;
+    },
+  });
+
+  // Henter abonnements-/plan-info for alle virksomheder, så vi kan vise
+  // prøvedage tilbage, månedspris og om der er et aktivt betalingskort.
+  const { data: plans } = useQuery({
+    queryKey: ["admin-business-plans"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("business_plans").select("*");
+      if (error) throw error;
+      const map = new Map<string, any>();
+      (data || []).forEach((p: any) => map.set(p.business_id, p));
       return map;
     },
   });
@@ -96,12 +109,19 @@ const PlatformBusinessesTab = () => {
   const handleExport = () => {
     exportCsv("virksomheder", filtered.map((b: any) => {
       const s = stats?.get(b.id);
+      const p = plans?.get(b.id);
+      const trialEnd = p?.trial_ends_at ? new Date(p.trial_ends_at) : null;
+      const daysLeft = trialEnd ? Math.ceil((trialEnd.getTime() - Date.now()) / 86400000) : null;
       return {
         navn: b.name, slug: b.slug, kategori: b.category || "",
         by: b.city || "", email: b.email || "", telefon: b.phone || "",
         verificeret: b.is_verified ? "ja" : "nej", aktiv: b.is_active ? "ja" : "nej",
         oprettet: new Date(b.created_at).toLocaleDateString("da-DK"),
         ordrer: s?.orders_count || 0, omsaetning: s?.total_revenue || 0,
+        plan_status: p?.status || "—",
+        proeve_dage_tilbage: daysLeft ?? "—",
+        maanedspris: p?.monthly_price_dkk || 0,
+        kort: p?.stripe_payment_method_last4 ? `${p.stripe_payment_method_brand} •••• ${p.stripe_payment_method_last4}` : "ingen",
       };
     }));
   };
@@ -170,6 +190,12 @@ const PlatformBusinessesTab = () => {
           <div className="divide-y divide-border">
             {filtered.map((b) => {
               const s = stats?.get(b.id);
+              const p = plans?.get(b.id);
+              const hasCard = !!p?.stripe_payment_method_last4;
+              const trialEnd = p?.trial_ends_at ? new Date(p.trial_ends_at) : null;
+              const daysLeft = trialEnd ? Math.ceil((trialEnd.getTime() - Date.now()) / 86400000) : null;
+              const isExpired = !hasCard && daysLeft !== null && daysLeft <= 0;
+              const isWarning = !hasCard && daysLeft !== null && daysLeft > 0 && daysLeft <= 3;
               return (
                 <div key={b.id} className="flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-secondary/30">
                   <Checkbox checked={selected.has(b.id)} onCheckedChange={(c) => toggleOne(b.id, !!c)} />
@@ -206,6 +232,31 @@ const PlatformBusinessesTab = () => {
                       {s ? ` ${Number(s.orders_count)} ordrer · ${fmtKr(Number(s.total_revenue || 0))}` : " Indlæser..."}
                       {s && Number(s.pending_count) > 0 && <span className="text-amber-700"> · {Number(s.pending_count)} afventer</span>}
                     </p>
+                    {p && (
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px]">
+                        {hasCard ? (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200">
+                            <CreditCard className="h-3 w-3" />
+                            {p.stripe_payment_method_brand || "Kort"} •••• {p.stripe_payment_method_last4}
+                          </span>
+                        ) : isExpired ? (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-destructive/10 px-1.5 py-0.5 font-medium text-destructive ring-1 ring-inset ring-destructive/20">
+                            <AlertTriangle className="h-3 w-3" /> Prøve udløbet · intet kort
+                          </span>
+                        ) : isWarning ? (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
+                            <Clock className="h-3 w-3" /> {daysLeft} dage prøve tilbage · intet kort
+                          </span>
+                        ) : daysLeft !== null ? (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-secondary px-1.5 py-0.5 font-medium text-muted-foreground ring-1 ring-inset ring-border">
+                            <Clock className="h-3 w-3" /> {daysLeft} dage prøve tilbage
+                          </span>
+                        ) : null}
+                        <span className="inline-flex items-center rounded-md bg-secondary px-1.5 py-0.5 font-medium text-muted-foreground ring-1 ring-inset ring-border">
+                          {fmtKr(Number(p.monthly_price_dkk) || 0)}/md
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5">
                     <Button size="sm" variant="outline" className="h-8 gap-1.5"
