@@ -972,43 +972,60 @@ const SettingsTab = ({ business }: { business: any }) => {
 
             {/* Aktivt kort — vis brand + last4, og lad brugeren fjerne det */}
             {plan?.has_payment_method && (
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-14 shrink-0 items-center justify-center rounded-md bg-foreground text-background text-[10px] font-semibold uppercase tracking-wider">
-                    {plan.payment_brand || "Kort"}
+              <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card">
+                <div className="flex flex-wrap items-center justify-between gap-3 p-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex h-11 w-16 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-foreground to-foreground/80 text-background text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                      {plan.payment_brand || "Kort"}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground tabular-nums">•••• {plan.payment_last4}</p>
+                      <p className="text-xs text-muted-foreground">Aktivt betalingskort</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">•••• •••• •••• {plan.payment_last4}</p>
-                    <p className="text-xs text-muted-foreground">Aktivt betalingskort</p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={openCustomerPortal} disabled={openingPortal}>
-                    {openingPortal ? "Åbner..." : "Administrér kort & fakturaer"}
+                    {openingPortal ? "Åbner..." : "Administrér"}
                   </Button>
-                  <Button size="sm" variant="outline" onClick={handleRemoveCard} disabled={removeCard.isPending}
-                    className="text-destructive hover:text-destructive hover:border-destructive/40">
-                    Fjern
-                  </Button>
+                </div>
+                <div className="flex items-center justify-between gap-3 border-t border-border bg-secondary/20 px-4 py-2.5">
+                  <p className="text-[11px] text-muted-foreground">
+                    Skift kort, se fakturaer eller opsig dit abonnement
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleRemoveCard}
+                    disabled={removeCard.isPending}
+                    className="text-[11px] font-medium text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    Fjern kort
+                  </button>
                 </div>
               </div>
             )}
 
             {/* Tilføj kort — åbner Stripe Embedded Checkout */}
             {(!plan || !plan.has_payment_method) && (
-              <div className="mt-4 space-y-3 rounded-lg border border-border bg-card p-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-foreground">
-                    Tilføj betalingskort
-                  </p>
-                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Sikret af Stripe</span>
+              <div className="mt-4 overflow-hidden rounded-xl border border-dashed border-border bg-gradient-to-br from-card to-secondary/20 p-5">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
+                    <CreditCard className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-foreground">Tilføj betalingskort</p>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-secondary/60 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        🔒 Sikret af Stripe
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                      Du opkræves ikke før din prøveperiode er slut. Du kan opsige når som helst, og dine betalinger håndteres sikkert af Stripe.
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Du opkræves ikke før din prøveperiode er slut. Du kan opsige når som helst.
-                </p>
                 <Button
                   onClick={() => setShowCheckout(true)}
-                  className="w-full bg-foreground text-background hover:bg-foreground/90"
+                  className="mt-4 w-full bg-foreground text-background hover:bg-foreground/90"
+                  size="lg"
                 >
                   {plan?.status === "expired" ? "Genaktivér virksomhed med betalingskort" : "Tilføj betalingskort"}
                 </Button>
