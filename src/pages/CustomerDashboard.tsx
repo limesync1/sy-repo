@@ -42,6 +42,46 @@ const ORDER_STATUS: Record<string, { label: string; color: string; icon: typeof 
   cancelled: { label: "Annulleret", color: "bg-destructive/5 text-destructive border-destructive/20", icon: XCircle },
 };
 
+/* ════════════════════════════════════════════════ */
+/*  Empty State — fælles for Bestillinger /         */
+/*  Abonnementer / Favoritter                       */
+/* ════════════════════════════════════════════════ */
+const EmptyPanel = ({
+  icon, title, description, primary, secondary,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  primary: { to: string; label: string; icon?: React.ReactNode };
+  secondary?: { to: string; label: string; icon?: React.ReactNode };
+}) => (
+  <Card className="rounded-2xl border-dashed border-border bg-card">
+    <CardContent className="flex flex-col items-center justify-center px-6 py-12 text-center sm:py-16">
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary text-muted-foreground/60">
+        {icon}
+      </div>
+      <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+      <p className="mt-2 max-w-md text-sm text-muted-foreground">{description}</p>
+      <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+        <Link to={primary.to}>
+          <Button className="w-full gap-2 rounded-xl bg-foreground px-5 text-background hover:bg-foreground/90 sm:w-auto">
+            {primary.icon}
+            {primary.label}
+          </Button>
+        </Link>
+        {secondary && (
+          <Link to={secondary.to}>
+            <Button variant="outline" className="w-full gap-2 rounded-xl px-5 sm:w-auto">
+              {secondary.icon}
+              {secondary.label}
+            </Button>
+          </Link>
+        )}
+      </div>
+    </CardContent>
+  </Card>
+);
+
 const CustomerDashboard = () => {
   const { user, loading } = useAuth();
   const [tab, setTab] = useState<"orders" | "subscriptions" | "favorites" | "profile">("orders");
