@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Upload, X, Loader2 } from "lucide-react";
+import { ImagePlus, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
@@ -13,6 +12,8 @@ interface Props {
   className?: string;
   aspectRatio?: string;
   objectFit?: "cover" | "contain";
+  /** Vis hjælpetekst ("Klik for at uploade") under ikonet — default false. */
+  showHint?: boolean;
 }
 
 const ImageUpload = ({
@@ -24,6 +25,7 @@ const ImageUpload = ({
   className = "",
   aspectRatio = "aspect-square",
   objectFit = "cover",
+  showHint = false,
 }: Props) => {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentUrl || null);
@@ -78,13 +80,14 @@ const ImageUpload = ({
   return (
     <div className={className}>
       {label && <label className="mb-1 block text-sm font-medium text-foreground">{label}</label>}
-      <div className={`relative overflow-hidden rounded-xl border-2 border-dashed border-border bg-secondary/30 ${aspectRatio} flex items-center justify-center`}>
+      <div className={`group relative overflow-hidden rounded-xl border border-dashed border-border bg-secondary/40 ${aspectRatio} flex items-center justify-center transition-colors hover:border-foreground/40 hover:bg-secondary/60`}>
         {preview ? (
           <>
             <img src={preview} alt="Preview" className={`h-full w-full ${fitClass}`} />
             <button
               onClick={handleRemove}
               className="absolute right-2 top-2 rounded-full bg-foreground/80 p-1 text-background hover:bg-foreground"
+              aria-label="Fjern billede"
             >
               <X className="h-4 w-4" />
             </button>
@@ -93,14 +96,17 @@ const ImageUpload = ({
           <button
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
-            className="flex flex-col items-center gap-2 p-4 text-muted-foreground hover:text-foreground transition-colors"
+            className="flex h-full w-full flex-col items-center justify-center gap-1.5 p-3 text-muted-foreground transition-colors hover:text-foreground"
+            aria-label="Upload billede"
           >
             {uploading ? (
-              <Loader2 className="h-8 w-8 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-              <Upload className="h-8 w-8" />
+              <ImagePlus className="h-5 w-5" />
             )}
-            <span className="text-sm">{uploading ? "Uploader..." : "Klik for at uploade"}</span>
+            {showHint && (
+              <span className="text-[11px] font-medium">{uploading ? "Uploader…" : "Tilføj billede"}</span>
+            )}
           </button>
         )}
       </div>

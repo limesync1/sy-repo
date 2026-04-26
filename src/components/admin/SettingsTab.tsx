@@ -16,7 +16,11 @@ import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { useBusinessPlan, useReactivateBusinessPlan } from "@/hooks/useBusinessPlan";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  useBusinessPlan, useReactivateBusinessPlan,
+  usePlatformPricing, useUpdateBusinessPlan, useRemovePaymentMethod,
+} from "@/hooks/useBusinessPlan";
 import {
   INDUSTRY_GROUPS,
   ALL_INDUSTRIES,
@@ -57,7 +61,7 @@ const SECTIONS = [
   { id: "branding",      label: "Branding",       icon: ImageIcon, hint: "Logo og cover" },
   { id: "hours",         label: "Åbningstider",   icon: Clock,     hint: "Hverdage og weekend" },
   { id: "notifications", label: "Notifikationer", icon: Bell,      hint: "Email-varsler" },
-  { id: "billing",       label: "Fakturering",    icon: CreditCard, hint: "Pakke og betalingskort" },
+  { id: "billing",       label: "Priser og betaling", icon: CreditCard, hint: "Pakke og betalingskort" },
   { id: "advanced",      label: "Avanceret",      icon: Route,     hint: "Ekstra funktioner" },
 ] as const;
 
@@ -84,12 +88,16 @@ const SettingsTab = ({ business }: { business: any }) => {
   const { user } = useAuth();
   const { data: plan } = useBusinessPlan(business.id);
   const reactivate = useReactivateBusinessPlan();
+  const removeCard = useRemovePaymentMethod();
+  const updatePlan = useUpdateBusinessPlan();
+  const { data: pricing } = usePlatformPricing();
 
   // Lokal state for kortform — bruges kun til at fange last4 + brand så
   // banneret forsvinder. Den rigtige Stripe-tokenisering sker senere.
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvc, setCardCvc] = useState("");
+  const [showCardForm, setShowCardForm] = useState(false);
 
   const handleSaveCard = async () => {
     const digits = cardNumber.replace(/\s+/g, "");
@@ -107,9 +115,20 @@ const SettingsTab = ({ business }: { business: any }) => {
       const brand = digits.startsWith("4") ? "Visa" : digits.startsWith("5") ? "Mastercard" : "Kort";
       await reactivate.mutateAsync({ businessId: business.id, last4, brand });
       setCardNumber(""); setCardExpiry(""); setCardCvc("");
+      setShowCardForm(false);
       toast.success("Betalingskort gemt");
     } catch (e: any) {
       toast.error(e?.message || "Kunne ikke gemme kort");
+    }
+  };
+
+  const handleRemoveCard = async () => {
+    if (!confirm("Er du sikker på at du vil fjerne dit betalingskort? Hvis prøveperioden er udløbet bliver din virksomhed deaktiveret.")) return;
+    try {
+      await removeCard.mutateAsync(business.id);
+      toast.success("Betalingskort fjernet");
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke fjerne kort");
     }
   };
 
@@ -250,6 +269,34 @@ const SettingsTab = ({ business }: { business: any }) => {
     setCvrLoading(false);
   };
 
+  // ─── Auto-fill fra gemt CVR ───
+  // Når en virksomhed er oprettet via "bliv udbyder" gemmer vi CVR-nummeret i
+  // settings.cvr. Hvis der er felter der mangler ved første load, slår vi op
+  // i CVR-registret automatisk og udfylder dem stille — uden at overskrive
+  // noget brugeren allerede selv har skrevet.
+  const cvrAutoFillTried = useRef(false);
+  useEffect(() => {
+    if (cvrAutoFillTried.current) return;
+    const savedCvr = (business.settings as any)?.cvr as string | undefined;
+    if (!savedCvr || savedCvr.length !== 8) return;
+    const missingAny = !address || !zipCode || !city || !phone;
+    if (!missingAny) return;
+    cvrAutoFillTried.current = true;
+    (async () => {
+      try {
+        const { data } = await supabase.functions.invoke("cvr-lookup", { body: { cvr: savedCvr } });
+        if (!data?.found) return;
+        if (!address && data.address) setAddress(data.address);
+        if (!zipCode && data.zip_code) setZipCode(data.zip_code);
+        if (!city && data.city) setCity(data.city);
+        if (!phone && data.phone) setPhone(data.phone.toString().replace(/\s/g, ""));
+        if (!email && data.email) setEmail(data.email);
+      } catch { /* stille — feltet kan altid udfyldes manuelt */ }
+    })();
+    // Vi vil kun køre denne effekt én gang, og kun når business.id ændrer sig.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [business.id]);
+
   const applyCvrData = () => {
     if (!cvrResult) return;
     if (cvrResult.name) setName(cvrResult.name);
@@ -367,6 +414,72 @@ const SettingsTab = ({ business }: { business: any }) => {
   // Diskret status til header (gemmer / gemt / ændringer).
   const saveStatus: "saving" | "saved" | "idle" =
     updateBiz.isPending ? "saving" : (hasChanges ? "saving" : "saved");
+
+  // ─── Live prisberegning ───
+  // Bygger samme breakdown som "bliv udbyder", men ud fra brugerens nuværende
+  // toggles. Bruges både til at vise oversigten og til at gemme den korrekte
+  // månedspris i business_plans når en feature slås til/fra.
+  const planExtraLogins = plan?.extra_employee_logins ?? 0;
+  const planBilling = plan?.billing_period ?? "monthly";
+  const priceBreakdown = useMemo(() => {
+    if (!pricing) return null;
+    const lines: { key: string; label: string; amount: number }[] = [
+      { key: "base", label: "Basis (virksomhedsprofil + bestillinger)", amount: pricing.base_price_dkk },
+    ];
+    if (routePlanningEnabled)
+      lines.push({ key: "route", label: "Ruteplanlægning", amount: pricing.price_route_planning_dkk });
+    if (accountingIntegrationEnabled)
+      lines.push({ key: "acc", label: "Regnskabsintegration", amount: pricing.price_accounting_integration_dkk });
+    if (planExtraLogins > 0)
+      lines.push({
+        key: "logins",
+        label: `${planExtraLogins} ekstra medarbejderlogin${planExtraLogins === 1 ? "" : "s"}`,
+        amount: planExtraLogins * pricing.price_per_employee_login_dkk,
+      });
+    const subtotal = lines.reduce((s, l) => s + l.amount, 0);
+    const discountPct =
+      planBilling === "yearly" ? pricing.discount_yearly_pct
+      : planBilling === "quarterly" ? pricing.discount_quarterly_pct
+      : 0;
+    const monthlyAfterDiscount = subtotal * (1 - discountPct / 100);
+    return { lines, subtotal, discountPct, monthlyAfterDiscount };
+  }, [pricing, routePlanningEnabled, accountingIntegrationEnabled, planExtraLogins, planBilling]);
+
+  // Hold business_plans.monthly_price_dkk synkroniseret med valgte features
+  // — så platform-admin altid kan se den faktiske månedspris og korrekt
+  // varsler brugeren ved næste fakturering.
+  const lastSavedPrice = useRef<number | null>(null);
+  useEffect(() => {
+    if (!plan?.id || !priceBreakdown) return;
+    const target = Math.round(priceBreakdown.monthlyAfterDiscount);
+    const current = Math.round(plan.monthly_price_dkk);
+    const planFeaturesMatch =
+      plan.route_planning_enabled === routePlanningEnabled &&
+      plan.accounting_integration_enabled === accountingIntegrationEnabled;
+    if (planFeaturesMatch && current === target) return;
+    if (lastSavedPrice.current === target && planFeaturesMatch) return;
+    lastSavedPrice.current = target;
+    updatePlan.mutate({
+      businessId: business.id,
+      patch: {
+        monthly_price_dkk: target,
+        route_planning_enabled: routePlanningEnabled,
+        accounting_integration_enabled: accountingIntegrationEnabled,
+      },
+    });
+    // Vis kun en toast hvis prøveperioden er overstået — under prøven er
+    // ændringerne gratis og kræver ingen forklaring.
+    const trialOver = plan.status === "active" || plan.status === "expired";
+    if (trialOver && current !== target) {
+      const diff = target - current;
+      if (diff > 0) {
+        toast.success(`Abonnementspris opdateret — ${diff.toLocaleString("da-DK")} kr/md tillægges fra næste fakturering.`);
+      } else if (diff < 0) {
+        toast.success(`Abonnementspris opdateret — du sparer ${Math.abs(diff).toLocaleString("da-DK")} kr/md fra næste fakturering.`);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routePlanningEnabled, accountingIntegrationEnabled, priceBreakdown?.monthlyAfterDiscount, plan?.id]);
 
   return (
     <div className="space-y-4 pb-24">
@@ -691,9 +804,9 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* Fakturering */}
         <div id="settings-billing" className="scroll-mt-6">
           <SectionCard
-            title="Fakturering & abonnement"
+            title="Priser og betaling"
             icon={<CreditCard />}
-            description="Administrér din pakke og tilføj betalingskort. Vi bruger Stripe til sikker betalingshåndtering."
+            description="Se din pris-oversigt og administrér betalingskort. Vi bruger Stripe til sikker betalingshåndtering."
           >
             {/* Status-banner med dage tilbage */}
             {plan && plan.status !== "unknown" && (
@@ -721,7 +834,11 @@ const SettingsTab = ({ business }: { business: any }) => {
                       <>
                         <p className="text-sm font-semibold text-foreground">Aktivt abonnement</p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Kort på fil: {plan.has_payment_method ? "•••• •••• •••• ••••" : "Ingen"} · {plan.monthly_price_dkk.toLocaleString("da-DK")} kr./md.
+                          {plan.has_payment_method
+                            ? `${plan.payment_brand || "Kort"} •••• ${plan.payment_last4}`
+                            : "Ingen kort tilknyttet"}
+                          {" · "}
+                          {Math.round(plan.monthly_price_dkk).toLocaleString("da-DK")} kr/md
                         </p>
                       </>
                     ) : plan.status === "expired" ? (
@@ -740,6 +857,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
                           Husk at tilføje et betalingskort inden 3 dage — ellers bliver din virksomhed deaktiveret fra Serviceydere.
+                          {" "}Efter prøveperioden koster din pakke {Math.round(plan.monthly_price_dkk).toLocaleString("da-DK")} kr/md.
                         </p>
                       </>
                     )}
@@ -748,11 +866,84 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
             )}
 
+            {/* Pris-oversigt — viser hvad brugeren betaler ud fra valgte funktioner */}
+            {priceBreakdown && (
+              <div className="mt-4 rounded-lg border border-border bg-card p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-foreground">Din pakke</p>
+                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    {planBilling === "yearly" ? "Årlig fakturering" : planBilling === "quarterly" ? "Kvartalsvis" : "Månedlig"}
+                  </span>
+                </div>
+                <ul className="mt-3 space-y-1.5 border-b border-border pb-3">
+                  {priceBreakdown.lines.map((l) => (
+                    <li key={l.key} className="flex items-baseline justify-between gap-3 text-sm">
+                      <span className="text-muted-foreground">{l.label}</span>
+                      <span className="shrink-0 font-medium text-foreground tabular-nums">
+                        {Math.round(l.amount).toLocaleString("da-DK")} kr
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-3 space-y-1 text-sm">
+                  <div className="flex items-baseline justify-between text-muted-foreground">
+                    <span>Pris per måned</span>
+                    <span className="tabular-nums">{Math.round(priceBreakdown.subtotal).toLocaleString("da-DK")} kr</span>
+                  </div>
+                  {priceBreakdown.discountPct > 0 && (
+                    <div className="flex items-baseline justify-between text-accent">
+                      <span>Rabat ({priceBreakdown.discountPct}%)</span>
+                      <span className="tabular-nums">
+                        −{Math.round(priceBreakdown.subtotal - priceBreakdown.monthlyAfterDiscount).toLocaleString("da-DK")} kr/md
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 flex items-baseline justify-between rounded-md bg-secondary/60 px-3 py-2">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {plan?.status === "trialing" || plan?.status === "trial_ending" ? "Pris efter prøveperiode" : "Total pr. måned"}
+                  </span>
+                  <span className="text-lg font-semibold text-foreground tabular-nums">
+                    {Math.round(priceBreakdown.monthlyAfterDiscount).toLocaleString("da-DK")} kr
+                  </span>
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  Slå funktioner til/fra under <span className="font-medium text-foreground">Avanceret</span> nedenfor — prisen opdateres automatisk.
+                </p>
+              </div>
+            )}
+
+            {/* Aktivt kort — vis brand + last4, og lad brugeren fjerne det */}
+            {plan?.has_payment_method && !showCardForm && (
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-14 shrink-0 items-center justify-center rounded-md bg-foreground text-background text-[10px] font-semibold uppercase tracking-wider">
+                    {plan.payment_brand || "Kort"}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">•••• •••• •••• {plan.payment_last4}</p>
+                    <p className="text-xs text-muted-foreground">Aktivt betalingskort</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => setShowCardForm(true)}>
+                    Skift kort
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={handleRemoveCard} disabled={removeCard.isPending}
+                    className="text-destructive hover:text-destructive hover:border-destructive/40">
+                    Fjern
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Kortform — vises kun hvis der ikke er noget kort på fil. */}
-            {(!plan || !plan.has_payment_method) && (
+            {(!plan || !plan.has_payment_method || showCardForm) && (
               <div className="mt-4 space-y-3 rounded-lg border border-border bg-card p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-foreground">Tilføj betalingskort</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {showCardForm ? "Skift betalingskort" : "Tilføj betalingskort"}
+                  </p>
                   <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Sikret af Stripe</span>
                 </div>
                 <div>
@@ -774,13 +965,20 @@ const SettingsTab = ({ business }: { business: any }) => {
                     <Input value={cardCvc} onChange={(e) => setCardCvc(e.target.value)} placeholder="123" inputMode="numeric" />
                   </div>
                 </div>
-                <Button
-                  onClick={handleSaveCard}
-                  disabled={reactivate.isPending}
-                  className="w-full bg-foreground text-background hover:bg-foreground/90"
-                >
-                  {reactivate.isPending ? "Gemmer..." : plan?.status === "expired" ? "Genaktivér virksomhed" : "Gem betalingskort"}
-                </Button>
+                <div className="flex gap-2">
+                  {showCardForm && (
+                    <Button variant="outline" onClick={() => { setShowCardForm(false); setCardNumber(""); setCardExpiry(""); setCardCvc(""); }} className="flex-1">
+                      Annullér
+                    </Button>
+                  )}
+                  <Button
+                    onClick={handleSaveCard}
+                    disabled={reactivate.isPending}
+                    className="flex-1 bg-foreground text-background hover:bg-foreground/90"
+                  >
+                    {reactivate.isPending ? "Gemmer..." : plan?.status === "expired" ? "Genaktivér virksomhed" : "Gem betalingskort"}
+                  </Button>
+                </div>
               </div>
             )}
           </SectionCard>
@@ -788,7 +986,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Avanceret */}
         <div id="settings-advanced" className="scroll-mt-6">
-          <SectionCard title="Avanceret" icon={<Settings />} description="Aktivér ekstra funktioner til din virksomhed.">
+          <SectionCard title="Avanceret" icon={<Settings />} description="Aktivér ekstra funktioner. Pris opdateres automatisk i 'Priser og betaling' ovenfor.">
             <div className="space-y-3">
               <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
                 <div className="flex items-start gap-3 min-w-0">
@@ -796,7 +994,14 @@ const SettingsTab = ({ business }: { business: any }) => {
                     <Route className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground">Ruteplanlægning</p>
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <p className="text-sm font-semibold text-foreground">Ruteplanlægning</p>
+                      {pricing && (
+                        <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
+                          +{Math.round(pricing.price_route_planning_dkk).toLocaleString("da-DK")} kr/md
+                        </span>
+                      )}
+                    </div>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       Tilføjer "Medarbejdere"-fanen og giver adgang til ruteplanlæggeren — opret medarbejder-konti og planlæg daglige ruter med stop hos kunder. Kan optimeres med AI baseret på afstand, tidsvinduer og prioriteter.
                     </p>
@@ -815,6 +1020,11 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-semibold text-foreground">Integration med regnskabsprogram</p>
+                      {pricing && (
+                        <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
+                          +{Math.round(pricing.price_accounting_integration_dkk).toLocaleString("da-DK")} kr/md
+                        </span>
+                      )}
                       <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                         Kommer snart
                       </span>
