@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
-  ArrowLeft, ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2,
+  ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2,
   AlertCircle, ShoppingCart, Check, ChevronLeft, Clock, ShieldCheck,
   Building2,
 } from "lucide-react";
@@ -235,21 +235,21 @@ const RequestQuote = () => {
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">1</span>
                 <label className="text-sm font-semibold text-foreground">Vælg kategori</label>
               </div>
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-9">
-                {CATEGORIES.map(({ label, icon: Icon }) => {
-                  const active = category === label;
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                {CATEGORIES.map(({ label, key, icon }) => {
+                  const active = category === key;
                   return (
                     <button
-                      key={label}
+                      key={key}
                       type="button"
-                      onClick={() => setCategory(label)}
+                      onClick={() => setCategory(key)}
                      className={`group flex flex-col items-center justify-center gap-1.5 rounded-2xl border px-2 py-3 text-center transition-all ${
                         active
                           ? "border-foreground bg-foreground text-background shadow-md"
                           : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:bg-secondary/60 hover:text-foreground"
                       }`}
                     >
-                      <Icon className={`h-5 w-5 ${active ? "" : "text-foreground/70"}`} />
+                      <span aria-hidden className="text-xl leading-none">{icon}</span>
                       <span className="text-[11px] font-medium leading-tight">{label}</span>
                     </button>
                   );
