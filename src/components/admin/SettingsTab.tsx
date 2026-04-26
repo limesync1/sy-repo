@@ -1,7 +1,7 @@
 // SettingsTab — virksomhedens indstillinger, opbygget med samme designsprog
 // som Overblik / Aftaler / Kunder / Medarbejdere / Anmeldelser:
 // PageHeader, surface-admin cards, sub-nav chips og konsistent spacing.
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback, forwardRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -66,8 +66,12 @@ const SECTIONS = [
 ] as const;
 
 /* ─── Toggle-switch (delt mellem notifikations- og rute-felter) ─── */
-const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
+const ToggleSwitch = forwardRef<
+  HTMLButtonElement,
+  { checked: boolean; onChange: () => void }
+>(({ checked, onChange }, ref) => (
   <button
+    ref={ref}
     type="button"
     onClick={onChange}
     aria-pressed={checked}
@@ -81,7 +85,8 @@ const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: () =>
       }`}
     />
   </button>
-);
+));
+ToggleSwitch.displayName = "ToggleSwitch";
 
 const SettingsTab = ({ business }: { business: any }) => {
   const updateBiz = useUpdateBusiness();
@@ -104,7 +109,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     if (digits.length < 13 || digits.length > 19 || !/^\d+$/.test(digits)) {
       toast.error("Indtast et gyldigt kortnummer"); return;
     }
-    if (!/^\d{2}\s*\/\s*\d{2}$/.test(cardExpiry)) {
+    if (!/^\d{2}\s*\/\s*\d{2}$/.test(cardExpiry.trim())) {
       toast.error("Udløbsdato skal være MM/ÅÅ"); return;
     }
     if (!/^\d{3,4}$/.test(cardCvc)) {
@@ -116,9 +121,44 @@ const SettingsTab = ({ business }: { business: any }) => {
       await reactivate.mutateAsync({ businessId: business.id, last4, brand });
       setCardNumber(""); setCardExpiry(""); setCardCvc("");
       setShowCardForm(false);
-      toast.success("Betalingskort gemt");
+      toast.success(plan?.status === "expired"
+        ? "Virksomhed genaktiveret — betalingskort gemt"
+        : "Betalingskort gemt");
     } catch (e: any) {
       toast.error(e?.message || "Kunne ikke gemme kort");
+    }
+  };
+
+  // ─── Auto-format kort-input ───
+  // Stripe-flowet bygges senere; indtil da formaterer vi pænt så brugeren
+  // kan se hvad de skriver og knappen reelt validerer korrekt.
+  const handleCardNumberChange = (val: string) => {
+    const digits = val.replace(/\D/g, "").slice(0, 19);
+    const grouped = digits.match(/.{1,4}/g)?.join(" ") ?? digits;
+    setCardNumber(grouped);
+  };
+  const handleCardExpiryChange = (val: string) => {
+    const digits = val.replace(/\D/g, "").slice(0, 4);
+    if (digits.length <= 2) setCardExpiry(digits);
+    else setCardExpiry(`${digits.slice(0, 2)}/${digits.slice(2)}`);
+  };
+  const handleCardCvcChange = (val: string) => {
+    setCardCvc(val.replace(/\D/g, "").slice(0, 4));
+  };
+
+  // Faktureringsinterval — månedlig / kvartalsvis / årlig (samme som ved
+  // "bliv udbyder"). Skifter rabatten i prisberegningen.
+  const handleBillingPeriodChange = async (period: "monthly" | "quarterly" | "yearly") => {
+    if (!plan?.id || period === planBilling) return;
+    try {
+      await updatePlan.mutateAsync({ businessId: business.id, patch: { billing_period: period } });
+      toast.success(
+        period === "yearly" ? "Skiftet til årlig fakturering" :
+        period === "quarterly" ? "Skiftet til kvartalsvis fakturering" :
+        "Skiftet til månedlig fakturering"
+      );
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke skifte interval");
     }
   };
 
@@ -869,11 +909,44 @@ const SettingsTab = ({ business }: { business: any }) => {
             {/* Pris-oversigt — viser hvad brugeren betaler ud fra valgte funktioner */}
             {priceBreakdown && (
               <div className="mt-4 rounded-lg border border-border bg-card p-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-sm font-semibold text-foreground">Din pakke</p>
-                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                    {planBilling === "yearly" ? "Årlig fakturering" : planBilling === "quarterly" ? "Kvartalsvis" : "Månedlig"}
-                  </span>
+                </div>
+                {/* Faktureringsinterval — samme tre valg som ved "bliv udbyder".
+                    Skifter rabatten i prisberegningen og opdateres straks i db. */}
+                <div className="mt-3">
+                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Faktureringsinterval
+                  </p>
+                  <div className="grid grid-cols-3 gap-1.5 rounded-lg border border-border bg-secondary/40 p-1">
+                    {([
+                      { key: "monthly", label: "Månedlig", hint: pricing ? "0% rabat" : "" },
+                      { key: "quarterly", label: "Kvartalsvis", hint: pricing ? `−${pricing.discount_quarterly_pct}%` : "" },
+                      { key: "yearly", label: "Årlig", hint: pricing ? `−${pricing.discount_yearly_pct}%` : "" },
+                    ] as const).map((opt) => {
+                      const isOn = planBilling === opt.key;
+                      return (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          onClick={() => handleBillingPeriodChange(opt.key)}
+                          disabled={updatePlan.isPending}
+                          className={`flex flex-col items-center justify-center rounded-md px-2 py-2 text-xs font-medium transition-colors ${
+                            isOn
+                              ? "bg-foreground text-background shadow-sm"
+                              : "text-muted-foreground hover:bg-card hover:text-foreground"
+                          }`}
+                        >
+                          <span>{opt.label}</span>
+                          {opt.hint && (
+                            <span className={`mt-0.5 text-[10px] ${isOn ? "opacity-80" : "text-muted-foreground"}`}>
+                              {opt.hint}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
                 <ul className="mt-3 space-y-1.5 border-b border-border pb-3">
                   {priceBreakdown.lines.map((l) => (
@@ -950,19 +1023,35 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <FieldLabel>Kortnummer</FieldLabel>
                   <Input
                     value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value)}
+                    onChange={(e) => handleCardNumberChange(e.target.value)}
                     placeholder="1234 5678 9012 3456"
                     inputMode="numeric"
+                    autoComplete="cc-number"
+                    maxLength={23}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <FieldLabel>Udløb (MM/ÅÅ)</FieldLabel>
-                    <Input value={cardExpiry} onChange={(e) => setCardExpiry(e.target.value)} placeholder="12/27" />
+                    <Input
+                      value={cardExpiry}
+                      onChange={(e) => handleCardExpiryChange(e.target.value)}
+                      placeholder="12/27"
+                      inputMode="numeric"
+                      autoComplete="cc-exp"
+                      maxLength={5}
+                    />
                   </div>
                   <div>
                     <FieldLabel>CVC</FieldLabel>
-                    <Input value={cardCvc} onChange={(e) => setCardCvc(e.target.value)} placeholder="123" inputMode="numeric" />
+                    <Input
+                      value={cardCvc}
+                      onChange={(e) => handleCardCvcChange(e.target.value)}
+                      placeholder="123"
+                      inputMode="numeric"
+                      autoComplete="cc-csc"
+                      maxLength={4}
+                    />
                   </div>
                 </div>
                 <div className="flex gap-2">
