@@ -55,11 +55,12 @@ const App = () => (
           <TooltipProvider>
           <Toaster />
           <Sonner />
-          {/* Global bestillings-sheet — slides ud fra højre når services tilføjes */}
-          <CartSheet />
-          {/* Flydende genåbn-knap når brugeren har items men har lukket sheeten */}
-          <CartFab />
           <BrowserRouter>
+            {/* Global bestillings-sheet — slides ud fra højre når services tilføjes.
+                Skal være inde i BrowserRouter fordi CartSheet bruger useNavigate(). */}
+            <CartSheet />
+            {/* Flydende genåbn-knap når brugeren har items men har lukket sheeten */}
+            <CartFab />
             <Suspense fallback={<PageFallback />}>
             <Routes>
               <Route path="/" element={<Index />} />
