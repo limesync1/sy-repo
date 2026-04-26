@@ -804,9 +804,9 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* Fakturering */}
         <div id="settings-billing" className="scroll-mt-6">
           <SectionCard
-            title="Fakturering & abonnement"
+            title="Priser og betaling"
             icon={<CreditCard />}
-            description="Administrér din pakke og tilføj betalingskort. Vi bruger Stripe til sikker betalingshåndtering."
+            description="Se din pris-oversigt og administrér betalingskort. Vi bruger Stripe til sikker betalingshåndtering."
           >
             {/* Status-banner med dage tilbage */}
             {plan && plan.status !== "unknown" && (
@@ -834,7 +834,11 @@ const SettingsTab = ({ business }: { business: any }) => {
                       <>
                         <p className="text-sm font-semibold text-foreground">Aktivt abonnement</p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Kort på fil: {plan.has_payment_method ? "•••• •••• •••• ••••" : "Ingen"} · {plan.monthly_price_dkk.toLocaleString("da-DK")} kr./md.
+                          {plan.has_payment_method
+                            ? `${plan.payment_brand || "Kort"} •••• ${plan.payment_last4}`
+                            : "Ingen kort tilknyttet"}
+                          {" · "}
+                          {Math.round(plan.monthly_price_dkk).toLocaleString("da-DK")} kr/md
                         </p>
                       </>
                     ) : plan.status === "expired" ? (
@@ -853,6 +857,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
                           Husk at tilføje et betalingskort inden 3 dage — ellers bliver din virksomhed deaktiveret fra Serviceydere.
+                          {" "}Efter prøveperioden koster din pakke {Math.round(plan.monthly_price_dkk).toLocaleString("da-DK")} kr/md.
                         </p>
                       </>
                     )}
@@ -861,11 +866,84 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
             )}
 
+            {/* Pris-oversigt — viser hvad brugeren betaler ud fra valgte funktioner */}
+            {priceBreakdown && (
+              <div className="mt-4 rounded-lg border border-border bg-card p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-foreground">Din pakke</p>
+                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    {planBilling === "yearly" ? "Årlig fakturering" : planBilling === "quarterly" ? "Kvartalsvis" : "Månedlig"}
+                  </span>
+                </div>
+                <ul className="mt-3 space-y-1.5 border-b border-border pb-3">
+                  {priceBreakdown.lines.map((l) => (
+                    <li key={l.key} className="flex items-baseline justify-between gap-3 text-sm">
+                      <span className="text-muted-foreground">{l.label}</span>
+                      <span className="shrink-0 font-medium text-foreground tabular-nums">
+                        {Math.round(l.amount).toLocaleString("da-DK")} kr
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-3 space-y-1 text-sm">
+                  <div className="flex items-baseline justify-between text-muted-foreground">
+                    <span>Pris per måned</span>
+                    <span className="tabular-nums">{Math.round(priceBreakdown.subtotal).toLocaleString("da-DK")} kr</span>
+                  </div>
+                  {priceBreakdown.discountPct > 0 && (
+                    <div className="flex items-baseline justify-between text-accent">
+                      <span>Rabat ({priceBreakdown.discountPct}%)</span>
+                      <span className="tabular-nums">
+                        −{Math.round(priceBreakdown.subtotal - priceBreakdown.monthlyAfterDiscount).toLocaleString("da-DK")} kr/md
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 flex items-baseline justify-between rounded-md bg-secondary/60 px-3 py-2">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {plan?.status === "trialing" || plan?.status === "trial_ending" ? "Pris efter prøveperiode" : "Total pr. måned"}
+                  </span>
+                  <span className="text-lg font-semibold text-foreground tabular-nums">
+                    {Math.round(priceBreakdown.monthlyAfterDiscount).toLocaleString("da-DK")} kr
+                  </span>
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  Slå funktioner til/fra under <span className="font-medium text-foreground">Avanceret</span> nedenfor — prisen opdateres automatisk.
+                </p>
+              </div>
+            )}
+
+            {/* Aktivt kort — vis brand + last4, og lad brugeren fjerne det */}
+            {plan?.has_payment_method && !showCardForm && (
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-14 shrink-0 items-center justify-center rounded-md bg-foreground text-background text-[10px] font-semibold uppercase tracking-wider">
+                    {plan.payment_brand || "Kort"}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">•••• •••• •••• {plan.payment_last4}</p>
+                    <p className="text-xs text-muted-foreground">Aktivt betalingskort</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => setShowCardForm(true)}>
+                    Skift kort
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={handleRemoveCard} disabled={removeCard.isPending}
+                    className="text-destructive hover:text-destructive hover:border-destructive/40">
+                    Fjern
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Kortform — vises kun hvis der ikke er noget kort på fil. */}
-            {(!plan || !plan.has_payment_method) && (
+            {(!plan || !plan.has_payment_method || showCardForm) && (
               <div className="mt-4 space-y-3 rounded-lg border border-border bg-card p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-foreground">Tilføj betalingskort</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {showCardForm ? "Skift betalingskort" : "Tilføj betalingskort"}
+                  </p>
                   <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Sikret af Stripe</span>
                 </div>
                 <div>
@@ -887,13 +965,20 @@ const SettingsTab = ({ business }: { business: any }) => {
                     <Input value={cardCvc} onChange={(e) => setCardCvc(e.target.value)} placeholder="123" inputMode="numeric" />
                   </div>
                 </div>
-                <Button
-                  onClick={handleSaveCard}
-                  disabled={reactivate.isPending}
-                  className="w-full bg-foreground text-background hover:bg-foreground/90"
-                >
-                  {reactivate.isPending ? "Gemmer..." : plan?.status === "expired" ? "Genaktivér virksomhed" : "Gem betalingskort"}
-                </Button>
+                <div className="flex gap-2">
+                  {showCardForm && (
+                    <Button variant="outline" onClick={() => { setShowCardForm(false); setCardNumber(""); setCardExpiry(""); setCardCvc(""); }} className="flex-1">
+                      Annullér
+                    </Button>
+                  )}
+                  <Button
+                    onClick={handleSaveCard}
+                    disabled={reactivate.isPending}
+                    className="flex-1 bg-foreground text-background hover:bg-foreground/90"
+                  >
+                    {reactivate.isPending ? "Gemmer..." : plan?.status === "expired" ? "Genaktivér virksomhed" : "Gem betalingskort"}
+                  </Button>
+                </div>
               </div>
             )}
           </SectionCard>
@@ -901,7 +986,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Avanceret */}
         <div id="settings-advanced" className="scroll-mt-6">
-          <SectionCard title="Avanceret" icon={<Settings />} description="Aktivér ekstra funktioner til din virksomhed.">
+          <SectionCard title="Avanceret" icon={<Settings />} description="Aktivér ekstra funktioner. Pris opdateres automatisk i 'Priser og betaling' ovenfor.">
             <div className="space-y-3">
               <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
                 <div className="flex items-start gap-3 min-w-0">
@@ -909,7 +994,14 @@ const SettingsTab = ({ business }: { business: any }) => {
                     <Route className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground">Ruteplanlægning</p>
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <p className="text-sm font-semibold text-foreground">Ruteplanlægning</p>
+                      {pricing && (
+                        <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
+                          +{Math.round(pricing.price_route_planning_dkk).toLocaleString("da-DK")} kr/md
+                        </span>
+                      )}
+                    </div>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       Tilføjer "Medarbejdere"-fanen og giver adgang til ruteplanlæggeren — opret medarbejder-konti og planlæg daglige ruter med stop hos kunder. Kan optimeres med AI baseret på afstand, tidsvinduer og prioriteter.
                     </p>
@@ -928,6 +1020,11 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-semibold text-foreground">Integration med regnskabsprogram</p>
+                      {pricing && (
+                        <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
+                          +{Math.round(pricing.price_accounting_integration_dkk).toLocaleString("da-DK")} kr/md
+                        </span>
+                      )}
                       <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                         Kommer snart
                       </span>
