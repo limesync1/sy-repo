@@ -23,6 +23,7 @@ import AftaleTab from "@/components/admin/AftaleTab";
 import EmployeesTab from "@/components/admin/EmployeesTab";
 import CustomersTab from "@/components/admin/CustomersTab";
 import SettingsTab from "@/components/admin/SettingsTab";
+import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
 import {
@@ -186,7 +187,7 @@ const AdminDashboard = () => {
   };
 
   if (isLoading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
-  if (!business) return <CreateBusinessForm />;
+  if (!business) return <BusinessOnboarding />;
 
   const renderContent = () => {
     switch (activeTab) {
