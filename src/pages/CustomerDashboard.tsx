@@ -16,12 +16,13 @@ import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  Package, User, Star, Pause, Play, XCircle,
+  Package, User, Star, Pause, Play, XCircle, LogOut,
   CalendarClock, ShieldCheck, Settings,
   Store, ChevronRight, ShoppingCart, Check, X,
   Clock, AlertTriangle, CheckCircle2, MessageSquare, FileText,
   Bell, Mail, Shield, KeyRound, Heart, Building2, MapPin, Trash2,
 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import SEO from "@/components/SEO";
 import CustomerShell from "@/components/customer/CustomerShell";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
