@@ -9,6 +9,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import CartSheet from "@/components/business/CartSheet";
 import CartFab from "@/components/business/CartFab";
+import ScrollToTop from "@/components/ScrollToTop";
 
 // Forsiden + Login indlæses ivrigt — alt andet er code-splittet via React.lazy
 // så det første sidebesøg ikke trækker hele admin/medarbejder/ruteplanlægger
@@ -56,6 +57,8 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            {/* Scroller automatisk til toppen når ruten ændres. */}
+            <ScrollToTop />
             {/* Global bestillings-sheet — slides ud fra højre når services tilføjes.
                 Skal være inde i BrowserRouter fordi CartSheet bruger useNavigate(). */}
             <CartSheet />
