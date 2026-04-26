@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useCart } from "@/contexts/CartContext";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
 import SEO from "@/components/SEO";
 import LocationChip from "@/components/LocationChip";
