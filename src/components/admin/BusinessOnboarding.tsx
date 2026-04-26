@@ -196,18 +196,18 @@ const BusinessOnboarding = () => {
       if (!activeUserId) {
         const { error: signUpError } = await signUp(email.trim(), password);
         if (signUpError) throw signUpError;
+        // Auto-confirm er aktiveret, så vi kan logge ind med det samme
         const { data: sessionData } = await supabase.auth.getSession();
         activeUserId = sessionData.session?.user.id;
         if (!activeUserId) {
-          const { data: signInData } = await supabase.auth.signInWithPassword({
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
             email: email.trim(), password,
           });
+          if (signInError) throw signInError;
           activeUserId = signInData.session?.user.id;
         }
         if (!activeUserId) {
-          toast.success("Konto oprettet! Tjek din e-mail og log ind for at færdiggøre opsætningen.");
-          navigate("/log-ind?mode=business");
-          return;
+          throw new Error("Kunne ikke logge ind efter oprettelse");
         }
       }
 
@@ -255,7 +255,8 @@ const BusinessOnboarding = () => {
       });
 
       toast.success(`Velkommen ombord! Du har ${pricing.trial_days} dages gratis prøve.`);
-      navigate("/virksomhed");
+      // Hård navigation så AuthProvider, useMyBusiness osv. henter friske data
+      window.location.href = "/virksomhed";
     } catch (e: any) {
       toast.error(e?.message || "Kunne ikke oprette virksomhed");
     } finally {
