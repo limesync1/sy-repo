@@ -6,11 +6,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, Check, Sparkles, Users, Route, Calculator,
-  Database, UploadCloud, Building2, ShieldCheck, Loader2,
+  Database, UploadCloud, Building2, ShieldCheck, Loader2, Mail, Lock,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateBusiness } from "@/hooks/useDatabase";
 import { INDUSTRY_GROUPS, findIndustry } from "@/lib/service-taxonomy";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * BusinessOnboarding — flertrins-flow til nye virksomheder.
@@ -75,20 +77,29 @@ const SCALES: { key: CustomerScale; label: string; hint: string }[] = [
   { key: "unsure",  label: "Ved ikke endnu",       hint: "Vi tager den løbende — ingen forventninger fra start." },
 ];
 
-const STEPS = [
+const BASE_STEPS = [
   { id: "welcome",  label: "Velkommen" },
   { id: "details",  label: "Virksomhed" },
   { id: "features", label: "Funktioner" },
   { id: "scale",    label: "Forventet skala" },
 ] as const;
-type StepId = typeof STEPS[number]["id"];
+const ACCOUNT_STEP = { id: "account", label: "Opret konto" } as const;
+type StepId = "welcome" | "details" | "features" | "scale" | "account";
 
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9æøå]+/g, "-").replace(/^-|-$/g, "");
 
 const BusinessOnboarding = () => {
-  const { user } = useAuth();
+  const { user, signUp } = useAuth();
   const createBiz = useCreateBusiness();
+  const navigate = useNavigate();
+
+  // Når brugeren ikke er logget ind, viser vi også et sidste trin "Opret konto",
+  // så virksomheder først konfigurerer deres setup og derefter opretter loginet.
+  const STEPS = useMemo(
+    () => (user ? [...BASE_STEPS] : [...BASE_STEPS, ACCOUNT_STEP]),
+    [user]
+  );
 
   // ─── Step state ───
   const [stepIdx, setStepIdx] = useState(0);
@@ -105,6 +116,9 @@ const BusinessOnboarding = () => {
     data_import: false,
   });
   const [scale, setScale] = useState<CustomerScale | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [creatingAccount, setCreatingAccount] = useState(false);
 
   const toggleCategory = (k: string) => {
     setSelectedCategories((prev) =>
@@ -118,8 +132,9 @@ const BusinessOnboarding = () => {
   const canContinue = useMemo(() => {
     if (step === "details") return name.trim().length > 0 && selectedCategories.length > 0;
     if (step === "scale") return !!scale;
+    if (step === "account") return email.trim().length > 3 && password.length >= 6;
     return true; // welcome + features kan altid gå videre
-  }, [step, name, selectedCategories, scale]);
+  }, [step, name, selectedCategories, scale, email, password]);
 
   const goNext = () => {
     if (!canContinue) return;
@@ -129,7 +144,30 @@ const BusinessOnboarding = () => {
   const goBack = () => stepIdx > 0 && setStepIdx(stepIdx - 1);
 
   // ─── Final create ───
-  const handleCreate = () => {
+  const buildBusinessPayload = (ownerId: string) => {
+    const trimmedName = name.trim();
+    return {
+      name: trimmedName,
+      slug: slugify(trimmedName),
+      description: description.trim() || null,
+      owner_id: ownerId,
+      category: selectedCategories[0] || null,
+      categories: selectedCategories,
+      // Feature-flags afspejles direkte i Indstillinger → Avanceret.
+      settings: {
+        route_planning_enabled: features.route_planning,
+        accounting_integration_enabled: features.accounting_integration,
+        onboarding: {
+          completed_at: new Date().toISOString(),
+          extra_employee_logins: features.extra_employee_logins,
+          data_import_requested: features.data_import,
+          expected_customer_scale: scale,
+        },
+      },
+    } as any;
+  };
+
+  const handleCreate = async () => {
     const trimmedName = name.trim();
     if (!trimmedName) {
       toast.error("Indtast et virksomhedsnavn");
@@ -141,31 +179,57 @@ const BusinessOnboarding = () => {
       setStepIdx(1);
       return;
     }
-    createBiz.mutate(
-      {
-        name: trimmedName,
-        slug: slugify(trimmedName),
-        description: description.trim() || null,
-        owner_id: user!.id,
-        category: selectedCategories[0] || null,
-        categories: selectedCategories,
-        // Feature-flags afspejles direkte i Indstillinger → Avanceret.
-        settings: {
-          route_planning_enabled: features.route_planning,
-          accounting_integration_enabled: features.accounting_integration,
-          onboarding: {
-            completed_at: new Date().toISOString(),
-            extra_employee_logins: features.extra_employee_logins,
-            data_import_requested: features.data_import,
-            expected_customer_scale: scale,
-          },
-        },
-      } as any,
-      {
+
+    // 1) Bruger allerede logget ind — opret bare virksomheden direkte.
+    if (user) {
+      createBiz.mutate(buildBusinessPayload(user.id), {
         onSuccess: () => toast.success("Velkommen ombord! Din virksomhed er oprettet."),
         onError: (e: any) => toast.error(e?.message || "Kunne ikke oprette virksomhed"),
+      });
+      return;
+    }
+
+    // 2) Public flow — opret kontoen først, derefter virksomheden.
+    if (!email.trim() || password.length < 6) {
+      toast.error("Udfyld e-mail og en adgangskode på mindst 6 tegn");
+      return;
+    }
+    setCreatingAccount(true);
+    try {
+      const { error: signUpError } = await signUp(email.trim(), password);
+      if (signUpError) throw signUpError;
+
+      // Hvis e-mail-bekræftelse er slået til, har vi ikke en session endnu.
+      // Vent kort på onAuthStateChange — ellers beder vi brugeren bekræfte mailen.
+      const { data: sessionData } = await supabase.auth.getSession();
+      let activeUserId = sessionData.session?.user.id;
+      if (!activeUserId) {
+        // Forsøg login (auto-confirm sandsynligvis aktiveret).
+        const { data: signInData } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+        activeUserId = signInData.session?.user.id;
       }
-    );
+
+      if (!activeUserId) {
+        toast.success("Konto oprettet! Tjek din e-mail og log derefter ind for at færdiggøre opsætningen.");
+        navigate("/log-ind?mode=business");
+        return;
+      }
+
+      const { error: bizError } = await supabase
+        .from("businesses")
+        .insert(buildBusinessPayload(activeUserId));
+      if (bizError) throw bizError;
+
+      toast.success("Velkommen ombord! Din virksomhed er oprettet.");
+      navigate("/virksomhed");
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke oprette konto");
+    } finally {
+      setCreatingAccount(false);
+    }
   };
 
   const isLastStep = stepIdx === STEPS.length - 1;
@@ -176,12 +240,12 @@ const BusinessOnboarding = () => {
       {/* Topbar */}
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground text-background">
               <Sparkles className="h-4 w-4" />
             </div>
             <span className="text-sm font-semibold text-foreground">Opret din virksomhed</span>
-          </div>
+          </Link>
           <span className="text-xs font-medium text-muted-foreground tabular-nums">
             Trin {stepIdx + 1} af {STEPS.length}
           </span>
@@ -248,6 +312,14 @@ const BusinessOnboarding = () => {
             {step === "scale" && (
               <ScaleStep scale={scale} setScale={setScale} />
             )}
+            {step === "account" && (
+              <AccountStep
+                email={email}
+                setEmail={setEmail}
+                password={password}
+                setPassword={setPassword}
+              />
+            )}
           </CardContent>
         </Card>
 
@@ -257,7 +329,7 @@ const BusinessOnboarding = () => {
             type="button"
             variant="ghost"
             onClick={goBack}
-            disabled={stepIdx === 0 || createBiz.isPending}
+            disabled={stepIdx === 0 || createBiz.isPending || creatingAccount}
             className="gap-2 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -266,17 +338,17 @@ const BusinessOnboarding = () => {
           <Button
             type="button"
             onClick={goNext}
-            disabled={!canContinue || createBiz.isPending}
+            disabled={!canContinue || createBiz.isPending || creatingAccount}
             className="h-11 gap-2 rounded-xl bg-foreground px-6 text-sm font-semibold text-background hover:bg-foreground/90 sm:w-auto"
           >
-            {createBiz.isPending ? (
+            {(createBiz.isPending || creatingAccount) ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Opretter…
               </>
             ) : isLastStep ? (
               <>
-                Opret virksomhed
+                {user ? "Opret virksomhed" : "Opret konto & virksomhed"}
                 <Check className="h-4 w-4" />
               </>
             ) : (
@@ -287,6 +359,15 @@ const BusinessOnboarding = () => {
             )}
           </Button>
         </div>
+
+        {!user && (
+          <p className="mt-6 text-center text-xs text-muted-foreground">
+            Har du allerede en konto?{" "}
+            <Link to="/log-ind?mode=business" className="font-medium text-foreground hover:underline">
+              Log ind
+            </Link>
+          </p>
+        )}
       </main>
     </div>
   );
