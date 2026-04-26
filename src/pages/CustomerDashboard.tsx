@@ -110,20 +110,13 @@ const FavoritesView = () => {
 
   if (!favorites || favorites.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border py-16 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary mb-4">
-          <Heart className="h-8 w-8 text-muted-foreground/40" />
-        </div>
-        <h3 className="text-lg font-semibold text-foreground">Ingen favoritter endnu</h3>
-        <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-          Klik på hjertet på en virksomhed for at gemme den her.
-        </p>
-        <div className="mt-5">
-          <Link to="/virksomheder">
-            <Button variant="outline" className="gap-2 rounded-xl"><Store className="h-4 w-4" /> Find virksomheder</Button>
-          </Link>
-        </div>
-      </div>
+      <EmptyPanel
+        icon={<Heart className="h-7 w-7" />}
+        title="Du har ingen favoritter endnu"
+        description="Tryk på hjertet på en virksomhed for at gemme den her — så har du hurtig adgang til dem du holder af."
+        primary={{ to: "/virksomheder", label: "Find virksomheder", icon: <Store className="h-4 w-4" /> }}
+        secondary={{ to: "/tilbud", label: "Få tilbud i stedet" }}
+      />
     );
   }
 
@@ -208,20 +201,13 @@ const OrdersView = () => {
 
   if (!orders || orders.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border py-16 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary mb-4">
-          <ShoppingCart className="h-8 w-8 text-muted-foreground/40" />
-        </div>
-        <h3 className="text-lg font-semibold text-foreground">Ingen bestillinger endnu</h3>
-        <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-          Bestil en service hos en virksomhed, og den dukker automatisk op her.
-        </p>
-        <div className="mt-5 flex gap-3">
-          <Link to="/virksomheder">
-            <Button variant="outline" className="gap-2 rounded-xl"><Store className="h-4 w-4" /> Find virksomheder</Button>
-          </Link>
-        </div>
-      </div>
+      <EmptyPanel
+        icon={<ShoppingCart className="h-7 w-7" />}
+        title="Ingen bestillinger endnu"
+        description="Find en virksomhed og bestil en service direkte — eller modtag tilbud fra flere udbydere på én gang."
+        primary={{ to: "/virksomheder", label: "Find virksomheder", icon: <Store className="h-4 w-4" /> }}
+        secondary={{ to: "/tilbud", label: "Få tilbud fra flere", icon: <MessageSquare className="h-4 w-4" /> }}
+      />
     );
   }
 
@@ -565,15 +551,13 @@ const SubscriptionsView = () => {
 
   if (!subscriptions || subscriptions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border py-16 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary mb-4">
-          <Package className="h-8 w-8 text-muted-foreground/40" />
-        </div>
-        <h3 className="text-lg font-semibold text-foreground">Ingen aktive abonnementer</h3>
-        <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-          Bestil en tilbagevendende service, og dit abonnement vises her.
-        </p>
-      </div>
+      <EmptyPanel
+        icon={<Package className="h-7 w-7" />}
+        title="Ingen aktive abonnementer"
+        description="Tilmeld dig en tilbagevendende service som rengøring, haveservice eller vinduespudsning — så slipper du for at huske at bestille hver gang."
+        primary={{ to: "/virksomheder", label: "Find tilbagevendende services", icon: <CalendarClock className="h-4 w-4" /> }}
+        secondary={{ to: "/tilbud", label: "Få tilbud først" }}
+      />
     );
   }
 
