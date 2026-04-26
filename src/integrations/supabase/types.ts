@@ -79,6 +79,66 @@ export type Database = {
           },
         ]
       }
+      business_plans: {
+        Row: {
+          accounting_integration_enabled: boolean
+          billing_period: string
+          business_id: string
+          created_at: string
+          current_period_end: string | null
+          data_import_requested: boolean
+          extra_employee_logins: number
+          id: string
+          monthly_price_dkk: number
+          route_planning_enabled: boolean
+          status: string
+          stripe_customer_id: string | null
+          stripe_payment_method_brand: string | null
+          stripe_payment_method_last4: string | null
+          stripe_subscription_id: string | null
+          trial_ends_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          accounting_integration_enabled?: boolean
+          billing_period?: string
+          business_id: string
+          created_at?: string
+          current_period_end?: string | null
+          data_import_requested?: boolean
+          extra_employee_logins?: number
+          id?: string
+          monthly_price_dkk?: number
+          route_planning_enabled?: boolean
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_payment_method_brand?: string | null
+          stripe_payment_method_last4?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accounting_integration_enabled?: boolean
+          billing_period?: string
+          business_id?: string
+          created_at?: string
+          current_period_end?: string | null
+          data_import_requested?: boolean
+          extra_employee_logins?: number
+          id?: string
+          monthly_price_dkk?: number
+          route_planning_enabled?: boolean
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_payment_method_brand?: string | null
+          stripe_payment_method_last4?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       businesses: {
         Row: {
           address: string | null
@@ -665,6 +725,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_settings: {
+        Row: {
+          base_price_dkk: number
+          discount_quarterly_pct: number
+          discount_yearly_pct: number
+          id: number
+          price_accounting_integration_dkk: number
+          price_data_import_dkk: number
+          price_per_employee_login_dkk: number
+          price_route_planning_dkk: number
+          stripe_publishable_key: string | null
+          stripe_secret_key: string | null
+          stripe_webhook_secret: string | null
+          trial_days: number
+          updated_at: string
+        }
+        Insert: {
+          base_price_dkk?: number
+          discount_quarterly_pct?: number
+          discount_yearly_pct?: number
+          id?: number
+          price_accounting_integration_dkk?: number
+          price_data_import_dkk?: number
+          price_per_employee_login_dkk?: number
+          price_route_planning_dkk?: number
+          stripe_publishable_key?: string | null
+          stripe_secret_key?: string | null
+          stripe_webhook_secret?: string | null
+          trial_days?: number
+          updated_at?: string
+        }
+        Update: {
+          base_price_dkk?: number
+          discount_quarterly_pct?: number
+          discount_yearly_pct?: number
+          id?: number
+          price_accounting_integration_dkk?: number
+          price_data_import_dkk?: number
+          price_per_employee_login_dkk?: number
+          price_route_planning_dkk?: number
+          stripe_publishable_key?: string | null
+          stripe_secret_key?: string | null
+          stripe_webhook_secret?: string | null
+          trial_days?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       private_customers: {
         Row: {
@@ -1523,6 +1631,42 @@ export type Database = {
           phone: string | null
           roles: string[] | null
           user_id: string | null
+        }
+        Relationships: []
+      }
+      platform_pricing: {
+        Row: {
+          base_price_dkk: number | null
+          discount_quarterly_pct: number | null
+          discount_yearly_pct: number | null
+          price_accounting_integration_dkk: number | null
+          price_data_import_dkk: number | null
+          price_per_employee_login_dkk: number | null
+          price_route_planning_dkk: number | null
+          stripe_publishable_key: string | null
+          trial_days: number | null
+        }
+        Insert: {
+          base_price_dkk?: number | null
+          discount_quarterly_pct?: number | null
+          discount_yearly_pct?: number | null
+          price_accounting_integration_dkk?: number | null
+          price_data_import_dkk?: number | null
+          price_per_employee_login_dkk?: number | null
+          price_route_planning_dkk?: number | null
+          stripe_publishable_key?: string | null
+          trial_days?: number | null
+        }
+        Update: {
+          base_price_dkk?: number | null
+          discount_quarterly_pct?: number | null
+          discount_yearly_pct?: number | null
+          price_accounting_integration_dkk?: number | null
+          price_data_import_dkk?: number | null
+          price_per_employee_login_dkk?: number | null
+          price_route_planning_dkk?: number | null
+          stripe_publishable_key?: string | null
+          trial_days?: number | null
         }
         Relationships: []
       }
