@@ -415,6 +415,72 @@ const SettingsTab = ({ business }: { business: any }) => {
   const saveStatus: "saving" | "saved" | "idle" =
     updateBiz.isPending ? "saving" : (hasChanges ? "saving" : "saved");
 
+  // ─── Live prisberegning ───
+  // Bygger samme breakdown som "bliv udbyder", men ud fra brugerens nuværende
+  // toggles. Bruges både til at vise oversigten og til at gemme den korrekte
+  // månedspris i business_plans når en feature slås til/fra.
+  const planExtraLogins = plan?.extra_employee_logins ?? 0;
+  const planBilling = plan?.billing_period ?? "monthly";
+  const priceBreakdown = useMemo(() => {
+    if (!pricing) return null;
+    const lines: { key: string; label: string; amount: number }[] = [
+      { key: "base", label: "Basis (virksomhedsprofil + bestillinger)", amount: pricing.base_price_dkk },
+    ];
+    if (routePlanningEnabled)
+      lines.push({ key: "route", label: "Ruteplanlægning", amount: pricing.price_route_planning_dkk });
+    if (accountingIntegrationEnabled)
+      lines.push({ key: "acc", label: "Regnskabsintegration", amount: pricing.price_accounting_integration_dkk });
+    if (planExtraLogins > 0)
+      lines.push({
+        key: "logins",
+        label: `${planExtraLogins} ekstra medarbejderlogin${planExtraLogins === 1 ? "" : "s"}`,
+        amount: planExtraLogins * pricing.price_per_employee_login_dkk,
+      });
+    const subtotal = lines.reduce((s, l) => s + l.amount, 0);
+    const discountPct =
+      planBilling === "yearly" ? pricing.discount_yearly_pct
+      : planBilling === "quarterly" ? pricing.discount_quarterly_pct
+      : 0;
+    const monthlyAfterDiscount = subtotal * (1 - discountPct / 100);
+    return { lines, subtotal, discountPct, monthlyAfterDiscount };
+  }, [pricing, routePlanningEnabled, accountingIntegrationEnabled, planExtraLogins, planBilling]);
+
+  // Hold business_plans.monthly_price_dkk synkroniseret med valgte features
+  // — så platform-admin altid kan se den faktiske månedspris og korrekt
+  // varsler brugeren ved næste fakturering.
+  const lastSavedPrice = useRef<number | null>(null);
+  useEffect(() => {
+    if (!plan?.id || !priceBreakdown) return;
+    const target = Math.round(priceBreakdown.monthlyAfterDiscount);
+    const current = Math.round(plan.monthly_price_dkk);
+    const planFeaturesMatch =
+      plan.route_planning_enabled === routePlanningEnabled &&
+      plan.accounting_integration_enabled === accountingIntegrationEnabled;
+    if (planFeaturesMatch && current === target) return;
+    if (lastSavedPrice.current === target && planFeaturesMatch) return;
+    lastSavedPrice.current = target;
+    updatePlan.mutate({
+      businessId: business.id,
+      patch: {
+        monthly_price_dkk: target,
+        route_planning_enabled: routePlanningEnabled,
+        accounting_integration_enabled: accountingIntegrationEnabled,
+      },
+    });
+    // Vis kun en toast hvis prøveperioden er overstået — under prøven er
+    // ændringerne gratis og kræver ingen forklaring.
+    const trialOver = plan.status === "active" || plan.status === "expired";
+    if (trialOver && current !== target) {
+      const diff = target - current;
+      if (diff > 0) {
+        toast.success(`Abonnementspris opdateret — ${diff.toLocaleString("da-DK")} kr/md tillægges fra næste fakturering.`);
+      } else if (diff < 0) {
+        toast.success(`Abonnementspris opdateret — du sparer ${Math.abs(diff).toLocaleString("da-DK")} kr/md fra næste fakturering.`);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routePlanningEnabled, accountingIntegrationEnabled, priceBreakdown?.monthlyAfterDiscount, plan?.id]);
+
   return (
     <div className="space-y-4 pb-24">
       <PageHeader
