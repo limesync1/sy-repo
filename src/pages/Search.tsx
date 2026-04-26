@@ -281,11 +281,9 @@ const SearchPage = () => {
       {/* Header — matches landing */}
       <SiteNav active="search" />
 
-      {/* Dark hero — matches landing visual language */}
+      {/* Dark hero — minimal: kun titel og beskrivelse */}
       <PageHero
-        size="compact"
-        eyebrow="Find services i hele Danmark"
-        title={<>Find verificerede <span className="text-accent">serviceydere</span>.</>}
+        title="Find verificerede serviceydere."
         subtitle="Søg på service, virksomhed eller by — sammenlign og book direkte."
       />
 

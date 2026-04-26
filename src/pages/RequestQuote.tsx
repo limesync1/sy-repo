@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
-  ArrowLeft, ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2,
+  ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2,
   AlertCircle, ShoppingCart, Check, ChevronLeft, Clock, ShieldCheck,
-  Zap, Wrench, Truck, TreePine, Paintbrush, Droplets, Lock, Hammer, Building2,
+  Building2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -20,28 +20,27 @@ import SiteNav from "@/components/SiteNav";
 import { useUserLocation } from "@/contexts/LocationContext";
 import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
+import { topCategories } from "@/lib/service-taxonomy";
 
-const CATEGORIES: { label: string; icon: typeof Sparkles }[] = [
-  { label: "Rengøring", icon: Sparkles },
-  { label: "Håndværker", icon: Wrench },
-  { label: "Flyttehjælp", icon: Truck },
-  { label: "Haveservice", icon: TreePine },
-  { label: "Maler", icon: Paintbrush },
-  { label: "VVS", icon: Droplets },
-  { label: "Elektriker", icon: Zap },
-  { label: "Tømrer", icon: Hammer },
-  { label: "Sikkerhed", icon: Lock },
-];
+/** Brug det kanoniske branchekatalog så /tilbud altid matcher
+ *  præcis det virksomheder kan registrere sig under. */
+const CATEGORIES = topCategories();
 
 const EXAMPLE_PROMPTS: Record<string, string> = {
   "Rengøring": "Fx: Rengøring af 3-værelses lejlighed på 85 m², hver 14. dag i København NV.",
-  "Håndværker": "Fx: Skifte 2 toiletter og opsætte 4 hylder i badeværelset, Aarhus C.",
-  "Flyttehjælp": "Fx: Flytning fra 2-værelses i Odense til 3-værelses i Vejle, lørdag den 5.",
+  "Vinduespudsning": "Fx: Vinduespudsning af villa med 18 vinduer, hver måned, ude og inde.",
+  "Algebehandling": "Fx: Algebehandling af 120 m² tag på parcelhus i Aarhus.",
   "Haveservice": "Fx: Klipning af 200 m² hæk og slåning af 400 m² græsplæne, hver måned.",
+  "Tømrer": "Fx: Bygge en træterrasse på 25 m² i baghaven med trapper.",
+  "Murer": "Fx: Reparation af revner i murværk og opmuring af lille trappe ved indgang.",
   "Maler": "Fx: Maling af stue og soveværelse, ca. 50 m² væg, lyse farver, indvendigt.",
   "VVS": "Fx: Skift af utæt vandhane i køkken og inspektion af afløb i badeværelse.",
-  "Elektriker": "Fx: Installation af 4 LED-lofthængslede lamper og udskiftning af 2 stikkontakter.",
-  "Tømrer": "Fx: Bygge en træterrasse på 25 m² i baghaven med trapper.",
+  "Elektriker": "Fx: Installation af 4 LED-loftslamper og udskiftning af 2 stikkontakter.",
+  "Flyttehjælp": "Fx: Flytning fra 2-værelses i Odense til 3-værelses i Vejle, lørdag den 5.",
+  "Skadedyrsbekæmpelse": "Fx: Bekæmpelse af rotter i kælder, parcelhus i Roskilde.",
+  "Anlægsgartner": "Fx: Anlæg af 60 m² flisebelagt terrasse og plantning af hæk omkring.",
+  "Gulvlægger": "Fx: Lægning af 35 m² laminatgulv i stue og spisestue.",
+  "Skorstensfejer": "Fx: Årlig fejning af brændeovnsskorsten på parcelhus.",
   "Sikkerhed": "Fx: Montering af 4 udendørs sikkerhedskameraer og alarm til parcelhus.",
 };
 
@@ -215,9 +214,8 @@ const RequestQuote = () => {
       {!matches && !isLoading && !selectedBusiness && (
         <>
           <PageHero
-            eyebrow="AI-drevet matching"
-            title={<>Beskriv opgaven — <span className="text-accent">vores AI</span> finder folkene.</>}
-            subtitle="Få op til 3 skræddersyede tilbud fra verificerede serviceydere — gratis og uforpligtende."
+            title="Få op til 3 gratis tilbud."
+            subtitle="Beskriv opgaven, så finder vi de bedste serviceydere til dig — gratis og uforpligtende."
           />
 
           <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 pb-16 md:pt-12 md:pb-20">
@@ -237,21 +235,21 @@ const RequestQuote = () => {
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">1</span>
                 <label className="text-sm font-semibold text-foreground">Vælg kategori</label>
               </div>
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-9">
-                {CATEGORIES.map(({ label, icon: Icon }) => {
-                  const active = category === label;
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                {CATEGORIES.map(({ label, key, icon }) => {
+                  const active = category === key;
                   return (
                     <button
-                      key={label}
+                      key={key}
                       type="button"
-                      onClick={() => setCategory(label)}
+                      onClick={() => setCategory(key)}
                      className={`group flex flex-col items-center justify-center gap-1.5 rounded-2xl border px-2 py-3 text-center transition-all ${
                         active
                           ? "border-foreground bg-foreground text-background shadow-md"
                           : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:bg-secondary/60 hover:text-foreground"
                       }`}
                     >
-                      <Icon className={`h-5 w-5 ${active ? "" : "text-foreground/70"}`} />
+                      <span aria-hidden className="text-xl leading-none">{icon}</span>
                       <span className="text-[11px] font-medium leading-tight">{label}</span>
                     </button>
                   );
