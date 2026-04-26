@@ -16,7 +16,10 @@ import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { useBusinessPlan, useReactivateBusinessPlan } from "@/hooks/useBusinessPlan";
+import {
+  useBusinessPlan, useReactivateBusinessPlan,
+  usePlatformPricing, useUpdateBusinessPlan, useRemovePaymentMethod,
+} from "@/hooks/useBusinessPlan";
 import {
   INDUSTRY_GROUPS,
   ALL_INDUSTRIES,
@@ -57,7 +60,7 @@ const SECTIONS = [
   { id: "branding",      label: "Branding",       icon: ImageIcon, hint: "Logo og cover" },
   { id: "hours",         label: "Åbningstider",   icon: Clock,     hint: "Hverdage og weekend" },
   { id: "notifications", label: "Notifikationer", icon: Bell,      hint: "Email-varsler" },
-  { id: "billing",       label: "Fakturering",    icon: CreditCard, hint: "Pakke og betalingskort" },
+  { id: "billing",       label: "Priser og betaling", icon: CreditCard, hint: "Pakke og betalingskort" },
   { id: "advanced",      label: "Avanceret",      icon: Route,     hint: "Ekstra funktioner" },
 ] as const;
 
@@ -84,6 +87,9 @@ const SettingsTab = ({ business }: { business: any }) => {
   const { user } = useAuth();
   const { data: plan } = useBusinessPlan(business.id);
   const reactivate = useReactivateBusinessPlan();
+  const removeCard = useRemovePaymentMethod();
+  const updatePlan = useUpdateBusinessPlan();
+  const { data: pricing } = usePlatformPricing();
 
   // Lokal state for kortform — bruges kun til at fange last4 + brand så
   // banneret forsvinder. Den rigtige Stripe-tokenisering sker senere.
