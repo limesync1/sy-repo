@@ -43,7 +43,7 @@ export const CustomerShell = ({
     <div className="flex min-h-screen flex-col bg-secondary/50">
       {/* ── Topbar ── samme h-14 + bg-card som AdminShell */}
       <header className="sticky top-0 z-40 border-b border-border bg-card">
-        <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
+        <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-7" />
           </Link>
@@ -90,7 +90,7 @@ export const CustomerShell = ({
         </div>
 
         {/* Fanebar — i samme container som topbaren = samme bredde */}
-        <nav aria-label="Kundepanel sektioner" className="px-4 sm:px-6">
+        <nav aria-label="Kundepanel sektioner" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div
             className="-mb-px flex gap-1 overflow-x-auto scroll-smooth snap-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             role="tablist"
@@ -131,15 +131,19 @@ export const CustomerShell = ({
       </header>
 
       {/* Mobil sub-header — viser aktiv fanes navn (samme padding som main) */}
-      <div className="sm:hidden border-b border-border bg-card px-4 py-2.5">
-        <h2 className="text-base font-semibold text-foreground">
-          {currentTab?.label ?? title}
-        </h2>
+      <div className="sm:hidden border-b border-border bg-card">
+        <div className="mx-auto max-w-7xl px-4 py-2.5">
+          <h2 className="text-base font-semibold text-foreground">
+            {currentTab?.label ?? title}
+          </h2>
+        </div>
       </div>
 
       {/* Main — SAMME px-4 sm:px-6 som header → flugter perfekt */}
-      <main className="flex-1 min-w-0 px-4 sm:px-6 py-5 sm:py-7">
-        {children}
+      <main className="flex-1 min-w-0">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 sm:py-7">
+          {children}
+        </div>
       </main>
     </div>
   );

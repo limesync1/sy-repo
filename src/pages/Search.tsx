@@ -290,19 +290,7 @@ const SearchPage = () => {
         eyebrow="Find services i hele Danmark"
         title={<>Find verificerede <span className="text-accent">serviceydere</span>.</>}
         subtitle="Søg på service, virksomhed eller by — sammenlign og book direkte."
-      >
-        <SearchSuggest
-          variant="hero"
-          defaultQuery={debouncedQuery}
-          showNearLabel={false}
-          placeholder="Søg efter service, virksomhed eller by…"
-        />
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-background/80">
-          <span className="font-medium text-background/70">Viser nær</span>
-          <LocationChip />
-          <RadiusPicker />
-        </div>
-      </PageHero>
+      />
 
       {/* Sticky filter bar */}
       <div className="sticky top-14 sm:top-[65px] z-20 border-b border-border bg-background/95 backdrop-blur-md">
