@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
@@ -296,6 +296,9 @@ export const useRoutesForRange = (businessId: string | undefined, from: string, 
   return useQuery({
     queryKey: ["routes-range", businessId, from, to],
     enabled: !!businessId && !!from && !!to,
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("routes")
@@ -313,8 +316,12 @@ export const useRoutesForRange = (businessId: string | undefined, from: string, 
 /* ─── Stops for a list of routes (joiner assignees ind) ─── */
 export const useStopsForRoutes = (routeIds: string[]) => {
   return useQuery({
-    queryKey: ["route-stops-bulk", routeIds.sort().join(",")],
+    // Brug en kopi før sort så vi ikke muterer caller-arrayet (gav ustabile keys/refetches).
+    queryKey: ["route-stops-bulk", [...routeIds].sort().join(",")],
     enabled: routeIds.length > 0,
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("route_stops")
@@ -354,8 +361,11 @@ export const useStopsForRoutes = (routeIds: string[]) => {
 /* ─── Route ↔ Employees junction ─── */
 export const useRouteEmployees = (routeIds: string[]) => {
   return useQuery({
-    queryKey: ["route-employees-bulk", routeIds.sort().join(",")],
+    queryKey: ["route-employees-bulk", [...routeIds].sort().join(",")],
     enabled: routeIds.length > 0,
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("route_employees")
@@ -420,6 +430,9 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
   return useQuery({
     queryKey: ["unassigned-jobs", businessId],
     enabled: !!businessId,
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       const { data: orders, error } = await supabase
         .from("orders")
