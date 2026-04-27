@@ -881,39 +881,120 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_request_matches: {
+        Row: {
+          business_id: string
+          business_note: string | null
+          created_at: string
+          distance_km: number | null
+          estimated_price: string | null
+          id: string
+          match_score: number
+          notified_at: string | null
+          quote_request_id: string
+          reason: string | null
+          responded_at: string | null
+          service_prefills: Json
+          status: string
+          updated_at: string
+          viewed_at: string | null
+        }
+        Insert: {
+          business_id: string
+          business_note?: string | null
+          created_at?: string
+          distance_km?: number | null
+          estimated_price?: string | null
+          id?: string
+          match_score?: number
+          notified_at?: string | null
+          quote_request_id: string
+          reason?: string | null
+          responded_at?: string | null
+          service_prefills?: Json
+          status?: string
+          updated_at?: string
+          viewed_at?: string | null
+        }
+        Update: {
+          business_id?: string
+          business_note?: string | null
+          created_at?: string
+          distance_km?: number | null
+          estimated_price?: string | null
+          id?: string
+          match_score?: number
+          notified_at?: string | null
+          quote_request_id?: string
+          reason?: string | null
+          responded_at?: string | null
+          service_prefills?: Json
+          status?: string
+          updated_at?: string
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_request_matches_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_request_matches_quote_request_id_fkey"
+            columns: ["quote_request_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_requests: {
         Row: {
           category: string
+          city: string | null
           created_at: string
           customer_email: string
           customer_name: string
           customer_phone: string | null
           description: string
           id: string
+          radius_km: number | null
+          share_contact: boolean
           status: string
           updated_at: string
+          zip_code: string | null
         }
         Insert: {
           category: string
+          city?: string | null
           created_at?: string
           customer_email: string
           customer_name: string
           customer_phone?: string | null
           description: string
           id?: string
+          radius_km?: number | null
+          share_contact?: boolean
           status?: string
           updated_at?: string
+          zip_code?: string | null
         }
         Update: {
           category?: string
+          city?: string | null
           created_at?: string
           customer_email?: string
           customer_name?: string
           customer_phone?: string | null
           description?: string
           id?: string
+          radius_km?: number | null
+          share_contact?: boolean
           status?: string
           updated_at?: string
+          zip_code?: string | null
         }
         Relationships: []
       }
