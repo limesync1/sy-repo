@@ -11,7 +11,14 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { category, description, location, radius_km } = await req.json();
+    const {
+      category,
+      description,
+      location,
+      radius_km,
+      customer,        // { name, email, phone, share_contact? }
+      persist = true,  // when false, only returns matches without saving (e.g. previews)
+    } = await req.json();
     if (!category || !description) {
       return new Response(JSON.stringify({ error: "category and description required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -19,6 +26,10 @@ serve(async (req) => {
     }
     const userCity: string | null = location?.city || null;
     const userZip: string | null = location?.zip || null;
+    const customerName: string = (customer?.name || "Anonym kunde").toString().slice(0, 200);
+    const customerEmail: string | null = customer?.email ? String(customer.email).toLowerCase().trim() : null;
+    const customerPhone: string | null = customer?.phone ? String(customer.phone).trim() : null;
+    const shareContact: boolean = customer?.share_contact !== false;
     // null/undefined => "Hele DK" (no radius filter). Otherwise km.
     const radiusKm: number | null =
       typeof radius_km === "number" && radius_km > 0 ? radius_km : null;
