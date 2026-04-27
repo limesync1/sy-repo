@@ -11,18 +11,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import {
   Plus, Trash2,
-  Sparkles, Calculator, Wrench,
+  Sparkles, Calculator, Wrench, Wand2, Loader2,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
-import DashboardTab from "@/components/admin/DashboardTab";
-import ReviewsTab from "@/components/admin/ReviewsTab";
-import AftaleTab from "@/components/admin/AftaleTab";
-import EmployeesTab from "@/components/admin/EmployeesTab";
-import CustomersTab from "@/components/admin/CustomersTab";
-import SettingsTab from "@/components/admin/SettingsTab";
+import { supabase } from "@/integrations/supabase/client";
+// Lazy load tunge tabs så hver fane først downloades når brugeren åbner den
+const DashboardTab = lazy(() => import("@/components/admin/DashboardTab"));
+const ReviewsTab = lazy(() => import("@/components/admin/ReviewsTab"));
+const AftaleTab = lazy(() => import("@/components/admin/AftaleTab"));
+const EmployeesTab = lazy(() => import("@/components/admin/EmployeesTab"));
+const CustomersTab = lazy(() => import("@/components/admin/CustomersTab"));
+const SettingsTab = lazy(() => import("@/components/admin/SettingsTab"));
 import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
@@ -222,7 +224,9 @@ const AdminDashboard = () => {
           <TrialBanner plan={plan} hideAction={activeTab === "settings"} />
         </div>
       )}
-      {renderContent()}
+      <Suspense fallback={<div className="py-10 text-center text-sm text-muted-foreground">Indlæser…</div>}>
+        {renderContent()}
+      </Suspense>
 
       {/* Hvis prøven er udløbet og der ikke er noget kort → blokér panelet
           indtil brugeren har genaktiveret med kortoplysninger. */}
@@ -650,6 +654,7 @@ const ServiceForm = ({
   onClose: () => void;
 }) => {
   const { user } = useAuth();
+  const { data: business } = useMyBusiness();
   const createService = useCreateService();
   const updateService = useUpdateService();
   const upsertSteps = useUpsertCalculatorSteps();
@@ -669,6 +674,39 @@ const ServiceForm = ({
   const [intervalOptions, setIntervalOptions] = useState<string[]>(
     existingService?.interval_options || ["engangskøb"]
   );
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const generateAiDescription = async () => {
+    if (!name.trim()) {
+      toast.error("Skriv først et servicenavn");
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-service-description", {
+        body: {
+          serviceName: name.trim(),
+          serviceCategory: serviceCategory || null,
+          subcategory: subcategory || null,
+          pricingType,
+          businessName: business?.name || null,
+          businessDescription: business?.description || null,
+          businessCategories: Array.isArray(business?.categories) ? business?.categories : null,
+          businessCity: business?.city || null,
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const text = ((data as any)?.description ?? "").trim();
+      if (!text) throw new Error("Tomt svar fra AI");
+      setDescription(text);
+      toast.success("AI-forslag indsat");
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke generere forslag");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const ALL_INTERVALS = [
     { value: "engangskøb", label: "Engangskøb" },
@@ -978,8 +1016,25 @@ const ServiceForm = ({
             )}
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">Beskrivelse</label>
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <label className="block text-sm font-medium text-foreground">Beskrivelse</label>
+              <button
+                type="button"
+                onClick={generateAiDescription}
+                disabled={aiLoading || !name.trim()}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
+                title={!name.trim() ? "Skriv et servicenavn først" : "Generér forslag baseret på din virksomhed"}
+              >
+                {aiLoading ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Wand2 className="h-3.5 w-3.5" />
+                )}
+                {aiLoading ? "Genererer…" : "Foreslå med AI"}
+              </button>
+            </div>
             <Textarea placeholder="Hvad inkluderer denne service? Hvad kan kunden forvente?" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-card" rows={3} />
+            <p className="mt-1 text-[11px] text-muted-foreground">AI bruger din virksomheds navn, branche og beskrivelse til at skræddersy forslaget.</p>
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">Billede (valgfrit)</label>
