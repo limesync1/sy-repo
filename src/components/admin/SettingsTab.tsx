@@ -1122,6 +1122,26 @@ const SettingsTab = ({ business }: { business: any }) => {
                 </div>
                 <ToggleSwitch checked={accountingIntegrationEnabled} onChange={() => setAccountingIntegrationEnabled((v) => !v)} />
               </div>
+
+              {/* Leads — gratis valgfri funktion. Når slået til vises Leads-fanen
+                  i sidebar og virksomheden modtager match fra "Indhent 3 tilbud". */}
+              <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold text-foreground">Leads fra "Indhent 3 tilbud"</p>
+                      <span className="text-[11px] font-semibold text-muted-foreground">Gratis</span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Når slået til vises Leads-fanen i din navigation, og du modtager automatisk relevante kundeforespørgsler fra "Indhent 3 tilbud" der matcher dine brancher og dit område. Du kan altid slå funktionen fra igen.
+                    </p>
+                  </div>
+                </div>
+                <ToggleSwitch checked={leadsEnabled} onChange={() => setLeadsEnabled((v) => !v)} />
+              </div>
             </div>
           </SectionCard>
         </div>
