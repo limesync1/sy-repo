@@ -21,6 +21,28 @@ export type AdminTabKey =
   | "dashboard" | "services" | "orders" | "customers"
   | "routes" | "employees" | "reviews" | "settings";
 
+/**
+ * Prefetch-funktioner for hver fane. Vi importerer dynamisk når brugeren
+ * hover'er over en fane — så er bundle og data ofte klar inden klik, og
+ * fane-skift føles øjeblikkeligt i stedet for at vise "Indlæser…".
+ */
+const TAB_PREFETCH: Partial<Record<AdminTabKey, () => Promise<unknown>>> = {
+  dashboard: () => import("@/components/admin/DashboardTab"),
+  services:  () => import("@/pages/Admin"),
+  orders:    () => import("@/components/admin/AftaleTab"),
+  customers: () => import("@/components/admin/CustomersTab"),
+  employees: () => import("@/components/admin/EmployeesTab"),
+  reviews:   () => import("@/components/admin/ReviewsTab"),
+  settings:  () => import("@/components/admin/SettingsTab"),
+  routes:    () => import("@/pages/RoutePlanner"),
+};
+const prefetched = new Set<AdminTabKey>();
+const prefetchTab = (key: AdminTabKey) => {
+  if (prefetched.has(key)) return;
+  prefetched.add(key);
+  TAB_PREFETCH[key]?.().catch(() => prefetched.delete(key));
+};
+
 type NavItem = {
   value: AdminTabKey;
   label: string;
@@ -108,7 +130,15 @@ export const AdminShell = ({
       >
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-7" />
+            <img
+              src="/serviceydere-logo-dark.webp"
+              alt="Serviceydere"
+              className="h-7"
+              width="160"
+              height="28"
+              decoding="async"
+              fetchPriority="high"
+            />
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -123,7 +153,15 @@ export const AdminShell = ({
         <div className="mx-3 mt-3 mb-3 shrink-0 rounded-xl border border-border bg-card px-3 py-3 shadow-sm">
           <div className="flex items-center gap-2">
             {business.logo_url ? (
-              <img src={business.logo_url} alt="" className="h-9 w-9 shrink-0 rounded-lg border border-border object-contain bg-background p-1" />
+              <img
+                src={business.logo_url}
+                alt=""
+                className="h-9 w-9 shrink-0 rounded-lg border border-border object-contain bg-background p-1"
+                width="36"
+                height="36"
+                loading="lazy"
+                decoding="async"
+              />
             ) : (
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground font-bold text-sm">
                 {business.name.charAt(0)}
@@ -148,7 +186,14 @@ export const AdminShell = ({
                 : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
             );
             return (
-              <button key={item.value} onClick={() => handleNavClick(item)} className={baseClasses}>
+              <button
+                key={item.value}
+                onClick={() => handleNavClick(item)}
+                onMouseEnter={() => prefetchTab(item.value)}
+                onFocus={() => prefetchTab(item.value)}
+                onTouchStart={() => prefetchTab(item.value)}
+                className={baseClasses}
+              >
                 <item.icon className="h-4 w-4 shrink-0" />
                 {item.label}
               </button>

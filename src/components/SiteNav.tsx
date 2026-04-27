@@ -111,7 +111,7 @@ const SiteNav = ({ active, right }: Props) => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-2 py-3 sm:py-3.5">
           <Link to="/" className="flex shrink-0 items-center" aria-label="Serviceydere forside">
-            <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-8 sm:h-9 md:h-10" />
+            <img src="/serviceydere-logo-dark.webp" alt="Serviceydere" className="h-8 sm:h-9 md:h-10" />
           </Link>
 
           <div className="hidden items-center gap-1 rounded-full border border-border/70 bg-card/80 p-1 lg:flex">
