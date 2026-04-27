@@ -30,9 +30,12 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
           {biz.cover_image_url ? (
             <img
               src={biz.cover_image_url}
-              alt={biz.name}
+              alt={`${biz.name}${biz.city ? ` – ${biz.city}` : ""}${primaryCat ? `, ${primaryCat}` : ""}`}
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              width={400}
+              height={300}
               loading="lazy"
+              decoding="async"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-secondary">
