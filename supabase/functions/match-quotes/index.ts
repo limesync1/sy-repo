@@ -315,7 +315,104 @@ ${bizSummaries}`,
       };
     }).filter(Boolean);
 
-    return new Response(JSON.stringify({ matches: enrichedMatches }), {
+    // ── Persist quote_request + matches and dispatch lead emails ──
+    let quoteRequestId: string | null = null;
+    if (persist && enrichedMatches.length > 0 && customerEmail) {
+      try {
+        const { data: qr, error: qrErr } = await supabase
+          .from("quote_requests")
+          .insert({
+            customer_name: customerName,
+            customer_email: customerEmail,
+            customer_phone: customerPhone,
+            category,
+            description,
+            city: userCity,
+            zip_code: userZip,
+            radius_km: radiusKm,
+            share_contact: shareContact,
+            status: "open",
+          })
+          .select("id")
+          .single();
+        if (qrErr) {
+          console.error("quote_request insert error:", qrErr);
+        } else {
+          quoteRequestId = qr.id;
+
+          const matchRows = enrichedMatches.map((m: any) => ({
+            quote_request_id: qr.id,
+            business_id: m.business.id,
+            match_score: Math.max(0, Math.min(100, Math.round(Number(m.match_score) || 0))),
+            reason: m.reason || null,
+            estimated_price: m.estimated_price || null,
+            service_prefills: m.service_prefills || [],
+            distance_km: typeof m.distance_km === "number" ? m.distance_km : null,
+            status: "new",
+            notified_at: new Date().toISOString(),
+          }));
+
+          const { error: matchErr } = await supabase
+            .from("quote_request_matches")
+            .insert(matchRows);
+          if (matchErr) console.error("quote_request_matches insert error:", matchErr);
+
+          // Fire-and-forget email per matched business owner
+          // We need owner email — fetch businesses with their notification settings + owner profile
+          const bizIds = enrichedMatches.map((m: any) => m.business.id);
+          const { data: bizDetails } = await supabase
+            .from("businesses")
+            .select("id, name, email, owner_id, notification_settings")
+            .in("id", bizIds);
+
+          // Optional: pull profile display_name for greeting
+          const ownerIds = (bizDetails || []).map((b: any) => b.owner_id).filter(Boolean);
+          const { data: profiles } = ownerIds.length
+            ? await supabase.from("profiles").select("user_id, display_name").in("user_id", ownerIds)
+            : { data: [] as any[] };
+          const profileByOwner = new Map((profiles || []).map((p: any) => [p.user_id, p.display_name]));
+
+          // Run in parallel, ignore errors so the response isn't blocked
+          await Promise.allSettled(enrichedMatches.map(async (m: any) => {
+            const biz = (bizDetails || []).find((b: any) => b.id === m.business.id);
+            const recipient = biz?.email || null;
+            if (!recipient) return;
+            // Respect business notification opt-out: settings.notification_settings.lead_emails === false
+            const notif = (biz?.notification_settings as any) || {};
+            if (notif.lead_emails === false) return;
+
+            await supabase.functions.invoke("send-transactional-email", {
+              body: {
+                templateName: "new-lead",
+                recipientEmail: recipient,
+                idempotencyKey: `new-lead-${qr.id}-${biz.id}`,
+                templateData: {
+                  businessName: biz.name,
+                  ownerName: profileByOwner.get(biz.owner_id) || null,
+                  customerName,
+                  customerCity: userCity,
+                  customerZip: userZip,
+                  category,
+                  description,
+                  matchScore: Math.round(Number(m.match_score) || 0),
+                  reason: m.reason || null,
+                  estimatedPrice: m.estimated_price || null,
+                  distanceKm: typeof m.distance_km === "number" ? m.distance_km : null,
+                  shareContact,
+                  customerEmail: shareContact ? customerEmail : null,
+                  customerPhone: shareContact ? customerPhone : null,
+                  leadsUrl: "https://serviceydere.dk/virksomhed?tab=leads",
+                },
+              },
+            }).catch((e) => console.error("send lead email failed:", biz.id, e));
+          }));
+        }
+      } catch (persistErr) {
+        console.error("persist/notify error:", persistErr);
+      }
+    }
+
+    return new Response(JSON.stringify({ matches: enrichedMatches, quote_request_id: quoteRequestId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
