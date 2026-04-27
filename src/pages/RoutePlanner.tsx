@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, lazy, Suspense } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
@@ -35,7 +35,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
-  Loader2, MapIcon, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
+  Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
   ShoppingBag, Route as RouteIcon, Tag, Palette,
 } from "lucide-react";
 import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
@@ -45,10 +45,9 @@ import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
   pointerWithin, type DragEndEvent, type DragStartEvent,
 } from "@dnd-kit/core";
-// RouteMap er tung (leaflet ~150 KB) og ikke synlig i nuværende layout — lazy-load
-// så ruter-siden indlæser hurtigt. Importér typer separat uden at trække køretiden ind.
-const RouteMap = lazy(() => import("@/components/route-planner/RouteMap"));
-import type { MapRoute, MapStop } from "@/components/route-planner/RouteMap";
+// Bemærk: RouteMap (leaflet ~150 KB) importeres med vilje IKKE her — den var tidligere
+// eager-importeret men aldrig renderet i layoutet, hvilket gjorde initial load tung.
+// Tilføj en lazy-import her igen, hvis vi senere indfører en kort-visning.
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
