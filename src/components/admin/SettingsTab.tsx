@@ -190,6 +190,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     upcoming_service: true,
     subscription_change: true,
     new_review: false,
+    lead_emails: true,
     ...((business.notification_settings as Record<string, boolean>) || {}),
   });
   const [routePlanningEnabled, setRoutePlanningEnabled] = useState<boolean>(
@@ -827,6 +828,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 { key: "upcoming_service",    label: "Kommende services",      desc: "Påmindelse når en abonnements-service skal udføres snart." },
                 { key: "subscription_change", label: "Abonnementsændringer",   desc: "Besked når en kunde pauser eller annullerer et abonnement." },
                 { key: "new_review",          label: "Nye anmeldelser",        desc: "Besked når en kunde skriver en anmeldelse." },
+                ...(leadsEnabled ? [{ key: "lead_emails", label: "Nye leads", desc: "Besked når et nyt lead matcher jer fra ‘Indhent 3 tilbud’. Slå fra hvis I kun vil se leads i dashboardet." } as const] : []),
               ] as const).map(({ key, label, desc }) => (
                 <div key={key} className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-3">
                   <div className="min-w-0">
