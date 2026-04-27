@@ -10,6 +10,7 @@ import { LocationProvider } from "@/contexts/LocationContext";
 import CartSheet from "@/components/business/CartSheet";
 import CartFab from "@/components/business/CartFab";
 import ScrollToTop from "@/components/ScrollToTop";
+import CookieConsent from "@/components/CookieConsent";
 
 // Forsiden + Login indlæses ivrigt — alt andet er code-splittet via React.lazy
 // så det første sidebesøg ikke trækker hele admin/medarbejder/ruteplanlægger
@@ -79,6 +80,8 @@ const App = () => (
             <CartSheet />
             {/* Flydende genåbn-knap når brugeren har items men har lukket sheeten */}
             <CartFab />
+            {/* Cookie-banner — vises kun første gang valget træffes. */}
+            <CookieConsent />
             <Suspense fallback={<PageFallback />}>
             <Routes>
               <Route path="/" element={<Index />} />
