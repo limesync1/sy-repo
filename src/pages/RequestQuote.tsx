@@ -237,15 +237,20 @@ const RequestQuote = () => {
             subtitle="Beskriv opgaven, så finder vi de bedste serviceydere til dig — gratis og uforpligtende."
           />
 
-          <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 pb-16 md:pt-12 md:pb-20">
+          <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-12 md:pt-12 md:pb-20">
           {/* Form card */}
-          <form onSubmit={handleFind} className="surface-panel mt-10 rounded-[2rem] border border-border p-6 shadow-[0_24px_55px_-36px_hsl(var(--foreground)/0.28)] md:p-8">
-            {/* Location strip */}
-            <div className="mb-6 flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card/80 px-3 py-2">
-              <span className="text-xs font-medium text-muted-foreground">Din lokation:</span>
-              <LocationChip />
-              <RadiusPicker />
-              <span className="ml-auto text-[11px] text-muted-foreground">Vi finder udbydere inden for din valgte radius</span>
+          <form onSubmit={handleFind} className="surface-panel mt-4 rounded-[1.5rem] border border-border p-4 shadow-[0_24px_55px_-36px_hsl(var(--foreground)/0.28)] sm:rounded-[2rem] sm:p-6 md:mt-10 md:p-8">
+            {/* Location strip — på mobil bryder hjælpe-teksten på sin egen linje
+                så chip + radius-picker har plads. */}
+            <div className="mb-5 rounded-2xl border border-border bg-card/80 px-3 py-2.5 md:mb-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium text-muted-foreground">Din lokation:</span>
+                <LocationChip />
+                <RadiusPicker />
+              </div>
+              <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">
+                Vi finder udbydere inden for din valgte radius.
+              </p>
             </div>
 
             {/* Step 1: Category */}
@@ -254,7 +259,7 @@ const RequestQuote = () => {
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">1</span>
                 <label className="text-sm font-semibold text-foreground">Vælg kategori</label>
               </div>
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+              <div className="grid grid-cols-2 gap-2 xs:grid-cols-3 sm:grid-cols-5">
                 {CATEGORIES.map(({ label, key, icon }) => {
                   const active = category === key;
                   return (
@@ -262,14 +267,14 @@ const RequestQuote = () => {
                       key={key}
                       type="button"
                       onClick={() => setCategory(key)}
-                     className={`group flex flex-col items-center justify-center gap-1.5 rounded-2xl border px-2 py-3 text-center transition-all ${
+                     className={`group flex min-h-[76px] flex-col items-center justify-center gap-1.5 rounded-2xl border px-2 py-3 text-center transition-all ${
                         active
                           ? "border-foreground bg-foreground text-background shadow-md"
                           : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:bg-secondary/60 hover:text-foreground"
                       }`}
                     >
                       <span aria-hidden className="text-xl leading-none">{icon}</span>
-                      <span className="text-[11px] font-medium leading-tight">{label}</span>
+                      <span className="text-[11px] font-medium leading-tight break-words hyphens-auto">{label}</span>
                     </button>
                   );
                 })}
@@ -289,7 +294,7 @@ const RequestQuote = () => {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={category ? EXAMPLE_PROMPTS[category] : "Vælg først en kategori ovenfor — så hjælper vi med en god skabelon."}
                 disabled={!category}
-                className="min-h-[140px] resize-none rounded-2xl border-border text-sm focus-visible:ring-foreground/20 disabled:opacity-60"
+                className="min-h-[120px] resize-none rounded-2xl border-border text-base focus-visible:ring-foreground/20 disabled:opacity-60 sm:min-h-[140px] sm:text-sm"
               />
               <p className="mt-2 text-xs text-muted-foreground">
                 💡 Jo mere konkret du er (m², antal, lokation, frekvens), jo bedre bliver matchet.
@@ -315,7 +320,7 @@ const RequestQuote = () => {
                     onChange={(e) => setCustomerName(e.target.value)}
                     placeholder="Navn"
                     autoComplete="name"
-                    className="h-11 rounded-xl"
+                    className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
                   />
                   <Input
                     type="email"
@@ -324,7 +329,7 @@ const RequestQuote = () => {
                     placeholder="E-mail"
                     autoComplete="email"
                     inputMode="email"
-                    className="h-11 rounded-xl"
+                    className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
                   />
                   <Input
                     type="tel"
@@ -333,24 +338,26 @@ const RequestQuote = () => {
                     placeholder="Telefon (valgfrit)"
                     autoComplete="tel"
                     inputMode="tel"
-                    className="h-11 rounded-xl sm:col-span-2"
+                    className="h-12 rounded-xl text-base sm:col-span-2 sm:h-11 sm:text-sm"
                   />
                 </div>
 
-                <label className="flex cursor-pointer items-center gap-2.5 px-1 text-xs text-foreground">
+                <label className="flex cursor-pointer items-start gap-2.5 px-1 text-[13px] leading-5 text-foreground sm:items-center sm:text-xs">
                   <Checkbox
                     checked={shareContact}
                     onCheckedChange={(v) => setShareContact(v === true)}
+                    className="mt-0.5 sm:mt-0"
                   />
                   <span>Del mine oplysninger med de matchede virksomheder.</span>
                 </label>
 
                 {/* Lovpligtig samtykke — jf. GDPR art. 6(1)(a). Kort form med link til fuld tekst. */}
-                <label className="flex cursor-pointer items-center gap-2.5 px-1 text-xs text-foreground">
+                <label className="flex cursor-pointer items-start gap-2.5 px-1 text-[13px] leading-5 text-foreground sm:items-center sm:text-xs">
                   <Checkbox
                     checked={acceptedTerms}
                     onCheckedChange={(v) => setAcceptedTerms(v === true)}
                     required
+                    className="mt-0.5 sm:mt-0"
                   />
                   <span>
                     Jeg accepterer{" "}
@@ -366,7 +373,7 @@ const RequestQuote = () => {
             <Button
               type="submit"
               disabled={!category || !description.trim() || !customerName.trim() || !customerEmail.trim() || !acceptedTerms}
-              className="mt-7 h-14 w-full gap-2 rounded-2xl bg-foreground text-base font-semibold text-background hover:bg-foreground/90 active:scale-[0.99] disabled:opacity-50"
+              className="mt-6 h-14 w-full gap-2 rounded-2xl bg-foreground text-base font-semibold text-background hover:bg-foreground/90 active:scale-[0.99] disabled:opacity-50"
             >
               <Sparkles className="h-5 w-5" />
               Find tilbud med AI
@@ -374,7 +381,7 @@ const RequestQuote = () => {
             </Button>
 
             {/* Trust footer in form */}
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground sm:text-xs sm:gap-x-5">
               <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-accent" /> 3-10 sek.</span>
               <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-accent" /> Verificerede udbydere</span>
               <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-accent" /> Gratis & uforpligtende</span>
@@ -382,13 +389,13 @@ const RequestQuote = () => {
           </form>
 
           {/* How it works strip */}
-          <div className="mt-12 grid gap-5 sm:grid-cols-3">
+          <div className="mt-8 grid gap-3 sm:mt-12 sm:gap-5 sm:grid-cols-3">
             {[
               { n: 1, title: "Beskriv opgaven", text: "Vælg kategori og fortæl kort, hvad du har brug for." },
               { n: 2, title: "AI matcher", text: "Vores AI finder de bedste 3 udbydere på sekunder." },
               { n: 3, title: "Sammenlign & vælg", text: "Tilpas pris, læs anmeldelser og book direkte." },
             ].map((s) => (
-              <div key={s.n} className="rounded-[1.5rem] border border-border bg-card p-5 shadow-sm">
+              <div key={s.n} className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:rounded-[1.5rem] sm:p-5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/10 text-sm font-bold text-accent">{s.n}</div>
                 <h3 className="mt-3 text-sm font-semibold text-foreground">{s.title}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{s.text}</p>
