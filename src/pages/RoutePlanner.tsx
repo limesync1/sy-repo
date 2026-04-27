@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
@@ -45,7 +45,10 @@ import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
   pointerWithin, type DragEndEvent, type DragStartEvent,
 } from "@dnd-kit/core";
-import RouteMap, { type MapRoute, type MapStop } from "@/components/route-planner/RouteMap";
+// RouteMap er tung (leaflet ~150 KB) og ikke synlig i nuværende layout — lazy-load
+// så ruter-siden indlæser hurtigt. Importér typer separat uden at trække køretiden ind.
+const RouteMap = lazy(() => import("@/components/route-planner/RouteMap"));
+import type { MapRoute, MapStop } from "@/components/route-planner/RouteMap";
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
@@ -250,36 +253,9 @@ const Planner = () => {
     return calendarRoutesRaw.find((route) => route.id === editingRoute.id) ?? editingRoute;
   }, [editingRoute, calendarRoutesRaw]);
 
-  /* Map data — viser ruter for det aktuelle range (måned/uge) */
-  const mapRoutes: MapRoute[] = useMemo(() => {
-    const list: MapRoute[] = [];
-    for (const r of calendarRoutes) {
-      const colStops = r.stops
-        .filter((s) => s.latitude != null && s.longitude != null)
-        .sort((a, b) => a.sequence - b.sequence)
-        .map((s, i) => ({
-          id: s.id,
-          lat: Number(s.latitude),
-          lng: Number(s.longitude),
-          label: s.customer_name || "Stop",
-          sublabel: s.address || undefined,
-          index: i + 1,
-          distanceToNextKm: s.distance_to_next_km != null ? Number(s.distance_to_next_km) : null,
-          travelTimeToNextMin: s.travel_time_to_next_min != null ? Number(s.travel_time_to_next_min) : null,
-        }));
-      if (colStops.length) list.push({ color: r.color, stops: colStops });
-    }
-    return list;
-  }, [calendarRoutes]);
-
-  const unassignedMapStops: MapStop[] = useMemo(() =>
-    filteredUnassigned
-      .filter((j: any) => j.latitude != null && j.longitude != null)
-      .map((j: any) => ({
-        id: j.id, lat: Number(j.latitude), lng: Number(j.longitude),
-        label: j.customer_name, sublabel: j.address, color: "hsl(220 13% 50%)",
-      })),
-  [filteredUnassigned]);
+  // Map-data er udeladt: RouteMap-komponenten er lazy og pt. ikke renderet i layoutet.
+  // Tidligere blev mapRoutes/unassignedMapStops beregnet ved hver re-render uden at
+  // blive brugt — det belastede planlæggeren unødigt.
 
   /* Auto-geocode jobs missing coords */
   useEffect(() => {
