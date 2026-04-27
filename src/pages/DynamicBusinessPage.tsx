@@ -173,9 +173,13 @@ const DynamicBusinessContent = () => {
                 <>
                   <img
                     src={business.cover_image_url!}
-                    alt={`${business.name} cover`}
+                    alt={`${business.name}${business.city ? ` i ${business.city}` : ""} – billede`}
                     className="h-full w-full object-cover"
+                    width={1600}
+                    height={640}
                     loading="eager"
+                    decoding="async"
+                    fetchPriority="high"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 via-transparent to-transparent" />
                 </>
@@ -192,7 +196,7 @@ const DynamicBusinessContent = () => {
                 {business.logo_url ? (
                   <img
                     src={business.logo_url}
-                    alt={`${business.name} logo`}
+                    alt={`${business.name} logo${business.city ? ` – ${business.city}` : ""}`}
                     className="h-full w-full object-contain p-2"
                     width={96}
                     height={96}
