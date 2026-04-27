@@ -50,11 +50,14 @@ serve(async (req) => {
 
 Krav:
 - 2-3 sætninger, max 380 tegn
-- Konkret og tillidsvækkende, INGEN klichéer ("vi går op i kvalitet", "din tilfredshed er vores prioritet" osv.)
+- Konkret og tillidsvækkende, INGEN klichéer ("vi går op i kvalitet", "din tilfredshed er vores prioritet", "kvalitet i højsædet" osv.)
 - Skriv i 1. person flertal (vi/os) ud fra virksomhedens perspektiv
-- Nævn hvad servicen inkluderer og hvem den er til
+- Sætning 1: hvad servicen er + hvad den konkret inkluderer (nævn 2-3 specifikke elementer)
+- Sætning 2-3: hvem den passer til + hvad kunden kan forvente (varighed, garanti, eller anden konkret fordel)
+- Brug branchespecifikke termer (fx "rentvandsanlæg" for vinduer, "K-mærket" for rengøring) når relevant
+- Tilpas tone til virksomhedens by og branche — privat = varm/personlig, erhverv = saglig/professionel
 - Tilpas tonen til virksomhedens egen beskrivelse, hvis den findes
-- INGEN priser, INGEN emojis, INGEN markdown
+- INGEN priser, INGEN emojis, INGEN markdown, INGEN udråbstegn
 - Returnér KUN beskrivelsen — ingen indledning eller forklaring`;
 
     const userPrompt = `Generér én beskrivelse til denne service.

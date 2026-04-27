@@ -716,6 +716,8 @@ const ServiceForm = ({
   );
   const [aiLoading, setAiLoading] = useState(false);
   const [aiTemplateLoading, setAiTemplateLoading] = useState(false);
+  const [aiAutoTried, setAiAutoTried] = useState(false);
+  const [aiDescAutoTried, setAiDescAutoTried] = useState(!!existingService?.description);
 
   const generateAiDescription = async () => {
     if (!name.trim()) {
@@ -779,6 +781,46 @@ const ServiceForm = ({
       setAiTemplateLoading(false);
     }
   };
+
+  // Auto-foreslå AI-skabelon én gang når brugeren vælger Prisberegner
+  // og har kategori + navn, men endnu ingen trin (ny service).
+  useEffect(() => {
+    if (
+      !existingService &&
+      pricingType === "prisberegner" &&
+      steps.length === 0 &&
+      !aiAutoTried &&
+      !aiTemplateLoading &&
+      name.trim().length > 1 &&
+      serviceCategory.trim().length > 0
+    ) {
+      setAiAutoTried(true);
+      generateAiCalculatorTemplate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pricingType, name, serviceCategory, subcategory]);
+
+  // Auto-foreslå AI-beskrivelse første gang brugeren rammer detaljer-trinnet
+  // med navn + kategori valgt og tom beskrivelse.
+  useEffect(() => {
+    if (
+      currentStep === 2 &&
+      !existingService &&
+      !aiDescAutoTried &&
+      !aiLoading &&
+      !description.trim() &&
+      name.trim().length > 1 &&
+      serviceCategory.trim().length > 0
+    ) {
+      // Lille forsinkelse så brugeren kan nå at se feltet være tomt og ikke føler at AI tager over
+      const t = setTimeout(() => {
+        setAiDescAutoTried(true);
+        generateAiDescription();
+      }, 600);
+      return () => clearTimeout(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, name, serviceCategory]);
 
   const ALL_INTERVALS = [
     { value: "engangskøb", label: "Engangskøb" },
