@@ -36,7 +36,7 @@ const HeroSection = () => {
         <div className="max-w-2xl">
           {/* Blid stagger-entry: titel → tekst → søgefelt → CTA. Korte
               durations + ease-out så det føles snappy, ikke tungt. */}
-          <h1 className="animate-fade-in text-[2.4rem] font-semibold leading-[1.04] tracking-tight text-background sm:text-[3.25rem] lg:text-[3.75rem]">
+          <h1 className="animate-fade-in text-[2rem] font-semibold leading-[1.06] tracking-tight text-background sm:text-[3.25rem] lg:text-[3.75rem]">
             Find den rette serviceyder til opgaven.
           </h1>
           <p className="animate-fade-in [animation-delay:120ms] mt-4 max-w-xl text-[15px] leading-7 text-background/85 sm:text-base">
