@@ -1,5 +1,35 @@
-import { useEffect, useRef, useState, type ReactNode, type ElementType, type CSSProperties } from "react";
+import { useEffect, useRef, useState, memo, type ReactNode, type ElementType, type CSSProperties } from "react";
 import { cn } from "@/lib/utils";
+
+/**
+ * Delt IntersectionObserver — i stedet for at oprette én observer pr. <Reveal>
+ * (som koster main-thread arbejde + GC pres på low-end Android), genbruger vi
+ * én enkelt observer for alle reveal-elementer. Det reducerer overhead markant
+ * når forsiden har mange sektioner.
+ */
+type RevealCallback = () => void;
+const callbacks = new WeakMap<Element, RevealCallback>();
+let sharedObserver: IntersectionObserver | null = null;
+
+const getObserver = () => {
+  if (sharedObserver || typeof IntersectionObserver === "undefined") return sharedObserver;
+  sharedObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          const cb = callbacks.get(entry.target);
+          if (cb) {
+            cb();
+            sharedObserver?.unobserve(entry.target);
+            callbacks.delete(entry.target);
+          }
+        }
+      }
+    },
+    { threshold: 0.08, rootMargin: "0px 0px -8% 0px" },
+  );
+  return sharedObserver;
+};
 
 /**
  * Reveal — fader sit children blødt ind når elementet kommer i viewport.
@@ -30,13 +60,11 @@ type RevealProps = {
   rootMargin?: string;
 };
 
-const Reveal = ({
+const Reveal = memo(({
   children,
   as: Tag = "div",
   delay = 0,
   className,
-  threshold = 0.12,
-  rootMargin = "0px 0px -8% 0px",
 }: RevealProps) => {
   const ref = useRef<HTMLElement | null>(null);
   const [visible, setVisible] = useState(false);
@@ -44,26 +72,18 @@ const Reveal = ({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    // SSR/legacy fallback — vis straks i stedet for at risikere skjult indhold.
-    if (typeof IntersectionObserver === "undefined") {
+    const io = getObserver();
+    if (!io) {
       setVisible(true);
       return;
     }
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setVisible(true);
-            io.disconnect(); // kør kun én gang — ingen flicker ved scroll-tilbage
-            break;
-          }
-        }
-      },
-      { threshold, rootMargin },
-    );
+    callbacks.set(el, () => setVisible(true));
     io.observe(el);
-    return () => io.disconnect();
-  }, [threshold, rootMargin]);
+    return () => {
+      io.unobserve(el);
+      callbacks.delete(el);
+    };
+  }, []);
 
   const style: CSSProperties = delay ? { transitionDelay: `${delay}ms` } : {};
 
@@ -76,6 +96,7 @@ const Reveal = ({
       {children}
     </Tag>
   );
-};
+});
+Reveal.displayName = "Reveal";
 
 export default Reveal;
