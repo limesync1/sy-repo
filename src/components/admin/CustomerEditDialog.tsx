@@ -244,7 +244,15 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
             <div className="flex items-center gap-3">
               <div className="relative h-14 w-14 shrink-0 group/avatar">
                 {avatarUrl ? (
-                  <img src={avatarUrl} alt="Profil" className="h-14 w-14 rounded-full object-cover border" />
+                  <img
+                    src={avatarUrl}
+                    alt="Profil"
+                    className="h-14 w-14 rounded-full object-cover border"
+                    width={56}
+                    height={56}
+                    loading="lazy"
+                    decoding="async"
+                  />
                 ) : (
                   <div className="h-14 w-14 rounded-full bg-accent/10 border flex items-center justify-center text-accent">
                     {type === "business" ? <Building2 className="h-6 w-6" /> : <User className="h-6 w-6" />}

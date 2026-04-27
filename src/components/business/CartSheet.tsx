@@ -418,7 +418,15 @@ const CartSheet = () => {
                   {/* Business header */}
                   <div className="flex items-center gap-2.5 mb-3">
                     {group.businessLogoUrl ? (
-                      <img src={group.businessLogoUrl} alt="" className="h-7 w-7 rounded-lg object-contain bg-secondary p-0.5 border border-border" />
+                      <img
+                        src={group.businessLogoUrl}
+                        alt=""
+                        className="h-7 w-7 rounded-lg object-contain bg-secondary p-0.5 border border-border"
+                        width={28}
+                        height={28}
+                        loading="lazy"
+                        decoding="async"
+                      />
                     ) : (
                       <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary border border-border">
                         <Store className="h-3.5 w-3.5 text-muted-foreground" />
@@ -654,7 +662,15 @@ const CartSheet = () => {
                     <div key={bizId} className="px-4 py-2.5 border-b border-border/60 last:border-b-0">
                       <div className="flex items-center gap-2">
                         {group.businessLogoUrl ? (
-                          <img src={group.businessLogoUrl} alt="" className="h-5 w-5 rounded object-contain bg-secondary p-0.5 border border-border" />
+                          <img
+                            src={group.businessLogoUrl}
+                            alt=""
+                            className="h-5 w-5 rounded object-contain bg-secondary p-0.5 border border-border"
+                            width={20}
+                            height={20}
+                            loading="lazy"
+                            decoding="async"
+                          />
                         ) : (
                           <div className="h-5 w-5 rounded bg-secondary flex items-center justify-center"><Store className="h-3 w-3 text-muted-foreground" /></div>
                         )}

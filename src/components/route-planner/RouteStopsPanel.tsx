@@ -375,7 +375,15 @@ const AssigneeToggle = ({
                       {selected && <Check className="h-3 w-3" strokeWidth={3} />}
                     </span>
                     {e.avatar_url ? (
-                      <img src={e.avatar_url} alt={e.name} className="h-5 w-5 rounded-full object-cover" />
+                      <img
+                        src={e.avatar_url}
+                        alt={e.name}
+                        className="h-5 w-5 rounded-full object-cover"
+                        width={20}
+                        height={20}
+                        loading="lazy"
+                        decoding="async"
+                      />
                     ) : (
                       <span
                         className="h-5 w-5 rounded-full inline-flex items-center justify-center text-[10px] font-bold text-white"
