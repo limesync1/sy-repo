@@ -59,6 +59,7 @@ const TONES = [
 
 export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) => {
   const [draft, setDraft] = useState("");
+  const [subject, setSubject] = useState("");
   const [note, setNote] = useState("");
   const [tone, setTone] = useState("professionel");
   const [followUp, setFollowUp] = useState("");
@@ -69,6 +70,7 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
   useEffect(() => {
     if (!lead) return;
     setDraft(lead.ai_draft || "");
+    setSubject(lead.quote_request ? `Tilbud på ${lead.quote_request.category}` : "");
     setNote(lead.business_note || "");
     setFollowUp(lead.follow_up_at ? lead.follow_up_at.slice(0, 16) : "");
     setCopied(false);
@@ -77,7 +79,7 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
   if (!lead) return null;
   const qr = lead.quote_request;
 
-  const generateDraft = async () => {
+  const generateDraft = async (silent = false) => {
     setGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-lead-reply", {
@@ -86,15 +88,25 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
       const d = (data as any)?.draft || "";
+      const s = (data as any)?.subject || "";
       setDraft(d);
+      if (s) setSubject(s);
       onChange({ ...lead, ai_draft: d, ai_draft_generated_at: new Date().toISOString() });
-      toast.success("AI-udkast klar");
+      if (!silent) toast.success("AI-udkast klar");
     } catch (e: any) {
-      toast.error(e?.message || "Kunne ikke generere udkast");
+      if (!silent) toast.error(e?.message || "Kunne ikke generere udkast");
     } finally {
       setGenerating(false);
     }
   };
+
+  // Auto-generér første udkast når dialogen åbnes hvis intet findes endnu
+  useEffect(() => {
+    if (open && lead && !lead.ai_draft && !generating && qr?.description) {
+      generateDraft(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, lead?.id]);
 
   const saveNote = async () => {
     setSaving(true);
@@ -144,8 +156,8 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
   const sendDraftAsEmail = async () => {
     if (!qr?.customer_email) { toast.error("Ingen e-mail på kunden"); return; }
     if (!draft.trim()) { toast.error("Skriv eller generer et udkast først"); return; }
-    const subject = `Tilbud fra Serviceydere — ${qr.category}`;
-    const url = `mailto:${qr.customer_email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(draft)}`;
+    const subj = subject.trim() || `Tilbud på ${qr.category}`;
+    const url = `mailto:${qr.customer_email}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(draft)}`;
     // Save draft + mark contacted
     await supabase
       .from("quote_request_matches")
@@ -175,7 +187,7 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {qr?.customer_name || "Anonym kunde"}
-            <Badge variant="outline" className="gap-1 rounded-md">
+            <Badge variant="outline" className="gap-1 rounded-md pointer-events-none">
               <Sparkles className="h-3 w-3" /> {lead.match_score}/100
             </Badge>
           </DialogTitle>
@@ -229,7 +241,7 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
                   {TONES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Button size="sm" variant="outline" onClick={generateDraft} disabled={generating} className="gap-1.5">
+              <Button size="sm" variant="outline" onClick={() => generateDraft(false)} disabled={generating} className="gap-1.5">
                 {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
                 {draft ? "Generer på ny" : "Generer udkast"}
               </Button>
@@ -239,6 +251,23 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
                 </span>
               )}
             </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Emnelinje</label>
+              <Input
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder="Emne på e-mailen"
+                className="h-9 text-sm"
+              />
+            </div>
+
+            {generating && !draft && (
+              <div className="flex items-center gap-2 rounded-md border border-dashed border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                AI skriver et personligt udkast baseret på forespørgslen…
+              </div>
+            )}
 
             <Textarea
               value={draft}
@@ -340,7 +369,7 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
             </Button>
           )}
           {lead.status !== "declined" && (
-            <Button size="sm" variant="ghost" onClick={() => updateStatus("declined")} className="gap-1.5 text-muted-foreground hover:text-destructive">
+            <Button size="sm" variant="ghost" onClick={() => updateStatus("declined")} className="gap-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
               <XCircle className="h-4 w-4" /> Afvis lead
             </Button>
           )}
