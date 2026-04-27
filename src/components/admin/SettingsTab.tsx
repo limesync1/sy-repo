@@ -573,7 +573,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </Card>
 
         <a
-          href={business.slug ? `/biz/${business.slug}` : "#"}
+          href={business.slug ? `/v/${business.slug}` : "#"}
           target="_blank"
           rel="noopener noreferrer"
           className={`hidden sm:flex items-center gap-1.5 rounded-xl border border-border bg-card px-4 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:border-foreground/30 ${
