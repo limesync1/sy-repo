@@ -1295,7 +1295,9 @@ const ServiceForm = ({
               <div className="py-10 text-center rounded-xl border border-dashed border-border bg-card">
                 <Calculator className="mx-auto h-8 w-8 text-muted-foreground/30" />
                 <p className="mt-3 text-sm text-muted-foreground">
-                  {availableTemplates.length > 0 ? "Vælg en skabelon ovenfor eller tilføj trin manuelt." : "Tilføj trin for at oprette din prisberegner."}
+                  {rankedTemplates.length > 0
+                    ? "Vælg en skabelon ovenfor — eller tryk \"Tilføj trin\" for at bygge selv."
+                    : "Tryk \"Tilføj trin\" for at oprette dit første beregnertrin."}
                 </p>
               </div>
             )}
