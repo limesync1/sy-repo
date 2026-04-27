@@ -290,10 +290,52 @@ const RequestQuote = () => {
               </p>
             </div>
 
+            {/* Step 3: Kontaktoplysninger */}
+            <div className="mt-7">
+              <div className="mb-3 flex items-center gap-2">
+                <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-colors ${
+                  description.trim() ? "bg-foreground text-background" : "bg-secondary text-muted-foreground"
+                }`}>3</span>
+                <label className="text-sm font-semibold text-foreground">Hvor kan virksomhederne nå dig?</label>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="Dit navn"
+                  className="h-11 rounded-xl"
+                />
+                <Input
+                  type="email"
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  placeholder="E-mail"
+                  className="h-11 rounded-xl"
+                />
+                <Input
+                  type="tel"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  placeholder="Telefon (valgfrit)"
+                  className="h-11 rounded-xl sm:col-span-2"
+                />
+              </div>
+              <label className="mt-3 flex cursor-pointer items-start gap-2 text-xs text-muted-foreground">
+                <Checkbox
+                  checked={shareContact}
+                  onCheckedChange={(v) => setShareContact(v === true)}
+                  className="mt-0.5"
+                />
+                <span>
+                  Del mine kontaktoplysninger med de matchede virksomheder, så de kan kontakte mig direkte.
+                </span>
+              </label>
+            </div>
+
             {/* Submit */}
             <Button
               type="submit"
-              disabled={!category || !description.trim()}
+              disabled={!category || !description.trim() || !customerName.trim() || !customerEmail.trim()}
               className="mt-7 h-14 w-full gap-2 rounded-2xl bg-foreground text-base font-semibold text-background hover:bg-foreground/90 active:scale-[0.99] disabled:opacity-50"
             >
               <Sparkles className="h-5 w-5" />
