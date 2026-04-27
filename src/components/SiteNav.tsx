@@ -119,7 +119,7 @@ const SiteNav = ({ active, right }: Props) => {
               height={539}
               decoding="async"
               fetchPriority="high"
-            />
+             loading="lazy"/>
           </Link>
 
           {/* Primær nav — vises fra md+ så tablet ikke ender med tom "Menu"-chip.

@@ -150,7 +150,7 @@ const DynamicBusinessContent = () => {
                 height={539}
                 decoding="async"
                 fetchPriority="high"
-              />
+               loading="lazy"/>
             </Link>
             <Separator orientation="vertical" className="mx-1 h-5 hidden sm:block" />
             <span className="hidden truncate text-sm font-semibold text-foreground sm:inline">{business.name}</span>

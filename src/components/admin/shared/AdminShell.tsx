@@ -234,7 +234,7 @@ export const AdminShell = ({
               height={539}
               decoding="async"
               fetchPriority="high"
-            />
+             loading="lazy"/>
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}

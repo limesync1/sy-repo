@@ -698,7 +698,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                             src={c.avatar_url}
                             alt=""
                             className="h-7 w-7 rounded-full object-cover border border-border shrink-0"
-                          />
+                           loading="lazy" decoding="async"/>
                         ) : (
                           <div className="h-7 w-7 rounded-full bg-secondary border border-border flex items-center justify-center shrink-0">
                             {c.type === "business"
@@ -876,7 +876,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                       src={customer.avatar_url}
                       alt=""
                       className="h-12 w-12 rounded-lg object-cover border border-border shrink-0"
-                    />
+                     loading="lazy" decoding="async"/>
                   ) : (
                     <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center text-base font-semibold text-foreground shrink-0">
                       {customer.type === "business" ? <Building2 className="h-5 w-5" /> : (customer.name?.charAt(0)?.toUpperCase() || "?")}

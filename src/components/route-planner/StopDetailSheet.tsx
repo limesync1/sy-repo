@@ -570,7 +570,7 @@ const TimeSpentSection = ({
                   src={emp.avatar_url}
                   alt={emp.name}
                   className="h-7 w-7 rounded-full object-cover ring-1 ring-border"
-                />
+                 loading="lazy" decoding="async"/>
               ) : (
                 <span
                   className="h-7 w-7 rounded-full ring-1 ring-border inline-flex items-center justify-center text-[11px] font-semibold text-white"
