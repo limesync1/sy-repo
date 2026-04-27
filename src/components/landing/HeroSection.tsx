@@ -18,6 +18,8 @@ const HeroSection = () => {
           width={1280}
           height={960}
           loading="eager"
+          decoding="async"
+          fetchPriority="high"
         />
         {/* Overlay for læsbarhed — lettere end før, men stadig nok til at hvid
             tekst er klart læsbar over varierede partier af baggrundsbilledet.

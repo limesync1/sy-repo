@@ -51,7 +51,7 @@ const Testimonials = () => {
               <div className="border-t border-border pt-4">
                 <div className="text-sm font-semibold text-foreground">{r.reviewer_name}</div>
                 {r.businesses && (
-                  <Link to={`/b/${r.businesses.slug}`} className="mt-1 inline-block text-xs text-muted-foreground hover:text-foreground hover:underline">
+                  <Link to={`/v/${r.businesses.slug}`} className="mt-1 inline-block text-xs text-muted-foreground hover:text-foreground hover:underline">
                     om {r.businesses.name}
                   </Link>
                 )}

@@ -52,9 +52,12 @@ const BusinessSEO = ({
   categories, services,
 }: BusinessSEOProps) => {
   const origin = typeof window !== "undefined" ? window.location.origin : "https://serviceydere.dk";
-  const businessUrl = `${origin}/b/${slug}`;
+  // VIGTIGT: kanonisk URL skal matche den faktiske rute (/v/:slug). Tidligere
+  // pegede vi på /b/ som blot er en legacy-redirect — det forvirrede crawlere.
+  const businessUrl = `${origin}/v/${slug}`;
 
-  const title = `${name}${city ? ` i ${city}` : ""} – Book online`;
+  const primaryCat = categories?.[0];
+  const title = `${name}${city ? ` i ${city}` : ""}${primaryCat ? ` – ${primaryCat}` : ""} | Book online`;
   const desc = description
     ? description.replace(/\s+/g, " ").slice(0, 155).trim()
     : `Book ${name}${city ? ` i ${city}` : ""} online${categories?.length ? ` – ${categories.slice(0, 2).join(", ")}` : ""}. Se priser, anmeldelser og åbningstider på Serviceydere.`;
@@ -133,7 +136,7 @@ const BusinessSEO = ({
     <SEO
       title={title}
       description={desc}
-      canonicalPath={`/b/${slug}`}
+      canonicalPath={`/v/${slug}`}
       image={coverImageUrl || logoUrl || undefined}
       ogType="profile"
       keywords={[name, ...(categories || []), city, "book online", "serviceydere"].filter(Boolean).join(", ")}

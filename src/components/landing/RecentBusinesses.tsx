@@ -24,15 +24,18 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
   const primaryCat = cats[0];
 
   return (
-    <Link to={`/b/${biz.slug}`} className="group flex w-[270px] shrink-0 flex-col gap-3 sm:w-[292px]">
+    <Link to={`/v/${biz.slug}`} className="group flex w-[270px] shrink-0 flex-col gap-3 sm:w-[292px]">
       <article className="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-secondary">
           {biz.cover_image_url ? (
             <img
               src={biz.cover_image_url}
-              alt={biz.name}
+              alt={`${biz.name}${biz.city ? ` – ${biz.city}` : ""}${primaryCat ? `, ${primaryCat}` : ""}`}
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              width={400}
+              height={300}
               loading="lazy"
+              decoding="async"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-secondary">
