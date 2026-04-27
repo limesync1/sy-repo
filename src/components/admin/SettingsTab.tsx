@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import {
   Sparkles, Settings, Bell, Route, Contact, Image as ImageIcon, Clock,
   CheckCircle2, AlertCircle, ArrowRight, Building2, Search, Calculator,
-  CreditCard,
+  CreditCard, XCircle,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
@@ -100,6 +100,86 @@ const ToggleSwitch = forwardRef<
   </button>
 ));
 ToggleSwitch.displayName = "ToggleSwitch";
+
+/* ─── StatusPill — viser "Aktiveret" (grøn) eller "Deaktiveret" (rød)
+ * med smooth crossfade + slide når tilstanden ændres. Bruges i Avanceret-
+ * sektionen til feature-toggles, så brugeren altid kan se den nuværende
+ * status — ikke kun når featuren er slået til. */
+const StatusPill = ({
+  active,
+  activeLabel,
+  inactiveLabel,
+}: {
+  active: boolean;
+  activeLabel: string;
+  inactiveLabel: string;
+}) => {
+  const easing = "cubic-bezier(0.34, 1.56, 0.64, 1)";
+  return (
+    <div
+      style={{
+        transitionTimingFunction: easing,
+        transitionDuration: "420ms",
+        transitionProperty: "background-color, color, box-shadow, border-color",
+      }}
+      className={`mt-2 inline-flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs ${
+        active
+          ? "border-success/30 bg-success/10 text-success shadow-[0_0_0_3px_hsl(var(--success)/0.08)]"
+          : "border-destructive/30 bg-destructive/10 text-destructive shadow-[0_0_0_3px_hsl(var(--destructive)/0.06)]"
+      }`}
+    >
+      {/* Ikon-crossfade — det aktive ikon roterer/skalerer ind, det andet ud. */}
+      <span className="relative inline-flex h-3.5 w-3.5 items-center justify-center">
+        <CheckCircle2
+          style={{
+            transitionTimingFunction: easing,
+            transitionDuration: "400ms",
+          }}
+          className={`absolute h-3.5 w-3.5 ${
+            active ? "opacity-100 scale-100 rotate-0" : "opacity-0 scale-50 -rotate-90"
+          }`}
+        />
+        <XCircle
+          style={{
+            transitionTimingFunction: easing,
+            transitionDuration: "400ms",
+          }}
+          className={`absolute h-3.5 w-3.5 ${
+            active ? "opacity-0 scale-50 rotate-90" : "opacity-100 scale-100 rotate-0"
+          }`}
+        />
+      </span>
+      {/* Tekst-crossfade — to lag stablet, kun ét er synligt ad gangen. */}
+      <span className="relative inline-block min-w-0">
+        <span
+          style={{
+            transitionTimingFunction: easing,
+            transitionDuration: "380ms",
+            transitionProperty: "opacity, transform",
+          }}
+          className={`block font-medium ${
+            active ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1"
+          }`}
+        >
+          {activeLabel}
+        </span>
+        <span
+          aria-hidden={active}
+          style={{
+            transitionTimingFunction: easing,
+            transitionDuration: "380ms",
+            transitionProperty: "opacity, transform",
+          }}
+          className={`absolute inset-0 block font-medium ${
+            active ? "opacity-0 translate-y-1" : "opacity-100 translate-y-0"
+          }`}
+        >
+          {inactiveLabel}
+        </span>
+      </span>
+    </div>
+  );
+};
 
 /* ─── Reveal — collapser børn smooth ind/ud (height + fade + lille slide).
  * Bruges til at vise ekstra detaljer når en feature toggles til, fx en
