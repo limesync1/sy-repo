@@ -715,8 +715,6 @@ const ServiceForm = ({
     existingService?.interval_options || ["engangskøb"]
   );
   const [aiLoading, setAiLoading] = useState(false);
-  const [aiTemplateLoading, setAiTemplateLoading] = useState(false);
-  const [aiAutoTried, setAiAutoTried] = useState(false);
   const [aiDescAutoTried, setAiDescAutoTried] = useState(!!existingService?.description);
 
   const generateAiDescription = async () => {
@@ -749,37 +747,6 @@ const ServiceForm = ({
       toast.error(e?.message || "Kunne ikke generere forslag");
     } finally {
       setAiLoading(false);
-    }
-  };
-
-  const generateAiCalculatorTemplate = async () => {
-    if (!name.trim()) {
-      toast.error("Skriv først et servicenavn");
-      return;
-    }
-    setAiTemplateLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-calculator-template", {
-        body: {
-          serviceName: name.trim(),
-          serviceCategory: serviceCategory || null,
-          subcategory: subcategory || null,
-          businessName: business?.name || null,
-          businessDescription: business?.description || null,
-          businessCategories: Array.isArray(business?.categories) ? business?.categories : null,
-          businessCity: business?.city || null,
-        },
-      });
-      if (error) throw error;
-      if ((data as any)?.error) throw new Error((data as any).error);
-      const aiSteps = Array.isArray((data as any)?.steps) ? (data as any).steps : [];
-      if (aiSteps.length === 0) throw new Error("Tomt svar fra AI");
-      setSteps(aiSteps.map((s: any, i: number) => ({ ...s, sort_order: i })));
-      toast.success("AI-skabelon indsat");
-    } catch (e: any) {
-      toast.error(e?.message || "Kunne ikke generere skabelon");
-    } finally {
-      setAiTemplateLoading(false);
     }
   };
 
