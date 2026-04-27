@@ -108,7 +108,15 @@ export const AdminShell = ({
       >
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/serviceydere-logo-dark.png" alt="Serviceydere" className="h-7" />
+            <img
+              src="/serviceydere-logo-dark.webp"
+              alt="Serviceydere"
+              className="h-7"
+              width="160"
+              height="28"
+              decoding="async"
+              fetchPriority="high"
+            />
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -123,7 +131,15 @@ export const AdminShell = ({
         <div className="mx-3 mt-3 mb-3 shrink-0 rounded-xl border border-border bg-card px-3 py-3 shadow-sm">
           <div className="flex items-center gap-2">
             {business.logo_url ? (
-              <img src={business.logo_url} alt="" className="h-9 w-9 shrink-0 rounded-lg border border-border object-contain bg-background p-1" />
+              <img
+                src={business.logo_url}
+                alt=""
+                className="h-9 w-9 shrink-0 rounded-lg border border-border object-contain bg-background p-1"
+                width="36"
+                height="36"
+                loading="lazy"
+                decoding="async"
+              />
             ) : (
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground font-bold text-sm">
                 {business.name.charAt(0)}

@@ -34,7 +34,19 @@ const EmployeeStats         = lazy(() => import("./pages/EmployeeStats"));
 const ApproveOrder          = lazy(() => import("./pages/ApproveOrder"));
 const BusinessOnboarding    = lazy(() => import("./components/admin/BusinessOnboarding"));
 
-const queryClient = new QueryClient();
+// Sensible cache defaults så fane-skift i virksomhedspanelet føles øjeblikkeligt
+// (cached data vises først, refetch i baggrunden) og vi ikke spammer DB ved hvert
+// window-focus.
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,           // 1 min — undgå unødige refetches mellem fane-skift
+      gcTime: 10 * 60_000,         // 10 min cache i hukommelsen
+      refetchOnWindowFocus: false, // forstyr ikke brugeren ved tab-skift
+      retry: 1,
+    },
+  },
+});
 
 const PageFallback = () => (
   <div className="flex min-h-screen items-center justify-center text-muted-foreground">
