@@ -784,13 +784,12 @@ const ServiceForm = ({
     ? taxonomyTemplates
     : (STEP_TEMPLATES[serviceCategory] || []);
 
-  const totalSteps = pricingType === "prisberegner" ? 5 : 4;
+  const totalSteps = 4;
   const FORM_STEPS = [
     { num: 1, label: "Kategori", color: "bg-blue-500" },
     { num: 2, label: "Detaljer", color: "bg-violet-500" },
     { num: 3, label: "Pris", color: "bg-emerald-500" },
-    ...(pricingType === "prisberegner" ? [{ num: 4, label: "Beregner", color: "bg-amber-500" }] : []),
-    { num: pricingType === "prisberegner" ? 5 : 4, label: "Interval", color: "bg-cyan-500" },
+    { num: 4, label: "Interval", color: "bg-cyan-500" },
   ];
 
   const addStep = () => {
@@ -1085,16 +1084,13 @@ const ServiceForm = ({
               )}
             </div>
           )}
-        </div>
-      )}
 
-      {/* Step 4: Calculator */}
-      {currentStep === 4 && pricingType === "prisberegner" && (
-        <div className="space-y-5">
-          <div>
-            <h4 className="text-base font-semibold text-foreground">Opsæt prisberegner</h4>
-            <p className="mt-1 text-sm text-muted-foreground">Tilføj de trin kunden skal igennem for at beregne prisen</p>
-          </div>
+          {pricingType === "prisberegner" && (
+            <div className="space-y-5 pt-2">
+              <div>
+                <h4 className="text-base font-semibold text-foreground">Opsæt prisberegner</h4>
+                <p className="mt-1 text-sm text-muted-foreground">Tilføj de trin kunden skal igennem for at beregne prisen</p>
+              </div>
 
           {availableTemplates.length > 0 && steps.length === 0 && (
             <div className="surface-admin rounded-xl border border-border/80 p-5 space-y-3">
@@ -1181,6 +1177,8 @@ const ServiceForm = ({
           </div>
 
           <CalculatorPreview steps={steps} />
+            </div>
+          )}
         </div>
       )}
 
