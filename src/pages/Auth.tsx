@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,10 +12,16 @@ const Auth = () => {
   const { user, loading, signIn, signUp } = useAuth();
   const [searchParams] = useSearchParams();
   const mode = searchParams.get("mode");
-  const [isSignUp, setIsSignUp] = useState(false);
+  const signupParam = searchParams.get("signup");
+  const [isSignUp, setIsSignUp] = useState(signupParam === "1");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Sync signUp state with URL param when it changes (e.g. clicking "Opret konto" in nav)
+  useEffect(() => {
+    setIsSignUp(signupParam === "1");
+  }, [signupParam]);
 
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-background">
@@ -55,6 +61,14 @@ const Auth = () => {
   const isCustomer = mode === "customer";
   const isEmployee = mode === "employee";
   const showModeSelector = !mode;
+
+  // Smart greeting: only say "Velkommen tilbage" when actually logging in (not on signup)
+  const heroTitle = isSignUp
+    ? (isBusiness ? "Opret virksomhedskonto" : isEmployee ? "Aktivér medarbejderkonto" : "Opret din konto")
+    : (isBusiness ? "Log ind som virksomhed" : isEmployee ? "Log ind som medarbejder" : "Velkommen tilbage");
+  const heroSub = isSignUp
+    ? "Kom i gang på under et minut"
+    : (isEmployee ? "Brug det login din virksomhed har sendt dig" : "Log ind for at fortsætte");
 
   return (
       <div className="grid min-h-screen bg-background lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
@@ -146,9 +160,15 @@ const Auth = () => {
             {showModeSelector && (
               <div className="space-y-5">
                 <div className="text-center">
-                  <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-muted-foreground">Vælg adgang</span>
-                  <h1 className="mt-4 text-3xl font-bold text-foreground">Velkommen tilbage</h1>
-                  <p className="mt-2 text-sm text-muted-foreground">Vælg hvordan du vil bruge Serviceydere</p>
+                  <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-muted-foreground">
+                    {isSignUp ? "Opret konto" : "Log ind"}
+                  </span>
+                  <h1 className="mt-4 text-3xl font-bold text-foreground">
+                    {isSignUp ? "Kom i gang med Serviceydere" : "Velkommen tilbage"}
+                  </h1>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {isSignUp ? "Vælg hvilken type konto du vil oprette" : "Vælg hvordan du vil logge ind"}
+                  </p>
                 </div>
 
                 <Link to="/log-ind?mode=customer" className="group block">
@@ -220,10 +240,10 @@ const Auth = () => {
                     }
                   </div>
                   <h1 className="text-2xl font-bold text-foreground">
-                    {isSignUp ? "Opret konto" : "Log ind"}
+                    {heroTitle}
                   </h1>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {isBusiness ? "Virksomhedskonto" : isEmployee ? "Medarbejderkonto" : "Kundekonto"} · {isSignUp ? "Kom i gang på få sekunder" : "Velkommen tilbage"}
+                    {heroSub}
                   </p>
                   {isEmployee && !isSignUp && (
                     <p className="mt-2 text-xs text-muted-foreground italic">
