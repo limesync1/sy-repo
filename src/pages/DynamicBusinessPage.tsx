@@ -655,37 +655,6 @@ const DynamicBusinessContent = () => {
 
       <Footer />
 
-      {/* ── Mobile sticky CTA ── 
-          På telefoner er kontakt-knapperne nede i sidebar — der er for langt
-          væk når brugeren scroller services. En fast bar nederst gør det
-          altid 1 tap fra at ringe eller hoppe til services. */}
-      {(business.phone || (services && services.length > 0)) && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-3 py-2 shadow-[0_-12px_30px_-18px_rgba(0,0,0,0.25)] backdrop-blur lg:hidden">
-          <div className="mx-auto flex max-w-3xl items-center gap-2">
-            {business.phone && (
-              <a href={`tel:${business.phone}`} className="flex-1">
-                <Button
-                  variant="outline"
-                  className="h-11 w-full gap-2 rounded-full border-border bg-card text-sm font-semibold text-foreground"
-                >
-                  <Phone className="h-4 w-4" /> Ring
-                </Button>
-              </a>
-            )}
-            {services && services.length > 0 && (
-              <Button
-                onClick={scrollToServices}
-                className="h-11 flex-1 gap-2 rounded-full bg-accent text-sm font-semibold text-accent-foreground shadow-md shadow-accent/20"
-              >
-                <ShoppingCart className="h-4 w-4" />
-                Bestil
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
-      {/* Spacer så sticky-baren ikke dækker bundindholdet på mobil. */}
-      <div className="h-16 lg:hidden" aria-hidden />
     </div>
   );
 };
