@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2,
   AlertCircle, ShoppingCart, Check, ChevronLeft, Clock, ShieldCheck,
-  Building2,
+  Building2, Search, ChevronDown,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -22,6 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
 import { topCategories } from "@/lib/service-taxonomy";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 /** Brug det kanoniske branchekatalog så /tilbud altid matcher
  *  præcis det virksomheder kan registrere sig under. */
@@ -100,6 +101,8 @@ interface MatchedBusiness {
 const RequestQuote = () => {
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [categoryQuery, setCategoryQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [matches, setMatches] = useState<MatchedBusiness[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -112,6 +115,11 @@ const RequestQuote = () => {
   const [customerPhone, setCustomerPhone] = useState("");
   const [shareContact, setShareContact] = useState(true);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+
+  const selectedCategory = CATEGORIES.find((c) => c.key === category);
+  const filteredCategories = CATEGORIES.filter((c) =>
+    c.label.toLowerCase().includes(categoryQuery.trim().toLowerCase())
+  );
 
   const handleFind = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -240,53 +248,105 @@ const RequestQuote = () => {
           <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-12 md:pt-12 md:pb-20">
           {/* Form card */}
           <form onSubmit={handleFind} className="surface-panel mt-4 rounded-[1.5rem] border border-border p-4 shadow-[0_24px_55px_-36px_hsl(var(--foreground)/0.28)] sm:rounded-[2rem] sm:p-6 md:mt-10 md:p-8">
-            {/* Location strip — på mobil bryder hjælpe-teksten på sin egen linje
-                så chip + radius-picker har plads. */}
-            <div className="mb-5 rounded-2xl border border-border bg-card/80 px-3 py-2.5 md:mb-6">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-medium text-muted-foreground">Din lokation:</span>
-                <LocationChip />
-                <RadiusPicker />
-              </div>
-              <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">
-                Vi finder udbydere inden for din valgte radius.
-              </p>
-            </div>
-
-            {/* Step 1: Category */}
+            {/* Step 1: Lokation — fuld step med eget nummer, så det stilmæssigt
+                matcher de øvrige trin. */}
             <div>
               <div className="mb-3 flex items-center gap-2">
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">1</span>
-                <label className="text-sm font-semibold text-foreground">Vælg kategori</label>
+                <label className="text-sm font-semibold text-foreground">Hvor skal opgaven løses?</label>
               </div>
-              <div className="grid grid-cols-2 gap-2 xs:grid-cols-3 sm:grid-cols-5">
-                {CATEGORIES.map(({ label, key, icon }) => {
-                  const active = category === key;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setCategory(key)}
-                     className={`group flex min-h-[76px] flex-col items-center justify-center gap-1.5 rounded-2xl border px-2 py-3 text-center transition-all ${
-                        active
-                          ? "border-foreground bg-foreground text-background shadow-md"
-                          : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:bg-secondary/60 hover:text-foreground"
-                      }`}
-                    >
-                      <span aria-hidden className="text-xl leading-none">{icon}</span>
-                      <span className="text-[11px] font-medium leading-tight break-words hyphens-auto">{label}</span>
-                    </button>
-                  );
-                })}
+              <div className="rounded-2xl border border-border bg-card/80 px-3 py-2.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <LocationChip />
+                  <RadiusPicker />
+                </div>
+                <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">
+                  Vi finder udbydere inden for din valgte radius.
+                </p>
               </div>
             </div>
 
-            {/* Step 2: Description */}
+            {/* Step 2: Category — søgbar dropdown holder feltet kompakt og lader
+                brugeren skrive sig frem i stedet for at scanne 15 ikoner. */}
+            <div className="mt-7">
+              <div className="mb-3 flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">2</span>
+                <label className="text-sm font-semibold text-foreground">Vælg kategori</label>
+              </div>
+              <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex h-12 w-full items-center justify-between gap-2 rounded-2xl border border-border bg-card px-4 text-left text-sm font-medium text-foreground transition-colors hover:border-foreground/30 hover:bg-secondary/40 sm:h-11"
+                  >
+                    <span className="flex min-w-0 items-center gap-2">
+                      {selectedCategory ? (
+                        <>
+                          <span aria-hidden className="text-lg leading-none">{selectedCategory.icon}</span>
+                          <span className="truncate">{selectedCategory.label}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Search className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Søg eller vælg en kategori…</span>
+                        </>
+                      )}
+                    </span>
+                    <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  sideOffset={8}
+                  className="w-[var(--radix-popover-trigger-width)] rounded-2xl border-border bg-card p-0 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.25)]"
+                >
+                  <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                    <input
+                      autoFocus
+                      value={categoryQuery}
+                      onChange={(e) => setCategoryQuery(e.target.value)}
+                      placeholder="Søg kategori…"
+                      className="h-8 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                    />
+                  </div>
+                  <ul className="max-h-[260px] overflow-y-auto py-1">
+                    {filteredCategories.length === 0 && (
+                      <li className="px-4 py-3 text-sm text-muted-foreground">Ingen kategorier matcher.</li>
+                    )}
+                    {filteredCategories.map(({ label, key, icon }) => {
+                      const active = category === key;
+                      return (
+                        <li key={key}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCategory(key);
+                              setCategoryOpen(false);
+                              setCategoryQuery("");
+                            }}
+                            className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition-colors ${
+                              active ? "bg-secondary text-foreground" : "text-foreground hover:bg-secondary/60"
+                            }`}
+                          >
+                            <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-base">{icon}</span>
+                            <span className="flex-1 font-medium">{label}</span>
+                            {active && <Check className="h-4 w-4 text-accent" />}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Step 3: Description */}
             <div className="mt-7">
               <div className="mb-3 flex items-center gap-2">
                 <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-colors ${
                   category ? "bg-foreground text-background" : "bg-secondary text-muted-foreground"
-                }`}>2</span>
+                }`}>3</span>
                 <label className="text-sm font-semibold text-foreground">Beskriv dit behov</label>
               </div>
               <Textarea
@@ -301,12 +361,12 @@ const RequestQuote = () => {
               </p>
             </div>
 
-            {/* Step 3: Kontaktoplysninger */}
+            {/* Step 4: Kontaktoplysninger */}
             <div className="mt-7">
               <div className="mb-1 flex items-center gap-2">
                 <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-colors ${
                   description.trim() ? "bg-foreground text-background" : "bg-secondary text-muted-foreground"
-                }`}>3</span>
+                }`}>4</span>
                 <label className="text-sm font-semibold text-foreground">Hvor kan virksomhederne nå dig?</label>
               </div>
               <p className="mb-4 ml-8 text-xs text-muted-foreground">

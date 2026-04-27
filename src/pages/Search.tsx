@@ -26,6 +26,7 @@ import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
 import { topCategories } from "@/lib/service-taxonomy";
+import SearchSuggest from "@/components/landing/SearchSuggest";
 
 /** Brancher hentes fra det kanoniske taksonomi-katalog så de matcher
  *  præcis det virksomheder kan vælge i panelet. */
@@ -295,8 +296,16 @@ const SearchPage = () => {
         subtitle="Søg på service, virksomhed eller by — sammenlign og book direkte."
       />
 
+      {/* Søgefelt — samme oplevelse som forsiden, så brugeren kan skrive sig
+          frem til en kategori, by eller specifik virksomhed uden at skifte side. */}
+      <div className="mx-auto -mt-6 max-w-7xl px-4 sm:-mt-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl">
+          <SearchSuggest variant="page" defaultQuery={debouncedQuery} showNearLabel={false} />
+        </div>
+      </div>
+
       {/* Sticky filter bar */}
-      <div className="sticky top-14 sm:top-[65px] z-20 border-b border-border bg-background/95 backdrop-blur-md">
+      <div className="sticky top-14 sm:top-[65px] z-20 mt-5 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 overflow-x-auto py-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {CATEGORIES.map((cat) => {

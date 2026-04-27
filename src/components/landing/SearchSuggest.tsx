@@ -160,6 +160,18 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
             }`}
           />
         </div>
+        {/* Vi rendrer to <input> så placeholder kan tilpasses pr. breakpoint
+            (HTML har ikke responsive placeholders). Den korte vises kun på
+            <sm hvor pladsen er trang og lange tekster bliver klippet. */}
+        <input
+          type="text"
+          placeholder={placeholder ?? "Søg service eller by…"}
+          value={q}
+          onChange={(e) => { setQ(e.target.value); setOpen(true); setActiveIdx(-1); }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={onKeyDown}
+          className="h-full min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground sm:hidden"
+        />
         <input
           type="text"
           placeholder={placeholder ?? (nearLabel ? `Søg efter service nær ${nearLabel}…` : "Søg efter service, virksomhed eller by…")}
@@ -167,7 +179,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
           onChange={(e) => { setQ(e.target.value); setOpen(true); setActiveIdx(-1); }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
-          className="h-full min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground"
+          className="hidden h-full min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground sm:block"
         />
         <div className="pr-1.5 sm:pr-2">
           <Button
