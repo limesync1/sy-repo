@@ -2,6 +2,7 @@
 // som Overblik / Aftaler / Kunder / Medarbejdere / Anmeldelser:
 // PageHeader, surface-admin cards, sub-nav chips og konsistent spacing.
 import { useState, useMemo, useEffect, useRef, useCallback, forwardRef } from "react";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -102,6 +103,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   // Stripe Embedded Checkout-dialog samt loading-state for "Administrér kort".
   const [showCheckout, setShowCheckout] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
+  const location = useLocation();
 
   // Hvis brugeren ankommer fra prøveperiode-banneret med ?openCheckout=1,
   // åbner vi automatisk Stripe Embedded Checkout — men kun hvis virksomheden
@@ -116,7 +118,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}${window.location.hash}`;
       window.history.replaceState({}, "", next);
     }
-  }, [plan]);
+  }, [plan, location.search]);
 
   const openCustomerPortal = async () => {
     setOpeningPortal(true);

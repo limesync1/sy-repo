@@ -33,6 +33,9 @@ const EmployeeRoutePrint    = lazy(() => import("./pages/EmployeeRoutePrint"));
 const EmployeeStats         = lazy(() => import("./pages/EmployeeStats"));
 const ApproveOrder          = lazy(() => import("./pages/ApproveOrder"));
 const BusinessOnboarding    = lazy(() => import("./components/admin/BusinessOnboarding"));
+const PrivacyPolicy         = lazy(() => import("./pages/legal/PrivacyPolicy"));
+const Terms                 = lazy(() => import("./pages/legal/Terms"));
+const Cookies               = lazy(() => import("./pages/legal/Cookies"));
 
 // Sensible cache defaults så fane-skift i virksomhedspanelet føles øjeblikkeligt
 // (cached data vises først, refetch i baggrunden) og vi ikke spammer DB ved hvert
@@ -97,6 +100,11 @@ const App = () => (
               <Route path="/v/:slug" element={<DynamicBusinessPage />} />
               <Route path="/demo" element={<BusinessPage />} />
               <Route path="/opret-virksomhed" element={<BusinessOnboarding />} />
+
+              {/* ── Juridiske sider ── */}
+              <Route path="/privatlivspolitik" element={<PrivacyPolicy />} />
+              <Route path="/vilkaar" element={<Terms />} />
+              <Route path="/cookies" element={<Cookies />} />
 
               {/* ── Legacy redirects (preserve bookmarks & SEO) ── */}
               <Route path="/auth" element={<RedirectWithQuery to="/log-ind" />} />
