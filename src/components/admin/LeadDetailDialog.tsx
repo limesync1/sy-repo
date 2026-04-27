@@ -76,10 +76,8 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
     setCopied(false);
   }, [lead?.id]);
 
-  if (!lead) return null;
-  const qr = lead.quote_request;
-
   const generateDraft = async (silent = false) => {
+    if (!lead) return;
     setGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-lead-reply", {
@@ -102,11 +100,14 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
 
   // Auto-generér første udkast når dialogen åbnes hvis intet findes endnu
   useEffect(() => {
-    if (open && lead && !lead.ai_draft && !generating && qr?.description) {
+    if (open && lead && !lead.ai_draft && !generating && lead.quote_request?.description) {
       generateDraft(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, lead?.id]);
+
+  if (!lead) return null;
+  const qr = lead.quote_request;
 
   const saveNote = async () => {
     setSaving(true);
