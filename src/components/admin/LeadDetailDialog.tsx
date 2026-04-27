@@ -587,7 +587,7 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
           </TabsContent>
 
           {/* Follow up tab */}
-          <TabsContent value="followup" className="space-y-4 animate-slide-up-fade">
+          <TabsContent value="followup" className="space-y-4">
             <FollowUpEditor
               value={followUp}
               onChange={setFollowUp}
