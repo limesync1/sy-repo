@@ -653,6 +653,7 @@ const ServiceForm = ({
   onClose: () => void;
 }) => {
   const { user } = useAuth();
+  const { data: business } = useMyBusiness();
   const createService = useCreateService();
   const updateService = useUpdateService();
   const upsertSteps = useUpsertCalculatorSteps();
@@ -672,6 +673,39 @@ const ServiceForm = ({
   const [intervalOptions, setIntervalOptions] = useState<string[]>(
     existingService?.interval_options || ["engangskøb"]
   );
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const generateAiDescription = async () => {
+    if (!name.trim()) {
+      toast.error("Skriv først et servicenavn");
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-service-description", {
+        body: {
+          serviceName: name.trim(),
+          serviceCategory: serviceCategory || null,
+          subcategory: subcategory || null,
+          pricingType,
+          businessName: business?.name || null,
+          businessDescription: business?.description || null,
+          businessCategories: Array.isArray(business?.categories) ? business?.categories : null,
+          businessCity: business?.city || null,
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const text = ((data as any)?.description ?? "").trim();
+      if (!text) throw new Error("Tomt svar fra AI");
+      setDescription(text);
+      toast.success("AI-forslag indsat");
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke generere forslag");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const ALL_INTERVALS = [
     { value: "engangskøb", label: "Engangskøb" },
