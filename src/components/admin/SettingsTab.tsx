@@ -78,18 +78,67 @@ const ToggleSwitch = forwardRef<
     type="button"
     onClick={onChange}
     aria-pressed={checked}
-    className={`relative mt-0.5 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${
-      checked ? "bg-accent" : "bg-border"
+    style={{
+      transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+      transitionDuration: "320ms",
+      transitionProperty: "background-color, box-shadow",
+    }}
+    className={`relative mt-0.5 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full ${
+      checked ? "bg-accent shadow-[0_0_0_3px_hsl(var(--accent)/0.18)]" : "bg-border"
     }`}
   >
     <span
-      className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm transition-transform mt-0.5 ${
+      style={{
+        transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+        transitionDuration: "380ms",
+        transitionProperty: "transform",
+      }}
+      className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm mt-0.5 ${
         checked ? "translate-x-4 ml-0.5" : "translate-x-0.5"
       }`}
     />
   </button>
 ));
 ToggleSwitch.displayName = "ToggleSwitch";
+
+/* ─── Reveal — collapser børn smooth ind/ud (height + fade + lille slide).
+ * Bruges til at vise ekstra detaljer når en feature toggles til, fx en
+ * "Aktiveret" badge eller info-bokse i Avanceret-sektionen. */
+const Reveal = ({
+  open,
+  children,
+  className,
+}: {
+  open: boolean;
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <div
+    style={{
+      transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+      transitionDuration: "420ms",
+      transitionProperty: "grid-template-rows, opacity, margin, filter",
+    }}
+    className={`grid ${
+      open
+        ? "grid-rows-[1fr] opacity-100 mt-2 blur-0"
+        : "grid-rows-[0fr] opacity-0 mt-0 blur-[2px]"
+    } ${className ?? ""}`}
+  >
+    <div
+      style={{
+        transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+        transitionDuration: "500ms",
+        transitionDelay: open ? "60ms" : "0ms",
+      }}
+      className={`overflow-hidden ${
+        open ? "translate-x-0" : "-translate-x-2"
+      } transition-transform`}
+    >
+      {children}
+    </div>
+  </div>
+);
 
 const SettingsTab = ({ business }: { business: any }) => {
   const updateBiz = useUpdateBusiness();
@@ -1093,6 +1142,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       Tilføjer "Medarbejdere"-fanen og giver adgang til ruteplanlæggeren — opret medarbejder-konti og planlæg daglige ruter med stop hos kunder. Kan optimeres med AI baseret på afstand, tidsvinduer og prioriteter.
                     </p>
+                    <Reveal open={routePlanningEnabled}>
+                      <div className="flex items-center gap-2 rounded-md bg-accent/10 px-2.5 py-1.5 text-xs text-accent">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        <span className="font-medium">Aktiveret — “Medarbejdere” og “Ruter” er tilføjet til menuen</span>
+                      </div>
+                    </Reveal>
                   </div>
                 </div>
                 <ToggleSwitch checked={routePlanningEnabled} onChange={() => setRoutePlanningEnabled((v) => !v)} />
@@ -1120,6 +1175,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       Forbind din konto med dit regnskabsprogram (fx e-conomic, Dinero eller Billy), så fakturaer og betalinger automatisk synkroniseres. Når funktionen er klar, aktiveres den automatisk for dig — du kan altid slå den fra igen her.
                     </p>
+                    <Reveal open={accountingIntegrationEnabled}>
+                      <div className="flex items-center gap-2 rounded-md bg-accent/10 px-2.5 py-1.5 text-xs text-accent">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        <span className="font-medium">Aktiveret — vi giver dig besked så snart integrationen er klar</span>
+                      </div>
+                    </Reveal>
                   </div>
                 </div>
                 <ToggleSwitch checked={accountingIntegrationEnabled} onChange={() => setAccountingIntegrationEnabled((v) => !v)} />
@@ -1140,6 +1201,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       Når slået til vises Leads-fanen i din navigation, og du modtager automatisk relevante kundeforespørgsler fra "Indhent 3 tilbud" der matcher dine brancher og dit område. Du kan altid slå funktionen fra igen.
                     </p>
+                    <Reveal open={leadsEnabled}>
+                      <div className="flex items-center gap-2 rounded-md bg-accent/10 px-2.5 py-1.5 text-xs text-accent">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        <span className="font-medium">Aktiveret — “Leads” er tilføjet til menuen, og I modtager nye matches</span>
+                      </div>
+                    </Reveal>
                   </div>
                 </div>
                 <ToggleSwitch checked={leadsEnabled} onChange={() => setLeadsEnabled((v) => !v)} />
