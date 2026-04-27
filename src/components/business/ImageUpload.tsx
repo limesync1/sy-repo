@@ -14,7 +14,54 @@ interface Props {
   objectFit?: "cover" | "contain";
   /** Vis hjælpetekst ("Klik for at uploade") under ikonet — default false. */
   showHint?: boolean;
+  /** Maks bredde/højde i pixels for komprimeret upload — default 1600 */
+  maxDimension?: number;
+  /** WebP kvalitet 0-1 — default 0.82 */
+  quality?: number;
 }
+
+/**
+ * Komprimer billede client-side til WebP via canvas.
+ * Reducerer typisk filstørrelse med 60-80% og indlæser hurtigere på alle sider.
+ */
+const compressToWebP = (file: File, maxDim: number, quality: number): Promise<Blob> =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      try {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          const ratio = Math.min(maxDim / width, maxDim / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas context utilgængelig");
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            URL.revokeObjectURL(url);
+            if (!blob) return reject(new Error("Konvertering mislykkedes"));
+            resolve(blob);
+          },
+          "image/webp",
+          quality,
+        );
+      } catch (err) {
+        URL.revokeObjectURL(url);
+        reject(err);
+      }
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Kunne ikke indlæse billede"));
+    };
+    img.src = url;
+  });
 
 const ImageUpload = ({
   bucket = "business-assets",
@@ -26,6 +73,8 @@ const ImageUpload = ({
   aspectRatio = "aspect-square",
   objectFit = "cover",
   showHint = false,
+  maxDimension = 1600,
+  quality = 0.82,
 }: Props) => {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentUrl || null);
@@ -40,19 +89,33 @@ const ImageUpload = ({
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Billedet må max være 5MB");
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("Billedet må max være 15MB");
       return;
     }
 
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop() || "png";
+      // SVG kan ikke komprimeres via canvas — upload originalt
+      let uploadBody: Blob | File = file;
+      let ext = "webp";
+      if (file.type === "image/svg+xml") {
+        ext = "svg";
+      } else {
+        try {
+          uploadBody = await compressToWebP(file, maxDimension, quality);
+        } catch (err) {
+          console.warn("WebP-komprimering fejlede, uploader original", err);
+          uploadBody = file;
+          ext = file.name.split(".").pop() || "png";
+        }
+      }
       const fileName = `${folder}/${Date.now()}.${ext}`;
 
-      const { error } = await supabase.storage.from(bucket).upload(fileName, file, {
-        cacheControl: "3600",
+      const { error } = await supabase.storage.from(bucket).upload(fileName, uploadBody, {
+        cacheControl: "31536000",
         upsert: true,
+        contentType: ext === "webp" ? "image/webp" : (ext === "svg" ? "image/svg+xml" : file.type),
       });
 
       if (error) throw error;
