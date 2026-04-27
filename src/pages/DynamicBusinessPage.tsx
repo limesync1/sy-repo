@@ -539,9 +539,12 @@ const DynamicBusinessContent = () => {
             )}
           </div>
 
-          {/* ── Sidebar ── */}
-          <aside className="order-first space-y-4 lg:order-none lg:sticky lg:top-24 lg:self-start">
-            {/* Bestil/Contact Card — primary CTA */}
+          {/* ── Sidebar ──
+              Vises kun på desktop (lg+). På tablet/mobil findes der allerede
+              en "Ring nu"-knap i hero og en sticky bestil-bar i bunden, så
+              denne sidebar ville være redundant og fylde top af siden. */}
+          <aside className="hidden space-y-4 lg:block lg:sticky lg:top-24 lg:self-start">
+            {/* Bestil/Contact Card — primary CTA (desktop only) */}
              <Card className="overflow-hidden rounded-[2rem] border border-border shadow-[0_22px_50px_-34px_hsl(var(--foreground)/0.22)]">
                <div className="border-b border-accent/15 bg-accent/5 px-5 py-5">
                 <div className="flex items-center gap-2">
@@ -552,7 +555,7 @@ const DynamicBusinessContent = () => {
                 {services && services.length > 0 && (
                   <Button
                     onClick={scrollToServices}
-                    className="mt-3 hidden h-11 w-full gap-2 rounded-xl bg-accent text-sm font-semibold text-accent-foreground shadow-md shadow-accent/20 transition-all hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/30 active:scale-[0.98] lg:flex"
+                    className="mt-3 flex h-11 w-full gap-2 rounded-xl bg-accent text-sm font-semibold text-accent-foreground shadow-md shadow-accent/20 transition-all hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/30 active:scale-[0.98]"
                   >
                     Se {serviceCount} service{serviceCount === 1 ? "" : "s"} <ArrowDown className="h-4 w-4" />
                   </Button>
