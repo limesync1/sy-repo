@@ -22,15 +22,10 @@ export type AdminTabKey =
   | "routes" | "employees" | "reviews" | "leads" | "settings";
 
 /**
- * Animeret sidebar-item: collapser smooth ind/ud (height + fade + scale)
- * når en feature toggles til/fra i Indstillinger.
- *
- * Animationen bruger flere lag for et rigt, "produkt-grade" indtryk:
- * - height collapse via grid-rows trick
- * - opacity + translateX + scale + blur kombineret
- * - cubic-bezier "spring-like" easing
- * - fra-højre slide-in for nye items, til-venstre slide-out når de fjernes
- * - lille farve-puls første gang itemet vises (subtle accent flash)
+ * Animeret sidebar-item: collapser stille ind/ud når en feature toggles
+ * til/fra i Indstillinger. Bevidst minimal — kun height + opacity.
+ * Ingen rotation, blur, scale eller pulse: det forvirrede brugeren fordi
+ * det signalerede "noget vigtigt skete" hver gang en menu blev hentet.
  */
 const AnimatedNavItem = ({
   visible, isActive, item, onClick, onPrefetch,
@@ -43,11 +38,10 @@ const AnimatedNavItem = ({
 }) => {
   const [shouldRender, setShouldRender] = useState(visible);
   const [open, setOpen] = useState(visible);
-  const [pulse, setPulse] = useState(false);
   const firstRender = useRef(true);
 
-  // Spring-lignende easing — overshoot let så det føles "levende".
-  const easing = "cubic-bezier(0.34, 1.56, 0.64, 1)";
+  // Standard ease-out — samme tempo som resten af UI'et (popovers, dialoger).
+  const easing = "cubic-bezier(0.22, 1, 0.36, 1)";
 
   useEffect(() => {
     if (firstRender.current) {
@@ -58,14 +52,12 @@ const AnimatedNavItem = ({
     }
     if (visible) {
       setShouldRender(true);
-      // To frames forsinkelse: lader DOM'en montere i lukket tilstand,
-      // så transitionen kan køre hele vejen fra start til mål.
+      // To frames forsinkelse så DOM'en når at montere i lukket tilstand,
+      // og transitionen kan køre fra start til mål.
       let id2 = 0;
       const id1 = requestAnimationFrame(() => {
         id2 = requestAnimationFrame(() => {
           setOpen(true);
-          setPulse(true);
-          window.setTimeout(() => setPulse(false), 900);
         });
       });
       return () => {
@@ -74,7 +66,7 @@ const AnimatedNavItem = ({
       };
     } else {
       setOpen(false);
-      const t = setTimeout(() => setShouldRender(false), 480);
+      const t = setTimeout(() => setShouldRender(false), 220);
       return () => clearTimeout(t);
     }
   }, [visible]);
@@ -85,65 +77,32 @@ const AnimatedNavItem = ({
     <div
       style={{
         transitionTimingFunction: easing,
-        transitionDuration: "460ms",
-        transitionProperty: "grid-template-rows, opacity, margin, filter",
+        transitionDuration: "200ms",
+        transitionProperty: "grid-template-rows, opacity, margin",
       }}
       className={cn(
         "grid",
         open
-          ? "grid-rows-[1fr] opacity-100 mt-1 first:mt-0 blur-0"
-          : "grid-rows-[0fr] opacity-0 mt-0 blur-[2px]",
+          ? "grid-rows-[1fr] opacity-100 mt-1 first:mt-0"
+          : "grid-rows-[0fr] opacity-0 mt-0",
       )}
     >
-      {/* Når åben: tillad ring/shadow at vises uden at blive klippet.
-          Når lukket: clip indhold så høj-collapsen ser rent ud. */}
       <div className={cn(open ? "overflow-visible" : "overflow-hidden")}>
         <button
           onClick={onClick}
           onMouseEnter={onPrefetch}
           onFocus={onPrefetch}
           onTouchStart={onPrefetch}
-          style={{
-            transitionTimingFunction: easing,
-            transitionDuration: "500ms",
-            transitionProperty: "transform, opacity, background-color, color, box-shadow",
-          }}
           className={cn(
-            "flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-left origin-left",
-            open
-              ? "translate-x-0 scale-100 opacity-100"
-              : "-translate-x-3 scale-[0.92] opacity-0",
-            pulse && "ring-2 ring-accent/40",
+            "flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-left",
+            "transition-colors duration-150 ease-out",
             isActive
               ? "bg-secondary text-foreground shadow-sm ring-1 ring-border"
               : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
           )}
         >
-          <item.icon
-            style={{
-              transitionTimingFunction: easing,
-              transitionDuration: "600ms",
-              transitionDelay: open ? "120ms" : "0ms",
-            }}
-            className={cn(
-              "h-4 w-4 shrink-0 transition-transform",
-              open ? "rotate-0 scale-100" : "-rotate-45 scale-75",
-            )}
-          />
-          <span
-            style={{
-              transitionTimingFunction: easing,
-              transitionDuration: "550ms",
-              transitionDelay: open ? "80ms" : "0ms",
-              transitionProperty: "opacity, transform",
-            }}
-            className={cn(
-              "inline-block",
-              open ? "translate-x-0 opacity-100" : "-translate-x-1 opacity-0",
-            )}
-          >
-            {item.label}
-          </span>
+          <item.icon className="h-4 w-4 shrink-0" />
+          <span>{item.label}</span>
         </button>
       </div>
     </div>
