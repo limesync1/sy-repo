@@ -24,7 +24,7 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
   const primaryCat = cats[0];
 
   return (
-    <Link to={`/b/${biz.slug}`} className="group flex w-[270px] shrink-0 flex-col gap-3 sm:w-[292px]">
+    <Link to={`/v/${biz.slug}`} className="group flex w-[270px] shrink-0 flex-col gap-3 sm:w-[292px]">
       <article className="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-secondary">
           {biz.cover_image_url ? (
