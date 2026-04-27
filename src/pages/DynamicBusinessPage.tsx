@@ -7,9 +7,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 import { useState, useMemo } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft, Star, Mail, Phone, MapPin, Clock, CheckCircle,
-  ArrowDown, Sparkles, BadgeCheck,
+  ArrowDown, Sparkles, BadgeCheck, ShoppingCart,
 } from "lucide-react";
 import Footer from "@/components/landing/Footer";
 
@@ -83,14 +84,7 @@ const DynamicBusinessContent = () => {
     [categoryEntries, shouldUseCompactCategoryGrid]
   );
 
-  if (isLoading) return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="flex flex-col items-center gap-3">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-accent border-t-transparent" />
-        <span className="text-sm text-muted-foreground">Indlæser virksomhed...</span>
-      </div>
-    </div>
-  );
+  if (isLoading) return <BusinessPageSkeleton />;
 
   if (error || !business) return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4">
@@ -325,10 +319,10 @@ const DynamicBusinessContent = () => {
 
                 {/* Category filter pills */}
                  {hasMultipleCategories && (
-                   <div className="mb-5 flex flex-wrap gap-2">
+                   <div className="mb-5 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     <button
                       onClick={() => setActiveCategory(null)}
-                      className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all ${
+                      className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition-all ${
                         !activeCategory
                           ? "border-accent bg-accent text-accent-foreground shadow-sm"
                           : "border-border bg-card text-muted-foreground hover:border-accent/40 hover:text-foreground"
@@ -340,7 +334,7 @@ const DynamicBusinessContent = () => {
                       <button
                         key={cat}
                         onClick={() => setActiveCategory(cat === activeCategory ? null : cat)}
-                        className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all ${
+                        className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition-all ${
                           activeCategory === cat
                             ? "border-accent bg-accent text-accent-foreground shadow-sm"
                             : "border-border bg-card text-muted-foreground hover:border-accent/40 hover:text-foreground"
