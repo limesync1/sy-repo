@@ -154,73 +154,73 @@ const Auth = () => {
         </div>
 
         <div className="flex flex-1 items-center justify-center px-4 pb-12 pt-2 sm:px-6 lg:px-10">
-          <div className="w-full max-w-md space-y-5">
+          <div className="w-full max-w-md space-y-6">
 
             {/* ── Mode Selector ── */}
             {showModeSelector && (
-              <div className="space-y-5">
-                <div className="text-center">
-                  <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-muted-foreground">
-                    {isSignUp ? "Opret konto" : "Log ind"}
-                  </span>
-                  <h1 className="mt-4 text-3xl font-bold text-foreground">
-                    {isSignUp ? "Kom i gang med Serviceydere" : "Velkommen tilbage"}
+              <div className="space-y-6">
+                {/* Toggle: Log ind / Opret konto — skifter URL-param så formen
+                    også reagerer korrekt når brugeren senere vælger en type. */}
+                <div className="flex rounded-full border border-border bg-secondary/50 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsSignUp(false)}
+                    className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
+                      !isSignUp ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Log ind
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsSignUp(true)}
+                    className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
+                      isSignUp ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Opret konto
+                  </button>
+                </div>
+
+                <div>
+                  <h1 className="text-[2rem] font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
+                    {isSignUp ? "Kom i gang." : "Velkommen tilbage."}
                   </h1>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {isSignUp ? "Vælg hvilken type konto du vil oprette" : "Vælg hvordan du vil logge ind"}
+                    {isSignUp
+                      ? "Vælg hvilken type konto du vil oprette."
+                      : "Vælg hvordan du logger ind."}
                   </p>
                 </div>
 
-                <Link to="/log-ind?mode=customer" className="group block">
-                  <Card className="overflow-hidden border-border/70 bg-card transition-all group-hover:-translate-y-0.5 group-hover:border-accent/30 group-hover:shadow-[0_18px_40px_-24px_hsl(var(--foreground)/0.3)]">
-                    <CardContent className="flex items-center gap-4 p-5">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent/10 transition-colors group-hover:bg-accent/15">
-                        <User className="h-6 w-6 text-accent" />
+                <div className="space-y-3">
+                  {[
+                    { to: `/log-ind?mode=customer${isSignUp ? "&signup=1" : ""}`, icon: User, title: "Privat / kunde", sub: isSignUp ? "Find og bestil services hos verificerede udbydere" : "Log ind på din kundekonto", tone: "accent" },
+                    { to: `/log-ind?mode=business${isSignUp ? "&signup=1" : ""}`, icon: Building2, title: "Virksomhed", sub: isSignUp ? "Tilbyd dine services og få nye kunder" : "Administrer services og bestillinger", tone: "foreground" },
+                    { to: `/log-ind?mode=employee${isSignUp ? "&signup=1" : ""}`, icon: HardHat, title: "Medarbejder", sub: isSignUp ? "Aktivér din invitation fra arbejdsgiveren" : "Se dine ruter og opgaver", tone: "muted" },
+                  ].map((opt) => (
+                    <Link key={opt.to} to={opt.to} className="group block">
+                      <div className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-[0_18px_40px_-24px_hsl(var(--foreground)/0.25)]">
+                        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
+                          opt.tone === "accent" ? "bg-accent/10 text-accent" : opt.tone === "foreground" ? "bg-foreground/5 text-foreground" : "bg-secondary text-foreground"
+                        }`}>
+                          <opt.icon className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-[15px] font-semibold text-foreground">{opt.title}</h3>
+                          <p className="mt-0.5 text-xs text-muted-foreground">{opt.sub}</p>
+                        </div>
+                        <ArrowLeft className="h-4 w-4 rotate-180 text-muted-foreground/40 transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground">Jeg er kunde</h3>
-                        <p className="text-sm text-muted-foreground">Find og bestil services</p>
-                      </div>
-                      <ArrowLeft className="h-4 w-4 rotate-180 text-muted-foreground/40 transition-transform group-hover:translate-x-1 group-hover:text-foreground" />
-                    </CardContent>
-                  </Card>
-                </Link>
-
-                <Link to="/log-ind?mode=business" className="group block">
-                  <Card className="overflow-hidden border-border/70 bg-card transition-all group-hover:-translate-y-0.5 group-hover:border-foreground/20 group-hover:shadow-[0_18px_40px_-24px_hsl(var(--foreground)/0.3)]">
-                    <CardContent className="flex items-center gap-4 p-5">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-foreground/5 transition-colors group-hover:bg-foreground/10">
-                        <Building2 className="h-6 w-6 text-foreground" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground">Jeg er virksomhed</h3>
-                        <p className="text-sm text-muted-foreground">Administrer services og kunder</p>
-                      </div>
-                      <ArrowLeft className="h-4 w-4 rotate-180 text-muted-foreground/40 transition-transform group-hover:translate-x-1 group-hover:text-foreground" />
-                    </CardContent>
-                  </Card>
-                </Link>
-
-                <Link to="/log-ind?mode=employee" className="group block">
-                  <Card className="overflow-hidden border-border/70 bg-card transition-all group-hover:-translate-y-0.5 group-hover:border-accent/25 group-hover:shadow-[0_18px_40px_-24px_hsl(var(--foreground)/0.3)]">
-                    <CardContent className="flex items-center gap-4 p-5">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-secondary transition-colors group-hover:bg-accent/10">
-                        <HardHat className="h-6 w-6 text-foreground" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground">Jeg er medarbejder</h3>
-                        <p className="text-sm text-muted-foreground">Se mine ruter og opgaver</p>
-                      </div>
-                      <ArrowLeft className="h-4 w-4 rotate-180 text-muted-foreground/40 transition-transform group-hover:translate-x-1 group-hover:text-foreground" />
-                    </CardContent>
-                  </Card>
-                </Link>
+                    </Link>
+                  ))}
+                </div>
 
                 {/* Trust line */}
-                <div className="flex items-center justify-center gap-4 pt-2 text-xs text-muted-foreground/60">
-                  <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Gratis</span>
-                  <span className="flex items-center gap-1"><ShieldCheck className="h-3 w-3" /> Sikker</span>
-                  <span className="flex items-center gap-1"><Star className="h-3 w-3" /> Dansk</span>
+                <div className="flex items-center justify-center gap-5 pt-1 text-xs text-muted-foreground/70">
+                  <span className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-accent" /> Gratis</span>
+                  <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-accent" /> Sikker</span>
+                  <span className="flex items-center gap-1.5"><Star className="h-3.5 w-3.5 text-accent" /> Dansk</span>
                 </div>
               </div>
             )}
