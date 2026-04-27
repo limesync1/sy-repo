@@ -201,10 +201,6 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
     window.location.href = url;
   };
 
-  if (loading) {
-    return <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
-  }
-
   const allLeads = leads || [];
 
   // Counts pr. status
@@ -244,6 +240,10 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
       );
     });
   }, [allLeads, filter, categoryFilter, search]);
+
+  if (loading) {
+    return <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
+  }
 
   return (
     <div className="space-y-5">
