@@ -395,8 +395,8 @@ const Auth = () => {
                 {isSignUp && (
                   <p className="text-center text-xs leading-5 text-muted-foreground/80">
                     Ved at oprette en konto accepterer du vores{" "}
-                    <Link to="/legal/handelsbetingelser" className="underline-offset-2 hover:text-foreground hover:underline">vilkår</Link>{" "}og{" "}
-                    <Link to="/legal/privatlivspolitik" className="underline-offset-2 hover:text-foreground hover:underline">privatlivspolitik</Link>.
+                    <Link to="/vilkaar" className="underline-offset-2 hover:text-foreground hover:underline">vilkår</Link>{" "}og{" "}
+                    <Link to="/privatlivspolitik" className="underline-offset-2 hover:text-foreground hover:underline">privatlivspolitik</Link>.
                   </p>
                 )}
 
