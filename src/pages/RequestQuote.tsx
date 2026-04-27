@@ -472,9 +472,9 @@ const RequestQuote = () => {
                     </div>
                   )}
 
-                  <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-start sm:gap-5 sm:p-6">
+                  <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:gap-5 sm:p-6">
                     {/* Cover with logo overlay */}
-                    <div className="relative h-24 w-full shrink-0 overflow-hidden rounded-xl bg-secondary sm:h-28 sm:w-28">
+                    <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-xl bg-secondary sm:h-28 sm:w-28">
                       {match.business.cover_image_url ? (
                         <img
                           src={match.business.cover_image_url}
@@ -520,8 +520,8 @@ const RequestQuote = () => {
 
                     {/* Main */}
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-start justify-between gap-2">
-                        <div className="min-w-0">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             {match.business.logo_url && match.business.cover_image_url && (
                               <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-card p-0.5 sm:hidden">
@@ -536,7 +536,7 @@ const RequestQuote = () => {
                                 />
                               </div>
                             )}
-                            <h3 className="truncate text-lg font-bold text-foreground">{match.business.name}</h3>
+                            <h3 className="min-w-0 truncate text-base font-bold text-foreground sm:text-lg">{match.business.name}</h3>
                             {match.business.is_verified && (
                               <BadgeCheck className="h-4 w-4 shrink-0 text-accent" />
                             )}
@@ -556,9 +556,9 @@ const RequestQuote = () => {
                           </div>
                         </div>
 
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-foreground">{match.estimated_price}</div>
-                          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Estimeret</div>
+                        <div className="shrink-0 text-right">
+                          <div className="text-base font-bold text-foreground sm:text-lg">{match.estimated_price}</div>
+                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground sm:text-[11px]">Estimeret</div>
                         </div>
                       </div>
 
