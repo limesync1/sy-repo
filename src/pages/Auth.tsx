@@ -105,14 +105,7 @@ const Auth = () => {
         </div>
 
         <div className="relative z-10 max-w-lg">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/85 backdrop-blur-md">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
-            </span>
-            Live på Serviceydere
-          </div>
-          <h2 className="mt-6 text-4xl font-bold leading-[1.1] tracking-tight text-white xl:text-5xl">
+          <h2 className="text-4xl font-bold leading-[1.1] tracking-tight text-white xl:text-5xl">
             Saml booking, kunder<br />
             og drift <span className="text-accent">ét sted.</span>
           </h2>
@@ -152,7 +145,7 @@ const Auth = () => {
           </div>
         </div>
 
-        <p className="relative z-10 text-xs text-white/30">© {new Date().getFullYear()} Serviceydere · Made in Denmark</p>
+        <p className="relative z-10 text-xs text-white/30">© {new Date().getFullYear()} Serviceydere</p>
       </div>
 
       {/* ── Right: Auth form ── */}
