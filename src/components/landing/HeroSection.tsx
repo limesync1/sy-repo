@@ -8,7 +8,7 @@ import SiteNav from "@/components/SiteNav";
 
 const HeroSection = () => {
   return (
-    <header className="relative z-10 bg-foreground text-background">
+    <header className="relative z-30 isolate bg-foreground text-background">
       {/* Baggrundsbillede — clipped i sit eget lag, så søgeforslag kan flyde ud over hero-kanten */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <img
