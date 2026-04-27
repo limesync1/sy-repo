@@ -429,13 +429,14 @@ const SettingsTab = ({ business }: { business: any }) => {
       ...((business.settings as any) || {}),
       route_planning_enabled: routePlanningEnabled,
       accounting_integration_enabled: accountingIntegrationEnabled,
+      leads_enabled: leadsEnabled,
       selected_subcategories: selectedSubcategories,
     },
   }), [
     business.id, business.name, business.settings,
     name, description, phone, email, address, city, zipCode,
     logoUrl, coverUrl, selectedCategories, selectedSubcategories,
-    openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled,
+    openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled,
   ]);
 
   useEffect(() => {
