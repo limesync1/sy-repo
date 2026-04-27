@@ -23,20 +23,16 @@ export const PageHeader = ({
   action?: React.ReactNode;
   className?: string;
 }) => (
-  <div className={cn("flex items-start justify-between gap-3 flex-wrap animate-slide-down-fade", className)}>
+  // Stille indgang: hele headeren fader ind sammen — ingen staggered jitter
+  // af titel/beskrivelse/action på hver navigation. Det føles roligt.
+  <div className={cn("flex items-start justify-between gap-3 flex-wrap animate-fade-in-soft", className)}>
     <div className="min-w-0">
       <h2 className="text-lg font-semibold text-foreground tracking-tight">{title}</h2>
       {description && (
-        <p className="mt-0.5 text-sm text-muted-foreground animate-slide-down-fade [animation-delay:60ms]">
-          {description}
-        </p>
+        <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
       )}
     </div>
-    {action && (
-      <div className="w-full sm:w-auto sm:shrink-0 animate-slide-down-fade [animation-delay:120ms]">
-        {action}
-      </div>
-    )}
+    {action && <div className="w-full sm:w-auto sm:shrink-0">{action}</div>}
   </div>
 );
 
@@ -51,8 +47,9 @@ export const PrimaryButton = React.forwardRef<
     ref={ref}
     className={cn(
       "h-9 rounded-lg bg-foreground text-background hover:bg-foreground/90 text-sm font-medium px-4 shadow-sm",
-      "transition-all duration-200 ease-out hover:shadow-md hover:-translate-y-px active:translate-y-0 active:scale-[0.98]",
-      "[&_svg]:transition-transform [&_svg]:duration-200 hover:[&_svg]:scale-110",
+      // Holdt simpelt: kun farve-overgang ved hover, lille press-feedback ved klik.
+      // Ingen "lift" eller ikon-skalering — det føltes tilfældigt på en CTA.
+      "transition-colors duration-150 ease-out active:scale-[0.98]",
       className,
     )}
     {...props}
@@ -87,11 +84,13 @@ export const StatCard = ({
     violet: "bg-feature-lilac text-feature-lilac-foreground",
   };
   return (
-    <Card className="group rounded-xl border-border shadow-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md hover:border-foreground/15 animate-slide-up-fade">
+    // Diskret hover: kun border bliver lidt mørkere. Ingen lift/rotation som
+    // ellers fik nøgletals-kortene til at "danse" tilfældigt.
+    <Card className="rounded-xl border-border shadow-sm transition-colors duration-150 ease-out hover:border-foreground/15 animate-fade-in-soft">
       <CardContent className="flex items-start gap-2.5 p-3 sm:gap-3 sm:p-4">
         <div
           className={cn(
-            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-transform duration-300 ease-out group-hover:scale-110 group-hover:rotate-[-4deg] [&_svg]:h-4 [&_svg]:w-4 sm:h-10 sm:w-10 sm:[&_svg]:h-5 sm:[&_svg]:w-5",
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg [&_svg]:h-4 [&_svg]:w-4 sm:h-10 sm:w-10 sm:[&_svg]:h-5 sm:[&_svg]:w-5",
             tones[tone],
           )}
         >
@@ -127,7 +126,9 @@ export const SectionCard = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <Card className={cn("rounded-xl border-border shadow-sm animate-fade-in", className)}>
+  // Blød fade-in (ingen translate). Sektion-kort forklarer ikke handlinger,
+  // så de skal ikke "flyve ind" — bare ankomme stille.
+  <Card className={cn("rounded-xl border-border shadow-sm animate-fade-in-soft", className)}>
     <CardContent className="p-5 space-y-4">
       {(title || action) && (
         <div className="flex items-start justify-between gap-3">
