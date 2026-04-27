@@ -386,6 +386,70 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser services...</p>;
 
+  // Focus-mode: når man opretter eller redigerer en service, skjuler vi alt andet
+  // (statistik, filtre og listen) så man kun ser formularen.
+  if (isFocusMode) {
+    const editingService = editingId
+      ? (services || []).find((s: any) => s.id === editingId)
+      : null;
+
+    return (
+      <div className="space-y-5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <button
+              type="button"
+              onClick={() => { setShowForm(false); setEditingId(null); }}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              ← Tilbage til services
+            </button>
+            <h2 className="mt-2 text-xl font-semibold text-foreground truncate">
+              {editingService ? `Rediger "${editingService.name}"` : "Ny service"}
+            </h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {editingService
+                ? "Opdater detaljer, pris og intervaller for denne service."
+                : "Følg trinnene for at oprette en ny service."}
+            </p>
+          </div>
+        </div>
+
+        {showForm && !hasIndustries && (
+          <Card className="surface-admin rounded-xl border-amber-300 bg-amber-50 shadow-sm">
+            <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-2.5">
+                <span className="text-lg leading-none">⚠️</span>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Vælg jeres brancher først</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Når I har valgt brancher i Indstillinger, ser I kun service-typer der passer til jeres virksomhed.
+                  </p>
+                </div>
+              </div>
+              <Button asChild size="sm" variant="outline" className="shrink-0 rounded-lg">
+                <a href="/virksomhed?tab=settings">Gå til Indstillinger</a>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+          <CardContent className="p-5 sm:p-6">
+            <ServiceForm
+              key={editingService?.id || "new"}
+              businessId={editingService?.business_id || businessId}
+              businessIndustries={businessIndustries}
+              selectedSubcategoriesByIndustry={selectedSubcategoriesByIndustry}
+              existingService={editingService || undefined}
+              onClose={() => { setShowForm(false); setEditingId(null); }}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
       <PageHeader
@@ -445,36 +509,15 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
         <div className="hidden" />
       )}
 
-      {showForm && !hasIndustries && (
-        <Card className="surface-admin rounded-xl border-amber-300 bg-amber-50 shadow-sm">
-          <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-2.5">
-              <span className="text-lg leading-none">⚠️</span>
-              <div>
-                <p className="text-sm font-semibold text-foreground">Vælg jeres brancher først</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Når I har valgt brancher i Indstillinger, ser I kun service-typer der passer til jeres virksomhed.
-                </p>
-              </div>
-            </div>
-            <Button asChild size="sm" variant="outline" className="shrink-0 rounded-lg">
-              <a href="/virksomhed?tab=settings">Gå til Indstillinger</a>
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {showForm && (
-        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-          <CardContent className="p-5 sm:p-6">
-            <ServiceForm businessId={businessId} businessIndustries={businessIndustries} selectedSubcategoriesByIndustry={selectedSubcategoriesByIndustry} onClose={() => setShowForm(false)} />
-          </CardContent>
-        </Card>
-      )}
-
       <div className="space-y-3">
         {filtered?.map((s: any) => (
-          <ServiceRow key={s.id} service={s} businessIndustries={businessIndustries} selectedSubcategoriesByIndustry={selectedSubcategoriesByIndustry} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
+          <ServiceRow
+            key={s.id}
+            service={s}
+            orderCount={orderCountByService[s.id] || 0}
+            onEdit={() => setEditingId(s.id)}
+            onDelete={() => deleteService.mutate(s.id)}
+          />
         ))}
         {(!filtered || filtered.length === 0) && !showForm && (
           <EmptyState
@@ -493,8 +536,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   );
 };
 
-const ServiceRow = ({ service, businessIndustries, selectedSubcategoriesByIndustry, orderCount, onDelete }: { service: any; businessIndustries: string[]; selectedSubcategoriesByIndustry?: Record<string, string[]>; orderCount: number; onDelete: () => void }) => {
-  const [editing, setEditing] = useState(false);
+const ServiceRow = ({ service, orderCount, onEdit, onDelete }: { service: any; orderCount: number; onEdit: () => void; onDelete: () => void }) => {
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
   const intervalLabels: Record<string, string> = {
     engangskøb: "Engangskøb",
