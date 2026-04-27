@@ -354,6 +354,9 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   const deleteService = useDeleteService();
   const [showForm, setShowForm] = useState(false);
   const [filterCategory, setFilterCategory] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const isFocusMode = showForm || editingId !== null;
 
   // Brancher virksomheden har valgt i Indstillinger — styrer hvad der kan oprettes
   const businessIndustries: string[] =
