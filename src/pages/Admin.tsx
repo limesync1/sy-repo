@@ -244,7 +244,12 @@ const AdminDashboard = () => {
         </div>
       )}
       <Suspense fallback={<div className="py-10 text-center text-sm text-muted-foreground">Indlæser…</div>}>
-        {renderContent()}
+        {/* Én enkelt, blød fade-in pr. fane-skift. key sikrer at animationen
+            kun kører når faner faktisk skifter — ikke når interne state-
+            opdateringer (filtre, dialoger) re-renderer indholdet. */}
+        <div key={effectiveTab} className="animate-fade-in-soft">
+          {renderContent()}
+        </div>
       </Suspense>
 
       {/* Hvis prøven er udløbet og der ikke er noget kort → blokér panelet

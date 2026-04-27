@@ -25,7 +25,7 @@ export const PageHeader = ({
 }) => (
   // Stille indgang: hele headeren fader ind sammen — ingen staggered jitter
   // af titel/beskrivelse/action på hver navigation. Det føles roligt.
-  <div className={cn("flex items-start justify-between gap-3 flex-wrap animate-fade-in-soft", className)}>
+  <div className={cn("flex items-start justify-between gap-3 flex-wrap", className)}>
     <div className="min-w-0">
       <h2 className="text-lg font-semibold text-foreground tracking-tight">{title}</h2>
       {description && (
@@ -86,7 +86,7 @@ export const StatCard = ({
   return (
     // Diskret hover: kun border bliver lidt mørkere. Ingen lift/rotation som
     // ellers fik nøgletals-kortene til at "danse" tilfældigt.
-    <Card className="rounded-xl border-border shadow-sm transition-colors duration-150 ease-out hover:border-foreground/15 animate-fade-in-soft">
+    <Card className="rounded-xl border-border shadow-sm transition-colors duration-150 ease-out hover:border-foreground/15">
       <CardContent className="flex items-start gap-2.5 p-3 sm:gap-3 sm:p-4">
         <div
           className={cn(
@@ -128,7 +128,7 @@ export const SectionCard = ({
 }) => (
   // Blød fade-in (ingen translate). Sektion-kort forklarer ikke handlinger,
   // så de skal ikke "flyve ind" — bare ankomme stille.
-  <Card className={cn("rounded-xl border-border shadow-sm animate-fade-in-soft", className)}>
+  <Card className={cn("rounded-xl border-border shadow-sm", className)}>
     <CardContent className="p-5 space-y-4">
       {(title || action) && (
         <div className="flex items-start justify-between gap-3">
