@@ -165,7 +165,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
             <sm hvor pladsen er trang og lange tekster bliver klippet. */}
         <input
           type="text"
-          placeholder={placeholder ?? "Søg service eller by…"}
+          placeholder="Søg service eller by…"
           value={q}
           onChange={(e) => { setQ(e.target.value); setOpen(true); setActiveIdx(-1); }}
           onFocus={() => setOpen(true)}
