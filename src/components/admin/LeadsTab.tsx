@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, MapPin, Mail, Phone, Loader2, Inbox } from "lucide-react";
+import { Sparkles, MapPin, Mail, Phone, Loader2, Inbox, MessageSquare, TrendingUp, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { da } from "date-fns/locale";
@@ -38,6 +38,94 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   contacted:  { label: "Kontaktet",  className: "bg-blue-100 text-blue-700" },
   won:        { label: "Vundet",     className: "bg-green-100 text-green-700" },
   declined:   { label: "Afvist",     className: "bg-muted text-muted-foreground" },
+};
+
+/** Mailto-template som åbner kundens mail-klient med en pæn intro fra
+ *  virksomheden. Når den klikkes markerer vi automatisk leadet som
+ *  "Kontaktet", så virksomheden ikke behøver at skifte status manuelt. */
+const buildMailtoUrl = (lead: Lead) => {
+  const qr = lead.quote_request;
+  if (!qr || !qr.customer_email) return null;
+  const subject = `Tilbud fra Serviceydere — ${qr.category}`;
+  const body =
+`Hej ${qr.customer_name || ""},
+
+Tak for din forespørgsel via Serviceydere. Vi har modtaget din opgave:
+
+"${qr.description}"
+
+${lead.estimated_price ? `Vores foreløbige estimat: ${lead.estimated_price}\n\n` : ""}Vi vil meget gerne hjælpe og hører gerne fra dig hvis du har spørgsmål eller vil have et endeligt tilbud.
+
+Venlig hilsen`;
+  return `mailto:${qr.customer_email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+};
+
+/* ─── Analytics card — sidste 30 dage ─── */
+const LeadsAnalyticsCard = ({ leads }: { leads: Lead[] }) => {
+  const stats = useMemo(() => {
+    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const recent = leads.filter((l) => new Date(l.created_at).getTime() >= cutoff);
+    const total = recent.length;
+    const engaged = recent.filter((l) => l.status === "viewed" || l.status === "contacted" || l.status === "won").length;
+    const contacted = recent.filter((l) => l.status === "contacted" || l.status === "won").length;
+    const won = recent.filter((l) => l.status === "won").length;
+    const conversion = total > 0 ? Math.round((engaged / total) * 100) : 0;
+    const contactRate = total > 0 ? Math.round((contacted / total) * 100) : 0;
+
+    const catCount = new Map<string, number>();
+    recent.forEach((l) => {
+      const c = l.quote_request?.category;
+      if (!c) return;
+      catCount.set(c, (catCount.get(c) || 0) + 1);
+    });
+    const topCategories = [...catCount.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+
+    return { total, engaged, contacted, won, conversion, contactRate, topCategories };
+  }, [leads]);
+
+  if (stats.total === 0) return null;
+
+  return (
+    <Card className="p-4 sm:p-5">
+      <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <TrendingUp className="h-3.5 w-3.5" /> Sidste 30 dage
+      </div>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div>
+          <p className="text-2xl font-bold tabular-nums text-foreground">{stats.total}</p>
+          <p className="text-xs text-muted-foreground">Nye leads</p>
+        </div>
+        <div>
+          <p className="text-2xl font-bold tabular-nums text-foreground">
+            {stats.conversion}<span className="text-base text-muted-foreground">%</span>
+          </p>
+          <p className="text-xs text-muted-foreground">Set / kontaktet</p>
+        </div>
+        <div>
+          <p className="text-2xl font-bold tabular-nums text-foreground">
+            {stats.contactRate}<span className="text-base text-muted-foreground">%</span>
+          </p>
+          <p className="text-xs text-muted-foreground">Kontakt-rate</p>
+        </div>
+        <div>
+          <p className="text-2xl font-bold tabular-nums text-foreground">{stats.won}</p>
+          <p className="text-xs text-muted-foreground">Vundne aftaler</p>
+        </div>
+      </div>
+      {stats.topCategories.length > 0 && (
+        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+          <span className="text-xs font-medium text-muted-foreground">Top kategorier:</span>
+          {stats.topCategories.map(([cat, n]) => (
+            <Badge key={cat} variant="secondary" className="gap-1">
+              {cat} <span className="text-muted-foreground">· {n}</span>
+            </Badge>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
 };
 
 const LeadsTab = ({ businessId }: { businessId: string }) => {
@@ -86,6 +174,26 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
     toast.success("Lead opdateret");
   };
 
+  /** Åbner kundens mail-program OG markerer leadet som "Kontaktet" — så
+   *  virksomheden slipper for at skifte status manuelt bagefter. */
+  const handleSendMessage = async (lead: Lead) => {
+    const url = buildMailtoUrl(lead);
+    if (!url) {
+      toast.error("Kunden har ikke delt en e-mail");
+      return;
+    }
+    // Optimistically flip to contacted
+    if (lead.status !== "contacted" && lead.status !== "won") {
+      setLeads((prev) => prev?.map((l) => l.id === lead.id ? { ...l, status: "contacted" } : l) ?? null);
+      const { error } = await supabase
+        .from("quote_request_matches")
+        .update({ status: "contacted", responded_at: new Date().toISOString() })
+        .eq("id", lead.id);
+      if (error) console.error(error);
+    }
+    window.location.href = url;
+  };
+
   if (loading) {
     return <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   }
@@ -104,10 +212,12 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
 
   return (
     <div className="space-y-3">
+      <LeadsAnalyticsCard leads={leads} />
       {leads.map((l) => {
         const qr = l.quote_request;
         const status = STATUS_LABELS[l.status] ?? STATUS_LABELS.new;
         const share = qr?.share_contact !== false;
+        const canMessage = share && !!qr?.customer_email;
         return (
           <Card key={l.id} className="p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -156,6 +266,15 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
               </div>
 
               <div className="flex shrink-0 flex-col gap-2 sm:w-44">
+                {canMessage && (
+                  <Button
+                    size="sm"
+                    onClick={() => handleSendMessage(l)}
+                    className="h-9 gap-1.5 bg-foreground text-background hover:bg-foreground/90"
+                  >
+                    <MessageSquare className="h-4 w-4" /> Send besked
+                  </Button>
+                )}
                 <Select value={l.status} onValueChange={(v) => updateStatus(l.id, v)}>
                   <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                   <SelectContent>
