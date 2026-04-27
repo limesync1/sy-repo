@@ -848,27 +848,84 @@ const ServiceForm = ({
     ? taxonomyTemplates
     : (STEP_TEMPLATES[serviceCategory] || []);
 
-  // Rank templates by relevance to chosen subcategory + service name.
-  // Score = number of overlapping word-tokens between (subcategory + name)
-  // and the template label. Stable order otherwise.
-  const rankedTemplates = (() => {
-    const haystack = `${subcategory || ""} ${name || ""}`
-      .toLowerCase()
-      .replace(/[^\p{L}\p{N}\s]/gu, " ")
-      .split(/\s+/)
-      .filter((w) => w.length >= 3);
-    if (haystack.length === 0) return availableTemplates;
-    const scored = availableTemplates.map((t, i) => {
-      const label = t.label.toLowerCase();
-      const score = haystack.reduce((acc, w) => acc + (label.includes(w) ? 1 : 0), 0);
-      return { t, score, i };
-    });
-    scored.sort((a, b) => b.score - a.score || a.i - b.i);
-    return scored.map((s) => s.t);
+  // ── Skabelon-rangering med altid-godt-foreslag ──────────────────────
+  // 1) Tokeniser brugerens valg (underkategori + servicenavn) til søgeord.
+  // 2) Score taxonomy-skabeloner efter overlap med både label OG step-labels.
+  //    Det fanger fx "ovn" → "Flytterengøring" (har "Ovn rengøring" som trin).
+  // 3) Tilføj ALTID generiske fallback-skabeloner (areal/timer/stk) der
+  //    bygges dynamisk ud fra kategori-keywords, så brugeren aldrig står
+  //    uden et fornuftigt forslag — selv ved custom kategorier.
+  const haystack = `${subcategory || ""} ${name || ""}`
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 3);
+
+  const scoreTemplate = (t: { label: string; steps: { label: string }[] }) => {
+    if (haystack.length === 0) return 0;
+    const text = `${t.label} ${t.steps.map((s) => s.label).join(" ")}`.toLowerCase();
+    return haystack.reduce((acc, w) => acc + (text.includes(w) ? 1 : 0), 0);
+  };
+
+  // Generiske fallback-templates — altid relevante, men nedtonede når
+  // taxonomien har specifikke forslag.
+  const genericTemplates: typeof availableTemplates = (() => {
+    const isAreaJob = /(rengør|maler|vask|polering|gulv|tag|facade|isoler|haveservice|græs|areal)/i.test(
+      `${serviceCategory} ${subcategory} ${name}`,
+    );
+    const isHourly = /(reparation|installation|montering|vvs|elektrik|tømrer|smed|service|hjælp)/i.test(
+      `${serviceCategory} ${subcategory} ${name}`,
+    );
+    const list: typeof availableTemplates = [];
+    if (isAreaJob) {
+      list.push({
+        label: "Areal-baseret pris",
+        steps: [
+          { label: "Antal m²", unit: "m²", price_per_unit: 12, min_value: 10, max_value: 500, default_value: 50 },
+          { label: "Tillægsarbejde", unit: "stk", price_per_unit: 150, min_value: 0, max_value: 10, default_value: 0 },
+        ],
+      });
+    }
+    if (isHourly || (!isAreaJob && availableTemplates.length === 0)) {
+      list.push({
+        label: "Timebaseret med materialer",
+        steps: [
+          { label: "Arbejdstimer", unit: "timer", price_per_unit: 450, min_value: 1, max_value: 20, default_value: 2 },
+          { label: "Materialer", unit: "kr", price_per_unit: 1, min_value: 0, max_value: 10000, default_value: 0 },
+          { label: "Kørsel", unit: "km", price_per_unit: 8, min_value: 0, max_value: 100, default_value: 10 },
+        ],
+      });
+    }
+    if (list.length === 0) {
+      // Allersidste fallback: en simpel "antal × pris" beregner.
+      list.push({
+        label: "Antal × pris",
+        steps: [
+          { label: "Antal", unit: "stk", price_per_unit: 100, min_value: 1, max_value: 50, default_value: 1 },
+        ],
+      });
+    }
+    return list;
   })();
+
+  // Saml + dedup på label, sorter på score (taxonomy vinder ved lige score).
+  const allTemplates = [...availableTemplates, ...genericTemplates].filter(
+    (t, i, arr) => arr.findIndex((x) => x.label === t.label) === i,
+  );
+  const rankedTemplates = allTemplates
+    .map((t, i) => ({
+      t,
+      score: scoreTemplate(t),
+      // Taxonomy-skabeloner ranker over generiske ved samme score
+      isGeneric: genericTemplates.includes(t),
+      i,
+    }))
+    .sort((a, b) => b.score - a.score || Number(a.isGeneric) - Number(b.isGeneric) || a.i - b.i)
+    .map((s) => s.t);
+
   const bestTemplate = rankedTemplates[0];
   const isBestMatch = !!(bestTemplate && rankedTemplates.length > 1 &&
-    (subcategory || name).trim().length > 2);
+    (subcategory || name).trim().length > 2 && scoreTemplate(bestTemplate) > 0);
 
   const totalSteps = 4;
   const FORM_STEPS = [
