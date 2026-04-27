@@ -19,7 +19,7 @@ interface Props {
 const NAV_ITEMS: { key: NonNullable<Props["active"]>; label: string; to: string }[] = [
   { key: "search", label: "Find services", to: "/virksomheder" },
   { key: "quote", label: "Få tilbud", to: "/tilbud" },
-  { key: "business", label: "Bliv udbyder", to: "/log-ind?mode=business" },
+  { key: "business", label: "Bliv udbyder", to: "/opret-virksomhed" },
 ];
 
 const PANEL_PREFERENCE_KEY = "preferred-panel-route";
