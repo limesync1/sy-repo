@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2,
   AlertCircle, ShoppingCart, Check, ChevronLeft, Clock, ShieldCheck,
-  Building2, User, Mail, Phone, Lock,
+  Building2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -308,109 +308,57 @@ const RequestQuote = () => {
                 Vi sender de bedste matches til din e-mail med det samme.
               </p>
 
-              <div className="rounded-2xl border border-border bg-card/60 p-4 sm:p-5">
+              <div className="space-y-3">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {/* Navn */}
-                  <div className="space-y-1.5">
-                    <label htmlFor="rq-name" className="block text-xs font-medium text-foreground">
-                      Navn <span className="text-destructive">*</span>
-                    </label>
-                    <div className="relative">
-                      <User className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        id="rq-name"
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        placeholder="Fornavn Efternavn"
-                        autoComplete="name"
-                        className="h-11 rounded-xl pl-10"
-                      />
-                    </div>
-                  </div>
-
-                  {/* E-mail */}
-                  <div className="space-y-1.5">
-                    <label htmlFor="rq-email" className="block text-xs font-medium text-foreground">
-                      E-mail <span className="text-destructive">*</span>
-                    </label>
-                    <div className="relative">
-                      <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        id="rq-email"
-                        type="email"
-                        value={customerEmail}
-                        onChange={(e) => setCustomerEmail(e.target.value)}
-                        placeholder="dig@example.dk"
-                        autoComplete="email"
-                        inputMode="email"
-                        className="h-11 rounded-xl pl-10"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Telefon */}
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <label htmlFor="rq-phone" className="flex items-center justify-between text-xs font-medium text-foreground">
-                      <span>Telefon</span>
-                      <span className="font-normal text-muted-foreground">Valgfrit</span>
-                    </label>
-                    <div className="relative">
-                      <Phone className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        id="rq-phone"
-                        type="tel"
-                        value={customerPhone}
-                        onChange={(e) => setCustomerPhone(e.target.value)}
-                        placeholder="+45 12 34 56 78"
-                        autoComplete="tel"
-                        inputMode="tel"
-                        className="h-11 rounded-xl pl-10"
-                      />
-                    </div>
-                  </div>
+                  <Input
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder="Navn"
+                    autoComplete="name"
+                    className="h-11 rounded-xl"
+                  />
+                  <Input
+                    type="email"
+                    value={customerEmail}
+                    onChange={(e) => setCustomerEmail(e.target.value)}
+                    placeholder="E-mail"
+                    autoComplete="email"
+                    inputMode="email"
+                    className="h-11 rounded-xl"
+                  />
+                  <Input
+                    type="tel"
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    placeholder="Telefon (valgfrit)"
+                    autoComplete="tel"
+                    inputMode="tel"
+                    className="h-11 rounded-xl sm:col-span-2"
+                  />
                 </div>
 
-                {/* Privacy hint */}
-                <div className="mt-4 flex items-start gap-2 rounded-xl bg-secondary/60 px-3 py-2.5 text-[11px] text-muted-foreground">
-                  <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
-                  <span>Vi sælger aldrig dine oplysninger. Du kan til enhver tid trække dit samtykke tilbage.</span>
-                </div>
+                <label className="flex cursor-pointer items-center gap-2.5 px-1 text-xs text-foreground">
+                  <Checkbox
+                    checked={shareContact}
+                    onCheckedChange={(v) => setShareContact(v === true)}
+                  />
+                  <span>Del mine oplysninger med de matchede virksomheder.</span>
+                </label>
 
-                {/* Toggles */}
-                <div className="mt-4 space-y-2">
-                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-transparent p-3 text-xs text-foreground transition-colors hover:border-border hover:bg-background/60">
-                    <Checkbox
-                      checked={shareContact}
-                      onCheckedChange={(v) => setShareContact(v === true)}
-                      className="mt-0.5"
-                    />
-                    <span className="leading-relaxed">
-                      <span className="block font-medium text-foreground">Del mine kontaktoplysninger</span>
-                      <span className="text-muted-foreground">Lad de matchede virksomheder kontakte mig direkte.</span>
-                    </span>
-                  </label>
-
-                  {/* Lovpligtig samtykke — jf. GDPR art. 6(1)(a) og markedsføringsloven §10. */}
-                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-background/60 p-3 text-xs text-foreground transition-colors hover:border-foreground/30">
-                    <Checkbox
-                      checked={acceptedTerms}
-                      onCheckedChange={(v) => setAcceptedTerms(v === true)}
-                      className="mt-0.5"
-                      required
-                    />
-                    <span className="leading-relaxed">
-                      <span className="block font-medium text-foreground">
-                        Jeg accepterer vilkår og privatlivspolitik <span className="text-destructive">*</span>
-                      </span>
-                      <span className="text-muted-foreground">
-                        Læs{" "}
-                        <Link to="/vilkaar" target="_blank" className="font-medium text-foreground underline underline-offset-2 hover:text-accent">vilkår</Link>
-                        {" "}og{" "}
-                        <Link to="/privatlivspolitik" target="_blank" className="font-medium text-foreground underline underline-offset-2 hover:text-accent">privatlivspolitik</Link>.
-                      </span>
-                    </span>
-                  </label>
-                </div>
+                {/* Lovpligtig samtykke — jf. GDPR art. 6(1)(a). Kort form med link til fuld tekst. */}
+                <label className="flex cursor-pointer items-center gap-2.5 px-1 text-xs text-foreground">
+                  <Checkbox
+                    checked={acceptedTerms}
+                    onCheckedChange={(v) => setAcceptedTerms(v === true)}
+                    required
+                  />
+                  <span>
+                    Jeg accepterer{" "}
+                    <Link to="/vilkaar" target="_blank" className="font-medium underline underline-offset-2 hover:text-accent">vilkår</Link>
+                    {" & "}
+                    <Link to="/privatlivspolitik" target="_blank" className="font-medium underline underline-offset-2 hover:text-accent">privatlivspolitik</Link>.
+                  </span>
+                </label>
               </div>
             </div>
 
