@@ -226,7 +226,7 @@ Returnér 2-5 trin der præcist matcher denne service og kategori. Følg kategor
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-pro",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -296,20 +296,29 @@ Returnér 2-5 trin der præcist matcher denne service og kategori. Følg kategor
     const steps = rawSteps
       .map((s: any) => {
         const unit = ALLOWED_UNITS.includes(s.unit) ? s.unit : "stk";
-        const min = Number(s.min_value);
-        const max = Number(s.max_value);
-        const def = Number(s.default_value);
+        let min = Number(s.min_value);
+        let max = Number(s.max_value);
+        let def = Number(s.default_value);
         const price = Number(s.price_per_unit);
+
+        // Sikr at min ≤ default ≤ max selv hvis AI'en har lavet inkonsistente tal.
+        if (!Number.isFinite(min)) min = 0;
+        if (!Number.isFinite(max)) max = Math.max(min + 1, 100);
+        if (max < min) [min, max] = [max, min];
+        if (!Number.isFinite(def)) def = min;
+        if (def < min) def = min;
+        if (def > max) def = max;
+
         return {
           label: String(s.label || "").trim().slice(0, 60),
           unit,
           price_per_unit: Number.isFinite(price) && price >= 0 ? price : 0,
-          min_value: Number.isFinite(min) ? min : 0,
-          max_value: Number.isFinite(max) ? max : 100,
-          default_value: Number.isFinite(def) ? def : (Number.isFinite(min) ? min : 0),
+          min_value: min,
+          max_value: max,
+          default_value: def,
         };
       })
-      .filter((s: any) => s.label.length > 0)
+      .filter((s: any) => s.label.length > 0 && s.price_per_unit > 0)
       .slice(0, 5);
 
     if (steps.length === 0) throw new Error("AI returnerede ingen brugbare trin");
