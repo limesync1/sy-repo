@@ -23,14 +23,20 @@ export const PageHeader = ({
   action?: React.ReactNode;
   className?: string;
 }) => (
-  <div className={cn("flex items-start justify-between gap-3 flex-wrap", className)}>
+  <div className={cn("flex items-start justify-between gap-3 flex-wrap animate-slide-down-fade", className)}>
     <div className="min-w-0">
       <h2 className="text-lg font-semibold text-foreground tracking-tight">{title}</h2>
       {description && (
-        <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
+        <p className="mt-0.5 text-sm text-muted-foreground animate-slide-down-fade [animation-delay:60ms]">
+          {description}
+        </p>
       )}
     </div>
-    {action && <div className="w-full sm:w-auto sm:shrink-0">{action}</div>}
+    {action && (
+      <div className="w-full sm:w-auto sm:shrink-0 animate-slide-down-fade [animation-delay:120ms]">
+        {action}
+      </div>
+    )}
   </div>
 );
 
@@ -45,6 +51,8 @@ export const PrimaryButton = React.forwardRef<
     ref={ref}
     className={cn(
       "h-9 rounded-lg bg-foreground text-background hover:bg-foreground/90 text-sm font-medium px-4 shadow-sm",
+      "transition-all duration-200 ease-out hover:shadow-md hover:-translate-y-px active:translate-y-0 active:scale-[0.98]",
+      "[&_svg]:transition-transform [&_svg]:duration-200 hover:[&_svg]:scale-110",
       className,
     )}
     {...props}
@@ -79,11 +87,11 @@ export const StatCard = ({
     violet: "bg-feature-lilac text-feature-lilac-foreground",
   };
   return (
-    <Card className="rounded-xl border-border shadow-sm transition-colors hover:border-border">
+    <Card className="group rounded-xl border-border shadow-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md hover:border-foreground/15 animate-slide-up-fade">
       <CardContent className="flex items-start gap-2.5 p-3 sm:gap-3 sm:p-4">
         <div
           className={cn(
-            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg [&_svg]:h-4 [&_svg]:w-4 sm:h-10 sm:w-10 sm:[&_svg]:h-5 sm:[&_svg]:w-5",
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-transform duration-300 ease-out group-hover:scale-110 group-hover:rotate-[-4deg] [&_svg]:h-4 [&_svg]:w-4 sm:h-10 sm:w-10 sm:[&_svg]:h-5 sm:[&_svg]:w-5",
             tones[tone],
           )}
         >
