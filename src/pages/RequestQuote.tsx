@@ -106,11 +106,25 @@ const RequestQuote = () => {
   const [selectedBusiness, setSelectedBusiness] = useState<MatchedBusiness | null>(null);
   const [showAllServices, setShowAllServices] = useState(false);
   const { location, radiusKm } = useUserLocation();
+  const { user } = useAuth();
+  const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState(user?.email ?? "");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [shareContact, setShareContact] = useState(true);
 
   const handleFind = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!category || !description.trim()) {
       toast.error("Vælg en kategori og beskriv dit behov");
+      return;
+    }
+    const trimmedEmail = customerEmail.trim();
+    if (!customerName.trim() || !trimmedEmail) {
+      toast.error("Udfyld dit navn og e-mail, så virksomhederne kan kontakte dig");
+      return;
+    }
+    if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
+      toast.error("Indtast en gyldig e-mail");
       return;
     }
 
@@ -128,6 +142,12 @@ const RequestQuote = () => {
             ? { city: location.city, zip: location.zip }
             : undefined,
           radius_km: radiusKm,
+          customer: {
+            name: customerName.trim(),
+            email: trimmedEmail,
+            phone: customerPhone.trim() || undefined,
+            share_contact: shareContact,
+          },
         },
       });
 
