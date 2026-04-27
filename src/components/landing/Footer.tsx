@@ -33,7 +33,7 @@ const Footer = () => {
           <div>
             <h4 className="mb-3 text-sm font-semibold text-background">For virksomheder</h4>
             <ul className="space-y-2 text-sm text-background/65">
-              <li><Link to="/log-ind?mode=business" className="transition-colors hover:text-background">Bliv udbyder</Link></li>
+              <li><Link to="/opret-virksomhed" className="transition-colors hover:text-background">Bliv udbyder</Link></li>
               <li><Link to="/log-ind" className="transition-colors hover:text-background">Log ind</Link></li>
               <li><Link to="/virksomhed" className="transition-colors hover:text-background">Virksomhedspanel</Link></li>
             </ul>

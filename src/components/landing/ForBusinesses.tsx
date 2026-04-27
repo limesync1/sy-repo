@@ -52,7 +52,7 @@ const ForBusinesses = () => {
             </p>
           </div>
           <Link
-            to="/log-ind?mode=business"
+            to="/opret-virksomhed"
             className="group inline-flex items-center gap-2 self-start rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md md:self-auto"
           >
             <Sparkles className="h-4 w-4" />
