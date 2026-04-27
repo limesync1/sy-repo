@@ -145,13 +145,20 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
 
   return (
     <div ref={wrapRef} className="relative w-full max-w-2xl">
+      {/* search-glow tilføjer en blød accent-ring rundt om feltet ved fokus,
+          så brugeren får en tydelig (men diskret) bekræftelse på interaktion
+          på alle enheder — også touch hvor der ikke er hover. */}
       <div
-        className={`flex items-center overflow-hidden rounded-full border border-border bg-card shadow-[0_18px_50px_-18px_rgba(0,0,0,0.35)] ring-1 ring-black/5 transition-shadow focus-within:shadow-[0_22px_60px_-18px_rgba(0,0,0,0.45)] ${
+        className={`search-glow flex items-center overflow-hidden rounded-full border border-border bg-card shadow-[0_18px_50px_-18px_rgba(0,0,0,0.35)] ring-1 ring-black/5 transition-all duration-200 ${
           isHero ? "h-14 md:h-16" : "h-12 md:h-14"
         }`}
       >
         <div className="pl-5 pr-2 text-muted-foreground sm:pr-3">
-          <Search className="h-5 w-5" />
+          <Search
+            className={`h-5 w-5 transition-all duration-300 ${
+              open ? "text-accent scale-105" : ""
+            }`}
+          />
         </div>
         <input
           type="text"
@@ -165,7 +172,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
         <div className="pr-1.5 sm:pr-2">
           <Button
             onClick={() => submit()}
-            className="h-10 gap-2 rounded-full bg-accent px-4 text-sm font-semibold text-accent-foreground shadow-sm hover:bg-accent/90 md:h-11 md:px-6"
+            className="h-10 gap-2 rounded-full bg-accent px-4 text-sm font-semibold text-accent-foreground shadow-sm transition-all duration-200 hover:bg-accent/90 hover:shadow-md active:scale-[0.97] md:h-11 md:px-6"
           >
             <Search className="h-4 w-4" />
             <span className="hidden sm:inline">Søg</span>
@@ -180,9 +187,14 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
         </div>
       )}
 
-      {/* Suggestions dropdown */}
+      {/* Suggestions dropdown — animeret enter via keyframe (slide+scale).
+          Vi unmount'er bevidst når lukket for at undgå scroll-bleed på mobil
+          og holde DOM'en let. */}
       {open && suggestions.length > 0 && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-[0_24px_60px_-12px_rgba(0,0,0,0.35)] ring-1 ring-black/5">
+        <div
+          className="absolute left-0 right-0 top-full z-50 mt-2 origin-top overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-[0_24px_60px_-12px_rgba(0,0,0,0.35)] ring-1 ring-black/5 animate-scale-in"
+          role="listbox"
+        >
           {!q.trim() && (
             <div className="border-b border-border bg-secondary/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               Populære kategorier
@@ -192,18 +204,22 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
             {suggestions.map((s, i) => {
               const active = activeIdx === i;
               return (
-                <li key={`${s.type}-${s.label}-${i}`}>
+                <li
+                  key={`${s.type}-${s.label}-${i}`}
+                  className="animate-fade-in-soft"
+                  style={{ animationDelay: `${Math.min(i * 35, 280)}ms` }}
+                >
                   <button
                     type="button"
                     onMouseEnter={() => setActiveIdx(i)}
                     onClick={() => pickSuggestion(s)}
-                    className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
+                    className={`group flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors duration-150 ${
                       active ? "bg-secondary" : "hover:bg-secondary/60"
                     }`}
                   >
                     {s.type === "category" && (
                       <>
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-base">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-base transition-transform duration-200 group-hover:scale-105">
                           <span aria-hidden>{s.icon}</span>
                         </span>
                         <span className="flex-1">
@@ -214,7 +230,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                     )}
                     {s.type === "city" && (
                       <>
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground transition-transform duration-200 group-hover:scale-105">
                           <MapPin className="h-4 w-4" />
                         </span>
                         <span className="flex-1">
@@ -225,7 +241,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                     )}
                     {s.type === "business" && (
                       <>
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card transition-transform duration-200 group-hover:scale-105">
                           {s.logo ? (
                             <img
                               src={s.logo}

@@ -8,6 +8,7 @@ import Footer from "@/components/landing/Footer";
 import Stats from "@/components/landing/Stats";
 import ForBusinesses from "@/components/landing/ForBusinesses";
 import SEO from "@/components/SEO";
+import Reveal from "@/components/landing/Reveal";
 
 const Index = () => {
   // Struktureret data for forsiden — hjælper Google med at vise rich results
@@ -93,13 +94,16 @@ const Index = () => {
         jsonLd={jsonLd}
       />
       <HeroSection />
-      <Stats />
-      <RecentBusinesses />
-      <HowItWorks />
-      <GetQuotes />
-      <Testimonials />
-      <WhyUs />
-      <ForBusinesses />
+      {/* Hver sektion fader blødt ind når den scrolles i syne. Det giver
+          forsiden en rolig, sammenhængende rytme på alle enheder uden at
+          skubbe layout — IntersectionObserver er praktisk talt gratis. */}
+      <Reveal><Stats /></Reveal>
+      <Reveal><RecentBusinesses /></Reveal>
+      <Reveal><HowItWorks /></Reveal>
+      <Reveal><GetQuotes /></Reveal>
+      <Reveal><Testimonials /></Reveal>
+      <Reveal><WhyUs /></Reveal>
+      <Reveal><ForBusinesses /></Reveal>
       <Footer />
     </div>
   );

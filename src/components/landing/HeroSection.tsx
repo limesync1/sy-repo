@@ -34,15 +34,17 @@ const HeroSection = () => {
       {/* Indhold — venstrejusteret, matcher resten af forsidens sektioner */}
       <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-12 sm:px-6 sm:pb-24 sm:pt-16 lg:px-8 lg:pb-32 lg:pt-24">
         <div className="max-w-2xl">
-          <h1 className="text-[2.4rem] font-semibold leading-[1.04] tracking-tight text-background sm:text-[3.25rem] lg:text-[3.75rem]">
+          {/* Blid stagger-entry: titel → tekst → søgefelt → CTA. Korte
+              durations + ease-out så det føles snappy, ikke tungt. */}
+          <h1 className="animate-fade-in text-[2.4rem] font-semibold leading-[1.04] tracking-tight text-background sm:text-[3.25rem] lg:text-[3.75rem]">
             Find den rette serviceyder til opgaven.
           </h1>
-          <p className="mt-4 max-w-xl text-[15px] leading-7 text-background/85 sm:text-base">
+          <p className="animate-fade-in [animation-delay:120ms] mt-4 max-w-xl text-[15px] leading-7 text-background/85 sm:text-base">
             Sammenlign lokale udbydere, se priser og book direkte — alt samlet ét sted.
           </p>
 
           {/* Søgefelt + lokation samlet ét sted. Bruger relativ positionering så dropdown kan flyde frit. */}
-          <div className="relative z-20 mt-7 w-full max-w-2xl">
+          <div className="animate-fade-in [animation-delay:220ms] relative z-20 mt-7 w-full max-w-2xl">
             <SearchSuggest variant="hero" showNearLabel={false} placeholder="Søg efter service, virksomhed eller by…" />
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-background/80">
               <span className="font-medium text-background/65">Søger nær</span>
@@ -50,9 +52,9 @@ const HeroSection = () => {
             </div>
           </div>
 
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <div className="animate-fade-in [animation-delay:320ms] mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link to="/virksomheder" className="sm:w-auto">
-              <Button size="lg" className="h-11 w-full rounded-full bg-background px-6 text-sm font-semibold text-foreground shadow-md hover:bg-background/90 sm:w-auto">
+              <Button size="lg" className="h-11 w-full rounded-full bg-background px-6 text-sm font-semibold text-foreground shadow-md transition-all duration-200 hover:bg-background/90 hover:shadow-lg active:scale-[0.98] sm:w-auto">
                 Find services
               </Button>
             </Link>
@@ -60,10 +62,10 @@ const HeroSection = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="h-11 w-full gap-2 rounded-full border-background/40 bg-background/5 px-6 text-sm font-semibold text-background backdrop-blur hover:bg-background/15 hover:text-background sm:w-auto"
+                className="group h-11 w-full gap-2 rounded-full border-background/40 bg-background/5 px-6 text-sm font-semibold text-background backdrop-blur transition-all duration-200 hover:bg-background/15 hover:text-background active:scale-[0.98] sm:w-auto"
               >
                 Indhent 3 tilbud
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </Button>
             </Link>
           </div>
