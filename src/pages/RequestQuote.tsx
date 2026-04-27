@@ -111,6 +111,7 @@ const RequestQuote = () => {
   const [customerEmail, setCustomerEmail] = useState(user?.email ?? "");
   const [customerPhone, setCustomerPhone] = useState("");
   const [shareContact, setShareContact] = useState(true);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const handleFind = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,6 +126,10 @@ const RequestQuote = () => {
     }
     if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
       toast.error("Indtast en gyldig e-mail");
+      return;
+    }
+    if (!acceptedTerms) {
+      toast.error("Du skal acceptere vilkår og privatlivspolitik for at fortsætte");
       return;
     }
 
@@ -148,6 +153,7 @@ const RequestQuote = () => {
             phone: customerPhone.trim() || undefined,
             share_contact: shareContact,
           },
+          terms_accepted: acceptedTerms,
         },
       });
 
