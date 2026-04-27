@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
@@ -35,7 +35,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
-  Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
+  Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard, MapIcon,
   ShoppingBag, Route as RouteIcon, Tag, Palette,
 } from "lucide-react";
 import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
@@ -45,9 +45,10 @@ import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
   pointerWithin, type DragEndEvent, type DragStartEvent,
 } from "@dnd-kit/core";
-// Bemærk: RouteMap (leaflet ~150 KB) importeres med vilje IKKE her — den var tidligere
-// eager-importeret men aldrig renderet i layoutet, hvilket gjorde initial load tung.
-// Tilføj en lazy-import her igen, hvis vi senere indfører en kort-visning.
+// RouteMap (leaflet ~150 KB) lazy-loades og chunkes ud — leaflet hentes
+// først når brugeren rent faktisk åbner kort-visningen.
+const RouteMap = lazy(() => import("@/components/route-planner/RouteMap"));
+import type { MapRoute, MapStop } from "@/components/route-planner/RouteMap";
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
@@ -88,6 +89,7 @@ const Planner = () => {
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
   const [distributing, setDistributing] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
 
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
@@ -252,9 +254,39 @@ const Planner = () => {
     return calendarRoutesRaw.find((route) => route.id === editingRoute.id) ?? editingRoute;
   }, [editingRoute, calendarRoutesRaw]);
 
-  // Map-data er udeladt: RouteMap-komponenten er lazy og pt. ikke renderet i layoutet.
-  // Tidligere blev mapRoutes/unassignedMapStops beregnet ved hver re-render uden at
-  // blive brugt — det belastede planlæggeren unødigt.
+  /* Map data — beregnes kun mens kort-sheeten er åben, så vi ikke betaler for
+     transformationen ved hver re-render af planlæggeren. */
+  const mapRoutes: MapRoute[] = useMemo(() => {
+    if (!mapOpen) return [];
+    const list: MapRoute[] = [];
+    for (const r of calendarRoutes) {
+      const colStops = r.stops
+        .filter((s) => s.latitude != null && s.longitude != null)
+        .sort((a, b) => a.sequence - b.sequence)
+        .map((s, i) => ({
+          id: s.id,
+          lat: Number(s.latitude),
+          lng: Number(s.longitude),
+          label: s.customer_name || "Stop",
+          sublabel: s.address || undefined,
+          index: i + 1,
+          distanceToNextKm: s.distance_to_next_km != null ? Number(s.distance_to_next_km) : null,
+          travelTimeToNextMin: s.travel_time_to_next_min != null ? Number(s.travel_time_to_next_min) : null,
+        }));
+      if (colStops.length) list.push({ color: r.color, stops: colStops });
+    }
+    return list;
+  }, [mapOpen, calendarRoutes]);
+
+  const unassignedMapStops: MapStop[] = useMemo(() => {
+    if (!mapOpen) return [];
+    return filteredUnassigned
+      .filter((j: any) => j.latitude != null && j.longitude != null)
+      .map((j: any) => ({
+        id: j.id, lat: Number(j.latitude), lng: Number(j.longitude),
+        label: j.customer_name, sublabel: j.address, color: "hsl(220 13% 50%)",
+      }));
+  }, [mapOpen, filteredUnassigned]);
 
   /* Auto-geocode jobs missing coords */
   useEffect(() => {
