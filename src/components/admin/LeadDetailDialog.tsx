@@ -9,12 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 import {
   Sparkles, Mail, Phone, MapPin, Brain, Loader2, Send, RefreshCw, Save,
-  StickyNote, Bell, Trophy, XCircle, Clock, Copy, Check,
+  StickyNote, Bell, Trophy, XCircle, Clock, Copy, Check, CalendarIcon,
+  Sunrise, Sun, Sunset, Moon, CalendarClock,
 } from "lucide-react";
 import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format, isSameDay, addDays, addHours, isBefore, startOfDay } from "date-fns";
 import { da } from "date-fns/locale";
 
 export type LeadDetailLead = {
