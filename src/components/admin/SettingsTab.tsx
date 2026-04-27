@@ -200,6 +200,12 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [accountingIntegrationEnabled, setAccountingIntegrationEnabled] = useState<boolean>(
     !!(business.settings as any)?.accounting_integration_enabled
   );
+  // Leads-fanen er en gratis valgfri funktion. Skjult som standard så ikke
+  // alle virksomheder får en ekstra fane i navigationen — kan slås til her
+  // under Avanceret når man vil modtage lead-anmodninger fra "Indhent 3 tilbud".
+  const [leadsEnabled, setLeadsEnabled] = useState<boolean>(
+    !!(business.settings as any)?.leads_enabled
+  );
 
   // CVR lookup
   const [cvrQuery, setCvrQuery] = useState("");
@@ -380,6 +386,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   const origNotif = business.notification_settings as Record<string, boolean> || {};
   const origRoutePlanning = !!(business.settings as any)?.route_planning_enabled;
   const origAccountingIntegration = !!(business.settings as any)?.accounting_integration_enabled;
+  const origLeadsEnabled = !!(business.settings as any)?.leads_enabled;
   const origSubcats = ((business.settings as any)?.selected_subcategories as Record<string, string[]>) || {};
   const hasChanges = name !== business.name || description !== (business.description || "") ||
     phone !== (business.phone || "") || email !== (business.email || "") ||
@@ -391,6 +398,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     JSON.stringify(openHours) !== JSON.stringify(business.opening_hours || {}) ||
     routePlanningEnabled !== origRoutePlanning ||
     accountingIntegrationEnabled !== origAccountingIntegration ||
+    leadsEnabled !== origLeadsEnabled ||
     JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
 
   // ─── Auto-save ───
