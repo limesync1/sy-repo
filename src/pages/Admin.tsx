@@ -11,18 +11,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import {
   Plus, Trash2,
   Sparkles, Calculator, Wrench,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
-import DashboardTab from "@/components/admin/DashboardTab";
-import ReviewsTab from "@/components/admin/ReviewsTab";
-import AftaleTab from "@/components/admin/AftaleTab";
-import EmployeesTab from "@/components/admin/EmployeesTab";
-import CustomersTab from "@/components/admin/CustomersTab";
-import SettingsTab from "@/components/admin/SettingsTab";
+// Lazy load tunge tabs så hver fane først downloades når brugeren åbner den
+const DashboardTab = lazy(() => import("@/components/admin/DashboardTab"));
+const ReviewsTab = lazy(() => import("@/components/admin/ReviewsTab"));
+const AftaleTab = lazy(() => import("@/components/admin/AftaleTab"));
+const EmployeesTab = lazy(() => import("@/components/admin/EmployeesTab"));
+const CustomersTab = lazy(() => import("@/components/admin/CustomersTab"));
+const SettingsTab = lazy(() => import("@/components/admin/SettingsTab"));
 import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
