@@ -91,7 +91,15 @@ const BusinessCard = ({
 
         {biz.logo_url && (
           <div className="absolute -bottom-5 left-4 h-14 w-14 overflow-hidden rounded-xl border-2 border-card bg-card shadow-md flex items-center justify-center">
-            <img src={biz.logo_url} alt="" className="h-full w-full object-contain p-1.5" />
+            <img
+              src={biz.logo_url}
+              alt=""
+              className="h-full w-full object-contain p-1.5"
+              width={56}
+              height={56}
+              loading="lazy"
+              decoding="async"
+            />
           </div>
         )}
       </div>

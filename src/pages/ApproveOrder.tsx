@@ -194,7 +194,15 @@ const ApproveOrder = () => {
             {business && (
               <Card className="p-4 flex items-center gap-3">
                 {business.logo_url ? (
-                  <img src={business.logo_url} alt="" className="h-12 w-12 rounded-lg object-contain bg-secondary p-1 border" />
+                  <img
+                    src={business.logo_url}
+                    alt=""
+                    className="h-12 w-12 rounded-lg object-contain bg-secondary p-1 border"
+                    width={48}
+                    height={48}
+                    loading="lazy"
+                    decoding="async"
+                  />
                 ) : (
                   <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center">
                     <Building2 className="h-5 w-5 text-muted-foreground" />

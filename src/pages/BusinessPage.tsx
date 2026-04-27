@@ -26,7 +26,15 @@ const BusinessPageContent = () => {
             <Link to="/" className="text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-5 w-5" />
             </Link>
-            <img src={biz.logo} alt={biz.name} className="h-8 w-8 rounded-lg" />
+            <img
+              src={biz.logo}
+              alt={biz.name}
+              className="h-8 w-8 rounded-lg"
+              width={32}
+              height={32}
+              decoding="async"
+              fetchPriority="high"
+            />
             <span className="font-bold text-foreground">{biz.name}</span>
           </div>
           <CartSheet />
@@ -38,7 +46,15 @@ const BusinessPageContent = () => {
         <div className="absolute -top-20 -right-20 h-[400px] w-[400px] rounded-full bg-accent/10 blur-3xl" />
         <div className="container relative mx-auto px-4 text-center">
           <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-card shadow-lg">
-            <img src={biz.logo} alt={biz.name} className="h-14 w-14" />
+            <img
+              src={biz.logo}
+              alt={biz.name}
+              className="h-14 w-14"
+              width={56}
+              height={56}
+              decoding="async"
+              fetchPriority="high"
+            />
           </div>
           <h1 className="mb-3 text-4xl font-extrabold text-foreground md:text-5xl">{biz.name}</h1>
           <p className="mx-auto max-w-lg text-lg text-muted-foreground">{biz.tagline}</p>

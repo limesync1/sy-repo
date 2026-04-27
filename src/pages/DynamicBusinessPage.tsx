@@ -190,7 +190,16 @@ const DynamicBusinessContent = () => {
             <div className="relative z-10 -mt-10 shrink-0 md:-mt-12">
               <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card shadow-xl md:h-24 md:w-24">
                 {business.logo_url ? (
-                  <img src={business.logo_url} alt={`${business.name} logo`} className="h-full w-full object-contain p-2" loading="eager" />
+                  <img
+                    src={business.logo_url}
+                    alt={`${business.name} logo`}
+                    className="h-full w-full object-contain p-2"
+                    width={96}
+                    height={96}
+                    loading="eager"
+                    decoding="async"
+                    fetchPriority="high"
+                  />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-accent/20 to-accent/5 text-3xl font-extrabold text-accent">
                     {business.name.charAt(0)}
