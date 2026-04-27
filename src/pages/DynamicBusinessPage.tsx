@@ -10,7 +10,7 @@ import { useState, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft, Star, Mail, Phone, MapPin, Clock, CheckCircle,
-  ArrowDown, Sparkles, BadgeCheck, ShoppingCart,
+  ArrowDown, Sparkles, BadgeCheck,
 } from "lucide-react";
 import Footer from "@/components/landing/Footer";
 
