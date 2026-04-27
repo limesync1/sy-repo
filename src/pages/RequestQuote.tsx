@@ -374,7 +374,15 @@ const RequestQuote = () => {
                     {/* Cover with logo overlay */}
                     <div className="relative h-24 w-full shrink-0 overflow-hidden rounded-xl bg-secondary sm:h-28 sm:w-28">
                       {match.business.cover_image_url ? (
-                        <img src={match.business.cover_image_url} alt="" className="h-full w-full object-cover" />
+                        <img
+                          src={match.business.cover_image_url}
+                          alt=""
+                          className="h-full w-full object-cover"
+                          width={400}
+                          height={300}
+                          loading="lazy"
+                          decoding="async"
+                        />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
                           <Building2 className="h-10 w-10 text-muted-foreground/40" />
@@ -382,12 +390,28 @@ const RequestQuote = () => {
                       )}
                       {match.business.logo_url && match.business.cover_image_url && (
                         <div className="absolute bottom-1.5 left-1.5 flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-border bg-card p-1 shadow-md">
-                          <img src={match.business.logo_url} alt="" className="h-full w-full object-contain" />
+                          <img
+                            src={match.business.logo_url}
+                            alt=""
+                            className="h-full w-full object-contain"
+                            width={36}
+                            height={36}
+                            loading="lazy"
+                            decoding="async"
+                          />
                         </div>
                       )}
                       {match.business.logo_url && !match.business.cover_image_url && (
                         <div className="absolute inset-0 flex items-center justify-center bg-card p-3">
-                          <img src={match.business.logo_url} alt="" className="h-full w-full object-contain" />
+                          <img
+                            src={match.business.logo_url}
+                            alt=""
+                            className="h-full w-full object-contain"
+                            width={112}
+                            height={112}
+                            loading="lazy"
+                            decoding="async"
+                          />
                         </div>
                       )}
                     </div>
@@ -399,7 +423,15 @@ const RequestQuote = () => {
                           <div className="flex items-center gap-2">
                             {match.business.logo_url && match.business.cover_image_url && (
                               <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-card p-0.5 sm:hidden">
-                                <img src={match.business.logo_url} alt="" className="h-full w-full object-contain" />
+                                <img
+                                  src={match.business.logo_url}
+                                  alt=""
+                                  className="h-full w-full object-contain"
+                                  width={28}
+                                  height={28}
+                                  loading="lazy"
+                                  decoding="async"
+                                />
                               </div>
                             )}
                             <h3 className="truncate text-lg font-bold text-foreground">{match.business.name}</h3>
@@ -488,7 +520,15 @@ const RequestQuote = () => {
           <div className="rounded-[1.75rem] border border-border bg-card p-5 shadow-sm md:p-6">
             <div className="flex items-start gap-4">
               {selectedBusiness.business.logo_url ? (
-                <img src={selectedBusiness.business.logo_url} alt="" className="h-16 w-16 shrink-0 rounded-xl border border-border bg-card object-contain p-1.5" />
+                <img
+                  src={selectedBusiness.business.logo_url}
+                  alt=""
+                  className="h-16 w-16 shrink-0 rounded-xl border border-border bg-card object-contain p-1.5"
+                  width={64}
+                  height={64}
+                  loading="lazy"
+                  decoding="async"
+                />
               ) : (
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-border bg-secondary text-xl font-bold text-foreground">
                   {selectedBusiness.business.name.charAt(0)}

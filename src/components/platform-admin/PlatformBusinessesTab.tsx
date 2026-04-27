@@ -201,7 +201,15 @@ const PlatformBusinessesTab = () => {
                   <Checkbox checked={selected.has(b.id)} onCheckedChange={(c) => toggleOne(b.id, !!c)} />
                   <div className="relative shrink-0">
                     {b.logo_url ? (
-                      <img src={b.logo_url} alt="" className="h-10 w-10 rounded object-contain bg-secondary p-0.5" />
+                      <img
+                        src={b.logo_url}
+                        alt=""
+                        className="h-10 w-10 rounded object-contain bg-secondary p-0.5"
+                        width={40}
+                        height={40}
+                        loading="lazy"
+                        decoding="async"
+                      />
                     ) : (
                       <div className="h-10 w-10 rounded bg-secondary flex items-center justify-center text-sm font-bold text-foreground">
                         {b.name.charAt(0)}

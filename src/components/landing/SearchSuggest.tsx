@@ -227,7 +227,15 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                       <>
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card">
                           {s.logo ? (
-                            <img src={s.logo} alt="" className="h-full w-full object-contain p-0.5" />
+                            <img
+                              src={s.logo}
+                              alt=""
+                              className="h-full w-full object-contain p-0.5"
+                              width={36}
+                              height={36}
+                              loading="lazy"
+                              decoding="async"
+                            />
                           ) : (
                             <Building2 className="h-4 w-4 text-muted-foreground" />
                           )}

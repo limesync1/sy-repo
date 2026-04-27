@@ -71,7 +71,15 @@ const Auth = () => {
 
         <div className="relative z-10">
           <Link to="/">
-            <img src="/serviceydere-logo.webp" alt="Serviceydere" className="h-8 mb-12" />
+            <img
+              src="/serviceydere-logo.webp"
+              alt="Serviceydere"
+              className="h-8 w-auto mb-12"
+              width={1920}
+              height={539}
+              decoding="async"
+              fetchPriority="high"
+            />
           </Link>
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 backdrop-blur-sm">
             <ShieldCheck className="h-3.5 w-3.5 text-accent" />
@@ -114,7 +122,15 @@ const Auth = () => {
         <div className="flex items-center justify-between px-4 py-3 lg:px-8 lg:py-5">
           <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" />
-            <img src="/serviceydere-logo-dark.webp" alt="Serviceydere" className="h-6 lg:hidden" />
+            <img
+              src="/serviceydere-logo-dark.webp"
+              alt="Serviceydere"
+              className="h-6 w-auto lg:hidden"
+              width={1920}
+              height={539}
+              decoding="async"
+              fetchPriority="high"
+            />
           </Link>
           {mode && (
             <Link to="/log-ind" className="text-xs text-muted-foreground hover:text-foreground hover:underline transition-colors">

@@ -23,7 +23,15 @@ const NotFound = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8">
           <Link to="/" className="flex items-center gap-3">
             <ArrowLeft className="h-4 w-4 text-muted-foreground" />
-            <img src="/serviceydere-logo-dark.webp" alt="Serviceydere" className="h-7" />
+            <img
+              src="/serviceydere-logo-dark.webp"
+              alt="Serviceydere"
+              className="h-7 w-auto"
+              width={1920}
+              height={539}
+              decoding="async"
+              loading="lazy"
+            />
           </Link>
         </div>
       </nav>

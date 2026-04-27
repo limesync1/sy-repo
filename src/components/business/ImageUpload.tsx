@@ -146,7 +146,13 @@ const ImageUpload = ({
       <div className={`group relative overflow-hidden rounded-xl border border-dashed border-border bg-secondary/40 ${aspectRatio} flex items-center justify-center transition-colors hover:border-foreground/40 hover:bg-secondary/60`}>
         {preview ? (
           <>
-            <img src={preview} alt="Preview" className={`h-full w-full ${fitClass}`} />
+            <img
+              src={preview}
+              alt="Preview"
+              className={`h-full w-full ${fitClass}`}
+              loading="lazy"
+              decoding="async"
+            />
             <button
               onClick={handleRemove}
               className="absolute right-2 top-2 rounded-full bg-foreground/80 p-1 text-background hover:bg-foreground"
