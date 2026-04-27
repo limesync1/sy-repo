@@ -119,7 +119,7 @@ export const SectionCard = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <Card className={cn("rounded-xl border-border shadow-sm", className)}>
+  <Card className={cn("rounded-xl border-border shadow-sm animate-fade-in", className)}>
     <CardContent className="p-5 space-y-4">
       {(title || action) && (
         <div className="flex items-start justify-between gap-3">
