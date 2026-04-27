@@ -50,13 +50,14 @@ type NavItem = {
   icon: any;
   href?: string;
   requiresRoutePlanning?: boolean;
+  requiresLeads?: boolean;
 };
 
 const NAV_ITEMS: NavItem[] = [
   { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
   { value: "services", label: "Services", icon: Wrench },
   { value: "orders", label: "Aftaler", icon: ShoppingCart },
-  { value: "leads", label: "Leads", icon: Sparkles },
+  { value: "leads", label: "Leads", icon: Sparkles, requiresLeads: true },
   { value: "customers", label: "Kunder", icon: Contact },
   { value: "routes", label: "Ruter", icon: RouteIcon, requiresRoutePlanning: true, href: "/virksomhed/ruter" },
   { value: "employees", label: "Medarbejdere", icon: Users, requiresRoutePlanning: true },
@@ -98,7 +99,12 @@ export const AdminShell = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const routePlanningEnabled = !!(business.settings as any)?.route_planning_enabled;
-  const visibleNav = NAV_ITEMS.filter((n) => !n.requiresRoutePlanning || routePlanningEnabled);
+  const leadsEnabled = !!(business.settings as any)?.leads_enabled;
+  const visibleNav = NAV_ITEMS.filter((n) => {
+    if (n.requiresRoutePlanning && !routePlanningEnabled) return false;
+    if (n.requiresLeads && !leadsEnabled) return false;
+    return true;
+  });
   const currentNav = visibleNav.find((n) => n.value === activeTab) ?? NAV_ITEMS.find((n) => n.value === activeTab);
 
   const handleNavClick = (item: NavItem) => {

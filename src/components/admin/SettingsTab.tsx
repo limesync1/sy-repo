@@ -200,6 +200,12 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [accountingIntegrationEnabled, setAccountingIntegrationEnabled] = useState<boolean>(
     !!(business.settings as any)?.accounting_integration_enabled
   );
+  // Leads-fanen er en gratis valgfri funktion. Skjult som standard så ikke
+  // alle virksomheder får en ekstra fane i navigationen — kan slås til her
+  // under Avanceret når man vil modtage lead-anmodninger fra "Indhent 3 tilbud".
+  const [leadsEnabled, setLeadsEnabled] = useState<boolean>(
+    !!(business.settings as any)?.leads_enabled
+  );
 
   // CVR lookup
   const [cvrQuery, setCvrQuery] = useState("");
@@ -380,6 +386,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   const origNotif = business.notification_settings as Record<string, boolean> || {};
   const origRoutePlanning = !!(business.settings as any)?.route_planning_enabled;
   const origAccountingIntegration = !!(business.settings as any)?.accounting_integration_enabled;
+  const origLeadsEnabled = !!(business.settings as any)?.leads_enabled;
   const origSubcats = ((business.settings as any)?.selected_subcategories as Record<string, string[]>) || {};
   const hasChanges = name !== business.name || description !== (business.description || "") ||
     phone !== (business.phone || "") || email !== (business.email || "") ||
@@ -391,6 +398,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     JSON.stringify(openHours) !== JSON.stringify(business.opening_hours || {}) ||
     routePlanningEnabled !== origRoutePlanning ||
     accountingIntegrationEnabled !== origAccountingIntegration ||
+    leadsEnabled !== origLeadsEnabled ||
     JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
 
   // ─── Auto-save ───
@@ -421,13 +429,14 @@ const SettingsTab = ({ business }: { business: any }) => {
       ...((business.settings as any) || {}),
       route_planning_enabled: routePlanningEnabled,
       accounting_integration_enabled: accountingIntegrationEnabled,
+      leads_enabled: leadsEnabled,
       selected_subcategories: selectedSubcategories,
     },
   }), [
     business.id, business.name, business.settings,
     name, description, phone, email, address, city, zipCode,
     logoUrl, coverUrl, selectedCategories, selectedSubcategories,
-    openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled,
+    openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled,
   ]);
 
   useEffect(() => {
@@ -1112,6 +1121,26 @@ const SettingsTab = ({ business }: { business: any }) => {
                   </div>
                 </div>
                 <ToggleSwitch checked={accountingIntegrationEnabled} onChange={() => setAccountingIntegrationEnabled((v) => !v)} />
+              </div>
+
+              {/* Leads — gratis valgfri funktion. Når slået til vises Leads-fanen
+                  i sidebar og virksomheden modtager match fra "Indhent 3 tilbud". */}
+              <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold text-foreground">Leads fra "Indhent 3 tilbud"</p>
+                      <span className="text-[11px] font-semibold text-muted-foreground">Gratis</span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Når slået til vises Leads-fanen i din navigation, og du modtager automatisk relevante kundeforespørgsler fra "Indhent 3 tilbud" der matcher dine brancher og dit område. Du kan altid slå funktionen fra igen.
+                    </p>
+                  </div>
+                </div>
+                <ToggleSwitch checked={leadsEnabled} onChange={() => setLeadsEnabled((v) => !v)} />
               </div>
             </div>
           </SectionCard>

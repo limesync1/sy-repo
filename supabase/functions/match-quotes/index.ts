@@ -85,6 +85,13 @@ serve(async (req) => {
     }
 
     // ── Annotate with distance + apply radius filter ──
+    // Respect opt-in: only businesses that have enabled the Leads feature
+    // (Indstillinger → Avanceret → "Leads fra Indhent 3 tilbud") should be
+    // matched. This keeps the feature truly opt-in for providers.
+    allBusinesses = allBusinesses.filter(
+      (b: any) => (b?.settings as any)?.leads_enabled === true,
+    );
+
     if (userPoint) {
       allBusinesses = allBusinesses.map((b: any) => {
         const bizPoint = lookupDkZip(b.zip_code);
