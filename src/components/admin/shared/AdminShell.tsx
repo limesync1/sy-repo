@@ -9,7 +9,7 @@
 //
 // Sidebar-items er definitive — det matcher NAV_ITEMS i Admin.tsx.
 import { Link, useNavigate } from "react-router-dom";
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   LogOut, LayoutDashboard, Wrench, ShoppingCart, Star, Settings,
   Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles,
@@ -184,27 +184,20 @@ export const AdminShell = ({
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 px-3 pt-1 pb-2 overflow-y-auto">
-          {visibleNav.map((item) => {
-            const isActive = activeTab === item.value;
-            const baseClasses = cn(
-              "flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors text-left",
-              isActive
-                ? "bg-secondary text-foreground shadow-sm ring-1 ring-border"
-                : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
-            );
+        <nav className="flex-1 px-3 pt-1 pb-2 overflow-y-auto">
+          {NAV_ITEMS.map((item) => {
+            const visible =
+              !(item.requiresRoutePlanning && !routePlanningEnabled) &&
+              !(item.requiresLeads && !leadsEnabled);
             return (
-              <button
+              <AnimatedNavItem
                 key={item.value}
+                visible={visible}
+                isActive={activeTab === item.value}
+                item={item}
                 onClick={() => handleNavClick(item)}
-                onMouseEnter={() => prefetchTab(item.value)}
-                onFocus={() => prefetchTab(item.value)}
-                onTouchStart={() => prefetchTab(item.value)}
-                className={baseClasses}
-              >
-                <item.icon className="h-4 w-4 shrink-0" />
-                {item.label}
-              </button>
+                onPrefetch={() => prefetchTab(item.value)}
+              />
             );
           })}
         </nav>
