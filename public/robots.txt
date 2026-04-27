@@ -14,5 +14,8 @@ Disallow: /dashboard
 Disallow: /unsubscribe
 Disallow: /b/
 
-Sitemap: https://serviceydere.dk/sitemap.xml
+# Dynamisk sitemap genereres af en edge function og opdateres automatisk når
+# nye virksomheder oprettes. Lovable hosting kan ikke proxy /sitemap.xml til
+# en backend, så vi annoncerer den fulde edge-URL her — Google accepterer
+# cross-host sitemaps når de er listet i robots.txt.
 Sitemap: https://gkectsellkpltrxvusot.supabase.co/functions/v1/sitemap
