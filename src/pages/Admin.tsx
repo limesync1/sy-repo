@@ -1084,16 +1084,13 @@ const ServiceForm = ({
               )}
             </div>
           )}
-        </div>
-      )}
 
-      {/* Step 4: Calculator */}
-      {currentStep === 4 && pricingType === "prisberegner" && (
-        <div className="space-y-5">
-          <div>
-            <h4 className="text-base font-semibold text-foreground">Opsæt prisberegner</h4>
-            <p className="mt-1 text-sm text-muted-foreground">Tilføj de trin kunden skal igennem for at beregne prisen</p>
-          </div>
+          {pricingType === "prisberegner" && (
+            <div className="space-y-5 pt-2">
+              <div>
+                <h4 className="text-base font-semibold text-foreground">Opsæt prisberegner</h4>
+                <p className="mt-1 text-sm text-muted-foreground">Tilføj de trin kunden skal igennem for at beregne prisen</p>
+              </div>
 
           {availableTemplates.length > 0 && steps.length === 0 && (
             <div className="surface-admin rounded-xl border border-border/80 p-5 space-y-3">
@@ -1180,6 +1177,8 @@ const ServiceForm = ({
           </div>
 
           <CalculatorPreview steps={steps} />
+            </div>
+          )}
         </div>
       )}
 
