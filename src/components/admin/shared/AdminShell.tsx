@@ -22,6 +22,75 @@ export type AdminTabKey =
   | "routes" | "employees" | "reviews" | "leads" | "settings";
 
 /**
+ * Animeret sidebar-item: collapser smooth ind/ud (height + fade + scale)
+ * når en feature toggles til/fra i Indstillinger.
+ */
+const AnimatedNavItem = ({
+  visible, isActive, item, onClick, onPrefetch,
+}: {
+  visible: boolean;
+  isActive: boolean;
+  item: NavItem;
+  onClick: () => void;
+  onPrefetch: () => void;
+}) => {
+  // shouldRender holder DOM'en monteret én ekstra frame efter visible→false
+  // så vi kan animere ud før unmount.
+  const [shouldRender, setShouldRender] = useState(visible);
+  const [open, setOpen] = useState(visible);
+  const firstRender = useRef(true);
+
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      setShouldRender(visible);
+      setOpen(visible);
+      return;
+    }
+    if (visible) {
+      setShouldRender(true);
+      // næste frame: trigger åben-tilstand så transitionen kører
+      const id = requestAnimationFrame(() => setOpen(true));
+      return () => cancelAnimationFrame(id);
+    } else {
+      setOpen(false);
+      const t = setTimeout(() => setShouldRender(false), 280);
+      return () => clearTimeout(t);
+    }
+  }, [visible]);
+
+  if (!shouldRender) return null;
+
+  return (
+    <div
+      className={cn(
+        "grid transition-[grid-template-rows,opacity,margin] duration-300 ease-out",
+        open ? "grid-rows-[1fr] opacity-100 mt-1 first:mt-0" : "grid-rows-[0fr] opacity-0 mt-0",
+      )}
+    >
+      <div className="overflow-hidden">
+        <button
+          onClick={onClick}
+          onMouseEnter={onPrefetch}
+          onFocus={onPrefetch}
+          onTouchStart={onPrefetch}
+          className={cn(
+            "flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all text-left",
+            open ? "translate-x-0" : "-translate-x-2",
+            isActive
+              ? "bg-secondary text-foreground shadow-sm ring-1 ring-border"
+              : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
+          )}
+        >
+          <item.icon className="h-4 w-4 shrink-0" />
+          {item.label}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+/**
  * Prefetch-funktioner for hver fane. Vi importerer dynamisk når brugeren
  * hover'er over en fane — så er bundle og data ofte klar inden klik, og
  * fane-skift føles øjeblikkeligt i stedet for at vise "Indlæser…".
