@@ -736,6 +736,7 @@ const ServiceForm = ({
           businessDescription: business?.description || null,
           businessCategories: Array.isArray(business?.categories) ? business?.categories : null,
           businessCity: business?.city || null,
+          intervalOptions: Array.isArray(intervalOptions) ? intervalOptions : null,
         },
       });
       if (error) throw error;
