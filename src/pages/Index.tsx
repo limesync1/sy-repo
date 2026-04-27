@@ -1,14 +1,19 @@
+import { lazy, Suspense } from "react";
 import HeroSection from "@/components/landing/HeroSection";
-import HowItWorks from "@/components/landing/HowItWorks";
-import RecentBusinesses from "@/components/landing/RecentBusinesses";
-import Testimonials from "@/components/landing/Testimonials";
-import WhyUs from "@/components/landing/WhyUs";
-import GetQuotes from "@/components/landing/GetQuotes";
-import Footer from "@/components/landing/Footer";
-import Stats from "@/components/landing/Stats";
-import ForBusinesses from "@/components/landing/ForBusinesses";
 import SEO from "@/components/SEO";
 import Reveal from "@/components/landing/Reveal";
+
+// Hero indlæses ivrigt (above-the-fold). Resten af sektionerne code-splittes
+// så initial JS-bundle på forsiden bliver markant mindre — brugeren scroller
+// alligevel ikke før Hero er malet.
+const Stats             = lazy(() => import("@/components/landing/Stats"));
+const RecentBusinesses  = lazy(() => import("@/components/landing/RecentBusinesses"));
+const HowItWorks        = lazy(() => import("@/components/landing/HowItWorks"));
+const GetQuotes         = lazy(() => import("@/components/landing/GetQuotes"));
+const Testimonials      = lazy(() => import("@/components/landing/Testimonials"));
+const WhyUs             = lazy(() => import("@/components/landing/WhyUs"));
+const ForBusinesses     = lazy(() => import("@/components/landing/ForBusinesses"));
+const Footer            = lazy(() => import("@/components/landing/Footer"));
 
 const Index = () => {
   // Struktureret data for forsiden — hjælper Google med at vise rich results
@@ -96,15 +101,19 @@ const Index = () => {
       <HeroSection />
       {/* Hver sektion fader blødt ind når den scrolles i syne. Det giver
           forsiden en rolig, sammenhængende rytme på alle enheder uden at
-          skubbe layout — IntersectionObserver er praktisk talt gratis. */}
-      <Reveal><Stats /></Reveal>
-      <Reveal><RecentBusinesses /></Reveal>
-      <Reveal><HowItWorks /></Reveal>
-      <Reveal><GetQuotes /></Reveal>
-      <Reveal><Testimonials /></Reveal>
-      <Reveal><WhyUs /></Reveal>
-      <Reveal><ForBusinesses /></Reveal>
-      <Footer />
+          skubbe layout — IntersectionObserver er praktisk talt gratis.
+          Suspense-fallback er null fordi Reveal allerede holder pladsen
+          via dens egen min-height/transition. */}
+      <Suspense fallback={null}>
+        <Reveal><Stats /></Reveal>
+        <Reveal><RecentBusinesses /></Reveal>
+        <Reveal><HowItWorks /></Reveal>
+        <Reveal><GetQuotes /></Reveal>
+        <Reveal><Testimonials /></Reveal>
+        <Reveal><WhyUs /></Reveal>
+        <Reveal><ForBusinesses /></Reveal>
+        <Footer />
+      </Suspense>
     </div>
   );
 };
