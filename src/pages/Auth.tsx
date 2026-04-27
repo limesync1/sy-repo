@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Navigate, Link, useSearchParams } from "react-router-dom";
 import { Building2, User, ArrowLeft, ShieldCheck, Star, Sparkles, CheckCircle, HardHat } from "lucide-react";
