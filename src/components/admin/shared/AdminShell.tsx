@@ -24,6 +24,13 @@ export type AdminTabKey =
 /**
  * Animeret sidebar-item: collapser smooth ind/ud (height + fade + scale)
  * når en feature toggles til/fra i Indstillinger.
+ *
+ * Animationen bruger flere lag for et rigt, "produkt-grade" indtryk:
+ * - height collapse via grid-rows trick
+ * - opacity + translateX + scale + blur kombineret
+ * - cubic-bezier "spring-like" easing
+ * - fra-højre slide-in for nye items, til-venstre slide-out når de fjernes
+ * - lille farve-puls første gang itemet vises (subtle accent flash)
  */
 const AnimatedNavItem = ({
   visible, isActive, item, onClick, onPrefetch,
@@ -34,11 +41,13 @@ const AnimatedNavItem = ({
   onClick: () => void;
   onPrefetch: () => void;
 }) => {
-  // shouldRender holder DOM'en monteret én ekstra frame efter visible→false
-  // så vi kan animere ud før unmount.
   const [shouldRender, setShouldRender] = useState(visible);
   const [open, setOpen] = useState(visible);
+  const [pulse, setPulse] = useState(false);
   const firstRender = useRef(true);
+
+  // Spring-lignende easing — overshoot let så det føles "levende".
+  const easing = "cubic-bezier(0.34, 1.56, 0.64, 1)";
 
   useEffect(() => {
     if (firstRender.current) {
@@ -49,12 +58,20 @@ const AnimatedNavItem = ({
     }
     if (visible) {
       setShouldRender(true);
-      // næste frame: trigger åben-tilstand så transitionen kører
-      const id = requestAnimationFrame(() => setOpen(true));
-      return () => cancelAnimationFrame(id);
+      // To frames forsinkelse: lader DOM'en montere i lukket tilstand,
+      // så transitionen kan køre hele vejen fra start til mål.
+      const id1 = requestAnimationFrame(() => {
+        const id2 = requestAnimationFrame(() => {
+          setOpen(true);
+          setPulse(true);
+          window.setTimeout(() => setPulse(false), 900);
+        });
+        (id1 as any)._next = id2;
+      });
+      return () => cancelAnimationFrame(id1);
     } else {
       setOpen(false);
-      const t = setTimeout(() => setShouldRender(false), 280);
+      const t = setTimeout(() => setShouldRender(false), 480);
       return () => clearTimeout(t);
     }
   }, [visible]);
@@ -63,9 +80,16 @@ const AnimatedNavItem = ({
 
   return (
     <div
+      style={{
+        transitionTimingFunction: easing,
+        transitionDuration: "460ms",
+        transitionProperty: "grid-template-rows, opacity, margin, filter",
+      }}
       className={cn(
-        "grid transition-[grid-template-rows,opacity,margin] duration-300 ease-out",
-        open ? "grid-rows-[1fr] opacity-100 mt-1 first:mt-0" : "grid-rows-[0fr] opacity-0 mt-0",
+        "grid",
+        open
+          ? "grid-rows-[1fr] opacity-100 mt-1 first:mt-0 blur-0"
+          : "grid-rows-[0fr] opacity-0 mt-0 blur-[2px]",
       )}
     >
       <div className="overflow-hidden">
@@ -74,16 +98,47 @@ const AnimatedNavItem = ({
           onMouseEnter={onPrefetch}
           onFocus={onPrefetch}
           onTouchStart={onPrefetch}
+          style={{
+            transitionTimingFunction: easing,
+            transitionDuration: "500ms",
+            transitionProperty: "transform, opacity, background-color, color, box-shadow",
+          }}
           className={cn(
-            "flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all text-left",
-            open ? "translate-x-0" : "-translate-x-2",
+            "flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-left origin-left",
+            open
+              ? "translate-x-0 scale-100 opacity-100"
+              : "-translate-x-3 scale-[0.92] opacity-0",
+            pulse && "ring-2 ring-accent/40",
             isActive
               ? "bg-secondary text-foreground shadow-sm ring-1 ring-border"
               : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
           )}
         >
-          <item.icon className="h-4 w-4 shrink-0" />
-          {item.label}
+          <item.icon
+            style={{
+              transitionTimingFunction: easing,
+              transitionDuration: "600ms",
+              transitionDelay: open ? "120ms" : "0ms",
+            }}
+            className={cn(
+              "h-4 w-4 shrink-0 transition-transform",
+              open ? "rotate-0 scale-100" : "-rotate-45 scale-75",
+            )}
+          />
+          <span
+            style={{
+              transitionTimingFunction: easing,
+              transitionDuration: "550ms",
+              transitionDelay: open ? "80ms" : "0ms",
+              transitionProperty: "opacity, transform",
+            }}
+            className={cn(
+              "inline-block",
+              open ? "translate-x-0 opacity-100" : "-translate-x-1 opacity-0",
+            )}
+          >
+            {item.label}
+          </span>
         </button>
       </div>
     </div>
