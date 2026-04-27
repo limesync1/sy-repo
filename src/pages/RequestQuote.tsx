@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2,
@@ -16,6 +18,7 @@ import LocationChip from "@/components/LocationChip";
 import RadiusPicker from "@/components/RadiusPicker";
 import SiteNav from "@/components/SiteNav";
 import { useUserLocation } from "@/contexts/LocationContext";
+import { useAuth } from "@/contexts/AuthContext";
 import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
 import { topCategories } from "@/lib/service-taxonomy";
