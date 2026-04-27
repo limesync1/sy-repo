@@ -60,15 +60,18 @@ const AnimatedNavItem = ({
       setShouldRender(true);
       // To frames forsinkelse: lader DOM'en montere i lukket tilstand,
       // så transitionen kan køre hele vejen fra start til mål.
+      let id2 = 0;
       const id1 = requestAnimationFrame(() => {
-        const id2 = requestAnimationFrame(() => {
+        id2 = requestAnimationFrame(() => {
           setOpen(true);
           setPulse(true);
           window.setTimeout(() => setPulse(false), 900);
         });
-        (id1 as any)._next = id2;
       });
-      return () => cancelAnimationFrame(id1);
+      return () => {
+        cancelAnimationFrame(id1);
+        if (id2) cancelAnimationFrame(id2);
+      };
     } else {
       setOpen(false);
       const t = setTimeout(() => setShouldRender(false), 480);
@@ -92,7 +95,9 @@ const AnimatedNavItem = ({
           : "grid-rows-[0fr] opacity-0 mt-0 blur-[2px]",
       )}
     >
-      <div className="overflow-hidden">
+      {/* Når åben: tillad ring/shadow at vises uden at blive klippet.
+          Når lukket: clip indhold så høj-collapsen ser rent ud. */}
+      <div className={cn(open ? "overflow-visible" : "overflow-hidden")}>
         <button
           onClick={onClick}
           onMouseEnter={onPrefetch}
