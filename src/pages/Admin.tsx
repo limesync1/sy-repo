@@ -784,13 +784,12 @@ const ServiceForm = ({
     ? taxonomyTemplates
     : (STEP_TEMPLATES[serviceCategory] || []);
 
-  const totalSteps = pricingType === "prisberegner" ? 5 : 4;
+  const totalSteps = 4;
   const FORM_STEPS = [
     { num: 1, label: "Kategori", color: "bg-blue-500" },
     { num: 2, label: "Detaljer", color: "bg-violet-500" },
     { num: 3, label: "Pris", color: "bg-emerald-500" },
-    ...(pricingType === "prisberegner" ? [{ num: 4, label: "Beregner", color: "bg-amber-500" }] : []),
-    { num: pricingType === "prisberegner" ? 5 : 4, label: "Interval", color: "bg-cyan-500" },
+    { num: 4, label: "Interval", color: "bg-cyan-500" },
   ];
 
   const addStep = () => {
