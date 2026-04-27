@@ -354,6 +354,9 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   const deleteService = useDeleteService();
   const [showForm, setShowForm] = useState(false);
   const [filterCategory, setFilterCategory] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const isFocusMode = showForm || editingId !== null;
 
   // Brancher virksomheden har valgt i Indstillinger — styrer hvad der kan oprettes
   const businessIndustries: string[] =
@@ -382,6 +385,70 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   const totalOrders = Object.values(orderCountByService).reduce((a, b) => a + b, 0);
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser services...</p>;
+
+  // Focus-mode: når man opretter eller redigerer en service, skjuler vi alt andet
+  // (statistik, filtre og listen) så man kun ser formularen.
+  if (isFocusMode) {
+    const editingService = editingId
+      ? (services || []).find((s: any) => s.id === editingId)
+      : null;
+
+    return (
+      <div className="space-y-5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <button
+              type="button"
+              onClick={() => { setShowForm(false); setEditingId(null); }}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              ← Tilbage til services
+            </button>
+            <h2 className="mt-2 text-xl font-semibold text-foreground truncate">
+              {editingService ? `Rediger "${editingService.name}"` : "Ny service"}
+            </h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {editingService
+                ? "Opdater detaljer, pris og intervaller for denne service."
+                : "Følg trinnene for at oprette en ny service."}
+            </p>
+          </div>
+        </div>
+
+        {showForm && !hasIndustries && (
+          <Card className="surface-admin rounded-xl border-amber-300 bg-amber-50 shadow-sm">
+            <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-2.5">
+                <span className="text-lg leading-none">⚠️</span>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Vælg jeres brancher først</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Når I har valgt brancher i Indstillinger, ser I kun service-typer der passer til jeres virksomhed.
+                  </p>
+                </div>
+              </div>
+              <Button asChild size="sm" variant="outline" className="shrink-0 rounded-lg">
+                <a href="/virksomhed?tab=settings">Gå til Indstillinger</a>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+          <CardContent className="p-5 sm:p-6">
+            <ServiceForm
+              key={editingService?.id || "new"}
+              businessId={editingService?.business_id || businessId}
+              businessIndustries={businessIndustries}
+              selectedSubcategoriesByIndustry={selectedSubcategoriesByIndustry}
+              existingService={editingService || undefined}
+              onClose={() => { setShowForm(false); setEditingId(null); }}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -442,36 +509,15 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
         <div className="hidden" />
       )}
 
-      {showForm && !hasIndustries && (
-        <Card className="surface-admin rounded-xl border-amber-300 bg-amber-50 shadow-sm">
-          <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-2.5">
-              <span className="text-lg leading-none">⚠️</span>
-              <div>
-                <p className="text-sm font-semibold text-foreground">Vælg jeres brancher først</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Når I har valgt brancher i Indstillinger, ser I kun service-typer der passer til jeres virksomhed.
-                </p>
-              </div>
-            </div>
-            <Button asChild size="sm" variant="outline" className="shrink-0 rounded-lg">
-              <a href="/virksomhed?tab=settings">Gå til Indstillinger</a>
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {showForm && (
-        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-          <CardContent className="p-5 sm:p-6">
-            <ServiceForm businessId={businessId} businessIndustries={businessIndustries} selectedSubcategoriesByIndustry={selectedSubcategoriesByIndustry} onClose={() => setShowForm(false)} />
-          </CardContent>
-        </Card>
-      )}
-
       <div className="space-y-3">
         {filtered?.map((s: any) => (
-          <ServiceRow key={s.id} service={s} businessIndustries={businessIndustries} selectedSubcategoriesByIndustry={selectedSubcategoriesByIndustry} orderCount={orderCountByService[s.id] || 0} onDelete={() => deleteService.mutate(s.id)} />
+          <ServiceRow
+            key={s.id}
+            service={s}
+            orderCount={orderCountByService[s.id] || 0}
+            onEdit={() => setEditingId(s.id)}
+            onDelete={() => deleteService.mutate(s.id)}
+          />
         ))}
         {(!filtered || filtered.length === 0) && !showForm && (
           <EmptyState
@@ -490,8 +536,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   );
 };
 
-const ServiceRow = ({ service, businessIndustries, selectedSubcategoriesByIndustry, orderCount, onDelete }: { service: any; businessIndustries: string[]; selectedSubcategoriesByIndustry?: Record<string, string[]>; orderCount: number; onDelete: () => void }) => {
-  const [editing, setEditing] = useState(false);
+const ServiceRow = ({ service, orderCount, onEdit, onDelete }: { service: any; orderCount: number; onEdit: () => void; onDelete: () => void }) => {
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
   const intervalLabels: Record<string, string> = {
     engangskøb: "Engangskøb",
@@ -553,8 +598,8 @@ const ServiceRow = ({ service, businessIndustries, selectedSubcategoriesByIndust
               </div>
 
               <div className="flex items-center gap-1.5 sm:shrink-0">
-                <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-8 rounded-lg border-border px-3 text-xs text-foreground hover:bg-secondary hover:text-foreground">
-                  {editing ? "Luk" : "Rediger"}
+                <Button variant="outline" size="sm" onClick={onEdit} className="h-8 rounded-lg border-border px-3 text-xs text-foreground hover:bg-secondary hover:text-foreground">
+                  Rediger
                 </Button>
                 <Button variant="ghost" size="sm" onClick={onDelete} className="h-8 w-8 rounded-lg p-0 text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></Button>
               </div>
@@ -586,11 +631,6 @@ const ServiceRow = ({ service, businessIndustries, selectedSubcategoriesByIndust
           </div>
         </div>
       </CardContent>
-      {editing && (
-        <div className="border-t border-border bg-secondary/30 p-4 sm:p-5">
-          <ServiceForm businessId={service.business_id} businessIndustries={businessIndustries} selectedSubcategoriesByIndustry={selectedSubcategoriesByIndustry} existingService={service} onClose={() => setEditing(false)} />
-        </div>
-      )}
     </Card>
   );
 };
@@ -675,6 +715,7 @@ const ServiceForm = ({
     existingService?.interval_options || ["engangskøb"]
   );
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiTemplateLoading, setAiTemplateLoading] = useState(false);
 
   const generateAiDescription = async () => {
     if (!name.trim()) {
@@ -705,6 +746,37 @@ const ServiceForm = ({
       toast.error(e?.message || "Kunne ikke generere forslag");
     } finally {
       setAiLoading(false);
+    }
+  };
+
+  const generateAiCalculatorTemplate = async () => {
+    if (!name.trim()) {
+      toast.error("Skriv først et servicenavn");
+      return;
+    }
+    setAiTemplateLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-calculator-template", {
+        body: {
+          serviceName: name.trim(),
+          serviceCategory: serviceCategory || null,
+          subcategory: subcategory || null,
+          businessName: business?.name || null,
+          businessDescription: business?.description || null,
+          businessCategories: Array.isArray(business?.categories) ? business?.categories : null,
+          businessCity: business?.city || null,
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const aiSteps = Array.isArray((data as any)?.steps) ? (data as any).steps : [];
+      if (aiSteps.length === 0) throw new Error("Tomt svar fra AI");
+      setSteps(aiSteps.map((s: any, i: number) => ({ ...s, sort_order: i })));
+      toast.success("AI-skabelon indsat");
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke generere skabelon");
+    } finally {
+      setAiTemplateLoading(false);
     }
   };
 
@@ -1087,28 +1159,71 @@ const ServiceForm = ({
 
           {pricingType === "prisberegner" && (
             <div className="space-y-5 pt-2">
-              <div>
-                <h4 className="text-base font-semibold text-foreground">Opsæt prisberegner</h4>
-                <p className="mt-1 text-sm text-muted-foreground">Tilføj de trin kunden skal igennem for at beregne prisen</p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h4 className="text-base font-semibold text-foreground">Opsæt prisberegner</h4>
+                  <p className="mt-1 text-sm text-muted-foreground">Tilføj de trin kunden skal igennem for at beregne prisen</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={generateAiCalculatorTemplate}
+                  disabled={aiTemplateLoading || !name.trim()}
+                  className="rounded-lg gap-1.5 self-start"
+                  title={!name.trim() ? "Skriv et servicenavn først" : "Lad AI bygge en beregner specifikt til denne service"}
+                >
+                  {aiTemplateLoading ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3.5 w-3.5" />
+                  )}
+                  {aiTemplateLoading ? "Genererer…" : (steps.length > 0 ? "Erstat med AI" : "Generér med AI")}
+                </Button>
               </div>
 
-          {availableTemplates.length > 0 && steps.length === 0 && (
-            <div className="surface-admin rounded-xl border border-border/80 p-5 space-y-3">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm font-semibold text-foreground">Kom hurtigt i gang med en skabelon</span>
-              </div>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {availableTemplates.map((t) => (
-                  <button key={t.label} type="button" onClick={() => applyTemplate(t)}
-                    className="rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-secondary">
-                    <span className="block text-sm font-semibold text-foreground">{t.label}</span>
-                    <span className="mt-1 block text-sm text-muted-foreground">{t.steps.length} trin · {t.steps.map(s => s.unit).filter((v, i, a) => a.indexOf(v) === i).join(", ")}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+              {steps.length === 0 && (
+                <div className="surface-admin rounded-xl border border-border/80 p-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-sm font-semibold text-foreground">Lad AI bygge din beregner</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    AI'en bruger {[business?.name && "din virksomhed", serviceCategory && "branchen", subcategory && "underkategorien", name.trim() && "servicens navn"].filter(Boolean).join(", ") || "din service"} til at lave realistiske trin og priser.
+                  </p>
+                  <Button
+                    type="button"
+                    onClick={generateAiCalculatorTemplate}
+                    disabled={aiTemplateLoading || !name.trim()}
+                    className="rounded-lg bg-foreground text-background hover:bg-foreground/90 gap-1.5"
+                  >
+                    {aiTemplateLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                    {aiTemplateLoading ? "Genererer…" : "Generér beregner med AI"}
+                  </Button>
+                  {availableTemplates.length > 0 && (
+                    <>
+                      <div className="flex items-center gap-2 pt-2">
+                        <div className="h-px flex-1 bg-border" />
+                        <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">eller vælg en skabelon</span>
+                        <div className="h-px flex-1 bg-border" />
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {availableTemplates.map((t) => (
+                          <button key={t.label} type="button" onClick={() => applyTemplate(t)}
+                            className="rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-secondary">
+                            <span className="block text-sm font-semibold text-foreground">{t.label}</span>
+                            <span className="mt-1 block text-sm text-muted-foreground">{t.steps.length} trin · {t.steps.map(s => s.unit).filter((v, i, a) => a.indexOf(v) === i).join(", ")}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
