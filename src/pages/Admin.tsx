@@ -223,7 +223,9 @@ const AdminDashboard = () => {
           <TrialBanner plan={plan} hideAction={activeTab === "settings"} />
         </div>
       )}
-      {renderContent()}
+      <Suspense fallback={<div className="py-10 text-center text-sm text-muted-foreground">Indlæser…</div>}>
+        {renderContent()}
+      </Suspense>
 
       {/* Hvis prøven er udløbet og der ikke er noget kort → blokér panelet
           indtil brugeren har genaktiveret med kortoplysninger. */}
