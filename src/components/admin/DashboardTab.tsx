@@ -69,7 +69,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
         title={business.name}
         description={<>Her er status for <span className="font-medium text-foreground">{business.name}</span>.</>}
         action={business.slug ? (
-          <a href={`/biz/${business.slug}`} target="_blank" rel="noopener noreferrer"
+          <a href={`/v/${business.slug}`} target="_blank" rel="noopener noreferrer"
             className="hidden sm:flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors">
             Se din side <ArrowRight className="h-3 w-3" />
           </a>
