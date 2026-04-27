@@ -7,8 +7,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { LocationProvider } from "@/contexts/LocationContext";
-import CartSheet from "@/components/business/CartSheet";
-import CartFab from "@/components/business/CartFab";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
 
@@ -19,6 +17,10 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
+// CartSheet/CartFab er kun relevante når brugeren faktisk har items i kurven —
+// de trækker ~35KB JS + ikoner som ikke skal blokere initial paint.
+const CartSheet              = lazy(() => import("@/components/business/CartSheet"));
+const CartFab                = lazy(() => import("@/components/business/CartFab"));
 const BusinessPage          = lazy(() => import("./pages/BusinessPage"));
 const DynamicBusinessPage   = lazy(() => import("./pages/DynamicBusinessPage"));
 const Admin                 = lazy(() => import("./pages/Admin"));
@@ -53,9 +55,9 @@ const queryClient = new QueryClient({
 });
 
 const PageFallback = () => (
-  <div className="flex min-h-screen items-center justify-center text-muted-foreground">
-    Indlæser...
-  </div>
+  // Tom fallback undgår "flash of loading text" ved lynhurtige chunk-loads.
+  // Browseren viser stadig forrige route via Suspense indtil næste er klar.
+  <div className="min-h-screen bg-background" aria-hidden />
 );
 
 // Helper to preserve query strings on redirect
@@ -75,11 +77,12 @@ const App = () => (
           <BrowserRouter>
             {/* Scroller automatisk til toppen når ruten ændres. */}
             <ScrollToTop />
-            {/* Global bestillings-sheet — slides ud fra højre når services tilføjes.
-                Skal være inde i BrowserRouter fordi CartSheet bruger useNavigate(). */}
-            <CartSheet />
-            {/* Flydende genåbn-knap når brugeren har items men har lukket sheeten */}
-            <CartFab />
+            {/* Global bestillings-sheet + flydende genåbn-knap — lazy-loadede,
+                så de ikke blokerer FCP for forsiden. */}
+            <Suspense fallback={null}>
+              <CartSheet />
+              <CartFab />
+            </Suspense>
             {/* Cookie-banner — vises kun første gang valget træffes. */}
             <CookieConsent />
             <Suspense fallback={<PageFallback />}>
