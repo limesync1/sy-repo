@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useEffect, useState, lazy, Suspense } from "react";
 import {
   Plus, Trash2,
-  Sparkles, Calculator, Wrench,
+  Sparkles, Calculator, Wrench, Wand2, Loader2,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 // Lazy load tunge tabs så hver fane først downloades når brugeren åbner den
