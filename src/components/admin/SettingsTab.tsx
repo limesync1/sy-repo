@@ -103,6 +103,21 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
 
+  // Hvis brugeren ankommer fra prøveperiode-banneret med ?openCheckout=1,
+  // åbner vi automatisk Stripe Embedded Checkout — men kun hvis virksomheden
+  // ikke allerede har et betalingskort registreret.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("openCheckout") === "1" && plan && !plan.has_payment_method) {
+      setShowCheckout(true);
+      // Fjern parameteren igen så dialogen ikke åbner ved hver re-render.
+      params.delete("openCheckout");
+      const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}${window.location.hash}`;
+      window.history.replaceState({}, "", next);
+    }
+  }, [plan]);
+
   const openCustomerPortal = async () => {
     setOpeningPortal(true);
     try {
@@ -558,7 +573,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </Card>
 
         <a
-          href={business.slug ? `/biz/${business.slug}` : "#"}
+          href={business.slug ? `/v/${business.slug}` : "#"}
           target="_blank"
           rel="noopener noreferrer"
           className={`hidden sm:flex items-center gap-1.5 rounded-xl border border-border bg-card px-4 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:border-foreground/30 ${
