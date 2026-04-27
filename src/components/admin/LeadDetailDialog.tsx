@@ -308,60 +308,14 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
           </TabsContent>
 
           {/* Follow up tab */}
-          <TabsContent value="followup" className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Sæt en påmindelse om at følge op på dette lead. I ser det øverst på leads-siden, når tiden er inde.
-            </p>
-            <div className="flex flex-wrap items-center gap-2">
-              <Input
-                type="datetime-local"
-                value={followUp}
-                onChange={(e) => setFollowUp(e.target.value)}
-                className="h-10 w-[240px]"
-              />
-              <Button onClick={saveFollowUp} disabled={saving} className="gap-1.5">
-                <Bell className="h-4 w-4" /> Gem påmindelse
-              </Button>
-              {followUp && (
-                <Button variant="ghost" onClick={() => { setFollowUp(""); }} className="gap-1.5 text-muted-foreground">
-                  <XCircle className="h-4 w-4" /> Ryd
-                </Button>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-2 pt-1">
-              {[
-                { label: "Om 1 time", h: 1 },
-                { label: "Om 4 timer", h: 4 },
-                { label: "I morgen kl. 9", custom: true },
-                { label: "Om 3 dage", h: 24 * 3 },
-                { label: "Om en uge", h: 24 * 7 },
-              ].map((p) => (
-                <Button
-                  key={p.label}
-                  size="sm"
-                  variant="outline"
-                  className="h-8 text-xs"
-                  onClick={() => {
-                    const d = new Date();
-                    if (p.custom) {
-                      d.setDate(d.getDate() + 1);
-                      d.setHours(9, 0, 0, 0);
-                    } else {
-                      d.setHours(d.getHours() + (p.h as number));
-                    }
-                    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-                    setFollowUp(local);
-                  }}
-                >
-                  <Clock className="mr-1 h-3 w-3" /> {p.label}
-                </Button>
-              ))}
-            </div>
-            {lead.follow_up_at && (
-              <p className="text-xs text-muted-foreground">
-                Aktuel påmindelse: {new Date(lead.follow_up_at).toLocaleString("da-DK")}
-              </p>
-            )}
+          <TabsContent value="followup" className="space-y-4 animate-slide-up-fade">
+            <FollowUpEditor
+              value={followUp}
+              onChange={setFollowUp}
+              onSave={saveFollowUp}
+              saving={saving}
+              currentSavedIso={lead.follow_up_at}
+            />
           </TabsContent>
         </Tabs>
 
