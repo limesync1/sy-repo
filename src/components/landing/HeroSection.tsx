@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-window-cleaning.webp";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
+import LocationChip from "@/components/LocationChip";
 import SiteNav from "@/components/SiteNav";
 
 const HeroSection = () => {
@@ -45,6 +46,9 @@ const HeroSection = () => {
           {/* Søgefelt — dropdown må flyde frit ud over hero-kanten via z-20. */}
           <div className="animate-fade-in [animation-delay:220ms] relative z-20 mt-7 w-full max-w-2xl">
             <SearchSuggest variant="hero" showNearLabel={false} placeholder="Søg efter service, virksomhed eller by…" />
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-background/80">
+              <LocationChip />
+            </div>
           </div>
 
           <div className="animate-fade-in [animation-delay:320ms] mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
