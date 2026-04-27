@@ -154,6 +154,7 @@ serve(async (req) => {
       businessDescription,
       businessCategories,
       businessCity,
+      intervalOptions,
     } = body || {};
 
     if (!serviceName || !String(serviceName).trim()) {
@@ -178,25 +179,38 @@ serve(async (req) => {
       `Servicenavn: ${serviceName}`,
       serviceCategory ? `Kategori: ${serviceCategory}` : null,
       subcategory ? `Underkategori: ${subcategory}` : null,
+      Array.isArray(intervalOptions) && intervalOptions.length > 0
+        ? `Intervaller: ${intervalOptions.join(", ")}`
+        : null,
     ].filter(Boolean).join(" | ");
 
     const categoryGuidelines = guidelinesFor(serviceCategory, subcategory);
+    const geoHint = geoModifierHint(businessCity);
+    const isSubscription = Array.isArray(intervalOptions)
+      && intervalOptions.some((i: string) => i && i !== "engangskøb");
 
-    const systemPrompt = `Du opsætter en prisberegner for en service på en dansk marketplace.
-Du returnerer 2-5 trin der gør det muligt for kunden at sammensætte en realistisk pris for netop denne service.
+    const systemPrompt = `Du opsætter en prisberegner til en konkret service på en dansk marketplace (2025).
+Målet er at kunden kan sammensætte en pris der ligger MAX ±10% fra hvad servicen reelt koster i markedet.
 
-Regler for trin:
-- Hvert trin skal være SPECIFIKT for denne service og kategori — aldrig generisk fyld.
-- Brug realistiske 2025-priser i DKK pr. enhed (ekskl. moms).
-- Vælg den enhed der passer bedst fra denne liste: ${ALLOWED_UNITS.join(", ")}.
-- min_value <= default_value <= max_value (alle skal være tal, ikke null).
-- Korte, klare danske labels (max 40 tegn). Fx "Antal vinduer", "Boligstørrelse", "Antal rum".
-- Hvis servicen typisk har et "udkald/grundgebyr" — gør FØRSTE trin til det med min=max=default=1 og prisen som grundgebyr.
-- Tilpas til virksomhedens branche, by (storby = højere priser) og beskrivelse hvis tilgængeligt.
-- 2-3 trin er ofte bedst. Brug kun flere trin hvis det giver kunden reel valgfrihed.
-- Undgå dobbelt-trin (fx både "antal vinduer" og "antal vinduesfag").
+REGLER:
+- 2-4 trin er optimalt. Kun 5 trin hvis det giver kunden reel valgfrihed.
+- Hvert trin SKAL være meningsfuldt for netop DENNE service. Ingen generisk fyld.
+- Priser i DKK ekskl. moms, pr. enhed. Brug realistiske 2025-tal — IKKE runde tal som 100/500/1000.
+  Foretræk reelle markedspriser (fx 245, 380, 1675) for autenticitet.
+- Enheder: vælg fra ${ALLOWED_UNITS.join(", ")}. Brug "kr" hvis kunden skal indtaste et beløb (fx materiale-budget).
+- min_value <= default_value <= max_value. Alle skal være endelige tal (ingen null).
+- default_value SKAL være en realistisk typisk værdi — IKKE 0 medmindre trinnet er valgfrit ekstra.
+- Hvis servicen kræver fysisk udkald (VVS, elektriker, låsesmed mv.), gør FØRSTE trin til "Udkald (grundgebyr)" med min=max=default=1.
+- Korte præcise danske labels (max 40 tegn). Brug konkrete branchetermer (fx "vinduesfag", "rentvandsanlæg", "K-mærket").
+- UNDGÅ dobbelt-trin (fx både "boligstørrelse" og "antal rum"; eller både "vinduesfag" og "antal vinduer").
+- ${isSubscription
+    ? "Service tilbydes med ABONNEMENT — brug NEDRE ende af prisspændet (15-25% under engangspris) da kunden binder sig."
+    : "Service er primært ENGANGSKØB — brug midter til øvre ende af prisspændet."}
+${geoHint}
 
-${categoryGuidelines ? `KATEGORI-RETNINGSLINJER (følg disse priser og enheder tæt):\n${categoryGuidelines}` : "Bruger ukendt kategori — brug sund fornuft og typisk dansk markedspris."}`;
+${categoryGuidelines
+    ? `KATEGORI-RETNINGSLINJER (følg disse priser og enheder tæt — afvig kun hvis servicenavnet klart kræver det):\n${categoryGuidelines}`
+    : "Ukendt kategori — brug sund fornuft og typisk dansk markedspris fra 2025. Tjek mentalt mod 2-3 konkurrenter."}`;
 
     const userPrompt = `Lav en prisberegner-opsætning til denne service.
 
