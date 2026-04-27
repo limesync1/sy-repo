@@ -1,8 +1,18 @@
 User-agent: *
 Allow: /
+# Privat / brugerspecifikt — bør ikke indekseres
 Disallow: /admin
-Disallow: /dashboard
+Disallow: /virksomhed
+Disallow: /min-konto
+Disallow: /medarbejder
+Disallow: /log-ind
+Disallow: /afmeld
+Disallow: /godkend-bestilling
+# Legacy redirect-stier
 Disallow: /auth
+Disallow: /dashboard
 Disallow: /unsubscribe
+Disallow: /b/
 
+Sitemap: https://serviceydere.dk/sitemap.xml
 Sitemap: https://gkectsellkpltrxvusot.supabase.co/functions/v1/sitemap
