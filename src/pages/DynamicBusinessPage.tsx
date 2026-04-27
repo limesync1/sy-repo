@@ -450,6 +450,37 @@ const DynamicBusinessContent = () => {
               </section>
             )}
 
+            {/* Åbningstider — vises på tablet/mobil hvor sidebaren er skjult,
+                så brugeren stadig kan se hvornår virksomheden er åben. */}
+            {openingHours.length > 0 && (
+              <Card className="rounded-[2rem] border-border bg-card/90 shadow-sm lg:hidden">
+                <CardContent className="p-5">
+                  <h3 className="mb-3 flex items-center gap-2 font-bold text-foreground">
+                    <Clock className="h-4 w-4 text-accent" /> Åbningstider
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    {openingHours.map(([day, time]) => {
+                      const today = new Date().toLocaleDateString("da-DK", { weekday: "long" });
+                      const isToday = day.toLowerCase() === today.toLowerCase();
+                      return (
+                        <div key={day} className={`flex items-center justify-between rounded-lg px-2 py-1.5 ${isToday ? "bg-accent/8" : ""}`}>
+                          <span className={isToday ? "text-foreground" : "text-muted-foreground"}>
+                            {day}
+                            {isToday && (
+                              <span className="ml-1.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent">
+                                I dag
+                              </span>
+                            )}
+                          </span>
+                          <span className={`tabular-nums font-medium text-foreground`}>{time}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Reviews — samlet card med summary + grid, så det føles som ét sammenhængende afsnit */}
             {reviews && reviews.length > 0 && (
               <section
