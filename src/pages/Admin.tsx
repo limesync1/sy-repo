@@ -881,6 +881,28 @@ const ServiceForm = ({
     ? taxonomyTemplates
     : (STEP_TEMPLATES[serviceCategory] || []);
 
+  // Rank templates by relevance to chosen subcategory + service name.
+  // Score = number of overlapping word-tokens between (subcategory + name)
+  // and the template label. Stable order otherwise.
+  const rankedTemplates = (() => {
+    const haystack = `${subcategory || ""} ${name || ""}`
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}\s]/gu, " ")
+      .split(/\s+/)
+      .filter((w) => w.length >= 3);
+    if (haystack.length === 0) return availableTemplates;
+    const scored = availableTemplates.map((t, i) => {
+      const label = t.label.toLowerCase();
+      const score = haystack.reduce((acc, w) => acc + (label.includes(w) ? 1 : 0), 0);
+      return { t, score, i };
+    });
+    scored.sort((a, b) => b.score - a.score || a.i - b.i);
+    return scored.map((s) => s.t);
+  })();
+  const bestTemplate = rankedTemplates[0];
+  const isBestMatch = !!(bestTemplate && rankedTemplates.length > 1 &&
+    (subcategory || name).trim().length > 2);
+
   const totalSteps = 4;
   const FORM_STEPS = [
     { num: 1, label: "Kategori", color: "bg-blue-500" },
