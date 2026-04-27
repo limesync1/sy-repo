@@ -336,12 +336,29 @@ const RequestQuote = () => {
                   Del mine kontaktoplysninger med de matchede virksomheder, så de kan kontakte mig direkte.
                 </span>
               </label>
+              {/* Lovpligtig samtykke — jf. GDPR art. 6(1)(a) og markedsføringsloven §10.
+                  Uden dette må vi ikke videregive kundens oplysninger til virksomhederne. */}
+              <label className="mt-2 flex cursor-pointer items-start gap-2 rounded-xl border border-border bg-card/60 p-3 text-xs text-foreground">
+                <Checkbox
+                  checked={acceptedTerms}
+                  onCheckedChange={(v) => setAcceptedTerms(v === true)}
+                  className="mt-0.5"
+                  required
+                />
+                <span className="leading-relaxed">
+                  Jeg accepterer Serviceyderes{" "}
+                  <Link to="/vilkaar" target="_blank" className="font-medium underline underline-offset-2 hover:text-accent">vilkår</Link>{" "}
+                  og{" "}
+                  <Link to="/privatlivspolitik" target="_blank" className="font-medium underline underline-offset-2 hover:text-accent">privatlivspolitik</Link>,
+                  og giver de matchede virksomheder lov til at kontakte mig om denne forespørgsel.
+                </span>
+              </label>
             </div>
 
             {/* Submit */}
             <Button
               type="submit"
-              disabled={!category || !description.trim() || !customerName.trim() || !customerEmail.trim()}
+              disabled={!category || !description.trim() || !customerName.trim() || !customerEmail.trim() || !acceptedTerms}
               className="mt-7 h-14 w-full gap-2 rounded-2xl bg-foreground text-base font-semibold text-background hover:bg-foreground/90 active:scale-[0.99] disabled:opacity-50"
             >
               <Sparkles className="h-5 w-5" />
