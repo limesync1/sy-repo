@@ -7,9 +7,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 import { useState, useMemo } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft, Star, Mail, Phone, MapPin, Clock, CheckCircle,
-  ArrowDown, Sparkles, BadgeCheck,
+  ArrowDown, Sparkles, BadgeCheck, ShoppingCart,
 } from "lucide-react";
 import Footer from "@/components/landing/Footer";
 
@@ -83,14 +84,7 @@ const DynamicBusinessContent = () => {
     [categoryEntries, shouldUseCompactCategoryGrid]
   );
 
-  if (isLoading) return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="flex flex-col items-center gap-3">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-accent border-t-transparent" />
-        <span className="text-sm text-muted-foreground">Indlæser virksomhed...</span>
-      </div>
-    </div>
-  );
+  if (isLoading) return <BusinessPageSkeleton />;
 
   if (error || !business) return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4">
@@ -325,10 +319,10 @@ const DynamicBusinessContent = () => {
 
                 {/* Category filter pills */}
                  {hasMultipleCategories && (
-                   <div className="mb-5 flex flex-wrap gap-2">
+                   <div className="mb-5 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     <button
                       onClick={() => setActiveCategory(null)}
-                      className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all ${
+                      className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition-all ${
                         !activeCategory
                           ? "border-accent bg-accent text-accent-foreground shadow-sm"
                           : "border-border bg-card text-muted-foreground hover:border-accent/40 hover:text-foreground"
@@ -340,7 +334,7 @@ const DynamicBusinessContent = () => {
                       <button
                         key={cat}
                         onClick={() => setActiveCategory(cat === activeCategory ? null : cat)}
-                        className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all ${
+                        className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition-all ${
                           activeCategory === cat
                             ? "border-accent bg-accent text-accent-foreground shadow-sm"
                             : "border-border bg-card text-muted-foreground hover:border-accent/40 hover:text-foreground"
@@ -626,6 +620,38 @@ const DynamicBusinessContent = () => {
       </main>
 
       <Footer />
+
+      {/* ── Mobile sticky CTA ── 
+          På telefoner er kontakt-knapperne nede i sidebar — der er for langt
+          væk når brugeren scroller services. En fast bar nederst gør det
+          altid 1 tap fra at ringe eller hoppe til services. */}
+      {(business.phone || (services && services.length > 0)) && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-3 py-2 shadow-[0_-12px_30px_-18px_rgba(0,0,0,0.25)] backdrop-blur lg:hidden">
+          <div className="mx-auto flex max-w-3xl items-center gap-2">
+            {business.phone && (
+              <a href={`tel:${business.phone}`} className="flex-1">
+                <Button
+                  variant="outline"
+                  className="h-11 w-full gap-2 rounded-full border-border bg-card text-sm font-semibold text-foreground"
+                >
+                  <Phone className="h-4 w-4" /> Ring
+                </Button>
+              </a>
+            )}
+            {services && services.length > 0 && (
+              <Button
+                onClick={scrollToServices}
+                className="h-11 flex-1 gap-2 rounded-full bg-accent text-sm font-semibold text-accent-foreground shadow-md shadow-accent/20"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                Bestil
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+      {/* Spacer så sticky-baren ikke dækker bundindholdet på mobil. */}
+      <div className="h-16 lg:hidden" aria-hidden />
     </div>
   );
 };
@@ -633,3 +659,53 @@ const DynamicBusinessContent = () => {
 const DynamicBusinessPage = () => <DynamicBusinessContent />;
 
 export default DynamicBusinessPage;
+
+/* ──────────────────────────────────────────────────────────
+ * Skeleton — vises mens virksomheds-data hentes. Bevar samme
+ * layout-struktur som siden, så der ikke er stort visuelt skift
+ * når data endelig dropper in (mindre CLS, mere "smooth").
+ * ────────────────────────────────────────────────────────── */
+const BusinessPageSkeleton = () => (
+  <div className="min-h-screen bg-background">
+    {/* Top-nav placeholder */}
+    <div className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        <Skeleton className="h-8 w-32 rounded-md" />
+        <Skeleton className="h-8 w-24 rounded-full" />
+      </div>
+    </div>
+
+    {/* Hero */}
+    <header className="border-b border-border bg-background">
+      <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8 md:pt-6">
+        <Skeleton className="h-48 w-full rounded-[1.75rem] sm:h-56 md:h-72 lg:h-80" />
+        <div className="relative flex flex-col gap-4 pb-6 md:flex-row md:items-start md:gap-6 md:pb-8">
+          <Skeleton className="-mt-10 h-20 w-20 rounded-2xl border-4 border-background md:-mt-12 md:h-24 md:w-24" />
+          <div className="flex-1 space-y-2.5 pt-1 md:pt-3">
+            <div className="flex gap-1.5">
+              <Skeleton className="h-5 w-16 rounded-md" />
+              <Skeleton className="h-5 w-20 rounded-md" />
+            </div>
+            <Skeleton className="h-9 w-2/3 rounded-md" />
+            <Skeleton className="h-4 w-1/2 rounded-md" />
+            <Skeleton className="h-4 w-3/4 rounded-md" />
+          </div>
+        </div>
+      </div>
+    </header>
+
+    {/* Body */}
+    <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
+      <div className="grid gap-4 md:gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="space-y-4">
+          <Skeleton className="h-64 w-full rounded-[2rem]" />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Skeleton className="h-40 rounded-2xl" />
+            <Skeleton className="h-40 rounded-2xl" />
+          </div>
+        </div>
+        <Skeleton className="hidden h-64 rounded-[2rem] lg:block" />
+      </div>
+    </main>
+  </div>
+);
