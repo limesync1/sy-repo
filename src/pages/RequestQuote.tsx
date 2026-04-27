@@ -117,9 +117,16 @@ const RequestQuote = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const selectedCategory = CATEGORIES.find((c) => c.key === category);
-  const filteredCategories = CATEGORIES.filter((c) =>
-    c.label.toLowerCase().includes(categoryQuery.trim().toLowerCase())
-  );
+  /** Foreslå 3 populære kategorier ved tomt søgefelt så listen ikke
+   *  overvælder, men brugeren stadig kan klikke direkte. Når der søges,
+   *  vises alle matches. */
+  const POPULAR_KEYS = ["rengoring", "haveservice", "vinduespudsning"];
+  const trimmedQuery = categoryQuery.trim().toLowerCase();
+  const filteredCategories = trimmedQuery
+    ? CATEGORIES.filter((c) => c.label.toLowerCase().includes(trimmedQuery))
+    : (POPULAR_KEYS
+        .map((k) => CATEGORIES.find((c) => c.key === k))
+        .filter(Boolean) as typeof CATEGORIES);
 
   const handleFind = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -297,7 +304,9 @@ const RequestQuote = () => {
                 </PopoverTrigger>
                 <PopoverContent
                   align="start"
+                  side="bottom"
                   sideOffset={8}
+                  avoidCollisions={false}
                   className="w-[var(--radix-popover-trigger-width)] rounded-2xl border-border bg-card p-0 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.25)]"
                 >
                   <div className="flex items-center gap-2 border-b border-border px-3 py-2">
@@ -306,10 +315,15 @@ const RequestQuote = () => {
                       autoFocus
                       value={categoryQuery}
                       onChange={(e) => setCategoryQuery(e.target.value)}
-                      placeholder="Søg kategori…"
+                      placeholder="Søg fx rengøring, vinduespudsning…"
                       className="h-8 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                     />
                   </div>
+                  {!trimmedQuery && (
+                    <div className="border-b border-border bg-secondary/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Populære kategorier
+                    </div>
+                  )}
                   <ul className="max-h-[260px] overflow-y-auto py-1">
                     {filteredCategories.length === 0 && (
                       <li className="px-4 py-3 text-sm text-muted-foreground">Ingen kategorier matcher.</li>
@@ -336,6 +350,11 @@ const RequestQuote = () => {
                         </li>
                       );
                     })}
+                    {!trimmedQuery && (
+                      <li className="border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
+                        Skriv for at søge blandt alle {CATEGORIES.length} kategorier.
+                      </li>
+                    )}
                   </ul>
                 </PopoverContent>
               </Popover>
