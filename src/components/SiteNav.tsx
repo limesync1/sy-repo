@@ -122,12 +122,15 @@ const SiteNav = ({ active, right }: Props) => {
             />
           </Link>
 
-          <div className="hidden items-center gap-1 rounded-full border border-border/70 bg-card/80 p-1 lg:flex">
+          {/* Primær nav — vises fra md+ så tablet ikke ender med tom "Menu"-chip.
+              På små tablet (<lg) bruger vi en mere kompakt padding så alle 3
+              links plus højre-side knapper kan være på linjen. */}
+          <div className="hidden items-center gap-1 rounded-full border border-border/70 bg-card/80 p-1 md:flex">
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.key}
                 to={item.to}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors lg:px-4 lg:py-2 ${
                   isActive(item.key)
                     ? "bg-secondary text-foreground shadow-sm"
                     : "text-foreground/80 hover:bg-secondary hover:text-foreground"
@@ -136,10 +139,6 @@ const SiteNav = ({ active, right }: Props) => {
                 {item.label}
               </Link>
             ))}
-          </div>
-
-          <div className="hidden md:flex lg:hidden items-center rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground">
-            {NAV_ITEMS.find((item) => isActive(item.key))?.label || "Menu"}
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">

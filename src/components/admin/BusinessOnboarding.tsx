@@ -283,15 +283,22 @@ const BusinessOnboarding = () => {
         <div className="max-w-3xl">
           <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
             <Sparkles className="h-3.5 w-3.5" />
-            14 dages gratis prøve · Intet kort kræves
+            {pricing ? `${pricing.trial_days} dages gratis prøve` : "14 dages gratis prøve"} · Intet kort kræves
           </div>
           <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-            Opret din virksomhed på Serviceydere
+            Bliv udbyder på Serviceydere
           </h1>
           <p className="mt-3 max-w-2xl text-[15px] leading-7 text-muted-foreground sm:text-base">
-            Indtast dit CVR — vi henter automatisk dine virksomhedsoplysninger.
-            Vælg de funktioner du har brug for, og se prisen med det samme.
+            Få din virksomhed online på under 2 minutter. Indtast dit CVR — vi henter
+            automatisk dine oplysninger. Vælg dine funktioner og se prisen med det samme.
           </p>
+
+          {/* Trust-bånd så brugeren straks ser hvad der er inkluderet */}
+          <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+            <li className="flex items-center gap-1.5"><Check className="h-4 w-4 text-accent" /> Ingen binding</li>
+            <li className="flex items-center gap-1.5"><Check className="h-4 w-4 text-accent" /> Opsig når som helst</li>
+            <li className="flex items-center gap-1.5"><Check className="h-4 w-4 text-accent" /> Dansk support</li>
+          </ul>
         </div>
 
         {/* Layout: form til venstre, sticky pris-summary til højre */}
@@ -592,6 +599,39 @@ const BusinessOnboarding = () => {
           </aside>
         </div>
       </main>
+
+      {/* ── Mobile sticky CTA ──
+          På mobil/tablet er sidebaren nede under formularen — så brugeren kan
+          ikke se prisen mens de scroller. Denne bar viser totalen og en
+          shortcut til "Start gratis prøve" eller scroll-til-konto. */}
+      {pricing && breakdown && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 shadow-[0_-12px_30px_-18px_rgba(0,0,0,0.25)] backdrop-blur lg:hidden">
+          <div className="mx-auto flex max-w-3xl items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Total pr. måned
+              </p>
+              <p className="text-lg font-bold text-foreground tabular-nums">
+                {formatDkk(breakdown.monthlyAfterDiscount)} kr
+                <span className="ml-1 text-[11px] font-normal text-muted-foreground">/md</span>
+              </p>
+            </div>
+            <Button
+              onClick={handleSubmit}
+              disabled={!canSubmit || submitting}
+              className="h-11 shrink-0 gap-2 rounded-full bg-foreground px-5 text-sm font-semibold text-background hover:bg-foreground/90"
+            >
+              {submitting ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Opretter…</>
+              ) : (
+                <>Start gratis prøve <ArrowRight className="h-4 w-4" /></>
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
+      {/* Spacer så sticky-bar ikke dækker footer-indhold på mobil */}
+      <div className="h-20 lg:hidden" aria-hidden />
 
       <Footer />
     </div>
