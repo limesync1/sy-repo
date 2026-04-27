@@ -120,7 +120,7 @@ const RequestQuote = () => {
   /** Foreslå 3 populære kategorier ved tomt søgefelt så listen ikke
    *  overvælder, men brugeren stadig kan klikke direkte. Når der søges,
    *  vises alle matches. */
-  const POPULAR_KEYS = ["rengoring", "haveservice", "vinduespudsning"];
+  const POPULAR_KEYS = ["Rengøring", "Haveservice", "Vinduespudsning"];
   const trimmedQuery = categoryQuery.trim().toLowerCase();
   const filteredCategories = trimmedQuery
     ? CATEGORIES.filter((c) => c.label.toLowerCase().includes(trimmedQuery))
