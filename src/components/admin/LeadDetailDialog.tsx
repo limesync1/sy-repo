@@ -187,7 +187,7 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {qr?.customer_name || "Anonym kunde"}
-            <Badge variant="outline" className="gap-1 rounded-md">
+            <Badge variant="outline" className="gap-1 rounded-md pointer-events-none">
               <Sparkles className="h-3 w-3" /> {lead.match_score}/100
             </Badge>
           </DialogTitle>
@@ -369,7 +369,7 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
             </Button>
           )}
           {lead.status !== "declined" && (
-            <Button size="sm" variant="ghost" onClick={() => updateStatus("declined")} className="gap-1.5 text-muted-foreground hover:text-destructive">
+            <Button size="sm" variant="ghost" onClick={() => updateStatus("declined")} className="gap-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
               <XCircle className="h-4 w-4" /> Afvis lead
             </Button>
           )}
