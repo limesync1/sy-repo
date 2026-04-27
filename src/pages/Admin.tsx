@@ -783,24 +783,6 @@ const ServiceForm = ({
     }
   };
 
-  // Auto-foreslå AI-skabelon én gang når brugeren vælger Prisberegner
-  // og har kategori + navn, men endnu ingen trin (ny service).
-  useEffect(() => {
-    if (
-      !existingService &&
-      pricingType === "prisberegner" &&
-      steps.length === 0 &&
-      !aiAutoTried &&
-      !aiTemplateLoading &&
-      name.trim().length > 1 &&
-      serviceCategory.trim().length > 0
-    ) {
-      setAiAutoTried(true);
-      generateAiCalculatorTemplate();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pricingType, name, serviceCategory, subcategory]);
-
   // Auto-foreslå AI-beskrivelse første gang brugeren rammer detaljer-trinnet
   // med navn + kategori valgt og tom beskrivelse.
   useEffect(() => {
