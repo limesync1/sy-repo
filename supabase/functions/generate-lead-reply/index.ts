@@ -60,36 +60,56 @@ Deno.serve(async (req) => {
     if (!qr) return json(400, { error: "Forespørgslen findes ikke længere" });
 
     const toneInstruction: Record<string, string> = {
-      venlig: "Brug en varm, personlig og imødekommende tone. Skriv som en menneskelig kollega.",
-      professionel: "Brug en professionel, kompetent og tillidsvækkende tone. Hold det kort og klart.",
-      kort: "Hold svaret meget kort (3-5 linjer). Direkte til sagen, ingen smalltalk.",
-      detaljeret: "Vær grundig — stil 2-3 konkrete spørgsmål for at kunne give et præcist tilbud.",
+      venlig: "Brug en varm, personlig og imødekommende tone. Skriv som en menneskelig kollega der virkelig vil hjælpe.",
+      professionel: "Brug en professionel, kompetent og tillidsvækkende tone. Hold det fokuseret og klart.",
+      kort: "Hold svaret kort og effektivt (4-6 linjer). Direkte til sagen, ingen smalltalk.",
+      detaljeret: "Vær grundig og stil 2-3 konkrete, relevante spørgsmål for at kunne give et præcist tilbud.",
     };
 
-    const systemPrompt = `Du er en hjælpsom assistent for danske håndværkere og servicevirksomheder.
-Du skriver KUN på dansk. Du genererer en e-mail som virksomheden kan sende til en potentiel kunde der har anmodet om et tilbud via Serviceydere.dk.
+    // Saml matchgrund og kontekst
+    const desc = String(qr.description || "");
+    const urgent = /(haster|hurtigst|asap|akut|i dag|i morgen|denne uge)/i.test(desc);
+    const distance = typeof match.distance_km === "number" ? Math.round(match.distance_km) : null;
 
-Regler:
-- Skriv ALDRIG noget der er forkert eller opfundet (priser, datoer, tilbud).
-- Hvis et estimat findes, må du nævne det som "vejledende".
-- Slut altid med "Med venlig hilsen\\n${business.name}".
-- Ingen markdown, ingen emojis, ingen links.
+    const systemPrompt = `Du er en erfaren dansk salgsassistent for håndværkere og servicevirksomheder.
+Din opgave: skriv ÉN personlig e-mail som virksomheden kan sende til en potentiel kunde der har anmodet om tilbud via Serviceydere.dk.
+
+VIGTIGE REGLER:
+- Skriv KUN på dansk, korrekt og naturligt sprog.
+- Personalisér: nævn mindst ÉT konkret detalje fra kundens forespørgsel (fx. type opgave, område, omfang).
+- Vis at I har læst forespørgslen — gentag ikke alt, men reflektér det.
+- Skriv ALDRIG opdigtede priser, datoer eller tilbud.
+- Hvis et estimat er givet, nævn det som "vejledende — endeligt pris efter besigtigelse".
+- ${urgent ? "Kunden har travlt — vis at I kan rykke hurtigt og tilbyd konkret hurtig kontakt (fx. ringe i dag/i morgen)." : "Tilbyd et opkald eller besigtigelse for at konkretisere."}
+- Skriv naturligt og menneskeligt — IKKE som en formular eller skabelon.
+- Slut med opfordring til næste skridt (svar på mailen, ring, book tid).
+- Afslut med: "Med venlig hilsen\\n${business.name}"
+- INGEN markdown, INGEN emojis, INGEN links, INGEN bullet points.
 - ${toneInstruction[tone]}
-- Ca. 80–160 ord.`;
+- Længde: ca. 90–170 ord.
 
-    const userPrompt = `Virksomheden:
+Begynd brødteksten direkte med "Hej ${qr.customer_name},"
+
+Returnér JSON med to felter: "subject" (kort, konkret emnelinje på dansk uden "Re:" eller "Sv:") og "body" (selve e-mailen).`;
+
+    const userPrompt = `=== VIRKSOMHED (afsender) ===
 Navn: ${business.name}
 By: ${business.city || "—"}
 Beskrivelse: ${business.description || "—"}
 
-Kundens forespørgsel:
+=== KUNDENS FORESPØRGSEL ===
 Navn: ${qr.customer_name}
-Kategori: ${qr.category}
-By: ${[qr.zip_code, qr.city].filter(Boolean).join(" ") || "—"}
-Beskrivelse: "${qr.description}"
-${match.estimated_price ? `Vores foreløbige estimat: ${match.estimated_price}` : ""}
+Servicekategori: ${qr.category}
+Område: ${[qr.zip_code, qr.city].filter(Boolean).join(" ") || "—"}${distance !== null ? ` (~${distance} km fra jer)` : ""}
+Beskrivelse fra kunden:
+"""
+${desc}
+"""
+${match.estimated_price ? `\nForeløbigt estimat fra vores beregner: ${match.estimated_price}` : ""}
+${match.reason ? `\nHvorfor I matcher godt (intern AI-vurdering — brug evt. til at fremhæve relevante styrker, men gentag IKKE ordret): ${match.reason}` : ""}
+${urgent ? "\nSIGNAL: Kunden virker til at have travlt." : ""}
 
-Skriv KUN selve e-mailens brødtekst (ingen emnelinje, ingen "Hej Navn" header — det starter automatisk med en hilsen). Begynd direkte med "Hej ${qr.customer_name},"`;
+Generér emnelinje + e-mailtekst nu.`;
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -103,6 +123,23 @@ Skriv KUN selve e-mailens brødtekst (ingen emnelinje, ingen "Hej Navn" header �
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
+        tools: [{
+          type: "function",
+          function: {
+            name: "generate_lead_email",
+            description: "Generér emnelinje og brødtekst til lead-svaret",
+            parameters: {
+              type: "object",
+              properties: {
+                subject: { type: "string", description: "Kort konkret dansk emnelinje" },
+                body: { type: "string", description: "Selve e-mailens brødtekst, dansk, naturlig" },
+              },
+              required: ["subject", "body"],
+              additionalProperties: false,
+            },
+          },
+        }],
+        tool_choice: { type: "function", function: { name: "generate_lead_email" } },
       }),
     });
 
@@ -115,7 +152,23 @@ Skriv KUN selve e-mailens brødtekst (ingen emnelinje, ingen "Hej Navn" header �
     }
 
     const aiJson = await aiResp.json();
-    const draft: string = aiJson?.choices?.[0]?.message?.content?.trim() || "";
+    const toolCall = aiJson?.choices?.[0]?.message?.tool_calls?.[0];
+    let subject = "";
+    let draft = "";
+    if (toolCall?.function?.arguments) {
+      try {
+        const parsed = JSON.parse(toolCall.function.arguments);
+        subject = String(parsed.subject || "").trim();
+        draft = String(parsed.body || "").trim();
+      } catch (e) {
+        console.error("Could not parse tool args", e);
+      }
+    }
+    if (!draft) {
+      // Fallback hvis modellen ikke brugte tool calling
+      draft = aiJson?.choices?.[0]?.message?.content?.trim() || "";
+    }
+    if (!subject) subject = `Tilbud på ${qr.category} fra ${business.name}`;
     if (!draft) return json(500, { error: "Tomt AI-svar" });
 
     // Gem udkastet på leadet
@@ -125,7 +178,7 @@ Skriv KUN selve e-mailens brødtekst (ingen emnelinje, ingen "Hej Navn" header �
       .eq("id", matchId);
     if (upErr) console.error("Kunne ikke gemme udkast:", upErr);
 
-    return json(200, { draft, tone });
+    return json(200, { draft, subject, tone });
   } catch (e) {
     console.error("generate-lead-reply error:", e);
     return json(500, { error: e instanceof Error ? e.message : "Ukendt fejl" });
