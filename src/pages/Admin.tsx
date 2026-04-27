@@ -25,6 +25,7 @@ const AftaleTab = lazy(() => import("@/components/admin/AftaleTab"));
 const EmployeesTab = lazy(() => import("@/components/admin/EmployeesTab"));
 const CustomersTab = lazy(() => import("@/components/admin/CustomersTab"));
 const SettingsTab = lazy(() => import("@/components/admin/SettingsTab"));
+const LeadsTab = lazy(() => import("@/components/admin/LeadsTab"));
 import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
@@ -164,7 +165,7 @@ const AdminDashboard = () => {
   const initialTab = ((): AdminTabKey => {
     if (typeof window === "undefined") return "dashboard";
     const t = new URLSearchParams(window.location.search).get("tab") as AdminTabKey | null;
-    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","settings"];
+    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","settings"];
     return t && allowed.includes(t) ? t : "dashboard";
   })();
   const [activeTab, setActiveTab] = useState<AdminTabKey>(initialTab);
@@ -175,7 +176,7 @@ const AdminDashboard = () => {
     if (typeof window === "undefined") return;
     const onPop = () => {
       const t = new URLSearchParams(window.location.search).get("tab") as AdminTabKey | null;
-      const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","settings"];
+      const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","settings"];
       setActiveTab(t && allowed.includes(t) ? t : "dashboard");
     };
     window.addEventListener("popstate", onPop);
@@ -209,6 +210,7 @@ const AdminDashboard = () => {
       case "customers": return <CustomersTab businessId={business.id} businessName={business.name} />;
       case "employees": return <EmployeesTab businessId={business.id} businessName={business.name} routePlanningEnabled={!!(business.settings as any)?.route_planning_enabled} />;
       case "reviews": return <ReviewsWrapper businessId={business.id} />;
+      case "leads": return <LeadsTab businessId={business.id} />;
       case "settings": return <SettingsTab business={business} />;
       default: return null;
     }

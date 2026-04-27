@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2,
@@ -16,6 +18,7 @@ import LocationChip from "@/components/LocationChip";
 import RadiusPicker from "@/components/RadiusPicker";
 import SiteNav from "@/components/SiteNav";
 import { useUserLocation } from "@/contexts/LocationContext";
+import { useAuth } from "@/contexts/AuthContext";
 import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
 import { topCategories } from "@/lib/service-taxonomy";
@@ -103,11 +106,25 @@ const RequestQuote = () => {
   const [selectedBusiness, setSelectedBusiness] = useState<MatchedBusiness | null>(null);
   const [showAllServices, setShowAllServices] = useState(false);
   const { location, radiusKm } = useUserLocation();
+  const { user } = useAuth();
+  const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState(user?.email ?? "");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [shareContact, setShareContact] = useState(true);
 
   const handleFind = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!category || !description.trim()) {
       toast.error("Vælg en kategori og beskriv dit behov");
+      return;
+    }
+    const trimmedEmail = customerEmail.trim();
+    if (!customerName.trim() || !trimmedEmail) {
+      toast.error("Udfyld dit navn og e-mail, så virksomhederne kan kontakte dig");
+      return;
+    }
+    if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
+      toast.error("Indtast en gyldig e-mail");
       return;
     }
 
@@ -125,6 +142,12 @@ const RequestQuote = () => {
             ? { city: location.city, zip: location.zip }
             : undefined,
           radius_km: radiusKm,
+          customer: {
+            name: customerName.trim(),
+            email: trimmedEmail,
+            phone: customerPhone.trim() || undefined,
+            share_contact: shareContact,
+          },
         },
       });
 
@@ -267,10 +290,52 @@ const RequestQuote = () => {
               </p>
             </div>
 
+            {/* Step 3: Kontaktoplysninger */}
+            <div className="mt-7">
+              <div className="mb-3 flex items-center gap-2">
+                <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-colors ${
+                  description.trim() ? "bg-foreground text-background" : "bg-secondary text-muted-foreground"
+                }`}>3</span>
+                <label className="text-sm font-semibold text-foreground">Hvor kan virksomhederne nå dig?</label>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="Dit navn"
+                  className="h-11 rounded-xl"
+                />
+                <Input
+                  type="email"
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  placeholder="E-mail"
+                  className="h-11 rounded-xl"
+                />
+                <Input
+                  type="tel"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  placeholder="Telefon (valgfrit)"
+                  className="h-11 rounded-xl sm:col-span-2"
+                />
+              </div>
+              <label className="mt-3 flex cursor-pointer items-start gap-2 text-xs text-muted-foreground">
+                <Checkbox
+                  checked={shareContact}
+                  onCheckedChange={(v) => setShareContact(v === true)}
+                  className="mt-0.5"
+                />
+                <span>
+                  Del mine kontaktoplysninger med de matchede virksomheder, så de kan kontakte mig direkte.
+                </span>
+              </label>
+            </div>
+
             {/* Submit */}
             <Button
               type="submit"
-              disabled={!category || !description.trim()}
+              disabled={!category || !description.trim() || !customerName.trim() || !customerEmail.trim()}
               className="mt-7 h-14 w-full gap-2 rounded-2xl bg-foreground text-base font-semibold text-background hover:bg-foreground/90 active:scale-[0.99] disabled:opacity-50"
             >
               <Sparkles className="h-5 w-5" />
