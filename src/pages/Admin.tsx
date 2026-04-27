@@ -1021,29 +1021,62 @@ const ServiceForm = ({
 
   return (
     <div className="space-y-6">
-      {/* Step Progress Bar */}
+      {/* Step Progress Bar — kompakt, tydelig nuværende fase + lille hint
+          om hvad der mangler i alt. */}
       <div className="surface-admin rounded-xl border border-border/80 p-3 sm:p-4">
+        <div className="mb-2.5 flex items-baseline justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Trin {currentStep} af {totalSteps}
+            </p>
+            <p className="mt-0.5 truncate text-sm font-semibold text-foreground">
+              {FORM_STEPS[currentStep - 1]?.label}
+            </p>
+          </div>
+          {/* Live opsummering af brugerens valg så de altid kan se hvor de er */}
+          <div className="hidden sm:flex flex-wrap items-center justify-end gap-1.5">
+            {serviceCategory && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground">
+                <span>{CATEGORY_ICONS[serviceCategory] || "📋"}</span>
+                {serviceCategory}
+              </span>
+            )}
+            {subcategory && (
+              <span className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground">
+                {subcategory}
+              </span>
+            )}
+            {name.trim() && currentStep > 2 && (
+              <span className="max-w-[180px] truncate rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground">
+                {name.trim()}
+              </span>
+            )}
+          </div>
+        </div>
         <div className="flex items-center">
           {FORM_STEPS.map((s, i) => {
             const isLast = i === FORM_STEPS.length - 1;
+            const isDone = s.num < currentStep;
+            const isCurrent = s.num === currentStep;
             return (
               <div key={s.num} className={`flex items-center ${isLast ? "shrink-0" : "flex-1"}`}>
                 <button
+                  type="button"
                   onClick={() => { if (s.num <= currentStep || canGoNext()) setCurrentStep(s.num); }}
                   className="group flex shrink-0 items-center gap-2"
+                  title={s.label}
                 >
-                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold transition-all ${
-                    currentStep === s.num ? "bg-foreground text-background shadow-sm ring-2 ring-foreground/20" :
-                    s.num < currentStep ? "bg-secondary text-foreground ring-1 ring-border" : "bg-secondary text-muted-foreground"
+                  <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold transition-all ${
+                    isCurrent ? "bg-foreground text-background shadow-sm ring-2 ring-foreground/15" :
+                    isDone ? "bg-foreground/90 text-background" : "bg-secondary text-muted-foreground"
                   }`}>
-                    {s.num < currentStep ? "✓" : s.num}
+                    {isDone ? "✓" : s.num}
                   </span>
-                  <span className={`hidden sm:block text-sm font-medium whitespace-nowrap transition-colors ${
-                    currentStep === s.num ? "text-foreground" : s.num < currentStep ? "text-foreground" : "text-muted-foreground"
-                  }`}>{s.label}</span>
                 </button>
                 {!isLast && (
-                  <div className={`mx-2 sm:mx-3 h-px flex-1 min-w-4 transition-colors ${FORM_STEPS[i + 1].num <= currentStep ? "bg-foreground/20" : "bg-border"}`} />
+                  <div className={`mx-2 h-0.5 flex-1 min-w-4 rounded-full transition-colors ${
+                    FORM_STEPS[i + 1].num <= currentStep ? "bg-foreground/60" : "bg-border"
+                  }`} />
                 )}
               </div>
             );
