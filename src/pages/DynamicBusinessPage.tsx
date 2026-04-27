@@ -135,6 +135,12 @@ const DynamicBusinessContent = () => {
         openingHours={business.opening_hours as Record<string, string> | undefined}
         categories={(business.categories?.length ? business.categories : [business.category]).filter(Boolean) as string[]}
         services={services?.map((s: any) => ({ name: s.name, description: s.description, base_price: s.base_price }))}
+        reviews={reviews?.map((r: any) => ({
+          reviewer_name: r.reviewer_name,
+          rating: r.rating,
+          comment: r.comment,
+          created_at: r.created_at,
+        }))}
       />
 
       {/* ── Sticky Nav (light, matches landing) ── */}
