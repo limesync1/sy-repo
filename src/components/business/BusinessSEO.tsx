@@ -16,6 +16,14 @@ interface BusinessSEOProps {
   openingHours?: Record<string, string>;
   categories?: string[];
   services?: { name: string; description?: string | null; base_price?: number | null }[];
+  /** Faktiske anmeldelser — bruges til at generere Review-schema så Google kan
+   *  vise stjerner i søgeresultater. Vi medtager max 10 nyeste. */
+  reviews?: {
+    reviewer_name: string;
+    rating: number;
+    comment?: string | null;
+    created_at?: string | null;
+  }[];
 }
 
 const DAY_MAP: Record<string, string> = {
@@ -49,7 +57,7 @@ const formatHours = (hours?: Record<string, string>): string[] | undefined => {
 const BusinessSEO = ({
   name, description, city, address, zipCode, phone, email,
   logoUrl, coverImageUrl, avgRating, reviewCount, slug, openingHours,
-  categories, services,
+  categories, services, reviews,
 }: BusinessSEOProps) => {
   const origin = typeof window !== "undefined" ? window.location.origin : "https://serviceydere.dk";
   // VIGTIGT: kanonisk URL skal matche den faktiske rute (/v/:slug). Tidligere
@@ -91,6 +99,22 @@ const BusinessSEO = ({
       bestRating: "5",
       worstRating: "1",
     };
+  }
+  // Indlejr op til 10 nyeste anmeldelser direkte i LocalBusiness — det er
+  // sådan Google plukker rich-result stjernerne ud.
+  if (reviews && reviews.length) {
+    localBusinessLd.review = reviews.slice(0, 10).map((r) => ({
+      "@type": "Review",
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: String(r.rating),
+        bestRating: "5",
+        worstRating: "1",
+      },
+      author: { "@type": "Person", name: r.reviewer_name || "Anonym" },
+      ...(r.comment ? { reviewBody: r.comment } : {}),
+      ...(r.created_at ? { datePublished: r.created_at.slice(0, 10) } : {}),
+    }));
   }
   const hours = formatHours(openingHours);
   if (hours) localBusinessLd.openingHours = hours;

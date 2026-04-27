@@ -65,6 +65,25 @@ const SEO = ({
     setMeta('meta[name="robots"]', "content", noIndex ? "noindex,nofollow" : "index,follow");
     if (keywords) setMeta('meta[name="keywords"]', "content", keywords);
 
+    // hreflang — Danmark er primært marked, så vi annoncerer da-DK + x-default
+    // pr. side. Vi rydder eksisterende dynamiske hreflang-links før vi indsætter
+    // nye, så der ikke ophobes duplikater ved client-side navigation.
+    document.head
+      .querySelectorAll('link[rel="alternate"][data-seo-hreflang="1"]')
+      .forEach((el) => el.remove());
+    const hreflangs: Array<["da-DK" | "x-default", string]> = [
+      ["da-DK", url],
+      ["x-default", url],
+    ];
+    hreflangs.forEach(([lang, href]) => {
+      const link = document.createElement("link");
+      link.rel = "alternate";
+      link.hreflang = lang;
+      link.href = href;
+      link.dataset.seoHreflang = "1";
+      document.head.appendChild(link);
+    });
+
     setMeta('meta[property="og:title"]', "content", fullTitle);
     setMeta('meta[property="og:description"]', "content", desc);
     setMeta('meta[property="og:url"]', "content", url);
@@ -95,6 +114,8 @@ const SEO = ({
     return () => {
       document.title = prevTitle;
       scripts.forEach((s) => s.remove());
+      // Behold hreflang efter unmount — næste sides SEO-komponent overskriver dem
+      // alligevel, men ved fuld navigation væk er det fint at de bliver liggende.
     };
   }, [title, description, canonicalPath, image, ogType, keywords, noIndex, jsonLd]);
 
