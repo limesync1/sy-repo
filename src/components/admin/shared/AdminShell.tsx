@@ -21,6 +21,28 @@ export type AdminTabKey =
   | "dashboard" | "services" | "orders" | "customers"
   | "routes" | "employees" | "reviews" | "settings";
 
+/**
+ * Prefetch-funktioner for hver fane. Vi importerer dynamisk når brugeren
+ * hover'er over en fane — så er bundle og data ofte klar inden klik, og
+ * fane-skift føles øjeblikkeligt i stedet for at vise "Indlæser…".
+ */
+const TAB_PREFETCH: Partial<Record<AdminTabKey, () => Promise<unknown>>> = {
+  dashboard: () => import("@/components/admin/DashboardTab"),
+  services:  () => import("@/pages/Admin"),
+  orders:    () => import("@/components/admin/AftaleTab"),
+  customers: () => import("@/components/admin/CustomersTab"),
+  employees: () => import("@/components/admin/EmployeesTab"),
+  reviews:   () => import("@/components/admin/ReviewsTab"),
+  settings:  () => import("@/components/admin/SettingsTab"),
+  routes:    () => import("@/pages/RoutePlanner"),
+};
+const prefetched = new Set<AdminTabKey>();
+const prefetchTab = (key: AdminTabKey) => {
+  if (prefetched.has(key)) return;
+  prefetched.add(key);
+  TAB_PREFETCH[key]?.().catch(() => prefetched.delete(key));
+};
+
 type NavItem = {
   value: AdminTabKey;
   label: string;
@@ -164,7 +186,14 @@ export const AdminShell = ({
                 : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
             );
             return (
-              <button key={item.value} onClick={() => handleNavClick(item)} className={baseClasses}>
+              <button
+                key={item.value}
+                onClick={() => handleNavClick(item)}
+                onMouseEnter={() => prefetchTab(item.value)}
+                onFocus={() => prefetchTab(item.value)}
+                onTouchStart={() => prefetchTab(item.value)}
+                className={baseClasses}
+              >
                 <item.icon className="h-4 w-4 shrink-0" />
                 {item.label}
               </button>
