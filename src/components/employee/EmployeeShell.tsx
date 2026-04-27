@@ -80,7 +80,15 @@ export const EmployeeShell = ({
       >
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/serviceydere-logo-dark.webp" alt="Serviceydere" className="h-7" />
+            <img
+              src="/serviceydere-logo-dark.webp"
+              alt="Serviceydere"
+              className="h-7 w-auto"
+              width={1920}
+              height={539}
+              decoding="async"
+              fetchPriority="high"
+            />
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
