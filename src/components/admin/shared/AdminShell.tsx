@@ -12,14 +12,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState, type ReactNode } from "react";
 import {
   LogOut, LayoutDashboard, Wrench, ShoppingCart, Star, Settings,
-  Menu, X, ExternalLink, Users, Route as RouteIcon, Contact,
+  Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 export type AdminTabKey =
   | "dashboard" | "services" | "orders" | "customers"
-  | "routes" | "employees" | "reviews" | "settings";
+  | "routes" | "employees" | "reviews" | "leads" | "settings";
 
 /**
  * Prefetch-funktioner for hver fane. Vi importerer dynamisk når brugeren
@@ -33,6 +33,7 @@ const TAB_PREFETCH: Partial<Record<AdminTabKey, () => Promise<unknown>>> = {
   customers: () => import("@/components/admin/CustomersTab"),
   employees: () => import("@/components/admin/EmployeesTab"),
   reviews:   () => import("@/components/admin/ReviewsTab"),
+  leads:     () => import("@/components/admin/LeadsTab"),
   settings:  () => import("@/components/admin/SettingsTab"),
   routes:    () => import("@/pages/RoutePlanner"),
 };
@@ -55,6 +56,7 @@ const NAV_ITEMS: NavItem[] = [
   { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
   { value: "services", label: "Services", icon: Wrench },
   { value: "orders", label: "Aftaler", icon: ShoppingCart },
+  { value: "leads", label: "Leads", icon: Sparkles },
   { value: "customers", label: "Kunder", icon: Contact },
   { value: "routes", label: "Ruter", icon: RouteIcon, requiresRoutePlanning: true, href: "/virksomhed/ruter" },
   { value: "employees", label: "Medarbejdere", icon: Users, requiresRoutePlanning: true },
