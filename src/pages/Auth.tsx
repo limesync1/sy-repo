@@ -100,7 +100,7 @@ const Auth = () => {
               height={539}
               decoding="async"
               fetchPriority="high"
-            />
+             loading="lazy"/>
           </Link>
         </div>
 
@@ -162,7 +162,7 @@ const Auth = () => {
                 width={1920}
                 height={539}
                 decoding="async"
-              />
+               loading="lazy"/>
             </span>
             <span className="hidden lg:inline">Tilbage til forsiden</span>
           </Link>

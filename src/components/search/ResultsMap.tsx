@@ -167,7 +167,7 @@ const ClusterLayer = ({
 
       const cover = b.cover_image_url
         ? `<div style="position:relative;height:130px;width:100%;overflow:hidden;background:hsl(210 40% 96%);">
-             <img src="${b.cover_image_url}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" />
+             <img src="${b.cover_image_url}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"  loading="lazy" decoding="async"/>
              ${b.is_verified ? `<div style="position:absolute;top:8px;left:8px;display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.95);color:hsl(222 47% 11%);padding:3px 8px;border-radius:999px;font-size:10px;font-weight:600;backdrop-filter:blur(4px);">✓ Verificeret</div>` : ""}
            </div>`
         : `<div style="height:80px;width:100%;background:linear-gradient(135deg, hsl(210 40% 96%), hsl(210 40% 92%));display:flex;align-items:center;justify-content:center;">
@@ -175,7 +175,7 @@ const ClusterLayer = ({
            </div>`;
 
       const logo = b.logo_url
-        ? `<img src="${b.logo_url}" alt="" style="width:44px;height:44px;border-radius:10px;object-fit:contain;background:white;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.15);padding:2px;flex-shrink:0;" />`
+        ? `<img src="${b.logo_url}" alt="" style="width:44px;height:44px;border-radius:10px;object-fit:contain;background:white;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.15);padding:2px;flex-shrink:0;"  loading="lazy" decoding="async"/>`
         : "";
 
       const ratingHtml = cnt > 0

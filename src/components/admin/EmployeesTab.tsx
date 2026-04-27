@@ -448,7 +448,7 @@ const EmployeeRow = ({
                 src={employee.avatar_url}
                 alt={employee.name}
                 className="h-10 w-10 rounded-full object-cover border"
-              />
+               loading="lazy" decoding="async"/>
             ) : (
               <div
                 className="h-10 w-10 rounded-full border"

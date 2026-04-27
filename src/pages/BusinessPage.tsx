@@ -34,7 +34,7 @@ const BusinessPageContent = () => {
               height={32}
               decoding="async"
               fetchPriority="high"
-            />
+             loading="lazy"/>
             <span className="font-bold text-foreground">{biz.name}</span>
           </div>
           <CartSheet />
@@ -54,7 +54,7 @@ const BusinessPageContent = () => {
               height={56}
               decoding="async"
               fetchPriority="high"
-            />
+             loading="lazy"/>
           </div>
           <h1 className="mb-3 text-4xl font-extrabold text-foreground md:text-5xl">{biz.name}</h1>
           <p className="mx-auto max-w-lg text-lg text-muted-foreground">{biz.tagline}</p>
