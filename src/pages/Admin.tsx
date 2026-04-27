@@ -4,7 +4,7 @@ import {
   useUpdateService, useDeleteService, useUpdateBusiness,
   useUpsertCalculatorSteps, useReviews,
 } from "@/hooks/useDatabase";
-import { Navigate, Link } from "react-router-dom";
+import { Navigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -160,6 +160,7 @@ const Admin = () => {
 const AdminDashboard = () => {
   const { data: business, isLoading } = useMyBusiness();
   const { data: plan } = useBusinessPlan(business?.id);
+  const location = useLocation();
   // Læs ?tab=xxx synkront ved første render så vi ALDRIG flasher "Overblik" når
   // brugeren navigerer fra fx Ruteplanlæggeren til en anden fane.
   const initialTab = ((): AdminTabKey => {
@@ -182,6 +183,16 @@ const AdminDashboard = () => {
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
+
+  // Reager også på React Router-navigation (fx når banneret "Tilføj
+  // betalingskort" klikkes mens vi allerede er på /virksomhed) — uden dette
+  // bliver fanen ikke skiftet, fordi React Router ikke fyrer popstate.
+  useEffect(() => {
+    const t = new URLSearchParams(location.search).get("tab") as AdminTabKey | null;
+    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","settings"];
+    const next = t && allowed.includes(t) ? t : "dashboard";
+    setActiveTab((curr) => (curr === next ? curr : next));
+  }, [location.search]);
 
   const handleTabChange = (tab: AdminTabKey) => {
     setActiveTab(tab);
