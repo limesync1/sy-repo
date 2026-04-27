@@ -728,6 +728,16 @@ const Planner = () => {
                 <ShoppingBag className="h-3.5 w-3.5 mr-1" />Opret bestilling
               </Button>
 
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7"
+                onClick={() => setMapOpen(true)}
+                aria-label="Vis kort"
+              >
+                <MapIcon className="h-3.5 w-3.5 mr-1" />Vis kort
+              </Button>
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Tastatur-genveje">
