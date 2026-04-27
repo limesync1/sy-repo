@@ -1206,69 +1206,65 @@ const ServiceForm = ({
 
           {pricingType === "prisberegner" && (
             <div className="space-y-5 pt-2">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <h4 className="text-base font-semibold text-foreground">Opsæt prisberegner</h4>
-                  <p className="mt-1 text-sm text-muted-foreground">Tilføj de trin kunden skal igennem for at beregne prisen</p>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={generateAiCalculatorTemplate}
-                  disabled={aiTemplateLoading || !name.trim()}
-                  className="rounded-lg gap-1.5 self-start"
-                  title={!name.trim() ? "Skriv et servicenavn først" : "Lad AI bygge en beregner specifikt til denne service"}
-                >
-                  {aiTemplateLoading ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-3.5 w-3.5" />
-                  )}
-                  {aiTemplateLoading ? "Genererer…" : (steps.length > 0 ? "Erstat med AI" : "Generér med AI")}
-                </Button>
+              <div>
+                <h4 className="text-base font-semibold text-foreground">Opsæt prisberegner</h4>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Vælg en skabelon der passer til din service — eller byg trinnene manuelt.
+                </p>
               </div>
 
-              {steps.length === 0 && (
-                <div className="surface-admin rounded-xl border border-border/80 p-5 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-sm font-semibold text-foreground">Lad AI bygge din beregner</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    AI'en bruger {[business?.name && "din virksomhed", serviceCategory && "branchen", subcategory && "underkategorien", name.trim() && "servicens navn"].filter(Boolean).join(", ") || "din service"} til at lave realistiske trin og priser.
-                  </p>
-                  <Button
-                    type="button"
-                    onClick={generateAiCalculatorTemplate}
-                    disabled={aiTemplateLoading || !name.trim()}
-                    className="rounded-lg bg-foreground text-background hover:bg-foreground/90 gap-1.5"
-                  >
-                    {aiTemplateLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Sparkles className="h-4 w-4" />
+              {rankedTemplates.length > 0 && (
+                <div className="surface-admin rounded-xl border border-border/80 p-4 sm:p-5 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-semibold text-foreground">
+                        {steps.length === 0 ? "Foreslåede skabeloner" : "Skift skabelon"}
+                      </span>
+                    </div>
+                    {subcategory && (
+                      <span className="text-[11px] text-muted-foreground">
+                        Tilpasset {subcategory}
+                      </span>
                     )}
-                    {aiTemplateLoading ? "Genererer…" : "Generér beregner med AI"}
-                  </Button>
-                  {availableTemplates.length > 0 && (
-                    <>
-                      <div className="flex items-center gap-2 pt-2">
-                        <div className="h-px flex-1 bg-border" />
-                        <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">eller vælg en skabelon</span>
-                        <div className="h-px flex-1 bg-border" />
-                      </div>
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        {availableTemplates.map((t) => (
-                          <button key={t.label} type="button" onClick={() => applyTemplate(t)}
-                            className="rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-secondary">
-                            <span className="block text-sm font-semibold text-foreground">{t.label}</span>
-                            <span className="mt-1 block text-sm text-muted-foreground">{t.steps.length} trin · {t.steps.map(s => s.unit).filter((v, i, a) => a.indexOf(v) === i).join(", ")}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </>
+                  </div>
+                  {steps.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      Skabelonerne er sorteret efter hvad der bedst matcher{" "}
+                      <span className="font-medium text-foreground">
+                        {[subcategory, name.trim()].filter(Boolean).join(" · ") || serviceCategory}
+                      </span>
+                      . Du kan finjustere alle priser bagefter.
+                    </p>
                   )}
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {rankedTemplates.map((t, idx) => (
+                      <button
+                        key={t.label}
+                        type="button"
+                        onClick={() => applyTemplate(t)}
+                        className={`group relative rounded-xl border p-4 text-left transition-colors ${
+                          idx === 0 && isBestMatch
+                            ? "border-foreground bg-card hover:bg-secondary"
+                            : "border-border bg-card hover:bg-secondary"
+                        }`}
+                      >
+                        {idx === 0 && isBestMatch && (
+                          <span className="absolute -top-2 left-3 rounded-full bg-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-background">
+                            Bedste match
+                          </span>
+                        )}
+                        <span className="block text-sm font-semibold text-foreground">{t.label}</span>
+                        <span className="mt-1 block text-xs text-muted-foreground">
+                          {t.steps.length} trin · {Array.from(new Set(t.steps.map((s) => s.unit))).join(", ")}
+                        </span>
+                        <span className="mt-2 block text-xs text-muted-foreground/80 line-clamp-2">
+                          {t.steps.slice(0, 3).map((s) => s.label).join(" · ")}
+                          {t.steps.length > 3 ? " …" : ""}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
