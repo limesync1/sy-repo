@@ -598,8 +598,8 @@ const ServiceRow = ({ service, orderCount, onEdit, onDelete }: { service: any; o
               </div>
 
               <div className="flex items-center gap-1.5 sm:shrink-0">
-                <Button variant="outline" size="sm" onClick={() => setEditing(!editing)} className="h-8 rounded-lg border-border px-3 text-xs text-foreground hover:bg-secondary hover:text-foreground">
-                  {editing ? "Luk" : "Rediger"}
+                <Button variant="outline" size="sm" onClick={onEdit} className="h-8 rounded-lg border-border px-3 text-xs text-foreground hover:bg-secondary hover:text-foreground">
+                  Rediger
                 </Button>
                 <Button variant="ghost" size="sm" onClick={onDelete} className="h-8 w-8 rounded-lg p-0 text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></Button>
               </div>
@@ -631,11 +631,6 @@ const ServiceRow = ({ service, orderCount, onEdit, onDelete }: { service: any; o
           </div>
         </div>
       </CardContent>
-      {editing && (
-        <div className="border-t border-border bg-secondary/30 p-4 sm:p-5">
-          <ServiceForm businessId={service.business_id} businessIndustries={businessIndustries} selectedSubcategoriesByIndustry={selectedSubcategoriesByIndustry} existingService={service} onClose={() => setEditing(false)} />
-        </div>
-      )}
     </Card>
   );
 };
