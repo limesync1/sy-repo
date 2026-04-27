@@ -13,7 +13,7 @@ const Terms = () => (
         title: "1. Om Serviceydere",
         body: (
           <p>
-            Serviceydere drives af Serviceydere ApS, CVR-nr. 40543120. Platformen formidler kontakt mellem private og virksomheder, der udbyder serviceydelser. Serviceydere er ikke part i den aftale, der måtte indgås mellem en kunde og en udbyder.
+            Serviceydere drives af Adely Group (CVR-nr. 40543120) — software og full-service branding. Platformen formidler kontakt mellem private og virksomheder, der udbyder serviceydelser. Serviceydere er ikke part i den aftale, der måtte indgås mellem en kunde og en udbyder.
           </p>
         ),
       },

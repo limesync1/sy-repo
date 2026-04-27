@@ -14,8 +14,9 @@ const PrivacyPolicy = () => (
         body: (
           <>
             <p>
-              Serviceydere ApS (CVR-nr. 40543120) er dataansvarlig for behandlingen af de personoplysninger,
-              vi indsamler om dig, når du bruger serviceydere.dk og tilhørende tjenester.
+              Serviceydere drives af Adely Group (CVR-nr. 40543120), som leverer software og full-service branding,
+              og er dataansvarlig for behandlingen af de personoplysninger, vi indsamler om dig, når du bruger
+              serviceydere.dk og tilhørende tjenester.
             </p>
             <p>Du kan altid kontakte os på <a href="mailto:kontakt@serviceydere.dk" className="text-foreground underline">kontakt@serviceydere.dk</a>.</p>
           </>
