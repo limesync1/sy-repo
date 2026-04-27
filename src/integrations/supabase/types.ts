@@ -883,11 +883,14 @@ export type Database = {
       }
       quote_request_matches: {
         Row: {
+          ai_draft: string | null
+          ai_draft_generated_at: string | null
           business_id: string
           business_note: string | null
           created_at: string
           distance_km: number | null
           estimated_price: string | null
+          follow_up_at: string | null
           id: string
           match_score: number
           notified_at: string | null
@@ -900,11 +903,14 @@ export type Database = {
           viewed_at: string | null
         }
         Insert: {
+          ai_draft?: string | null
+          ai_draft_generated_at?: string | null
           business_id: string
           business_note?: string | null
           created_at?: string
           distance_km?: number | null
           estimated_price?: string | null
+          follow_up_at?: string | null
           id?: string
           match_score?: number
           notified_at?: string | null
@@ -917,11 +923,14 @@ export type Database = {
           viewed_at?: string | null
         }
         Update: {
+          ai_draft?: string | null
+          ai_draft_generated_at?: string | null
           business_id?: string
           business_note?: string | null
           created_at?: string
           distance_km?: number | null
           estimated_price?: string | null
+          follow_up_at?: string | null
           id?: string
           match_score?: number
           notified_at?: string | null
