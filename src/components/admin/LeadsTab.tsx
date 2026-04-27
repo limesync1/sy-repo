@@ -520,7 +520,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                             <div className="flex flex-1 flex-wrap items-start justify-between gap-4">
                               <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <Badge className={`${status.className} border rounded-md`}>{status.label}</Badge>
+                                  <Badge className={`${status.className} border rounded-md pointer-events-none`}>{status.label}</Badge>
 
                                   <Tooltip>
                                     <TooltipTrigger asChild>
@@ -557,7 +557,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                                     </TooltipContent>
                                   </Tooltip>
 
-                                  {qr?.category && <Badge variant="secondary" className="rounded-md">{qr.category}</Badge>}
+                                  {qr?.category && <Badge variant="secondary" className="rounded-md pointer-events-none">{qr.category}</Badge>}
 
                                   {l.ai_draft && (
                                     <Tooltip>
@@ -674,7 +674,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                                     size="sm"
                                     variant="ghost"
                                     onClick={() => updateStatus(l.id, "declined")}
-                                    className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-destructive"
+                                    className="h-8 gap-1.5 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                                   >
                                     <XCircle className="h-3.5 w-3.5" /> Afvis
                                   </Button>
