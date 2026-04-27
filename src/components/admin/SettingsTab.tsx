@@ -123,9 +123,8 @@ const StatusPill = ({
   );
 };
 
-/* ─── Reveal — collapser børn smooth ind/ud (height + fade + lille slide).
- * Bruges til at vise ekstra detaljer når en feature toggles til, fx en
- * "Aktiveret" badge eller info-bokse i Avanceret-sektionen. */
+/* ─── Reveal — collapser børn ind/ud (height + fade). Holdt minimal: ingen
+ * blur, slide eller overshoot — det sender altid samme rolige signal. */
 const Reveal = ({
   open,
   children,
@@ -137,28 +136,17 @@ const Reveal = ({
 }) => (
   <div
     style={{
-      transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
-      transitionDuration: "420ms",
-      transitionProperty: "grid-template-rows, opacity, margin, filter",
+      transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+      transitionDuration: "200ms",
+      transitionProperty: "grid-template-rows, opacity, margin",
     }}
     className={`grid ${
       open
-        ? "grid-rows-[1fr] opacity-100 mt-2 blur-0"
-        : "grid-rows-[0fr] opacity-0 mt-0 blur-[2px]"
+        ? "grid-rows-[1fr] opacity-100 mt-2"
+        : "grid-rows-[0fr] opacity-0 mt-0"
     } ${className ?? ""}`}
   >
-    <div
-      style={{
-        transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
-        transitionDuration: "500ms",
-        transitionDelay: open ? "60ms" : "0ms",
-      }}
-      className={`overflow-hidden ${
-        open ? "translate-x-0" : "-translate-x-2"
-      } transition-transform`}
-    >
-      {children}
-    </div>
+    <div className="overflow-hidden">{children}</div>
   </div>
 );
 
