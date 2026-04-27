@@ -31,7 +31,55 @@
 </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Statisk SEO-fallback: synlig indtil React mounter, og altid synlig
+           for crawlere uden fuld JS-rendering. Bliver erstattet af appen
+           ved hydration, så det påvirker ikke det endelige UX. -->
+      <div style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="false">
+        <h1>Find &amp; book lokale serviceydere i hele Danmark</h1>
+        <p>
+          Serviceydere er Danmarks samlede platform til at finde, sammenligne
+          og booke verificerede lokale serviceydere — fra rengøring og
+          haveservice til håndværkere som maler, VVS, elektriker, tømrer og
+          flyttehjælp. Få op til 3 gratis tilbud fra relevante udbydere i dit
+          område og vælg det tilbud der passer dig bedst.
+        </p>
+        <h2>Sådan virker det</h2>
+        <ol>
+          <li>Søg — fortæl kort hvad du skal have hjælp til.</li>
+          <li>Sammenlign — få overblik over de stærkeste lokale muligheder.</li>
+          <li>Book — vælg det tilbud eller den profil, der passer bedst.</li>
+        </ol>
+        <h2>Populære kategorier</h2>
+        <ul>
+          <li><a href="/virksomheder?category=Reng%C3%B8ring">Rengøring</a></li>
+          <li><a href="/virksomheder?category=Haveservice">Haveservice</a></li>
+          <li><a href="/virksomheder?category=H%C3%A5ndv%C3%A6rker">Håndværker</a></li>
+          <li><a href="/virksomheder?category=Flyttehj%C3%A6lp">Flyttehjælp</a></li>
+          <li><a href="/virksomheder?category=Maler">Maler</a></li>
+          <li><a href="/virksomheder?category=VVS">VVS</a></li>
+          <li><a href="/virksomheder?category=Elektriker">Elektriker</a></li>
+          <li><a href="/virksomheder?category=T%C3%B8mrer">Tømrer</a></li>
+        </ul>
+      </div>
+    </div>
+    <noscript>
+      <div style="max-width:760px;margin:2rem auto;padding:1rem;font-family:system-ui,sans-serif;line-height:1.6;color:#0F172A;">
+        <h1>Serviceydere – Find &amp; book lokale serviceydere i Danmark</h1>
+        <p>
+          Serviceydere kræver JavaScript for at vise den interaktive del af
+          platformen. Du kan stadig kontakte os på
+          <a href="mailto:kontakt@serviceydere.dk">kontakt@serviceydere.dk</a>
+          eller besøge en af vores populære kategorier:
+        </p>
+        <ul>
+          <li><a href="/virksomheder?category=Reng%C3%B8ring">Rengøring</a></li>
+          <li><a href="/virksomheder?category=Haveservice">Haveservice</a></li>
+          <li><a href="/virksomheder?category=H%C3%A5ndv%C3%A6rker">Håndværker</a></li>
+          <li><a href="/virksomheder?category=Flyttehj%C3%A6lp">Flyttehjælp</a></li>
+        </ul>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
     <script type="application/ld+json">
     {
