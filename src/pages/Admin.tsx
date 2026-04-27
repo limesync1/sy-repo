@@ -207,8 +207,14 @@ const AdminDashboard = () => {
   if (isLoading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
   if (!business) return <BusinessOnboarding />;
 
+  // Hvis leads-fanen er slået fra i Indstillinger → Avanceret, men URL'en peger
+  // på ?tab=leads (fx fra et bogmærke), falder vi pænt tilbage til Overblik.
+  const leadsEnabled = !!(business.settings as any)?.leads_enabled;
+  const effectiveTab: AdminTabKey =
+    activeTab === "leads" && !leadsEnabled ? "dashboard" : activeTab;
+
   const renderContent = () => {
-    switch (activeTab) {
+    switch (effectiveTab) {
       case "dashboard": return <DashboardWrapper business={business} onNavigate={(t) => handleTabChange(t as AdminTabKey)} />;
       case "services": return <ServicesTab businessId={business.id} business={business} />;
       case "orders": return (
@@ -228,7 +234,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <AdminShell business={business} activeTab={activeTab} onTabChange={handleTabChange}>
+    <AdminShell business={business} activeTab={effectiveTab} onTabChange={handleTabChange}>
       {/* Vises altid i toppen af panelet, undtagen når brugeren allerede er
           inde på Indstillinger-fanen — så ville knappen "Tilføj kort" pege
           på samme side. */}
