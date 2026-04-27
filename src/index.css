@@ -213,3 +213,23 @@
 .leaflet-control {
   z-index: 2 !important;
 }
+
+/* ─── Smooth image loading ───
+   Lazy-loadede billeder fader blødt ind når de er færdig med at decode.
+   En global capturing 'load'-listener i main.tsx sætter [data-loaded="true"]
+   på <img>-elementer (og på dem der allerede er cachede ved mount). */
+img[loading="lazy"] {
+  opacity: 0;
+  transition: opacity 320ms ease-out;
+}
+img[loading="lazy"][data-loaded="true"],
+img[loading="lazy"].is-error {
+  opacity: 1;
+}
+/* Respektér brugerens "reduceret bevægelse"-præference */
+@media (prefers-reduced-motion: reduce) {
+  img[loading="lazy"] {
+    opacity: 1;
+    transition: none;
+  }
+}
