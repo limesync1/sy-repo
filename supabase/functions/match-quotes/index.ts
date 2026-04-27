@@ -17,10 +17,18 @@ serve(async (req) => {
       location,
       radius_km,
       customer,        // { name, email, phone, share_contact? }
+      terms_accepted,  // boolean — customer must accept platform terms
       persist = true,  // when false, only returns matches without saving (e.g. previews)
     } = await req.json();
     if (!category || !description) {
       return new Response(JSON.stringify({ error: "category and description required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // Require explicit consent — required by GDPR/markedsføringsloven before
+    // we may share customer data with matched businesses.
+    if (persist && !terms_accepted) {
+      return new Response(JSON.stringify({ error: "Du skal acceptere vilkår og privatlivspolitik for at modtage tilbud." }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -332,6 +340,7 @@ ${bizSummaries}`,
             radius_km: radiusKm,
             share_contact: shareContact,
             status: "open",
+            terms_accepted_at: new Date().toISOString(),
           })
           .select("id")
           .single();
@@ -352,10 +361,15 @@ ${bizSummaries}`,
             notified_at: new Date().toISOString(),
           }));
 
-          const { error: matchErr } = await supabase
+          // Use upsert with the unique (quote_request_id, business_id) index
+          // as conflict target so we never create duplicate leads even if the
+          // function is retried or invoked twice in parallel.
+          const { data: insertedMatches, error: matchErr } = await supabase
             .from("quote_request_matches")
-            .insert(matchRows);
-          if (matchErr) console.error("quote_request_matches insert error:", matchErr);
+            .upsert(matchRows, { onConflict: "quote_request_id,business_id", ignoreDuplicates: true })
+            .select("business_id");
+          if (matchErr) console.error("quote_request_matches upsert error:", matchErr);
+          const newlyInserted = new Set((insertedMatches || []).map((r: any) => r.business_id));
 
           // Fire-and-forget email per matched business owner
           // We need owner email — fetch businesses with their notification settings + owner profile
@@ -374,6 +388,8 @@ ${bizSummaries}`,
 
           // Run in parallel, ignore errors so the response isn't blocked
           await Promise.allSettled(enrichedMatches.map(async (m: any) => {
+            // Only send mails for newly inserted matches — never re-mail on retries
+            if (!newlyInserted.has(m.business.id)) return;
             const biz = (bizDetails || []).find((b: any) => b.id === m.business.id);
             const recipient = biz?.email || null;
             if (!recipient) return;
