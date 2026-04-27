@@ -78,22 +78,14 @@ const ToggleSwitch = forwardRef<
     type="button"
     onClick={onChange}
     aria-pressed={checked}
-    style={{
-      transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
-      transitionDuration: "320ms",
-      transitionProperty: "background-color, box-shadow",
-    }}
-    className={`relative mt-0.5 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full ${
-      checked ? "bg-accent shadow-[0_0_0_3px_hsl(var(--accent)/0.18)]" : "bg-border"
+    // Ren switch: kun farve + thumb-position. Ingen overshoot/glow-ring som
+    // ellers konkurrerede med StatusPill om opmærksomhed.
+    className={`relative mt-0.5 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-150 ease-out ${
+      checked ? "bg-accent" : "bg-border"
     }`}
   >
     <span
-      style={{
-        transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
-        transitionDuration: "380ms",
-        transitionProperty: "transform",
-      }}
-      className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm mt-0.5 ${
+      className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm mt-0.5 transition-transform duration-150 ease-out ${
         checked ? "translate-x-4 ml-0.5" : "translate-x-0.5"
       }`}
     />
@@ -101,10 +93,9 @@ const ToggleSwitch = forwardRef<
 ));
 ToggleSwitch.displayName = "ToggleSwitch";
 
-/* ─── StatusPill — viser "Aktiveret" (grøn) eller "Deaktiveret" (rød)
- * med smooth crossfade + slide når tilstanden ændres. Bruges i Avanceret-
- * sektionen til feature-toggles, så brugeren altid kan se den nuværende
- * status — ikke kun når featuren er slået til. */
+/* ─── StatusPill — viser "Aktiveret" (grøn) eller "Deaktiveret" (rød).
+ * Kort, rolig farve-overgang når toggle skifter. Ingen overshoot eller
+ * roterende ikoner — det er en status, ikke en notifikation. */
 const StatusPill = ({
   active,
   activeLabel,
@@ -114,69 +105,20 @@ const StatusPill = ({
   activeLabel: string;
   inactiveLabel: string;
 }) => {
-  const easing = "cubic-bezier(0.34, 1.56, 0.64, 1)";
   return (
     <div
-      style={{
-        transitionTimingFunction: easing,
-        transitionDuration: "420ms",
-        transitionProperty: "background-color, color, box-shadow, border-color",
-      }}
-      className={`mt-2 inline-flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs ${
+      className={`mt-2 inline-flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors duration-200 ease-out ${
         active
-          ? "border-success/30 bg-success/10 text-success shadow-[0_0_0_3px_hsl(var(--success)/0.08)]"
-          : "border-destructive/30 bg-destructive/10 text-destructive shadow-[0_0_0_3px_hsl(var(--destructive)/0.06)]"
+          ? "border-success/30 bg-success/10 text-success"
+          : "border-destructive/30 bg-destructive/10 text-destructive"
       }`}
     >
-      {/* Ikon-crossfade — det aktive ikon roterer/skalerer ind, det andet ud. */}
-      <span className="relative inline-flex h-3.5 w-3.5 items-center justify-center">
-        <CheckCircle2
-          style={{
-            transitionTimingFunction: easing,
-            transitionDuration: "400ms",
-          }}
-          className={`absolute h-3.5 w-3.5 ${
-            active ? "opacity-100 scale-100 rotate-0" : "opacity-0 scale-50 -rotate-90"
-          }`}
-        />
-        <XCircle
-          style={{
-            transitionTimingFunction: easing,
-            transitionDuration: "400ms",
-          }}
-          className={`absolute h-3.5 w-3.5 ${
-            active ? "opacity-0 scale-50 rotate-90" : "opacity-100 scale-100 rotate-0"
-          }`}
-        />
-      </span>
-      {/* Tekst-crossfade — to lag stablet, kun ét er synligt ad gangen. */}
-      <span className="relative inline-block min-w-0">
-        <span
-          style={{
-            transitionTimingFunction: easing,
-            transitionDuration: "380ms",
-            transitionProperty: "opacity, transform",
-          }}
-          className={`block font-medium ${
-            active ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1"
-          }`}
-        >
-          {activeLabel}
-        </span>
-        <span
-          aria-hidden={active}
-          style={{
-            transitionTimingFunction: easing,
-            transitionDuration: "380ms",
-            transitionProperty: "opacity, transform",
-          }}
-          className={`absolute inset-0 block font-medium ${
-            active ? "opacity-0 translate-y-1" : "opacity-100 translate-y-0"
-          }`}
-        >
-          {inactiveLabel}
-        </span>
-      </span>
+      {active ? (
+        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+      ) : (
+        <XCircle className="h-3.5 w-3.5 shrink-0" />
+      )}
+      <span className="font-medium">{active ? activeLabel : inactiveLabel}</span>
     </div>
   );
 };
