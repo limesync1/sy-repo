@@ -17,6 +17,7 @@ import {
   Sparkles, Calculator, Wrench, Wand2, Loader2,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
+import { supabase } from "@/integrations/supabase/client";
 // Lazy load tunge tabs så hver fane først downloades når brugeren åbner den
 const DashboardTab = lazy(() => import("@/components/admin/DashboardTab"));
 const ReviewsTab = lazy(() => import("@/components/admin/ReviewsTab"));
