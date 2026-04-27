@@ -171,12 +171,14 @@ const FollowUpEditor = ({
         Vælg hvornår I vil mindes om at følge op. Påmindelsen vises øverst på leads-siden, når tiden er inde.
       </p>
 
-      {/* Aktuel påmindelse — fremhæver det valgte tidspunkt prominent. */}
+      {/* Aktuel påmindelse — fremhæver det valgte tidspunkt. Kun farve-overgang
+          ved tilstandsskift, ingen pop/scale (det signalerede fejlagtigt at
+          en handling var blevet udført). */}
       <div
         className={cn(
-          "rounded-xl border p-4 transition-all duration-300 ease-out",
+          "rounded-xl border p-4 transition-colors duration-200 ease-out",
           selectedDate
-            ? "border-accent/30 bg-accent/5 animate-pop-in"
+            ? "border-accent/30 bg-accent/5"
             : "border-dashed border-border bg-secondary/40",
         )}
       >
@@ -230,7 +232,7 @@ const FollowUpEditor = ({
                 key={p.label}
                 type="button"
                 onClick={p.apply}
-                className="group flex flex-col items-start gap-1 rounded-lg border border-border bg-card px-3 py-2.5 text-left transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-accent/40 hover:bg-accent/5 hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                className="group flex flex-col items-start gap-1 rounded-lg border border-border bg-card px-3 py-2.5 text-left transition-colors duration-150 ease-out hover:border-accent/40 hover:bg-accent/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
               >
                 <Icon className="h-3.5 w-3.5 text-muted-foreground transition-colors group-hover:text-accent" />
                 <span className="text-xs font-semibold text-foreground">{p.label}</span>
@@ -243,7 +245,7 @@ const FollowUpEditor = ({
 
       {/* Kalender + tidsbånd side om side på desktop, stablet på mobil. */}
       <div className="grid gap-4 lg:grid-cols-[auto_1fr]">
-        <div className="rounded-xl border border-border bg-card p-1 shadow-sm animate-scale-in">
+        <div className="rounded-xl border border-border bg-card p-1 shadow-sm">
           <Calendar
             mode="single"
             selected={selectedDate ?? undefined}
@@ -255,7 +257,7 @@ const FollowUpEditor = ({
           />
         </div>
 
-        <div className="space-y-3 rounded-xl border border-border bg-card p-4 shadow-sm animate-scale-in">
+        <div className="space-y-3 rounded-xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
@@ -285,10 +287,9 @@ const FollowUpEditor = ({
                         type="button"
                         onClick={() => setTime(s.h, s.m ?? 0)}
                         className={cn(
-                          "min-w-[58px] rounded-md border px-2.5 py-1.5 text-xs font-medium tabular-nums transition-all duration-200 ease-out",
-                          "hover:-translate-y-0.5 hover:shadow-sm active:translate-y-0 active:scale-95",
+                          "min-w-[58px] rounded-md border px-2.5 py-1.5 text-xs font-medium tabular-nums transition-colors duration-150 ease-out",
                           active
-                            ? "border-accent bg-accent text-accent-foreground shadow-sm scale-[1.04]"
+                            ? "border-accent bg-accent text-accent-foreground shadow-sm"
                             : "border-border bg-card text-foreground hover:border-accent/40 hover:bg-accent/5",
                         )}
                       >
