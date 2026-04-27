@@ -178,7 +178,15 @@ const FavoritesView = () => {
           <Link key={fav.id} to={`/v/${biz.slug}`} className="group flex flex-col gap-3">
             <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-secondary">
               {biz.cover_image_url ? (
-                <img src={biz.cover_image_url} alt={biz.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                <img
+                  src={biz.cover_image_url}
+                  alt={biz.name}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                  decoding="async"
+                  width={800}
+                  height={600}
+                />
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
                   <Building2 className="h-14 w-14 text-muted-foreground/30" />
@@ -203,7 +211,15 @@ const FavoritesView = () => {
 
               {biz.logo_url && (
                 <div className="absolute -bottom-5 left-4 h-14 w-14 overflow-hidden rounded-xl border-2 border-card bg-card shadow-md flex items-center justify-center">
-                  <img src={biz.logo_url} alt="" className="h-full w-full object-contain p-1.5" />
+                  <img
+                    src={biz.logo_url}
+                    alt=""
+                    className="h-full w-full object-contain p-1.5"
+                    width={56}
+                    height={56}
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </div>
               )}
             </div>
@@ -381,7 +397,15 @@ const OrderCard = ({ order, onRespond }: {
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               {biz.logo_url ? (
-                <img src={biz.logo_url} alt="" className="h-9 w-9 rounded-lg border border-border object-contain bg-card p-0.5 shrink-0" />
+                <img
+                  src={biz.logo_url}
+                  alt=""
+                  className="h-9 w-9 rounded-lg border border-border object-contain bg-card p-0.5 shrink-0"
+                  width={36}
+                  height={36}
+                  loading="lazy"
+                  decoding="async"
+                />
               ) : (
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary border border-border shrink-0">
                   <Store className="h-4 w-4 text-muted-foreground" />
@@ -618,7 +642,15 @@ const SubscriptionsView = () => {
         <div key={bizId}>
           <div className="mb-4 flex items-center gap-3">
             {biz.logo_url ? (
-              <img src={biz.logo_url} alt="" className="h-10 w-10 rounded-xl border border-border object-contain bg-card p-0.5" />
+              <img
+                src={biz.logo_url}
+                alt=""
+                className="h-10 w-10 rounded-xl border border-border object-contain bg-card p-0.5"
+                width={40}
+                height={40}
+                loading="lazy"
+                decoding="async"
+              />
             ) : (
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary border border-border">
                 <Store className="h-5 w-5 text-muted-foreground" />
