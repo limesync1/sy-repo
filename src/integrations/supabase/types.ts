@@ -963,6 +963,7 @@ export type Database = {
           radius_km: number | null
           share_contact: boolean
           status: string
+          terms_accepted_at: string | null
           updated_at: string
           zip_code: string | null
         }
@@ -978,6 +979,7 @@ export type Database = {
           radius_km?: number | null
           share_contact?: boolean
           status?: string
+          terms_accepted_at?: string | null
           updated_at?: string
           zip_code?: string | null
         }
@@ -993,6 +995,7 @@ export type Database = {
           radius_km?: number | null
           share_contact?: boolean
           status?: string
+          terms_accepted_at?: string | null
           updated_at?: string
           zip_code?: string | null
         }
