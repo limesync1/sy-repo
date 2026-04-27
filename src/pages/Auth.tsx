@@ -153,8 +153,8 @@ const Auth = () => {
           )}
         </div>
 
-        <div className="flex flex-1 items-center justify-center px-4 pb-12 pt-2 sm:px-6 lg:px-10">
-          <div className="w-full max-w-md space-y-6">
+        <div className="flex flex-1 items-center justify-center px-5 pb-12 pt-4 sm:px-6 lg:px-10">
+          <div className="w-full max-w-md space-y-7">
 
             {/* ── Mode Selector ── */}
             {showModeSelector && (
@@ -227,56 +227,93 @@ const Auth = () => {
 
             {/* ── Login / Signup Form ── */}
             {(isBusiness || isCustomer || isEmployee) && (
-              <div className="rounded-[2rem] border border-border bg-card p-6 shadow-[0_18px_50px_-32px_hsl(var(--foreground)/0.28)] sm:p-8">
-                <div className="text-center">
-                  <div className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl ${
-                    isBusiness ? "bg-foreground/5" : isEmployee ? "bg-secondary" : "bg-accent/10"
+              <div className="space-y-6">
+                {/* Mode badge + back link */}
+                <div className="flex items-center justify-between">
+                  <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${
+                    isBusiness ? "border-foreground/15 bg-foreground/5 text-foreground"
+                    : isEmployee ? "border-border bg-secondary text-foreground"
+                    : "border-accent/20 bg-accent/10 text-accent"
                   }`}>
-                    {isBusiness
-                      ? <Building2 className="h-6 w-6 text-foreground" />
-                      : isEmployee
-                        ? <HardHat className="h-6 w-6 text-foreground" />
-                        : <User className="h-6 w-6 text-accent" />
-                    }
+                    {isBusiness ? <Building2 className="h-3.5 w-3.5" /> : isEmployee ? <HardHat className="h-3.5 w-3.5" /> : <User className="h-3.5 w-3.5" />}
+                    {isBusiness ? "Virksomhed" : isEmployee ? "Medarbejder" : "Privat / kunde"}
                   </div>
-                  <h1 className="text-2xl font-bold text-foreground">
+                  <Link to="/log-ind" className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+                    Skift type
+                  </Link>
+                </div>
+
+                <div>
+                  <h1 className="text-[1.85rem] font-bold leading-tight tracking-tight text-foreground sm:text-[2.1rem]">
                     {heroTitle}
                   </h1>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="mt-2 text-sm text-muted-foreground">
                     {heroSub}
                   </p>
                   {isEmployee && !isSignUp && (
-                    <p className="mt-2 text-xs text-muted-foreground italic">
-                      Du skal være inviteret af din virksomhed for at logge ind.
+                    <p className="mt-3 rounded-lg border border-border bg-secondary/60 px-3 py-2 text-xs text-muted-foreground">
+                      Du skal være inviteret af din virksomhed for at kunne logge ind.
                     </p>
                   )}
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-3">
+                {/* Toggle for non-business modes (business signup redirects to onboarding) */}
+                {!isBusiness && (
+                  <div className="flex rounded-full border border-border bg-secondary/50 p-1">
+                    <button
+                      type="button"
+                      onClick={() => setIsSignUp(false)}
+                      className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
+                        !isSignUp ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Log ind
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsSignUp(true)}
+                      disabled={isEmployee}
+                      className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
+                        isSignUp ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                      } ${isEmployee ? "opacity-40 cursor-not-allowed" : ""}`}
+                    >
+                      Opret konto
+                    </button>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">E-mail</label>
+                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">E-mail</label>
                     <Input
                       type="email"
                       placeholder="din@email.dk"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="h-11"
+                      className="h-12 rounded-xl"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Adgangskode</label>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Adgangskode</label>
+                      {!isSignUp && (
+                        <Link to="/log-ind?reset=1" className="text-xs font-medium text-muted-foreground hover:text-foreground hover:underline">
+                          Glemt?
+                        </Link>
+                      )}
+                    </div>
                     <Input
                       type="password"
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="h-11"
+                      className="h-12 rounded-xl"
                     />
                   </div>
                   <Button
                     type="submit"
                     disabled={submitting}
-                    className="w-full h-11 bg-foreground text-background hover:bg-foreground/90 rounded-xl font-medium"
+                    className="h-12 w-full rounded-xl bg-foreground text-base font-semibold text-background shadow-[0_12px_30px_-12px_hsl(var(--foreground)/0.5)] transition-all hover:bg-foreground/90 hover:shadow-[0_16px_36px_-12px_hsl(var(--foreground)/0.55)]"
                   >
                     {submitting ? "Vent..." : isSignUp ? "Opret konto" : "Log ind"}
                   </Button>
@@ -298,6 +335,13 @@ const Auth = () => {
                       </button>
                     </p>
                   )}
+                </div>
+
+                {/* Trust line */}
+                <div className="flex items-center justify-center gap-5 pt-1 text-xs text-muted-foreground/70">
+                  <span className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-accent" /> Gratis</span>
+                  <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-accent" /> Sikker</span>
+                  <span className="flex items-center gap-1.5"><Star className="h-3.5 w-3.5 text-accent" /> Dansk</span>
                 </div>
               </div>
             )}
