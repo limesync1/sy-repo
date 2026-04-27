@@ -1142,6 +1142,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       Tilføjer "Medarbejdere"-fanen og giver adgang til ruteplanlæggeren — opret medarbejder-konti og planlæg daglige ruter med stop hos kunder. Kan optimeres med AI baseret på afstand, tidsvinduer og prioriteter.
                     </p>
+                    <Reveal open={routePlanningEnabled}>
+                      <div className="flex items-center gap-2 rounded-md bg-accent/10 px-2.5 py-1.5 text-xs text-accent">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        <span className="font-medium">Aktiveret — “Medarbejdere” og “Ruter” er tilføjet til menuen</span>
+                      </div>
+                    </Reveal>
                   </div>
                 </div>
                 <ToggleSwitch checked={routePlanningEnabled} onChange={() => setRoutePlanningEnabled((v) => !v)} />
@@ -1169,6 +1175,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       Forbind din konto med dit regnskabsprogram (fx e-conomic, Dinero eller Billy), så fakturaer og betalinger automatisk synkroniseres. Når funktionen er klar, aktiveres den automatisk for dig — du kan altid slå den fra igen her.
                     </p>
+                    <Reveal open={accountingIntegrationEnabled}>
+                      <div className="flex items-center gap-2 rounded-md bg-accent/10 px-2.5 py-1.5 text-xs text-accent">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        <span className="font-medium">Aktiveret — vi giver dig besked så snart integrationen er klar</span>
+                      </div>
+                    </Reveal>
                   </div>
                 </div>
                 <ToggleSwitch checked={accountingIntegrationEnabled} onChange={() => setAccountingIntegrationEnabled((v) => !v)} />
@@ -1189,6 +1201,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       Når slået til vises Leads-fanen i din navigation, og du modtager automatisk relevante kundeforespørgsler fra "Indhent 3 tilbud" der matcher dine brancher og dit område. Du kan altid slå funktionen fra igen.
                     </p>
+                    <Reveal open={leadsEnabled}>
+                      <div className="flex items-center gap-2 rounded-md bg-accent/10 px-2.5 py-1.5 text-xs text-accent">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        <span className="font-medium">Aktiveret — “Leads” er tilføjet til menuen, og I modtager nye matches</span>
+                      </div>
+                    </Reveal>
                   </div>
                 </div>
                 <ToggleSwitch checked={leadsEnabled} onChange={() => setLeadsEnabled((v) => !v)} />
