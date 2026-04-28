@@ -5,12 +5,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck, Download, ChevronDown, CreditCard, Clock, AlertTriangle } from "lucide-react";
+import { Search, CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck, Download, ChevronDown, CreditCard, Clock, AlertTriangle, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { exportCsv } from "./lib/csv";
+import { PageHeader, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
 
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
 
@@ -128,13 +129,20 @@ const PlatformBusinessesTab = () => {
 
   return (
     <div className="space-y-4">
+      <PageHeader
+        title="Virksomheder"
+        description={`${filtered.length} ${filtered.length === 1 ? "virksomhed" : "virksomheder"} matcher`}
+        action={
+          <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
+            <Download className="h-3.5 w-3.5" /> CSV
+          </Button>
+        }
+      />
+
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[240px] max-w-md">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Søg navn, by, kategori..." className="pl-9" />
-        </div>
+        <SearchInput value={q} onChange={setQ} placeholder="Søg navn, by, kategori..." />
         <Select value={filter} onValueChange={(v: any) => setFilter(v)}>
-          <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[180px] h-10"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle</SelectItem>
             <SelectItem value="verified">Verificeret</SelectItem>
@@ -143,10 +151,6 @@ const PlatformBusinessesTab = () => {
             <SelectItem value="inactive">Inaktive</SelectItem>
           </SelectContent>
         </Select>
-        <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
-          <Download className="h-3.5 w-3.5" /> CSV
-        </Button>
-        <div className="ml-auto text-xs text-muted-foreground">{filtered.length} virksomheder</div>
       </div>
 
       {someSelected && (
@@ -178,9 +182,11 @@ const PlatformBusinessesTab = () => {
           {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-16 rounded-lg bg-secondary/40 animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <Card className="rounded-xl border-dashed">
-          <CardContent className="p-8 text-center text-sm text-muted-foreground">Ingen virksomheder fundet.</CardContent>
-        </Card>
+        <EmptyState
+          icon={<Building2 />}
+          title="Ingen virksomheder fundet"
+          description="Justér søgning eller filter for at se flere resultater."
+        />
       ) : (
         <Card className="rounded-xl border-border shadow-sm overflow-hidden">
           <div className="flex items-center gap-3 border-b border-border bg-secondary/30 px-4 py-2 text-xs font-medium text-muted-foreground">
