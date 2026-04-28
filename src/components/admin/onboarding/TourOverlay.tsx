@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { X, ArrowLeft, ArrowRight } from "lucide-react";
 import { useTour } from "./TourContext";
-import { useUpdateOnboardingProgress } from "@/hooks/useOnboarding";
+import { useCompleteOnboardingStep } from "@/hooks/useOnboarding";
 
 /**
  * TourOverlay — renderer:
@@ -27,7 +27,7 @@ export const TourOverlay = ({ businessId }: { businessId?: string }) => {
   const { active, stepIndex, next, prev, stop } = useTour();
   const navigate = useNavigate();
   const location = useLocation();
-  const updateProgress = useUpdateOnboardingProgress(businessId);
+  const completeStep = useCompleteOnboardingStep(businessId);
   const [rect, setRect] = useState<Rect | null>(null);
   const [missing, setMissing] = useState(false);
   const lastNavigatedToRef = useRef<string | null>(null);
@@ -97,11 +97,7 @@ export const TourOverlay = ({ businessId }: { businessId?: string }) => {
 
   const handleFinish = () => {
     if (active.completesStepId && businessId) {
-      // Markér onboarding-trinnet som færdigt
-      updateProgress.mutate({
-        completed_steps: undefined as any, // håndteres af completeStep – men vi gør det direkte:
-      });
-      // Direkte SQL via update — bruger eksisterende hook der merger correctly
+      completeStep.mutate(active.completesStepId);
     }
     stop();
   };
