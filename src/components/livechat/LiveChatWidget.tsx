@@ -1,10 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
-import { MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon, ImageIcon } from "lucide-react";
+import {
+  MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
+  ImageIcon, Volume2, VolumeX, Sparkles,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { z } from "zod";
+import chatSounds from "./chatSounds";
 
 type ChatMessage = {
   id: string;
@@ -35,15 +39,22 @@ const startSchema = z.object({
   message: z.string().trim().min(1, "Skriv en besked").max(2000),
 });
 
-// Use trailing slash so /virksomheder (search page) is NOT matched
 const HIDDEN_PREFIXES = ["/admin", "/virksomhed/", "/medarbejder", "/godkend-bestilling"];
 const HIDDEN_EXACT = ["/virksomhed"];
 
 const QUICK_TOPICS = [
-  { label: "Pris og pakker", subject: "Pris og pakker" },
-  { label: "Hjælp med bestilling", subject: "Hjælp med bestilling" },
-  { label: "Bliv virksomhed", subject: "Bliv virksomhed på Serviceydere" },
-  { label: "Andet spørgsmål", subject: "" },
+  { label: "💸 Pris og pakker", subject: "Pris og pakker", suggest: "Hej, jeg vil gerne høre mere om jeres priser og hvilke pakker I tilbyder." },
+  { label: "🛒 Hjælp med bestilling", subject: "Hjælp med bestilling", suggest: "Hej, jeg har brug for hjælp til at oprette en bestilling." },
+  { label: "🏢 Bliv virksomhed", subject: "Bliv virksomhed på Serviceydere", suggest: "Hej, jeg vil gerne høre mere om at komme på Serviceydere som virksomhed." },
+  { label: "💬 Andet spørgsmål", subject: "", suggest: "" },
+];
+
+// Smart follow-up suggestions shown to the visitor after the agent answers
+const RECOMMENDED_REPLIES = [
+  "Tak — kan du sende et tilbud?",
+  "Hvor hurtigt kan I starte?",
+  "Hvad koster det per måned?",
+  "Kan I ringe mig op?",
 ];
 
 const formatTime = (iso: string) => {
@@ -70,6 +81,7 @@ const LiveChatWidget = () => {
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [pendingImagePreview, setPendingImagePreview] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [muted, setMuted] = useState<boolean>(chatSounds.isMuted());
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -80,6 +92,8 @@ const LiveChatWidget = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const lastMsgIdRef = useRef<string | null>(null);
+  const initialLoadRef = useRef(true);
 
   const hidden = useMemo(
     () =>
@@ -120,13 +134,18 @@ const LiveChatWidget = () => {
   useEffect(() => {
     if (!conversation) return;
     let cancelled = false;
+    initialLoadRef.current = true;
     supabase
       .from("chat_messages")
       .select("id, conversation_id, sender_type, sender_name, content, image_url, is_system, created_at")
       .eq("conversation_id", conversation.id)
       .order("created_at", { ascending: true })
       .then(({ data }) => {
-        if (!cancelled && data) setMessages(data as ChatMessage[]);
+        if (!cancelled && data) {
+          setMessages(data as ChatMessage[]);
+          lastMsgIdRef.current = (data[data.length - 1] as ChatMessage)?.id || null;
+        }
+        initialLoadRef.current = false;
       });
 
     supabase.from("chat_conversations").update({ unread_visitor_count: 0 }).eq("id", conversation.id).then(() => {});
@@ -137,11 +156,24 @@ const LiveChatWidget = () => {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages", filter: `conversation_id=eq.${conversation.id}` },
         (payload) => {
+          const next = payload.new as ChatMessage;
           setMessages((prev) => {
-            const next = payload.new as ChatMessage;
             if (prev.some((m) => m.id === next.id)) return prev;
             return [...prev, next];
           });
+          if (lastMsgIdRef.current !== next.id) {
+            lastMsgIdRef.current = next.id;
+            // Play sound for incoming admin messages (not our own optimistic ones)
+            if (!initialLoadRef.current && next.sender_type === "admin" && !next.is_system) {
+              chatSounds.incoming();
+            } else if (next.is_system) {
+              chatSounds.system();
+            }
+          }
+          // Mark as read when widget is open
+          if (open && next.sender_type === "admin") {
+            supabase.from("chat_conversations").update({ unread_visitor_count: 0 }).eq("id", conversation.id).then(() => {});
+          }
         },
       )
       .subscribe();
@@ -163,12 +195,15 @@ const LiveChatWidget = () => {
       supabase.removeChannel(msgChannel);
       supabase.removeChannel(convChannel);
     };
-  }, [conversation]);
+  }, [conversation, open]);
 
   useEffect(() => {
     if (!open) return;
     const el = scrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    if (el) {
+      // smooth scroll for new messages, instant on initial open
+      el.scrollTo({ top: el.scrollHeight, behavior: initialLoadRef.current ? "auto" : "smooth" });
+    }
   }, [messages, open]);
 
   useEffect(() => {
@@ -180,36 +215,23 @@ const LiveChatWidget = () => {
 
   const onPickImage = (file: File) => {
     setUploadError(null);
-    if (!file.type.startsWith("image/")) {
-      setUploadError("Kun billeder kan vedhæftes");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError("Billedet må højst være 5 MB");
-      return;
-    }
+    if (!file.type.startsWith("image/")) { setUploadError("Kun billeder kan vedhæftes"); return; }
+    if (file.size > 5 * 1024 * 1024) { setUploadError("Billedet må højst være 5 MB"); return; }
     setPendingImage(file);
     setPendingImagePreview(URL.createObjectURL(file));
   };
-
   const clearPendingImage = () => {
     if (pendingImagePreview) URL.revokeObjectURL(pendingImagePreview);
     setPendingImage(null);
     setPendingImagePreview(null);
   };
-
   const uploadImage = async (file: File, conversationId: string): Promise<string | null> => {
     const ext = file.name.split(".").pop()?.toLowerCase() || "png";
     const path = `${conversationId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const { error: upErr } = await supabase.storage.from("chat-attachments").upload(path, file, {
-      cacheControl: "3600",
-      upsert: false,
-      contentType: file.type,
+      cacheControl: "3600", upsert: false, contentType: file.type,
     });
-    if (upErr) {
-      setUploadError("Kunne ikke uploade billedet");
-      return null;
-    }
+    if (upErr) { setUploadError("Kunne ikke uploade billedet"); return null; }
     const { data } = supabase.storage.from("chat-attachments").getPublicUrl(path);
     return data.publicUrl;
   };
@@ -250,6 +272,7 @@ const LiveChatWidget = () => {
       setConversation(conv as Conversation);
       setFirstMessage("");
       setSubject("");
+      chatSounds.outgoing();
 
       supabase.functions
         .invoke("send-transactional-email", {
@@ -274,21 +297,19 @@ const LiveChatWidget = () => {
     }
   };
 
-  const sendMessage = async () => {
+  const sendMessage = useCallback(async (override?: string) => {
     if (!conversation || sending) return;
-    if (!draft.trim() && !pendingImage) return;
+    const text = (override ?? draft).trim();
+    if (!text && !pendingImage) return;
     if (conversation.status === "closed") return;
 
     setSending(true);
     let image_url: string | null = null;
-    if (pendingImage) {
+    if (pendingImage && override === undefined) {
       image_url = await uploadImage(pendingImage, conversation.id);
-      if (!image_url) {
-        setSending(false);
-        return;
-      }
+      if (!image_url) { setSending(false); return; }
     }
-    const content = draft.trim().slice(0, 2000) || null;
+    const content = text.slice(0, 2000) || null;
     const { error: mErr } = await supabase.from("chat_messages").insert({
       conversation_id: conversation.id,
       sender_type: "visitor",
@@ -298,14 +319,13 @@ const LiveChatWidget = () => {
     });
     setSending(false);
     if (!mErr) {
-      setDraft("");
-      clearPendingImage();
+      if (override === undefined) { setDraft(""); clearPendingImage(); }
+      chatSounds.outgoing();
     }
-  };
+  }, [conversation, sending, draft, pendingImage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const endChatSession = async () => {
     if (!conversation) return;
-    // Insert system message + close conversation
     await supabase.from("chat_messages").insert({
       conversation_id: conversation.id,
       sender_type: "visitor",
@@ -314,6 +334,7 @@ const LiveChatWidget = () => {
       is_system: true,
     });
     await supabase.from("chat_conversations").update({ status: "closed" }).eq("id", conversation.id);
+    chatSounds.system();
     localStorage.removeItem(STORAGE_KEY);
     setConversation(null);
     setMessages([]);
@@ -321,14 +342,44 @@ const LiveChatWidget = () => {
     setOpen(false);
   };
 
+  const toggleMute = () => {
+    const next = !muted;
+    setMuted(next);
+    chatSounds.setMuted(next);
+    if (!next) chatSounds.tick();
+  };
+
+  const handleOpen = () => {
+    setOpen(true);
+    chatSounds.open();
+    if (conversation) {
+      supabase.from("chat_conversations").update({ unread_visitor_count: 0 }).eq("id", conversation.id).then(() => {});
+    }
+  };
+
   if (hidden) return null;
 
+  // Adaptive positioning so we never overlap CartFab on mobile or desktop
   const cartFabVisible =
     cartCount > 0 &&
     !cartSheetOpen &&
     (pathname.startsWith("/v/") || pathname === "/demo" || pathname === "/tilbud");
 
-  const fabPositionClass = cartFabVisible ? "right-[170px] sm:right-[190px]" : "right-5 sm:right-6";
+  // CartFab is fixed at right-5 (mobile) / right-6 (desktop); we offset chat to its left when visible.
+  const fabPositionClass = cartFabVisible
+    ? "right-[calc(env(safe-area-inset-right,0px)+170px)] sm:right-[calc(env(safe-area-inset-right,0px)+190px)]"
+    : "right-[calc(env(safe-area-inset-right,0px)+1.25rem)] sm:right-[calc(env(safe-area-inset-right,0px)+1.5rem)]";
+
+  // For the open panel we anchor near the FAB but allow full width on small screens
+  const panelPositionClass = cartFabVisible
+    ? "right-[calc(env(safe-area-inset-right,0px)+170px)] sm:right-[calc(env(safe-area-inset-right,0px)+190px)]"
+    : "right-[calc(env(safe-area-inset-right,0px)+1.25rem)] sm:right-[calc(env(safe-area-inset-right,0px)+1.5rem)]";
+
+  const lastAdminMsg = [...messages].reverse().find((m) => m.sender_type === "admin" && !m.is_system);
+  const lastVisitorMsg = [...messages].reverse().find((m) => m.sender_type === "visitor" && !m.is_system);
+  const showRecommended =
+    !!lastAdminMsg &&
+    (!lastVisitorMsg || new Date(lastAdminMsg.created_at) > new Date(lastVisitorMsg.created_at));
 
   const unreadAdmin = messages.some((m) => m.sender_type === "admin") && !open;
   const closed = conversation?.status === "closed";
@@ -338,9 +389,9 @@ const LiveChatWidget = () => {
       {!open && (
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={handleOpen}
           aria-label="Åbn livechat"
-          className={`group fixed bottom-5 z-40 flex items-center gap-2.5 rounded-full bg-foreground px-4 py-3 text-sm font-medium text-background shadow-[0_18px_40px_-16px_hsl(var(--foreground)/0.45)] ring-1 ring-foreground/10 transition-all hover:bg-foreground/95 hover:shadow-[0_22px_50px_-16px_hsl(var(--foreground)/0.55)] active:scale-95 sm:bottom-6 ${fabPositionClass}`}
+          className={`group fixed bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] z-40 flex items-center gap-2.5 rounded-full bg-foreground px-4 py-3 text-sm font-medium text-background shadow-[0_18px_40px_-16px_hsl(var(--foreground)/0.45)] ring-1 ring-foreground/10 transition-all duration-300 hover:bg-foreground/95 hover:shadow-[0_22px_50px_-16px_hsl(var(--foreground)/0.55)] active:scale-95 sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] ${fabPositionClass}`}
         >
           <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-accent text-accent-foreground">
             <MessageCircle className="h-3.5 w-3.5" />
@@ -349,7 +400,8 @@ const LiveChatWidget = () => {
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent ring-2 ring-foreground"></span>
             </span>
           </span>
-          <span>Chat med os</span>
+          <span className="hidden xs:inline sm:inline">Chat med os</span>
+          <span className="inline xs:hidden sm:hidden">Chat</span>
           {unreadAdmin && (
             <span className="ml-0.5 rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-accent-foreground">
               Nyt
@@ -359,8 +411,9 @@ const LiveChatWidget = () => {
       )}
 
       {open && (
-        <div className={`fixed bottom-5 z-50 w-[calc(100vw-2.5rem)] max-w-[400px] sm:bottom-6 ${fabPositionClass}`}>
+        <div className={`fixed bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] z-50 w-[calc(100vw-2.5rem)] max-w-[400px] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelPositionClass}`}>
           <div className="flex h-[600px] max-h-[calc(100vh-3rem)] flex-col overflow-hidden rounded-[20px] border border-border bg-card shadow-[0_30px_80px_-20px_hsl(var(--foreground)/0.35)]">
+            {/* Header */}
             <div className="relative overflow-hidden bg-foreground px-5 pb-5 pt-4 text-background">
               <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-accent/30 blur-3xl" />
               <div className="pointer-events-none absolute -bottom-16 -left-10 h-32 w-32 rounded-full bg-accent/15 blur-3xl" />
@@ -381,21 +434,36 @@ const LiveChatWidget = () => {
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setOpen(false)}
-                  aria-label="Luk chat"
-                  className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
-                >
-                  <ChevronDown className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-0.5">
+                  <button
+                    onClick={toggleMute}
+                    aria-label={muted ? "Slå lyd til" : "Slå lyd fra"}
+                    title={muted ? "Slå lyd til" : "Slå lyd fra"}
+                    className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                  >
+                    {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                  </button>
+                  <button
+                    onClick={() => setOpen(false)}
+                    aria-label="Luk chat"
+                    className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
 
             {!conversation ? (
               <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 py-5">
-                <div className="rounded-2xl border border-border bg-secondary/40 p-3.5">
+                {/* Pretty empty-state */}
+                <div className="rounded-2xl border border-border bg-gradient-to-br from-secondary/60 to-secondary/20 p-4">
+                  <div className="mb-2 flex items-center gap-2">
+                    <Sparkles className="h-3.5 w-3.5 text-accent" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Vi sidder klar</span>
+                  </div>
                   <p className="text-[13px] leading-relaxed text-foreground">
-                    👋 Hej! Vi sidder klar og hjælper med priser, bestilling og spørgsmål om platformen.
+                    👋 Hej! Vi hjælper med priser, bestilling og spørgsmål om Serviceydere. Vælg et emne — så kommer du hurtigt videre.
                   </p>
                 </div>
                 <div>
@@ -405,11 +473,14 @@ const LiveChatWidget = () => {
                       <button
                         key={t.label}
                         type="button"
-                        onClick={() => setSubject(t.subject)}
-                        className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                        onClick={() => {
+                          setSubject(t.subject);
+                          if (t.suggest && !firstMessage) setFirstMessage(t.suggest);
+                        }}
+                        className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                           subject === t.subject
-                            ? "border-foreground bg-foreground text-background"
-                            : "border-border bg-card text-foreground hover:border-foreground/40"
+                            ? "border-foreground bg-foreground text-background scale-[1.02]"
+                            : "border-border bg-card text-foreground hover:border-foreground/40 hover:bg-secondary/40"
                         }`}
                       >
                         {t.label}
@@ -422,7 +493,7 @@ const LiveChatWidget = () => {
                     Navn
                     <input
                       type="text" value={name} onChange={(e) => setName(e.target.value)} maxLength={80}
-                      className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
+                      className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-foreground"
                       placeholder="Dit navn"
                     />
                   </label>
@@ -430,7 +501,7 @@ const LiveChatWidget = () => {
                     Email
                     <input
                       type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={160}
-                      className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
+                      className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-foreground"
                       placeholder="dig@eksempel.dk"
                     />
                   </label>
@@ -439,7 +510,8 @@ const LiveChatWidget = () => {
                   Din besked
                   <textarea
                     value={firstMessage} onChange={(e) => setFirstMessage(e.target.value)} maxLength={2000} rows={4}
-                    className="mt-1 w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
+                    onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); startConversation(); } }}
+                    className="mt-1 w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-foreground"
                     placeholder="Skriv din besked…"
                   />
                 </label>
@@ -457,15 +529,22 @@ const LiveChatWidget = () => {
               </div>
             ) : (
               <>
-                <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-secondary/30 px-4 py-4">
+                <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-secondary/30 px-4 py-4 scroll-smooth">
                   <div className="mx-auto max-w-[85%] rounded-full bg-card px-3 py-1 text-center text-[10px] text-muted-foreground shadow-sm">
                     Samtale startet · {formatTime(messages[0]?.created_at || new Date().toISOString())}
                   </div>
 
+                  {messages.length === 1 && messages[0].sender_type === "visitor" && (
+                    <div className="mx-auto max-w-[85%] rounded-2xl border border-dashed border-border bg-card/60 p-3 text-center">
+                      <Loader2 className="mx-auto mb-1.5 h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                      <p className="text-[11px] text-muted-foreground">Venter på svar fra teamet…</p>
+                    </div>
+                  )}
+
                   {messages.map((m, i) => {
                     if (m.is_system) {
                       return (
-                        <div key={m.id} className="flex justify-center">
+                        <div key={m.id} className="flex justify-center animate-in fade-in duration-200">
                           <span className="rounded-full bg-card px-3 py-1 text-[10px] text-muted-foreground shadow-sm">
                             {m.content} · {formatTime(m.created_at)}
                           </span>
@@ -481,7 +560,7 @@ const LiveChatWidget = () => {
                     }
                     const isLastMine = mine && i === lastVisitorIdx;
                     return (
-                      <div key={m.id} className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
+                      <div key={m.id} className={`flex items-end gap-2 animate-in fade-in slide-in-from-bottom-1 duration-200 ${mine ? "justify-end" : "justify-start"}`}>
                         {!mine && (
                           <div className="w-7 flex-shrink-0">
                             {showAvatar && (
@@ -529,51 +608,73 @@ const LiveChatWidget = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="border-t border-border bg-card px-3 py-2.5">
-                    {pendingImagePreview && (
-                      <div className="mb-2 flex items-center gap-2 rounded-lg border border-border bg-secondary/40 p-2">
-                        <img src={pendingImagePreview} alt="Forhåndsvisning" className="h-12 w-12 rounded object-cover" />
-                        <span className="flex-1 truncate text-[11px] text-muted-foreground">
-                          <ImageIcon className="mr-1 inline h-3 w-3" />{pendingImage?.name}
-                        </span>
-                        <button onClick={clearPendingImage} className="rounded-md p-1 text-muted-foreground hover:bg-card hover:text-foreground">
-                          <XIcon className="h-3.5 w-3.5" />
-                        </button>
+                  <>
+                    {showRecommended && !draft && !pendingImage && (
+                      <div className="border-t border-border bg-card/60 px-3 py-2">
+                        <div className="mb-1 flex items-center gap-1.5">
+                          <Sparkles className="h-3 w-3 text-accent" />
+                          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Anbefalede svar</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {RECOMMENDED_REPLIES.map((r) => (
+                            <button
+                              key={r}
+                              type="button"
+                              onClick={() => sendMessage(r)}
+                              className="rounded-full border border-border bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground transition-all hover:scale-[1.02] hover:border-foreground/40 hover:bg-card"
+                            >
+                              {r}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     )}
-                    {uploadError && <p className="mb-1.5 text-[11px] text-destructive">{uploadError}</p>}
-                    <div className="flex items-end gap-2">
-                      <input
-                        ref={fileInputRef} type="file" accept="image/*" className="hidden"
-                        onChange={(e) => { const f = e.target.files?.[0]; if (f) onPickImage(f); e.target.value = ""; }}
-                      />
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
-                        aria-label="Vedhæft billede"
-                      >
-                        <Paperclip className="h-3.5 w-3.5" />
-                      </button>
-                      <textarea
-                        ref={textareaRef} value={draft} onChange={(e) => setDraft(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                        maxLength={2000} rows={1} placeholder="Skriv en besked…"
-                        className="flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
-                      />
-                      <button
-                        onClick={sendMessage} disabled={sending || (!draft.trim() && !pendingImage)} aria-label="Send"
-                        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-all hover:bg-foreground/90 disabled:opacity-50"
-                      >
-                        {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                      </button>
+                    <div className="border-t border-border bg-card px-3 py-2.5">
+                      {pendingImagePreview && (
+                        <div className="mb-2 flex items-center gap-2 rounded-lg border border-border bg-secondary/40 p-2">
+                          <img src={pendingImagePreview} alt="Forhåndsvisning" className="h-12 w-12 rounded object-cover" />
+                          <span className="flex-1 truncate text-[11px] text-muted-foreground">
+                            <ImageIcon className="mr-1 inline h-3 w-3" />{pendingImage?.name}
+                          </span>
+                          <button onClick={clearPendingImage} className="rounded-md p-1 text-muted-foreground hover:bg-card hover:text-foreground">
+                            <XIcon className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      )}
+                      {uploadError && <p className="mb-1.5 text-[11px] text-destructive">{uploadError}</p>}
+                      <div className="flex items-end gap-2">
+                        <input
+                          ref={fileInputRef} type="file" accept="image/*" className="hidden"
+                          onChange={(e) => { const f = e.target.files?.[0]; if (f) onPickImage(f); e.target.value = ""; }}
+                        />
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
+                          aria-label="Vedhæft billede"
+                        >
+                          <Paperclip className="h-3.5 w-3.5" />
+                        </button>
+                        <textarea
+                          ref={textareaRef} value={draft} onChange={(e) => setDraft(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                          maxLength={2000} rows={1} placeholder="Skriv en besked…"
+                          className="flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-foreground"
+                        />
+                        <button
+                          onClick={() => sendMessage()} disabled={sending || (!draft.trim() && !pendingImage)} aria-label="Send"
+                          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-all hover:bg-foreground/90 disabled:opacity-50"
+                        >
+                          {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                        </button>
+                      </div>
+                      <div className="mt-2 flex items-center justify-between px-1">
+                        <span className="text-[10px] text-muted-foreground">Enter sender · max 5 MB billede</span>
+                        <button onClick={endChatSession} className="text-[10px] text-muted-foreground transition-colors hover:text-foreground">
+                          Afslut samtale
+                        </button>
+                      </div>
                     </div>
-                    <div className="mt-2 flex items-center justify-between px-1">
-                      <span className="text-[10px] text-muted-foreground">Enter sender · max 5 MB billede</span>
-                      <button onClick={endChatSession} className="text-[10px] text-muted-foreground transition-colors hover:text-foreground">
-                        Afslut samtale
-                      </button>
-                    </div>
-                  </div>
+                  </>
                 )}
               </>
             )}
