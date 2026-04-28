@@ -111,6 +111,22 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
     });
   }, [user]);
 
+  // Load skabeloner og medarbejdere med livechat-adgang
+  useEffect(() => {
+    supabase.from("chat_templates")
+      .select("id, title, content, sort_order")
+      .eq("business_id", businessId)
+      .order("sort_order", { ascending: true })
+      .then(({ data }) => { if (data) setTemplates(data as Template[]); });
+    supabase.from("employees")
+      .select("id, name, livechat_enabled")
+      .eq("business_id", businessId)
+      .eq("is_active", true)
+      .then(({ data }) => {
+        if (data) setEmployees((data as any[]).filter((e) => e.livechat_enabled).map((e) => ({ id: e.id, name: e.name })));
+      });
+  }, [businessId]);
+
   // Conversation list — filtreret på business_id
   useEffect(() => {
     let isFirst = true;
