@@ -12,14 +12,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   LogOut, LayoutDashboard, Wrench, ShoppingCart, Star, Settings,
-  Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles,
+  Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles, MessageCircle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 export type AdminTabKey =
   | "dashboard" | "services" | "orders" | "customers"
-  | "routes" | "employees" | "reviews" | "leads" | "settings";
+  | "routes" | "employees" | "reviews" | "leads" | "livechat" | "settings";
 
 /**
  * Animeret sidebar-item: collapser stille ind/ud når en feature toggles
@@ -122,6 +122,7 @@ const TAB_PREFETCH: Partial<Record<AdminTabKey, () => Promise<unknown>>> = {
   employees: () => import("@/components/admin/EmployeesTab"),
   reviews:   () => import("@/components/admin/ReviewsTab"),
   leads:     () => import("@/components/admin/LeadsTab"),
+  livechat:  () => import("@/components/admin/BusinessLiveChatTab"),
   settings:  () => import("@/components/admin/SettingsTab"),
   routes:    () => import("@/pages/RoutePlanner"),
 };
@@ -139,6 +140,7 @@ type NavItem = {
   href?: string;
   requiresRoutePlanning?: boolean;
   requiresLeads?: boolean;
+  requiresLivechat?: boolean;
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -150,6 +152,7 @@ const NAV_ITEMS: NavItem[] = [
   { value: "routes", label: "Ruter", icon: RouteIcon, requiresRoutePlanning: true, href: "/virksomhed/ruter" },
   { value: "employees", label: "Medarbejdere", icon: Users, requiresRoutePlanning: true },
   { value: "reviews", label: "Anmeldelser", icon: Star },
+  { value: "livechat", label: "Live chat", icon: MessageCircle, requiresLivechat: true },
   { value: "settings", label: "Indstillinger", icon: Settings },
 ];
 
@@ -188,9 +191,11 @@ export const AdminShell = ({
 
   const routePlanningEnabled = !!(business.settings as any)?.route_planning_enabled;
   const leadsEnabled = !!(business.settings as any)?.leads_enabled;
+  const livechatEnabled = !!(business.settings as any)?.livechat_enabled;
   const visibleNav = NAV_ITEMS.filter((n) => {
     if (n.requiresRoutePlanning && !routePlanningEnabled) return false;
     if (n.requiresLeads && !leadsEnabled) return false;
+    if (n.requiresLivechat && !livechatEnabled) return false;
     return true;
   });
   const currentNav = visibleNav.find((n) => n.value === activeTab) ?? NAV_ITEMS.find((n) => n.value === activeTab);
@@ -276,7 +281,8 @@ export const AdminShell = ({
           {NAV_ITEMS.map((item) => {
             const visible =
               !(item.requiresRoutePlanning && !routePlanningEnabled) &&
-              !(item.requiresLeads && !leadsEnabled);
+              !(item.requiresLeads && !leadsEnabled) &&
+              !(item.requiresLivechat && !livechatEnabled);
             return (
               <AnimatedNavItem
                 key={item.value}
