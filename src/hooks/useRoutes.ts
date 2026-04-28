@@ -675,6 +675,7 @@ export const useAddStop = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
     },
   });
 };
@@ -700,6 +701,7 @@ export const useUpdateStop = () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["route-stops"] });
       qc.invalidateQueries({ queryKey: ["stop-assignees-bulk"] });
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
     },
   });
 };
@@ -716,6 +718,7 @@ export const useReorderStops = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
     },
   });
 };
@@ -730,6 +733,7 @@ export const useDeleteStop = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
     },
   });
 };
