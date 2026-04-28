@@ -22,7 +22,7 @@ interface WelcomeProps {
 const WelcomeEmail = ({ name, isBusinessOwner = false }: WelcomeProps) => (
  <Html lang="da" dir="ltr">
  <Head />
- <Preview>Velkommen til {SITE_NAME} — kom hurtigt i gang</Preview>
+ <Preview>Velkommen til {SITE_NAME} kom hurtigt i gang</Preview>
  <Body style={main}>
  <Container style={wrapper}>
  <Section style={headerBar}>
@@ -78,7 +78,7 @@ const WelcomeEmail = ({ name, isBusinessOwner = false }: WelcomeProps) => (
  <Section style={helpBox}>
  <Text style={helpBoxTitle}>Har du brug for hjælp?</Text>
  <Text style={helpBoxText}>
- Skriv til os på <Link href={`mailto:${SUPPORT_EMAIL}`} style={link}>{SUPPORT_EMAIL}</Link> — vi hjælper gerne videre.
+ Skriv til os på <Link href={`mailto:${SUPPORT_EMAIL}`} style={link}>{SUPPORT_EMAIL}</Link> vi hjælper gerne videre.
  </Text>
  </Section>
  </Container>
@@ -100,7 +100,7 @@ export const template = {
  component: WelcomeEmail,
  subject: (data) =>
  data.isBusinessOwner
- ?`Velkommen til ${SITE_NAME} — kom godt i gang som virksomhed`
+ ?`Velkommen til ${SITE_NAME} kom godt i gang som virksomhed`
  :`Velkommen til ${SITE_NAME}`,
  displayName: 'Velkomst-email',
  previewData: { name: 'Mette', isBusinessOwner: false },

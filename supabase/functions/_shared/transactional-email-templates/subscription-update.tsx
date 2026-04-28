@@ -40,7 +40,7 @@ const EVENT_COLOR: Record<SubscriptionEvent, { fg: string; bg: string }> = {
  paused: { fg: '#92400e', bg: '#fef3c7' }, resumed: { fg: '#065f46', bg: '#d1fae5' }, cancelled: { fg: '#991b1b', bg: '#fee2e2' }, rescheduled: { fg: '#1e3a8a', bg: '#dbeafe' },
 }
 const EVENT_HEADLINE: Record<SubscriptionEvent, string> = {
- paused: 'Din aftale er sat på pause ⏸', resumed: 'Din aftale er aktiv igen ▶', cancelled: 'Din aftale er opsagt', rescheduled: 'Din næste service er flyttet ',
+ paused: 'Din aftale er sat på pause ', resumed: 'Din aftale er aktiv igen ', cancelled: 'Din aftale er opsagt', rescheduled: 'Din næste service er flyttet ',
 }
 const EVENT_INTRO: Record<SubscriptionEvent, (svc: string, biz: string) => string> = {
  paused: (svc, biz) =>`Din tilbagevendende aftale "${svc}" hos ${biz} er sat på pause. Der planlægges ikke nye besøg, før aftalen bliver genoptaget.`,
@@ -73,7 +73,7 @@ const SubscriptionUpdateEmail = ({ customerName, businessName, businessPhone, bu
  return (
  <Html lang="da" dir="ltr">
  <Head />
- <Preview>{headline}{businessName ?` — ${businessName}` : ''}</Preview>
+ <Preview>{headline}{businessName ?` ${businessName}` : ''}</Preview>
  <Body style={main}>
  <Container style={wrapper}>
  <Section style={headerBar}><Img src={LOGO_URL} alt={SITE_NAME} height="36" style={{ display: 'block' }} /></Section>
@@ -91,7 +91,7 @@ const SubscriptionUpdateEmail = ({ customerName, businessName, businessPhone, bu
  {intervalLabel && <><Text style={cardLabel}>Interval</Text><Text style={cardValue}> {intervalLabel}</Text></>}
  {typeof totalPrice === 'number' && <><Text style={cardLabel}>Pris pr. gang</Text><Text style={cardValue}>{fmt(totalPrice)}</Text></>}
  {typeof completedCycles === 'number' && completedCycles > 0 && <><Text style={cardLabel}>Udført i alt</Text><Text style={cardValue}>{completedCycles} {completedCycles === 1 ? 'gang' : 'gange'}</Text></>}
- {event === 'paused' && pauseDate && <><Text style={cardLabel}>Sat på pause</Text><Text style={cardValue}>⏸ {pauseDate}</Text></>}
+ {event === 'paused' && pauseDate && <><Text style={cardLabel}>Sat på pause</Text><Text style={cardValue}> {pauseDate}</Text></>}
  {event === 'cancelled' && cancelDate && <><Text style={cardLabel}>Opsagt</Text><Text style={cardValue}>{cancelDate}</Text></>}
  {event === 'rescheduled' && prevDate && <><Text style={cardLabel}>Tidligere dato</Text><Text style={{ ...cardValue, textDecoration: 'line-through', color: '#94a3b8' }}> {prevDate}</Text></>}
  {(event === 'resumed' || event === 'rescheduled') && nextDate && <><Text style={cardLabel}>{event === 'rescheduled' ? 'Ny dato' : 'Næste service'}</Text><Text style={{ ...cardValue, fontSize: '16px' }}> {nextDate}</Text></>}
@@ -131,7 +131,7 @@ const SubscriptionUpdateEmail = ({ customerName, businessName, businessPhone, bu
 
 export const template = {
  component: SubscriptionUpdateEmail,
- subject: (data) =>`Aftale opdateret${data.businessName ?` — ${data.businessName}` : ''}`,
+ subject: (data) =>`Aftale opdateret${data.businessName ?` ${data.businessName}` : ''}`,
  displayName: 'Opdatering af aftale',
  previewData: { customerName: 'Mette', businessName: 'Ready2Clean', serviceName: 'Privatrengøring', intervalLabel: 'Hver 14. dag', totalPrice: 599, event: 'rescheduled', nextServiceDate: '2026-05-08', previousServiceDate: '2026-05-01', completedCycles: 3 },
 } satisfies TemplateEntry

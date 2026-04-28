@@ -58,7 +58,7 @@ const NewLeadEmail = ({
  return (
  <Html lang="da" dir="ltr">
  <Head />
- <Preview>Nyt lead{category ?` på ${category}` : ''} — kunden er {locLabel}</Preview>
+ <Preview>Nyt lead{category ?` på ${category}` : ''} kunden er {locLabel}</Preview>
  <Body style={main}>
  <Container style={wrapper}>
  <Section style={headerBar}>
@@ -126,7 +126,7 @@ const NewLeadEmail = ({
  <Section style={buttonSection}>
  <Button style={button} href={leadsUrl}>Åbn lead i dit panel</Button>
  <Text style={{ ...text, fontSize: '12px', color: '#64748b', marginTop: '12px' }}>
- Tip: vær hurtig — kunden modtager også svar fra op til 2 andre virksomheder.
+ Tip: vær hurtig kunden modtager også svar fra op til 2 andre virksomheder.
  </Text>
  </Section>
 
@@ -152,7 +152,7 @@ const NewLeadEmail = ({
 export const template = {
  component: NewLeadEmail,
  subject: (data) =>`Nyt lead${data.category ?` på ${data.category}` : ''}${data.customerCity ?` i ${data.customerCity}` : ''}`,
- displayName: 'Nyt lead — virksomhed',
+ displayName: 'Nyt lead virksomhed',
  previewData: {
  businessName: 'Ready2Clean',
  ownerName: 'Anna',
@@ -163,7 +163,7 @@ export const template = {
  description: 'Rengøring af 3-værelses lejlighed på 85 m², hver 14. dag.',
  matchScore: 92,
  reason: 'I har høj rating på privatrengøring i København og passer til kundens ønskede frekvens.',
- estimatedPrice: '750 – 950 kr / besøg',
+ estimatedPrice: '750 950 kr / besøg',
  distanceKm: 2.4,
  shareContact: true,
  customerEmail: 'mette@example.dk',

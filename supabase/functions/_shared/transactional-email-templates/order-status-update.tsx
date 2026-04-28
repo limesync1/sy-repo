@@ -18,7 +18,7 @@ import {
  footer, footerText, footerLink,
 } from './_styles.ts'
 
-/* ─── Types matching the actual app lifecycle (AftaleTab.STATUS_CONFIG) ──
+/* Types matching the actual app lifecycle (AftaleTab.STATUS_CONFIG) 
  status: pending | confirmed | in_progress | completed | cancelled
  business_response: null | 'accepted' | 'adjusted' | 'rejected'
  When business_response = 'adjusted' and order is still pending, the
@@ -26,7 +26,7 @@ import {
  or reject. We render this as a distinct "adjusted" state in the email.
 */
 type EventType =
- | 'pending' // Ny bestilling oprettet (sjælden — typisk dækkes af order-confirmation)
+ | 'pending' // Ny bestilling oprettet (sjælden typisk dækkes af order-confirmation)
  | 'adjusted' // Virksomheden har sendt et tilpasset forslag
  | 'confirmed' // Aftalt (godkendt direkte eller efter accept af forslag)
  | 'in_progress' // Arbejdet er i gang
@@ -57,7 +57,7 @@ interface OrderStatusUpdateProps {
  businessEmail?: string
  businessAddress?: string
  orderId?: string
- event?: EventType // primær trigger — afgør hele e-mailens indhold
+ event?: EventType // primær trigger afgør hele e-mailens indhold
  message?: string // valgfri besked fra virksomheden
  serviceDate?: string // aftalt servicedato (hvis sat)
  // Beløb
@@ -103,19 +103,19 @@ const STATUS_INTRO: Record<EventType, (biz: string) => string> = {
  adjusted: (biz) =>`${biz} har gennemgået din bestilling og foreslået en justering. Du skal godkende eller afvise forslaget for, at aftalen kan fortsætte.`,
  confirmed: (biz) =>`${biz} har bekræftet din bestilling. I er nu enige om aftalen, og servicen udføres på den aftalte dato.`,
  in_progress: (biz) =>`${biz} er nu gået i gang med din service. Du modtager besked, så snart arbejdet er udført.`,
- completed: (biz) =>`${biz} har afsluttet servicen. Tak fordi du valgte os — vi håber, du er tilfreds med resultatet.`,
+ completed: (biz) =>`${biz} har afsluttet servicen. Tak fordi du valgte os vi håber, du er tilfreds med resultatet.`,
  cancelled: (biz) =>`Din bestilling hos ${biz} er blevet annulleret. Du bliver ikke opkrævet noget for denne ordre.`,
 }
 
 const STATUS_NEXT: Record<EventType, string[]> = {
  pending: [
  'Leverandøren bekræfter, foreslår en tilpasning, eller afviser ordren.',
- 'Du får en e-mail, så snart der er nyt — typisk inden for 24 timer.',
+ 'Du får en e-mail, så snart der er nyt typisk inden for 24 timer.',
  ],
  adjusted: [
  'Åbn ordren i dit kundepanel og gennemgå forslaget.',
- 'Tryk Godkend, hvis du accepterer — så bliver aftalen bekræftet.',
- 'Tryk Afvis, hvis du ikke ønsker tilpasningen — leverandøren får besked og kan sende et nyt forslag.',
+ 'Tryk Godkend, hvis du accepterer så bliver aftalen bekræftet.',
+ 'Tryk Afvis, hvis du ikke ønsker tilpasningen leverandøren får besked og kan sende et nyt forslag.',
  ],
  confirmed: [
  'Hav adressen klar og sørg for adgang på den aftalte dato.',
@@ -165,8 +165,8 @@ const renderItems = (items: OrderItemSummary[]) => (
  )}
  {it.stepDetails?.map((sd, j) => (
  <Text key={j} style={stepLine}>
- • {sd.label}: <strong>{sd.value} {sd.unit || ''}</strong>
- {sd.subtotal != null ?` — ${fmt(sd.subtotal)}` : ''}
+ {sd.label}: <strong>{sd.value} {sd.unit || ''}</strong>
+ {sd.subtotal != null ?` ${fmt(sd.subtotal)}` : ''}
  </Text>
  ))}
  </td>
@@ -207,7 +207,7 @@ const OrderStatusUpdateEmail = ({
  const shortId = orderId ?`#${orderId.slice(0, 8).toUpperCase()}` : null
 
  // Hvilke items skal vi vise?
- // - adjusted: vis det FORESLÅEDE indhold (proposedItems) — det er pointen
+ // - adjusted: vis det FORESLÅEDE indhold (proposedItems) det er pointen
  // - alle andre: vis de aktuelle items
  const visibleItems = event === 'adjusted' && proposedItems.length > 0 ? proposedItems : items
  const visibleTotal =
@@ -236,7 +236,7 @@ const OrderStatusUpdateEmail = ({
  return (
  <Html lang="da" dir="ltr">
  <Head />
- <Preview>{headline}{businessName ?` — ${businessName}` : ''}</Preview>
+ <Preview>{headline}{businessName ?` ${businessName}` : ''}</Preview>
  <Body style={main}>
  <Container style={wrapper}>
  <Section style={headerBar}>
@@ -343,7 +343,7 @@ const OrderStatusUpdateEmail = ({
  Næste service er allerede planlagt
  </Text>
  <Text style={{ ...text, fontSize: '13px', margin: 0, color: '#0e7490' }}>
- Du har en tilbagevendende aftale. Næste servicedato planlægges automatisk —
+ Du har en tilbagevendende aftale. Næste servicedato planlægges automatisk 
  du kan altid pause, ændre interval eller opsige fra dit kundepanel.
  </Text>
  </Section>
@@ -391,9 +391,9 @@ export const template = {
  component: OrderStatusUpdateEmail,
  subject: (data) => {
  const lbl = STATUS_LABEL[data.event as EventType] ?? 'Opdatering'
- const biz = data.businessName ?` — ${data.businessName}` : ''
+ const biz = data.businessName ?` ${data.businessName}` : ''
  const id = data.orderId ?` #${String(data.orderId).slice(0, 8).toUpperCase()}` : ''
- if (data.event === 'adjusted') return`Forslag fra ${data.businessName || 'leverandøren'}${id} — godkend eller afvis`
+ if (data.event === 'adjusted') return`Forslag fra ${data.businessName || 'leverandøren'}${id} godkend eller afvis`
  if (data.event === 'completed') return`Din service er udført${biz}`
  if (data.event === 'in_progress') return`Din service er i gang${biz}`
  if (data.event === 'confirmed') return`Din bestilling er aftalt${biz}`

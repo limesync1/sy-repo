@@ -69,7 +69,7 @@ const ManualOrderApprovalEmail = ({
  return (
  <Html lang="da" dir="ltr">
  <Head />
- <Preview>{businessLabel} har oprettet en bestilling til dig — godkend for {fmt(totalAmount)}</Preview>
+ <Preview>{businessLabel} har oprettet en bestilling til dig godkend for {fmt(totalAmount)}</Preview>
  <Body style={main}>
  <Container style={wrapper}>
  <Section style={headerBar}>
@@ -118,7 +118,7 @@ const ManualOrderApprovalEmail = ({
  {it.intervalLabel && <Text style={itemDetail}> {it.intervalLabel}</Text>}
  {it.description && !it.stepDetails?.length && <Text style={itemDetail}>{it.description}</Text>}
  {it.stepDetails?.map((sd, j) => (
- <Text key={j} style={stepLine}>• {sd.label}: <strong>{sd.value} {sd.unit || ''}</strong>{sd.subtotal != null ?` — ${fmt(sd.subtotal)}` : ''}</Text>
+ <Text key={j} style={stepLine}> {sd.label}: <strong>{sd.value} {sd.unit || ''}</strong>{sd.subtotal != null ?` ${fmt(sd.subtotal)}` : ''}</Text>
  ))}
  </td>
  <td style={{ verticalAlign: 'top', textAlign: 'right', minWidth: '70px' }}>
@@ -164,7 +164,7 @@ const ManualOrderApprovalEmail = ({
 export const template = {
  component: ManualOrderApprovalEmail,
  subject: (data) =>`Bestilling til godkendelse${data.businessName ?` fra ${data.businessName}` : ''}`,
- displayName: 'Manuel ordre — kunde-godkendelse',
+ displayName: 'Manuel ordre kunde-godkendelse',
  previewData: {
  customerName: 'Mette Hansen',
  businessName: 'Rengøring København ApS',

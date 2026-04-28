@@ -56,7 +56,7 @@ const RouteAssignedEmail = ({
  return (
  <Html lang="da" dir="ltr">
  <Head />
- <Preview>{`Din rute for ${routeDate} er klar — ${stopCount} stop`}</Preview>
+ <Preview>{`Din rute for ${routeDate} er klar ${stopCount} stop`}</Preview>
  <Body style={main}>
  <Container style={wrapper}>
  <Section style={headerBar}>
@@ -74,7 +74,7 @@ const RouteAssignedEmail = ({
  <Section style={{ margin: '0 0 10px' }}>
  <span style={stat}><strong>{stopCount}</strong> stop</span>
  {totalKm != null && totalKm > 0 && <span style={stat}><strong>{totalKm.toFixed(1)}</strong> km</span>}
- {hours != null && <span style={stat}>⏱ <strong>{hours}t {mins}m</strong></span>}
+ {hours != null && <span style={stat}> <strong>{hours}t {mins}m</strong></span>}
  </Section>
 
  <Section style={card}>
@@ -99,7 +99,7 @@ const RouteAssignedEmail = ({
  <Section style={helpBox}>
  <Text style={helpBoxTitle}>Spørgsmål til ruten?</Text>
  <Text style={helpBoxText}>
- Kontakt {businessName} direkte — eller skriv til os på <Link href={`mailto:${SUPPORT_EMAIL}`} style={link}>{SUPPORT_EMAIL}</Link>.
+ Kontakt {businessName} direkte eller skriv til os på <Link href={`mailto:${SUPPORT_EMAIL}`} style={link}>{SUPPORT_EMAIL}</Link>.
  </Text>
  </Section>
  </Container>
@@ -118,7 +118,7 @@ const RouteAssignedEmail = ({
 
 export const template = {
  component: RouteAssignedEmail,
- subject: (data) =>`Din rute er klar — ${data.routeDate || 'i morgen'} (${data.stopCount || 0} stop)`,
+ subject: (data) =>`Din rute er klar ${data.routeDate || 'i morgen'} (${data.stopCount || 0} stop)`,
  displayName: 'Rute tildelt til medarbejder',
  previewData: {
  employeeName: 'Anders',

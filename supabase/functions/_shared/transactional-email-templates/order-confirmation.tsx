@@ -73,7 +73,7 @@ const OrderConfirmationEmail = ({
  <Html lang="da" dir="ltr">
  <Head />
  <Preview>
- Vi har modtaget din ordre{businessName ?` hos ${businessName}` : ''} — total {fmt(totalAmount)}
+ Vi har modtaget din ordre{businessName ?` hos ${businessName}` : ''} total {fmt(totalAmount)}
  </Preview>
  <Body style={main}>
  <Container style={wrapper}>
@@ -128,8 +128,8 @@ const OrderConfirmationEmail = ({
  )}
  {it.stepDetails?.map((sd, j) => (
  <Text key={j} style={stepLine}>
- • {sd.label}: <strong>{sd.value} {sd.unit || ''}</strong>
- {sd.subtotal != null ?` — ${fmt(sd.subtotal)}` : ''}
+ {sd.label}: <strong>{sd.value} {sd.unit || ''}</strong>
+ {sd.subtotal != null ?` ${fmt(sd.subtotal)}` : ''}
  </Text>
  ))}
  </td>
@@ -193,7 +193,7 @@ const OrderConfirmationEmail = ({
  <ol style={stepList}>
  <li style={stepItem}>
  <span style={stepNumber}>1</span>
- {businessLabel.charAt(0).toUpperCase() + businessLabel.slice(1)} gennemgår din ordre og bekræfter — eller foreslår en tilpasning.
+ {businessLabel.charAt(0).toUpperCase() + businessLabel.slice(1)} gennemgår din ordre og bekræfter eller foreslår en tilpasning.
  </li>
  <li style={stepItem}>
  <span style={stepNumber}>2</span>
@@ -201,7 +201,7 @@ const OrderConfirmationEmail = ({
  </li>
  <li style={stepItem}>
  <span style={stepNumber}>3</span>
- Når ordren er bekræftet, aftaler I tid — og {businessLabel} udfører servicen.
+ Når ordren er bekræftet, aftaler I tid og {businessLabel} udfører servicen.
  </li>
  </ol>
 
@@ -260,7 +260,7 @@ const cardRowText = {
 export const template = {
  component: OrderConfirmationEmail,
  subject: (data) =>
-`Ordrebekræftelse${data.orderId ?` #${String(data.orderId).slice(0, 8).toUpperCase()}` : ''}${data.businessName ?` — ${data.businessName}` : ''}`,
+`Ordrebekræftelse${data.orderId ?` #${String(data.orderId).slice(0, 8).toUpperCase()}` : ''}${data.businessName ?` ${data.businessName}` : ''}`,
  displayName: 'Ordrebekræftelse',
  previewData: {
  customerName: 'Mette Hansen',

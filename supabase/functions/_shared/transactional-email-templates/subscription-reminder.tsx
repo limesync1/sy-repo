@@ -45,7 +45,7 @@ const SubscriptionReminderEmail = ({ customerName, businessName, businessPhone, 
  return (
  <Html lang="da" dir="ltr">
  <Head />
- <Preview>Påmindelse: {serviceName || 'din service'}{businessName ?` hos ${businessName}` : ''}{date ?` — ${date}` : ''}</Preview>
+ <Preview>Påmindelse: {serviceName || 'din service'}{businessName ?` hos ${businessName}` : ''}{date ?` ${date}` : ''}</Preview>
  <Body style={main}>
  <Container style={wrapper}>
  <Section style={headerBar}><Img src={LOGO_URL} alt={SITE_NAME} height="36" style={{ display: 'block' }} /></Section>
