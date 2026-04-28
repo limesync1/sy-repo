@@ -66,8 +66,18 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
   // session — så besøgende kan have parallelle samtaler hos forskellige
   // virksomheder uden at de blandes sammen.
   const STORAGE_KEY = `serviceydere_biz_chat_${businessId}_v1`;
+  const OPEN_KEY = `serviceydere_biz_chat_open_${businessId}`;
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpenState] = useState<boolean>(() => {
+    try { return sessionStorage.getItem(OPEN_KEY) === "1"; } catch { return false; }
+  });
+  const setOpen = useCallback((v: boolean | ((p: boolean) => boolean)) => {
+    setOpenState((prev) => {
+      const next = typeof v === "function" ? (v as (p: boolean) => boolean)(prev) : v;
+      try { sessionStorage.setItem(OPEN_KEY, next ? "1" : "0"); } catch {}
+      return next;
+    });
+  }, [OPEN_KEY]);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
