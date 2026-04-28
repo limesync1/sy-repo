@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 import { ImageIcon, ShoppingCart, Minus, Plus, Check } from "lucide-react";
@@ -84,10 +83,6 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
     return initial;
   });
   const [justAdded, setJustAdded] = useState(false);
-
-  const pricingLabels: Record<string, string> = {
-    fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner",
-  };
 
   const sortedSteps = [...(service.calculator_steps || [])].sort(
     (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
