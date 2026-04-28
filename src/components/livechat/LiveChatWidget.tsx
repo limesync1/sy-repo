@@ -9,6 +9,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { z } from "zod";
 import chatSounds from "./chatSounds";
+import ChatInboxList from "./ChatInboxList";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   upsertChat,
   removeChat,
@@ -153,9 +160,6 @@ const formatTime = (iso: string) => {
   if (sameDay) return d.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
   return d.toLocaleDateString("da-DK", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 };
-
-const initials = (name: string) =>
-  name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() || "").join("") || "S";
 
 const LiveChatWidget = () => {
   const { pathname } = useLocation();
