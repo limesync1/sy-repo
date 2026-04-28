@@ -9,6 +9,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
+import { TourProvider } from "@/components/admin/onboarding/TourContext";
 
 // Forsiden + Login indlæses ivrigt — alt andet er code-splittet via React.lazy
 // så det første sidebesøg ikke trækker hele admin/medarbejder/ruteplanlægger
@@ -74,6 +75,7 @@ const App = () => (
         <BrowserRouter>
           <CartProvider>
             <TooltipProvider>
+            <TourProvider>
             <Toaster />
             <Sonner />
             {/* Scroller automatisk til toppen når ruten ændres. */}
@@ -127,6 +129,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             </Suspense>
+            </TourProvider>
             </TooltipProvider>
           </CartProvider>
         </BrowserRouter>
