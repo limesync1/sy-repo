@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import {
   Sparkles, Settings, Bell, Route, Contact, Image as ImageIcon, Clock,
   CheckCircle2, AlertCircle, ArrowRight, Building2, Search, Calculator,
-  CreditCard, XCircle, MessageCircle,
+  CreditCard, XCircle, MessageCircle, Globe, ExternalLink,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
