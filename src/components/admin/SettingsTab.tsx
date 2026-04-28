@@ -1105,6 +1105,37 @@ const SettingsTab = ({ business }: { business: any }) => {
                           {domainResult.message}
                         </p>
                       )}
+                      {domainResult?.checks && domainResult?.status !== "verified" && (
+                        <div className="space-y-1.5 rounded-md border border-border bg-card/60 p-2.5">
+                          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Hvad mangler?</p>
+                          <ul className="space-y-1 text-[11px]">
+                            <li className="flex items-start gap-1.5">
+                              {domainResult.checks.ownership_ok ? (
+                                <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-success" />
+                              ) : (
+                                <XCircle className="mt-0.5 h-3 w-3 shrink-0 text-destructive" />
+                              )}
+                              <span className={domainResult.checks.ownership_ok ? "text-muted-foreground" : "text-foreground"}>
+                                TXT-record på <span className="font-mono">_serviceydere</span> med værdi{" "}
+                                <span className="font-mono">serviceydere-verify={domainToken}</span>
+                              </span>
+                            </li>
+                            <li className="flex items-start gap-1.5">
+                              {domainResult.checks.pointing_ok ? (
+                                <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-success" />
+                              ) : (
+                                <XCircle className="mt-0.5 h-3 w-3 shrink-0 text-destructive" />
+                              )}
+                              <span className={domainResult.checks.pointing_ok ? "text-muted-foreground" : "text-foreground"}>
+                                CNAME (eller A-record) der peger på <span className="font-mono">serviceydere.dk</span>
+                              </span>
+                            </li>
+                          </ul>
+                          <p className="pt-1 text-[10px] text-muted-foreground">
+                            DNS-ændringer kan tage op til 24 timer. Klik <strong>Verificer</strong> igen efter ventetiden.
+                          </p>
+                        </div>
+                      )}
                       {domainStatus === "verified" && domainVerifiedAt && (
                         <p className="text-[11px] text-muted-foreground">Sidst verificeret: {new Date(domainVerifiedAt).toLocaleString("da-DK")}</p>
                       )}
