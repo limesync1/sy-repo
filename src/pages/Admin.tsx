@@ -1222,25 +1222,21 @@ const ServiceForm = ({
             )}
           </div>
           <div>
-            <div className="mb-1.5 flex items-center justify-between gap-2">
-              <label className="block text-sm font-medium text-foreground">Beskrivelse</label>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">Beskrivelse</label>
+            <Textarea placeholder="Hvad inkluderer denne service? Hvad kan kunden forvente?" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-card" rows={3} />
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
               <button
                 type="button"
                 onClick={generateAiDescription}
                 disabled={aiLoading || !name.trim()}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
                 title={!name.trim() ? "Skriv et servicenavn først" : "Generér forslag baseret på din virksomhed"}
               >
-                {aiLoading ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Wand2 className="h-3.5 w-3.5" />
-                )}
-                {aiLoading ? "Genererer…" : "Foreslå med AI"}
+                {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5" />}
+                {aiLoading ? "Genererer…" : "Foreslå beskrivelse med AI"}
               </button>
+              <p className="text-[11px] text-muted-foreground">AI bruger jeres navn, branche og beskrivelse.</p>
             </div>
-            <Textarea placeholder="Hvad inkluderer denne service? Hvad kan kunden forvente?" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-card" rows={3} />
-            <p className="mt-1 text-[11px] text-muted-foreground">AI bruger din virksomheds navn, branche og beskrivelse til at skræddersy forslaget.</p>
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">Billede (valgfrit)</label>
