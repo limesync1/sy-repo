@@ -71,11 +71,11 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <LocationProvider>
-        <CartProvider>
-          <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+        <BrowserRouter>
+          <CartProvider>
+            <TooltipProvider>
+            <Toaster />
+            <Sonner />
             {/* Scroller automatisk til toppen når ruten ændres. */}
             <ScrollToTop />
             {/* Global bestillings-sheet + flydende genåbn-knap — lazy-loadede,
@@ -127,9 +127,9 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             </Suspense>
-            </BrowserRouter>
-          </TooltipProvider>
-        </CartProvider>
+            </TooltipProvider>
+          </CartProvider>
+        </BrowserRouter>
       </LocationProvider>
     </AuthProvider>
   </QueryClientProvider>
