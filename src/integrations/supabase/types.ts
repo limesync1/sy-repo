@@ -333,6 +333,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string | null
+          is_system: boolean
           read_at: string | null
           sender_name: string
           sender_type: string
@@ -343,6 +344,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          is_system?: boolean
           read_at?: string | null
           sender_name: string
           sender_type: string
@@ -353,6 +355,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          is_system?: boolean
           read_at?: string | null
           sender_name?: string
           sender_type?: string
