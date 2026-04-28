@@ -804,6 +804,7 @@ const ServiceForm = ({
 
   const ALL_INTERVALS = [
     { value: "engangskøb", label: "Engangskøb" },
+    { value: "daglig", label: "Daglig" },
     { value: "ugentlig", label: "Ugentlig" },
     { value: "hver_14_dag", label: "Hver 14. dag" },
     { value: "månedlig", label: "Månedlig" },
