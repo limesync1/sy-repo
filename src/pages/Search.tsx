@@ -65,19 +65,27 @@ const BusinessCard = ({
         isHighlighted ? "ring-2 ring-accent ring-offset-2 ring-offset-background" : ""
       }`}
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-secondary">
-        {biz.cover_image_url ? (
-          <img
-            src={biz.cover_image_url}
-            alt={biz.name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
-            <Building2 className="h-14 w-14 text-muted-foreground/30" />
-          </div>
-        )}
+      {/*
+       * Wrapper-div må IKKE have overflow-hidden, ellers bliver logoet (som
+       * stikker ud i bunden med -bottom-5) klippet af. Cover-billedet får
+       * sin egen overflow-hidden så hover-zoom stadig holder sig inden for
+       * billedrammen — og logoet ligger som søsken oven på.
+       */}
+      <div className="relative aspect-[4/3] w-full">
+        <div className="absolute inset-0 overflow-hidden rounded-2xl bg-secondary">
+          {biz.cover_image_url ? (
+            <img
+              src={biz.cover_image_url}
+              alt={biz.name}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
+              <Building2 className="h-14 w-14 text-muted-foreground/30" />
+            </div>
+          )}
+        </div>
 
         <div onClick={stop}>
           <FavoriteButton businessId={biz.id} />
@@ -91,11 +99,11 @@ const BusinessCard = ({
         )}
 
         {biz.logo_url && (
-          <div className="absolute -bottom-5 left-4 h-14 w-14 rounded-xl border-2 border-card bg-card shadow-md flex items-center justify-center">
+          <div className="absolute -bottom-5 left-4 z-10 h-14 w-14 overflow-hidden rounded-xl border-2 border-card bg-card shadow-md flex items-center justify-center">
             <img
               src={biz.logo_url}
               alt=""
-              className="max-h-[80%] max-w-[80%] object-contain"
+              className="max-h-[85%] max-w-[85%] object-contain"
               loading="lazy"
               decoding="async"
             />
