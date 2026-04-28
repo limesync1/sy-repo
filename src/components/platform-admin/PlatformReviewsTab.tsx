@@ -8,6 +8,7 @@ import { Star, Trash2, Search, Download } from "lucide-react";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { exportCsv } from "./lib/csv";
+import { PageHeader, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
 
 const PlatformReviewsTab = () => {
   const qc = useQueryClient();
@@ -60,24 +61,25 @@ const PlatformReviewsTab = () => {
 
   return (
     <div className="space-y-4">
+      <PageHeader
+        title="Anmeldelser"
+        description={<>{filtered.length} anmeldelser{avgRating ? <> · <span className="font-medium text-foreground">{avgRating.toFixed(1)} ★ snit</span></> : null}</>}
+        action={
+          <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
+            <Download className="h-3.5 w-3.5" /> CSV
+          </Button>
+        }
+      />
+
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[240px] max-w-md">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Søg navn, kommentar, virksomhed..." className="pl-9" />
-        </div>
+        <SearchInput value={q} onChange={setQ} placeholder="Søg navn, kommentar, virksomhed..." />
         <Select value={ratingFilter} onValueChange={setRatingFilter}>
-          <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[180px] h-10"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle ratings</SelectItem>
             {[5, 4, 3, 2, 1].map((n) => <SelectItem key={n} value={String(n)}>{n} stjerner</SelectItem>)}
           </SelectContent>
         </Select>
-        <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
-          <Download className="h-3.5 w-3.5" /> CSV
-        </Button>
-        <div className="ml-auto text-xs text-muted-foreground">
-          {filtered.length} anmeldelser · {avgRating ? `${avgRating.toFixed(1)} ★ snit` : "—"}
-        </div>
       </div>
 
       {isLoading ? (
@@ -85,9 +87,11 @@ const PlatformReviewsTab = () => {
           {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 rounded-lg bg-secondary/40 animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <Card className="rounded-xl border-dashed">
-          <CardContent className="p-8 text-center text-sm text-muted-foreground">Ingen anmeldelser fundet.</CardContent>
-        </Card>
+        <EmptyState
+          icon={<Star />}
+          title="Ingen anmeldelser fundet"
+          description="Prøv andre søgeord eller skift rating-filter."
+        />
       ) : (
         <Card className="rounded-xl border-border shadow-sm overflow-hidden">
           <div className="divide-y divide-border">
