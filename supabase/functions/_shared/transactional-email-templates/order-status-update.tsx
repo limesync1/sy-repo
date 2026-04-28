@@ -297,10 +297,12 @@ const OrderStatusUpdateEmail = ({
  )}
 
  {typeof visibleTotal === 'number' && (
- <div style={totalRow}>
- <span>{event === 'adjusted' ? 'Nyt total' : 'I alt'}</span>
- <span>{fmt(visibleTotal)}</span>
- </div>
+ <table width="100%" cellPadding="0" cellSpacing="0" style={totalRow}>
+ <tr>
+ <td style={{ textAlign: 'left' }}>{event === 'adjusted' ? 'Nyt total' : 'I alt'}</td>
+ <td style={{ textAlign: 'right' }}>{fmt(visibleTotal)}</td>
+ </tr>
+ </table>
  )}
 </Section>
 
