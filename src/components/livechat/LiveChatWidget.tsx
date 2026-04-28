@@ -499,8 +499,8 @@ const LiveChatWidget = () => {
           <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-accent text-accent-foreground">
             <MessageCircle className="h-3.5 w-3.5" />
             <span className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent/70 opacity-75"></span>
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent ring-2 ring-foreground"></span>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success ring-2 ring-foreground"></span>
             </span>
           </span>
           <span className="hidden xs:inline sm:inline">Chat med os</span>
