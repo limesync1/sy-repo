@@ -651,44 +651,33 @@ const LiveChatWidget = () => {
                     </button>
                   )}
                   {conversation && (
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowMenu((v) => !v)}
-                        aria-label="Flere handlinger"
-                        title="Handlinger"
-                        className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
-                      {showMenu && (
-                        <>
-                          <button
-                            type="button"
-                            aria-label="Luk menu"
-                            className="fixed inset-0 z-40 cursor-default"
-                            onClick={() => setShowMenu(false)}
-                          />
-                          <div className="absolute right-0 top-9 z-50 w-56 overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-xl">
-                            {!closed && (
-                              <button
-                                onClick={() => { setShowMenu(false); endChatSession(); }}
-                                className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] hover:bg-secondary/60"
-                              >
-                                <XIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                                Afslut denne samtale
-                              </button>
-                            )}
-                            <button
-                              onClick={() => { setShowMenu(false); startNewConversation(); }}
-                              className="flex w-full items-center gap-2 border-t border-border px-3 py-2.5 text-left text-[13px] hover:bg-secondary/60"
-                            >
-                              <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
-                              Start ny samtale
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
+                    <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          aria-label="Flere handlinger"
+                          title="Handlinger"
+                          className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" sideOffset={8} className="z-[80] w-60 rounded-xl border-border bg-card text-foreground shadow-xl">
+                        {!closed && (
+                          <DropdownMenuItem onSelect={endChatSession} className="cursor-pointer gap-2 text-[13px] focus:bg-secondary/70">
+                            <XIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                            Afslut denne samtale
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem onSelect={startNewConversation} className="cursor-pointer gap-2 text-[13px] focus:bg-secondary/70">
+                          <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                          Start ny samtale
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={deleteCurrentConversation} className="cursor-pointer gap-2 text-[13px] text-destructive focus:bg-destructive/10 focus:text-destructive">
+                          <XIcon className="h-3.5 w-3.5" />
+                          Slet samtale
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
                   <button
                     onClick={toggleMute}
@@ -721,49 +710,8 @@ const LiveChatWidget = () => {
                   </button>
                   <p className="text-[13px] font-semibold text-foreground">Mine samtaler</p>
                 </div>
-                <div className="flex-1 overflow-y-auto p-2">
-                  {chats.length === 0 ? (
-                    <p className="px-3 py-4 text-[12px] text-muted-foreground">Ingen aktive samtaler endnu.</p>
-                  ) : (
-                    <ul className="space-y-1">
-                      {chats.map((c) => {
-                        const active = c.key === platformKey();
-                        return (
-                          <li key={c.key}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (active) { setShowInbox(false); return; }
-                                if (c.scope === "business" && c.href) {
-                                  window.location.href = c.href;
-                                }
-                              }}
-                              className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors ${
-                                active
-                                  ? "border-foreground bg-secondary/60"
-                                  : "border-border bg-card hover:border-foreground/30 hover:bg-secondary/40"
-                              }`}
-                            >
-                              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-background">
-                                {c.scope === "business" && c.logoUrl ? (
-                                  <img src={c.logoUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
-                                ) : (
-                                  <MessageCircle className="h-4 w-4" />
-                                )}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate text-[13px] font-semibold text-foreground">{c.label}</p>
-                                <p className="truncate text-[11px] text-muted-foreground">
-                                  {c.scope === "platform" ? "Serviceydere kundeservice" : "Virksomhedschat"}
-                                  {active && " · åben her"}
-                                </p>
-                              </div>
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
+                <div className="flex-1 overflow-y-auto">
+                  <ChatInboxList chats={chats} activeKey={platformKey()} onSelect={selectChat} onDelete={deleteChat} />
                 </div>
               </div>
             )}
