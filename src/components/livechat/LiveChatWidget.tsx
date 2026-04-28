@@ -439,8 +439,6 @@ const LiveChatWidget = () => {
     }
   };
 
-  if (hidden) return null;
-
   // Adaptive positioning so we never overlap CartFab on mobile or desktop
   const cartFabVisible =
     cartCount > 0 &&
@@ -467,6 +465,8 @@ const LiveChatWidget = () => {
   const unreadAdmin = messages.some((m) => m.sender_type === "admin") && !open;
   const closed = conversation?.status === "closed";
 
+  if (hidden) return null;
+
   return (
     <>
       {!open && (
@@ -485,11 +485,6 @@ const LiveChatWidget = () => {
           </span>
           <span className="hidden xs:inline sm:inline">Chat med os</span>
           <span className="inline xs:hidden sm:hidden">Chat</span>
-          {unreadAdmin && (
-            <span className="ml-0.5 rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-accent-foreground">
-              Nyt
-            </span>
-          )}
         </button>
       )}
 
