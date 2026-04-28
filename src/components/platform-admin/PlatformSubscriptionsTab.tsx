@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Repeat, Download, DollarSign, PauseCircle, XCircle, ListChecks } from "lucide-react";
+import { Repeat, Download, DollarSign, PauseCircle, XCircle, ListChecks, Calendar, AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { exportCsv } from "./lib/csv";
@@ -53,6 +53,15 @@ const PlatformSubscriptionsTab = () => {
     { total: 0, active: 0, paused: 0, cancelled: 0, mrr: 0 }
   );
 
+  // Hjælp admin med at se hvad der kræver opmærksomhed denne uge.
+  const upcomingCount = (data || []).filter((s: any) => {
+    if (s.status !== "active" || !s.next_service_date) return false;
+    const days = (new Date(s.next_service_date).getTime() - Date.now()) / 86400000;
+    return days >= 0 && days <= 7;
+  }).length;
+  const arr = stats.mrr * 12;
+  const churnRate = stats.total ? (stats.cancelled / stats.total) * 100 : 0;
+
   const handleExport = () => {
     exportCsv("abonnementer", filtered.map((s: any) => ({
       service: s.service_name, virksomhed: s.businesses?.name || "",
@@ -75,10 +84,14 @@ const PlatformSubscriptionsTab = () => {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Aktive" value={String(stats.active)} icon={<DollarSign />} tone="emerald" hint={`${fmtKr(stats.mrr)} cyklisk`} />
-        <StatCard label="Pauset" value={String(stats.paused)} icon={<PauseCircle />} tone="amber" />
-        <StatCard label="Opsagt" value={String(stats.cancelled)} icon={<XCircle />} tone="neutral" />
-        <StatCard label="Total" value={String(stats.total)} icon={<ListChecks />} tone="blue" />
+        <StatCard label="Aktive" value={String(stats.active)} icon={<DollarSign />} tone="emerald"
+          hint={`${fmtKr(stats.mrr)}/md · ${fmtKr(arr)}/år`} />
+        <StatCard label="Service inden for 7 dage" value={String(upcomingCount)} icon={<Calendar />} tone="blue"
+          hint={upcomingCount > 0 ? "Kræver planlægning" : "Ingen lige nu"} />
+        <StatCard label="Pauset" value={String(stats.paused)} icon={<PauseCircle />} tone="amber"
+          hint={stats.paused > 0 ? "Genoptag eller opsig" : undefined} />
+        <StatCard label="Opsigelsesrate" value={`${churnRate.toFixed(0)}%`} icon={<XCircle />} tone="neutral"
+          hint={`${stats.cancelled} af ${stats.total} samlet`} />
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -108,7 +121,25 @@ const PlatformSubscriptionsTab = () => {
         <Card className="rounded-xl border-border shadow-sm overflow-hidden">
           <div className="divide-y divide-border">
             {filtered.map((s: any) => (
-              <div key={s.id} className="flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-secondary/30">
+              <SubscriptionRow key={s.id} s={s} />
+            ))}
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+/* SubscriptionRow — enkel række med visuel "snart"-pille når næste
+   service er inden for 7 dage. Gør det nemt at spotte hvad der kræver
+   handling uden at læse datoen. */
+const SubscriptionRow = ({ s }: { s: any }) => {
+  const next = s.next_service_date ? new Date(s.next_service_date) : null;
+  const daysToNext = next ? (next.getTime() - Date.now()) / 86400000 : null;
+  const upcoming = s.status === "active" && daysToNext !== null && daysToNext >= 0 && daysToNext <= 7;
+  const overdue = s.status === "active" && daysToNext !== null && daysToNext < 0;
+  return (
+    <div className="flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-secondary/30">
                 <div className="h-9 w-9 shrink-0 rounded-lg bg-accent/10 flex items-center justify-center">
                   <Repeat className="h-4 w-4 text-accent" />
                 </div>
@@ -116,17 +147,24 @@ const PlatformSubscriptionsTab = () => {
                   <p className="truncate text-sm font-semibold text-foreground">
                     {s.service_name} <span className="text-muted-foreground">→ {s.businesses?.name || "—"}</span>
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    {s.interval} · Næste service: {s.next_service_date ? new Date(s.next_service_date).toLocaleDateString("da-DK") : "—"}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                    <span>{s.interval}</span>
+                    <span>·</span>
+                    <span>Næste: {next ? next.toLocaleDateString("da-DK") : "—"}</span>
+                    {overdue && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-destructive/10 px-1.5 py-0.5 text-[10px] font-semibold text-destructive">
+                        <AlertCircle className="h-2.5 w-2.5" /> Overskredet
+                      </span>
+                    )}
+                    {upcoming && !overdue && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                        <Calendar className="h-2.5 w-2.5" /> Om {Math.ceil(daysToNext!)} dag{Math.ceil(daysToNext!) === 1 ? "" : "e"}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <Badge className={`${statusColor[s.status] || ""} border text-xs`}>{s.status}</Badge>
                 <span className="text-sm font-bold tabular-nums w-24 text-right">{fmtKr(s.total_price)}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
     </div>
   );
 };

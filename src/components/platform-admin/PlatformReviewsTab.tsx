@@ -2,12 +2,12 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Star, Trash2, Download } from "lucide-react";
+import { Star, Trash2, Download, TrendingUp, MessageSquare } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { exportCsv } from "./lib/csv";
-import { PageHeader, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
+import { PageHeader, SearchInput, EmptyState, StatCard, SectionCard } from "@/components/admin/shared/AdminUI";
 
 const PlatformReviewsTab = () => {
   const qc = useQueryClient();
@@ -49,6 +49,20 @@ const PlatformReviewsTab = () => {
 
   const avgRating = filtered.length ? filtered.reduce((s: number, r: any) => s + (r.rating || 0), 0) / filtered.length : 0;
 
+  // Aggregeret indsigt — fordeling pr. stjerner + nye anmeldelser sidste 7 dage.
+  // Hjælper admin med at spotte mønstre uden at scrolle hele listen.
+  const insights = useMemo(() => {
+    const list = data || [];
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const distribution: Record<number, number> = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    list.forEach((r: any) => { if (r.rating >= 1 && r.rating <= 5) distribution[r.rating] += 1; });
+    const total = list.length;
+    const avg = total ? list.reduce((s: number, r: any) => s + (r.rating || 0), 0) / total : 0;
+    const newWeek = list.filter((r: any) => new Date(r.created_at).getTime() > sevenDaysAgo).length;
+    const lowCount = (distribution[1] || 0) + (distribution[2] || 0);
+    return { distribution, total, avg, newWeek, lowCount };
+  }, [data]);
+
   const handleExport = () => {
     exportCsv("anmeldelser", filtered.map((r: any) => ({
       navn: r.reviewer_name, virksomhed: r.businesses?.name || "",
@@ -69,6 +83,37 @@ const PlatformReviewsTab = () => {
           </Button>
         }
       />
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard label="I alt" value={String(insights.total)} icon={<MessageSquare />} tone="blue" />
+        <StatCard label="Gennemsnit" value={insights.avg ? `${insights.avg.toFixed(1)} ★` : "—"} icon={<Star />} tone="amber"
+          hint={insights.avg >= 4.5 ? "Fremragende" : insights.avg >= 4 ? "Godt" : insights.avg >= 3 ? "OK" : insights.avg ? "Bør forbedres" : undefined} />
+        <StatCard label="Sidste 7 dage" value={String(insights.newWeek)} icon={<TrendingUp />} tone="emerald" />
+        <StatCard label="1–2 stjerner" value={String(insights.lowCount)} icon={<Star />} tone="neutral"
+          hint={insights.lowCount > 0 ? "Kræver evt. opfølgning" : "Ingen klager"} />
+      </div>
+
+      {insights.total > 0 && (
+        <SectionCard title="Fordeling" icon={<Star />} description="Hvordan stjerneratings fordeler sig samlet på platformen">
+          <ul className="space-y-1.5">
+            {[5, 4, 3, 2, 1].map((n) => {
+              const count = insights.distribution[n] || 0;
+              const pct = insights.total ? (count / insights.total) * 100 : 0;
+              return (
+                <li key={n} className="flex items-center gap-3 text-xs">
+                  <span className="flex w-10 items-center gap-0.5 text-foreground">
+                    {n} <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                  </span>
+                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
+                    <div className="h-full bg-amber-400 transition-all" style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="w-20 text-right tabular-nums text-muted-foreground">{count} · {pct.toFixed(0)}%</span>
+                </li>
+              );
+            })}
+          </ul>
+        </SectionCard>
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         <SearchInput value={q} onChange={setQ} placeholder="Søg navn, kommentar, virksomhed..." />
