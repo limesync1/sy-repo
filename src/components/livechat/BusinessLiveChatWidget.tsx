@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
-  Image as ImageIcon, Volume2, VolumeX, Sparkles,
+  Image as ImageIcon, Volume2, VolumeX, Sparkles, Plus, Archive,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -364,6 +364,17 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
     await supabase.from("chat_conversations").update({ status: "closed" }).eq("id", conversation.id);
     chatSounds.system();
     setConversation((prev) => (prev ? { ...prev, status: "closed" } : prev));
+  };
+
+  const startNewConversation = () => {
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    setConversation(null);
+    setMessages([]);
+    setDraft("");
+    clearPendingImage();
+    setError(null);
+    setSubject("");
+    setFirstMessage("");
   };
 
   const toggleMute = () => {
