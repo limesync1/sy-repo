@@ -408,7 +408,11 @@ const PlatformLiveChatTab = () => {
                 const mine = m.sender_type === "admin";
                 const prev = messages[i - 1];
                 const showAvatar = !mine && (!prev || prev.sender_type !== m.sender_type || prev.is_system);
-                const isLastMine = mine && (() => { for (let j = messages.length - 1; j >= 0; j--) { if (messages[j].sender_type === "admin" i === messages.findLastIndex((x) => x.sender_type === "admin" && !x.is_system)i === messages.findLastIndex((x) => x.sender_type === "admin" && !x.is_system) !messages[j].is_system) return j === i; } return false; })();
+                let lastAdminIdx = -1;
+                for (let j = messages.length - 1; j >= 0; j--) {
+                  if (messages[j].sender_type === "admin" && !messages[j].is_system) { lastAdminIdx = j; break; }
+                }
+                const isLastMine = mine && i === lastAdminIdx;
                 return (
                   <div key={m.id} className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
                     {!mine && (
