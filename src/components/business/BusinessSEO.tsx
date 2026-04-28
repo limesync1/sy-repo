@@ -24,6 +24,12 @@ interface BusinessSEOProps {
     comment?: string | null;
     created_at?: string | null;
   }[];
+  /**
+   * Virksomhedens eget domæne (fra Branding-indstillinger), fx "ready2clean.dk".
+   * Når det er sat, bruges det som kanonisk URL og i strukturerede data, så
+   * Google ser virksomhedens eget domæne fremfor serviceydere.dk/v/slug.
+   */
+  customDomain?: string | null;
 }
 
 const DAY_MAP: Record<string, string> = {
@@ -57,12 +63,17 @@ const formatHours = (hours?: Record<string, string>): string[] | undefined => {
 const BusinessSEO = ({
   name, description, city, address, zipCode, phone, email,
   logoUrl, coverImageUrl, avgRating, reviewCount, slug, openingHours,
-  categories, services, reviews,
+  categories, services, reviews, customDomain,
 }: BusinessSEOProps) => {
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://serviceydere.dk";
-  // VIGTIGT: kanonisk URL skal matche den faktiske rute (/v/:slug). Tidligere
-  // pegede vi på /b/ som blot er en legacy-redirect — det forvirrede crawlere.
-  const businessUrl = `${origin}/v/${slug}`;
+  const fallbackOrigin = typeof window !== "undefined" ? window.location.origin : "https://serviceydere.dk";
+  // Hvis virksomheden har sat et custom domæne under Branding, bruger vi det
+  // som kanonisk origin (uden path) — ellers fallback til /v/:slug på
+  // serviceydere.dk så crawlere altid har en stabil URL.
+  const cleanCustom = (customDomain || "").trim().replace(/\/+$/, "");
+  const customOrigin = cleanCustom
+    ? (/^https?:\/\//i.test(cleanCustom) ? cleanCustom : `https://${cleanCustom}`)
+    : null;
+  const businessUrl = customOrigin ? customOrigin : `${fallbackOrigin}/v/${slug}`;
 
   const primaryCat = categories?.[0];
   const title = `${name}${city ? ` i ${city}` : ""}${primaryCat ? ` – ${primaryCat}` : ""} | Book online`;
@@ -124,10 +135,10 @@ const BusinessSEO = ({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Forside", item: origin + "/" },
-      { "@type": "ListItem", position: 2, name: "Find services", item: origin + "/virksomheder" },
+      { "@type": "ListItem", position: 1, name: "Forside", item: fallbackOrigin + "/" },
+      { "@type": "ListItem", position: 2, name: "Find services", item: fallbackOrigin + "/virksomheder" },
       ...(categories?.[0]
-        ? [{ "@type": "ListItem", position: 3, name: categories[0], item: `${origin}/virksomheder?category=${encodeURIComponent(categories[0])}` }]
+        ? [{ "@type": "ListItem", position: 3, name: categories[0], item: `${fallbackOrigin}/virksomheder?category=${encodeURIComponent(categories[0])}` }]
         : []),
       { "@type": "ListItem", position: categories?.[0] ? 4 : 3, name, item: businessUrl },
     ],
@@ -165,6 +176,8 @@ const BusinessSEO = ({
       ogType="profile"
       keywords={[name, ...(categories || []), city, "book online", "serviceydere"].filter(Boolean).join(", ")}
       jsonLd={ldArr}
+      canonicalOrigin={customOrigin || undefined}
+      canonicalAtRoot={!!customOrigin}
     />
   );
 };

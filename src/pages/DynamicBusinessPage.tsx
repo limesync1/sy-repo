@@ -139,6 +139,7 @@ const DynamicBusinessContent = () => {
           comment: r.comment,
           created_at: r.created_at,
         }))}
+        customDomain={(business.settings as any)?.custom_domain || null}
       />
 
       {/* ── Sticky Nav (light, matches landing) ── */}

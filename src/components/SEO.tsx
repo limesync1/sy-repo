@@ -15,6 +15,19 @@ interface SEOProps {
   noIndex?: boolean;
   /** Optional JSON-LD structured data object(s) — appended to <head> */
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  /**
+   * Override the origin used for canonical, og:url and hreflang. Bruges når
+   * en virksomhed har konfigureret sit eget domæne (fx "ready2clean.dk") så
+   * Google ser det som den primære URL i stedet for serviceydere.dk/v/slug.
+   * Forventes som "https://eksempel.dk" eller bare "eksempel.dk".
+   */
+  canonicalOrigin?: string;
+  /**
+   * Hvis sat sammen med canonicalOrigin: brug "/" i stedet for det faktiske
+   * canonicalPath. Nyttigt når virksomhedens custom domæne peger direkte på
+   * deres side (root) — så vi ikke ender med fx ready2clean.dk/v/ready2clean.
+   */
+  canonicalAtRoot?: boolean;
 }
 
 const SITE_NAME = "Serviceydere";
@@ -50,6 +63,8 @@ const SEO = ({
   keywords,
   noIndex,
   jsonLd,
+  canonicalOrigin,
+  canonicalAtRoot,
 }: SEOProps) => {
   useEffect(() => {
     const prevTitle = document.title;
@@ -57,7 +72,18 @@ const SEO = ({
     document.title = fullTitle.length > 60 ? fullTitle.slice(0, 57) + "..." : fullTitle;
 
     const desc = description.length > 160 ? description.slice(0, 157) + "..." : description;
-    const url = `${window.location.origin}${canonicalPath ?? window.location.pathname}`;
+    // Hvis virksomheden har et custom domæne, bruger vi det som kanonisk
+    // origin så Google indekserer deres egen URL fremfor serviceydere.dk.
+    const normalizedOrigin = (() => {
+      if (!canonicalOrigin) return window.location.origin;
+      const trimmed = canonicalOrigin.trim().replace(/\/+$/, "");
+      if (!trimmed) return window.location.origin;
+      return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    })();
+    const path = canonicalOrigin && canonicalAtRoot
+      ? "/"
+      : (canonicalPath ?? window.location.pathname);
+    const url = `${normalizedOrigin}${path}`;
     const absImage = image.startsWith("http") ? image : `${window.location.origin}${image}`;
 
     setMeta('meta[name="description"]', "content", desc);
