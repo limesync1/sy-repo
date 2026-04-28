@@ -126,28 +126,47 @@ export const TourOverlay = ({ businessId }: { businessId?: string }) => {
   };
 
   // Beregn tooltip-position. Hvis ingen rect (mangler element) → vis centreret.
+  // VIGTIGT: tooltippen må aldrig dække spotlight-feltet — derfor vælger vi
+  // automatisk den side hvor tooltippen kan være FULDT UDENFOR rect'en, og
+  // hvis ingen side har plads til den fulde højde/bredde, falder vi tilbage
+  // til den side med mest plads og clamper inden for viewportens kant —
+  // men aldrig så den overlapper rect'en.
   const isLast = stepIndex + 1 >= active.steps.length;
   const tooltipStyle: React.CSSProperties = (() => {
     if (!rect) return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
-    const placement = step.placement || "auto";
-    const margin = 16;
-    const tooltipW = 340;
-    const tooltipH = 180;
+    const margin = 14;
+    const tooltipW = 320;
+    const tooltipH = 200; // konservativt skøn — vi clamper alligevel
     const vh = window.innerHeight;
     const vw = window.innerWidth;
 
-    // Auto: vælg den side med mest plads
-    let p = placement;
-    if (p === "auto") {
-      const spaceBelow = vh - (rect.top + rect.height);
-      const spaceAbove = rect.top;
-      const spaceRight = vw - (rect.left + rect.width);
-      const spaceLeft = rect.left;
-      const max = Math.max(spaceBelow, spaceAbove, spaceRight, spaceLeft);
-      p = max === spaceBelow ? "bottom"
-        : max === spaceAbove ? "top"
-        : max === spaceRight ? "right" : "left";
-    }
+    const spaceBelow = vh - (rect.top + rect.height) - margin * 2;
+    const spaceAbove = rect.top - margin * 2;
+    const spaceRight = vw - (rect.left + rect.width) - margin * 2;
+    const spaceLeft  = rect.left - margin * 2;
+
+    // Hvilke sider har plads til den fulde tooltip?
+    const fits = {
+      bottom: spaceBelow >= tooltipH,
+      top:    spaceAbove >= tooltipH,
+      right:  spaceRight >= tooltipW,
+      left:   spaceLeft  >= tooltipW,
+    } as const;
+
+    // Vælg side: respekter step.placement hvis den passer, ellers auto.
+    const requested = step.placement || "auto";
+    const order: Array<"bottom"|"top"|"right"|"left"> =
+      requested === "auto"
+        ? (["bottom","top","right","left"] as const)
+            .slice() // kopiér
+            .sort((a, b) => {
+              const sa = a === "bottom" ? spaceBelow : a === "top" ? spaceAbove : a === "right" ? spaceRight : spaceLeft;
+              const sb = b === "bottom" ? spaceBelow : b === "top" ? spaceAbove : b === "right" ? spaceRight : spaceLeft;
+              return sb - sa;
+            })
+        : [requested as any, "bottom", "top", "right", "left"].filter((v, i, a) => a.indexOf(v) === i) as any;
+
+    const p = order.find((s) => fits[s]) || order[0];
 
     let top = 0, left = 0;
     switch (p) {
@@ -168,9 +187,31 @@ export const TourOverlay = ({ businessId }: { businessId?: string }) => {
         left = rect.left - tooltipW - margin;
         break;
     }
-    // Hold inden for viewport
+
+    // Clamp inden for viewport
     top = Math.max(12, Math.min(vh - tooltipH - 12, top));
     left = Math.max(12, Math.min(vw - tooltipW - 12, left));
+
+    // Sidste sikkerhed: hvis tooltippen ALLIGEVEL overlapper spotlight-rect'en
+    // (fordi viewport er trang), så skub den væk fra rect'en til den side
+    // med mest plads — så vi aldrig dækker det felt brugeren skal udfylde.
+    const overlaps =
+      left < rect.left + rect.width + 4 &&
+      left + tooltipW > rect.left - 4 &&
+      top < rect.top + rect.height + 4 &&
+      top + tooltipH > rect.top - 4;
+    if (overlaps) {
+      const candidates = [
+        { side: "bottom", val: spaceBelow, top: rect.top + rect.height + margin, left },
+        { side: "top",    val: spaceAbove, top: rect.top - tooltipH - margin,    left },
+        { side: "right",  val: spaceRight, top, left: rect.left + rect.width + margin },
+        { side: "left",   val: spaceLeft,  top, left: rect.left - tooltipW - margin },
+      ].sort((a, b) => b.val - a.val);
+      const best = candidates[0];
+      top = Math.max(12, Math.min(vh - 12 - 80, best.top));
+      left = Math.max(12, Math.min(vw - tooltipW - 12, best.left));
+    }
+
     return { top, left, width: tooltipW };
   })();
 

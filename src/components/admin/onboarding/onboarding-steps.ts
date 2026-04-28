@@ -113,18 +113,6 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     isDone: () => false,
     estMinutes: 2,
   },
-  {
-    id: "billing",
-    title: "Tilføj betalingskort",
-    description: "Fortsæt uden afbrydelse efter din prøveperiode er slut.",
-    icon: CreditCard,
-    cta: "Indstil betaling",
-    href: "/virksomhed?tab=settings",
-    enabled: ({ plan }) =>
-      !!plan && plan.status !== "active" && !plan.payment_last4,
-    isDone: ({ plan }) => !!plan?.payment_last4 || plan?.status === "active",
-    estMinutes: 2,
-  },
 ];
 
 export const visibleSteps = (ctx: StepCtx) =>

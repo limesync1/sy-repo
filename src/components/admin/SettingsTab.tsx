@@ -1859,7 +1859,7 @@ const HoursEditor = ({
   return (
     <div className="space-y-3">
       {/* Hurtige presets — sætter typiske åbningstider med ét klik */}
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-1.5" data-tour="hours-presets">
         <button
           type="button"
           onClick={() => applyPreset("weekdays")}
@@ -1884,7 +1884,7 @@ const HoursEditor = ({
       </div>
 
       <div className="space-y-1.5">
-        {DAYS.map((day) => {
+        {DAYS.map((day, dayIdx) => {
           const parsed = parseHours(value[day] || "");
           const isOpen = !!parsed;
           const open = parsed?.open || "08:00";
@@ -1892,6 +1892,7 @@ const HoursEditor = ({
           return (
             <div
               key={day}
+              data-tour={dayIdx === 0 ? "hours-day-row" : undefined}
               className={`flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
                 isOpen ? "border-border bg-secondary/40" : "border-border bg-card"
               }`}
