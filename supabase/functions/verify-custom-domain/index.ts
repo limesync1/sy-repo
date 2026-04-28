@@ -3,6 +3,8 @@
  * --------------------
  * Tjekker om en virksomheds custom domæne er korrekt opsat:
  *  1) TXT-record på `_serviceydere.<domain>` indeholder `serviceydere-verify=<token>`
+ *     For subdomæner accepteres også `_serviceydere.<root-domain>` fordi mange
+ *     DNS-udbydere automatisk tilføjer zonen, når brugeren skriver `_serviceydere`.
  *     (token = de første 16 tegn af business.id) — bekræfter ejerskab.
  *  2) CNAME (eller A) for selve hostnavnet peger på serviceydere.dk / cname.serviceydere.app.
  *
@@ -32,6 +34,13 @@ const cleanDomain = (raw: string): string =>
 
 const expectedToken = (businessId: string): string =>
   businessId.replace(/-/g, "").slice(0, 16);
+
+const txtHostCandidates = (domain: string): string[] => {
+  const labels = domain.split(".").filter(Boolean);
+  const hosts = [`_serviceydere.${domain}`];
+  if (labels.length > 2) hosts.push(`_serviceydere.${labels.slice(1).join(".")}`);
+  return Array.from(new Set(hosts));
+};
 
 async function dnsLookup(name: string, type: "TXT" | "CNAME" | "A"): Promise<string[]> {
   try {
@@ -121,10 +130,11 @@ Deno.serve(async (req) => {
     }
 
     const token = expectedToken(businessId);
-    const txtName = `_serviceydere.${domain}`;
+    const txtNames = txtHostCandidates(domain);
 
     // 1) TXT ownership
-    const txtRecords = await dnsLookup(txtName, "TXT");
+    const txtResults = await Promise.all(txtNames.map(async (host) => ({ host, records: await dnsLookup(host, "TXT") })));
+    const txtRecords = txtResults.flatMap((result) => result.records);
     const ownershipOk = txtRecords.some((r) => r.includes(`serviceydere-verify=${token}`));
 
     // 2) CNAME / A peger på vores platform
@@ -144,7 +154,7 @@ Deno.serve(async (req) => {
 
     const message =
       status === "verified" ? "Domænet er verificeret og aktivt."
-      : status === "pending_ownership" ? `Vi kunne ikke finde en TXT-record på ${txtName} med værdien serviceydere-verify=${token}. Tilføj den hos din DNS-udbyder.`
+      : status === "pending_ownership" ? `Vi kunne ikke finde en TXT-record på ${txtNames.join(" eller ")} med værdien serviceydere-verify=${token}. Tilføj den hos din DNS-udbyder.`
       : "Ejerskabet er bekræftet, men domænet peger ikke på serviceydere.dk endnu. Tjek dine CNAME/A-records.";
 
     // Gem status i settings (auto-merge)
@@ -161,7 +171,8 @@ Deno.serve(async (req) => {
       status,
       message,
       verification: {
-        host: txtName,
+        host: txtNames[0],
+        accepted_hosts: txtNames,
         type: "TXT",
         value: `serviceydere-verify=${token}`,
       },
@@ -174,6 +185,7 @@ Deno.serve(async (req) => {
         ownership_ok: ownershipOk,
         pointing_ok: pointingOk,
         txt_records_found: txtRecords,
+        txt_hosts_checked: txtResults,
         cname_records_found: cnames,
         a_records_found: aRecords,
       },
