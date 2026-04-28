@@ -8,7 +8,7 @@ import {
   Send, Loader2, Search, User, Mail, Inbox, Archive,
   Paperclip, Image as ImageIcon, X as XIcon, Volume2, VolumeX, CheckCheck,
   Clock, Zap, Calendar as CalendarIcon, BookText, Plus, Trash2, Pencil, UserPlus,
-  Eye, X,
+  Eye, X, ArrowLeft,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { da } from "date-fns/locale";
@@ -375,7 +375,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
         {/* Conversation list */}
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className={`rounded-xl border border-border bg-card overflow-hidden ${active ? "hidden lg:block" : ""}`}>
           <div className="border-b border-border p-3 space-y-2">
             <div className="relative">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -495,7 +495,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
         </div>
 
         {/* Conversation pane */}
-        <div className="flex h-[60vh] flex-col rounded-xl border border-border bg-card overflow-hidden">
+        <div className={`flex h-[calc(100dvh-12rem)] lg:h-[60vh] flex-col rounded-xl border border-border bg-card overflow-hidden ${!active ? "hidden lg:flex" : ""}`}>
           {!active ? (
             <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
               Vælg en samtale fra listen.
@@ -504,6 +504,14 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
             <>
               <div className="flex items-center justify-between gap-3 border-b border-border bg-secondary/30 px-4 py-3">
                 <div className="flex items-center gap-3 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => setActiveId(null)}
+                    className="lg:hidden -ml-1 rounded-md p-1.5 text-muted-foreground hover:bg-card hover:text-foreground"
+                    aria-label="Tilbage til samtaler"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </button>
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
                     {initials(active.visitor_name)}
                   </div>
