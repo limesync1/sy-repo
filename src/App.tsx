@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound";
 // de trækker ~35KB JS + ikoner som ikke skal blokere initial paint.
 const CartSheet              = lazy(() => import("@/components/business/CartSheet"));
 const CartFab                = lazy(() => import("@/components/business/CartFab"));
+const LiveChatWidget         = lazy(() => import("@/components/livechat/LiveChatWidget"));
 const BusinessPage          = lazy(() => import("./pages/BusinessPage"));
 const DynamicBusinessPage   = lazy(() => import("./pages/DynamicBusinessPage"));
 const Admin                 = lazy(() => import("./pages/Admin"));
@@ -82,6 +83,7 @@ const App = () => (
             <Suspense fallback={null}>
               <CartSheet />
               <CartFab />
+              <LiveChatWidget />
             </Suspense>
             {/* Cookie-banner — vises kun første gang valget træffes. */}
             <CookieConsent />
