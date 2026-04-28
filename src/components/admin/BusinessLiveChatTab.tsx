@@ -537,6 +537,19 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  {employees.length > 0 && (
+                    <select
+                      value={active.assigned_employee_id || ""}
+                      onChange={(e) => assignTo(e.target.value || null)}
+                      title="Tildel til medarbejder"
+                      className="rounded-md border border-border bg-background px-1.5 py-1 text-[11px] text-muted-foreground hover:text-foreground focus:border-foreground outline-none"
+                    >
+                      <option value="">Ikke tildelt</option>
+                      {employees.map((e) => (
+                        <option key={e.id} value={e.id}>{e.name}</option>
+                      ))}
+                    </select>
+                  )}
                   <button onClick={toggleMute} title={muted ? "Slå lyd til" : "Slå lyd fra"}
                     className="rounded-md p-1.5 text-muted-foreground hover:bg-card hover:text-foreground">
                     {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
@@ -627,6 +640,23 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                       aria-label="Vedhæft billede">
                       <Paperclip className="h-3.5 w-3.5" />
                     </button>
+                    {templates.length > 0 && (
+                      <select
+                        value=""
+                        onChange={(e) => {
+                          const tpl = templates.find((t) => t.id === e.target.value);
+                          if (tpl) insertTemplate(tpl);
+                          e.target.value = "";
+                        }}
+                        title="Indsæt skabelon"
+                        className="h-9 rounded-full border border-border bg-background px-2 text-[11px] text-muted-foreground hover:text-foreground focus:border-foreground outline-none"
+                      >
+                        <option value="">⚡ Skabelon</option>
+                        {templates.map((t) => (
+                          <option key={t.id} value={t.id}>{t.title}</option>
+                        ))}
+                      </select>
+                    )}
                     <textarea
                       ref={textareaRef} value={draft} onChange={(e) => setDraft(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendReply(); } }}
