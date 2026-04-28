@@ -2,13 +2,21 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
-  ImageIcon, Volume2, VolumeX, Sparkles, Plus, Archive,
+  ImageIcon, Volume2, VolumeX, Sparkles, MoreVertical, MessagesSquare, ArrowLeft,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { z } from "zod";
 import chatSounds from "./chatSounds";
+import {
+  upsertChat,
+  removeChat,
+  listChats,
+  subscribeToRegistry,
+  platformKey,
+  type RegisteredChat,
+} from "./chatRegistry";
 
 type ChatMessage = {
   id: string;
@@ -179,6 +187,10 @@ const LiveChatWidget = () => {
   const [subject, setSubject] = useState("");
   const [firstMessage, setFirstMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [showInbox, setShowInbox] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [chats, setChats] = useState<RegisteredChat[]>(() => listChats());
+  useEffect(() => subscribeToRegistry(() => setChats(listChats())), []);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -216,12 +228,22 @@ const LiveChatWidget = () => {
         .maybeSingle()
         .then(({ data }) => {
           if (data) setConversation(data as Conversation);
-          else localStorage.removeItem(STORAGE_KEY);
+          else { localStorage.removeItem(STORAGE_KEY); removeChat(platformKey()); }
         });
     } catch {
       localStorage.removeItem(STORAGE_KEY);
     }
   }, [hidden]);
+
+  // Registrer platform-samtalen så den dukker op i "Mine samtaler".
+  useEffect(() => {
+    if (!conversation) return;
+    upsertChat({
+      key: platformKey(),
+      scope: "platform",
+      label: "Serviceydere support",
+    });
+  }, [conversation]);
 
   useEffect(() => {
     if (!conversation) return;
