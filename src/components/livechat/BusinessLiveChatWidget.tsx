@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
-  Image as ImageIcon, Volume2, VolumeX, Sparkles,
+  Image as ImageIcon, Volume2, VolumeX, Sparkles, Plus, Archive,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -66,8 +66,18 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
   // session — så besøgende kan have parallelle samtaler hos forskellige
   // virksomheder uden at de blandes sammen.
   const STORAGE_KEY = `serviceydere_biz_chat_${businessId}_v1`;
+  const OPEN_KEY = `serviceydere_biz_chat_open_${businessId}`;
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpenState] = useState<boolean>(() => {
+    try { return sessionStorage.getItem(OPEN_KEY) === "1"; } catch { return false; }
+  });
+  const setOpen = useCallback((v: boolean | ((p: boolean) => boolean)) => {
+    setOpenState((prev) => {
+      const next = typeof v === "function" ? (v as (p: boolean) => boolean)(prev) : v;
+      try { sessionStorage.setItem(OPEN_KEY, next ? "1" : "0"); } catch {}
+      return next;
+    });
+  }, [OPEN_KEY]);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
@@ -193,6 +203,16 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
       el.scrollTo({ top: el.scrollHeight, behavior: initialLoadRef.current ? "auto" : "smooth" });
     }
   }, [messages, open]);
+
+  // Når popup'en genåbnes, scroll altid ned til seneste besked.
+  useEffect(() => {
+    if (!open) return;
+    userScrolledUpRef.current = false;
+    requestAnimationFrame(() => {
+      const el = scrollRef.current;
+      if (el) el.scrollTo({ top: el.scrollHeight, behavior: "auto" });
+    });
+  }, [open]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -346,6 +366,17 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
     setConversation((prev) => (prev ? { ...prev, status: "closed" } : prev));
   };
 
+  const startNewConversation = () => {
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    setConversation(null);
+    setMessages([]);
+    setDraft("");
+    clearPendingImage();
+    setError(null);
+    setSubject("");
+    setFirstMessage("");
+  };
+
   const toggleMute = () => {
     const next = !muted;
     setMuted(next);
@@ -433,18 +464,10 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background overflow-hidden">
-                      {logoUrl ? (
-                        <img
-                          src={logoUrl}
-                          alt={`${headerName} logo`}
-                          className="h-10 w-10 object-cover"
-                        />
-                      ) : (
-                        <span className="text-[13px] font-bold text-foreground">{initials(headerName)}</span>
-                      )}
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background">
+                      <span className="text-[13px] font-bold text-foreground">{initials(headerName)}</span>
                     </div>
-                    <span className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ring-foreground ${closed ? "bg-muted-foreground" : "bg-accent"}`}>
+                    <span className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ring-foreground ${closed ? "bg-muted-foreground" : "bg-success"}`}>
                       {!closed && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-background" />}
                     </span>
                   </div>
@@ -456,6 +479,26 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
                   </div>
                 </div>
                 <div className="flex items-center gap-0.5">
+                  {conversation && !closed && (
+                    <button
+                      onClick={endChatSession}
+                      aria-label="Afslut samtale"
+                      title="Afslut samtale"
+                      className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                    >
+                      <Archive className="h-4 w-4" />
+                    </button>
+                  )}
+                  {conversation && (
+                    <button
+                      onClick={startNewConversation}
+                      aria-label="Start ny samtale"
+                      title="Start ny samtale"
+                      className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  )}
                   <button
                     onClick={toggleMute}
                     aria-label={muted ? "Slå lyd til" : "Slå lyd fra"}

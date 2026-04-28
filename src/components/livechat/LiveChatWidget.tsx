@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
-  ImageIcon, Volume2, VolumeX, Sparkles,
+  ImageIcon, Volume2, VolumeX, Sparkles, Plus, Archive,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -154,7 +154,16 @@ const LiveChatWidget = () => {
   const { user } = useAuth();
   const { count: cartCount, sheetOpen: cartSheetOpen } = useCart();
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpenState] = useState<boolean>(() => {
+    try { return sessionStorage.getItem("serviceydere_chat_open") === "1"; } catch { return false; }
+  });
+  const setOpen = useCallback((v: boolean | ((p: boolean) => boolean)) => {
+    setOpenState((prev) => {
+      const next = typeof v === "function" ? (v as (p: boolean) => boolean)(prev) : v;
+      try { sessionStorage.setItem("serviceydere_chat_open", next ? "1" : "0"); } catch {}
+      return next;
+    });
+  }, []);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
@@ -290,6 +299,16 @@ const LiveChatWidget = () => {
       el.scrollTo({ top: el.scrollHeight, behavior: initialLoadRef.current ? "auto" : "smooth" });
     }
   }, [messages, open]);
+
+  // Når popup'en åbnes på ny, skal vi altid hoppe ned til seneste besked.
+  useEffect(() => {
+    if (!open) return;
+    userScrolledUpRef.current = false;
+    requestAnimationFrame(() => {
+      const el = scrollRef.current;
+      if (el) el.scrollTo({ top: el.scrollHeight, behavior: "auto" });
+    });
+  }, [open]);
 
   // Track whether the user has scrolled away from the bottom.
   useEffect(() => {
@@ -437,6 +456,18 @@ const LiveChatWidget = () => {
     setConversation((prev) => (prev ? { ...prev, status: "closed" } : prev));
   };
 
+  const startNewConversation = () => {
+    // Tøm lokal state og fjern session-token, så brugeren får start-formularen igen.
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    setConversation(null);
+    setMessages([]);
+    setDraft("");
+    clearPendingImage();
+    setError(null);
+    setSubject("");
+    setFirstMessage("");
+  };
+
   const toggleMute = () => {
     const next = !muted;
     setMuted(next);
@@ -522,7 +553,7 @@ const LiveChatWidget = () => {
                       alt="Serviceydere"
                       className="h-10 w-10 rounded-full object-cover"
                     />
-                    <span className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ring-foreground ${closed ? "bg-muted-foreground" : "bg-accent"}`}>
+                    <span className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ring-foreground ${closed ? "bg-muted-foreground" : "bg-success"}`}>
                       {!closed && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-background" />}
                     </span>
                   </div>
@@ -534,6 +565,26 @@ const LiveChatWidget = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-0.5">
+                  {conversation && !closed && (
+                    <button
+                      onClick={endChatSession}
+                      aria-label="Afslut samtale"
+                      title="Afslut samtale"
+                      className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                    >
+                      <Archive className="h-4 w-4" />
+                    </button>
+                  )}
+                  {conversation && (
+                    <button
+                      onClick={startNewConversation}
+                      aria-label="Start ny samtale"
+                      title="Start ny samtale"
+                      className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  )}
                   <button
                     onClick={toggleMute}
                     aria-label={muted ? "Slå lyd til" : "Slå lyd fra"}
