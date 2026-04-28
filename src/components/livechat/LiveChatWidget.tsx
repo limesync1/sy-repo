@@ -2,13 +2,21 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
-  ImageIcon, Volume2, VolumeX, Sparkles, Plus, Archive,
+  ImageIcon, Volume2, VolumeX, Sparkles, MoreVertical, MessagesSquare, ArrowLeft,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { z } from "zod";
 import chatSounds from "./chatSounds";
+import {
+  upsertChat,
+  removeChat,
+  listChats,
+  subscribeToRegistry,
+  platformKey,
+  type RegisteredChat,
+} from "./chatRegistry";
 
 type ChatMessage = {
   id: string;
@@ -179,6 +187,10 @@ const LiveChatWidget = () => {
   const [subject, setSubject] = useState("");
   const [firstMessage, setFirstMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [showInbox, setShowInbox] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [chats, setChats] = useState<RegisteredChat[]>(() => listChats());
+  useEffect(() => subscribeToRegistry(() => setChats(listChats())), []);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -216,12 +228,22 @@ const LiveChatWidget = () => {
         .maybeSingle()
         .then(({ data }) => {
           if (data) setConversation(data as Conversation);
-          else localStorage.removeItem(STORAGE_KEY);
+          else { localStorage.removeItem(STORAGE_KEY); removeChat(platformKey()); }
         });
     } catch {
       localStorage.removeItem(STORAGE_KEY);
     }
   }, [hidden]);
+
+  // Registrer platform-samtalen så den dukker op i "Mine samtaler".
+  useEffect(() => {
+    if (!conversation) return;
+    upsertChat({
+      key: platformKey(),
+      scope: "platform",
+      label: "Serviceydere support",
+    });
+  }, [conversation]);
 
   useEffect(() => {
     if (!conversation) return;
@@ -386,6 +408,7 @@ const LiveChatWidget = () => {
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ token }));
       setConversation(conv as Conversation);
+      upsertChat({ key: platformKey(), scope: "platform", label: "Serviceydere support" });
       setFirstMessage("");
       setSubject("");
       chatSounds.outgoing();
@@ -459,6 +482,7 @@ const LiveChatWidget = () => {
   const startNewConversation = () => {
     // Tøm lokal state og fjern session-token, så brugeren får start-formularen igen.
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    removeChat(platformKey());
     setConversation(null);
     setMessages([]);
     setDraft("");
@@ -466,6 +490,7 @@ const LiveChatWidget = () => {
     setError(null);
     setSubject("");
     setFirstMessage("");
+    setShowMenu(false);
   };
 
   const toggleMute = () => {
@@ -540,7 +565,7 @@ const LiveChatWidget = () => {
 
       {open && (
         <div className={`fixed z-50 w-[calc(100vw-1.5rem)] max-w-[400px] sm:w-[calc(100vw-3rem)] md:w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`}>
-          <div className="flex h-[min(620px,calc(100dvh-7rem))] sm:h-[min(640px,calc(100vh-3rem))] flex-col overflow-hidden rounded-[20px] border border-border bg-card shadow-[0_30px_80px_-20px_hsl(var(--foreground)/0.35)]">
+          <div className="relative flex h-[min(620px,calc(100dvh-7rem))] sm:h-[min(640px,calc(100vh-3rem))] flex-col overflow-hidden rounded-[20px] border border-border bg-card shadow-[0_30px_80px_-20px_hsl(var(--foreground)/0.35)]">
             {/* Header */}
             <div className="relative overflow-hidden bg-foreground px-5 pb-5 pt-4 text-background">
               <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-accent/30 blur-3xl" />
@@ -565,25 +590,60 @@ const LiveChatWidget = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-0.5">
-                  {conversation && !closed && (
+                  {chats.length > 0 && (
                     <button
-                      onClick={endChatSession}
-                      aria-label="Afslut samtale"
-                      title="Afslut samtale"
-                      className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                      onClick={() => setShowInbox(true)}
+                      aria-label="Vis mine samtaler"
+                      title="Mine samtaler"
+                      className="relative rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
                     >
-                      <Archive className="h-4 w-4" />
+                      <MessagesSquare className="h-4 w-4" />
+                      {chats.length > 1 && (
+                        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold text-accent-foreground">
+                          {chats.length}
+                        </span>
+                      )}
                     </button>
                   )}
                   {conversation && (
-                    <button
-                      onClick={startNewConversation}
-                      aria-label="Start ny samtale"
-                      title="Start ny samtale"
-                      className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowMenu((v) => !v)}
+                        aria-label="Flere handlinger"
+                        title="Handlinger"
+                        className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
+                      {showMenu && (
+                        <>
+                          <button
+                            type="button"
+                            aria-label="Luk menu"
+                            className="fixed inset-0 z-40 cursor-default"
+                            onClick={() => setShowMenu(false)}
+                          />
+                          <div className="absolute right-0 top-9 z-50 w-56 overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-xl">
+                            {!closed && (
+                              <button
+                                onClick={() => { setShowMenu(false); endChatSession(); }}
+                                className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] hover:bg-secondary/60"
+                              >
+                                <XIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                                Afslut denne samtale
+                              </button>
+                            )}
+                            <button
+                              onClick={() => { setShowMenu(false); startNewConversation(); }}
+                              className="flex w-full items-center gap-2 border-t border-border px-3 py-2.5 text-left text-[13px] hover:bg-secondary/60"
+                            >
+                              <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                              Start ny samtale
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   )}
                   <button
                     onClick={toggleMute}
@@ -603,6 +663,65 @@ const LiveChatWidget = () => {
                 </div>
               </div>
             </div>
+
+            {showInbox && (
+              <div className="absolute inset-0 z-30 flex flex-col bg-card">
+                <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-3 py-3">
+                  <button
+                    onClick={() => setShowInbox(false)}
+                    aria-label="Tilbage til samtale"
+                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </button>
+                  <p className="text-[13px] font-semibold text-foreground">Mine samtaler</p>
+                </div>
+                <div className="flex-1 overflow-y-auto p-2">
+                  {chats.length === 0 ? (
+                    <p className="px-3 py-4 text-[12px] text-muted-foreground">Ingen aktive samtaler endnu.</p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {chats.map((c) => {
+                        const active = c.key === platformKey();
+                        return (
+                          <li key={c.key}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (active) { setShowInbox(false); return; }
+                                if (c.scope === "business" && c.href) {
+                                  window.location.href = c.href;
+                                }
+                              }}
+                              className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors ${
+                                active
+                                  ? "border-foreground bg-secondary/60"
+                                  : "border-border bg-card hover:border-foreground/30 hover:bg-secondary/40"
+                              }`}
+                            >
+                              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+                                {c.scope === "business" && c.logoUrl ? (
+                                  <img src={c.logoUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
+                                ) : (
+                                  <MessageCircle className="h-4 w-4" />
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-[13px] font-semibold text-foreground">{c.label}</p>
+                                <p className="truncate text-[11px] text-muted-foreground">
+                                  {c.scope === "platform" ? "Serviceydere kundeservice" : "Virksomhedschat"}
+                                  {active && " · åben her"}
+                                </p>
+                              </div>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            )}
 
             {!conversation ? (
               <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 py-5">

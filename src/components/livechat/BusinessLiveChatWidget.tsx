@@ -5,12 +5,20 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
-  Image as ImageIcon, Volume2, VolumeX, Sparkles, Plus, Archive,
+  Image as ImageIcon, Volume2, VolumeX, Sparkles, MoreVertical, MessagesSquare, ArrowLeft,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import chatSounds from "./chatSounds";
+import {
+  upsertChat,
+  removeChat,
+  listChats,
+  subscribeToRegistry,
+  businessKey,
+  type RegisteredChat,
+} from "./chatRegistry";
 
 type ChatMessage = {
   id: string;
@@ -94,6 +102,13 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
   const [firstMessage, setFirstMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  // Visning af "Mine samtaler" overlay (skifter mellem flere samtaler).
+  const [showInbox, setShowInbox] = useState(false);
+  // Lille dropdown-menu for handlinger på den åbne samtale.
+  const [showMenu, setShowMenu] = useState(false);
+  const [chats, setChats] = useState<RegisteredChat[]>(() => listChats());
+  useEffect(() => subscribeToRegistry(() => setChats(listChats())), []);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -124,13 +139,31 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
         .eq("session_token", token)
         .maybeSingle()
         .then(({ data }) => {
-          if (data) setConversation(data as Conversation);
-          else localStorage.removeItem(STORAGE_KEY);
+          if (data) {
+            setConversation(data as Conversation);
+          } else {
+            localStorage.removeItem(STORAGE_KEY);
+            removeChat(businessKey(businessId));
+          }
         });
     } catch {
       localStorage.removeItem(STORAGE_KEY);
     }
-  }, [STORAGE_KEY]);
+  }, [STORAGE_KEY, businessId]);
+
+  // Sørg for at denne virksomheds-chat er registreret så længe vi har en
+  // aktiv samtale — så den dukker op i "Mine samtaler"-listen overalt.
+  useEffect(() => {
+    if (!conversation) return;
+    upsertChat({
+      key: businessKey(businessId),
+      scope: "business",
+      businessId,
+      label: brandName || businessName,
+      logoUrl: logoUrl || null,
+      href: typeof window !== "undefined" ? window.location.pathname : undefined,
+    });
+  }, [conversation, businessId, brandName, businessName, logoUrl]);
 
   // Subscribe til beskeder og samtale-status.
   useEffect(() => {
@@ -290,6 +323,14 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ token }));
       setConversation(conv as Conversation);
+      upsertChat({
+        key: businessKey(businessId),
+        scope: "business",
+        businessId,
+        label: brandName || businessName,
+        logoUrl: logoUrl || null,
+        href: typeof window !== "undefined" ? window.location.pathname : undefined,
+      });
       setFirstMessage("");
       setSubject("");
       chatSounds.outgoing();
@@ -368,6 +409,7 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
 
   const startNewConversation = () => {
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    removeChat(businessKey(businessId));
     setConversation(null);
     setMessages([]);
     setDraft("");
@@ -375,6 +417,7 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
     setError(null);
     setSubject("");
     setFirstMessage("");
+    setShowMenu(false);
   };
 
   const toggleMute = () => {
@@ -456,7 +499,7 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
 
       {open && (
         <div className={`fixed z-50 w-[calc(100vw-1.5rem)] max-w-[400px] sm:w-[calc(100vw-3rem)] md:w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`}>
-          <div className="flex h-[min(620px,calc(100dvh-7rem))] sm:h-[min(640px,calc(100vh-3rem))] flex-col overflow-hidden rounded-[20px] border border-border bg-card shadow-[0_30px_80px_-20px_hsl(var(--foreground)/0.35)]">
+          <div className="relative flex h-[min(620px,calc(100dvh-7rem))] sm:h-[min(640px,calc(100vh-3rem))] flex-col overflow-hidden rounded-[20px] border border-border bg-card shadow-[0_30px_80px_-20px_hsl(var(--foreground)/0.35)]">
             {/* Header */}
             <div className="relative overflow-hidden bg-foreground px-5 pb-5 pt-4 text-background">
               <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-accent/30 blur-3xl" />
@@ -464,8 +507,8 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background">
-                      <span className="text-[13px] font-bold text-foreground">{initials(headerName)}</span>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background/15">
+                      <MessageCircle className="h-5 w-5 text-background" />
                     </div>
                     <span className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ring-foreground ${closed ? "bg-muted-foreground" : "bg-success"}`}>
                       {!closed && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-background" />}
@@ -479,25 +522,60 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
                   </div>
                 </div>
                 <div className="flex items-center gap-0.5">
-                  {conversation && !closed && (
+                  {chats.length > 0 && (
                     <button
-                      onClick={endChatSession}
-                      aria-label="Afslut samtale"
-                      title="Afslut samtale"
-                      className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                      onClick={() => setShowInbox(true)}
+                      aria-label="Vis mine samtaler"
+                      title="Mine samtaler"
+                      className="relative rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
                     >
-                      <Archive className="h-4 w-4" />
+                      <MessagesSquare className="h-4 w-4" />
+                      {chats.length > 1 && (
+                        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold text-accent-foreground">
+                          {chats.length}
+                        </span>
+                      )}
                     </button>
                   )}
                   {conversation && (
-                    <button
-                      onClick={startNewConversation}
-                      aria-label="Start ny samtale"
-                      title="Start ny samtale"
-                      className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowMenu((v) => !v)}
+                        aria-label="Flere handlinger"
+                        title="Handlinger"
+                        className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
+                      {showMenu && (
+                        <>
+                          <button
+                            type="button"
+                            aria-label="Luk menu"
+                            className="fixed inset-0 z-40 cursor-default"
+                            onClick={() => setShowMenu(false)}
+                          />
+                          <div className="absolute right-0 top-9 z-50 w-56 overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-xl">
+                            {!closed && (
+                              <button
+                                onClick={() => { setShowMenu(false); endChatSession(); }}
+                                className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] hover:bg-secondary/60"
+                              >
+                                <XIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                                Afslut denne samtale
+                              </button>
+                            )}
+                            <button
+                              onClick={() => { setShowMenu(false); startNewConversation(); }}
+                              className="flex w-full items-center gap-2 border-t border-border px-3 py-2.5 text-left text-[13px] hover:bg-secondary/60"
+                            >
+                              <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                              Start ny samtale
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   )}
                   <button
                     onClick={toggleMute}
@@ -517,6 +595,67 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
                 </div>
               </div>
             </div>
+
+            {showInbox && (
+              <div className="absolute inset-0 z-30 flex flex-col bg-card">
+                <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-3 py-3">
+                  <button
+                    onClick={() => setShowInbox(false)}
+                    aria-label="Tilbage til samtale"
+                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </button>
+                  <p className="text-[13px] font-semibold text-foreground">Mine samtaler</p>
+                </div>
+                <div className="flex-1 overflow-y-auto p-2">
+                  {chats.length === 0 ? (
+                    <p className="px-3 py-4 text-[12px] text-muted-foreground">Ingen aktive samtaler endnu.</p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {chats.map((c) => {
+                        const active = c.key === businessKey(businessId);
+                        return (
+                          <li key={c.key}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (active) { setShowInbox(false); return; }
+                                if (c.scope === "business" && c.href) {
+                                  window.location.href = c.href;
+                                } else if (c.scope === "platform") {
+                                  window.location.href = "/";
+                                }
+                              }}
+                              className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors ${
+                                active
+                                  ? "border-foreground bg-secondary/60"
+                                  : "border-border bg-card hover:border-foreground/30 hover:bg-secondary/40"
+                              }`}
+                            >
+                              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+                                {c.scope === "business" && c.logoUrl ? (
+                                  <img src={c.logoUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
+                                ) : (
+                                  <MessageCircle className="h-4 w-4" />
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-[13px] font-semibold text-foreground">{c.label}</p>
+                                <p className="truncate text-[11px] text-muted-foreground">
+                                  {c.scope === "platform" ? "Serviceydere kundeservice" : "Virksomhedschat"}
+                                  {active && " · åben her"}
+                                </p>
+                              </div>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            )}
 
             {!conversation ? (
               <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 py-5">

@@ -50,14 +50,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const { pathname } = useLocation();
 
-  // Luk automatisk bestillings-sheet'en når brugeren skifter til et område
-  // hvor den ikke giver mening (admin-, virksomheds- eller medarbejderpanel,
-  // platform-admin osv.). Det undgår at sheet'en hænger åben i baggrunden.
+  // Luk automatisk bestillings-sheet'en når brugeren navigerer til en
+  // hvilken som helst anden side. Bestilling er bundet til den side
+  // (typisk en virksomhedsside eller tilbudsflowet) hvor brugeren tilføjede
+  // services — hvis de forlader siden, skal sheet'en ikke "følge med".
   useEffect(() => {
-    const closeOnPrefixes = ["/admin", "/virksomhed", "/medarbejder", "/platform-admin", "/godkend-bestilling"];
-    if (closeOnPrefixes.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
-      setSheetOpen(false);
-    }
+    setSheetOpen(false);
   }, [pathname]);
 
   // Persist to localStorage on every change
