@@ -7,6 +7,8 @@ import { useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
+import { LoadingScreen } from "@/components/admin/shared/LoadingScreen";
+import { PageTransition } from "@/components/admin/shared/PageTransition";
 import { useMyEmployee, useMyEmployeeStats } from "@/hooks/useMyEmployee";
 import { StatCard, PageHeader } from "@/components/admin/shared/AdminUI";
 import { Card, CardContent } from "@/components/ui/card";
@@ -118,11 +120,7 @@ const EmployeeStats = () => {
   );
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
-        Indlæser...
-      </div>
-    );
+    return <LoadingScreen full label="Indlæser statistik…" />;
   }
   if (!user) return <Navigate to="/log-ind" replace />;
 
@@ -196,7 +194,9 @@ const EmployeeStats = () => {
 
   return (
     <EmployeeShell activeTab="stats" title="Statistik">
-      <div className="mx-auto max-w-5xl space-y-4 pb-24 sm:space-y-5 sm:pb-20">
+      {/* Fade indholdet ind ved hvert range-skift så tal-ændringer føles
+          guidede frem for at "blinke" pludseligt. */}
+      <PageTransition transitionKey={`${range}|${from}|${to}`} className="mx-auto max-w-5xl space-y-4 pb-24 sm:space-y-5 sm:pb-20">
         <PageHeader
           title={<span className="capitalize">{headerLabel}</span>}
           description={
@@ -395,7 +395,7 @@ const EmployeeStats = () => {
             </Card>
           </>
         )}
-      </div>
+      </PageTransition>
     </EmployeeShell>
   );
 };

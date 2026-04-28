@@ -18,6 +18,8 @@ import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
+import { LoadingScreen } from "@/components/admin/shared/LoadingScreen";
+import { PageTransition } from "@/components/admin/shared/PageTransition";
 import { PageHeader, StatCard } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -120,11 +122,7 @@ const EmployeeApp = () => {
   const endDay = useEndWorkday();
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
-        Indlæser...
-      </div>
-    );
+    return <LoadingScreen full label="Indlæser dine ruter…" />;
   }
   if (!user) return <Navigate to="/log-ind" replace />;
 
@@ -214,7 +212,9 @@ const EmployeeApp = () => {
 
   return (
     <EmployeeShell activeTab="today" title="Min dag">
-      <div className="mx-auto max-w-5xl space-y-4 pb-24 sm:pb-20">
+      {/* PageTransition fader indholdet ind når brugeren skifter dag,
+          så det føles som en blød navigation frem for et hårdt re-render. */}
+      <PageTransition transitionKey={date} className="mx-auto max-w-5xl space-y-4 pb-24 sm:pb-20">
         <PageHeader
           title={<span className="capitalize">{format(dateObj, "EEEE d. MMMM", { locale: da })}</span>}
           description={
@@ -538,7 +538,7 @@ const EmployeeApp = () => {
           );
         })}
         </div>
-      </div>
+      </PageTransition>
     </EmployeeShell>
   );
 };

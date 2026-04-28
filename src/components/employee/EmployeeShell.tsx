@@ -27,6 +27,19 @@ const NAV_ITEMS: NavItem[] = [
   { value: "stats", label: "Statistik", icon: BarChart3, href: "/medarbejder/statistik" },
 ];
 
+// Prefetch — start download af den anden side når brugeren hover'er nav-knappen.
+// Medarbejder-app'en har kun to ruter, men prefetch gør skiftet øjeblikkeligt.
+const TAB_PREFETCH: Record<string, () => Promise<unknown>> = {
+  today: () => import("@/pages/EmployeeApp"),
+  stats: () => import("@/pages/EmployeeStats"),
+};
+const prefetched = new Set<string>();
+const prefetchTab = (key: string) => {
+  if (prefetched.has(key)) return;
+  prefetched.add(key);
+  TAB_PREFETCH[key]?.().catch(() => prefetched.delete(key));
+};
+
 type EmployeeShellProps = {
   /** Aktiv fane — fremhæves i sidebar. */
   activeTab: EmployeeTabKey;
@@ -133,6 +146,9 @@ export const EmployeeShell = ({
               <button
                 key={item.value}
                 onClick={() => { setSidebarOpen(false); navigate(item.href); }}
+                onMouseEnter={() => prefetchTab(item.value)}
+                onFocus={() => prefetchTab(item.value)}
+                onTouchStart={() => prefetchTab(item.value)}
                 className={baseClasses}
               >
                 <item.icon className="h-4 w-4 shrink-0" />
