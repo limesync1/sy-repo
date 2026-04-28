@@ -11,13 +11,14 @@ import { toast } from "sonner";
 import {
   Sparkles, Settings, Bell, Route, Contact, Image as ImageIcon, Clock,
   CheckCircle2, AlertCircle, ArrowRight, Building2, Search, Calculator,
-  CreditCard, XCircle, MessageCircle, Globe, ExternalLink,
+  CreditCard, XCircle, MessageCircle, Globe, ExternalLink, Link2, Loader2, Copy,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useBusinessPlan, useReactivateBusinessPlan,
   usePlatformPricing, useUpdateBusinessPlan, useRemovePaymentMethod,
@@ -280,6 +281,19 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [customDomain, setCustomDomain] = useState<string>(
     ((business.settings as any)?.custom_domain as string) || ""
   );
+  const queryClient = useQueryClient();
+  // Custom permalink (slug) — virksomhedens egen URL-stump efter
+  // /v/. Skal være unik på tværs af platformen, så vi kontrollerer
+  // serverside via en separat select før gem; UI viser også en hurtig
+  // tilgængeligheds-indikator.
+  const [slug, setSlug] = useState<string>(business.slug || "");
+  const [slugStatus, setSlugStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid" | "current">("current");
+  const slugCheckTimer = useRef<number | null>(null);
+  // Domæne-verifikation
+  const domainStatus = ((business.settings as any)?.custom_domain_status as string) || "";
+  const domainVerifiedAt = ((business.settings as any)?.custom_domain_verified_at as string) || null;
+  const [domainVerifying, setDomainVerifying] = useState(false);
+  const [domainResult, setDomainResult] = useState<any>(null);
 
   // CVR lookup
   const [cvrQuery, setCvrQuery] = useState("");
@@ -509,13 +523,22 @@ const SettingsTab = ({ business }: { business: any }) => {
       accounting_integration_enabled: accountingIntegrationEnabled,
       leads_enabled: leadsEnabled,
       livechat_enabled: livechatEnabled,
+      // Domæne gemmes normaliseret. Når brugeren ændrer domænet,
+      // nulstiller vi verifikations-status så vi ikke fejlagtigt påstår
+      // det stadig er aktivt — det skal verificeres igen.
       custom_domain: customDomain.trim()
-        ? customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "")
+        ? customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "").split("/")[0]
+        : null,
+      custom_domain_status: customDomain.trim() === origCustomDomain
+        ? ((business.settings as any)?.custom_domain_status ?? null)
+        : (customDomain.trim() ? "pending_ownership" : null),
+      custom_domain_verified_at: customDomain.trim() === origCustomDomain
+        ? ((business.settings as any)?.custom_domain_verified_at ?? null)
         : null,
       selected_subcategories: selectedSubcategories,
     },
   }), [
-    business.id, business.name, business.settings,
+    business.id, business.name, business.settings, origCustomDomain,
     name, description, phone, email, address, city, zipCode,
     logoUrl, coverUrl, selectedCategories, selectedSubcategories,
     openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled, livechatEnabled, customDomain,
@@ -538,6 +561,80 @@ const SettingsTab = ({ business }: { business: any }) => {
   // Diskret status til header (gemmer / gemt / ændringer).
   const saveStatus: "saving" | "saved" | "idle" =
     updateBiz.isPending ? "saving" : (hasChanges ? "saving" : "saved");
+
+  // ─── Custom permalink (slug) ───
+  // Vi auto-tjekker tilgængelighed mens brugeren skriver, men gemmer KUN
+  // ved klik på "Gem permalink" — slug-skift påvirker URL'er, så vi
+  // undgår utilsigtede ændringer via auto-save.
+  const SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])?$/;
+  const slugChanged = slug !== business.slug;
+  useEffect(() => {
+    const next = slug.trim().toLowerCase();
+    if (next === business.slug) { setSlugStatus("current"); return; }
+    if (!SLUG_REGEX.test(next)) { setSlugStatus("invalid"); return; }
+    setSlugStatus("checking");
+    if (slugCheckTimer.current) window.clearTimeout(slugCheckTimer.current);
+    slugCheckTimer.current = window.setTimeout(async () => {
+      const { data, error } = await supabase
+        .from("businesses").select("id").eq("slug", next).maybeSingle();
+      if (error) { setSlugStatus("invalid"); return; }
+      setSlugStatus(data && data.id !== business.id ? "taken" : "available");
+    }, 400);
+    return () => { if (slugCheckTimer.current) window.clearTimeout(slugCheckTimer.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, business.slug, business.id]);
+
+  const handleSaveSlug = async () => {
+    const next = slug.trim().toLowerCase();
+    if (next === business.slug) return;
+    if (!SLUG_REGEX.test(next)) {
+      toast.error("Permalink må kun indeholde små bogstaver, tal og bindestreg (3-60 tegn).");
+      return;
+    }
+    if (slugStatus === "taken") {
+      toast.error("Det permalink er optaget. Prøv et andet.");
+      return;
+    }
+    const { error } = await supabase.from("businesses").update({ slug: next }).eq("id", business.id);
+    if (error) {
+      toast.error(error.message?.includes("duplicate") ? "Det permalink er optaget." : "Kunne ikke gemme permalink.");
+      return;
+    }
+    toast.success("Permalink opdateret. Din offentlige adresse er nu /v/" + next);
+    queryClient.invalidateQueries({ queryKey: ["my-business"] });
+    queryClient.invalidateQueries({ queryKey: ["business"] });
+  };
+
+  // ─── Custom domæne — verificer ───
+  const handleVerifyDomain = async () => {
+    const cleaned = customDomain.trim().toLowerCase()
+      .replace(/^https?:\/\//, "").replace(/\/+$/, "").split("/")[0];
+    if (!cleaned) { toast.error("Skriv et domæne først."); return; }
+    if (!/^([a-z0-9-]+\.)+[a-z]{2,}$/.test(cleaned)) {
+      toast.error("Domænet ser ikke gyldigt ud. Brug fx mitfirma.dk uden https:// eller stier.");
+      return;
+    }
+    setDomainVerifying(true);
+    setDomainResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-custom-domain", {
+        body: { business_id: business.id, domain: cleaned },
+      });
+      if (error) throw error;
+      setDomainResult(data);
+      if (data?.status === "verified") toast.success("Domænet er verificeret 🎉");
+      else toast.error(data?.message || "Domænet er ikke klar endnu — tjek dine DNS-records.");
+      queryClient.invalidateQueries({ queryKey: ["my-business"] });
+      queryClient.invalidateQueries({ queryKey: ["business"] });
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke verificere domænet lige nu. Prøv igen.");
+    } finally {
+      setDomainVerifying(false);
+    }
+  };
+
+  // Verifikations-token = de første 16 tegn af business.id (uden bindestreger)
+  const domainToken = (business.id || "").replace(/-/g, "").slice(0, 16);
 
   // ─── Live prisberegning ───
   // Bygger samme breakdown som "bliv udbyder", men ud fra brugerens nuværende
@@ -883,52 +980,128 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
             </div>
 
-            {/* Custom domæne — virksomhedens eget webadresse. Bruges som
-                kanonisk URL i SEO så Google indekserer fx ready2clean.dk
-                fremfor serviceydere.dk/v/ready2clean. Selve DNS-koblingen
-                opsættes hos virksomhedens domæne-udbyder. */}
+            {/* Permalink (slug) */}
             <div className="mt-6 rounded-xl border border-border bg-card/50 p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
+                  <Link2 className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-foreground">Permalink (offentlig adresse)</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Den korte adresse til din virksomhed på Serviceydere. Skift kun, hvis det er nødvendigt — gamle links holder op med at virke.
+                  </p>
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                    <div className="flex h-10 items-center rounded-l-lg border border-r-0 border-border bg-muted px-3 text-xs text-muted-foreground">
+                      serviceydere.dk/v/
+                    </div>
+                    <Input
+                      placeholder="min-virksomhed"
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                      className="h-10 flex-1 rounded-l-none rounded-r-lg bg-card font-mono text-sm sm:-ml-2"
+                      maxLength={60}
+                      autoComplete="off"
+                      spellCheck={false}
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleSaveSlug}
+                      disabled={!slugChanged || slugStatus === "checking" || slugStatus === "taken" || slugStatus === "invalid"}
+                      className="h-10 rounded-lg"
+                    >
+                      Gem permalink
+                    </Button>
+                  </div>
+                  <p className="mt-2 text-xs">
+                    {slugStatus === "current" && <span className="text-muted-foreground">Aktuel adresse: <span className="font-mono text-foreground">/v/{business.slug}</span></span>}
+                    {slugStatus === "checking" && <span className="inline-flex items-center gap-1 text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Tjekker tilgængelighed…</span>}
+                    {slugStatus === "available" && <span className="inline-flex items-center gap-1 text-success"><CheckCircle2 className="h-3 w-3" /> Ledigt — klar til at gemme</span>}
+                    {slugStatus === "taken" && <span className="inline-flex items-center gap-1 text-destructive"><XCircle className="h-3 w-3" /> Optaget — vælg et andet</span>}
+                    {slugStatus === "invalid" && <span className="inline-flex items-center gap-1 text-destructive"><AlertCircle className="h-3 w-3" /> Brug 3-60 tegn: små bogstaver, tal og bindestreg</span>}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Custom domæne */}
+            <div className="mt-4 rounded-xl border border-border bg-card/50 p-4">
               <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
                   <Globe className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-foreground">Eget domæne (valgfrit)</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-semibold text-foreground">Eget domæne (valgfrit)</p>
+                    {customDomain.trim() && (
+                      domainStatus === "verified" ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
+                          <CheckCircle2 className="h-3 w-3" /> Verificeret
+                        </span>
+                      ) : domainStatus === "pending_dns" ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-600">
+                          <AlertCircle className="h-3 w-3" /> Ejerskab OK · DNS mangler
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                          <AlertCircle className="h-3 w-3" /> Ikke verificeret
+                        </span>
+                      )
+                    )}
+                  </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Brug dit eget domæne som virksomhedens hovedadresse. Når det er sat, viser Google og delinger dit domæne i stedet for{" "}
+                    Brug dit eget domæne som hovedadresse. Når verificeret, viser Google og delinger dit domæne fremfor{" "}
                     <span className="font-mono">serviceydere.dk/v/{business.slug}</span>.
                   </p>
                   <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                    <div className="flex h-10 items-center rounded-l-lg border border-r-0 border-border bg-muted px-3 text-xs text-muted-foreground sm:rounded-l-lg">
+                    <div className="flex h-10 items-center rounded-l-lg border border-r-0 border-border bg-muted px-3 text-xs text-muted-foreground">
                       https://
                     </div>
                     <Input
-                      placeholder="ready2clean.dk"
+                      placeholder="mitfirma.dk"
                       value={customDomain}
                       onChange={(e) => setCustomDomain(e.target.value)}
                       className="h-10 flex-1 rounded-l-none rounded-r-lg bg-card font-mono text-sm sm:-ml-2"
-                      type="text"
-                      inputMode="url"
                       autoComplete="off"
                       spellCheck={false}
                     />
+                    <Button type="button" onClick={handleVerifyDomain} disabled={domainVerifying || !customDomain.trim()} className="h-10 rounded-lg">
+                      {domainVerifying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verificer"}
+                    </Button>
                   </div>
+
                   {customDomain.trim() && (
-                    <a
-                      href={`https://${customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-foreground hover:underline"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      Test domænet
-                    </a>
+                    <div className="mt-4 space-y-3 rounded-lg border border-border bg-background/60 p-3">
+                      <p className="text-xs font-semibold text-foreground">Sådan opsætter du dit domæne:</p>
+                      <div className="space-y-2 text-xs text-muted-foreground">
+                        <div>
+                          <p className="font-medium text-foreground">1) Ejerskab — TXT-record</p>
+                          <div className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 font-mono text-[11px]">
+                            <span className="text-muted-foreground">Type:</span><span>TXT</span>
+                            <span className="text-muted-foreground">Navn:</span><span>_serviceydere</span>
+                            <span className="text-muted-foreground">Værdi:</span><span className="break-all">serviceydere-verify={domainToken}</span>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">2) Pegning — CNAME-record</p>
+                          <div className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 font-mono text-[11px]">
+                            <span className="text-muted-foreground">Type:</span><span>CNAME</span>
+                            <span className="text-muted-foreground">Navn:</span><span>@ (eller www)</span>
+                            <span className="text-muted-foreground">Værdi:</span><span>serviceydere.dk</span>
+                          </div>
+                        </div>
+                        <p>DNS-ændringer kan tage op til 24 timer at slå igennem. Klik <strong className="text-foreground">Verificer</strong> når du har tilføjet records.</p>
+                      </div>
+                      {domainResult?.message && (
+                        <p className={`text-xs ${domainResult.status === "verified" ? "text-success" : "text-destructive"}`}>
+                          {domainResult.message}
+                        </p>
+                      )}
+                      {domainStatus === "verified" && domainVerifiedAt && (
+                        <p className="text-[11px] text-muted-foreground">Sidst verificeret: {new Date(domainVerifiedAt).toLocaleString("da-DK")}</p>
+                      )}
+                    </div>
                   )}
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    <strong className="text-foreground">DNS-opsætning:</strong> Hos din domæne-udbyder, opret en CNAME-record fra{" "}
-                    <span className="font-mono">@</span> (eller <span className="font-mono">www</span>) der peger på{" "}
-                    <span className="font-mono">serviceydere.dk</span>. Ændringer kan tage op til 24 timer at træde i kraft.
-                  </p>
                 </div>
               </div>
             </div>
