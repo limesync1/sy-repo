@@ -9,7 +9,7 @@ export const LOGO_URL =
 // Palette
 const ink = '#212121'        // foreground (matches site --foreground 0 0% 13%)
 const inkSoft = '#525252'    // body text
-const muted = '#737373'      // labels
+const mutedColor = '#737373'      // labels
 const subtle = '#a3a3a3'     // footer
 const line = '#ececec'       // borders / dividers
 const surface = '#fafafa'    // very subtle surfaces
@@ -55,7 +55,7 @@ export const heroTitle = {
   letterSpacing: '-0.015em',
 }
 export const heroSubtitle = {
-  color: muted,
+  color: mutedColor,
   fontSize: '14px',
   margin: 0,
   lineHeight: '1.6',
@@ -71,7 +71,7 @@ export const h1 = {
 export const h2 = {
   fontSize: '12px',
   fontWeight: 600 as const,
-  color: muted,
+  color: mutedColor,
   margin: '24px 0 10px',
   letterSpacing: '0.02em',
 }
@@ -83,7 +83,7 @@ export const text = {
 }
 export const muted = {
   fontSize: '13px',
-  color: muted,
+  color: mutedColor,
   lineHeight: '1.55',
   margin: '0 0 12px',
 }
@@ -146,7 +146,7 @@ export const cardRow = {
 }
 export const cardLabel = {
   fontSize: '12px',
-  color: muted,
+  color: mutedColor,
   margin: '0 0 4px',
   fontWeight: 500 as const,
 }
@@ -182,7 +182,7 @@ export const itemName = {
 }
 export const itemDetail = {
   fontSize: '12px',
-  color: muted,
+  color: mutedColor,
   margin: '2px 0 0',
   lineHeight: '1.5',
 }
@@ -194,7 +194,7 @@ export const itemPrice = {
 }
 export const stepLine = {
   fontSize: '12px',
-  color: muted,
+  color: mutedColor,
   margin: '3px 0',
   paddingLeft: '8px',
 }
@@ -230,7 +230,7 @@ export const helpBoxTitle = {
 }
 export const helpBoxText = {
   fontSize: '13px',
-  color: muted,
+  color: mutedColor,
   margin: 0,
   lineHeight: '1.55',
 }
