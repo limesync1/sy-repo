@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Navigate, Link } from "react-router-dom";
-import { useState, lazy, Suspense, useEffect, useRef } from "react";
+import { useState, lazy, Suspense } from "react";
 import {
   LayoutDashboard, Building2, Users, ShoppingCart, Star,
   LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink,
