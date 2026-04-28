@@ -521,13 +521,22 @@ const SettingsTab = ({ business }: { business: any }) => {
       accounting_integration_enabled: accountingIntegrationEnabled,
       leads_enabled: leadsEnabled,
       livechat_enabled: livechatEnabled,
+      // Domæne gemmes normaliseret. Når brugeren ændrer domænet,
+      // nulstiller vi verifikations-status så vi ikke fejlagtigt påstår
+      // det stadig er aktivt — det skal verificeres igen.
       custom_domain: customDomain.trim()
-        ? customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "")
+        ? customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "").split("/")[0]
+        : null,
+      custom_domain_status: customDomain.trim() === origCustomDomain
+        ? ((business.settings as any)?.custom_domain_status ?? null)
+        : (customDomain.trim() ? "pending_ownership" : null),
+      custom_domain_verified_at: customDomain.trim() === origCustomDomain
+        ? ((business.settings as any)?.custom_domain_verified_at ?? null)
         : null,
       selected_subcategories: selectedSubcategories,
     },
   }), [
-    business.id, business.name, business.settings,
+    business.id, business.name, business.settings, origCustomDomain,
     name, description, phone, email, address, city, zipCode,
     logoUrl, coverUrl, selectedCategories, selectedSubcategories,
     openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled, livechatEnabled, customDomain,
