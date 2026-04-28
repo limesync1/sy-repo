@@ -1042,9 +1042,17 @@ const SettingsTab = ({ business }: { business: any }) => {
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-600">
                           <AlertCircle className="h-3 w-3" /> Ejerskab OK · DNS mangler
                         </span>
+                      ) : domainStatus === "pending_ownership" ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                          <AlertCircle className="h-3 w-3" /> Afventer ejerskab (TXT)
+                        </span>
+                      ) : domainStatus === "failed" ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold text-destructive">
+                          <XCircle className="h-3 w-3" /> Verifikation fejlede
+                        </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
-                          <AlertCircle className="h-3 w-3" /> Ikke verificeret
+                          <AlertCircle className="h-3 w-3" /> Ikke verificeret endnu
                         </span>
                       )
                     )}
@@ -1096,6 +1104,37 @@ const SettingsTab = ({ business }: { business: any }) => {
                         <p className={`text-xs ${domainResult.status === "verified" ? "text-success" : "text-destructive"}`}>
                           {domainResult.message}
                         </p>
+                      )}
+                      {domainResult?.checks && domainResult?.status !== "verified" && (
+                        <div className="space-y-1.5 rounded-md border border-border bg-card/60 p-2.5">
+                          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Hvad mangler?</p>
+                          <ul className="space-y-1 text-[11px]">
+                            <li className="flex items-start gap-1.5">
+                              {domainResult.checks.ownership_ok ? (
+                                <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-success" />
+                              ) : (
+                                <XCircle className="mt-0.5 h-3 w-3 shrink-0 text-destructive" />
+                              )}
+                              <span className={domainResult.checks.ownership_ok ? "text-muted-foreground" : "text-foreground"}>
+                                TXT-record på <span className="font-mono">_serviceydere</span> med værdi{" "}
+                                <span className="font-mono">serviceydere-verify={domainToken}</span>
+                              </span>
+                            </li>
+                            <li className="flex items-start gap-1.5">
+                              {domainResult.checks.pointing_ok ? (
+                                <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-success" />
+                              ) : (
+                                <XCircle className="mt-0.5 h-3 w-3 shrink-0 text-destructive" />
+                              )}
+                              <span className={domainResult.checks.pointing_ok ? "text-muted-foreground" : "text-foreground"}>
+                                CNAME (eller A-record) der peger på <span className="font-mono">serviceydere.dk</span>
+                              </span>
+                            </li>
+                          </ul>
+                          <p className="pt-1 text-[10px] text-muted-foreground">
+                            DNS-ændringer kan tage op til 24 timer. Klik <strong>Verificer</strong> igen efter ventetiden.
+                          </p>
+                        </div>
                       )}
                       {domainStatus === "verified" && domainVerifiedAt && (
                         <p className="text-[11px] text-muted-foreground">Sidst verificeret: {new Date(domainVerifiedAt).toLocaleString("da-DK")}</p>

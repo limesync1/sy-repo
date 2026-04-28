@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useEffect, useState, lazy, Suspense } from "react";
 import {
   Plus, Trash2,
-  Sparkles, Calculator, Wrench, Wand2, Loader2,
+  Sparkles, Calculator, Wrench, Wand2, Loader2, Check,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { supabase } from "@/integrations/supabase/client";
@@ -1167,12 +1167,15 @@ const ServiceForm = ({
                   <div className="flex flex-wrap gap-2">
                     {subcategoryOptions.map((s) => (
                       <button key={s} type="button" onClick={() => setSubcategory(s)}
-                        className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+                        className={`inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-all ${
                           subcategory === s
-                            ? "border-border bg-secondary text-foreground"
+                            ? "border-accent bg-accent text-accent-foreground shadow-sm ring-2 ring-accent/30"
                             : "border-border bg-card text-foreground hover:bg-secondary"
                         }`}
-                      >{s}</button>
+                      >
+                        {subcategory === s && <Check className="h-3.5 w-3.5" />}
+                        {s}
+                      </button>
                     ))}
                   </div>
                   <button type="button" onClick={() => { setCustomSubcategory(true); setSubcategory(""); }}
@@ -1222,25 +1225,21 @@ const ServiceForm = ({
             )}
           </div>
           <div>
-            <div className="mb-1.5 flex items-center justify-between gap-2">
-              <label className="block text-sm font-medium text-foreground">Beskrivelse</label>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">Beskrivelse</label>
+            <Textarea placeholder="Hvad inkluderer denne service? Hvad kan kunden forvente?" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-card" rows={3} />
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
               <button
                 type="button"
                 onClick={generateAiDescription}
                 disabled={aiLoading || !name.trim()}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
                 title={!name.trim() ? "Skriv et servicenavn først" : "Generér forslag baseret på din virksomhed"}
               >
-                {aiLoading ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Wand2 className="h-3.5 w-3.5" />
-                )}
-                {aiLoading ? "Genererer…" : "Foreslå med AI"}
+                {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5" />}
+                {aiLoading ? "Genererer…" : "Foreslå beskrivelse med AI"}
               </button>
+              <p className="text-[11px] text-muted-foreground">AI bruger jeres navn, branche og beskrivelse.</p>
             </div>
-            <Textarea placeholder="Hvad inkluderer denne service? Hvad kan kunden forvente?" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-card" rows={3} />
-            <p className="mt-1 text-[11px] text-muted-foreground">AI bruger din virksomheds navn, branche og beskrivelse til at skræddersy forslaget.</p>
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">Billede (valgfrit)</label>
@@ -1440,12 +1439,15 @@ const ServiceForm = ({
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {ALL_INTERVALS.map((iv) => (
               <button key={iv.value} type="button" onClick={() => toggleInterval(iv.value)}
-                className={`rounded-xl border px-4 py-3 text-center transition-colors ${
+                className={`relative rounded-xl border px-4 py-3 text-center transition-all ${
                   intervalOptions.includes(iv.value)
-                    ? "border-border bg-secondary"
+                    ? "border-accent bg-accent text-accent-foreground shadow-sm ring-2 ring-accent/30"
                     : "border-border bg-card hover:bg-secondary"
                 }`}>
-                <span className="text-sm font-medium text-foreground">{iv.label}</span>
+                {intervalOptions.includes(iv.value) && (
+                  <Check className="absolute right-2 top-2 h-3.5 w-3.5" />
+                )}
+                <span className={`text-sm font-medium ${intervalOptions.includes(iv.value) ? "" : "text-foreground"}`}>{iv.label}</span>
               </button>
             ))}
           </div>
