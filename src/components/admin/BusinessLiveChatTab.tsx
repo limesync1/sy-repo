@@ -313,6 +313,50 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
     if (!next) chatSounds.tick();
   };
 
+  // ── Skabelon-handlers ──
+  const insertTemplate = (tpl: Template) => {
+    setDraft((d) => (d ? `${d}\n${tpl.content}` : tpl.content));
+    textareaRef.current?.focus();
+  };
+  const saveTemplate = async () => {
+    const title = tplDraft.title.trim();
+    const content = tplDraft.content.trim();
+    if (!title || !content) { toast.error("Titel og tekst er påkrævet"); return; }
+    if (tplDraft.id) {
+      const { error } = await supabase.from("chat_templates")
+        .update({ title, content }).eq("id", tplDraft.id);
+      if (error) { toast.error("Kunne ikke gemme"); return; }
+      setTemplates((prev) => prev.map((t) => (t.id === tplDraft.id ? { ...t, title, content } : t)));
+    } else {
+      const sort_order = templates.length;
+      const { data, error } = await supabase.from("chat_templates")
+        .insert({ business_id: businessId, title, content, sort_order })
+        .select("id, title, content, sort_order").single();
+      if (error || !data) { toast.error("Kunne ikke oprette"); return; }
+      setTemplates((prev) => [...prev, data as Template]);
+    }
+    setTplDraft({ title: "", content: "" });
+    toast.success("Skabelon gemt");
+  };
+  const deleteTemplate = async (id: string) => {
+    const { error } = await supabase.from("chat_templates").delete().eq("id", id);
+    if (error) { toast.error("Kunne ikke slette"); return; }
+    setTemplates((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  // ── Tildeling ──
+  const assignTo = async (employeeId: string | null) => {
+    if (!active) return;
+    const { error } = await supabase.from("chat_conversations")
+      .update({ assigned_employee_id: employeeId }).eq("id", active.id);
+    if (error) { toast.error("Kunne ikke tildele"); return; }
+    const empName = employeeId ? employees.find((e) => e.id === employeeId)?.name || "medarbejder" : null;
+    await supabase.from("chat_messages").insert({
+      conversation_id: active.id, sender_type: "admin", sender_name: adminName,
+      content: empName ? `Tildelt til ${empName}` : "Tildeling fjernet", is_system: true,
+    });
+  };
+
   return (
     <div className="space-y-4">
       <PageHeader
