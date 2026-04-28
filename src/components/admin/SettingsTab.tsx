@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import {
   Sparkles, Settings, Bell, Route, Contact, Image as ImageIcon, Clock,
   CheckCircle2, AlertCircle, ArrowRight, Building2, Search, Calculator,
-  CreditCard, XCircle,
+  CreditCard, XCircle, MessageCircle,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
@@ -266,6 +266,12 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [leadsEnabled, setLeadsEnabled] = useState<boolean>(
     !!(business.settings as any)?.leads_enabled
   );
+  // Live chat — gratis valgfri funktion. Når slået til vises en chat-widget
+  // på virksomhedens offentlige side, og en "Live chat"-fane tilføjes til
+  // admin-panelet hvor virksomheden kan svare på henvendelser.
+  const [livechatEnabled, setLivechatEnabled] = useState<boolean>(
+    !!(business.settings as any)?.livechat_enabled
+  );
 
   // CVR lookup
   const [cvrQuery, setCvrQuery] = useState("");
@@ -447,6 +453,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   const origRoutePlanning = !!(business.settings as any)?.route_planning_enabled;
   const origAccountingIntegration = !!(business.settings as any)?.accounting_integration_enabled;
   const origLeadsEnabled = !!(business.settings as any)?.leads_enabled;
+  const origLivechatEnabled = !!(business.settings as any)?.livechat_enabled;
   const origSubcats = ((business.settings as any)?.selected_subcategories as Record<string, string[]>) || {};
   const hasChanges = name !== business.name || description !== (business.description || "") ||
     phone !== (business.phone || "") || email !== (business.email || "") ||
@@ -459,6 +466,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     routePlanningEnabled !== origRoutePlanning ||
     accountingIntegrationEnabled !== origAccountingIntegration ||
     leadsEnabled !== origLeadsEnabled ||
+    livechatEnabled !== origLivechatEnabled ||
     JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
 
   // ─── Auto-save ───
@@ -490,13 +498,14 @@ const SettingsTab = ({ business }: { business: any }) => {
       route_planning_enabled: routePlanningEnabled,
       accounting_integration_enabled: accountingIntegrationEnabled,
       leads_enabled: leadsEnabled,
+      livechat_enabled: livechatEnabled,
       selected_subcategories: selectedSubcategories,
     },
   }), [
     business.id, business.name, business.settings,
     name, description, phone, email, address, city, zipCode,
     logoUrl, coverUrl, selectedCategories, selectedSubcategories,
-    openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled,
+    openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled, livechatEnabled,
   ]);
 
   useEffect(() => {
@@ -1217,6 +1226,32 @@ const SettingsTab = ({ business }: { business: any }) => {
                   </div>
                 </div>
                 <ToggleSwitch checked={leadsEnabled} onChange={() => setLeadsEnabled((v) => !v)} />
+              </div>
+
+              {/* Live chat — gratis chat-widget på virksomhedssiden. Når slået
+                  til vises en chat-knap nederst i hjørnet på din offentlige
+                  side, og en "Live chat"-fane tilføjes til menuen her i panelet. */}
+              <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                    <MessageCircle className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold text-foreground">Live chat på virksomhedssiden</p>
+                      <span className="text-[11px] font-semibold text-muted-foreground">Gratis</span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Når slået til vises en chat-knap nederst i hjørnet på din offentlige side, så besøgende kan skrive direkte til jer. Du modtager en email ved nye samtaler og svarer fra "Live chat"-fanen i menuen.
+                    </p>
+                    <StatusPill
+                      active={livechatEnabled}
+                      activeLabel="Aktiveret — chat-knappen vises på din virksomhedsside"
+                      inactiveLabel="Deaktiveret — slå til for at lade besøgende skrive direkte til jer"
+                    />
+                  </div>
+                </div>
+                <ToggleSwitch checked={livechatEnabled} onChange={() => setLivechatEnabled((v) => !v)} />
               </div>
             </div>
           </SectionCard>
