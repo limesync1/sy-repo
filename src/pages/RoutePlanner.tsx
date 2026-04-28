@@ -804,6 +804,7 @@ const Planner = () => {
 
               {/* Calendar */}
               <ResizablePanel defaultSize={80} className="overflow-hidden">
+                <div data-tour="routes-calendar" className="h-full">
                 <MonthWeekCalendar
                   view={view}
                   anchorDate={date}
@@ -819,6 +820,7 @@ const Planner = () => {
                   draggingType={activeDragData?.type === "job" ? "job" : activeDragData?.type === "route" ? "route" : null}
                   weatherByDate={weatherByDate}
                 />
+                </div>
               </ResizablePanel>
             </ResizablePanelGroup>
         </div>
