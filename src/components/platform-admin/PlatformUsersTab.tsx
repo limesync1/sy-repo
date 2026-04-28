@@ -1,14 +1,14 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, ShieldCheck, ShieldOff, Mail, Download } from "lucide-react";
+import { ShieldCheck, ShieldOff, Mail, Download, Users } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { exportCsv } from "./lib/csv";
+import { PageHeader, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
 
 interface AdminUser {
   user_id: string;
@@ -74,13 +74,20 @@ const PlatformUsersTab = () => {
 
   return (
     <div className="space-y-4">
+      <PageHeader
+        title="Brugere"
+        description={`${filtered.length} ${filtered.length === 1 ? "bruger" : "brugere"} matcher`}
+        action={
+          <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
+            <Download className="h-3.5 w-3.5" /> CSV
+          </Button>
+        }
+      />
+
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[240px] max-w-md">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Søg navn, email, telefon..." className="pl-9" />
-        </div>
+        <SearchInput value={q} onChange={setQ} placeholder="Søg navn, email, telefon..." />
         <Select value={roleFilter} onValueChange={(v: any) => setRoleFilter(v)}>
-          <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[180px] h-10"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle roller</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
@@ -88,10 +95,6 @@ const PlatformUsersTab = () => {
             <SelectItem value="user">Kunde</SelectItem>
           </SelectContent>
         </Select>
-        <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
-          <Download className="h-3.5 w-3.5" /> CSV
-        </Button>
-        <div className="ml-auto text-xs text-muted-foreground">{filtered.length} brugere</div>
       </div>
 
       {isLoading ? (
@@ -101,9 +104,11 @@ const PlatformUsersTab = () => {
       ) : error ? (
         <p className="text-sm text-red-600">Fejl: {(error as Error).message}</p>
       ) : filtered.length === 0 ? (
-        <Card className="rounded-xl border-dashed">
-          <CardContent className="p-8 text-center text-sm text-muted-foreground">Ingen brugere fundet.</CardContent>
-        </Card>
+        <EmptyState
+          icon={<Users />}
+          title="Ingen brugere fundet"
+          description="Prøv en anden søgning eller rollefilter."
+        />
       ) : (
         <Card className="rounded-xl border-border shadow-sm overflow-hidden">
           <div className="divide-y divide-border">

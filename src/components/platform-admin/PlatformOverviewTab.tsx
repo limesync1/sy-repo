@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Building2, Users, ShoppingCart, DollarSign, TrendingUp, MapPin, Tag, Star,
   ArrowUp, ArrowDown, Minus,
@@ -12,6 +11,7 @@ import { useAdminFilters } from "./lib/AdminFiltersContext";
 import { exportCsv } from "./lib/csv";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import { PageHeader, StatCard, SectionCard } from "@/components/admin/shared/AdminUI";
 
 const fmt = (n: number) => n.toLocaleString("da-DK");
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
@@ -53,33 +53,36 @@ const TrendBadge = ({ pct }: { pct: number }) => {
   );
 };
 
+/**
+ * KPI-kort — bygger ovenpå StatCard fra AdminUI så vi har 100% samme ramme/typografi
+ * som virksomhedspanelet, men tilføjer trend-badge + sparkline i bund.
+ */
 const KpiCard = ({
-  label, value, icon: Icon, color, bg, sub, trend, spark,
-}: { label: string; value: string; icon: any; color: string; bg: string; sub?: string; trend?: number; spark?: { v: number }[] }) => (
-  <Card className="rounded-xl border-border shadow-sm overflow-hidden relative">
-    <CardContent className="p-4">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-        <div className={`rounded-lg p-1.5 ${bg}`}>
-          <Icon className={`h-3.5 w-3.5 ${color}`} />
-        </div>
+  label, value, icon: Icon, tone, sub, trend, spark,
+}: { label: string; value: string; icon: any; tone: "emerald" | "blue" | "violet" | "amber"; sub?: string; trend?: number; spark?: { v: number }[] }) => (
+  <div className="relative">
+    <StatCard
+      label={label}
+      value={
+        <span className="inline-flex items-baseline gap-2">
+          {value}
+          {trend !== undefined && <TrendBadge pct={trend} />}
+        </span>
+      }
+      icon={<Icon />}
+      tone={tone}
+      hint={sub}
+    />
+    {spark && spark.length > 1 && (
+      <div className="pointer-events-none absolute inset-x-3 bottom-2 h-6 opacity-70">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={spark}>
+            <Line type="monotone" dataKey="v" stroke={`hsl(var(--accent))`} strokeWidth={1.5} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
-      <div className="mt-2 flex items-baseline gap-2">
-        <p className="text-2xl font-bold tracking-tight text-foreground">{value}</p>
-        {trend !== undefined && <TrendBadge pct={trend} />}
-      </div>
-      {sub && <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>}
-      {spark && spark.length > 1 && (
-        <div className="mt-2 -mx-1 h-8">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={spark}>
-              <Line type="monotone" dataKey="v" stroke={`hsl(var(--accent))`} strokeWidth={1.5} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-    </CardContent>
-  </Card>
+    )}
+  </div>
 );
 
 const PlatformOverviewTab = () => {
@@ -171,59 +174,41 @@ const PlatformOverviewTab = () => {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">Periode: <span className="font-medium text-foreground">{from.toLocaleDateString("da-DK")} – {to.toLocaleDateString("da-DK")}</span></p>
-        <Button size="sm" variant="outline" onClick={handleExport} className="h-8 gap-1.5">
-          <Download className="h-3.5 w-3.5" /> Eksportér
-        </Button>
-      </div>
+      <PageHeader
+        title="Platform-overblik"
+        description={<>Periode: <span className="font-medium text-foreground">{from.toLocaleDateString("da-DK")} – {to.toLocaleDateString("da-DK")}</span></>}
+        action={
+          <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
+            <Download className="h-3.5 w-3.5" /> Eksportér
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard label="GMV" value={fmtKr(gmv)} icon={DollarSign} color="text-emerald-600" bg="bg-emerald-500/10"
+        <KpiCard label="GMV" value={fmtKr(gmv)} icon={DollarSign} tone="emerald"
           sub={`${fmtKr(completedGmv)} afsluttet`} trend={trendPct(gmv, gmvPrev)} spark={sparkGmv} />
-        <KpiCard label="Ordrer" value={fmt(ordersInRange.length)} icon={ShoppingCart} color="text-blue-600" bg="bg-blue-500/10"
+        <KpiCard label="Ordrer" value={fmt(ordersInRange.length)} icon={ShoppingCart} tone="blue"
           sub={`Snit ${fmtKr(avgOrder)}`} trend={trendPct(ordersInRange.length, ordersPrev.length)} spark={sparkOrders} />
-        <KpiCard label="Nye virksomheder" value={fmt(bizInRange.length)} icon={Building2} color="text-violet-600" bg="bg-violet-500/10"
+        <KpiCard label="Nye virksomheder" value={fmt(bizInRange.length)} icon={Building2} tone="violet"
           sub={`${data.businesses.length} i alt`} trend={trendPct(bizInRange.length, bizPrev.length)} spark={sparkBiz} />
-        <KpiCard label="Nye brugere" value={fmt(usersInRange.length)} icon={Users} color="text-amber-600" bg="bg-amber-500/10"
+        <KpiCard label="Nye brugere" value={fmt(usersInRange.length)} icon={Users} tone="amber"
           sub={`${data.profiles.length} i alt`} trend={trendPct(usersInRange.length, usersPrev.length)} spark={sparkUsers} />
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card className="rounded-xl border-border shadow-sm"><CardContent className="p-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">MRR (cyklisk)</p>
-          <p className="mt-1.5 text-xl font-bold text-foreground tabular-nums">{fmtKr(mrr)}</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">{activeSubs.length} aktive abonnementer</p>
-        </CardContent></Card>
-        <Card className="rounded-xl border-border shadow-sm"><CardContent className="p-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Genkøbsrate</p>
-          <p className="mt-1.5 text-xl font-bold text-foreground tabular-nums">{repeatRate.toFixed(0)}%</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">{repeatCustomers} af {uniqueCustomers} kunder</p>
-        </CardContent></Card>
-        <Card className="rounded-xl border-border shadow-sm"><CardContent className="p-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Bedste ugedag</p>
-          <p className="mt-1.5 text-xl font-bold text-foreground">{orderByDow[bestDow] > 0 ? dayOfWeek[bestDow] : "—"}</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">{orderByDow[bestDow]} ordrer</p>
-        </CardContent></Card>
-        <Card className="rounded-xl border-border shadow-sm"><CardContent className="p-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Anmeldelser</p>
-          <p className="mt-1.5 text-xl font-bold text-foreground tabular-nums">{data.reviews.length}</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {data.reviews.length ? `${(data.reviews.reduce((s, r) => s + (r.rating || 0), 0) / data.reviews.length).toFixed(1)} ★ snit` : "Ingen endnu"}
-          </p>
-        </CardContent></Card>
+        <StatCard label="MRR (cyklisk)" value={fmtKr(mrr)} icon={<DollarSign />} tone="emerald" hint={`${activeSubs.length} aktive abonnementer`} />
+        <StatCard label="Genkøbsrate" value={`${repeatRate.toFixed(0)}%`} icon={<Users />} tone="blue" hint={`${repeatCustomers} af ${uniqueCustomers} kunder`} />
+        <StatCard label="Bedste ugedag" value={orderByDow[bestDow] > 0 ? dayOfWeek[bestDow] : "—"} icon={<TrendingUp />} tone="violet" hint={`${orderByDow[bestDow]} ordrer`} />
+        <StatCard label="Anmeldelser" value={String(data.reviews.length)} icon={<Star />} tone="amber"
+          hint={data.reviews.length ? `${(data.reviews.reduce((s, r) => s + (r.rating || 0), 0) / data.reviews.length).toFixed(1)} ★ snit` : "Ingen endnu"} />
       </div>
 
-      <Card className="rounded-xl border-border shadow-sm">
-        <CardContent className="p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-foreground">Vækst — {rangeLabel.toLowerCase()}</p>
-              <p className="text-xs text-muted-foreground">Daglige nye ordrer, brugere og virksomheder</p>
-            </div>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <div className="h-64 w-full">
+      <SectionCard
+        title={<>Vækst — {rangeLabel.toLowerCase()}</>}
+        icon={<TrendingUp />}
+        description="Daglige nye ordrer, brugere og virksomheder"
+      >
+        <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={days} margin={{ left: -20, right: 8, top: 8, bottom: 0 }}>
                 <defs>
@@ -245,18 +230,12 @@ const PlatformOverviewTab = () => {
                 <Area type="monotone" dataKey="businesses" stroke="hsl(var(--muted-foreground))" fill="transparent" strokeWidth={2} strokeDasharray="4 4" name="Nye virksomheder" />
               </AreaChart>
             </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-xl border-border shadow-sm">
-          <CardContent className="p-4">
-            <div className="mb-2 flex items-center gap-2">
-              <Tag className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm font-semibold text-foreground">Top kategorier</p>
-            </div>
-            {topCategories.length === 0 ? (
+        <SectionCard title="Top kategorier" icon={<Tag />}>
+          {topCategories.length === 0 ? (
               <p className="text-xs text-muted-foreground">Ingen data endnu</p>
             ) : (
               <ul className="space-y-2">
@@ -276,16 +255,10 @@ const PlatformOverviewTab = () => {
                 })()}
               </ul>
             )}
-          </CardContent>
-        </Card>
+        </SectionCard>
 
-        <Card className="rounded-xl border-border shadow-sm">
-          <CardContent className="p-4">
-            <div className="mb-2 flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm font-semibold text-foreground">Top byer</p>
-            </div>
-            {topCities.length === 0 ? (
+        <SectionCard title="Top byer" icon={<MapPin />}>
+          {topCities.length === 0 ? (
               <p className="text-xs text-muted-foreground">Ingen data endnu</p>
             ) : (
               <ul className="space-y-2">
@@ -305,16 +278,10 @@ const PlatformOverviewTab = () => {
                 })()}
               </ul>
             )}
-          </CardContent>
-        </Card>
+        </SectionCard>
 
-        <Card className="rounded-xl border-border shadow-sm">
-          <CardContent className="p-4">
-            <div className="mb-2 flex items-center gap-2">
-              <Star className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm font-semibold text-foreground">Top virksomheder ({rangeLabel.toLowerCase()})</p>
-            </div>
-            {topBusinesses.length === 0 ? (
+        <SectionCard title={<>Top virksomheder ({rangeLabel.toLowerCase()})</>} icon={<Star />}>
+          {topBusinesses.length === 0 ? (
               <p className="text-xs text-muted-foreground">Ingen omsætning i perioden</p>
             ) : (
               <ul className="space-y-1.5">
@@ -326,8 +293,7 @@ const PlatformOverviewTab = () => {
                 ))}
               </ul>
             )}
-          </CardContent>
-        </Card>
+        </SectionCard>
       </div>
     </div>
   );

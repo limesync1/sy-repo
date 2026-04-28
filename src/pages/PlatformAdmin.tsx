@@ -149,7 +149,10 @@ const PlatformAdmin = () => {
             >
               <Menu className="h-5 w-5" />
             </button>
-            <h1 className="truncate text-lg font-semibold text-foreground">{current?.label}</h1>
+            <h1 className="truncate text-sm font-medium text-muted-foreground">
+              Platform <span className="text-foreground/40">/</span>{" "}
+              <span className="text-foreground">{current?.label}</span>
+            </h1>
             {current?.hasRange && (
               <div className="ml-auto flex items-center gap-2 min-w-0">
                 <RangePicker />

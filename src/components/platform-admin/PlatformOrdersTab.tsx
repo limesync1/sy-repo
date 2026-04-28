@@ -1,11 +1,10 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Mail, Phone, Calendar, Download, Trash2, ChevronDown } from "lucide-react";
+import { Mail, Phone, Calendar, Download, Trash2, ChevronDown, ShoppingCart } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -13,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAdminFilters } from "./lib/AdminFiltersContext";
 import { exportCsv } from "./lib/csv";
+import { PageHeader, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
 
 const STATUS_OPTIONS = [
   { value: "pending", label: "Afventer" },
@@ -127,24 +127,25 @@ const PlatformOrdersTab = () => {
 
   return (
     <div className="space-y-4">
+      <PageHeader
+        title="Ordrer"
+        description={<>{totals.count} ordrer · <span className="font-medium text-foreground">{fmtKr(totals.gmv)}</span> i {rangeLabel.toLowerCase()}</>}
+        action={
+          <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
+            <Download className="h-3.5 w-3.5" /> CSV
+          </Button>
+        }
+      />
+
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[240px] max-w-md">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Søg kunde, email, virksomhed..." className="pl-9" />
-        </div>
+        <SearchInput value={q} onChange={setQ} placeholder="Søg kunde, email, virksomhed..." />
         <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[180px] h-10"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle statusser</SelectItem>
             {STATUS_OPTIONS.map((s) => (<SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>))}
           </SelectContent>
         </Select>
-        <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
-          <Download className="h-3.5 w-3.5" /> CSV
-        </Button>
-        <div className="ml-auto text-xs text-muted-foreground">
-          {totals.count} ordrer · <span className="font-semibold text-foreground">{fmtKr(totals.gmv)}</span>
-        </div>
       </div>
 
       {someSelected && (
@@ -179,9 +180,11 @@ const PlatformOrdersTab = () => {
           {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-14 rounded-lg bg-secondary/40 animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <Card className="rounded-xl border-dashed">
-          <CardContent className="p-8 text-center text-sm text-muted-foreground">Ingen ordrer i denne periode.</CardContent>
-        </Card>
+        <EmptyState
+          icon={<ShoppingCart />}
+          title="Ingen ordrer i denne periode"
+          description="Skift periode i toppen, eller justér filtre."
+        />
       ) : (
         <Card className="rounded-xl border-border shadow-sm overflow-hidden">
           <div className="flex items-center gap-3 border-b border-border bg-secondary/30 px-4 py-2 text-xs font-medium text-muted-foreground">
