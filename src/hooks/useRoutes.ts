@@ -727,10 +727,7 @@ export const useReorderStops = () => {
         return supabase.from("route_stops").update(patch).eq("id", u.id);
       }));
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
-      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
-    },
+    onSuccess: () => invalidateRouteSyncQueries(qc),
   });
 };
 
@@ -741,11 +738,7 @@ export const useDeleteStop = () => {
       const { error } = await supabase.from("route_stops").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
-      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
-      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
-    },
+    onSuccess: () => invalidateRouteSyncQueries(qc),
   });
 };
 
@@ -785,7 +778,7 @@ export const useSetStopAssignees = () => {
       return { count: rows.length };
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+      invalidateRouteSyncQueries(qc);
       qc.invalidateQueries({ queryKey: ["stop-assignees-bulk"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke opdatere medarbejdere"),
@@ -811,9 +804,7 @@ export const useAssignSingleEmployee = () => {
         .insert({ stop_id, employee_id, is_lead: true });
       if (insErr) throw insErr;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
-    },
+    onSuccess: () => invalidateRouteSyncQueries(qc),
     onError: (e: any) => toast.error(e.message || "Kunne ikke tildele medarbejder"),
   });
 };
