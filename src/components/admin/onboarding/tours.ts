@@ -187,17 +187,4 @@ export const TOURS: Record<string, TourDefinition> = {
     ],
   },
 
-  "billing": {
-    id: "billing",
-    completesStepId: "billing",
-    steps: [
-      {
-        navigateTo: "/virksomhed?tab=settings",
-        selector: '#settings-billing',
-        title: "Betaling og kort",
-        body: "Tilføj et betalingskort så din konto fortsætter uden afbrydelse efter prøveperioden.",
-        placement: "right",
-      },
-    ],
-  },
 };
