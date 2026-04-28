@@ -5,9 +5,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Repeat, Search, Download } from "lucide-react";
+import { Repeat, Search, Download, DollarSign, PauseCircle, XCircle, ListChecks } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { exportCsv } from "./lib/csv";
+import { PageHeader, StatCard, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
 
 const fmtKr = (n: number) => `${Number(n).toLocaleString("da-DK")} kr`;
 
@@ -64,30 +65,27 @@ const PlatformSubscriptionsTab = () => {
 
   return (
     <div className="space-y-4">
+      <PageHeader
+        title="Abonnementer"
+        description="Tilbagevendende services og MRR på platformen."
+        action={
+          <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
+            <Download className="h-3.5 w-3.5" /> CSV
+          </Button>
+        }
+      />
+
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {[
-          { label: "Aktive", value: stats.active, sub: `${fmtKr(stats.mrr)} cyklisk`, color: "text-emerald-600" },
-          { label: "Pauset", value: stats.paused, color: "text-amber-600" },
-          { label: "Opsagt", value: stats.cancelled, color: "text-red-600" },
-          { label: "Total", value: stats.total, color: "text-foreground" },
-        ].map((s) => (
-          <Card key={s.label} className="rounded-xl border-border shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{s.label}</p>
-              <p className={`mt-1.5 text-2xl font-bold tabular-nums ${s.color}`}>{s.value}</p>
-              {s.sub && <p className="mt-0.5 text-xs text-muted-foreground">{s.sub}</p>}
-            </CardContent>
-          </Card>
-        ))}
+        <StatCard label="Aktive" value={String(stats.active)} icon={<DollarSign />} tone="emerald" hint={`${fmtKr(stats.mrr)} cyklisk`} />
+        <StatCard label="Pauset" value={String(stats.paused)} icon={<PauseCircle />} tone="amber" />
+        <StatCard label="Opsagt" value={String(stats.cancelled)} icon={<XCircle />} tone="neutral" />
+        <StatCard label="Total" value={String(stats.total)} icon={<ListChecks />} tone="blue" />
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[240px] max-w-md">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Søg service, virksomhed..." className="pl-9" />
-        </div>
+        <SearchInput value={q} onChange={setQ} placeholder="Søg service, virksomhed..." />
         <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[180px] h-10"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle</SelectItem>
             <SelectItem value="active">Aktive</SelectItem>
@@ -95,9 +93,6 @@ const PlatformSubscriptionsTab = () => {
             <SelectItem value="cancelled">Opsagt</SelectItem>
           </SelectContent>
         </Select>
-        <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
-          <Download className="h-3.5 w-3.5" /> CSV
-        </Button>
       </div>
 
       {isLoading ? (
@@ -105,9 +100,11 @@ const PlatformSubscriptionsTab = () => {
           {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-14 rounded-lg bg-secondary/40 animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <Card className="rounded-xl border-dashed">
-          <CardContent className="p-8 text-center text-sm text-muted-foreground">Ingen abonnementer fundet.</CardContent>
-        </Card>
+        <EmptyState
+          icon={<Repeat />}
+          title="Ingen abonnementer fundet"
+          description="Justér søgning eller status-filter."
+        />
       ) : (
         <Card className="rounded-xl border-border shadow-sm overflow-hidden">
           <div className="divide-y divide-border">
