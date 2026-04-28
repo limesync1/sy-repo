@@ -565,6 +565,26 @@ const LiveChatWidget = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-0.5">
+                  {conversation && !closed && (
+                    <button
+                      onClick={endChatSession}
+                      aria-label="Afslut samtale"
+                      title="Afslut samtale"
+                      className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                    >
+                      <Archive className="h-4 w-4" />
+                    </button>
+                  )}
+                  {conversation && (
+                    <button
+                      onClick={startNewConversation}
+                      aria-label="Start ny samtale"
+                      title="Start ny samtale"
+                      className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  )}
                   <button
                     onClick={toggleMute}
                     aria-label={muted ? "Slå lyd til" : "Slå lyd fra"}
