@@ -18,6 +18,8 @@ import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
+import { LoadingScreen } from "@/components/admin/shared/LoadingScreen";
+import { PageTransition } from "@/components/admin/shared/PageTransition";
 import { PageHeader, StatCard } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -120,11 +122,7 @@ const EmployeeApp = () => {
   const endDay = useEndWorkday();
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
-        Indlæser...
-      </div>
-    );
+    return <LoadingScreen full label="Indlæser dine ruter…" />;
   }
   if (!user) return <Navigate to="/log-ind" replace />;
 
