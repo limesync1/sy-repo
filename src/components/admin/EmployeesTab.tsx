@@ -679,6 +679,25 @@ const EmployeeRow = ({
                 Andel af omsætningen for udførte opgaver. Mellem 0 og 100.
               </p>
             </div>
+            <div className="sm:col-span-2">
+              <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-secondary/40 p-3 transition-colors hover:bg-secondary">
+                <input
+                  type="checkbox"
+                  checked={editLivechat}
+                  onChange={(e) => setEditLivechat(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-accent"
+                />
+                <span className="flex-1">
+                  <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                    <MessageCircle className="h-3.5 w-3.5 text-accent" />
+                    Adgang til livechat
+                  </span>
+                  <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                    Når aktiveret kan medarbejderen besvare livechat-henvendelser fra kunder i deres eget medarbejderpanel.
+                  </span>
+                </span>
+              </label>
+            </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="ghost" onClick={() => setEditOpen(false)}>Annuller</Button>
@@ -702,6 +721,7 @@ const EmployeeRow = ({
                     phone: editPhone.trim() || null,
                     title: editTitle.trim() || null,
                     commission_pct: pctNum,
+                    livechat_enabled: editLivechat,
                   } as any,
                   {
                     onSuccess: () => {
