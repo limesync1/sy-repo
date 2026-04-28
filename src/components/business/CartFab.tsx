@@ -32,11 +32,6 @@ const CartFab = () => {
       type="button"
       onClick={openSheet}
       aria-label={`Åbn bestilling med ${count} ${count === 1 ? "service" : "services"}`}
-      style={{
-        // Fallback hvis variablen ikke er sat (siden uden livechat).
-        // @ts-expect-error CSS custom property
-        "--livechat-fab-width": "var(--livechat-fab-width, 0px)",
-      }}
       className="fixed z-40 flex items-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-[0_18px_40px_-16px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_22px_50px_-16px_hsl(var(--foreground)/0.6)] active:scale-95 bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] right-[calc(env(safe-area-inset-right,0px)+1.25rem)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] sm:right-[calc(env(safe-area-inset-right,0px)+1.5rem+var(--livechat-fab-width,0px)+0.75rem)]"
     >
       <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-background/15">
