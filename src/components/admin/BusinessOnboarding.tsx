@@ -379,7 +379,7 @@ const BusinessOnboarding = () => {
             </Section>
 
             {/* 2. Funktioner */}
-            <Section number={2} title="Vælg dine funktioner" subtitle="Tilkøb kun det du har brug for">
+            <Section number={2} title="Vælg dine funktioner" subtitle="Tilkøb kun det du har brug for — alt kan til- eller fravælges senere under Indstillinger">
               <div className="grid gap-3">
                 {FEATURES.map(({ key, icon: Icon, title, description }) => {
                   const active = features[key];
