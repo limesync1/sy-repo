@@ -705,6 +705,9 @@ export const useUpdateStop = () => {
       qc.invalidateQueries({ queryKey: ["route-stops"] });
       qc.invalidateQueries({ queryKey: ["stop-assignees-bulk"] });
       qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
+      qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
+      qc.invalidateQueries({ queryKey: ["my-day-stops"] });
+      qc.invalidateQueries({ queryKey: ["my-route-data"] });
     },
   });
 };
