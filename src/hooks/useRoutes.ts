@@ -3,6 +3,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 
+const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>) => {
+  qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+  qc.invalidateQueries({ queryKey: ["route-stops"] });
+  qc.invalidateQueries({ queryKey: ["routes"] });
+  qc.invalidateQueries({ queryKey: ["routes-range"] });
+  qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+  qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
+  qc.invalidateQueries({ queryKey: ["my-day-stops"] });
+  qc.invalidateQueries({ queryKey: ["my-day-routes"] });
+  qc.invalidateQueries({ queryKey: ["my-route-data"] });
+  qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
+  qc.invalidateQueries({ queryKey: ["order-for-stop"] });
+};
+
 export type Route = {
   id: string;
   business_id: string;
@@ -675,11 +689,7 @@ export const useAddStop = () => {
       if (error) throw error;
       return data as RouteStop;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
-      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
-      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
-    },
+    onSuccess: () => invalidateRouteSyncQueries(qc),
   });
 };
 
@@ -701,13 +711,8 @@ export const useUpdateStop = () => {
       return data as RouteStop;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
-      qc.invalidateQueries({ queryKey: ["route-stops"] });
+      invalidateRouteSyncQueries(qc);
       qc.invalidateQueries({ queryKey: ["stop-assignees-bulk"] });
-      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
-      qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
-      qc.invalidateQueries({ queryKey: ["my-day-stops"] });
-      qc.invalidateQueries({ queryKey: ["my-route-data"] });
     },
   });
 };
@@ -716,16 +721,15 @@ export const useReorderStops = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (updates: { id: string; sequence: number; route_id?: string }[]) => {
-      await Promise.all(updates.map((u) => {
+      const results = await Promise.all(updates.map((u) => {
         const patch: any = { sequence: u.sequence };
         if (u.route_id) patch.route_id = u.route_id;
         return supabase.from("route_stops").update(patch).eq("id", u.id);
       }));
+      const failed = results.find((result) => result.error);
+      if (failed?.error) throw failed.error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
-      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
-    },
+    onSuccess: () => invalidateRouteSyncQueries(qc),
   });
 };
 
@@ -736,11 +740,7 @@ export const useDeleteStop = () => {
       const { error } = await supabase.from("route_stops").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
-      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
-      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
-    },
+    onSuccess: () => invalidateRouteSyncQueries(qc),
   });
 };
 
@@ -780,7 +780,7 @@ export const useSetStopAssignees = () => {
       return { count: rows.length };
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+      invalidateRouteSyncQueries(qc);
       qc.invalidateQueries({ queryKey: ["stop-assignees-bulk"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke opdatere medarbejdere"),
@@ -806,9 +806,7 @@ export const useAssignSingleEmployee = () => {
         .insert({ stop_id, employee_id, is_lead: true });
       if (insErr) throw insErr;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
-    },
+    onSuccess: () => invalidateRouteSyncQueries(qc),
     onError: (e: any) => toast.error(e.message || "Kunne ikke tildele medarbejder"),
   });
 };
@@ -819,6 +817,7 @@ export const useUpdateStopStatus = () => {
     mutationFn: async ({ id, status, notes }: { id: string; status: string; notes?: string }) => {
       const updates: any = { status };
       if (status === "completed") updates.completed_at = new Date().toISOString();
+      else updates.completed_at = null;
       if (notes !== undefined) updates.notes = notes;
       const { data, error } = await supabase
         .from("route_stops")
@@ -829,13 +828,7 @@ export const useUpdateStopStatus = () => {
       if (error) throw error;
       return data as RouteStop;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["route-stops"] });
-      qc.invalidateQueries({ queryKey: ["my-day-stops"] });
-      qc.invalidateQueries({ queryKey: ["my-day-routes"] });
-      qc.invalidateQueries({ queryKey: ["my-route-data"] });
-      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
-    },
+    onSuccess: () => invalidateRouteSyncQueries(qc),
     onError: (e: any) => toast.error(e.message || "Kunne ikke opdatere stop"),
   });
 };
@@ -1038,9 +1031,7 @@ export const useAutoAssignStops = () => {
       const stopsTouched = new Set(inserts.map((i) => i.stop_id)).size;
       return { assigned: stopsTouched, totalAssignments: inserts.length };
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
-    },
+    onSuccess: () => invalidateRouteSyncQueries(qc),
     onError: (e: any) => toast.error(e.message || "Kunne ikke fordele aftaler"),
   });
 };
