@@ -239,10 +239,14 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
             !c.visitor_email.toLowerCase().includes(q) &&
             !(c.subject || "").toLowerCase().includes(q)) return false;
       }
+      if (dateFilter) {
+        const day = new Date(c.last_message_at).toISOString().slice(0, 10);
+        if (day !== dateFilter) return false;
+      }
       return true;
     });
     return [...list].sort((a, b) => +new Date(b.last_message_at) - +new Date(a.last_message_at));
-  }, [conversations, filter, search]);
+  }, [conversations, filter, search, dateFilter]);
 
   const totalUnread = conversations.reduce((s, c) => s + (c.unread_admin_count || 0), 0);
 
