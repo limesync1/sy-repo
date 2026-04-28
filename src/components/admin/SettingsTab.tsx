@@ -18,6 +18,7 @@ import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/A
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useBusinessPlan, useReactivateBusinessPlan,
   usePlatformPricing, useUpdateBusinessPlan, useRemovePaymentMethod,
