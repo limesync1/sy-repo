@@ -174,6 +174,8 @@ export const useEndStopTime = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["stop-time-entries"] });
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+      qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke afslutte tidsregistrering"),
   });
@@ -269,6 +271,7 @@ export const useEndWorkday = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["my-workday"] });
+      qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke afslutte arbejdsdag"),
   });
