@@ -509,13 +509,16 @@ const SettingsTab = ({ business }: { business: any }) => {
       accounting_integration_enabled: accountingIntegrationEnabled,
       leads_enabled: leadsEnabled,
       livechat_enabled: livechatEnabled,
+      custom_domain: customDomain.trim()
+        ? customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "")
+        : null,
       selected_subcategories: selectedSubcategories,
     },
   }), [
     business.id, business.name, business.settings,
     name, description, phone, email, address, city, zipCode,
     logoUrl, coverUrl, selectedCategories, selectedSubcategories,
-    openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled, livechatEnabled,
+    openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled, livechatEnabled, customDomain,
   ]);
 
   useEffect(() => {
