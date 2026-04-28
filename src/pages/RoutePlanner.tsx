@@ -709,7 +709,7 @@ const Planner = () => {
             <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg">
               {/* Sidebar: Aftalepool */}
               <ResizablePanel defaultSize={20} minSize={14} maxSize={36} className="overflow-hidden">
-                <Card className="flex flex-col h-full overflow-hidden">
+                <Card data-tour="routes-unassigned" className="flex flex-col h-full overflow-hidden">
                   <div className="p-3 border-b bg-secondary/30 space-y-2">
                     <div className="flex items-center justify-between">
                       <h2 className="font-semibold text-sm flex items-center gap-1.5">
@@ -804,6 +804,7 @@ const Planner = () => {
 
               {/* Calendar */}
               <ResizablePanel defaultSize={80} className="overflow-hidden">
+                <div data-tour="routes-calendar" className="h-full">
                 <MonthWeekCalendar
                   view={view}
                   anchorDate={date}
@@ -819,6 +820,7 @@ const Planner = () => {
                   draggingType={activeDragData?.type === "job" ? "job" : activeDragData?.type === "route" ? "route" : null}
                   weatherByDate={weatherByDate}
                 />
+                </div>
               </ResizablePanel>
             </ResizablePanelGroup>
         </div>

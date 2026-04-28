@@ -130,7 +130,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
         title="Medarbejdere"
         description="Tilføj medarbejdere — der oprettes automatisk en konto, og de modtager login-oplysninger på email."
         action={!showForm ? (
-          <PrimaryButton onClick={() => setShowForm(true)} icon={<UserPlus />}>
+          <PrimaryButton data-tour="employees-create-button" onClick={() => setShowForm(true)} icon={<UserPlus />}>
             Tilføj medarbejder
           </PrimaryButton>
         ) : null}

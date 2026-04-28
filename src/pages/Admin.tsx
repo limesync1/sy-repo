@@ -491,7 +491,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
         title="Servicekatalog"
         description={`${services?.length || 0} services · ${totalOrders} bestillinger i alt`}
         action={
-          <PrimaryButton onClick={() => setShowForm(true)} icon={<Plus />}>
+          <PrimaryButton data-tour="services-create-button" onClick={() => setShowForm(true)} icon={<Plus />}>
             Tilføj service
           </PrimaryButton>
         }
@@ -544,7 +544,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
         <div className="hidden" />
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-3" data-tour="services-list">
         {filtered?.map((s: any) => (
           <ServiceRow
             key={s.id}
