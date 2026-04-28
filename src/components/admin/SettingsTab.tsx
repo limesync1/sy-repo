@@ -272,6 +272,14 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [livechatEnabled, setLivechatEnabled] = useState<boolean>(
     !!(business.settings as any)?.livechat_enabled
   );
+  // Custom domæne — virksomhedens eget domæne (fx "ready2clean.dk") som
+  // bruges som kanonisk URL på den offentlige virksomhedsside, så Google
+  // indekserer deres eget domæne fremfor serviceydere.dk/v/slug. Selve
+  // DNS/hosting-koblingen håndteres separat — her gemmer vi blot
+  // præferencen så SEO-tags peger det rigtige sted hen.
+  const [customDomain, setCustomDomain] = useState<string>(
+    ((business.settings as any)?.custom_domain as string) || ""
+  );
 
   // CVR lookup
   const [cvrQuery, setCvrQuery] = useState("");
