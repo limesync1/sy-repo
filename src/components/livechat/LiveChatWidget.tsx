@@ -462,7 +462,7 @@ const LiveChatWidget = () => {
   const showRecommended =
     !!lastAdminMsg &&
     (!lastVisitorMsg || new Date(lastAdminMsg.created_at) > new Date(lastVisitorMsg.created_at));
-  const dynamicReplies = React.useMemo(() => getDynamicReplies(messages), [messages]);
+  const dynamicReplies = useMemo(() => getDynamicReplies(messages), [messages]);
 
   const unreadAdmin = messages.some((m) => m.sender_type === "admin") && !open;
   const closed = conversation?.status === "closed";
