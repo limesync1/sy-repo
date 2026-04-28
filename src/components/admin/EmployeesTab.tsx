@@ -186,7 +186,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
       </div>
 
       {/* Søgefelt */}
-      <div className="flex items-center gap-2 flex-wrap">
+      <div data-tour="employees-search" className="flex items-center gap-2 flex-wrap">
         <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, telefon eller titel..." />
       </div>
 
