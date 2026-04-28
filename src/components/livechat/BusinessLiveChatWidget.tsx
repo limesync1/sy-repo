@@ -5,12 +5,20 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
-  Image as ImageIcon, Volume2, VolumeX, Sparkles, Plus, Archive,
+  Image as ImageIcon, Volume2, VolumeX, Sparkles, MoreVertical, MessagesSquare, ArrowLeft,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import chatSounds from "./chatSounds";
+import {
+  upsertChat,
+  removeChat,
+  listChats,
+  subscribeToRegistry,
+  businessKey,
+  type RegisteredChat,
+} from "./chatRegistry";
 
 type ChatMessage = {
   id: string;
@@ -94,6 +102,13 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
   const [firstMessage, setFirstMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  // Visning af "Mine samtaler" overlay (skifter mellem flere samtaler).
+  const [showInbox, setShowInbox] = useState(false);
+  // Lille dropdown-menu for handlinger på den åbne samtale.
+  const [showMenu, setShowMenu] = useState(false);
+  const [chats, setChats] = useState<RegisteredChat[]>(() => listChats());
+  useEffect(() => subscribeToRegistry(() => setChats(listChats())), []);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -124,13 +139,31 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
         .eq("session_token", token)
         .maybeSingle()
         .then(({ data }) => {
-          if (data) setConversation(data as Conversation);
-          else localStorage.removeItem(STORAGE_KEY);
+          if (data) {
+            setConversation(data as Conversation);
+          } else {
+            localStorage.removeItem(STORAGE_KEY);
+            removeChat(businessKey(businessId));
+          }
         });
     } catch {
       localStorage.removeItem(STORAGE_KEY);
     }
-  }, [STORAGE_KEY]);
+  }, [STORAGE_KEY, businessId]);
+
+  // Sørg for at denne virksomheds-chat er registreret så længe vi har en
+  // aktiv samtale — så den dukker op i "Mine samtaler"-listen overalt.
+  useEffect(() => {
+    if (!conversation) return;
+    upsertChat({
+      key: businessKey(businessId),
+      scope: "business",
+      businessId,
+      label: brandName || businessName,
+      logoUrl: logoUrl || null,
+      href: typeof window !== "undefined" ? window.location.pathname : undefined,
+    });
+  }, [conversation, businessId, brandName, businessName, logoUrl]);
 
   // Subscribe til beskeder og samtale-status.
   useEffect(() => {
@@ -290,6 +323,14 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ token }));
       setConversation(conv as Conversation);
+      upsertChat({
+        key: businessKey(businessId),
+        scope: "business",
+        businessId,
+        label: brandName || businessName,
+        logoUrl: logoUrl || null,
+        href: typeof window !== "undefined" ? window.location.pathname : undefined,
+      });
       setFirstMessage("");
       setSubject("");
       chatSounds.outgoing();
@@ -368,6 +409,7 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
 
   const startNewConversation = () => {
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    removeChat(businessKey(businessId));
     setConversation(null);
     setMessages([]);
     setDraft("");
@@ -375,6 +417,7 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
     setError(null);
     setSubject("");
     setFirstMessage("");
+    setShowMenu(false);
   };
 
   const toggleMute = () => {
