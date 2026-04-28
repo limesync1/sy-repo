@@ -79,6 +79,42 @@ export type Database = {
           },
         ]
       }
+      business_onboarding_progress: {
+        Row: {
+          business_id: string
+          completed_steps: Json
+          created_at: string
+          current_step: string | null
+          fully_completed_at: string | null
+          id: string
+          skipped_steps: Json
+          updated_at: string
+          wizard_dismissed: boolean
+        }
+        Insert: {
+          business_id: string
+          completed_steps?: Json
+          created_at?: string
+          current_step?: string | null
+          fully_completed_at?: string | null
+          id?: string
+          skipped_steps?: Json
+          updated_at?: string
+          wizard_dismissed?: boolean
+        }
+        Update: {
+          business_id?: string
+          completed_steps?: Json
+          created_at?: string
+          current_step?: string | null
+          fully_completed_at?: string | null
+          id?: string
+          skipped_steps?: Json
+          updated_at?: string
+          wizard_dismissed?: boolean
+        }
+        Relationships: []
+      }
       business_plans: {
         Row: {
           accounting_integration_enabled: boolean
