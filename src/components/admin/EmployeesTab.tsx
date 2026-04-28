@@ -564,12 +564,34 @@ const EmployeeRow = ({
               setEditPhone(employee.phone || "");
               setEditTitle(employee.title || "");
               setEditCommission(employee.commission_pct != null ? String(employee.commission_pct) : "0");
+              setEditLivechat(!!(employee as any).livechat_enabled);
               setEditOpen(true);
             }}
             className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
           >
             <Pencil className="h-4 w-4" />
           </button></TooltipTrigger><TooltipContent>Rediger oplysninger</TooltipContent></Tooltip>
+          <Tooltip><TooltipTrigger asChild><button
+            onClick={() => {
+              const next = !(employee as any).livechat_enabled;
+              onUpdate.mutate(
+                { id: employee.id, business_id: businessId, livechat_enabled: next } as any,
+                {
+                  onSuccess: () =>
+                    toast.success(next ? "Livechat-adgang aktiveret" : "Livechat-adgang fjernet"),
+                  onError: (e: any) => toast.error(e.message),
+                },
+              );
+            }}
+            className={cn(
+              "rounded-md p-2 transition-colors",
+              (employee as any).livechat_enabled
+                ? "bg-accent/10 text-accent hover:bg-accent/15"
+                : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+            )}
+          >
+            <MessageCircle className="h-4 w-4" />
+          </button></TouripTrigger></Tooltip>
           {linked && (
             <Tooltip><TooltipTrigger asChild><button
               onClick={() => setConfirmReset(true)}
