@@ -1504,6 +1504,49 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <ToggleSwitch checked={leadsEnabled} onChange={() => setLeadsEnabled((v) => !v)} />
               </div>
 
+              {/* Dataimport — gratis. Når slået til markerer vi
+                  business_plans.data_import_requested så vores team kan
+                  tage fat i flytning af kunder, services og abonnementer
+                  fra virksomhedens nuværende system. */}
+              <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                    <UploadCloud className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold text-foreground">Dataimport fra dit nuværende system</p>
+                      <span className="text-[11px] font-semibold text-muted-foreground">Gratis</span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Vi flytter eksisterende kunder, services og abonnementer fra dit gamle system, så du slipper for manuelt arbejde. Slå til, og vores team tager kontakt for at aftale flytningen.
+                    </p>
+                    <StatusPill
+                      active={!!plan?.data_import_requested}
+                      activeLabel="Anmodet — vores team tager kontakt for at aftale flytningen"
+                      inactiveLabel="Ikke anmodet — slå til for at få hjælp til at flytte dine data"
+                    />
+                  </div>
+                </div>
+                <ToggleSwitch
+                  checked={!!plan?.data_import_requested}
+                  onChange={() => {
+                    if (!plan?.id) return;
+                    const next = !plan.data_import_requested;
+                    updatePlan.mutate(
+                      { businessId: business.id, patch: { data_import_requested: next } },
+                      {
+                        onSuccess: () => {
+                          toast.success(next
+                            ? "Dataimport anmodet — vi tager kontakt snarest."
+                            : "Anmodning om dataimport fjernet.");
+                        },
+                      },
+                    );
+                  }}
+                />
+              </div>
+
               {/* Live chat — gratis chat-widget på virksomhedssiden. Når slået
                   til vises en chat-knap nederst i hjørnet på din offentlige
                   side, og en "Live chat"-fane tilføjes til menuen her i panelet. */}
