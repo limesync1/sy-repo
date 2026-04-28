@@ -300,6 +300,16 @@ const LiveChatWidget = () => {
     }
   }, [messages, open]);
 
+  // Når popup'en åbnes på ny, skal vi altid hoppe ned til seneste besked.
+  useEffect(() => {
+    if (!open) return;
+    userScrolledUpRef.current = false;
+    requestAnimationFrame(() => {
+      const el = scrollRef.current;
+      if (el) el.scrollTo({ top: el.scrollHeight, behavior: "auto" });
+    });
+  }, [open]);
+
   // Track whether the user has scrolled away from the bottom.
   useEffect(() => {
     const el = scrollRef.current;
