@@ -363,15 +363,16 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
   const closed = conversation?.status === "closed";
   const headerName = brandName || businessName;
 
-  // Position — undgå overlap med CartFab (hvis virksomheden bruger en).
+  // Layout: Bestillings-FAB'en er rykket mod venstre på desktop, så livechat
+  // altid kan sidde yderst til højre. På mobil løfter vi livechat ovenover
+  // bestillingen så de ikke overlapper i siden.
   const fabBottomClass = cartFabVisible
     ? "bottom-[calc(env(safe-area-inset-bottom,0px)+5.25rem)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]"
     : "bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]";
-  const fabPositionClass = cartFabVisible
-    ? "right-[calc(env(safe-area-inset-right,0px)+1.25rem)] sm:right-[calc(env(safe-area-inset-right,0px)+11.5rem)]"
-    : "right-[calc(env(safe-area-inset-right,0px)+1.25rem)] sm:right-[calc(env(safe-area-inset-right,0px)+1.5rem)]";
+  const fabPositionClass =
+    "right-[calc(env(safe-area-inset-right,0px)+1.25rem)] sm:right-[calc(env(safe-area-inset-right,0px)+1.5rem)]";
   const panelBottomClass = fabBottomClass;
-  const panelPositionClass = "right-[calc(env(safe-area-inset-right,0px)+1.25rem)] sm:right-[calc(env(safe-area-inset-right,0px)+1.5rem)]";
+  const panelPositionClass = fabPositionClass;
 
   return (
     <>
@@ -382,7 +383,7 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
           aria-label={`Åbn livechat med ${headerName}`}
           className={`fixed z-40 flex items-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-[0_18px_40px_-16px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_22px_50px_-16px_hsl(var(--foreground)/0.6)] active:scale-95 ${fabBottomClass} ${fabPositionClass}`}
         >
-          <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-background/15 overflow-hidden">
+          <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-background overflow-hidden ring-1 ring-background/30">
             {logoUrl ? (
               <img
                 src={logoUrl}
@@ -391,7 +392,7 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
                 className="h-7 w-7 object-cover"
               />
             ) : (
-              <span className="text-[11px] font-bold">{initials(headerName)}</span>
+              <span className="text-[11px] font-bold text-foreground">{initials(headerName)}</span>
             )}
             <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
@@ -413,8 +414,16 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background/10 ring-1 ring-background/20 backdrop-blur">
-                      <MessageCircle className="h-4 w-4 text-background" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background ring-1 ring-background/20 backdrop-blur overflow-hidden">
+                      {logoUrl ? (
+                        <img
+                          src={logoUrl}
+                          alt={`${headerName} logo`}
+                          className="h-10 w-10 object-cover"
+                        />
+                      ) : (
+                        <span className="text-[13px] font-bold text-foreground">{initials(headerName)}</span>
+                      )}
                     </div>
                     <span className={`absolute -bottom-0.5 -right-0.5 flex h-3 w-3 items-center justify-center rounded-full ring-2 ring-foreground ${closed ? "bg-muted-foreground" : "bg-accent"}`}>
                       {!closed && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-background" />}
