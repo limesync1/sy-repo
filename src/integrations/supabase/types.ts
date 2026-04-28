@@ -281,6 +281,89 @@ export type Database = {
           },
         ]
       }
+      chat_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string
+          session_token: string
+          status: string
+          subject: string | null
+          unread_admin_count: number
+          unread_visitor_count: number
+          updated_at: string
+          user_id: string | null
+          visitor_email: string
+          visitor_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          session_token: string
+          status?: string
+          subject?: string | null
+          unread_admin_count?: number
+          unread_visitor_count?: number
+          updated_at?: string
+          user_id?: string | null
+          visitor_email: string
+          visitor_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          session_token?: string
+          status?: string
+          subject?: string | null
+          unread_admin_count?: number
+          unread_visitor_count?: number
+          updated_at?: string
+          user_id?: string | null
+          visitor_email?: string
+          visitor_name?: string
+        }
+        Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          read_at: string | null
+          sender_name: string
+          sender_type: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_name: string
+          sender_type: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_name?: string
+          sender_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chat_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string

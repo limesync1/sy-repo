@@ -19,6 +19,7 @@ import { template as routeAssigned } from './route-assigned.tsx'
 import { template as manualOrderApproval } from './manual-order-approval.tsx'
 import { template as employeePasswordReset } from './employee-password-reset.tsx'
 import { template as newLead } from './new-lead.tsx'
+import { template as newChatMessage } from './new-chat-message.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'welcome': welcome,
@@ -31,4 +32,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'manual-order-approval': manualOrderApproval,
   'employee-password-reset': employeePasswordReset,
   'new-lead': newLead,
+  'new-chat-message': newChatMessage,
 }
