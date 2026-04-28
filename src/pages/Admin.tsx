@@ -26,6 +26,7 @@ const EmployeesTab = lazy(() => import("@/components/admin/EmployeesTab"));
 const CustomersTab = lazy(() => import("@/components/admin/CustomersTab"));
 const SettingsTab = lazy(() => import("@/components/admin/SettingsTab"));
 const LeadsTab = lazy(() => import("@/components/admin/LeadsTab"));
+const BusinessLiveChatTab = lazy(() => import("@/components/admin/BusinessLiveChatTab"));
 import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
@@ -166,7 +167,7 @@ const AdminDashboard = () => {
   const initialTab = ((): AdminTabKey => {
     if (typeof window === "undefined") return "dashboard";
     const t = new URLSearchParams(window.location.search).get("tab") as AdminTabKey | null;
-    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","settings"];
+    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","settings"];
     return t && allowed.includes(t) ? t : "dashboard";
   })();
   const [activeTab, setActiveTab] = useState<AdminTabKey>(initialTab);
@@ -177,7 +178,7 @@ const AdminDashboard = () => {
     if (typeof window === "undefined") return;
     const onPop = () => {
       const t = new URLSearchParams(window.location.search).get("tab") as AdminTabKey | null;
-      const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","settings"];
+      const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","settings"];
       setActiveTab(t && allowed.includes(t) ? t : "dashboard");
     };
     window.addEventListener("popstate", onPop);
@@ -189,7 +190,7 @@ const AdminDashboard = () => {
   // bliver fanen ikke skiftet, fordi React Router ikke fyrer popstate.
   useEffect(() => {
     const t = new URLSearchParams(location.search).get("tab") as AdminTabKey | null;
-    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","settings"];
+    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","settings"];
     const next = t && allowed.includes(t) ? t : "dashboard";
     setActiveTab((curr) => (curr === next ? curr : next));
   }, [location.search]);
@@ -210,8 +211,12 @@ const AdminDashboard = () => {
   // Hvis leads-fanen er slået fra i Indstillinger → Avanceret, men URL'en peger
   // på ?tab=leads (fx fra et bogmærke), falder vi pænt tilbage til Overblik.
   const leadsEnabled = !!(business.settings as any)?.leads_enabled;
+  const livechatEnabled = !!(business.settings as any)?.livechat_enabled;
   const effectiveTab: AdminTabKey =
-    activeTab === "leads" && !leadsEnabled ? "dashboard" : activeTab;
+    (activeTab === "leads" && !leadsEnabled) ||
+    (activeTab === "livechat" && !livechatEnabled)
+      ? "dashboard"
+      : activeTab;
 
   const renderContent = () => {
     switch (effectiveTab) {
@@ -228,6 +233,7 @@ const AdminDashboard = () => {
       case "employees": return <EmployeesTab businessId={business.id} businessName={business.name} routePlanningEnabled={!!(business.settings as any)?.route_planning_enabled} />;
       case "reviews": return <ReviewsWrapper businessId={business.id} />;
       case "leads": return <LeadsTab businessId={business.id} />;
+      case "livechat": return <BusinessLiveChatTab businessId={business.id} businessName={business.name} />;
       case "settings": return <SettingsTab business={business} />;
       default: return null;
     }
