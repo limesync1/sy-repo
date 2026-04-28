@@ -39,7 +39,7 @@ const startSchema = z.object({
   message: z.string().trim().min(1, "Skriv en besked").max(2000),
 });
 
-const HIDDEN_PREFIXES = ["/admin", "/virksomhed/", "/medarbejder", "/godkend-bestilling"];
+const HIDDEN_PREFIXES = ["/admin", "/virksomhed/", "/medarbejder", "/godkend-bestilling", "/v/"];
 const HIDDEN_EXACT = ["/virksomhed"];
 
 const QUICK_TOPICS = [

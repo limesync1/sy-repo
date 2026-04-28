@@ -7,11 +7,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Send, Loader2, Search, User, Mail, Inbox, Archive,
   Paperclip, Image as ImageIcon, X as XIcon, Volume2, VolumeX, CheckCheck,
+  Clock, Zap, Calendar as CalendarIcon, BookText, Plus, Trash2, Pencil, UserPlus,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { da } from "date-fns/locale";
 import chatSounds from "@/components/livechat/chatSounds";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
+import { toast } from "sonner";
 
 type Conversation = {
   id: string;
@@ -23,6 +25,9 @@ type Conversation = {
   unread_admin_count: number;
   user_id: string | null;
   created_at: string;
+  first_admin_reply_at?: string | null;
+  closed_at?: string | null;
+  assigned_employee_id?: string | null;
 };
 
 type Message = {
@@ -34,6 +39,26 @@ type Message = {
   image_url?: string | null;
   is_system?: boolean;
   created_at: string;
+};
+
+type Template = { id: string; title: string; content: string; sort_order: number };
+type EmployeeOption = { id: string; name: string };
+
+/** SLA-mål: 5 min — gul, 15 min — rød. */
+const SLA_TARGET_MIN = 5;
+const SLA_BREACH_MIN = 15;
+
+const slaState = (c: Conversation): { label: string; tone: "ok" | "warn" | "breach" | "done" | "closed" } => {
+  if (c.status === "closed") return { label: "Lukket", tone: "closed" };
+  if (c.first_admin_reply_at) {
+    const ms = +new Date(c.first_admin_reply_at) - +new Date(c.created_at);
+    const min = Math.max(0, Math.round(ms / 60000));
+    return { label: `Svaret på ${min} min`, tone: "done" };
+  }
+  const min = Math.floor((Date.now() - +new Date(c.created_at)) / 60000);
+  if (min >= SLA_BREACH_MIN) return { label: `${min} min uden svar`, tone: "breach" };
+  if (min >= SLA_TARGET_MIN) return { label: `${min} min uden svar`, tone: "warn" };
+  return { label: `${min} min siden start`, tone: "ok" };
 };
 
 const formatTime = (iso: string) => {
@@ -61,11 +86,23 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
   const [pendingImagePreview, setPendingImagePreview] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [muted, setMuted] = useState<boolean>(chatSounds.isMuted());
+  const [dateFilter, setDateFilter] = useState<string>(""); // YYYY-MM-DD
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [tplDraft, setTplDraft] = useState<{ id?: string; title: string; content: string }>({ title: "", content: "" });
+  const [employees, setEmployees] = useState<EmployeeOption[]>([]);
+  const [tick, setTick] = useState(0); // bruges til at re-rendere SLA-pillen hvert minut
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const initialMessagesLoad = useRef(true);
   const userScrolledUpRef = useRef(false);
+
+  // SLA-tæller — opdater 1× pr. 30s for at holde "X min uden svar" frisk
+  useEffect(() => {
+    const id = window.setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -73,6 +110,22 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
       if (data?.display_name) setAdminName(data.display_name);
     });
   }, [user]);
+
+  // Load skabeloner og medarbejdere med livechat-adgang
+  useEffect(() => {
+    supabase.from("chat_templates")
+      .select("id, title, content, sort_order")
+      .eq("business_id", businessId)
+      .order("sort_order", { ascending: true })
+      .then(({ data }) => { if (data) setTemplates(data as Template[]); });
+    supabase.from("employees")
+      .select("id, name, livechat_enabled")
+      .eq("business_id", businessId)
+      .eq("is_active", true)
+      .then(({ data }) => {
+        if (data) setEmployees((data as any[]).filter((e) => e.livechat_enabled).map((e) => ({ id: e.id, name: e.name })));
+      });
+  }, [businessId]);
 
   // Conversation list — filtreret på business_id
   useEffect(() => {
@@ -186,10 +239,14 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
             !c.visitor_email.toLowerCase().includes(q) &&
             !(c.subject || "").toLowerCase().includes(q)) return false;
       }
+      if (dateFilter) {
+        const day = new Date(c.last_message_at).toISOString().slice(0, 10);
+        if (day !== dateFilter) return false;
+      }
       return true;
     });
     return [...list].sort((a, b) => +new Date(b.last_message_at) - +new Date(a.last_message_at));
-  }, [conversations, filter, search]);
+  }, [conversations, filter, search, dateFilter, tick]);
 
   const totalUnread = conversations.reduce((s, c) => s + (c.unread_admin_count || 0), 0);
 
@@ -256,6 +313,50 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
     if (!next) chatSounds.tick();
   };
 
+  // ── Skabelon-handlers ──
+  const insertTemplate = (tpl: Template) => {
+    setDraft((d) => (d ? `${d}\n${tpl.content}` : tpl.content));
+    textareaRef.current?.focus();
+  };
+  const saveTemplate = async () => {
+    const title = tplDraft.title.trim();
+    const content = tplDraft.content.trim();
+    if (!title || !content) { toast.error("Titel og tekst er påkrævet"); return; }
+    if (tplDraft.id) {
+      const { error } = await supabase.from("chat_templates")
+        .update({ title, content }).eq("id", tplDraft.id);
+      if (error) { toast.error("Kunne ikke gemme"); return; }
+      setTemplates((prev) => prev.map((t) => (t.id === tplDraft.id ? { ...t, title, content } : t)));
+    } else {
+      const sort_order = templates.length;
+      const { data, error } = await supabase.from("chat_templates")
+        .insert({ business_id: businessId, title, content, sort_order })
+        .select("id, title, content, sort_order").single();
+      if (error || !data) { toast.error("Kunne ikke oprette"); return; }
+      setTemplates((prev) => [...prev, data as Template]);
+    }
+    setTplDraft({ title: "", content: "" });
+    toast.success("Skabelon gemt");
+  };
+  const deleteTemplate = async (id: string) => {
+    const { error } = await supabase.from("chat_templates").delete().eq("id", id);
+    if (error) { toast.error("Kunne ikke slette"); return; }
+    setTemplates((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  // ── Tildeling ──
+  const assignTo = async (employeeId: string | null) => {
+    if (!active) return;
+    const { error } = await supabase.from("chat_conversations")
+      .update({ assigned_employee_id: employeeId }).eq("id", active.id);
+    if (error) { toast.error("Kunne ikke tildele"); return; }
+    const empName = employeeId ? employees.find((e) => e.id === employeeId)?.name || "medarbejder" : null;
+    await supabase.from("chat_messages").insert({
+      conversation_id: active.id, sender_type: "admin", sender_name: adminName,
+      content: empName ? `Tildelt til ${empName}` : "Tildeling fjernet", is_system: true,
+    });
+  };
+
   return (
     <div className="space-y-4">
       <PageHeader
@@ -288,6 +389,26 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                 </button>
               ))}
             </div>
+            <div className="flex items-center gap-1.5">
+              <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-foreground"
+              />
+              {dateFilter && (
+                <button onClick={() => setDateFilter("")} className="rounded p-1 text-muted-foreground hover:text-foreground" aria-label="Ryd dato">
+                  <XIcon className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setTemplatesOpen((v) => !v)}
+              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground"
+            >
+              <BookText className="h-3 w-3" /> Svar-skabeloner ({templates.length})
+            </button>
           </div>
           <div className="max-h-[60vh] overflow-y-auto">
             {filtered.length === 0 ? (
@@ -296,7 +417,15 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                 Ingen samtaler endnu.
               </div>
             ) : (
-              filtered.map((c) => (
+              filtered.map((c) => {
+                const sla = slaState(c);
+                const slaClass =
+                  sla.tone === "breach" ? "bg-destructive/10 text-destructive" :
+                  sla.tone === "warn"   ? "bg-amber-500/15 text-amber-700 dark:text-amber-400" :
+                  sla.tone === "done"   ? "bg-success/10 text-success" :
+                  sla.tone === "closed" ? "bg-muted text-muted-foreground" :
+                                          "bg-secondary text-muted-foreground";
+                return (
                 <button
                   key={c.id}
                   onClick={() => setActiveId(c.id)}
@@ -315,15 +444,69 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                       )}
                     </div>
                     <p className="truncate text-[11px] text-muted-foreground">{c.subject || c.visitor_email}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {formatDistanceToNow(new Date(c.last_message_at), { locale: da, addSuffix: true })}
-                      {c.status === "closed" && <span className="ml-1.5 text-muted-foreground">· Lukket</span>}
-                    </p>
+                    <div className="mt-0.5 flex items-center gap-1.5">
+                      <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${slaClass}`} title="Svartid">
+                        <Clock className="h-2.5 w-2.5" />{sla.label}
+                      </span>
+                      <span className="truncate text-[10px] text-muted-foreground">
+                        {formatDistanceToNow(new Date(c.last_message_at), { locale: da, addSuffix: true })}
+                      </span>
+                    </div>
                   </div>
                 </button>
-              ))
+                );
+              })
             )}
           </div>
+          {/* Skabelon-håndtering — vises som popover under listen */}
+          {templatesOpen && (
+            <div className="border-t border-border bg-secondary/30 p-3 space-y-2 max-h-[40vh] overflow-y-auto">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Svar-skabeloner</p>
+              {templates.map((t) => (
+                <div key={t.id} className="rounded-lg border border-border bg-card p-2 text-xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold text-foreground truncate">{t.title}</span>
+                    <div className="flex shrink-0 gap-1">
+                      <button onClick={() => setTplDraft({ id: t.id, title: t.title, content: t.content })}
+                        className="rounded p-1 text-muted-foreground hover:text-foreground" aria-label="Rediger">
+                        <Pencil className="h-3 w-3" />
+                      </button>
+                      <button onClick={() => deleteTemplate(t.id)}
+                        className="rounded p-1 text-muted-foreground hover:text-destructive" aria-label="Slet">
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">{t.content}</p>
+                </div>
+              ))}
+              <div className="space-y-1.5 rounded-lg border border-dashed border-border p-2">
+                <input
+                  value={tplDraft.title}
+                  onChange={(e) => setTplDraft((d) => ({ ...d, title: e.target.value }))}
+                  placeholder="Titel (fx Pris)"
+                  className="w-full rounded border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-foreground"
+                />
+                <textarea
+                  value={tplDraft.content}
+                  onChange={(e) => setTplDraft((d) => ({ ...d, content: e.target.value }))}
+                  placeholder="Tekst…"
+                  rows={2}
+                  className="w-full resize-none rounded border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-foreground"
+                />
+                <div className="flex justify-end gap-1.5">
+                  {tplDraft.id && (
+                    <button onClick={() => setTplDraft({ title: "", content: "" })}
+                      className="rounded px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground">Annuller</button>
+                  )}
+                  <button onClick={saveTemplate}
+                    className="inline-flex items-center gap-1 rounded bg-foreground px-2 py-1 text-[11px] font-medium text-background hover:bg-foreground/90">
+                    <Plus className="h-3 w-3" />{tplDraft.id ? "Gem" : "Tilføj"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Conversation pane */}
@@ -354,6 +537,19 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  {employees.length > 0 && (
+                    <select
+                      value={active.assigned_employee_id || ""}
+                      onChange={(e) => assignTo(e.target.value || null)}
+                      title="Tildel til medarbejder"
+                      className="rounded-md border border-border bg-background px-1.5 py-1 text-[11px] text-muted-foreground hover:text-foreground focus:border-foreground outline-none"
+                    >
+                      <option value="">Ikke tildelt</option>
+                      {employees.map((e) => (
+                        <option key={e.id} value={e.id}>{e.name}</option>
+                      ))}
+                    </select>
+                  )}
                   <button onClick={toggleMute} title={muted ? "Slå lyd til" : "Slå lyd fra"}
                     className="rounded-md p-1.5 text-muted-foreground hover:bg-card hover:text-foreground">
                     {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
@@ -444,6 +640,23 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                       aria-label="Vedhæft billede">
                       <Paperclip className="h-3.5 w-3.5" />
                     </button>
+                    {templates.length > 0 && (
+                      <select
+                        value=""
+                        onChange={(e) => {
+                          const tpl = templates.find((t) => t.id === e.target.value);
+                          if (tpl) insertTemplate(tpl);
+                          e.target.value = "";
+                        }}
+                        title="Indsæt skabelon"
+                        className="h-9 rounded-full border border-border bg-background px-2 text-[11px] text-muted-foreground hover:text-foreground focus:border-foreground outline-none"
+                      >
+                        <option value="">⚡ Skabelon</option>
+                        {templates.map((t) => (
+                          <option key={t.id} value={t.id}>{t.title}</option>
+                        ))}
+                      </select>
+                    )}
                     <textarea
                       ref={textareaRef} value={draft} onChange={(e) => setDraft(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendReply(); } }}
