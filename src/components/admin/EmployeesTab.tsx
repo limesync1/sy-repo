@@ -540,14 +540,9 @@ const EmployeeRow = ({
           </div>
         </div>
 
-        {/* Kontostatus-kolonne — matcher kunder-kolonnerne (right-aligned, fast bredde) */}
+        {/* Kontostatus — kun "Afventer" vises (når medarbejder ikke har oprettet konto endnu) */}
         <div className="hidden sm:flex w-28 items-center justify-end">
-          {linked ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Konto aktiv
-            </span>
-          ) : (
+          {!linked && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
               Afventer

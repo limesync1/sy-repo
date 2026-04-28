@@ -728,16 +728,6 @@ const Planner = () => {
                 <ShoppingBag className="h-3.5 w-3.5 mr-1" />Opret bestilling
               </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7"
-                onClick={() => setMapOpen(true)}
-                aria-label="Vis kort"
-              >
-                <MapIcon className="h-3.5 w-3.5 mr-1" />Vis kort
-              </Button>
-
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Tastatur-genveje">
@@ -992,40 +982,6 @@ const Planner = () => {
           stopCount={activeEditingRoute ? (calendarStops.filter((s) => s.route_id === activeEditingRoute.id).length) : 0}
           stops={activeEditingRoute ? calendarStops.filter((s) => s.route_id === activeEditingRoute.id) : []}
         />
-
-        {/* Lazy kort-visning — leaflet-bundlen hentes først når brugeren klikker "Vis kort". */}
-        <Sheet open={mapOpen} onOpenChange={setMapOpen}>
-          <SheetContent side="right" className="w-full sm:max-w-[760px] p-0 flex flex-col">
-            <SheetHeader className="px-4 py-3 border-b">
-              <SheetTitle className="flex items-center gap-2 text-base">
-                <MapIcon className="h-4 w-4 text-primary" />
-                Kortvisning
-              </SheetTitle>
-              <SheetDescription className="text-xs">
-                Ruter og uplanlagte aftaler i {view === "week" ? "ugen" : "måneden"}.
-              </SheetDescription>
-            </SheetHeader>
-            <div className="flex-1 overflow-hidden">
-              {mapOpen && (
-                <Suspense
-                  fallback={
-                    <div className="flex h-full items-center justify-center text-xs text-muted-foreground gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" /> Indlæser kort…
-                    </div>
-                  }
-                >
-                  <RouteMap
-                    routes={mapRoutes}
-                    unassigned={unassignedMapStops}
-                    height="100%"
-                    selectedStopId={selectedStopId}
-                    onStopClick={(id) => setSelectedStopId(id)}
-                  />
-                </Suspense>
-              )}
-            </div>
-          </SheetContent>
-        </Sheet>
 
         {/* Slide-in: stops på den valgte rute (vises ved siden af rute-redigering) */}
         <RouteStopsPanel
