@@ -11,9 +11,13 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { da } from "date-fns/locale";
+import { format as formatDate } from "date-fns";
 import chatSounds from "@/components/livechat/chatSounds";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
 import { toast } from "sonner";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 type Conversation = {
   id: string;
@@ -390,15 +394,40 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
               ))}
             </div>
             <div className="flex items-center gap-1.5">
-              <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
-              <input
-                type="date"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-                className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-foreground"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "flex flex-1 items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-left transition-colors hover:border-foreground/40 focus:border-foreground focus:outline-none",
+                      !dateFilter && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="flex-1 truncate">
+                      {dateFilter
+                        ? formatDate(new Date(dateFilter + "T00:00:00"), "d. MMM yyyy", { locale: da })
+                        : "Vælg dag"}
+                    </span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    locale={da}
+                    selected={dateFilter ? new Date(dateFilter + "T00:00:00") : undefined}
+                    onSelect={(d) => setDateFilter(d ? formatDate(d, "yyyy-MM-dd") : "")}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
               {dateFilter && (
-                <button onClick={() => setDateFilter("")} className="rounded p-1 text-muted-foreground hover:text-foreground" aria-label="Ryd dato">
+                <button
+                  onClick={() => setDateFilter("")}
+                  className="rounded p-1 text-muted-foreground hover:text-foreground"
+                  aria-label="Ryd dato"
+                >
                   <XIcon className="h-3 w-3" />
                 </button>
               )}

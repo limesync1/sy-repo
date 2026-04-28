@@ -37,6 +37,8 @@ type Props = {
   businessName: string;
   /** Visningsnavn vist i header (fallback: businessName). */
   brandName?: string;
+  /** Virksomhedens logo — vises i FAB-knappens venstre cirkel. */
+  logoUrl?: string | null;
   /** Hvis sat: forsinker en evt. CartFab så vi ikke overlapper. */
   cartFabVisible?: boolean;
 };
@@ -58,7 +60,7 @@ const formatTime = (iso: string) => {
 const initials = (name: string) =>
   name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() || "").join("") || "S";
 
-const BusinessLiveChatWidget = ({ businessId, businessName, brandName, cartFabVisible = false }: Props) => {
+const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, cartFabVisible = false }: Props) => {
   const { user } = useAuth();
   // Egen storage-key pr. virksomhed så hver virksomhedsside har sin egen
   // session — så besøgende kan have parallelle samtaler hos forskellige
@@ -378,16 +380,25 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, cartFabVi
           type="button"
           onClick={handleOpen}
           aria-label={`Åbn livechat med ${headerName}`}
-          className={`group fixed z-40 flex items-center gap-2.5 rounded-full bg-foreground px-4 py-3 text-sm font-medium text-background shadow-[0_18px_40px_-16px_hsl(var(--foreground)/0.45)] ring-1 ring-foreground/10 transition-all duration-300 hover:bg-foreground/95 hover:shadow-[0_22px_50px_-16px_hsl(var(--foreground)/0.55)] active:scale-95 ${fabBottomClass} ${fabPositionClass}`}
+          className={`fixed z-40 flex items-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-[0_18px_40px_-16px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_22px_50px_-16px_hsl(var(--foreground)/0.6)] active:scale-95 ${fabBottomClass} ${fabPositionClass}`}
         >
-          <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-accent text-accent-foreground">
-            <MessageCircle className="h-3.5 w-3.5" />
-            <span className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5">
+          <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-background/15 overflow-hidden">
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt=""
+                aria-hidden="true"
+                className="h-7 w-7 object-cover"
+              />
+            ) : (
+              <span className="text-[11px] font-bold">{initials(headerName)}</span>
+            )}
+            <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success ring-2 ring-foreground"></span>
             </span>
           </span>
-          <span className="hidden xs:inline sm:inline">Chat med {headerName}</span>
+          <span className="hidden xs:inline sm:inline">Chat</span>
           <span className="inline xs:hidden sm:hidden">Chat</span>
         </button>
       )}
