@@ -746,8 +746,8 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
                         {!mine && (
                           <div className="w-7 flex-shrink-0">
                             {showAvatar && (
-                              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-[10px] font-semibold text-background">
-                                {initials(m.sender_name)}
+                              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-background">
+                                <MessageCircle className="h-3.5 w-3.5" />
                               </div>
                             )}
                           </div>
