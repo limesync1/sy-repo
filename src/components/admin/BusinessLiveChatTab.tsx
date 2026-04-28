@@ -7,11 +7,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Send, Loader2, Search, User, Mail, Inbox, Archive,
   Paperclip, Image as ImageIcon, X as XIcon, Volume2, VolumeX, CheckCheck,
+  Clock, Zap, Calendar as CalendarIcon, BookText, Plus, Trash2, Pencil, UserPlus,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { da } from "date-fns/locale";
 import chatSounds from "@/components/livechat/chatSounds";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
+import { toast } from "sonner";
 
 type Conversation = {
   id: string;
@@ -23,6 +25,9 @@ type Conversation = {
   unread_admin_count: number;
   user_id: string | null;
   created_at: string;
+  first_admin_reply_at?: string | null;
+  closed_at?: string | null;
+  assigned_employee_id?: string | null;
 };
 
 type Message = {
@@ -34,6 +39,26 @@ type Message = {
   image_url?: string | null;
   is_system?: boolean;
   created_at: string;
+};
+
+type Template = { id: string; title: string; content: string; sort_order: number };
+type EmployeeOption = { id: string; name: string };
+
+/** SLA-mål: 5 min — gul, 15 min — rød. */
+const SLA_TARGET_MIN = 5;
+const SLA_BREACH_MIN = 15;
+
+const slaState = (c: Conversation): { label: string; tone: "ok" | "warn" | "breach" | "done" | "closed" } => {
+  if (c.status === "closed") return { label: "Lukket", tone: "closed" };
+  if (c.first_admin_reply_at) {
+    const ms = +new Date(c.first_admin_reply_at) - +new Date(c.created_at);
+    const min = Math.max(0, Math.round(ms / 60000));
+    return { label: `Svaret på ${min} min`, tone: "done" };
+  }
+  const min = Math.floor((Date.now() - +new Date(c.created_at)) / 60000);
+  if (min >= SLA_BREACH_MIN) return { label: `${min} min uden svar`, tone: "breach" };
+  if (min >= SLA_TARGET_MIN) return { label: `${min} min uden svar`, tone: "warn" };
+  return { label: `${min} min siden start`, tone: "ok" };
 };
 
 const formatTime = (iso: string) => {
