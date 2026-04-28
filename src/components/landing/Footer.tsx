@@ -59,9 +59,9 @@ const Footer = () => {
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-background/10 pt-6 text-xs text-background/55 md:flex-row">
           <div>© {new Date().getFullYear()} Serviceydere · Danmark</div>
           <img
-            src="/serviceydere-logo-dark.webp"
+            src="/serviceydere-logo.webp"
             alt="Serviceydere"
-            className="h-6 w-auto rounded bg-background px-2 py-1 opacity-90"
+            className="h-6 w-auto opacity-90"
             width={1920}
             height={539}
             decoding="async"
