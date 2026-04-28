@@ -121,8 +121,8 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     cta: "Indstil betaling",
     href: "/virksomhed?tab=settings",
     enabled: ({ plan }) =>
-      !!plan && plan.status !== "active" && !plan.stripe_payment_method_last4,
-    isDone: ({ plan }) => !!plan?.stripe_payment_method_last4 || plan?.status === "active",
+      !!plan && plan.status !== "active" && !plan.payment_last4,
+    isDone: ({ plan }) => !!plan?.payment_last4 || plan?.status === "active",
     estMinutes: 2,
   },
 ];
