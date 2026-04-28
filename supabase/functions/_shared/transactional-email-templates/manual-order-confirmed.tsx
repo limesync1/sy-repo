@@ -97,7 +97,12 @@ const ManualOrderConfirmedEmail = ({
                   </div>
                 </>
               )}
-              <div style={totalRow}><span>I alt</span><span>{fmt(totalAmount)}</span></div>
+              <table width="100%" cellPadding="0" cellSpacing="0" style={totalRow}>
+                <tr>
+                  <td style={{ textAlign: 'left' }}>I alt</td>
+                  <td style={{ textAlign: 'right' }}>{fmt(totalAmount)}</td>
+                </tr>
+              </table>
             </Section>
             <Section style={helpBox}>
               <Text style={helpBoxTitle}>Spørgsmål til bestillingen?</Text>
