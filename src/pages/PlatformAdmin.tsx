@@ -1,23 +1,29 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Navigate, Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, lazy, Suspense, useEffect, useRef } from "react";
 import {
   LayoutDashboard, Building2, Users, ShoppingCart, Star,
   LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import { cn } from "@/lib/utils";
-import PlatformOverviewTab from "@/components/platform-admin/PlatformOverviewTab";
-import PlatformBusinessesTab from "@/components/platform-admin/PlatformBusinessesTab";
-import PlatformUsersTab from "@/components/platform-admin/PlatformUsersTab";
-import PlatformOrdersTab from "@/components/platform-admin/PlatformOrdersTab";
-import PlatformSubscriptionsTab from "@/components/platform-admin/PlatformSubscriptionsTab";
-import PlatformReviewsTab from "@/components/platform-admin/PlatformReviewsTab";
-import PlatformSettingsTab from "@/components/platform-admin/PlatformPlatformSettingsTab";
-import PlatformLiveChatTab from "@/components/platform-admin/PlatformLiveChatTab";
 import { AdminFiltersProvider } from "@/components/platform-admin/lib/AdminFiltersContext";
 import RangePicker from "@/components/platform-admin/RangePicker";
+import { PageTransition } from "@/components/admin/shared/PageTransition";
+import { LoadingScreen } from "@/components/admin/shared/LoadingScreen";
+
+// Lazy-load alle tabs så hver fane først downloades når brugeren rent faktisk
+// åbner den. Det matcher mønstret i virksomhedspanelet (Admin.tsx) og holder
+// initial bundle lille — vigtigt fordi platform admin er sjældnere brugt.
+const PlatformOverviewTab = lazy(() => import("@/components/platform-admin/PlatformOverviewTab"));
+const PlatformBusinessesTab = lazy(() => import("@/components/platform-admin/PlatformBusinessesTab"));
+const PlatformUsersTab = lazy(() => import("@/components/platform-admin/PlatformUsersTab"));
+const PlatformOrdersTab = lazy(() => import("@/components/platform-admin/PlatformOrdersTab"));
+const PlatformSubscriptionsTab = lazy(() => import("@/components/platform-admin/PlatformSubscriptionsTab"));
+const PlatformReviewsTab = lazy(() => import("@/components/platform-admin/PlatformReviewsTab"));
+const PlatformSettingsTab = lazy(() => import("@/components/platform-admin/PlatformPlatformSettingsTab"));
+const PlatformLiveChatTab = lazy(() => import("@/components/platform-admin/PlatformLiveChatTab"));
 
 const NAV = [
   { value: "overview", label: "Overblik", icon: LayoutDashboard, hasRange: true },
@@ -30,6 +36,26 @@ const NAV = [
   { value: "settings", label: "Platform", icon: Settings, hasRange: false },
 ];
 
+// Prefetch — start download af en tab så snart musen rammer dens nav-knap.
+// Når brugeren rent faktisk klikker er bundle (og ofte data) klar, og fane-skift
+// føles øjeblikkeligt i stedet for at vise Suspense-fallbacken.
+const TAB_PREFETCH: Record<string, () => Promise<unknown>> = {
+  overview: () => import("@/components/platform-admin/PlatformOverviewTab"),
+  businesses: () => import("@/components/platform-admin/PlatformBusinessesTab"),
+  users: () => import("@/components/platform-admin/PlatformUsersTab"),
+  orders: () => import("@/components/platform-admin/PlatformOrdersTab"),
+  subscriptions: () => import("@/components/platform-admin/PlatformSubscriptionsTab"),
+  reviews: () => import("@/components/platform-admin/PlatformReviewsTab"),
+  livechat: () => import("@/components/platform-admin/PlatformLiveChatTab"),
+  settings: () => import("@/components/platform-admin/PlatformPlatformSettingsTab"),
+};
+const prefetched = new Set<string>();
+const prefetchTab = (key: string) => {
+  if (prefetched.has(key)) return;
+  prefetched.add(key);
+  TAB_PREFETCH[key]?.().catch(() => prefetched.delete(key));
+};
+
 const PlatformAdmin = () => {
   const { user, loading, signOut } = useAuth();
   const { data: isAdmin, isLoading: roleLoading } = useIsAdmin();
@@ -37,7 +63,7 @@ const PlatformAdmin = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (loading || roleLoading) {
-    return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
+    return <LoadingScreen full label="Indlæser admin…" />;
   }
   if (!user) return <Navigate to="/log-ind" replace />;
   if (!isAdmin) return <Navigate to="/" replace />;
@@ -101,6 +127,9 @@ const PlatformAdmin = () => {
                 <button
                   key={item.value}
                   onClick={() => { setTab(item.value); setSidebarOpen(false); }}
+                  onMouseEnter={() => prefetchTab(item.value)}
+                  onFocus={() => prefetchTab(item.value)}
+                  onTouchStart={() => prefetchTab(item.value)}
                   className={cn(
                     "flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-left transition-colors duration-150",
                     active
@@ -161,14 +190,20 @@ const PlatformAdmin = () => {
           </header>
 
           <main className="flex-1 min-w-0 p-4 sm:p-6">
-            {tab === "overview" && <PlatformOverviewTab />}
-            {tab === "businesses" && <PlatformBusinessesTab />}
-            {tab === "users" && <PlatformUsersTab />}
-            {tab === "orders" && <PlatformOrdersTab />}
-            {tab === "subscriptions" && <PlatformSubscriptionsTab />}
-            {tab === "reviews" && <PlatformReviewsTab />}
-            {tab === "livechat" && <PlatformLiveChatTab />}
-            {tab === "settings" && <PlatformSettingsTab />}
+            {/* PageTransition fader nyt indhold ind når tab skifter,
+                Suspense viser ensartet skeleton-loading på første åbning. */}
+            <PageTransition transitionKey={tab}>
+              <Suspense fallback={<LoadingScreen label="Indlæser…" />}>
+                {tab === "overview" && <PlatformOverviewTab />}
+                {tab === "businesses" && <PlatformBusinessesTab />}
+                {tab === "users" && <PlatformUsersTab />}
+                {tab === "orders" && <PlatformOrdersTab />}
+                {tab === "subscriptions" && <PlatformSubscriptionsTab />}
+                {tab === "reviews" && <PlatformReviewsTab />}
+                {tab === "livechat" && <PlatformLiveChatTab />}
+                {tab === "settings" && <PlatformSettingsTab />}
+              </Suspense>
+            </PageTransition>
           </main>
         </div>
       </div>
