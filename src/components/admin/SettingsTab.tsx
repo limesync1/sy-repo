@@ -882,6 +882,56 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <p className="mt-2 text-xs text-muted-foreground">Bredt 16:9 — vises som banner på din side</p>
               </div>
             </div>
+
+            {/* Custom domæne — virksomhedens eget webadresse. Bruges som
+                kanonisk URL i SEO så Google indekserer fx ready2clean.dk
+                fremfor serviceydere.dk/v/ready2clean. Selve DNS-koblingen
+                opsættes hos virksomhedens domæne-udbyder. */}
+            <div className="mt-6 rounded-xl border border-border bg-card/50 p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
+                  <Globe className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-foreground">Eget domæne (valgfrit)</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Brug dit eget domæne som virksomhedens hovedadresse. Når det er sat, viser Google og delinger dit domæne i stedet for{" "}
+                    <span className="font-mono">serviceydere.dk/v/{business.slug}</span>.
+                  </p>
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                    <div className="flex h-10 items-center rounded-l-lg border border-r-0 border-border bg-muted px-3 text-xs text-muted-foreground sm:rounded-l-lg">
+                      https://
+                    </div>
+                    <Input
+                      placeholder="ready2clean.dk"
+                      value={customDomain}
+                      onChange={(e) => setCustomDomain(e.target.value)}
+                      className="h-10 flex-1 rounded-l-none rounded-r-lg bg-card font-mono text-sm sm:-ml-2"
+                      type="text"
+                      inputMode="url"
+                      autoComplete="off"
+                      spellCheck={false}
+                    />
+                  </div>
+                  {customDomain.trim() && (
+                    <a
+                      href={`https://${customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-foreground hover:underline"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Test domænet
+                    </a>
+                  )}
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    <strong className="text-foreground">DNS-opsætning:</strong> Hos din domæne-udbyder, opret en CNAME-record fra{" "}
+                    <span className="font-mono">@</span> (eller <span className="font-mono">www</span>) der peger på{" "}
+                    <span className="font-mono">serviceydere.dk</span>. Ændringer kan tage op til 24 timer at træde i kraft.
+                  </p>
+                </div>
+              </div>
+            </div>
           </SectionCard>
         </div>
 
