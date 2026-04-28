@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { CartItem } from "@/types/service";
 
 const STORAGE_KEY = "serviceydere_cart";
@@ -47,6 +48,17 @@ const saveCart = (items: CartItem[]) => {
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>(loadCart);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const { pathname } = useLocation();
+
+  // Luk automatisk bestillings-sheet'en når brugeren skifter til et område
+  // hvor den ikke giver mening (admin-, virksomheds- eller medarbejderpanel,
+  // platform-admin osv.). Det undgår at sheet'en hænger åben i baggrunden.
+  useEffect(() => {
+    const closeOnPrefixes = ["/admin", "/virksomhed", "/medarbejder", "/platform-admin", "/godkend-bestilling"];
+    if (closeOnPrefixes.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
+      setSheetOpen(false);
+    }
+  }, [pathname]);
 
   // Persist to localStorage on every change
   useEffect(() => {
