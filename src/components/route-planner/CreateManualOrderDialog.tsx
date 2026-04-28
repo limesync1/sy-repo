@@ -373,7 +373,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
             title={<DialogTitle className="text-base">Opret bestilling for kunde</DialogTitle>}
             description={
               <DialogDescription className="text-xs leading-snug">
-                Vælg services fra dit katalog og udfyld kundens oplysninger. Kunden modtager en mail med et godkendelses-link — bestillingen aktiveres først når de godkender.
+                Vælg services fra dit katalog og udfyld kundens oplysninger. Hvis kunden allerede findes i dit system, bekræftes bestillingen direkte — ellers får kunden en mail med godkendelses-link.
               </DialogDescription>
             }
           />
