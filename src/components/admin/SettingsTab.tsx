@@ -462,6 +462,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   const origAccountingIntegration = !!(business.settings as any)?.accounting_integration_enabled;
   const origLeadsEnabled = !!(business.settings as any)?.leads_enabled;
   const origLivechatEnabled = !!(business.settings as any)?.livechat_enabled;
+  const origCustomDomain = ((business.settings as any)?.custom_domain as string) || "";
   const origSubcats = ((business.settings as any)?.selected_subcategories as Record<string, string[]>) || {};
   const hasChanges = name !== business.name || description !== (business.description || "") ||
     phone !== (business.phone || "") || email !== (business.email || "") ||
@@ -475,6 +476,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     accountingIntegrationEnabled !== origAccountingIntegration ||
     leadsEnabled !== origLeadsEnabled ||
     livechatEnabled !== origLivechatEnabled ||
+    customDomain.trim() !== origCustomDomain ||
     JSON.stringify(notifSettings) !== JSON.stringify({ new_order: true, upcoming_service: true, subscription_change: true, new_review: false, ...origNotif });
 
   // ─── Auto-save ───
