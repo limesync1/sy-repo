@@ -591,7 +591,7 @@ const EmployeeRow = ({
             )}
           >
             <MessageCircle className="h-4 w-4" />
-          </button></TouripTrigger></Tooltip>
+          </button></TooltipTrigger><TooltipContent>{(employee as any).livechat_enabled ? "Fjern livechat-adgang" : "Giv adgang til livechat"}</TooltipContent></Tooltip>
           {linked && (
             <Tooltip><TooltipTrigger asChild><button
               onClick={() => setConfirmReset(true)}
