@@ -328,28 +328,31 @@ export type Database = {
       }
       chat_messages: {
         Row: {
-          content: string
+          content: string | null
           conversation_id: string
           created_at: string
           id: string
+          image_url: string | null
           read_at: string | null
           sender_name: string
           sender_type: string
         }
         Insert: {
-          content: string
+          content?: string | null
           conversation_id: string
           created_at?: string
           id?: string
+          image_url?: string | null
           read_at?: string | null
           sender_name: string
           sender_type: string
         }
         Update: {
-          content?: string
+          content?: string | null
           conversation_id?: string
           created_at?: string
           id?: string
+          image_url?: string | null
           read_at?: string | null
           sender_name?: string
           sender_type?: string
