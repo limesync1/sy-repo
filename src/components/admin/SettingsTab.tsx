@@ -1141,6 +1141,24 @@ const SettingsTab = ({ business }: { business: any }) => {
                       {domainStatus === "verified" && domainVerifiedAt && (
                         <p className="text-[11px] text-muted-foreground">Sidst verificeret: {new Date(domainVerifiedAt).toLocaleString("da-DK")}</p>
                       )}
+                      {domainStatus === "verified" && (
+                        <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-2.5 text-[11px] leading-relaxed text-amber-900 dark:text-amber-200">
+                          <p className="font-semibold">DNS er verificeret — men der mangler ét sidste trin før domænet virker.</p>
+                          <p className="mt-1">
+                            DNS-recorderne er sat korrekt op hos din udbyder, og din CNAME peger på{" "}
+                            <span className="font-mono">serviceydere.dk</span>. Trafikken når dog først frem til{" "}
+                            <span className="font-mono">{customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "").split("/")[0]}</span>,
+                            når domænet også er registreret på vores hosting-platform med et SSL-certifikat.
+                          </p>
+                          <p className="mt-1">
+                            Skriv til{" "}
+                            <a href="mailto:support@serviceydere.dk" className="font-semibold underline">support@serviceydere.dk</a>{" "}
+                            med dit domæne, så aktiverer vi det manuelt for dig (vi udruller selvbetjent aktivering snart).
+                            Indtil da kan du dele linket{" "}
+                            <span className="font-mono">serviceydere.dk/v/{business.slug}</span>.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
