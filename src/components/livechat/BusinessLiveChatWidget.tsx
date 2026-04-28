@@ -507,8 +507,8 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background">
-                      <span className="text-[13px] font-bold text-foreground">{initials(headerName)}</span>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background/15">
+                      <MessageCircle className="h-5 w-5 text-background" />
                     </div>
                     <span className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ring-foreground ${closed ? "bg-muted-foreground" : "bg-success"}`}>
                       {!closed && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-background" />}
@@ -522,25 +522,60 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
                   </div>
                 </div>
                 <div className="flex items-center gap-0.5">
-                  {conversation && !closed && (
+                  {chats.length > 0 && (
                     <button
-                      onClick={endChatSession}
-                      aria-label="Afslut samtale"
-                      title="Afslut samtale"
-                      className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                      onClick={() => setShowInbox(true)}
+                      aria-label="Vis mine samtaler"
+                      title="Mine samtaler"
+                      className="relative rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
                     >
-                      <Archive className="h-4 w-4" />
+                      <MessagesSquare className="h-4 w-4" />
+                      {chats.length > 1 && (
+                        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold text-accent-foreground">
+                          {chats.length}
+                        </span>
+                      )}
                     </button>
                   )}
                   {conversation && (
-                    <button
-                      onClick={startNewConversation}
-                      aria-label="Start ny samtale"
-                      title="Start ny samtale"
-                      className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowMenu((v) => !v)}
+                        aria-label="Flere handlinger"
+                        title="Handlinger"
+                        className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
+                      {showMenu && (
+                        <>
+                          <button
+                            type="button"
+                            aria-label="Luk menu"
+                            className="fixed inset-0 z-40 cursor-default"
+                            onClick={() => setShowMenu(false)}
+                          />
+                          <div className="absolute right-0 top-9 z-50 w-56 overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-xl">
+                            {!closed && (
+                              <button
+                                onClick={() => { setShowMenu(false); endChatSession(); }}
+                                className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] hover:bg-secondary/60"
+                              >
+                                <XIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                                Afslut denne samtale
+                              </button>
+                            )}
+                            <button
+                              onClick={() => { setShowMenu(false); startNewConversation(); }}
+                              className="flex w-full items-center gap-2 border-t border-border px-3 py-2.5 text-left text-[13px] hover:bg-secondary/60"
+                            >
+                              <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                              Start ny samtale
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   )}
                   <button
                     onClick={toggleMute}
@@ -560,6 +595,67 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
                 </div>
               </div>
             </div>
+
+            {showInbox && (
+              <div className="absolute inset-0 z-30 flex flex-col bg-card">
+                <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-3 py-3">
+                  <button
+                    onClick={() => setShowInbox(false)}
+                    aria-label="Tilbage til samtale"
+                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </button>
+                  <p className="text-[13px] font-semibold text-foreground">Mine samtaler</p>
+                </div>
+                <div className="flex-1 overflow-y-auto p-2">
+                  {chats.length === 0 ? (
+                    <p className="px-3 py-4 text-[12px] text-muted-foreground">Ingen aktive samtaler endnu.</p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {chats.map((c) => {
+                        const active = c.key === businessKey(businessId);
+                        return (
+                          <li key={c.key}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (active) { setShowInbox(false); return; }
+                                if (c.scope === "business" && c.href) {
+                                  window.location.href = c.href;
+                                } else if (c.scope === "platform") {
+                                  window.location.href = "/";
+                                }
+                              }}
+                              className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors ${
+                                active
+                                  ? "border-foreground bg-secondary/60"
+                                  : "border-border bg-card hover:border-foreground/30 hover:bg-secondary/40"
+                              }`}
+                            >
+                              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+                                {c.scope === "business" && c.logoUrl ? (
+                                  <img src={c.logoUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
+                                ) : (
+                                  <MessageCircle className="h-4 w-4" />
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-[13px] font-semibold text-foreground">{c.label}</p>
+                                <p className="truncate text-[11px] text-muted-foreground">
+                                  {c.scope === "platform" ? "Serviceydere kundeservice" : "Virksomhedschat"}
+                                  {active && " · åben her"}
+                                </p>
+                              </div>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            )}
 
             {!conversation ? (
               <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 py-5">
