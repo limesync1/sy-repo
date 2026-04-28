@@ -387,7 +387,9 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
             <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success ring-2 ring-foreground"></span>
           </span>
-          <span className="truncate max-w-[12rem]">Chat med {headerName}</span>
+          <span className="truncate max-w-[8rem] sm:max-w-[14rem]">
+            <span className="hidden sm:inline">Chat med </span>{headerName}
+          </span>
         </button>
       )}
 
