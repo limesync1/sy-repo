@@ -149,13 +149,6 @@ const PlatformAdmin = () => {
 
           <div className="shrink-0 space-y-1 border-t border-border px-3 py-3">
             <Link
-              to="/virksomhed"
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-            >
-              <Building2 className="h-4 w-4 shrink-0" />
-              Min virksomhed
-            </Link>
-            <Link
               to="/"
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >

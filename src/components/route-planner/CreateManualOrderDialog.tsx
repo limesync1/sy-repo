@@ -160,6 +160,28 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
       const lat = latitude;
       const lng = longitude;
 
+      // Tjek om kunden allerede er kendt i virksomhedens system.
+      // Kendte kunder behøver ikke godkende bestillingen — virksomheden
+      // har en eksisterende relation, og bestillingen kan derfor aktiveres
+      // direkte. Det matcher hvordan oprettelse "for" en kunde fungerer
+      // i de fleste service-systemer.
+      const customerEmailLower = customerEmail.trim().toLowerCase();
+      const [erhvervKnown, privatKnown] = await Promise.all([
+        supabase
+          .from("business_customers")
+          .select("id")
+          .eq("business_id", businessId)
+          .ilike("email", customerEmailLower)
+          .maybeSingle(),
+        supabase
+          .from("private_customers")
+          .select("id")
+          .eq("business_id", businessId)
+          .ilike("email", customerEmailLower)
+          .maybeSingle(),
+      ]);
+      const customerKnown = !!erhvervKnown.data || !!privatKnown.data;
+
       // Build approval token + expiry — ÉN token deles af alle child-ordrer
       const tokenBytes = new Uint8Array(32);
       crypto.getRandomValues(tokenBytes);
@@ -178,7 +200,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           parent_order_id: parentOrderId, // forælderen peger også på sig selv → simpel gruppering
           business_id: businessId,
           customer_name: customerName.trim(),
-          customer_email: customerEmail.trim().toLowerCase(),
+          customer_email: customerEmailLower,
           customer_phone: customerPhone.trim() || null,
           address: address.trim() || null,
           zip_code: zipCode.trim() || null,
@@ -193,12 +215,14 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           preferred_time_end: it.timeEnd || null,
           estimated_duration_minutes: it.durationMin || 30,
           total_amount: total,
-          status: "pending" as const,
+          // Kendte kunder: ordren bekræftes med det samme.
+          // Ukendte kunder: afventer approval via mail-link.
+          status: (customerKnown ? "confirmed" : "pending") as "pending" | "confirmed",
           business_message: isParent ? (businessMessage.trim() || null) : null,
           // Kun forælderen får token — godkendelse cascader til børn via edge function.
-          approval_token: isParent ? token : null,
-          approval_expires_at: isParent ? expires.toISOString() : null,
-          requires_customer_approval: true,
+          approval_token: customerKnown ? null : (isParent ? token : null),
+          approval_expires_at: customerKnown ? null : (isParent ? expires.toISOString() : null),
+          requires_customer_approval: !customerKnown,
         };
       });
       const { error: orderErr } = await supabase.from("orders").insert(orderRows as any);
@@ -235,19 +259,64 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
       const { error: itemsErr } = await supabase.from("order_items").insert(orderItems as any);
       if (itemsErr) throw itemsErr;
 
-      // Send approval email
-      // Mailen peger på forælder-ordren — edge function godkender hele gruppen.
-      const approvalUrl = `${window.location.origin}/godkend-bestilling/${parentOrderId}?token=${token}`;
       const { data: biz } = await supabase
         .from("businesses")
         .select("name, phone, email")
         .eq("id", businessId)
         .maybeSingle();
 
+      if (customerKnown) {
+        // Kendt kunde: send blot en bekræftelses-mail (ingen godkendelse).
+        const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "manual-order-confirmed",
+            recipientEmail: customerEmailLower,
+            idempotencyKey: `manual-order-confirmed-${parentOrderId}`,
+            templateData: {
+              customerName: customerName.trim(),
+              businessName: biz?.name || businessName,
+              businessPhone: biz?.phone,
+              businessEmail: biz?.email,
+              businessMessage: businessMessage.trim() || undefined,
+              address: address.trim()
+                ? `${address.trim()}${zipCode.trim() || city.trim() ? `, ${[zipCode.trim(), city.trim()].filter(Boolean).join(" ")}` : ""}`
+                : undefined,
+              preferredDate: preferredDate || undefined,
+              totalAmount,
+              items: items.map((it) => ({
+                name: it.service.name,
+                quantity: 1,
+                price: roundPrice(calcItemTotal(it)),
+                intervalLabel: it.interval && it.interval !== "engangskøb" ? INTERVAL_LABELS[it.interval] || it.interval : undefined,
+                description: it.service.pricing_type === "timepris" ? `${it.hours} timer` : undefined,
+                stepDetails: it.service.pricing_type === "prisberegner"
+                  ? (it.service.calculator_steps || []).map((s) => ({
+                      label: s.label, value: it.stepValues[s.id] || 0, unit: s.unit,
+                      subtotal: roundPrice((it.stepValues[s.id] || 0) * Number(s.price_per_unit)),
+                    }))
+                  : undefined,
+              })),
+            },
+          },
+        });
+        if (mailErr) {
+          console.error("Mail send failed:", mailErr);
+          toast.success("Bestilling oprettet og bekræftet (bekræftelses-mail kunne ikke sendes).");
+        } else {
+          toast.success("Bestilling oprettet og bekræftet — kunden har fået en bekræftelses-mail.");
+        }
+        reset();
+        onOpenChange(false);
+        return;
+      }
+
+      // Ukendt kunde: send approval-mail.
+      // Mailen peger på forælder-ordren — edge function godkender hele gruppen.
+      const approvalUrl = `${window.location.origin}/godkend-bestilling/${parentOrderId}?token=${token}`;
       const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
         body: {
           templateName: "manual-order-approval",
-          recipientEmail: customerEmail.trim().toLowerCase(),
+          recipientEmail: customerEmailLower,
           idempotencyKey: `manual-order-${parentOrderId}`,
           templateData: {
             customerName: customerName.trim(),
@@ -304,7 +373,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
             title={<DialogTitle className="text-base">Opret bestilling for kunde</DialogTitle>}
             description={
               <DialogDescription className="text-xs leading-snug">
-                Vælg services fra dit katalog og udfyld kundens oplysninger. Kunden modtager en mail med et godkendelses-link — bestillingen aktiveres først når de godkender.
+                Vælg services fra dit katalog og udfyld kundens oplysninger. Hvis kunden allerede findes i dit system, bekræftes bestillingen direkte — ellers får kunden en mail med godkendelses-link.
               </DialogDescription>
             }
           />

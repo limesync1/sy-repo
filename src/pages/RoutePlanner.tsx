@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, lazy, Suspense } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
@@ -29,13 +29,10 @@ import {
 import {
   ResizablePanelGroup, ResizablePanel, ResizableHandle,
 } from "@/components/ui/resizable";
-import {
-  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
-} from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
-  Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard, MapIcon,
+  Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
   ShoppingBag, Route as RouteIcon, Tag, Palette,
 } from "lucide-react";
 import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
@@ -45,10 +42,6 @@ import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
   pointerWithin, type DragEndEvent, type DragStartEvent,
 } from "@dnd-kit/core";
-// RouteMap (leaflet ~150 KB) lazy-loades og chunkes ud — leaflet hentes
-// først når brugeren rent faktisk åbner kort-visningen.
-const RouteMap = lazy(() => import("@/components/route-planner/RouteMap"));
-import type { MapRoute, MapStop } from "@/components/route-planner/RouteMap";
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
@@ -89,8 +82,6 @@ const Planner = () => {
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
   const [distributing, setDistributing] = useState(false);
-  const [mapOpen, setMapOpen] = useState(false);
-
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
 
@@ -253,40 +244,6 @@ const Planner = () => {
     if (!editingRoute) return null;
     return calendarRoutesRaw.find((route) => route.id === editingRoute.id) ?? editingRoute;
   }, [editingRoute, calendarRoutesRaw]);
-
-  /* Map data — beregnes kun mens kort-sheeten er åben, så vi ikke betaler for
-     transformationen ved hver re-render af planlæggeren. */
-  const mapRoutes: MapRoute[] = useMemo(() => {
-    if (!mapOpen) return [];
-    const list: MapRoute[] = [];
-    for (const r of calendarRoutes) {
-      const colStops = r.stops
-        .filter((s) => s.latitude != null && s.longitude != null)
-        .sort((a, b) => a.sequence - b.sequence)
-        .map((s, i) => ({
-          id: s.id,
-          lat: Number(s.latitude),
-          lng: Number(s.longitude),
-          label: s.customer_name || "Stop",
-          sublabel: s.address || undefined,
-          index: i + 1,
-          distanceToNextKm: s.distance_to_next_km != null ? Number(s.distance_to_next_km) : null,
-          travelTimeToNextMin: s.travel_time_to_next_min != null ? Number(s.travel_time_to_next_min) : null,
-        }));
-      if (colStops.length) list.push({ color: r.color, stops: colStops });
-    }
-    return list;
-  }, [mapOpen, calendarRoutes]);
-
-  const unassignedMapStops: MapStop[] = useMemo(() => {
-    if (!mapOpen) return [];
-    return filteredUnassigned
-      .filter((j: any) => j.latitude != null && j.longitude != null)
-      .map((j: any) => ({
-        id: j.id, lat: Number(j.latitude), lng: Number(j.longitude),
-        label: j.customer_name, sublabel: j.address, color: "hsl(220 13% 50%)",
-      }));
-  }, [mapOpen, filteredUnassigned]);
 
   /* Auto-geocode jobs missing coords */
   useEffect(() => {
@@ -728,16 +685,6 @@ const Planner = () => {
                 <ShoppingBag className="h-3.5 w-3.5 mr-1" />Opret bestilling
               </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7"
-                onClick={() => setMapOpen(true)}
-                aria-label="Vis kort"
-              >
-                <MapIcon className="h-3.5 w-3.5 mr-1" />Vis kort
-              </Button>
-
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Tastatur-genveje">
@@ -992,40 +939,6 @@ const Planner = () => {
           stopCount={activeEditingRoute ? (calendarStops.filter((s) => s.route_id === activeEditingRoute.id).length) : 0}
           stops={activeEditingRoute ? calendarStops.filter((s) => s.route_id === activeEditingRoute.id) : []}
         />
-
-        {/* Lazy kort-visning — leaflet-bundlen hentes først når brugeren klikker "Vis kort". */}
-        <Sheet open={mapOpen} onOpenChange={setMapOpen}>
-          <SheetContent side="right" className="w-full sm:max-w-[760px] p-0 flex flex-col">
-            <SheetHeader className="px-4 py-3 border-b">
-              <SheetTitle className="flex items-center gap-2 text-base">
-                <MapIcon className="h-4 w-4 text-primary" />
-                Kortvisning
-              </SheetTitle>
-              <SheetDescription className="text-xs">
-                Ruter og uplanlagte aftaler i {view === "week" ? "ugen" : "måneden"}.
-              </SheetDescription>
-            </SheetHeader>
-            <div className="flex-1 overflow-hidden">
-              {mapOpen && (
-                <Suspense
-                  fallback={
-                    <div className="flex h-full items-center justify-center text-xs text-muted-foreground gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" /> Indlæser kort…
-                    </div>
-                  }
-                >
-                  <RouteMap
-                    routes={mapRoutes}
-                    unassigned={unassignedMapStops}
-                    height="100%"
-                    selectedStopId={selectedStopId}
-                    onStopClick={(id) => setSelectedStopId(id)}
-                  />
-                </Suspense>
-              )}
-            </div>
-          </SheetContent>
-        </Sheet>
 
         {/* Slide-in: stops på den valgte rute (vises ved siden af rute-redigering) */}
         <RouteStopsPanel
