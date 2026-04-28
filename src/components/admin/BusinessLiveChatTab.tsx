@@ -8,6 +8,7 @@ import {
   Send, Loader2, Search, User, Mail, Inbox, Archive,
   Paperclip, Image as ImageIcon, X as XIcon, Volume2, VolumeX, CheckCheck,
   Clock, Zap, Calendar as CalendarIcon, BookText, Plus, Trash2, Pencil, UserPlus,
+  Eye, X,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { da } from "date-fns/locale";
@@ -17,6 +18,7 @@ import { PageHeader } from "@/components/admin/shared/AdminUI";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 type Conversation = {
