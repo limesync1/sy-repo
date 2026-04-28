@@ -321,7 +321,9 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
 
   // ── Skabelon-handlers ──
   const insertTemplate = (tpl: Template) => {
-    setDraft((d) => (d ? `${d}\n${tpl.content}` : tpl.content));
+    const firstName = active?.visitor_name?.split(" ")[0] || "";
+    const filled = tpl.content.split("{name}").join(firstName);
+    setDraft((d) => (d ? `${d}\n${filled}` : filled));
     textareaRef.current?.focus();
   };
   const saveTemplate = async () => {
