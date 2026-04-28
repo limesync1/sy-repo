@@ -218,9 +218,6 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
             <p className="mt-2 text-sm leading-5 text-muted-foreground/90 line-clamp-2">{service.description}</p>
           )}
           </div>
-          <div className="shrink-0 rounded-full border border-border bg-secondary/65 px-3 py-1 text-xs font-semibold text-muted-foreground">
-            {pricingLabels[service.pricing_type]}
-          </div>
         </div>
 
         <div className="mt-4 space-y-4">
