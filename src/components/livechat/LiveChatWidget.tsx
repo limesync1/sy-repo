@@ -57,6 +57,88 @@ const RECOMMENDED_REPLIES = [
   "Kan I ringe mig op?",
 ];
 
+// Topic-based dynamic recommended replies. Keys are matched against the
+// visitor's recent message content (case-insensitive keyword match).
+const TOPIC_REPLIES: { keywords: string[]; replies: string[] }[] = [
+  {
+    keywords: ["pris", "koste", "billig", "tilbud", "pakke", "abonnement"],
+    replies: [
+      "Kan I sende et skriftligt tilbud?",
+      "Er der rabat ved længere binding?",
+      "Hvad er inkluderet i prisen?",
+      "Findes der en gratis prøveperiode?",
+    ],
+  },
+  {
+    keywords: ["bestil", "ordre", "booking", "book", "kurv"],
+    replies: [
+      "Hvor hurtigt kan I starte?",
+      "Kan jeg ændre min bestilling senere?",
+      "Hvordan betaler jeg?",
+      "Får jeg en bekræftelse på mail?",
+    ],
+  },
+  {
+    keywords: ["virksomhed", "firma", "tilmeld", "opret", "cvr", "bliv partner"],
+    replies: [
+      "Hvad koster det at være på platformen?",
+      "Hvordan kommer jeg i gang?",
+      "Hvilke dokumenter skal jeg bruge?",
+      "Kan I hjælpe med opsætningen?",
+    ],
+  },
+  {
+    keywords: ["rengør", "vinduespuds", "havemand", "flytte", "håndværk", "service"],
+    replies: [
+      "Dækker I mit område?",
+      "Hvor lang tid tager opgaven typisk?",
+      "Kan jeg få fast aftale?",
+      "Har I forsikring?",
+    ],
+  },
+  {
+    keywords: ["ring", "telefon", "kontakt", "mail", "email"],
+    replies: [
+      "Kan I ringe mig op i dag?",
+      "Hvornår er I åbne?",
+      "Send venligst på min mail.",
+      "Jeg foretrækker SMS.",
+    ],
+  },
+  {
+    keywords: ["problem", "fejl", "virker ikke", "klage", "fortryd", "annul"],
+    replies: [
+      "Kan I hjælpe mig med det samme?",
+      "Hvordan opsiger jeg?",
+      "Jeg vil gerne tale med en ansvarlig.",
+      "Hvad er jeres svartid?",
+    ],
+  },
+];
+
+const getDynamicReplies = (msgs: { sender_type: string; content?: string | null; is_system?: boolean }[]): string[] => {
+  // Look at visitor's most recent messages (last 3) for topic detection
+  const recentVisitor = msgs
+    .filter((m) => m.sender_type === "visitor" && !m.is_system && m.content)
+    .slice(-3)
+    .map((m) => (m.content || "").toLowerCase())
+    .join(" ");
+  if (!recentVisitor) return RECOMMENDED_REPLIES;
+
+  const matched = new Map<string, number>();
+  for (const topic of TOPIC_REPLIES) {
+    const hits = topic.keywords.reduce((n, k) => (recentVisitor.includes(k) ? n + 1 : n), 0);
+    if (hits > 0) {
+      for (const r of topic.replies) matched.set(r, (matched.get(r) || 0) + hits);
+    }
+  }
+  if (matched.size === 0) return RECOMMENDED_REPLIES;
+  return Array.from(matched.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([r]) => r);
+};
+
 const formatTime = (iso: string) => {
   const d = new Date(iso);
   const sameDay = d.toDateString() === new Date().toDateString();
