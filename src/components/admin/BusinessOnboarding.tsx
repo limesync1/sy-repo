@@ -383,8 +383,10 @@ const BusinessOnboarding = () => {
               <div className="grid gap-3">
                 {FEATURES.map(({ key, icon: Icon, title, description }) => {
                   const active = features[key];
-                  const price =
-                    key === "route_planning" ? pricing?.price_route_planning_dkk
+                  const isFree = key === "leads" || key === "livechat";
+                  const price = isFree
+                    ? 0
+                    : key === "route_planning" ? pricing?.price_route_planning_dkk
                     : key === "accounting_integration" ? pricing?.price_accounting_integration_dkk
                     : pricing?.price_data_import_dkk;
                   return (
