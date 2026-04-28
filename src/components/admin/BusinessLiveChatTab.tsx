@@ -389,6 +389,26 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                 </button>
               ))}
             </div>
+            <div className="flex items-center gap-1.5">
+              <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-foreground"
+              />
+              {dateFilter && (
+                <button onClick={() => setDateFilter("")} className="rounded p-1 text-muted-foreground hover:text-foreground" aria-label="Ryd dato">
+                  <XIcon className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setTemplatesOpen((v) => !v)}
+              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground"
+            >
+              <BookText className="h-3 w-3" /> Svar-skabeloner ({templates.length})
+            </button>
           </div>
           <div className="max-h-[60vh] overflow-y-auto">
             {filtered.length === 0 ? (
