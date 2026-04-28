@@ -13,6 +13,7 @@ import {
   ArrowDown, Sparkles, BadgeCheck,
 } from "lucide-react";
 import Footer from "@/components/landing/Footer";
+import BusinessLiveChatWidget from "@/components/livechat/BusinessLiveChatWidget";
 
 /* ─── Opening-hours helpers ───
  * Sorter åbningstider i kanonisk rækkefølge (Man → Søn) uafhængigt af
@@ -654,6 +655,13 @@ const DynamicBusinessContent = () => {
       </main>
 
       <Footer />
+
+      {business && (business.settings as any)?.livechat_enabled && (
+        <BusinessLiveChatWidget
+          businessId={business.id}
+          businessName={business.name}
+        />
+      )}
 
     </div>
   );
