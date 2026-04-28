@@ -38,7 +38,7 @@ export const InviteEmail = ({ siteName, siteUrl, confirmationUrl }: InviteEmailP
  <Body style={main}>
  <Container style={wrapper}>
  <Section style={headerBar}>
- <Img src={LOGO_URL} alt={siteName} height="34" style={logo} />
+  <Img src={LOGO_URL} alt={siteName} width="170" height="48" style={logo} />
  </Section>
  <Container style={container}>
  <Text style={eyebrow}>Invitation</Text>
