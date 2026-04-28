@@ -246,7 +246,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
       return true;
     });
     return [...list].sort((a, b) => +new Date(b.last_message_at) - +new Date(a.last_message_at));
-  }, [conversations, filter, search, dateFilter]);
+  }, [conversations, filter, search, dateFilter, tick]);
 
   const totalUnread = conversations.reduce((s, c) => s + (c.unread_admin_count || 0), 0);
 
