@@ -492,14 +492,12 @@ const LiveChatWidget = () => {
           className={`fixed z-40 flex items-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-[0_18px_40px_-16px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_22px_50px_-16px_hsl(var(--foreground)/0.6)] active:scale-95 ${fabBottomClass} ${fabPositionClass}`}
         >
           <span className="relative flex h-7 w-7 items-center justify-center">
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-background overflow-hidden">
-              <img
-                src="/serviceydere-ikon.webp"
-                alt=""
-                aria-hidden="true"
-                className="h-7 w-7 object-cover"
-              />
-            </span>
+            <img
+              src="/serviceydere-ikon.webp"
+              alt=""
+              aria-hidden="true"
+              className="h-7 w-7 rounded-full object-cover"
+            />
             <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success ring-2 ring-foreground"></span>
@@ -510,8 +508,8 @@ const LiveChatWidget = () => {
       )}
 
       {open && (
-        <div className={`fixed z-50 w-[calc(100vw-2.5rem)] max-w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`}>
-          <div className="flex h-[600px] max-h-[calc(100vh-3rem)] flex-col overflow-hidden rounded-[20px] border border-border bg-card shadow-[0_30px_80px_-20px_hsl(var(--foreground)/0.35)]">
+        <div className={`fixed z-50 w-[calc(100vw-1.5rem)] max-w-[400px] sm:w-[calc(100vw-3rem)] md:w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`}>
+          <div className="flex h-[min(620px,calc(100dvh-7rem))] sm:h-[min(640px,calc(100vh-3rem))] flex-col overflow-hidden rounded-[20px] border border-border bg-card shadow-[0_30px_80px_-20px_hsl(var(--foreground)/0.35)]">
             {/* Header */}
             <div className="relative overflow-hidden bg-foreground px-5 pb-5 pt-4 text-background">
               <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-accent/30 blur-3xl" />
@@ -519,13 +517,11 @@ const LiveChatWidget = () => {
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background overflow-hidden">
-                      <img
-                        src="/serviceydere-ikon.webp"
-                        alt="Serviceydere"
-                        className="h-10 w-10 object-cover"
-                      />
-                    </div>
+                    <img
+                      src="/serviceydere-ikon.webp"
+                      alt="Serviceydere"
+                      className="h-10 w-10 rounded-full object-cover"
+                    />
                     <span className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ring-foreground ${closed ? "bg-muted-foreground" : "bg-accent"}`}>
                       {!closed && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-background" />}
                     </span>

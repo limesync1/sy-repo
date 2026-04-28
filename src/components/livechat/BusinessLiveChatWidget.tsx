@@ -387,13 +387,15 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
             <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success ring-2 ring-foreground"></span>
           </span>
-          <span className="truncate max-w-[12rem]">Chat med {headerName}</span>
+          <span className="truncate max-w-[8rem] sm:max-w-[14rem]">
+            <span className="hidden sm:inline">Chat med </span>{headerName}
+          </span>
         </button>
       )}
 
       {open && (
-        <div className={`fixed z-50 w-[calc(100vw-2.5rem)] max-w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`}>
-          <div className="flex h-[600px] max-h-[calc(100vh-3rem)] flex-col overflow-hidden rounded-[20px] border border-border bg-card shadow-[0_30px_80px_-20px_hsl(var(--foreground)/0.35)]">
+        <div className={`fixed z-50 w-[calc(100vw-1.5rem)] max-w-[400px] sm:w-[calc(100vw-3rem)] md:w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`}>
+          <div className="flex h-[min(620px,calc(100dvh-7rem))] sm:h-[min(640px,calc(100vh-3rem))] flex-col overflow-hidden rounded-[20px] border border-border bg-card shadow-[0_30px_80px_-20px_hsl(var(--foreground)/0.35)]">
             {/* Header */}
             <div className="relative overflow-hidden bg-foreground px-5 pb-5 pt-4 text-background">
               <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-accent/30 blur-3xl" />

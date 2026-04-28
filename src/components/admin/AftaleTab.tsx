@@ -845,6 +845,7 @@ const AftaleTab = ({
   const calcNextServiceDate = (interval: string, fromDate = new Date()): string => {
     const d = new Date(fromDate);
     switch (interval) {
+      case "daglig": d.setDate(d.getDate() + 1); break;
       case "ugentlig": d.setDate(d.getDate() + 7); break;
       case "hver_14_dag": d.setDate(d.getDate() + 14); break;
       case "månedlig": d.setMonth(d.getMonth() + 1); break;

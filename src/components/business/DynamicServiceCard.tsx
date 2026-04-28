@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 import { ImageIcon, ShoppingCart, Minus, Plus, Check } from "lucide-react";
@@ -84,10 +83,6 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
     return initial;
   });
   const [justAdded, setJustAdded] = useState(false);
-
-  const pricingLabels: Record<string, string> = {
-    fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner",
-  };
 
   const sortedSteps = [...(service.calculator_steps || [])].sort(
     (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
@@ -194,16 +189,10 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
             loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          <Badge variant="outline" className="absolute right-3 top-3 border-background/50 bg-background/90 backdrop-blur-sm text-xs font-medium">
-            {pricingLabels[service.pricing_type]}
-          </Badge>
         </div>
       ) : (
         <div className="relative flex h-20 w-full items-center justify-center bg-secondary/70 sm:h-24">
           <ImageIcon className="h-8 w-8 text-muted-foreground/15" />
-          <Badge variant="outline" className="absolute right-3 top-3 text-xs font-medium">
-            {pricingLabels[service.pricing_type]}
-          </Badge>
         </div>
       )}
 
@@ -217,9 +206,6 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           {service.description && (
             <p className="mt-2 text-sm leading-5 text-muted-foreground/90 line-clamp-2">{service.description}</p>
           )}
-          </div>
-          <div className="shrink-0 rounded-full border border-border bg-secondary/65 px-3 py-1 text-xs font-semibold text-muted-foreground">
-            {pricingLabels[service.pricing_type]}
           </div>
         </div>
 

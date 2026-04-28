@@ -9,6 +9,7 @@ import {
   CheckCircle, HardHat, Quote, TrendingUp, Eye, EyeOff,
 } from "lucide-react";
 import SEO from "@/components/SEO";
+import { translateAuthError } from "@/lib/auth-errors";
 
 const Auth = () => {
   const { user, loading, signIn, signUp } = useAuth();
@@ -46,12 +47,19 @@ const Auth = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) { toast.error("Udfyld alle felter"); return; }
+    if (!email.trim() || !password) {
+      toast.error("Udfyld både e-mail og adgangskode for at fortsætte.");
+      return;
+    }
+    if (isSignUp && password.length < 6) {
+      toast.error("Adgangskoden er for kort. Vælg mindst 6 tegn.");
+      return;
+    }
     setSubmitting(true);
-    const { error } = isSignUp ? await signUp(email, password) : await signIn(email, password);
+    const { error } = isSignUp ? await signUp(email.trim(), password) : await signIn(email.trim(), password);
     setSubmitting(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(translateAuthError(error, isSignUp ? "Vi kunne ikke oprette din konto. Prøv igen." : "Vi kunne ikke logge dig ind. Prøv igen."));
     } else if (isSignUp) {
       toast.success("Konto oprettet! Tjek din e-mail for bekræftelse.");
     }

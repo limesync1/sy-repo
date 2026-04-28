@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/landing/Footer";
 import SEO from "@/components/SEO";
+import { translateAuthError } from "@/lib/auth-errors";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * BusinessOnboarding — én side, ingen trin.
@@ -181,11 +182,11 @@ const BusinessOnboarding = () => {
   // ─── Submit ───
   const handleSubmit = async () => {
     if (!cvrData || !pricing || !breakdown) {
-      toast.error("Indtast og bekræft CVR først");
+      toast.error("Indtast dit CVR-nummer øverst og vent på vi har hentet virksomhedens oplysninger.");
       return;
     }
     if (!user && (!email.trim() || password.length < 6)) {
-      toast.error("Udfyld e-mail og en adgangskode på mindst 6 tegn");
+      toast.error("Udfyld en gyldig e-mail og vælg en adgangskode på mindst 6 tegn.");
       return;
     }
 
@@ -207,7 +208,7 @@ const BusinessOnboarding = () => {
           activeUserId = signInData.session?.user.id;
         }
         if (!activeUserId) {
-          throw new Error("Kunne ikke logge ind efter oprettelse");
+          throw new Error("Vi oprettede din konto, men kunne ikke logge dig automatisk ind. Prøv at logge ind manuelt.");
         }
       }
 
@@ -258,7 +259,7 @@ const BusinessOnboarding = () => {
       // Hård navigation så AuthProvider, useMyBusiness osv. henter friske data
       window.location.href = "/virksomhed";
     } catch (e: any) {
-      toast.error(e?.message || "Kunne ikke oprette virksomhed");
+      toast.error(translateAuthError(e, "Vi kunne ikke oprette din virksomhed lige nu. Tjek dine oplysninger og prøv igen."));
     } finally {
       setSubmitting(false);
     }
