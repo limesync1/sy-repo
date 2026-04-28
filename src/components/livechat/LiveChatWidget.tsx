@@ -408,6 +408,7 @@ const LiveChatWidget = () => {
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ token }));
       setConversation(conv as Conversation);
+      upsertChat({ key: platformKey(), scope: "platform", label: "Serviceydere support" });
       setFirstMessage("");
       setSubject("");
       chatSounds.outgoing();
@@ -481,6 +482,7 @@ const LiveChatWidget = () => {
   const startNewConversation = () => {
     // Tøm lokal state og fjern session-token, så brugeren får start-formularen igen.
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    removeChat(platformKey());
     setConversation(null);
     setMessages([]);
     setDraft("");
@@ -488,6 +490,7 @@ const LiveChatWidget = () => {
     setError(null);
     setSubject("");
     setFirstMessage("");
+    setShowMenu(false);
   };
 
   const toggleMute = () => {
