@@ -605,6 +605,31 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                 </div>
               ) : (
                 <div className="border-t border-border bg-card p-3">
+                  {templates.length > 0 && (
+                    <div className="mb-2 flex items-center gap-1.5 overflow-x-auto pb-1">
+                      <Zap className="h-3 w-3 flex-shrink-0 text-accent" />
+                      <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        Hurtige svar
+                      </span>
+                      {templates.slice(0, 8).map((t) => (
+                        <button
+                          key={t.id}
+                          onClick={() => insertTemplate(t)}
+                          title={t.content}
+                          className="flex-shrink-0 rounded-full border border-border bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:border-foreground/40 hover:bg-card"
+                        >
+                          {t.title}
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => setTemplatesOpen(true)}
+                        className="flex-shrink-0 rounded-full border border-dashed border-border px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+                        title="Administrér skabeloner"
+                      >
+                        <Plus className="inline h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
                   {pendingImagePreview && (
                     <div className="mb-2 flex items-center gap-2 rounded-lg border border-border bg-secondary/40 p-2">
                       <img src={pendingImagePreview} alt="" className="h-12 w-12 rounded object-cover" />
@@ -636,13 +661,127 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                       {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                     </button>
                   </div>
-                  <p className="mt-1 text-[10px] text-muted-foreground">Enter sender · Shift+Enter for ny linje · max 5 MB billede</p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">Enter sender · Shift+Enter for ny linje · {"{name}"} erstattes med kundens fornavn</p>
                 </div>
               )}
             </>
           )}
         </div>
       </div>
+
+      {/* Skabelon-manager — moderne dialog med liste + redigér + preview */}
+      <Dialog open={templatesOpen} onOpenChange={(v) => { setTemplatesOpen(v); if (!v) { setPreviewTpl(null); setTplDraft({ title: "", content: "" }); } }}>
+        <DialogContent className="max-w-3xl p-0 overflow-hidden">
+          <DialogHeader className="border-b border-border px-5 py-3">
+            <DialogTitle className="flex items-center gap-2 text-sm">
+              <Zap className="h-4 w-4 text-accent" /> Svar-skabeloner
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid max-h-[70vh] grid-cols-1 md:grid-cols-[1fr_320px]">
+            {/* Liste + formular */}
+            <div className="flex flex-col overflow-hidden border-b border-border md:border-b-0 md:border-r">
+              <div className="flex-1 space-y-2 overflow-y-auto p-4">
+                {templates.length === 0 && (
+                  <p className="py-6 text-center text-xs text-muted-foreground">
+                    Ingen skabeloner endnu. Tilføj dit første hurtige svar nedenfor.
+                  </p>
+                )}
+                {templates.map((t) => (
+                  <div
+                    key={t.id}
+                    className={`group flex items-start gap-2 rounded-xl border p-3 transition-colors ${
+                      previewTpl?.id === t.id ? "border-foreground bg-secondary" : "border-border bg-secondary/40 hover:bg-secondary/70"
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1 cursor-pointer" onClick={() => setPreviewTpl(t)}>
+                      <p className="text-xs font-semibold text-foreground">{t.title}</p>
+                      <p className="mt-0.5 line-clamp-2 whitespace-pre-wrap text-[11px] text-muted-foreground">{t.content}</p>
+                    </div>
+                    <div className="flex flex-shrink-0 flex-col gap-1 opacity-60 transition-opacity group-hover:opacity-100">
+                      <button onClick={() => setPreviewTpl(t)} className="rounded-md p-1.5 text-muted-foreground hover:bg-card hover:text-foreground" title="Forhåndsvis">
+                        <Eye className="h-3.5 w-3.5" />
+                      </button>
+                      <button onClick={() => setTplDraft({ id: t.id, title: t.title, content: t.content })} className="rounded-md p-1.5 text-muted-foreground hover:bg-card hover:text-foreground" title="Rediger">
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button onClick={() => deleteTemplate(t.id)} className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" title="Slet">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-2 border-t border-border bg-secondary/30 p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {tplDraft.id ? "Rediger skabelon" : "Tilføj ny skabelon"} — brug {"{name}"} som pladsholder
+                  </p>
+                  {tplDraft.id && (
+                    <button onClick={() => setTplDraft({ title: "", content: "" })} className="text-[10px] text-muted-foreground hover:text-foreground">
+                      Annullér
+                    </button>
+                  )}
+                </div>
+                <input
+                  value={tplDraft.title}
+                  onChange={(e) => setTplDraft((d) => ({ ...d, title: e.target.value }))}
+                  placeholder="Titel (fx 'Pris')"
+                  maxLength={60}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-foreground"
+                />
+                <textarea
+                  value={tplDraft.content}
+                  onChange={(e) => setTplDraft((d) => ({ ...d, content: e.target.value }))}
+                  placeholder="Hej {name}, tak for din henvendelse…"
+                  rows={3}
+                  maxLength={1000}
+                  className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-foreground"
+                />
+                <button
+                  onClick={saveTemplate}
+                  disabled={!tplDraft.title.trim() || !tplDraft.content.trim()}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-foreground px-3 py-2 text-xs font-semibold text-background disabled:opacity-50"
+                >
+                  <Plus className="h-3.5 w-3.5" /> {tplDraft.id ? "Gem ændringer" : "Tilføj skabelon"}
+                </button>
+              </div>
+            </div>
+            {/* Preview */}
+            <div className="hidden flex-col bg-secondary/20 md:flex">
+              <div className="border-b border-border px-4 py-2.5">
+                <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  <Eye className="h-3 w-3" /> Forhåndsvisning
+                </p>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4">
+                {!previewTpl ? (
+                  <p className="py-6 text-center text-xs text-muted-foreground">
+                    Vælg en skabelon for at se hvordan den ser ud.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Titel</p>
+                      <p className="text-sm font-semibold text-foreground">{previewTpl.title}</p>
+                    </div>
+                    <div>
+                      <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Sådan ser det ud</p>
+                      <div className="overflow-hidden rounded-2xl rounded-br-sm bg-foreground px-3.5 py-2 text-[13px] text-background shadow-sm">
+                        <div className="whitespace-pre-wrap break-words">
+                          {previewTpl.content.split("{name}").join(active?.visitor_name?.split(" ")[0] || "[fornavn]")}
+                        </div>
+                      </div>
+                      {!active && (
+                        <p className="mt-2 text-[10px] text-muted-foreground">Åbn en samtale for at se svaret med kundens navn.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
