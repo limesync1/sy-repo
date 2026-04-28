@@ -12,10 +12,27 @@ import {
   useOnboardingProgress, useUpdateOnboardingProgress, useCompleteOnboardingStep,
 } from "@/hooks/useOnboarding";
 import { ONBOARDING_STEPS, visibleSteps, type OnboardingStep, type StepCtx } from "./onboarding-steps";
-import { useServices, useOrders } from "@/hooks/useDatabase";
+import { useServices } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
-import { useRoutes } from "@/hooks/useRoutes";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+/** Letvægts-tjek: har virksomheden mindst én rute? */
+const useHasAnyRoute = (businessId: string | undefined) =>
+  useQuery({
+    queryKey: ["onboarding-routes-count", businessId],
+    enabled: !!businessId,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("routes")
+        .select("id", { count: "exact", head: true })
+        .eq("business_id", businessId!);
+      if (error) throw error;
+      return count || 0;
+    },
+    staleTime: 30_000,
+  });
 
 /**
  * OnboardingHub — den centrale "guide mig i gang" oplevelse.
@@ -42,7 +59,7 @@ export const OnboardingHub = ({ business }: OnboardingHubProps) => {
   const { data: plan } = useBusinessPlan(business?.id);
   const { data: services } = useServices(business?.id);
   const { data: employees } = useEmployees(business?.id);
-  const { data: routes } = useRoutes(business?.id);
+  const { data: routesCount } = useHasAnyRoute(business?.id);
   const { data: progress, isLoading } = useOnboardingProgress(business?.id);
   const updateProgress = useUpdateOnboardingProgress(business?.id);
   const completeStep = useCompleteOnboardingStep(business?.id);
@@ -52,8 +69,8 @@ export const OnboardingHub = ({ business }: OnboardingHubProps) => {
     plan,
     servicesCount: services?.length || 0,
     employeesCount: employees?.length || 0,
-    routesCount: routes?.length || 0,
-  }), [business, plan, services, employees, routes]);
+    routesCount: routesCount || 0,
+  }), [business, plan, services, employees, routesCount]);
 
   const steps = useMemo(() => visibleSteps(ctx), [ctx]);
 
@@ -82,7 +99,7 @@ export const OnboardingHub = ({ business }: OnboardingHubProps) => {
       updateProgress.mutate({ completed_steps: merged });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [services?.length, employees?.length, routes?.length, business?.logo_url, business?.description, plan?.stripe_payment_method_last4]);
+  }, [services?.length, employees?.length, routesCount, business?.logo_url, business?.description, plan?.payment_last4]);
 
   // Markér hele onboardingen som "færdig" når alle trin er overstået.
   useEffect(() => {
