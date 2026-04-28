@@ -81,15 +81,12 @@ export const text = {
   lineHeight: '1.65',
   margin: '0 0 14px',
 }
-export const muted_text = {
+export const muted = {
   fontSize: '13px',
   color: muted,
   lineHeight: '1.55',
   margin: '0 0 12px',
 }
-// Backwards-compat exports
-export const muted_export = muted_text
-export { muted_export as muted }
 export const tinyMuted = {
   fontSize: '12px',
   color: subtle,
