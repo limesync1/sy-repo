@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS trg_update_duration_estimate ON public.route_stops;
