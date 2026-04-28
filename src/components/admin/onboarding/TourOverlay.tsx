@@ -22,7 +22,9 @@ type Rect = { top: number; left: number; width: number; height: number };
 
 const PADDING = 8;
 const POLL_MS = 100;
-const POLL_TIMEOUT_MS = 5000;
+const POLL_TIMEOUT_MS = 6000;
+/** Hvis et trin ikke kan findes inden for timeout, skip det stille til næste. */
+const AUTO_SKIP_ON_MISSING = true;
 
 export const TourOverlay = ({ businessId }: { businessId?: string }) => {
   const { active, stepIndex, next, prev, stop } = useTour();
@@ -53,47 +55,68 @@ export const TourOverlay = ({ businessId }: { businessId?: string }) => {
     setMissing(false);
     let cancelled = false;
     let elapsed = 0;
+    let mo: MutationObserver | null = null;
+    let pollTimer: number | null = null;
 
     const measure = (el: Element) => {
       const r = el.getBoundingClientRect();
       setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
     };
 
+    const attach = (el: Element) => {
+      el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+      requestAnimationFrame(() => requestAnimationFrame(() => measure(el)));
+      const onUpdate = () => measure(el);
+      window.addEventListener("scroll", onUpdate, true);
+      window.addEventListener("resize", onUpdate);
+      const ro = new ResizeObserver(onUpdate);
+      ro.observe(el);
+      return () => {
+        window.removeEventListener("scroll", onUpdate, true);
+        window.removeEventListener("resize", onUpdate);
+        ro.disconnect();
+      };
+    };
+
+    let detach: (() => void) | undefined;
+
     const tryFind = () => {
       if (cancelled) return;
       const el = document.querySelector(step.selector);
       if (el) {
-        // Scroll i syne hvis nødvendigt
-        el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
-        // Vent et par frames på at scroll'en sætter sig
-        requestAnimationFrame(() => requestAnimationFrame(() => measure(el)));
-        // Lyt fortsat efter ændringer
-        const onUpdate = () => measure(el);
-        window.addEventListener("scroll", onUpdate, true);
-        window.addEventListener("resize", onUpdate);
-        const ro = new ResizeObserver(onUpdate);
-        ro.observe(el);
-        return () => {
-          window.removeEventListener("scroll", onUpdate, true);
-          window.removeEventListener("resize", onUpdate);
-          ro.disconnect();
-        };
+        detach = attach(el);
+        return;
       }
       elapsed += POLL_MS;
       if (elapsed >= POLL_TIMEOUT_MS) {
         setMissing(true);
+        if (AUTO_SKIP_ON_MISSING) {
+          // Hop stille videre — bedre end at vise en fejl
+          setTimeout(() => { if (!cancelled) next(); }, 50);
+        }
         return;
       }
-      const t = setTimeout(tryFind, POLL_MS);
-      return () => clearTimeout(t);
+      pollTimer = window.setTimeout(tryFind, POLL_MS);
     };
 
-    let cleanup = tryFind();
+    // Lyt også efter DOM-ændringer så vi finder elementet så snart det dukker op
+    mo = new MutationObserver(() => {
+      if (cancelled || detach) return;
+      const el = document.querySelector(step.selector);
+      if (el) {
+        detach = attach(el);
+      }
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+
+    tryFind();
     return () => {
       cancelled = true;
-      if (typeof cleanup === "function") cleanup();
+      if (pollTimer) clearTimeout(pollTimer);
+      if (mo) mo.disconnect();
+      if (detach) detach();
     };
-  }, [step, location.pathname, location.search]);
+  }, [step, location.pathname, location.search, next]);
 
   if (!active || !step) return null;
 
@@ -347,11 +370,6 @@ export const TourOverlay = ({ businessId }: { businessId?: string }) => {
         </div>
         <p className="px-4 pt-2 text-sm text-muted-foreground">
           {step.body}
-          {missing && (
-            <span className="mt-2 block text-xs text-destructive">
-              Kunne ikke finde elementet — du kan stadig fortsætte.
-            </span>
-          )}
         </p>
         <div className="mt-4 flex items-center justify-between gap-2 border-t border-border bg-secondary/40 px-4 py-2.5 rounded-b-xl">
           <Button

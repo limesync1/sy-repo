@@ -137,7 +137,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
       />
 
       {/* Stats + filter — samme layout som Kunder/Aftaler */}
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+      <div data-tour="employees-stats" className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div className="grid gap-3 sm:grid-cols-3">
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
             <CardContent className="p-4">
@@ -186,7 +186,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
       </div>
 
       {/* Søgefelt */}
-      <div className="flex items-center gap-2 flex-wrap">
+      <div data-tour="employees-search" className="flex items-center gap-2 flex-wrap">
         <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, telefon eller titel..." />
       </div>
 
