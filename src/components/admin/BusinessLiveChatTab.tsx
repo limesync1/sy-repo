@@ -86,11 +86,23 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
   const [pendingImagePreview, setPendingImagePreview] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [muted, setMuted] = useState<boolean>(chatSounds.isMuted());
+  const [dateFilter, setDateFilter] = useState<string>(""); // YYYY-MM-DD
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [tplDraft, setTplDraft] = useState<{ id?: string; title: string; content: string }>({ title: "", content: "" });
+  const [employees, setEmployees] = useState<EmployeeOption[]>([]);
+  const [tick, setTick] = useState(0); // bruges til at re-rendere SLA-pillen hvert minut
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const initialMessagesLoad = useRef(true);
   const userScrolledUpRef = useRef(false);
+
+  // SLA-tæller — opdater 1× pr. 30s for at holde "X min uden svar" frisk
+  useEffect(() => {
+    const id = window.setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
