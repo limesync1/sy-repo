@@ -204,6 +204,16 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
     }
   }, [messages, open]);
 
+  // Når popup'en genåbnes, scroll altid ned til seneste besked.
+  useEffect(() => {
+    if (!open) return;
+    userScrolledUpRef.current = false;
+    requestAnimationFrame(() => {
+      const el = scrollRef.current;
+      if (el) el.scrollTo({ top: el.scrollHeight, behavior: "auto" });
+    });
+  }, [open]);
+
   useEffect(() => {
     const el = scrollRef.current;
     if (!el || !open) return;
