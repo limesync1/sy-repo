@@ -214,7 +214,7 @@ const EmployeeApp = () => {
     <EmployeeShell activeTab="today" title="Min dag">
       {/* PageTransition fader indholdet ind når brugeren skifter dag,
           så det føles som en blød navigation frem for et hårdt re-render. */}
-      <PageTransition transitionKey={date.toISOString().slice(0, 10)} className="mx-auto max-w-5xl space-y-4 pb-24 sm:pb-20">
+      <PageTransition transitionKey={date} className="mx-auto max-w-5xl space-y-4 pb-24 sm:pb-20">
         <PageHeader
           title={<span className="capitalize">{format(dateObj, "EEEE d. MMMM", { locale: da })}</span>}
           description={
