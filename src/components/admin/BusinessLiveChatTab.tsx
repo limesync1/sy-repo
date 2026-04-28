@@ -417,7 +417,15 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                 Ingen samtaler endnu.
               </div>
             ) : (
-              filtered.map((c) => (
+              filtered.map((c) => {
+                const sla = slaState(c);
+                const slaClass =
+                  sla.tone === "breach" ? "bg-destructive/10 text-destructive" :
+                  sla.tone === "warn"   ? "bg-amber-500/15 text-amber-700 dark:text-amber-400" :
+                  sla.tone === "done"   ? "bg-success/10 text-success" :
+                  sla.tone === "closed" ? "bg-muted text-muted-foreground" :
+                                          "bg-secondary text-muted-foreground";
+                return (
                 <button
                   key={c.id}
                   onClick={() => setActiveId(c.id)}
@@ -436,15 +444,69 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                       )}
                     </div>
                     <p className="truncate text-[11px] text-muted-foreground">{c.subject || c.visitor_email}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {formatDistanceToNow(new Date(c.last_message_at), { locale: da, addSuffix: true })}
-                      {c.status === "closed" && <span className="ml-1.5 text-muted-foreground">· Lukket</span>}
-                    </p>
+                    <div className="mt-0.5 flex items-center gap-1.5">
+                      <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${slaClass}`} title="Svartid">
+                        <Clock className="h-2.5 w-2.5" />{sla.label}
+                      </span>
+                      <span className="truncate text-[10px] text-muted-foreground">
+                        {formatDistanceToNow(new Date(c.last_message_at), { locale: da, addSuffix: true })}
+                      </span>
+                    </div>
                   </div>
                 </button>
-              ))
+                );
+              })
             )}
           </div>
+          {/* Skabelon-håndtering — vises som popover under listen */}
+          {templatesOpen && (
+            <div className="border-t border-border bg-secondary/30 p-3 space-y-2 max-h-[40vh] overflow-y-auto">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Svar-skabeloner</p>
+              {templates.map((t) => (
+                <div key={t.id} className="rounded-lg border border-border bg-card p-2 text-xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold text-foreground truncate">{t.title}</span>
+                    <div className="flex shrink-0 gap-1">
+                      <button onClick={() => setTplDraft({ id: t.id, title: t.title, content: t.content })}
+                        className="rounded p-1 text-muted-foreground hover:text-foreground" aria-label="Rediger">
+                        <Pencil className="h-3 w-3" />
+                      </button>
+                      <button onClick={() => deleteTemplate(t.id)}
+                        className="rounded p-1 text-muted-foreground hover:text-destructive" aria-label="Slet">
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">{t.content}</p>
+                </div>
+              ))}
+              <div className="space-y-1.5 rounded-lg border border-dashed border-border p-2">
+                <input
+                  value={tplDraft.title}
+                  onChange={(e) => setTplDraft((d) => ({ ...d, title: e.target.value }))}
+                  placeholder="Titel (fx Pris)"
+                  className="w-full rounded border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-foreground"
+                />
+                <textarea
+                  value={tplDraft.content}
+                  onChange={(e) => setTplDraft((d) => ({ ...d, content: e.target.value }))}
+                  placeholder="Tekst…"
+                  rows={2}
+                  className="w-full resize-none rounded border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-foreground"
+                />
+                <div className="flex justify-end gap-1.5">
+                  {tplDraft.id && (
+                    <button onClick={() => setTplDraft({ title: "", content: "" })}
+                      className="rounded px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground">Annuller</button>
+                  )}
+                  <button onClick={saveTemplate}
+                    className="inline-flex items-center gap-1 rounded bg-foreground px-2 py-1 text-[11px] font-medium text-background hover:bg-foreground/90">
+                    <Plus className="h-3 w-3" />{tplDraft.id ? "Gem" : "Tilføj"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Conversation pane */}
