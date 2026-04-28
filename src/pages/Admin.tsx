@@ -28,6 +28,7 @@ const SettingsTab = lazy(() => import("@/components/admin/SettingsTab"));
 const LeadsTab = lazy(() => import("@/components/admin/LeadsTab"));
 const BusinessLiveChatTab = lazy(() => import("@/components/admin/BusinessLiveChatTab"));
 import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
+import OnboardingHub from "@/components/admin/onboarding/OnboardingHub";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
 import TrialBanner from "@/components/admin/TrialBanner";
@@ -263,6 +264,10 @@ const AdminDashboard = () => {
       {plan?.status === "expired" && (
         <ReactivateDialog open businessId={business.id} businessName={business.name} />
       )}
+      {/* Velkomst-tutorial: wizard + checklist + altid-tilgængelig launcher.
+          Komponenten styrer selv om den åbner automatisk eller forbliver
+          som flydende knap. */}
+      <OnboardingHub business={business} />
     </AdminShell>
   );
 };
