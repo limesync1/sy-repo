@@ -194,7 +194,9 @@ const EmployeeStats = () => {
 
   return (
     <EmployeeShell activeTab="stats" title="Statistik">
-      <div className="mx-auto max-w-5xl space-y-4 pb-24 sm:space-y-5 sm:pb-20">
+      {/* Fade indholdet ind ved hvert range-skift så tal-ændringer føles
+          guidede frem for at "blinke" pludseligt. */}
+      <PageTransition transitionKey={`${range}|${from}|${to}`} className="mx-auto max-w-5xl space-y-4 pb-24 sm:space-y-5 sm:pb-20">
         <PageHeader
           title={<span className="capitalize">{headerLabel}</span>}
           description={
@@ -393,7 +395,7 @@ const EmployeeStats = () => {
             </Card>
           </>
         )}
-      </div>
+      </PageTransition>
     </EmployeeShell>
   );
 };
