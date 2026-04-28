@@ -164,8 +164,6 @@ export const totalRow = {
   marginTop: '14px',
   paddingTop: '14px',
   borderTop: `1px solid ${line}`,
-  display: 'flex',
-  justifyContent: 'space-between' as const,
 }
 export const itemRow = {
   padding: '12px 0',
