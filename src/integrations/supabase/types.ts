@@ -283,6 +283,7 @@ export type Database = {
       }
       chat_conversations: {
         Row: {
+          business_id: string | null
           created_at: string
           id: string
           last_message_at: string
@@ -297,6 +298,7 @@ export type Database = {
           visitor_name: string
         }
         Insert: {
+          business_id?: string | null
           created_at?: string
           id?: string
           last_message_at?: string
@@ -311,6 +313,7 @@ export type Database = {
           visitor_name: string
         }
         Update: {
+          business_id?: string | null
           created_at?: string
           id?: string
           last_message_at?: string
@@ -324,7 +327,15 @@ export type Database = {
           visitor_email?: string
           visitor_name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "chat_conversations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chat_messages: {
         Row: {
