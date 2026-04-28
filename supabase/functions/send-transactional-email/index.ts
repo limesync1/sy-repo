@@ -60,6 +60,7 @@ Deno.serve(async (req) => {
   let idempotencyKey: string
   let messageId: string
   let templateData: Record<string, any> = {}
+  let businessId: string | null = null
   try {
     const body = await req.json()
     templateName = body.templateName || body.template_name
@@ -68,6 +69,11 @@ Deno.serve(async (req) => {
     idempotencyKey = body.idempotencyKey || body.idempotency_key || messageId
     if (body.templateData && typeof body.templateData === 'object') {
       templateData = body.templateData
+    }
+    if (typeof body.businessId === 'string' && body.businessId) {
+      businessId = body.businessId
+    } else if (typeof body.business_id === 'string' && body.business_id) {
+      businessId = body.business_id
     }
   } catch {
     return new Response(
@@ -105,10 +111,27 @@ Deno.serve(async (req) => {
     )
   }
 
-  // Resolve effective recipient: template-level `to` takes precedence over
-  // the caller-provided recipientEmail. This allows notification templates
-  // to always send to a fixed address (e.g., site owner from env var).
-  const effectiveRecipient = template.to || recipientEmail
+  // Create Supabase client with service role (bypasses RLS) — moved up so we
+  // can resolve business-scoped recipients before suppression/quota checks.
+  const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+  // Resolve effective recipient.
+  // Order of precedence:
+  //   1. Template-level fixed `to`
+  //   2. Business email (if businessId provided and the business has one) —
+  //      bruges af pr. virksomheds livechat så notifikationen lander hos
+  //      ejeren i stedet for platform-supporten.
+  //   3. Caller-provided recipientEmail
+  let businessRecipient: string | null = null
+  if (businessId && !template.to) {
+    const { data: biz } = await supabase
+      .from('businesses')
+      .select('email')
+      .eq('id', businessId)
+      .maybeSingle()
+    if (biz?.email) businessRecipient = biz.email
+  }
+  const effectiveRecipient = template.to || businessRecipient || recipientEmail
 
   if (!effectiveRecipient) {
     return new Response(
@@ -121,9 +144,6 @@ Deno.serve(async (req) => {
       }
     )
   }
-
-  // Create Supabase client with service role (bypasses RLS)
-  const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
   // 2. Check suppression list (fail-closed: if we can't verify, don't send)
   const { data: suppressed, error: suppressionError } = await supabase
