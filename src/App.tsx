@@ -10,6 +10,7 @@ import { LocationProvider } from "@/contexts/LocationContext";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
 import { TourProvider } from "@/components/admin/onboarding/TourContext";
+import GlobalTourMount from "@/components/admin/onboarding/GlobalTourMount";
 
 // Forsiden + Login indlæses ivrigt — alt andet er code-splittet via React.lazy
 // så det første sidebesøg ikke trækker hele admin/medarbejder/ruteplanlægger
@@ -87,6 +88,9 @@ const App = () => (
               <CartFab />
               <LiveChatWidget />
             </Suspense>
+            {/* Spotlight-tour overlay — lever uden for Routes så den overlever
+                navigation mellem sider (fx fra /virksomhed til /virksomhed/ruter). */}
+            <GlobalTourMount />
             {/* Cookie-banner — vises kun første gang valget træffes. */}
             <CookieConsent />
             <Suspense fallback={<PageFallback />}>
