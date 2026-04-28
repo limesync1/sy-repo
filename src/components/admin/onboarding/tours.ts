@@ -15,19 +15,19 @@ export const TOURS: Record<string, TourDefinition> = {
     steps: [
       {
         navigateTo: "/virksomhed?tab=settings",
-        selector: '[data-tour="settings-section-general"]',
+        selector: '#settings-general',
         title: "Virksomhedsoplysninger",
         body: "Her udfylder du navn og en kort beskrivelse. Beskrivelsen vises på din offentlige side og hjælper kunderne med at vælge dig.",
         placement: "right",
       },
       {
-        selector: '[data-tour="settings-section-contact"]',
+        selector: '#settings-contact',
         title: "Kontakt og adresse",
         body: "Tilføj telefon, email og adresse. Adressen bruges til ruteplanlægning og til at vise kunder hvor du holder til.",
         placement: "right",
       },
       {
-        selector: '[data-tour="settings-section-hours"]',
+        selector: '#settings-hours',
         title: "Åbningstider",
         body: "Sæt åbningstider for hver ugedag. Det vises på din profil og styrer hvornår kunder kan booke.",
         placement: "right",
@@ -41,7 +41,7 @@ export const TOURS: Record<string, TourDefinition> = {
     steps: [
       {
         navigateTo: "/virksomhed?tab=settings",
-        selector: '[data-tour="settings-section-branding"]',
+        selector: '#settings-branding',
         title: "Logo og forsidebillede",
         body: "Upload jeres logo og et flot forsidebillede. Et professionelt udtryk øger tilliden — og dermed bookinger.",
         placement: "right",
@@ -137,7 +137,7 @@ export const TOURS: Record<string, TourDefinition> = {
     steps: [
       {
         navigateTo: "/virksomhed?tab=settings",
-        selector: '[data-tour="settings-section-billing"]',
+        selector: '#settings-billing',
         title: "Betaling og kort",
         body: "Tilføj et betalingskort så din konto fortsætter uden afbrydelse efter prøveperioden.",
         placement: "right",
