@@ -96,6 +96,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
   const [templates, setTemplates] = useState<Template[]>([]);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [tplDraft, setTplDraft] = useState<{ id?: string; title: string; content: string }>({ title: "", content: "" });
+  const [previewTpl, setPreviewTpl] = useState<Template | null>(null);
   const [employees, setEmployees] = useState<EmployeeOption[]>([]);
   const [tick, setTick] = useState(0); // bruges til at re-rendere SLA-pillen hvert minut
   const scrollRef = useRef<HTMLDivElement>(null);
