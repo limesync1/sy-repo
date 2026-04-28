@@ -23,12 +23,16 @@ const CartFab = () => {
   // Livechat-FAB'en sidder altid yderst til højre, så vi rykker bestilling
   // mod venstre på desktop for at undgå overlap. På mobil stables livechat
   // ovenover bestilling, så vi behøver ikke skubbe i x-aksen der.
+  // På desktop sidder vi lige til venstre for livechat-FAB'en (med en lille
+  // luft) ved at læse dens faktiske bredde fra CSS-variablen som
+  // BusinessLiveChatWidget publicerer. På mobil stacker livechat sig selv
+  // ovenover bestilling, så vi bliver i hjørnet.
   return (
     <button
       type="button"
       onClick={openSheet}
       aria-label={`Åbn bestilling med ${count} ${count === 1 ? "service" : "services"}`}
-      className="fixed z-40 flex items-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-[0_18px_40px_-16px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_22px_50px_-16px_hsl(var(--foreground)/0.6)] active:scale-95 bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] right-[calc(env(safe-area-inset-right,0px)+1.25rem)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] sm:right-[calc(env(safe-area-inset-right,0px)+12rem)] md:right-[calc(env(safe-area-inset-right,0px)+13.5rem)]"
+      className="fixed z-40 flex items-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-[0_18px_40px_-16px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_22px_50px_-16px_hsl(var(--foreground)/0.6)] active:scale-95 bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] right-[calc(env(safe-area-inset-right,0px)+1.25rem)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] sm:right-[calc(env(safe-area-inset-right,0px)+1.5rem+var(--livechat-fab-width,0px)+0.75rem)]"
     >
       <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-background/15">
         <Package className="h-4 w-4" />
