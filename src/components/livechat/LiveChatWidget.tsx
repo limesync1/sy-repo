@@ -865,7 +865,7 @@ const LiveChatWidget = () => {
                     </div>
                     <p className="text-[11px] text-muted-foreground">Du kan altid starte en ny henvendelse herunder.</p>
                     <button
-                      onClick={() => { localStorage.removeItem(STORAGE_KEY); setConversation(null); setMessages([]); }}
+                      onClick={startNewConversation}
                       className="mt-3 inline-flex items-center justify-center rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background transition-all hover:bg-foreground/90"
                     >
                       Start en ny samtale
@@ -933,8 +933,8 @@ const LiveChatWidget = () => {
                       </div>
                       <div className="mt-2 flex items-center justify-between px-1">
                         <span className="text-[10px] text-muted-foreground">Enter sender · max 5 MB billede</span>
-                        <button onClick={endChatSession} className="text-[10px] text-muted-foreground transition-colors hover:text-foreground">
-                          Afslut samtale
+                        <button onClick={deleteCurrentConversation} className="text-[10px] text-muted-foreground transition-colors hover:text-destructive">
+                          Slet samtale
                         </button>
                       </div>
                     </div>
