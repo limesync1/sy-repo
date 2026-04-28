@@ -204,6 +204,7 @@ const PlatformAdmin = () => {
                 {tab === "subscriptions" && <PlatformSubscriptionsTab />}
                 {tab === "reviews" && <PlatformReviewsTab />}
                 {tab === "livechat" && <PlatformLiveChatTab />}
+                {tab === "domains" && <PlatformDomainsTab />}
                 {tab === "settings" && <PlatformSettingsTab />}
               </Suspense>
             </PageTransition>
