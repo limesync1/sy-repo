@@ -147,21 +147,36 @@ Deno.serve(async (req) => {
       pointingOk = apexIps.length > 0 && aRecords.some((ip) => apexIps.includes(ip));
     }
 
-    const status: "verified" | "pending_ownership" | "pending_dns" | "failed" =
-      ownershipOk && pointingOk ? "verified"
+    // DNS-status. Vigtigt: Selvom DNS er korrekt opsat, skal en admin
+    // stadig manuelt registrere domænet på hosting-platformen (Lovable)
+    // før det kan svare på trafik med SSL. Derfor "pending_activation".
+    // Når admin har aktiveret domænet sættes status til "active".
+    const existingSettings = (biz.settings as any) || {};
+    const wasActive = existingSettings.custom_domain_status === "active"
+      && existingSettings.custom_domain === domain;
+
+    const status: "active" | "pending_activation" | "pending_ownership" | "pending_dns" | "failed" =
+      wasActive && ownershipOk && pointingOk ? "active"
+        : ownershipOk && pointingOk ? "pending_activation"
         : !ownershipOk ? "pending_ownership"
         : "pending_dns";
 
     const message =
-      status === "verified" ? "Domænet er verificeret og aktivt."
+      status === "active" ? "Domænet er aktivt og live."
+      : status === "pending_activation" ? "DNS er korrekt opsat. Vi har modtaget din anmodning og aktiverer domænet hurtigst muligt (typisk inden for 1 hverdag)."
       : status === "pending_ownership" ? `Vi kunne ikke finde en TXT-record på ${txtNames.join(" eller ")} med værdien serviceydere-verify=${token}. Tilføj den hos din DNS-udbyder.`
       : "Ejerskabet er bekræftet, men domænet peger ikke på serviceydere.dk endnu. Tjek dine CNAME/A-records.";
 
     // Gem status i settings (auto-merge)
-    const settings = (biz.settings as any) || {};
+    const settings = existingSettings;
     settings.custom_domain = domain;
     settings.custom_domain_status = status;
-    settings.custom_domain_verified_at = status === "verified" ? new Date().toISOString() : null;
+    settings.custom_domain_dns_verified_at = (ownershipOk && pointingOk)
+      ? (settings.custom_domain_dns_verified_at || new Date().toISOString())
+      : null;
+    settings.custom_domain_verified_at = status === "active"
+      ? (settings.custom_domain_verified_at || new Date().toISOString())
+      : null;
     settings.custom_domain_last_checked_at = new Date().toISOString();
 
     await supabase.from("businesses").update({ settings }).eq("id", businessId);

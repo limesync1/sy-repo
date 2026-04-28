@@ -1035,9 +1035,13 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-sm font-semibold text-foreground">Eget domæne (valgfrit)</p>
                     {customDomain.trim() && (
-                      domainStatus === "verified" ? (
+                      domainStatus === "active" ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
-                          <CheckCircle2 className="h-3 w-3" /> Verificeret
+                          <CheckCircle2 className="h-3 w-3" /> Live
+                        </span>
+                      ) : domainStatus === "pending_activation" || domainStatus === "verified" ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-[11px] font-semibold text-blue-600">
+                          <Loader2 className="h-3 w-3 animate-spin" /> Afventer aktivering
                         </span>
                       ) : domainStatus === "pending_dns" ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-600">
@@ -1138,24 +1142,31 @@ const SettingsTab = ({ business }: { business: any }) => {
                           </p>
                         </div>
                       )}
-                      {domainStatus === "verified" && domainVerifiedAt && (
-                        <p className="text-[11px] text-muted-foreground">Sidst verificeret: {new Date(domainVerifiedAt).toLocaleString("da-DK")}</p>
+                      {domainStatus === "active" && domainVerifiedAt && (
+                        <p className="text-[11px] text-muted-foreground">Aktiveret: {new Date(domainVerifiedAt).toLocaleString("da-DK")}</p>
                       )}
-                      {domainStatus === "verified" && (
-                        <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-2.5 text-[11px] leading-relaxed text-amber-900 dark:text-amber-200">
-                          <p className="font-semibold">DNS er verificeret — men der mangler ét sidste trin før domænet virker.</p>
+                      {(domainStatus === "pending_activation" || domainStatus === "verified") && (
+                        <div className="rounded-md border border-blue-500/30 bg-blue-500/10 p-2.5 text-[11px] leading-relaxed text-blue-900 dark:text-blue-200">
+                          <p className="font-semibold">✓ DNS er korrekt opsat — vi aktiverer domænet for dig</p>
                           <p className="mt-1">
-                            DNS-recorderne er sat korrekt op hos din udbyder, og din CNAME peger på{" "}
-                            <span className="font-mono">serviceydere.dk</span>. Trafikken når dog først frem til{" "}
-                            <span className="font-mono">{customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "").split("/")[0]}</span>,
-                            når domænet også er registreret på vores hosting-platform med et SSL-certifikat.
+                            Vi har automatisk modtaget din anmodning. Domænet bliver aktiveret med SSL-certifikat hurtigst muligt — typisk inden for 1 hverdag.
+                            Du kan godt lukke siden imens; status opdateres automatisk her, og du får besked på{" "}
+                            <span className="font-mono">{(business as any).email || "din kontakt-email"}</span> når{" "}
+                            <span className="font-mono">{customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "").split("/")[0]}</span>{" "}
+                            er live.
                           </p>
                           <p className="mt-1">
-                            Skriv til{" "}
-                            <a href="mailto:support@serviceydere.dk" className="font-semibold underline">support@serviceydere.dk</a>{" "}
-                            med dit domæne, så aktiverer vi det manuelt for dig (vi udruller selvbetjent aktivering snart).
                             Indtil da kan du dele linket{" "}
                             <span className="font-mono">serviceydere.dk/v/{business.slug}</span>.
+                          </p>
+                        </div>
+                      )}
+                      {domainStatus === "active" && (
+                        <div className="rounded-md border border-success/30 bg-success/10 p-2.5 text-[11px] leading-relaxed text-success">
+                          <p className="font-semibold">🎉 Dit domæne er live!</p>
+                          <p className="mt-1">
+                            <span className="font-mono">{customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "").split("/")[0]}</span>{" "}
+                            viser nu din virksomhedsside.
                           </p>
                         </div>
                       )}
