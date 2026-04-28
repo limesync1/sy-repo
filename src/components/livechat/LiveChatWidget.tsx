@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
-  ImageIcon, Volume2, VolumeX, Sparkles, MoreVertical, MessagesSquare, ArrowLeft,
+  ImageIcon, Volume2, VolumeX, Sparkles, MoreVertical, MessagesSquare, ArrowLeft, Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -673,7 +673,7 @@ const LiveChatWidget = () => {
                           Start ny samtale
                         </DropdownMenuItem>
                         <DropdownMenuItem onSelect={deleteCurrentConversation} className="cursor-pointer gap-2 text-[13px] text-destructive focus:bg-destructive/10 focus:text-destructive">
-                          <XIcon className="h-3.5 w-3.5" />
+                          <Trash2 className="h-3.5 w-3.5" />
                           Slet samtale
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -826,9 +826,7 @@ const LiveChatWidget = () => {
                         {!mine && (
                           <div className="w-7 flex-shrink-0">
                             {showAvatar && (
-                              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-[10px] font-semibold text-background">
-                                {initials(m.sender_name)}
-                              </div>
+                              <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-7 w-7 rounded-full object-cover" />
                             )}
                           </div>
                         )}
