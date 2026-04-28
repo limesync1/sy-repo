@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Building2, Users, ShoppingCart, DollarSign, TrendingUp, MapPin, Tag, Star,
   ArrowUp, ArrowDown, Minus,
