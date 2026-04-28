@@ -154,7 +154,16 @@ const LiveChatWidget = () => {
   const { user } = useAuth();
   const { count: cartCount, sheetOpen: cartSheetOpen } = useCart();
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpenState] = useState<boolean>(() => {
+    try { return sessionStorage.getItem("serviceydere_chat_open") === "1"; } catch { return false; }
+  });
+  const setOpen = useCallback((v: boolean | ((p: boolean) => boolean)) => {
+    setOpenState((prev) => {
+      const next = typeof v === "function" ? (v as (p: boolean) => boolean)(prev) : v;
+      try { sessionStorage.setItem("serviceydere_chat_open", next ? "1" : "0"); } catch {}
+      return next;
+    });
+  }, []);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
