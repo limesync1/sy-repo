@@ -5,12 +5,19 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
-  Image as ImageIcon, Volume2, VolumeX, Sparkles, MoreVertical, MessagesSquare, ArrowLeft,
+  Image as ImageIcon, Volume2, VolumeX, Sparkles, MoreVertical, MessagesSquare, ArrowLeft, Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import chatSounds from "./chatSounds";
+import ChatInboxList from "./ChatInboxList";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   upsertChat,
   removeChat,
@@ -64,9 +71,6 @@ const formatTime = (iso: string) => {
   if (sameDay) return d.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
   return d.toLocaleDateString("da-DK", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 };
-
-const initials = (name: string) =>
-  name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() || "").join("") || "S";
 
 const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, cartFabVisible = false }: Props) => {
   const { user } = useAuth();
