@@ -1167,12 +1167,15 @@ const ServiceForm = ({
                   <div className="flex flex-wrap gap-2">
                     {subcategoryOptions.map((s) => (
                       <button key={s} type="button" onClick={() => setSubcategory(s)}
-                        className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+                        className={`inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-all ${
                           subcategory === s
-                            ? "border-border bg-secondary text-foreground"
+                            ? "border-accent bg-accent text-accent-foreground shadow-sm ring-2 ring-accent/30"
                             : "border-border bg-card text-foreground hover:bg-secondary"
                         }`}
-                      >{s}</button>
+                      >
+                        {subcategory === s && <Check className="h-3.5 w-3.5" />}
+                        {s}
+                      </button>
                     ))}
                   </div>
                   <button type="button" onClick={() => { setCustomSubcategory(true); setSubcategory(""); }}
@@ -1436,12 +1439,15 @@ const ServiceForm = ({
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {ALL_INTERVALS.map((iv) => (
               <button key={iv.value} type="button" onClick={() => toggleInterval(iv.value)}
-                className={`rounded-xl border px-4 py-3 text-center transition-colors ${
+                className={`relative rounded-xl border px-4 py-3 text-center transition-all ${
                   intervalOptions.includes(iv.value)
-                    ? "border-border bg-secondary"
+                    ? "border-accent bg-accent text-accent-foreground shadow-sm ring-2 ring-accent/30"
                     : "border-border bg-card hover:bg-secondary"
                 }`}>
-                <span className="text-sm font-medium text-foreground">{iv.label}</span>
+                {intervalOptions.includes(iv.value) && (
+                  <Check className="absolute right-2 top-2 h-3.5 w-3.5" />
+                )}
+                <span className={`text-sm font-medium ${intervalOptions.includes(iv.value) ? "" : "text-foreground"}`}>{iv.label}</span>
               </button>
             ))}
           </div>
