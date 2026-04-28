@@ -40,6 +40,8 @@ const DynamicBusinessContent = () => {
   const { data: services } = useServices(business?.id);
   const { data: reviews } = useReviews(business?.id);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const { count: cartCount, sheetOpen: cartSheetOpen } = useCart();
+  const cartFabVisible = cartCount > 0 && !cartSheetOpen;
 
   // Memoize grouped services
   type ServiceItem = NonNullable<typeof services>[number];
@@ -662,6 +664,7 @@ const DynamicBusinessContent = () => {
           businessId={business.id}
           businessName={business.name}
           logoUrl={business.logo_url}
+          cartFabVisible={cartFabVisible}
         />
       )}
 
