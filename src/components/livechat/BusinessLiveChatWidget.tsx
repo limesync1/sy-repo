@@ -5,12 +5,19 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
-  Image as ImageIcon, Volume2, VolumeX, Sparkles, MoreVertical, MessagesSquare, ArrowLeft,
+  Image as ImageIcon, Volume2, VolumeX, Sparkles, MoreVertical, MessagesSquare, ArrowLeft, Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import chatSounds from "./chatSounds";
+import ChatInboxList from "./ChatInboxList";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   upsertChat,
   removeChat,
@@ -64,9 +71,6 @@ const formatTime = (iso: string) => {
   if (sameDay) return d.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
   return d.toLocaleDateString("da-DK", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 };
-
-const initials = (name: string) =>
-  name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() || "").join("") || "S";
 
 const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, cartFabVisible = false }: Props) => {
   const { user } = useAuth();
@@ -150,6 +154,15 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
       localStorage.removeItem(STORAGE_KEY);
     }
   }, [STORAGE_KEY, businessId]);
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("serviceydere_open_chat_key") !== businessKey(businessId)) return;
+      sessionStorage.removeItem("serviceydere_open_chat_key");
+      setOpen(true);
+      setShowInbox(false);
+    } catch {}
+  }, [businessId, setOpen]);
 
   // Sørg for at denne virksomheds-chat er registreret så længe vi har en
   // aktiv samtale — så den dukker op i "Mine samtaler"-listen overalt.
@@ -245,7 +258,7 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
       const el = scrollRef.current;
       if (el) el.scrollTo({ top: el.scrollHeight, behavior: "auto" });
     });
-  }, [open]);
+  }, [open, conversation?.id, showInbox]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -407,6 +420,28 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
     setConversation((prev) => (prev ? { ...prev, status: "closed" } : prev));
   };
 
+  const deleteCurrentConversation = async () => {
+    if (!conversation) return;
+    if (!confirm("Vil du slette samtalen fra dine samtaler?")) return;
+    if (conversation.status !== "closed") {
+      await supabase.from("chat_messages").insert({
+        conversation_id: conversation.id,
+        sender_type: "visitor",
+        sender_name: conversation.visitor_name,
+        content: `${conversation.visitor_name} slettede samtalen fra sin oversigt`,
+        is_system: true,
+      });
+      await supabase.from("chat_conversations").update({ status: "closed" }).eq("id", conversation.id);
+    }
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    removeChat(businessKey(businessId));
+    setConversation(null);
+    setMessages([]);
+    setDraft("");
+    clearPendingImage();
+    chatSounds.system();
+  };
+
   const startNewConversation = () => {
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
     removeChat(businessKey(businessId));
@@ -433,6 +468,33 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
     if (conversation) {
       supabase.from("chat_conversations").update({ unread_visitor_count: 0 }).eq("id", conversation.id).then(() => {});
     }
+  };
+
+  const selectChat = (chat: RegisteredChat) => {
+    const activeKey = businessKey(businessId);
+    if (chat.key === activeKey) { setShowInbox(false); return; }
+    try { sessionStorage.setItem("serviceydere_open_chat_key", chat.key); } catch {}
+    if (chat.scope === "business" && chat.href) window.location.href = chat.href;
+    else if (chat.scope === "platform") window.location.href = "/";
+  };
+
+  const deleteChat = (chat: RegisteredChat) => {
+    if (!confirm("Vil du slette samtalen fra dine samtaler?")) return;
+    const activeKey = businessKey(businessId);
+    if (chat.key === activeKey) {
+      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+      if (conversation) {
+        supabase.from("chat_conversations").update({ status: "closed" }).eq("id", conversation.id).then(() => {});
+      }
+      setConversation(null);
+      setMessages([]);
+    } else if (chat.scope === "business" && chat.businessId) {
+      try { localStorage.removeItem(`serviceydere_biz_chat_${chat.businessId}_v1`); } catch {}
+    } else if (chat.scope === "platform") {
+      try { localStorage.removeItem("serviceydere_chat_session_v1"); } catch {}
+    }
+    removeChat(chat.key);
+    setChats(listChats());
   };
 
   const closed = conversation?.status === "closed";
@@ -538,44 +600,33 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
                     </button>
                   )}
                   {conversation && (
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowMenu((v) => !v)}
-                        aria-label="Flere handlinger"
-                        title="Handlinger"
-                        className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
-                      {showMenu && (
-                        <>
-                          <button
-                            type="button"
-                            aria-label="Luk menu"
-                            className="fixed inset-0 z-40 cursor-default"
-                            onClick={() => setShowMenu(false)}
-                          />
-                          <div className="absolute right-0 top-9 z-50 w-56 overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-xl">
-                            {!closed && (
-                              <button
-                                onClick={() => { setShowMenu(false); endChatSession(); }}
-                                className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] hover:bg-secondary/60"
-                              >
-                                <XIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                                Afslut denne samtale
-                              </button>
-                            )}
-                            <button
-                              onClick={() => { setShowMenu(false); startNewConversation(); }}
-                              className="flex w-full items-center gap-2 border-t border-border px-3 py-2.5 text-left text-[13px] hover:bg-secondary/60"
-                            >
-                              <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
-                              Start ny samtale
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
+                    <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          aria-label="Flere handlinger"
+                          title="Handlinger"
+                          className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" sideOffset={8} className="z-[80] w-60 rounded-xl border-border bg-card text-foreground shadow-xl">
+                        {!closed && (
+                          <DropdownMenuItem onSelect={endChatSession} className="cursor-pointer gap-2 text-[13px] focus:bg-secondary/70">
+                            <XIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                            Afslut denne samtale
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem onSelect={startNewConversation} className="cursor-pointer gap-2 text-[13px] focus:bg-secondary/70">
+                          <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                          Start ny samtale
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={deleteCurrentConversation} className="cursor-pointer gap-2 text-[13px] text-destructive focus:bg-destructive/10 focus:text-destructive">
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Slet samtale
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
                   <button
                     onClick={toggleMute}
@@ -608,51 +659,8 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
                   </button>
                   <p className="text-[13px] font-semibold text-foreground">Mine samtaler</p>
                 </div>
-                <div className="flex-1 overflow-y-auto p-2">
-                  {chats.length === 0 ? (
-                    <p className="px-3 py-4 text-[12px] text-muted-foreground">Ingen aktive samtaler endnu.</p>
-                  ) : (
-                    <ul className="space-y-1">
-                      {chats.map((c) => {
-                        const active = c.key === businessKey(businessId);
-                        return (
-                          <li key={c.key}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (active) { setShowInbox(false); return; }
-                                if (c.scope === "business" && c.href) {
-                                  window.location.href = c.href;
-                                } else if (c.scope === "platform") {
-                                  window.location.href = "/";
-                                }
-                              }}
-                              className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors ${
-                                active
-                                  ? "border-foreground bg-secondary/60"
-                                  : "border-border bg-card hover:border-foreground/30 hover:bg-secondary/40"
-                              }`}
-                            >
-                              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-background">
-                                {c.scope === "business" && c.logoUrl ? (
-                                  <img src={c.logoUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
-                                ) : (
-                                  <MessageCircle className="h-4 w-4" />
-                                )}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate text-[13px] font-semibold text-foreground">{c.label}</p>
-                                <p className="truncate text-[11px] text-muted-foreground">
-                                  {c.scope === "platform" ? "Serviceydere kundeservice" : "Virksomhedschat"}
-                                  {active && " · åben her"}
-                                </p>
-                              </div>
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
+                <div className="flex-1 overflow-y-auto">
+                  <ChatInboxList chats={chats} activeKey={businessKey(businessId)} onSelect={selectChat} onDelete={deleteChat} />
                 </div>
               </div>
             )}
@@ -752,8 +760,8 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
                         {!mine && (
                           <div className="w-7 flex-shrink-0">
                             {showAvatar && (
-                              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-[10px] font-semibold text-background">
-                                {initials(m.sender_name)}
+                              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-background">
+                                <MessageCircle className="h-3.5 w-3.5" />
                               </div>
                             )}
                           </div>
@@ -793,7 +801,7 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
                     </div>
                     <p className="text-[11px] text-muted-foreground">Du kan altid starte en ny henvendelse herunder.</p>
                     <button
-                      onClick={() => { localStorage.removeItem(STORAGE_KEY); setConversation(null); setMessages([]); }}
+                      onClick={startNewConversation}
                       className="mt-3 inline-flex items-center justify-center rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background transition-all hover:bg-foreground/90"
                     >
                       Start en ny samtale
@@ -840,8 +848,8 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
                     </div>
                     <div className="mt-2 flex items-center justify-between px-1">
                       <span className="text-[10px] text-muted-foreground">Enter sender · max 5 MB billede</span>
-                      <button onClick={endChatSession} className="text-[10px] text-muted-foreground transition-colors hover:text-foreground">
-                        Afslut samtale
+                      <button onClick={deleteCurrentConversation} className="text-[10px] text-muted-foreground transition-colors hover:text-destructive">
+                        Slet samtale
                       </button>
                     </div>
                   </div>

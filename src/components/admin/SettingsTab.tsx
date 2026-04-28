@@ -63,7 +63,7 @@ const SECTIONS = [
   { id: "general",       label: "Virksomhed",     icon: Building2, hint: "Navn og beskrivelse" },
   { id: "industries",    label: "Brancher",       icon: Sparkles,  hint: "Hvad I tilbyder" },
   { id: "contact",       label: "Kontakt",        icon: Contact,   hint: "Adresse og kontakt" },
-  { id: "branding",      label: "Branding",       icon: ImageIcon, hint: "Logo og cover" },
+  { id: "branding",      label: "Branding",       icon: ImageIcon, hint: "Domæne og billeder" },
   { id: "hours",         label: "Åbningstider",   icon: Clock,     hint: "Hverdage og weekend" },
   { id: "notifications", label: "Notifikationer", icon: Bell,      hint: "Email-varsler" },
   { id: "billing",       label: "Priser og betaling", icon: CreditCard, hint: "Pakke og betalingskort" },
@@ -965,7 +965,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Branding */}
         <div id="settings-branding" className="scroll-mt-6">
-          <SectionCard title="Branding" icon={<ImageIcon />} description="Logo og coverbillede vises på din virksomhedsside.">
+          <SectionCard title="Domæne og billeder" icon={<ImageIcon />} description="Domæne, logo og coverbillede vises på din virksomhedsside.">
             {/* Side-om-side så cover ikke fylder hele bredden — kun en kompakt
                 preview, da fuld bannervisning ikke er nødvendig her. */}
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
@@ -1088,6 +1088,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                           <div className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 font-mono text-[11px]">
                             <span className="text-muted-foreground">Type:</span><span>TXT</span>
                             <span className="text-muted-foreground">Navn:</span><span>_serviceydere</span>
+                            <span className="text-muted-foreground">Alternativt:</span><span className="break-all">_serviceydere.{customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "").split("/")[0]}</span>
                             <span className="text-muted-foreground">Værdi:</span><span className="break-all">serviceydere-verify={domainToken}</span>
                           </div>
                         </div>
@@ -1095,7 +1096,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                           <p className="font-medium text-foreground">2) Pegning — CNAME-record</p>
                           <div className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 font-mono text-[11px]">
                             <span className="text-muted-foreground">Type:</span><span>CNAME</span>
-                            <span className="text-muted-foreground">Navn:</span><span>@ (eller www)</span>
+                            <span className="text-muted-foreground">Navn:</span><span>{customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "").split("/")[0] || "@"}</span>
                             <span className="text-muted-foreground">Værdi:</span><span>serviceydere.dk</span>
                           </div>
                         </div>
