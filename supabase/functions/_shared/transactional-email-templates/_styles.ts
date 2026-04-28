@@ -4,7 +4,7 @@ export const SITE_NAME = 'Serviceydere'
 export const SITE_URL = 'https://serviceydere.dk'
 export const SUPPORT_EMAIL = 'kontakt@serviceydere.dk'
 export const LOGO_URL =
-  'https://gkectsellkpltrxvusot.supabase.co/storage/v1/object/public/email-assets/serviceydere-logo.png'
+  'https://gkectsellkpltrxvusot.supabase.co/storage/v1/object/public/email-assets/serviceydere-logo-dark.png'
 
 // Palette
 const ink = '#212121'        // foreground (matches site --foreground 0 0% 13%)
@@ -35,7 +35,7 @@ export const headerBar = {
   marginBottom: '32px',
 }
 export const logoSection = { margin: 0 }
-export const logo = { display: 'block', height: '24px' }
+export const logo = { display: 'block', height: '32px' }
 export const headerSiteName = {
   color: ink,
   fontSize: '15px',
