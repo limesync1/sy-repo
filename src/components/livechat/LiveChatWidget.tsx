@@ -456,6 +456,18 @@ const LiveChatWidget = () => {
     setConversation((prev) => (prev ? { ...prev, status: "closed" } : prev));
   };
 
+  const startNewConversation = () => {
+    // Tøm lokal state og fjern session-token, så brugeren får start-formularen igen.
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    setConversation(null);
+    setMessages([]);
+    setDraft("");
+    clearPendingImage();
+    setError(null);
+    setSubject("");
+    setFirstMessage("");
+  };
+
   const toggleMute = () => {
     const next = !muted;
     setMuted(next);
