@@ -194,16 +194,10 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
             loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          <Badge variant="outline" className="absolute right-3 top-3 border-background/50 bg-background/90 backdrop-blur-sm text-xs font-medium">
-            {pricingLabels[service.pricing_type]}
-          </Badge>
         </div>
       ) : (
         <div className="relative flex h-20 w-full items-center justify-center bg-secondary/70 sm:h-24">
           <ImageIcon className="h-8 w-8 text-muted-foreground/15" />
-          <Badge variant="outline" className="absolute right-3 top-3 text-xs font-medium">
-            {pricingLabels[service.pricing_type]}
-          </Badge>
         </div>
       )}
 
