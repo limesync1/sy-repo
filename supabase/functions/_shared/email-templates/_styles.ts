@@ -1,4 +1,4 @@
-export const LOGO_URL = 'https://gkectsellkpltrxvusot.supabase.co/storage/v1/object/public/email-assets/serviceydere-logo-dark.png'
+export const LOGO_URL = 'https://serviceydere.dk/serviceydere-logo-dark.png'
 
 // Swiss Clean — refined, professional, matches serviceydere.dk
 
@@ -28,7 +28,9 @@ export const container = {
 
 export const logo = {
   display: 'block',
-  height: '32px',
+  width: '170px',
+  maxWidth: '170px',
+  height: 'auto',
 }
 
 export const eyebrow = {

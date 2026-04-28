@@ -22,17 +22,18 @@ import {
 } from './_styles.ts'
 
 interface ReauthenticationEmailProps {
+ siteName?: string
  token: string
 }
 
-export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => (
+export const ReauthenticationEmail = ({ siteName = 'Serviceydere', token }: ReauthenticationEmailProps) => (
  <Html lang="da" dir="ltr">
  <Head />
- <Preview>Din verifikationskode</Preview>
+  <Preview>Din verifikationskode til {siteName}</Preview>
  <Body style={main}>
  <Container style={wrapper}>
  <Section style={headerBar}>
- <Img src={LOGO_URL} alt="Serviceydere" height="34" style={logo} />
+  <Img src={LOGO_URL} alt={siteName} width="170" height="48" style={logo} />
  </Section>
  <Container style={container}>
  <Text style={eyebrow}>Sikkerhedstjek</Text>
