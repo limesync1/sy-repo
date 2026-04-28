@@ -503,7 +503,7 @@ const LiveChatWidget = () => {
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success ring-2 ring-foreground"></span>
             </span>
           </span>
-          <span>Chat</span>
+          <span>Kundeservice</span>
         </button>
       )}
 

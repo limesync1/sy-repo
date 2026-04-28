@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import {
   Building2, Loader2, Check, Sparkles, Route, Users, Calculator,
   UploadCloud, ShieldCheck, ArrowRight, Mail, Lock, Search,
+  Inbox, MessageCircle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ type Pricing = {
   trial_days: number;
 };
 
-type FeatureKey = "route_planning" | "accounting_integration" | "data_import";
+type FeatureKey = "route_planning" | "accounting_integration" | "data_import" | "leads" | "livechat";
 type BillingPeriod = "monthly" | "quarterly" | "yearly";
 
 const FEATURES: { key: FeatureKey; icon: typeof Route; title: string; description: string }[] = [
@@ -61,6 +62,18 @@ const FEATURES: { key: FeatureKey; icon: typeof Route; title: string; descriptio
     icon: UploadCloud,
     title: "Dataimport fra dit nuværende system",
     description: "Vi flytter eksisterende kunder, services og abonnementer fra dit gamle system, så du slipper for manuelt arbejde.",
+  },
+  {
+    key: "leads",
+    icon: Inbox,
+    title: "Leads (Indhent 3 tilbud)",
+    description: "Modtag relevante kundehenvendelser direkte i dashboardet, når kunder beder om tilbud i dit område og din kategori.",
+  },
+  {
+    key: "livechat",
+    icon: MessageCircle,
+    title: "Livechat på din virksomhedsside",
+    description: "Lad besøgende skrive direkte til dig på din virksomhedsside. Du svarer fra virksomhedspanelet eller fra mobilen.",
   },
 ];
 
@@ -126,6 +139,8 @@ const BusinessOnboarding = () => {
     route_planning: false,
     accounting_integration: false,
     data_import: false,
+    leads: true,
+    livechat: true,
   });
   const [extraLogins, setExtraLogins] = useState(0);
   const [billing, setBilling] = useState<BillingPeriod>("monthly");
@@ -230,6 +245,8 @@ const BusinessOnboarding = () => {
             industry_text: cvrData.industry,
             route_planning_enabled: features.route_planning,
             accounting_integration_enabled: features.accounting_integration,
+            leads_enabled: features.leads,
+            livechat_enabled: features.livechat,
             onboarding: {
               completed_at: new Date().toISOString(),
               data_import_requested: features.data_import,
@@ -362,12 +379,14 @@ const BusinessOnboarding = () => {
             </Section>
 
             {/* 2. Funktioner */}
-            <Section number={2} title="Vælg dine funktioner" subtitle="Tilkøb kun det du har brug for">
+            <Section number={2} title="Vælg dine funktioner" subtitle="Tilkøb kun det du har brug for — alt kan til- eller fravælges senere under Indstillinger">
               <div className="grid gap-3">
                 {FEATURES.map(({ key, icon: Icon, title, description }) => {
                   const active = features[key];
-                  const price =
-                    key === "route_planning" ? pricing?.price_route_planning_dkk
+                  const isFree = key === "leads" || key === "livechat";
+                  const price = isFree
+                    ? 0
+                    : key === "route_planning" ? pricing?.price_route_planning_dkk
                     : key === "accounting_integration" ? pricing?.price_accounting_integration_dkk
                     : pricing?.price_data_import_dkk;
                   return (

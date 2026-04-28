@@ -383,9 +383,12 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
           aria-label={`Åbn livechat med ${headerName}`}
           className={`fixed z-40 flex items-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-[0_18px_40px_-16px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_22px_50px_-16px_hsl(var(--foreground)/0.6)] active:scale-95 ${fabBottomClass} ${fabPositionClass}`}
         >
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success ring-2 ring-foreground"></span>
+          <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-background/15">
+            <MessageCircle className="h-4 w-4" />
+            <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success ring-2 ring-foreground"></span>
+            </span>
           </span>
           <span className="truncate max-w-[8rem] sm:max-w-[14rem]">
             <span className="hidden sm:inline">Chat med </span>{headerName}
