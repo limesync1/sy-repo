@@ -433,18 +433,10 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background overflow-hidden">
-                      {logoUrl ? (
-                        <img
-                          src={logoUrl}
-                          alt={`${headerName} logo`}
-                          className="h-10 w-10 object-cover"
-                        />
-                      ) : (
-                        <span className="text-[13px] font-bold text-foreground">{initials(headerName)}</span>
-                      )}
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background">
+                      <span className="text-[13px] font-bold text-foreground">{initials(headerName)}</span>
                     </div>
-                    <span className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ring-foreground ${closed ? "bg-muted-foreground" : "bg-accent"}`}>
+                    <span className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ring-foreground ${closed ? "bg-muted-foreground" : "bg-success"}`}>
                       {!closed && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-background" />}
                     </span>
                   </div>
