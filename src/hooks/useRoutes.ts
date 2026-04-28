@@ -825,13 +825,7 @@ export const useUpdateStopStatus = () => {
       if (error) throw error;
       return data as RouteStop;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["route-stops"] });
-      qc.invalidateQueries({ queryKey: ["my-day-stops"] });
-      qc.invalidateQueries({ queryKey: ["my-day-routes"] });
-      qc.invalidateQueries({ queryKey: ["my-route-data"] });
-      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
-    },
+    onSuccess: () => invalidateRouteSyncQueries(qc),
     onError: (e: any) => toast.error(e.message || "Kunne ikke opdatere stop"),
   });
 };
@@ -1034,9 +1028,7 @@ export const useAutoAssignStops = () => {
       const stopsTouched = new Set(inserts.map((i) => i.stop_id)).size;
       return { assigned: stopsTouched, totalAssignments: inserts.length };
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
-    },
+    onSuccess: () => invalidateRouteSyncQueries(qc),
     onError: (e: any) => toast.error(e.message || "Kunne ikke fordele aftaler"),
   });
 };
