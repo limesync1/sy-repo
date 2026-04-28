@@ -88,6 +88,7 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastMsgIdRef = useRef<string | null>(null);
+  const fabRef = useRef<HTMLButtonElement>(null);
   const initialLoadRef = useRef(true);
   const userScrolledUpRef = useRef(false);
 
@@ -374,10 +375,36 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
   const panelBottomClass = fabBottomClass;
   const panelPositionClass = fabPositionClass;
 
+  // Publicér FAB'ens faktiske bredde som en CSS-variabel, så fx CartFab kan
+  // sidde lige til venstre for livechat-knappen uden at overlappe — uanset
+  // hvor langt virksomhedsnavnet er.
+  useEffect(() => {
+    const el = fabRef.current;
+    const root = document.documentElement;
+    if (!el || open) {
+      root.style.setProperty("--livechat-fab-width", "0px");
+      return;
+    }
+    const update = () => {
+      const w = el.getBoundingClientRect().width;
+      root.style.setProperty("--livechat-fab-width", `${Math.ceil(w)}px`);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener("resize", update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", update);
+      root.style.setProperty("--livechat-fab-width", "0px");
+    };
+  }, [open, headerName]);
+
   return (
     <>
       {!open && (
         <button
+          ref={fabRef}
           type="button"
           onClick={handleOpen}
           aria-label={`Åbn livechat med ${headerName}`}
