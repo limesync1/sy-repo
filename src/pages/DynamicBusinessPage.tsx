@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Footer from "@/components/landing/Footer";
 import BusinessLiveChatWidget from "@/components/livechat/BusinessLiveChatWidget";
+import { useCart } from "@/contexts/CartContext";
 
 /* ─── Opening-hours helpers ───
  * Sorter åbningstider i kanonisk rækkefølge (Man → Søn) uafhængigt af
