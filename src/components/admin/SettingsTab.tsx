@@ -874,11 +874,11 @@ const SettingsTab = ({ business }: { business: any }) => {
         <div id="settings-general" className="scroll-mt-6">
           <SectionCard title="Virksomhed" icon={<Building2 />} description="Virksomhedsnavn og beskrivelse.">
             <div className="space-y-4">
-              <div>
+              <div data-tour="field-company-name">
                 <FieldLabel>Virksomhedsnavn</FieldLabel>
                 <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-10 rounded-lg" />
               </div>
-              <div>
+              <div data-tour="field-company-description">
                 <FieldLabel>Beskrivelse</FieldLabel>
                 <Textarea placeholder="Hvad gør din virksomhed? Hvad er jeres speciale?" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={500} className="bg-card rounded-lg" />
                 <p className="mt-1 text-xs text-muted-foreground">{description.length}/500 tegn</p>
@@ -928,21 +928,21 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard title="Kontakt & adresse" icon={<Contact />} description="Sådan kan kunder få fat i dig.">
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
+                <div data-tour="field-phone">
                   <FieldLabel>Telefon</FieldLabel>
                   <Input placeholder="12 34 56 78" value={phone} onChange={(e) => handlePhoneChange(e.target.value)} className="bg-card h-10 rounded-lg" type="tel" />
                 </div>
-                <div>
+                <div data-tour="field-email">
                   <FieldLabel>Email</FieldLabel>
                   <Input placeholder="kontakt@virksomhed.dk" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-card h-10 rounded-lg" type="email" />
                 </div>
               </div>
-              <div>
+              <div data-tour="field-address">
                 <FieldLabel>Adresse</FieldLabel>
                 <Input placeholder="Vejnavn 123" value={address} onChange={(e) => setAddress(e.target.value)} className="bg-card h-10 rounded-lg" />
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
+                <div data-tour="field-zip">
                   <FieldLabel>Postnummer</FieldLabel>
                   <div className="relative">
                     <Input placeholder="2100" value={zipCode} onChange={(e) => handleZipChange(e.target.value)} className="bg-card h-10 rounded-lg" maxLength={4} />
@@ -954,7 +954,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">By udfyldes automatisk</p>
                 </div>
-                <div>
+                <div data-tour="field-city">
                   <FieldLabel>By</FieldLabel>
                   <Input placeholder="København" value={city} onChange={(e) => setCity(e.target.value)} className="bg-card h-10 rounded-lg" />
                 </div>
@@ -969,12 +969,12 @@ const SettingsTab = ({ business }: { business: any }) => {
             {/* Side-om-side så cover ikke fylder hele bredden — kun en kompakt
                 preview, da fuld bannervisning ikke er nødvendig her. */}
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-              <div className="shrink-0">
+              <div className="shrink-0" data-tour="field-logo">
                 <FieldLabel>Logo</FieldLabel>
                 <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
                 <p className="mt-2 text-xs text-muted-foreground">Kvadrat (fx 512×512)</p>
               </div>
-              <div className="min-w-0 flex-1 sm:max-w-xs">
+              <div className="min-w-0 flex-1 sm:max-w-xs" data-tour="field-cover">
                 <FieldLabel>Coverbillede</FieldLabel>
                 <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-full max-w-[260px]" />
                 <p className="mt-2 text-xs text-muted-foreground">Bredt 16:9 — vises som banner på din side</p>

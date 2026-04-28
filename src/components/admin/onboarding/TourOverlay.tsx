@@ -2,9 +2,10 @@ import { useEffect, useState, useLayoutEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
-import { X, ArrowLeft, ArrowRight } from "lucide-react";
+import { X, ArrowLeft, ArrowRight, SkipForward } from "lucide-react";
 import { useTour } from "./TourContext";
 import { useCompleteOnboardingStep } from "@/hooks/useOnboarding";
+import { toast } from "sonner";
 
 /**
  * TourOverlay — renderer:
@@ -31,6 +32,7 @@ export const TourOverlay = ({ businessId }: { businessId?: string }) => {
   const [rect, setRect] = useState<Rect | null>(null);
   const [missing, setMissing] = useState(false);
   const lastNavigatedToRef = useRef<string | null>(null);
+  const lastBlockToastRef = useRef<number>(0);
 
   const step = active?.steps[stepIndex];
 
@@ -110,6 +112,19 @@ export const TourOverlay = ({ businessId }: { businessId?: string }) => {
     }
   };
 
+  /**
+   * Vis en toast når brugeren forsøger at klikke uden for spotlight'et —
+   * men throttle så vi ikke spammer ved hvert lille klik.
+   */
+  const showBlockedToast = () => {
+    const now = Date.now();
+    if (now - lastBlockToastRef.current < 1500) return;
+    lastBlockToastRef.current = now;
+    toast.info("Ikke muligt under guide", {
+      description: "Brug knapperne i guiden for at gå videre — eller luk guiden hvis du vil bruge siden frit.",
+    });
+  };
+
   // Beregn tooltip-position. Hvis ingen rect (mangler element) → vis centreret.
   const isLast = stepIndex + 1 >= active.steps.length;
   const tooltipStyle: React.CSSProperties = (() => {
@@ -169,12 +184,21 @@ export const TourOverlay = ({ businessId }: { businessId?: string }) => {
       }
     : null;
 
+  const interactive = !!step.interactive;
+
   return createPortal(
     <div className="fixed inset-0 z-[100] pointer-events-none" aria-live="polite">
-      {/* Dim-overlay med spotlight-hul */}
+      {/*
+        Dim-overlay med spotlight-hul.
+        Når step.interactive er TRUE skal klik på mål-elementet gå igennem,
+        mens klik UDENFOR stadig blokeres — derfor bruger vi 4 div'er rundt
+        om spotlight-hullet (top/bottom/left/right) i stedet for et SVG over
+        hele skærmen. SVG'en bruges kun til den visuelle dim+ring.
+      */}
       <svg
-        className="absolute inset-0 h-full w-full pointer-events-auto"
+        className="absolute inset-0 h-full w-full pointer-events-none"
         style={{ touchAction: "none" }}
+        aria-hidden="true"
       >
         <defs>
           <mask id="tour-mask">
@@ -207,6 +231,58 @@ export const TourOverlay = ({ businessId }: { businessId?: string }) => {
           />
         )}
       </svg>
+
+      {/*
+        Klik-blokerings-laget. Vi tegner 4 transparente rektangler omkring
+        spotlight-hullet. Klik på dem viser en toast. Området INDEN i hullet
+        forbliver klikbart — men kun når step.interactive er true (ellers
+        lægger vi også et blokerings-rect oven på spotlight'et).
+      */}
+      {maskRect ? (
+        <>
+          {/* Top */}
+          <div
+            className="absolute pointer-events-auto"
+            style={{ top: 0, left: 0, right: 0, height: Math.max(0, maskRect.y) }}
+            onClick={showBlockedToast}
+          />
+          {/* Bottom */}
+          <div
+            className="absolute pointer-events-auto"
+            style={{ top: maskRect.y + maskRect.h, left: 0, right: 0, bottom: 0 }}
+            onClick={showBlockedToast}
+          />
+          {/* Left */}
+          <div
+            className="absolute pointer-events-auto"
+            style={{ top: maskRect.y, left: 0, width: Math.max(0, maskRect.x), height: maskRect.h }}
+            onClick={showBlockedToast}
+          />
+          {/* Right */}
+          <div
+            className="absolute pointer-events-auto"
+            style={{ top: maskRect.y, left: maskRect.x + maskRect.w, right: 0, height: maskRect.h }}
+            onClick={showBlockedToast}
+          />
+          {/* Spotlight-området: hvis IKKE interactive, blokér også her. */}
+          {!interactive && (
+            <div
+              className="absolute pointer-events-auto"
+              style={{
+                top: maskRect.y, left: maskRect.x,
+                width: maskRect.w, height: maskRect.h,
+              }}
+              onClick={showBlockedToast}
+            />
+          )}
+        </>
+      ) : (
+        // Intet mål endnu → blokér hele skærmen
+        <div
+          className="absolute inset-0 pointer-events-auto"
+          onClick={showBlockedToast}
+        />
+      )}
 
       {/* Tooltip */}
       <div
@@ -245,9 +321,20 @@ export const TourOverlay = ({ businessId }: { businessId?: string }) => {
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Forrige
           </Button>
-          <Button size="sm" onClick={handleNext} className="gap-1">
-            {isLast ? "Færdig" : <>Næste <ArrowRight className="h-3.5 w-3.5" /></>}
-          </Button>
+          <div className="flex items-center gap-1.5">
+            {step.skippable && !isLast && (
+              <Button
+                variant="ghost" size="sm"
+                onClick={next}
+                className="gap-1 text-muted-foreground hover:text-foreground"
+              >
+                <SkipForward className="h-3.5 w-3.5" /> Spring over
+              </Button>
+            )}
+            <Button size="sm" onClick={handleNext} className="gap-1">
+              {isLast ? "Færdig" : <>Næste <ArrowRight className="h-3.5 w-3.5" /></>}
+            </Button>
+          </div>
         </div>
       </div>
     </div>,

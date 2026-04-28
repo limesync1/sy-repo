@@ -21,6 +21,18 @@ export type TourStep = {
   navigateTo?: string;
   /** Tilføj et lille pil-ikon der peger på et klik som brugeren skal udføre. */
   action?: "click" | "scroll";
+  /**
+   * Hvis true: brugeren kan klikke/interagere med mål-elementet (fx udfylde
+   * et input-felt). Dim-laget udenfor blokerer stadig klik og viser en
+   * "ikke muligt under guide"-besked.
+   * Default: false (alt er blokeret — brugeren skal bruge Næste-knappen).
+   */
+  interactive?: boolean;
+  /**
+   * Vis "Spring over felt"-knap. Bruges typisk på interaktive felt-trin
+   * hvor brugeren kan vælge at hoppe videre uden at udfylde noget.
+   */
+  skippable?: boolean;
 };
 
 export type TourDefinition = {
