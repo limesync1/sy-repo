@@ -579,6 +579,16 @@ const PlatformLiveChatTab = () => {
                   <p className="truncate text-sm font-semibold text-foreground">{active.visitor_name}</p>
                   <p className="truncate text-[11px] text-muted-foreground">{active.subject || "Ingen emne"}</p>
                 </div>
+                <span
+                  className={`ml-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                    active.status === "closed"
+                      ? "bg-muted text-muted-foreground"
+                      : "bg-success/10 text-success"
+                  }`}
+                >
+                  <span className={`h-1.5 w-1.5 rounded-full ${active.status === "closed" ? "bg-muted-foreground" : "bg-success animate-pulse"}`} />
+                  {active.status === "closed" ? "Afsluttet" : "Åben"}
+                </span>
               </div>
               <div className="flex items-center gap-1.5">
                 <button
