@@ -3,6 +3,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 
+const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>) => {
+  qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+  qc.invalidateQueries({ queryKey: ["route-stops"] });
+  qc.invalidateQueries({ queryKey: ["routes"] });
+  qc.invalidateQueries({ queryKey: ["routes-range"] });
+  qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+  qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
+  qc.invalidateQueries({ queryKey: ["my-day-stops"] });
+  qc.invalidateQueries({ queryKey: ["my-day-routes"] });
+  qc.invalidateQueries({ queryKey: ["my-route-data"] });
+  qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
+  qc.invalidateQueries({ queryKey: ["order-for-stop"] });
+};
+
 export type Route = {
   id: string;
   business_id: string;
@@ -675,11 +689,7 @@ export const useAddStop = () => {
       if (error) throw error;
       return data as RouteStop;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
-      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
-      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
-    },
+    onSuccess: () => invalidateRouteSyncQueries(qc),
   });
 };
 
@@ -701,13 +711,8 @@ export const useUpdateStop = () => {
       return data as RouteStop;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
-      qc.invalidateQueries({ queryKey: ["route-stops"] });
+      invalidateRouteSyncQueries(qc);
       qc.invalidateQueries({ queryKey: ["stop-assignees-bulk"] });
-      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
-      qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
-      qc.invalidateQueries({ queryKey: ["my-day-stops"] });
-      qc.invalidateQueries({ queryKey: ["my-route-data"] });
     },
   });
 };
