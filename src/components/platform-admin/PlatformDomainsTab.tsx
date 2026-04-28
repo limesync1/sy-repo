@@ -127,7 +127,7 @@ const PlatformDomainsTab = () => {
     <div className="space-y-4">
       <PageHeader
         title="Custom domæner"
-        subtitle="Kø af kunders egne domæner. DNS verificeres automatisk — du markerer manuelt når domænet er tilføjet på hosting-platformen og SSL er udstedt."
+        description="Kø af kunders egne domæner. DNS verificeres automatisk — du markerer manuelt når domænet er tilføjet på hosting-platformen og SSL er udstedt."
       />
 
       <div className="flex flex-wrap gap-2">
@@ -151,7 +151,7 @@ const PlatformDomainsTab = () => {
       {isLoading ? (
         <Card className="p-6"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></Card>
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Globe} title="Ingen domæner i denne kategori" description="Kunders custom domæner vises her når de tilføjer dem i deres virksomhedsindstillinger." />
+        <EmptyState icon={<Globe />} title="Ingen domæner i denne kategori" description="Kunders custom domæner vises her når de tilføjer dem i deres virksomhedsindstillinger." />
       ) : (
         <div className="space-y-2">
           {filtered.map((row) => {
