@@ -20,12 +20,15 @@ const CartFab = () => {
     pathname === "/demo" ||
     pathname === "/tilbud";
   if (!allowed) return null;
+  // Livechat-FAB'en sidder altid yderst til højre, så vi rykker bestilling
+  // mod venstre på desktop for at undgå overlap. På mobil stables livechat
+  // ovenover bestilling, så vi behøver ikke skubbe i x-aksen der.
   return (
     <button
       type="button"
       onClick={openSheet}
       aria-label={`Åbn bestilling med ${count} ${count === 1 ? "service" : "services"}`}
-      className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-[0_18px_40px_-16px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_22px_50px_-16px_hsl(var(--foreground)/0.6)] active:scale-95 sm:bottom-6 sm:right-6"
+      className="fixed z-40 flex items-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-[0_18px_40px_-16px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_22px_50px_-16px_hsl(var(--foreground)/0.6)] active:scale-95 bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] right-[calc(env(safe-area-inset-right,0px)+1.25rem)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] sm:right-[calc(env(safe-area-inset-right,0px)+8.5rem)]"
     >
       <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-background/15">
         <Package className="h-4 w-4" />
