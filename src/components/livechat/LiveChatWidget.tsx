@@ -176,6 +176,7 @@ const LiveChatWidget = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastMsgIdRef = useRef<string | null>(null);
   const initialLoadRef = useRef(true);
+  const userScrolledUpRef = useRef(false);
 
   const hidden = useMemo(
     () =>
@@ -282,11 +283,25 @@ const LiveChatWidget = () => {
   useEffect(() => {
     if (!open) return;
     const el = scrollRef.current;
-    if (el) {
-      // smooth scroll for new messages, instant on initial open
+    if (!el) return;
+    // Only auto-scroll if user is near bottom or it's the initial load.
+    // This lets the user scroll up to read history without being yanked back down.
+    if (initialLoadRef.current || !userScrolledUpRef.current) {
       el.scrollTo({ top: el.scrollHeight, behavior: initialLoadRef.current ? "auto" : "smooth" });
     }
   }, [messages, open]);
+
+  // Track whether the user has scrolled away from the bottom.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || !open) return;
+    const onScroll = () => {
+      const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+      userScrolledUpRef.current = distanceFromBottom > 80;
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [open, conversation]);
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -417,11 +432,9 @@ const LiveChatWidget = () => {
     });
     await supabase.from("chat_conversations").update({ status: "closed" }).eq("id", conversation.id);
     chatSounds.system();
-    localStorage.removeItem(STORAGE_KEY);
-    setConversation(null);
-    setMessages([]);
-    setFirstMessage("");
-    setOpen(false);
+    // Don't clear locally — keep the closed conversation visible so the visitor
+    // can see status changes (closed/reopened) and start a new chat when ready.
+    setConversation((prev) => (prev ? { ...prev, status: "closed" } : prev));
   };
 
   const toggleMute = () => {
@@ -445,15 +458,22 @@ const LiveChatWidget = () => {
     !cartSheetOpen &&
     (pathname.startsWith("/v/") || pathname === "/demo" || pathname === "/tilbud");
 
-  // CartFab is fixed at right-5 (mobile) / right-6 (desktop); we offset chat to its left when visible.
+  // Position strategy: CartFab sits at bottom-right (right-5/6, bottom-5/6).
+  // - Mobile: stack chat FAB ABOVE the cart FAB to avoid horizontal squeeze.
+  // - Desktop: place chat FAB to the LEFT of the cart FAB.
+  // The open panel always anchors right edge so it can use full width on mobile.
+  const fabBottomClass = cartFabVisible
+    ? "bottom-[calc(env(safe-area-inset-bottom,0px)+5.25rem)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]"
+    : "bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]";
   const fabPositionClass = cartFabVisible
-    ? "right-[calc(env(safe-area-inset-right,0px)+170px)] sm:right-[calc(env(safe-area-inset-right,0px)+190px)]"
+    ? "right-[calc(env(safe-area-inset-right,0px)+1.25rem)] sm:right-[calc(env(safe-area-inset-right,0px)+11.5rem)]"
     : "right-[calc(env(safe-area-inset-right,0px)+1.25rem)] sm:right-[calc(env(safe-area-inset-right,0px)+1.5rem)]";
 
-  // For the open panel we anchor near the FAB but allow full width on small screens
-  const panelPositionClass = cartFabVisible
-    ? "right-[calc(env(safe-area-inset-right,0px)+170px)] sm:right-[calc(env(safe-area-inset-right,0px)+190px)]"
-    : "right-[calc(env(safe-area-inset-right,0px)+1.25rem)] sm:right-[calc(env(safe-area-inset-right,0px)+1.5rem)]";
+  const panelBottomClass = cartFabVisible
+    ? "bottom-[calc(env(safe-area-inset-bottom,0px)+5.25rem)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]"
+    : "bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]";
+  const panelPositionClass =
+    "right-[calc(env(safe-area-inset-right,0px)+1.25rem)] sm:right-[calc(env(safe-area-inset-right,0px)+1.5rem)]";
 
   const lastAdminMsg = [...messages].reverse().find((m) => m.sender_type === "admin" && !m.is_system);
   const lastVisitorMsg = [...messages].reverse().find((m) => m.sender_type === "visitor" && !m.is_system);
@@ -474,7 +494,7 @@ const LiveChatWidget = () => {
           type="button"
           onClick={handleOpen}
           aria-label="Åbn livechat"
-          className={`group fixed bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] z-40 flex items-center gap-2.5 rounded-full bg-foreground px-4 py-3 text-sm font-medium text-background shadow-[0_18px_40px_-16px_hsl(var(--foreground)/0.45)] ring-1 ring-foreground/10 transition-all duration-300 hover:bg-foreground/95 hover:shadow-[0_22px_50px_-16px_hsl(var(--foreground)/0.55)] active:scale-95 sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] ${fabPositionClass}`}
+          className={`group fixed z-40 flex items-center gap-2.5 rounded-full bg-foreground px-4 py-3 text-sm font-medium text-background shadow-[0_18px_40px_-16px_hsl(var(--foreground)/0.45)] ring-1 ring-foreground/10 transition-all duration-300 hover:bg-foreground/95 hover:shadow-[0_22px_50px_-16px_hsl(var(--foreground)/0.55)] active:scale-95 ${fabBottomClass} ${fabPositionClass}`}
         >
           <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-accent text-accent-foreground">
             <MessageCircle className="h-3.5 w-3.5" />
@@ -489,7 +509,7 @@ const LiveChatWidget = () => {
       )}
 
       {open && (
-        <div className={`fixed bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] z-50 w-[calc(100vw-2.5rem)] max-w-[400px] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelPositionClass}`}>
+        <div className={`fixed z-50 w-[calc(100vw-2.5rem)] max-w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`}>
           <div className="flex h-[600px] max-h-[calc(100vh-3rem)] flex-col overflow-hidden rounded-[20px] border border-border bg-card shadow-[0_30px_80px_-20px_hsl(var(--foreground)/0.35)]">
             {/* Header */}
             <div className="relative overflow-hidden bg-foreground px-5 pb-5 pt-4 text-background">
@@ -677,10 +697,14 @@ const LiveChatWidget = () => {
 
                 {closed ? (
                   <div className="border-t border-border bg-card p-4 text-center">
-                    <p className="text-xs text-muted-foreground">Samtalen er afsluttet.</p>
+                    <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                      <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
+                      Samtalen er afsluttet
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">Du kan altid starte en ny henvendelse herunder.</p>
                     <button
                       onClick={() => { localStorage.removeItem(STORAGE_KEY); setConversation(null); setMessages([]); }}
-                      className="mt-2 text-xs font-medium text-foreground underline-offset-2 hover:underline"
+                      className="mt-3 inline-flex items-center justify-center rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background transition-all hover:bg-foreground/90"
                     >
                       Start en ny samtale
                     </button>

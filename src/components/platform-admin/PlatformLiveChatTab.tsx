@@ -89,6 +89,7 @@ const PlatformLiveChatTab = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const initialMessagesLoad = useRef(true);
+  const userScrolledUpRef = useRef(false);
 
   // Load canned with migration from v1
   useEffect(() => {
@@ -194,8 +195,24 @@ const PlatformLiveChatTab = () => {
 
   useEffect(() => {
     const el = scrollRef.current;
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: initialMessagesLoad.current ? "auto" : "smooth" });
+    if (!el) return;
+    if (initialMessagesLoad.current || !userScrolledUpRef.current) {
+      el.scrollTo({ top: el.scrollHeight, behavior: initialMessagesLoad.current ? "auto" : "smooth" });
+    }
   }, [messages, activeId]);
+
+  // Reset scroll-tracking when switching conversations and watch user scroll.
+  useEffect(() => {
+    userScrolledUpRef.current = false;
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+      userScrolledUpRef.current = distanceFromBottom > 80;
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [activeId]);
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -562,6 +579,16 @@ const PlatformLiveChatTab = () => {
                   <p className="truncate text-sm font-semibold text-foreground">{active.visitor_name}</p>
                   <p className="truncate text-[11px] text-muted-foreground">{active.subject || "Ingen emne"}</p>
                 </div>
+                <span
+                  className={`ml-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                    active.status === "closed"
+                      ? "bg-muted text-muted-foreground"
+                      : "bg-success/10 text-success"
+                  }`}
+                >
+                  <span className={`h-1.5 w-1.5 rounded-full ${active.status === "closed" ? "bg-muted-foreground" : "bg-success animate-pulse"}`} />
+                  {active.status === "closed" ? "Afsluttet" : "Åben"}
+                </span>
               </div>
               <div className="flex items-center gap-1.5">
                 <button
