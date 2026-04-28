@@ -597,13 +597,13 @@ const Planner = () => {
               >
                 <ChevronRight className="h-3.5 w-3.5" />
               </Button>
-              <Button variant="outline" size="sm" className="h-7" onClick={() => setDate(todayStr())}>I dag</Button>
+              <Button data-tour="routes-today" variant="outline" size="sm" className="h-7" onClick={() => setDate(todayStr())}>I dag</Button>
             </div>
 
             <div className="flex items-center gap-1.5">
               <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="h-7 gap-1">
+                  <Button data-tour="routes-create-button" size="sm" className="h-7 gap-1">
                     <Plus className="h-3.5 w-3.5" />Opret rute
                   </Button>
                 </DialogTrigger>
@@ -677,6 +677,7 @@ const Planner = () => {
               </Dialog>
 
               <Button
+                data-tour="routes-create-order"
                 variant="default"
                 size="sm"
                 className="h-7"

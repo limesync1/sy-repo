@@ -497,7 +497,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
         }
       />
 
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+      <div data-tour="services-stats" className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
         <div className="grid gap-3 sm:grid-cols-3">
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
             <CardContent className="p-4">
