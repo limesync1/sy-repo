@@ -280,6 +280,18 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [customDomain, setCustomDomain] = useState<string>(
     ((business.settings as any)?.custom_domain as string) || ""
   );
+  // Custom permalink (slug) — virksomhedens egen URL-stump efter
+  // /v/. Skal være unik på tværs af platformen, så vi kontrollerer
+  // serverside via en separat select før gem; UI viser også en hurtig
+  // tilgængeligheds-indikator.
+  const [slug, setSlug] = useState<string>(business.slug || "");
+  const [slugStatus, setSlugStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid" | "current">("current");
+  const slugCheckTimer = useRef<number | null>(null);
+  // Domæne-verifikation
+  const domainStatus = ((business.settings as any)?.custom_domain_status as string) || "";
+  const domainVerifiedAt = ((business.settings as any)?.custom_domain_verified_at as string) || null;
+  const [domainVerifying, setDomainVerifying] = useState(false);
+  const [domainResult, setDomainResult] = useState<any>(null);
 
   // CVR lookup
   const [cvrQuery, setCvrQuery] = useState("");
