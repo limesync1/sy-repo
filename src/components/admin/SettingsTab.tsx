@@ -1042,9 +1042,17 @@ const SettingsTab = ({ business }: { business: any }) => {
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-600">
                           <AlertCircle className="h-3 w-3" /> Ejerskab OK · DNS mangler
                         </span>
+                      ) : domainStatus === "pending_ownership" ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                          <AlertCircle className="h-3 w-3" /> Afventer ejerskab (TXT)
+                        </span>
+                      ) : domainStatus === "failed" ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold text-destructive">
+                          <XCircle className="h-3 w-3" /> Verifikation fejlede
+                        </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
-                          <AlertCircle className="h-3 w-3" /> Ikke verificeret
+                          <AlertCircle className="h-3 w-3" /> Ikke verificeret endnu
                         </span>
                       )
                     )}
