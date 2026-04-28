@@ -465,6 +465,43 @@ const DynamicBusinessContent = () => {
               </section>
             )}
 
+            {/* Empty state — vises hvis virksomheden endnu ikke har oprettet services */}
+            {services && services.length === 0 && (
+              <section
+                id="services"
+                aria-labelledby="services-heading"
+                className="rounded-[2rem] border border-dashed border-border bg-card/60 p-6 text-center md:p-8"
+              >
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-foreground/60">
+                  <Wrench className="h-5 w-5" />
+                </div>
+                <h2 id="services-heading" className="mt-3 text-lg font-bold text-foreground">
+                  Ingen services oprettet endnu
+                </h2>
+                <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
+                  {business.name} har ikke tilføjet services til deres profil endnu. Du kan stadig kontakte virksomheden direkte for et tilbud.
+                </p>
+                {(business.phone || business.email) && (
+                  <div className="mt-4 flex flex-wrap justify-center gap-2">
+                    {business.phone && (
+                      <a href={`tel:${business.phone}`}>
+                        <Button variant="outline" className="rounded-full">
+                          <Phone className="h-4 w-4" /> Ring til {business.name}
+                        </Button>
+                      </a>
+                    )}
+                    {business.email && (
+                      <a href={`mailto:${business.email}`}>
+                        <Button variant="outline" className="rounded-full">
+                          <Mail className="h-4 w-4" /> Send email
+                        </Button>
+                      </a>
+                    )}
+                  </div>
+                )}
+              </section>
+            )}
+
             {/* About */}
              {business.description && (
                <section aria-labelledby="about-heading" className="rounded-[2rem] border border-border bg-secondary/20 p-5 md:p-7">
