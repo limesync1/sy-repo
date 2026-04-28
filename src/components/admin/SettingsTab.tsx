@@ -281,6 +281,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [customDomain, setCustomDomain] = useState<string>(
     ((business.settings as any)?.custom_domain as string) || ""
   );
+  const queryClient = useQueryClient();
   // Custom permalink (slug) — virksomhedens egen URL-stump efter
   // /v/. Skal være unik på tværs af platformen, så vi kontrollerer
   // serverside via en separat select før gem; UI viser også en hurtig
