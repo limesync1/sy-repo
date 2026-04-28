@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   Mail, Phone, Briefcase, UserPlus, X,
-  Trash2, Power, PowerOff, Pencil, KeyRound, Users, Percent,
+  Trash2, Power, PowerOff, Pencil, KeyRound, Users, Percent, MessageCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
@@ -377,6 +377,7 @@ const EmployeeRow = ({
   const [editCommission, setEditCommission] = useState<string>(
     employee.commission_pct != null ? String(employee.commission_pct) : "0",
   );
+  const [editLivechat, setEditLivechat] = useState<boolean>(!!(employee as any).livechat_enabled);
   const resetPw = useResetEmployeePassword();
   const fallbackColor = employee.color || "#64748b";
   const [confirmDelete, setConfirmDelete] = useState(false);
