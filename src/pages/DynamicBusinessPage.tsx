@@ -660,6 +660,7 @@ const DynamicBusinessContent = () => {
         <BusinessLiveChatWidget
           businessId={business.id}
           businessName={business.name}
+          logoUrl={business.logo_url}
         />
       )}
 
