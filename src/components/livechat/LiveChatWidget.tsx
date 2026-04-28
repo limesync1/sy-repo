@@ -239,6 +239,15 @@ const LiveChatWidget = () => {
     }
   }, [hidden]);
 
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("serviceydere_open_chat_key") !== platformKey()) return;
+      sessionStorage.removeItem("serviceydere_open_chat_key");
+      setOpen(true);
+      setShowInbox(false);
+    } catch {}
+  }, [setOpen]);
+
   // Registrer platform-samtalen så den dukker op i "Mine samtaler".
   useEffect(() => {
     if (!conversation) return;
@@ -536,7 +545,10 @@ const LiveChatWidget = () => {
 
   const selectChat = (chat: RegisteredChat) => {
     if (chat.key === platformKey()) { setShowInbox(false); return; }
-    if (chat.scope === "business" && chat.href) window.location.href = chat.href;
+    if (chat.scope === "business" && chat.href) {
+      try { sessionStorage.setItem("serviceydere_open_chat_key", chat.key); } catch {}
+      window.location.href = chat.href;
+    }
   };
 
   const deleteChat = (chat: RegisteredChat) => {
@@ -548,6 +560,8 @@ const LiveChatWidget = () => {
       }
       setConversation(null);
       setMessages([]);
+    } else if (chat.scope === "business" && chat.businessId) {
+      try { localStorage.removeItem(`serviceydere_biz_chat_${chat.businessId}_v1`); } catch {}
     }
     removeChat(chat.key);
     setChats(listChats());
