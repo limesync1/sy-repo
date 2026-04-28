@@ -699,7 +699,7 @@ const LiveChatWidget = () => {
                           <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Anbefalede svar</span>
                         </div>
                         <div className="flex flex-wrap gap-1.5">
-                          {RECOMMENDED_REPLIES.map((r) => (
+                          {dynamicReplies.map((r) => (
                             <button
                               key={r}
                               type="button"
