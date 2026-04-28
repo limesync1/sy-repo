@@ -438,7 +438,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
               )}
             </div>
             <button
-              onClick={() => setTemplatesOpen((v) => !v)}
+              onClick={() => setTemplatesOpen(true)}
               className="flex w-full items-center justify-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground"
             >
               <BookText className="h-3 w-3" /> Svar-skabeloner ({templates.length})
@@ -492,55 +492,6 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
               })
             )}
           </div>
-          {/* Skabelon-håndtering — vises som popover under listen */}
-          {templatesOpen && (
-            <div className="border-t border-border bg-secondary/30 p-3 space-y-2 max-h-[40vh] overflow-y-auto">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Svar-skabeloner</p>
-              {templates.map((t) => (
-                <div key={t.id} className="rounded-lg border border-border bg-card p-2 text-xs">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-semibold text-foreground truncate">{t.title}</span>
-                    <div className="flex shrink-0 gap-1">
-                      <button onClick={() => setTplDraft({ id: t.id, title: t.title, content: t.content })}
-                        className="rounded p-1 text-muted-foreground hover:text-foreground" aria-label="Rediger">
-                        <Pencil className="h-3 w-3" />
-                      </button>
-                      <button onClick={() => deleteTemplate(t.id)}
-                        className="rounded p-1 text-muted-foreground hover:text-destructive" aria-label="Slet">
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
-                  <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">{t.content}</p>
-                </div>
-              ))}
-              <div className="space-y-1.5 rounded-lg border border-dashed border-border p-2">
-                <input
-                  value={tplDraft.title}
-                  onChange={(e) => setTplDraft((d) => ({ ...d, title: e.target.value }))}
-                  placeholder="Titel (fx Pris)"
-                  className="w-full rounded border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-foreground"
-                />
-                <textarea
-                  value={tplDraft.content}
-                  onChange={(e) => setTplDraft((d) => ({ ...d, content: e.target.value }))}
-                  placeholder="Tekst…"
-                  rows={2}
-                  className="w-full resize-none rounded border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-foreground"
-                />
-                <div className="flex justify-end gap-1.5">
-                  {tplDraft.id && (
-                    <button onClick={() => setTplDraft({ title: "", content: "" })}
-                      className="rounded px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground">Annuller</button>
-                  )}
-                  <button onClick={saveTemplate}
-                    className="inline-flex items-center gap-1 rounded bg-foreground px-2 py-1 text-[11px] font-medium text-background hover:bg-foreground/90">
-                    <Plus className="h-3 w-3" />{tplDraft.id ? "Gem" : "Tilføj"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Conversation pane */}
