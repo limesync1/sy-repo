@@ -697,10 +697,14 @@ const LiveChatWidget = () => {
 
                 {closed ? (
                   <div className="border-t border-border bg-card p-4 text-center">
-                    <p className="text-xs text-muted-foreground">Samtalen er afsluttet.</p>
+                    <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                      <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
+                      Samtalen er afsluttet
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">Du kan altid starte en ny henvendelse herunder.</p>
                     <button
                       onClick={() => { localStorage.removeItem(STORAGE_KEY); setConversation(null); setMessages([]); }}
-                      className="mt-2 text-xs font-medium text-foreground underline-offset-2 hover:underline"
+                      className="mt-3 inline-flex items-center justify-center rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background transition-all hover:bg-foreground/90"
                     >
                       Start en ny samtale
                     </button>
