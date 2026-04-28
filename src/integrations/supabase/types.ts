@@ -283,8 +283,11 @@ export type Database = {
       }
       chat_conversations: {
         Row: {
+          assigned_employee_id: string | null
           business_id: string | null
+          closed_at: string | null
           created_at: string
+          first_admin_reply_at: string | null
           id: string
           last_message_at: string
           session_token: string
@@ -298,8 +301,11 @@ export type Database = {
           visitor_name: string
         }
         Insert: {
+          assigned_employee_id?: string | null
           business_id?: string | null
+          closed_at?: string | null
           created_at?: string
+          first_admin_reply_at?: string | null
           id?: string
           last_message_at?: string
           session_token: string
@@ -313,8 +319,11 @@ export type Database = {
           visitor_name: string
         }
         Update: {
+          assigned_employee_id?: string | null
           business_id?: string | null
+          closed_at?: string | null
           created_at?: string
+          first_admin_reply_at?: string | null
           id?: string
           last_message_at?: string
           session_token?: string
@@ -380,6 +389,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      chat_templates: {
+        Row: {
+          business_id: string
+          content: string
+          created_at: string
+          id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          content: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       email_send_log: {
         Row: {
@@ -573,6 +612,7 @@ export type Database = {
           home_longitude: number | null
           id: string
           is_active: boolean
+          livechat_enabled: boolean
           name: string
           phone: string | null
           title: string | null
@@ -593,6 +633,7 @@ export type Database = {
           home_longitude?: number | null
           id?: string
           is_active?: boolean
+          livechat_enabled?: boolean
           name: string
           phone?: string | null
           title?: string | null
@@ -613,6 +654,7 @@ export type Database = {
           home_longitude?: number | null
           id?: string
           is_active?: boolean
+          livechat_enabled?: boolean
           name?: string
           phone?: string | null
           title?: string | null
