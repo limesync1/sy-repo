@@ -66,33 +66,33 @@ const OrderConfirmationEmail = ({
  totalAmount = 0,
  hasRecurring = false,
 }: OrderConfirmationProps) => {
- const shortId = orderId ?`#${orderId.slice(0, 8).toUpperCase()}` : null
+ const shortId = orderId ? `#${orderId.slice(0, 8).toUpperCase()}` : null
  const businessLabel = businessName || 'leverandøren'
 
  return (
  <Html lang="da" dir="ltr">
  <Head />
  <Preview>
- Vi har modtaget din ordre{businessName ?` hos ${businessName}` : ''} total {fmt(totalAmount)}
+ Vi har modtaget din ordre{businessName ? ` hos ${businessName}` : ''} total {fmt(totalAmount)}
  </Preview>
  <Body style={main}>
  <Container style={wrapper}>
  <Section style={headerBar}>
  <Img src={LOGO_URL} alt={SITE_NAME} height="36" style={{ display: 'block' }} />
- </Section>
+</Section>
 
  <Container style={container}>
- <Heading style={h1}>Tak for din ordre </Heading>
+ <Heading style={h1}>Tak for din ordre</Heading>
  <Text style={text}>
- Hej{customerName ?` ${customerName}` : ''}, vi har modtaget din ordre
- {businessName ?` hos ${businessName}` : ''} og sendt den videre til {businessLabel}.
+ Hej{customerName ? ` ${customerName}` : ''}, vi har modtaget din ordre
+ {businessName ? ` hos ${businessName}` : ''} og sendt den videre til {businessLabel}.
  Du modtager en ny e-mail, så snart de bekræfter eller justerer ordren.
- </Text>
+</Text>
 
  {/* Status badge */}
  <Section style={{ margin: '0 0 8px' }}>
  <span style={badge('#92400e', '#fef3c7')}>Afventer bekræftelse</span>
- </Section>
+</Section>
 
  {/* Order details card */}
  <Section style={card}>
@@ -108,7 +108,7 @@ const OrderConfirmationEmail = ({
  <Text style={{ ...cardLabel, marginTop: '4px' }}>Bestilte services</Text>
  <div>
  {items.map((it, i) => {
- const qty = it.quantity && it.quantity > 1 ?`${it.quantity}×` : ''
+ const qty = it.quantity && it.quantity > 1 ? `${it.quantity}×` : ''
  const isLast = i === items.length - 1
  return (
  <div key={i} style={isLast ? itemRowLast : itemRow}>
@@ -116,12 +116,10 @@ const OrderConfirmationEmail = ({
  <tr>
  <td style={{ verticalAlign: 'top' }}>
  <Text style={itemName}>
- {qty}{it.name}
- </Text>
+ {qty}{it.name}</Text>
  {it.intervalLabel && (
  <Text style={itemDetail}>
- {it.intervalLabel}
- </Text>
+ {it.intervalLabel}</Text>
  )}
  {it.description && !it.stepDetails?.length && (
  <Text style={itemDetail}>{it.description}</Text>
@@ -129,8 +127,7 @@ const OrderConfirmationEmail = ({
  {it.stepDetails?.map((sd, j) => (
  <Text key={j} style={stepLine}>
  {sd.label}: <strong>{sd.value} {sd.unit || ''}</strong>
- {sd.subtotal != null ?` ${fmt(sd.subtotal)}` : ''}
- </Text>
+ {sd.subtotal != null ? ` ${fmt(sd.subtotal)}` : ''}</Text>
  ))}
  </td>
  <td style={{ verticalAlign: 'top', textAlign: 'right', minWidth: '70px' }}>
@@ -149,7 +146,7 @@ const OrderConfirmationEmail = ({
  <span>I alt</span>
  <span>{fmt(totalAmount)}</span>
  </div>
- </Section>
+</Section>
 
  {/* Customer contact info echo */}
  {(customerEmail || customerPhone) && (
@@ -159,7 +156,7 @@ const OrderConfirmationEmail = ({
  {customerName && <Text style={cardRowText}> {customerName}</Text>}
  {customerEmail && <Text style={cardRowText}> {customerEmail}</Text>}
  {customerPhone && <Text style={cardRowText}> {customerPhone}</Text>}
- </Section>
+</Section>
  </>
  )}
 
@@ -170,21 +167,20 @@ const OrderConfirmationEmail = ({
  <Section style={card}>
  {businessName && (
  <Text style={{ ...cardRowText, fontWeight: 600, color: '#0d1729', fontSize: '15px' }}>
- {businessName}
- </Text>
+ {businessName}</Text>
  )}
  {businessAddress && <Text style={cardRowText}> {businessAddress}</Text>}
  {businessPhone && (
  <Text style={cardRowText}>
  <Link href={`tel:${businessPhone}`} style={link}>{businessPhone}</Link>
- </Text>
+</Text>
  )}
  {businessEmail && (
  <Text style={cardRowText}>
  <Link href={`mailto:${businessEmail}`} style={link}>{businessEmail}</Link>
- </Text>
+</Text>
  )}
- </Section>
+</Section>
  </>
  )}
 
@@ -209,41 +205,41 @@ const OrderConfirmationEmail = ({
  <Section style={cardAccent}>
  <Text style={{ ...text, fontWeight: 600, color: '#0d1729', margin: '0 0 6px' }}>
  Du har bestilt en tilbagevendende service
- </Text>
+</Text>
  <Text style={{ ...text, fontSize: '13px', margin: 0, color: '#0e7490' }}>
  Næste servicedato planlægges automatisk efter første gennemførsel.
  Du kan pause, ændre interval eller annullere når som helst fra dit kundepanel.
- </Text>
- </Section>
+</Text>
+</Section>
  )}
 
  <Section style={buttonSection}>
  <Button style={button} href={`${SITE_URL}/dashboard`}>
  Se og følg din ordre
  </Button>
- </Section>
+</Section>
 
  <Section style={helpBox}>
  <Text style={helpBoxTitle}>Spørgsmål til ordren?</Text>
  <Text style={helpBoxText}>
  Kontakt {businessLabel} direkte
- {businessPhone ?` på ${businessPhone}` : ''}
- {businessEmail ?`, eller skriv til ${businessEmail}` : ''}.
+ {businessPhone ? ` på ${businessPhone}` : ''}
+ {businessEmail ? `, eller skriv til ${businessEmail}` : ''}.
  Har du spørgsmål til selve platformen, så skriv til{' '}
  <Link href={`mailto:${SUPPORT_EMAIL}`} style={link}>{SUPPORT_EMAIL}</Link>.
- </Text>
- </Section>
+</Text>
+</Section>
  </Container>
 
  <Section style={footer}>
  <Text style={footerText}>
  <Link href={SITE_URL} style={footerLink}>serviceydere.dk</Link> ·{' '}
  <Link href={`${SITE_URL}/dashboard`} style={footerLink}>Mit kundepanel</Link>
- </Text>
+</Text>
  <Text style={footerText}>
  © {new Date().getFullYear()} {SITE_NAME}. Du modtager denne e-mail, fordi du har afgivet en ordre på serviceydere.dk.
- </Text>
- </Section>
+</Text>
+</Section>
  </Container>
  </Body>
  </Html>
@@ -260,7 +256,7 @@ const cardRowText = {
 export const template = {
  component: OrderConfirmationEmail,
  subject: (data) =>
-`Ordrebekræftelse${data.orderId ?` #${String(data.orderId).slice(0, 8).toUpperCase()}` : ''}${data.businessName ?` ${data.businessName}` : ''}`,
+`Ordrebekræftelse${data.orderId ? ` #${String(data.orderId).slice(0, 8).toUpperCase()}` : ''}${data.businessName ? ` ${data.businessName}` : ''}`,
  displayName: 'Ordrebekræftelse',
  previewData: {
  customerName: 'Mette Hansen',

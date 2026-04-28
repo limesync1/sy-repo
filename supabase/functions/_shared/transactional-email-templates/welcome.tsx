@@ -27,17 +27,16 @@ const WelcomeEmail = ({ name, isBusinessOwner = false }: WelcomeProps) => (
  <Container style={wrapper}>
  <Section style={headerBar}>
  <Img src={LOGO_URL} alt={SITE_NAME} height="36" style={{ display: 'block' }} />
- </Section>
+</Section>
 
  <Container style={container}>
  <Section style={heroSection}>
- <Heading style={heroTitle}>Velkommen{name ?`, ${name}` : ''} </Heading>
+ <Heading style={heroTitle}>Velkommen{name ? `, ${name}` : ''}</Heading>
  <Text style={heroSubtitle}>
  {isBusinessOwner
  ? 'Din konto er klar, og du kan nu oprette din virksomhed, services og modtage bestillinger.'
- : 'Din konto er klar, og du kan nu finde, sammenligne og bestille services i hele Danmark.'}
- </Text>
- </Section>
+ : 'Din konto er klar, og du kan nu finde, sammenligne og bestille services i hele Danmark.'}</Text>
+</Section>
 
  <Text style={h2}>{isBusinessOwner ? 'Kom i gang som virksomhed' : 'Kom i gang'}</Text>
  <ol style={stepList}>
@@ -57,30 +56,28 @@ const WelcomeEmail = ({ name, isBusinessOwner = false }: WelcomeProps) => (
  </ol>
 
  <Section style={buttonSection}>
- <Button style={button} href={isBusinessOwner ?`${SITE_URL}/admin` :`${SITE_URL}/search`}>
+ <Button style={button} href={isBusinessOwner ? `${SITE_URL}/admin` : `${SITE_URL}/search`}>
  {isBusinessOwner ? 'Åbn virksomhedspanelet' : 'Find en serviceyder'}
  </Button>
  <span style={{ display: 'inline-block', width: '10px' }} />
  <Button style={buttonSecondary} href={SITE_URL}>Gå til forsiden</Button>
- </Section>
+</Section>
 
  <Section style={cardAccent}>
- <Text style={{ ...text, fontWeight: 600, color: '#0d1729', margin: '0 0 6px' }}>
- Tip
- </Text>
+ <Text style={{ ...text, fontWeight: 600, color: '#0d1729', margin: '0 0 6px' }}>Tip
+</Text>
  <Text style={{ ...text, fontSize: '13px', margin: 0, color: '#0e7490' }}>
  {isBusinessOwner
  ? 'En tydelig servicebeskrivelse og rigtige intervaller gør det lettere for kunderne at bestille med det samme.'
- : 'Du kan gemme favoritter, oprette faste aftaler og følge dine bestillinger ét sted.'}
- </Text>
- </Section>
+ : 'Du kan gemme favoritter, oprette faste aftaler og følge dine bestillinger ét sted.'}</Text>
+</Section>
 
  <Section style={helpBox}>
  <Text style={helpBoxTitle}>Har du brug for hjælp?</Text>
  <Text style={helpBoxText}>
  Skriv til os på <Link href={`mailto:${SUPPORT_EMAIL}`} style={link}>{SUPPORT_EMAIL}</Link> vi hjælper gerne videre.
- </Text>
- </Section>
+</Text>
+</Section>
  </Container>
 
  <Section style={footer}>
@@ -88,9 +85,9 @@ const WelcomeEmail = ({ name, isBusinessOwner = false }: WelcomeProps) => (
  <Link href={SITE_URL} style={footerLink}>serviceydere.dk</Link> ·{' '}
  <Link href={`${SITE_URL}/dashboard`} style={footerLink}>Mit kundepanel</Link> ·{' '}
  <Link href={`mailto:${SUPPORT_EMAIL}`} style={footerLink}>Kontakt</Link>
- </Text>
+</Text>
  <Text style={footerText}>© {new Date().getFullYear()} {SITE_NAME}.</Text>
- </Section>
+</Section>
  </Container>
  </Body>
  </Html>
@@ -100,8 +97,8 @@ export const template = {
  component: WelcomeEmail,
  subject: (data) =>
  data.isBusinessOwner
- ?`Velkommen til ${SITE_NAME} kom godt i gang som virksomhed`
- :`Velkommen til ${SITE_NAME}`,
+ ? `Velkommen til ${SITE_NAME} kom godt i gang som virksomhed`
+ : `Velkommen til ${SITE_NAME}`,
  displayName: 'Velkomst-email',
  previewData: { name: 'Mette', isBusinessOwner: false },
 } satisfies TemplateEntry

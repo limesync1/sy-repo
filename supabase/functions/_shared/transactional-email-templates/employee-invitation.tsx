@@ -41,33 +41,32 @@ const EmployeeWelcomeEmail = ({ employeeName, businessName = 'en virksomhed', bu
  <Section style={headerBar}><Img src={LOGO_URL} alt={SITE_NAME} height="36" style={{ display: 'block' }} /></Section>
  <Container style={container}>
  <Section style={heroSection}>
- <Heading style={heroTitle}>{employeeName ?`Velkommen, ${employeeName}` : 'Velkommen'} </Heading>
+ <Heading style={heroTitle}>{employeeName ? `Velkommen, ${employeeName}` : 'Velkommen'}</Heading>
  <Text style={heroSubtitle}>Du er blevet tilføjet som medarbejder hos {businessName} og kan nu bruge medarbejder-appen til at se ruter og opgaver.</Text>
- </Section>
+</Section>
 
  <Section style={businessCard}>
  {businessLogoUrl ? <Img src={businessLogoUrl} alt={businessName} width="48" height="48" style={{ borderRadius: '10px', objectFit: 'cover', display: 'block', marginBottom: '10px' }} /> : null}
  <Text style={cardLabel}>Virksomhed</Text>
  <Text style={cardValue}>{businessName}</Text>
- </Section>
+</Section>
 
  <Text style={text}>
  {accountAlreadyExisted
- ?`Du har allerede en konto hos ${SITE_NAME}, så du kan logge ind med dine eksisterende oplysninger.`
- :`Vi har oprettet en konto til dig. Brug oplysningerne herunder første gang du logger ind.`}
- </Text>
+ ? `Du har allerede en konto hos ${SITE_NAME}, så du kan logge ind med dine eksisterende oplysninger.`
+ : `Vi har oprettet en konto til dig. Brug oplysningerne herunder første gang du logger ind.`}</Text>
 
  <Section style={card}>
  <Text style={cardLabel}>E-mail</Text>
  <Text style={cardValue}>{email}</Text>
  {password && <><Text style={cardLabel}>Adgangskode</Text><Text style={{ ...cardValue, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>{password}</Text></>}
- </Section>
+</Section>
 
  {password && (
  <Section style={cardAccent}>
  <Text style={{ ...text, fontWeight: 600, color: '#0d1729', margin: '0 0 6px' }}> Sikkerhed</Text>
  <Text style={{ ...text, fontSize: '13px', margin: 0, color: '#0e7490' }}>Vi anbefaler, at du ændrer adgangskoden første gang du logger ind.</Text>
- </Section>
+</Section>
  )}
 
  <Section style={buttonSection}><Button style={button} href={loginUrl}>Log ind på medarbejder-app</Button></Section>
@@ -75,13 +74,13 @@ const EmployeeWelcomeEmail = ({ employeeName, businessName = 'en virksomhed', bu
  <Section style={helpBox}>
  <Text style={helpBoxTitle}>Spørgsmål?</Text>
  <Text style={helpBoxText}>Skriv til os på <Link href={`mailto:${SUPPORT_EMAIL}`} style={link}>{SUPPORT_EMAIL}</Link> eller kontakt {businessName} direkte.</Text>
- </Section>
+</Section>
  </Container>
 
  <Section style={footer}>
  <Text style={footerText}><Link href={SITE_URL} style={footerLink}>serviceydere.dk</Link> · <Link href={`mailto:${SUPPORT_EMAIL}`} style={footerLink}>Kontakt</Link></Text>
  <Text style={footerText}>© {new Date().getFullYear()} {SITE_NAME}.</Text>
- </Section>
+</Section>
  </Container>
  </Body>
  </Html>

@@ -61,21 +61,21 @@ const RouteAssignedEmail = ({
  <Container style={wrapper}>
  <Section style={headerBar}>
  <Img src={LOGO_URL} alt={SITE_NAME} height="36" style={{ display: 'block' }} />
- </Section>
+</Section>
 
  <Container style={container}>
  <Section style={heroSection}>
- <Heading style={heroTitle}>{employeeName ?`Hej ${employeeName}` : 'Din rute er klar'} </Heading>
+ <Heading style={heroTitle}>{employeeName ? `Hej ${employeeName}` : 'Din rute er klar'}</Heading>
  <Text style={heroSubtitle}>
  {businessName} har planlagt din rute for <strong>{routeDate}</strong>. Du kan nu åbne medarbejder-appen og følge dagens stop.
- </Text>
- </Section>
+</Text>
+</Section>
 
  <Section style={{ margin: '0 0 10px' }}>
  <span style={stat}><strong>{stopCount}</strong> stop</span>
  {totalKm != null && totalKm > 0 && <span style={stat}><strong>{totalKm.toFixed(1)}</strong> km</span>}
  {hours != null && <span style={stat}> <strong>{hours}t {mins}m</strong></span>}
- </Section>
+</Section>
 
  <Section style={card}>
  <Text style={cardLabel}>Planlagt start</Text>
@@ -86,30 +86,29 @@ const RouteAssignedEmail = ({
  <Text style={cardLabel}>Første stop</Text>
  <Text style={cardValue}>
  {firstStopName}
- {firstStopAddress && <><br /><span style={{ fontWeight: 400, color: '#64748b', fontSize: 13 }}>{firstStopAddress}</span></>}
- </Text>
+ {firstStopAddress && <><br /><span style={{ fontWeight: 400, color: '#64748b', fontSize: 13 }}>{firstStopAddress}</span></>}</Text>
  </>
  )}
- </Section>
+</Section>
 
  <Section style={buttonSection}>
  <Button style={button} href={appUrl}>Åbn medarbejder-appen</Button>
- </Section>
+</Section>
 
  <Section style={helpBox}>
  <Text style={helpBoxTitle}>Spørgsmål til ruten?</Text>
  <Text style={helpBoxText}>
  Kontakt {businessName} direkte eller skriv til os på <Link href={`mailto:${SUPPORT_EMAIL}`} style={link}>{SUPPORT_EMAIL}</Link>.
- </Text>
- </Section>
+</Text>
+</Section>
  </Container>
 
  <Section style={footer}>
  <Text style={footerText}>
  <Link href={SITE_URL} style={footerLink}>serviceydere.dk</Link> · <Link href={`mailto:${SUPPORT_EMAIL}`} style={footerLink}>Kontakt</Link>
- </Text>
+</Text>
  <Text style={footerText}>© {new Date().getFullYear()} {SITE_NAME}.</Text>
- </Section>
+</Section>
  </Container>
  </Body>
  </Html>

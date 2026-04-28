@@ -151,7 +151,7 @@ const fmtDate = (s?: string) => {
 const renderItems = (items: OrderItemSummary[]) => (
  <div>
  {items.map((it, i) => {
- const qty = it.quantity && it.quantity > 1 ?`${it.quantity}×` : ''
+ const qty = it.quantity && it.quantity > 1 ? `${it.quantity}×` : ''
  const isLast = i === items.length - 1
  return (
  <div key={i} style={isLast ? itemRowLast : itemRow}>
@@ -166,8 +166,7 @@ const renderItems = (items: OrderItemSummary[]) => (
  {it.stepDetails?.map((sd, j) => (
  <Text key={j} style={stepLine}>
  {sd.label}: <strong>{sd.value} {sd.unit || ''}</strong>
- {sd.subtotal != null ?` ${fmt(sd.subtotal)}` : ''}
- </Text>
+ {sd.subtotal != null ? ` ${fmt(sd.subtotal)}` : ''}</Text>
  ))}
  </td>
  <td style={{ verticalAlign: 'top', textAlign: 'right', minWidth: '70px' }}>
@@ -204,7 +203,7 @@ const OrderStatusUpdateEmail = ({
  const intro = (STATUS_INTRO[event] ?? STATUS_INTRO.confirmed)(businessLabel)
  const nextSteps = STATUS_NEXT[event] ?? []
  const date = fmtDate(serviceDate)
- const shortId = orderId ?`#${orderId.slice(0, 8).toUpperCase()}` : null
+ const shortId = orderId ? `#${orderId.slice(0, 8).toUpperCase()}` : null
 
  // Hvilke items skal vi vise?
  // - adjusted: vis det FORESLÅEDE indhold (proposedItems) det er pointen
@@ -230,45 +229,42 @@ const OrderStatusUpdateEmail = ({
 
  const ctaHref =
  event === 'cancelled'
- ?`${SITE_URL}/search`
- :`${SITE_URL}/dashboard${orderId ?`?order=${orderId}` : ''}`
+ ? `${SITE_URL}/search`
+ : `${SITE_URL}/dashboard${orderId ? `?order=${orderId}` : ''}`
 
  return (
  <Html lang="da" dir="ltr">
  <Head />
- <Preview>{headline}{businessName ?` ${businessName}` : ''}</Preview>
+ <Preview>{headline}{businessName ? ` ${businessName}` : ''}</Preview>
  <Body style={main}>
  <Container style={wrapper}>
  <Section style={headerBar}>
  <Img src={LOGO_URL} alt={SITE_NAME} height="36" style={{ display: 'block' }} />
- </Section>
+</Section>
 
  <Container style={container}>
  <Heading style={h1}>{headline}</Heading>
  <Text style={text}>
- Hej{customerName ?` ${customerName}` : ''}, {intro}
- </Text>
+ Hej{customerName ? ` ${customerName}` : ''}, {intro}</Text>
 
  {/* Status badge */}
  <Section style={{ margin: '0 0 8px' }}>
  <span style={badge(colors.fg, colors.bg)}>{STATUS_LABEL[event] ?? event}</span>
- </Section>
+</Section>
 
  {/* Adjusted: pris-sammenligning øverst */}
  {showPriceChange && (
  <Section style={cardWarning}>
  <Text style={{ ...cardLabel, color: '#9a3412' }}>Oprindeligt beløb</Text>
  <Text style={{ ...cardValue, textDecoration: 'line-through', color: '#9ca3af' }}>
- {fmt(originalAmount!)}
- </Text>
+ {fmt(originalAmount!)}</Text>
  <Text style={{ ...cardLabel, color: '#9a3412' }}>Foreslået nyt beløb</Text>
  <Text style={{ ...cardValue, fontSize: '22px', color: '#9a3412' }}>
- {fmt(proposedAmount!)}
- </Text>
+ {fmt(proposedAmount!)}</Text>
  <Text style={{ ...text, fontSize: '13px', margin: '8px 0 0', color: '#9a3412' }}>
  Forslaget træder først i kraft, når du godkender det.
- </Text>
- </Section>
+</Text>
+</Section>
  )}
 
  {/* Ordre-detaljer kort */}
@@ -282,21 +278,20 @@ const OrderStatusUpdateEmail = ({
  {businessName && (
  <>
  <Text style={cardLabel}>Leverandør</Text>
- <Text style={cardValue}> {businessName}</Text>
+ <Text style={cardValue}>{businessName}</Text>
  </>
  )}
  {date && (
  <>
  <Text style={cardLabel}>{event === 'completed' ? 'Udført dato' : 'Servicedato'}</Text>
- <Text style={cardValue}> {date}</Text>
+ <Text style={cardValue}>{date}</Text>
  </>
  )}
 
  {visibleItems.length > 0 && (
  <>
  <Text style={{ ...cardLabel, marginTop: '8px' }}>
- {event === 'adjusted' ? 'Foreslåede services' : 'Bestilte services'}
- </Text>
+ {event === 'adjusted' ? 'Foreslåede services' : 'Bestilte services'}</Text>
  {renderItems(visibleItems)}
  </>
  )}
@@ -307,7 +302,7 @@ const OrderStatusUpdateEmail = ({
  <span>{fmt(visibleTotal)}</span>
  </div>
  )}
- </Section>
+</Section>
 
  {/* Besked fra virksomheden */}
  {message && (
@@ -316,8 +311,8 @@ const OrderStatusUpdateEmail = ({
  <Section style={event === 'adjusted' ? cardWarning : cardAccent}>
  <Text style={{ ...text, fontStyle: 'italic', margin: 0, color: '#374151' }}>
  "{message}"
- </Text>
- </Section>
+</Text>
+</Section>
  </>
  )}
 
@@ -341,17 +336,17 @@ const OrderStatusUpdateEmail = ({
  <Section style={cardAccent}>
  <Text style={{ ...text, fontWeight: 600, color: '#0d1729', margin: '0 0 6px' }}>
  Næste service er allerede planlagt
- </Text>
+</Text>
  <Text style={{ ...text, fontSize: '13px', margin: 0, color: '#0e7490' }}>
  Du har en tilbagevendende aftale. Næste servicedato planlægges automatisk 
  du kan altid pause, ændre interval eller opsige fra dit kundepanel.
- </Text>
- </Section>
+</Text>
+</Section>
  )}
 
  <Section style={buttonSection}>
  <Button style={button} href={ctaHref}>{ctaLabel}</Button>
- </Section>
+</Section>
 
  {/* Kontaktinfo til virksomheden */}
  {(businessPhone || businessEmail || businessAddress) && (
@@ -365,9 +360,8 @@ const OrderStatusUpdateEmail = ({
  {businessPhone && businessEmail && ' · '}
  {businessEmail && (
  <><Link href={`mailto:${businessEmail}`} style={link}>{businessEmail}</Link></>
- )}
- </Text>
- </Section>
+ )}</Text>
+</Section>
  )}
  </Container>
 
@@ -376,11 +370,11 @@ const OrderStatusUpdateEmail = ({
  <Link href={SITE_URL} style={footerLink}>serviceydere.dk</Link> ·{' '}
  <Link href={`${SITE_URL}/dashboard`} style={footerLink}>Mit kundepanel</Link> ·{' '}
  <Link href={`mailto:${SUPPORT_EMAIL}`} style={footerLink}>Support</Link>
- </Text>
+</Text>
  <Text style={footerText}>
  © {new Date().getFullYear()} {SITE_NAME}. Du modtager denne e-mail, fordi der er sket en opdatering på din ordre.
- </Text>
- </Section>
+</Text>
+</Section>
  </Container>
  </Body>
  </Html>
@@ -391,8 +385,8 @@ export const template = {
  component: OrderStatusUpdateEmail,
  subject: (data) => {
  const lbl = STATUS_LABEL[data.event as EventType] ?? 'Opdatering'
- const biz = data.businessName ?` ${data.businessName}` : ''
- const id = data.orderId ?` #${String(data.orderId).slice(0, 8).toUpperCase()}` : ''
+ const biz = data.businessName ? ` ${data.businessName}` : ''
+ const id = data.orderId ? ` #${String(data.orderId).slice(0, 8).toUpperCase()}` : ''
  if (data.event === 'adjusted') return`Forslag fra ${data.businessName || 'leverandøren'}${id} godkend eller afvis`
  if (data.event === 'completed') return`Din service er udført${biz}`
  if (data.event === 'in_progress') return`Din service er i gang${biz}`

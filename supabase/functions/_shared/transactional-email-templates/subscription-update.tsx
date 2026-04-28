@@ -68,40 +68,40 @@ const SubscriptionUpdateEmail = ({ customerName, businessName, businessPhone, bu
  const pauseDate = fmtDate(pausedAt)
  const cancelDate = fmtDate(cancelledAt)
  const ctaLabel = event === 'paused' ? 'Genoptag aftale' : event === 'cancelled' ? 'Find en ny service' : 'Se din aftale'
- const ctaHref = event === 'cancelled' ?`${SITE_URL}/search` :`${SITE_URL}/dashboard`
+ const ctaHref = event === 'cancelled' ? `${SITE_URL}/search` : `${SITE_URL}/dashboard`
 
  return (
  <Html lang="da" dir="ltr">
  <Head />
- <Preview>{headline}{businessName ?` ${businessName}` : ''}</Preview>
+ <Preview>{headline}{businessName ? ` ${businessName}` : ''}</Preview>
  <Body style={main}>
  <Container style={wrapper}>
  <Section style={headerBar}><Img src={LOGO_URL} alt={SITE_NAME} height="36" style={{ display: 'block' }} /></Section>
  <Container style={container}>
  <Section style={heroSection}>
  <Heading style={heroTitle}>{headline}</Heading>
- <Text style={heroSubtitle}>Hej{customerName ?` ${customerName}` : ''}, {intro}</Text>
- </Section>
+ <Text style={heroSubtitle}>Hej{customerName ? ` ${customerName}` : ''}, {intro}</Text>
+</Section>
 
  <Section style={{ margin: '0 0 10px' }}><span style={badge(colors.fg, colors.bg)}>{EVENT_LABEL[event]}</span></Section>
 
  <Section style={card}>
  <Text style={cardLabel}>Service</Text><Text style={cardValue}>{serviceName}</Text>
- {businessName && <><Text style={cardLabel}>Leverandør</Text><Text style={cardValue}> {businessName}</Text></>}
- {intervalLabel && <><Text style={cardLabel}>Interval</Text><Text style={cardValue}> {intervalLabel}</Text></>}
+ {businessName && <><Text style={cardLabel}>Leverandør</Text><Text style={cardValue}>{businessName}</Text></>}
+ {intervalLabel && <><Text style={cardLabel}>Interval</Text><Text style={cardValue}>{intervalLabel}</Text></>}
  {typeof totalPrice === 'number' && <><Text style={cardLabel}>Pris pr. gang</Text><Text style={cardValue}>{fmt(totalPrice)}</Text></>}
  {typeof completedCycles === 'number' && completedCycles > 0 && <><Text style={cardLabel}>Udført i alt</Text><Text style={cardValue}>{completedCycles} {completedCycles === 1 ? 'gang' : 'gange'}</Text></>}
- {event === 'paused' && pauseDate && <><Text style={cardLabel}>Sat på pause</Text><Text style={cardValue}> {pauseDate}</Text></>}
+ {event === 'paused' && pauseDate && <><Text style={cardLabel}>Sat på pause</Text><Text style={cardValue}>{pauseDate}</Text></>}
  {event === 'cancelled' && cancelDate && <><Text style={cardLabel}>Opsagt</Text><Text style={cardValue}>{cancelDate}</Text></>}
  {event === 'rescheduled' && prevDate && <><Text style={cardLabel}>Tidligere dato</Text><Text style={{ ...cardValue, textDecoration: 'line-through', color: '#94a3b8' }}> {prevDate}</Text></>}
  {(event === 'resumed' || event === 'rescheduled') && nextDate && <><Text style={cardLabel}>{event === 'rescheduled' ? 'Ny dato' : 'Næste service'}</Text><Text style={{ ...cardValue, fontSize: '16px' }}> {nextDate}</Text></>}
- </Section>
+</Section>
 
  {reason && (
  <Section style={cardAccent}>
  <Text style={{ ...text, fontWeight: 600, color: '#0d1729', margin: '0 0 6px' }}>Bemærkning</Text>
  <Text style={{ ...text, fontStyle: 'italic', margin: 0, color: '#475569' }}>"{reason}"</Text>
- </Section>
+</Section>
  )}
 
  <Text style={h2}>Hvad sker der nu?</Text>
@@ -115,14 +115,14 @@ const SubscriptionUpdateEmail = ({ customerName, businessName, businessPhone, bu
  <Section style={helpBox}>
  <Text style={helpBoxTitle}>Spørgsmål?</Text>
  <Text style={helpBoxText}>{businessPhone && <><Link href={`tel:${businessPhone}`} style={link}>{businessPhone}</Link></>}{businessPhone && businessEmail && ' · '}{businessEmail && <><Link href={`mailto:${businessEmail}`} style={link}>{businessEmail}</Link></>}</Text>
- </Section>
+</Section>
  )}
  </Container>
 
  <Section style={footer}>
  <Text style={footerText}><Link href={SITE_URL} style={footerLink}>serviceydere.dk</Link> · <Link href={`${SITE_URL}/dashboard`} style={footerLink}>Mit kundepanel</Link> · <Link href={`mailto:${SUPPORT_EMAIL}`} style={footerLink}>Kontakt</Link></Text>
  <Text style={footerText}>© {new Date().getFullYear()} {SITE_NAME}.</Text>
- </Section>
+</Section>
  </Container>
  </Body>
  </Html>
@@ -131,7 +131,7 @@ const SubscriptionUpdateEmail = ({ customerName, businessName, businessPhone, bu
 
 export const template = {
  component: SubscriptionUpdateEmail,
- subject: (data) =>`Aftale opdateret${data.businessName ?` ${data.businessName}` : ''}`,
+ subject: (data) =>`Aftale opdateret${data.businessName ? ` ${data.businessName}` : ''}`,
  displayName: 'Opdatering af aftale',
  previewData: { customerName: 'Mette', businessName: 'Ready2Clean', serviceName: 'Privatrengøring', intervalLabel: 'Hver 14. dag', totalPrice: 599, event: 'rescheduled', nextServiceDate: '2026-05-08', previousServiceDate: '2026-05-01', completedCycles: 3 },
 } satisfies TemplateEntry

@@ -40,37 +40,37 @@ const SubscriptionReminderEmail = ({ customerName, businessName, businessPhone, 
  const date = fmtDate(nextServiceDate)
  const time = fmtTime(nextServiceDate)
  const intervalLabel = interval ? (INTERVAL_LABEL[interval] ?? interval) : null
- const headline = daysUntil != null ? (daysUntil <= 1 ? 'Din service er i morgen ' :`Din næste service om ${daysUntil} dage`) : 'Din næste service nærmer sig '
+ const headline = daysUntil != null ? (daysUntil <= 1 ? 'Din service er i morgen ' : `Din næste service om ${daysUntil} dage`) : 'Din næste service nærmer sig '
 
  return (
  <Html lang="da" dir="ltr">
  <Head />
- <Preview>Påmindelse: {serviceName || 'din service'}{businessName ?` hos ${businessName}` : ''}{date ?` ${date}` : ''}</Preview>
+ <Preview>Påmindelse: {serviceName || 'din service'}{businessName ? ` hos ${businessName}` : ''}{date ? ` ${date}` : ''}</Preview>
  <Body style={main}>
  <Container style={wrapper}>
  <Section style={headerBar}><Img src={LOGO_URL} alt={SITE_NAME} height="36" style={{ display: 'block' }} /></Section>
  <Container style={container}>
  <Section style={heroSection}>
  <Heading style={heroTitle}>{headline}</Heading>
- <Text style={heroSubtitle}>Hej{customerName ?` ${customerName}` : ''}, her er en kort påmindelse om din kommende aftale{businessName ?` hos ${businessName}` : ''}.</Text>
- </Section>
+ <Text style={heroSubtitle}>Hej{customerName ? ` ${customerName}` : ''}, her er en kort påmindelse om din kommende aftale{businessName ? ` hos ${businessName}` : ''}.</Text>
+</Section>
 
  {date && (
  <Section style={cardAccent}>
  <Text style={{ ...cardLabel, color: '#0e7490' }}>Næste servicedato</Text>
  <Text style={{ fontSize: '20px', fontWeight: 700, color: '#0d1729', margin: '0 0 4px', lineHeight: '1.2' }}> {date}</Text>
  {time && time !== '00:00' && <Text style={{ ...cardValue, fontSize: '14px', color: '#0e7490', margin: 0 }}> kl. {time}</Text>}
- </Section>
+</Section>
  )}
 
  <Section style={card}>
  {serviceName && <><Text style={cardLabel}>Service</Text><Text style={cardValue}>{serviceName}</Text></>}
- {businessName && <><Text style={cardLabel}>Leverandør</Text><Text style={cardValue}> {businessName}</Text></>}
- {intervalLabel && <><Text style={cardLabel}>Interval</Text><Text style={cardValue}> {intervalLabel}</Text></>}
+ {businessName && <><Text style={cardLabel}>Leverandør</Text><Text style={cardValue}>{businessName}</Text></>}
+ {intervalLabel && <><Text style={cardLabel}>Interval</Text><Text style={cardValue}>{intervalLabel}</Text></>}
  {typeof totalPrice === 'number' && <><Text style={cardLabel}>Pris pr. gang</Text><Text style={cardValue}>{fmt(totalPrice)}</Text></>}
  {typeof completedCycles === 'number' && completedCycles > 0 && <><Text style={cardLabel}>Tidligere udført</Text><Text style={cardValue}>{completedCycles} {completedCycles === 1 ? 'gang' : 'gange'}</Text></>}
  {details && <><Text style={cardLabel}>Detaljer</Text><Text style={{ ...cardValue, fontWeight: 400, color: '#475569' }}>{details}</Text></>}
- </Section>
+</Section>
 
  <Text style={h2}>Før besøget</Text>
  <ol style={stepList}>
@@ -85,14 +85,14 @@ const SubscriptionReminderEmail = ({ customerName, businessName, businessPhone, 
  <Section style={helpBox}>
  <Text style={helpBoxTitle}>Brug for at ændre noget?</Text>
  <Text style={helpBoxText}>Kontakt {businessName || 'leverandøren'} direkte:{' '}{businessPhone && <><Link href={`tel:${businessPhone}`} style={link}>{businessPhone}</Link></>}{businessPhone && businessEmail && ' · '}{businessEmail && <><Link href={`mailto:${businessEmail}`} style={link}>{businessEmail}</Link></>}</Text>
- </Section>
+</Section>
  )}
  </Container>
 
  <Section style={footer}>
  <Text style={footerText}><Link href={SITE_URL} style={footerLink}>serviceydere.dk</Link> · <Link href={`${SITE_URL}/dashboard`} style={footerLink}>Mit kundepanel</Link> · <Link href={`mailto:${SUPPORT_EMAIL}`} style={footerLink}>Support</Link></Text>
  <Text style={footerText}>Du modtager denne påmindelse, fordi du har en aktiv aftale på serviceydere.dk.</Text>
- </Section>
+</Section>
  </Container>
  </Body>
  </Html>
@@ -103,8 +103,8 @@ export const template = {
  component: SubscriptionReminderEmail,
  subject: (data) => {
  const days = data.daysUntil
- const prefix = days != null ? (days <= 1 ? 'I morgen' :`Om ${days} dage`) : 'Påmindelse'
- return`${prefix}: ${data.serviceName ?? 'Din service'}${data.businessName ?` hos ${data.businessName}` : ''}`
+ const prefix = days != null ? (days <= 1 ? 'I morgen' : `Om ${days} dage`) : 'Påmindelse'
+ return`${prefix}: ${data.serviceName ?? 'Din service'}${data.businessName ? ` hos ${data.businessName}` : ''}`
  },
  displayName: 'Påmindelse om aftale',
  previewData: {

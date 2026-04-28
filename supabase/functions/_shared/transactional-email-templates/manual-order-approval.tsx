@@ -63,7 +63,7 @@ const ManualOrderApprovalEmail = ({
  items = [],
  totalAmount = 0,
 }: ManualOrderApprovalProps) => {
- const shortId = orderId ?`#${orderId.slice(0, 8).toUpperCase()}` : null
+ const shortId = orderId ? `#${orderId.slice(0, 8).toUpperCase()}` : null
  const businessLabel = businessName || 'En leverandør'
 
  return (
@@ -74,40 +74,40 @@ const ManualOrderApprovalEmail = ({
  <Container style={wrapper}>
  <Section style={headerBar}>
  <Img src={LOGO_URL} alt={SITE_NAME} height="36" style={{ display: 'block' }} />
- </Section>
+</Section>
 
  <Container style={container}>
  <Section style={heroSection}>
  <Heading style={heroTitle}>Du har en bestilling til godkendelse</Heading>
  <Text style={heroSubtitle}>
- Hej{customerName ?` ${customerName}` : ''}. {businessLabel} har oprettet en bestilling og venter på dit svar, før arbejdet kan gå videre.
- </Text>
- </Section>
+ Hej{customerName ? ` ${customerName}` : ''}. {businessLabel} har oprettet en bestilling og venter på dit svar, før arbejdet kan gå videre.
+</Text>
+</Section>
 
  <Section style={{ margin: '0 0 10px' }}>
  <span style={badge('#92400e', '#fef3c7')}>Afventer din godkendelse</span>
- </Section>
+</Section>
 
  {businessMessage && (
  <Section style={{ ...card, borderLeft: '4px solid #11c4ce' }}>
  <Text style={cardLabel}>Besked fra {businessLabel}</Text>
  <Text style={{ ...text, margin: '4px 0 0', fontStyle: 'italic' }}>
  "{businessMessage}"
- </Text>
- </Section>
+</Text>
+</Section>
  )}
 
  <Section style={card}>
  {shortId && <><Text style={cardLabel}>Ordrenummer</Text><Text style={cardValue}>{shortId}</Text></>}
- {address && <><Text style={cardLabel}>Adresse</Text><Text style={cardValue}> {address}</Text></>}
- {preferredDate && <><Text style={cardLabel}>Foreslået dato</Text><Text style={cardValue}> {preferredDate}</Text></>}
+ {address && <><Text style={cardLabel}>Adresse</Text><Text style={cardValue}>{address}</Text></>}
+ {preferredDate && <><Text style={cardLabel}>Foreslået dato</Text><Text style={cardValue}>{preferredDate}</Text></>}
 
  {items.length > 0 && (
  <>
  <Text style={{ ...cardLabel, marginTop: '12px' }}>Bestilte services</Text>
  <div>
  {items.map((it, i) => {
- const qty = it.quantity && it.quantity > 1 ?`${it.quantity}×` : ''
+ const qty = it.quantity && it.quantity > 1 ? `${it.quantity}×` : ''
  const isLast = i === items.length - 1
  return (
  <div key={i} style={isLast ? itemRowLast : itemRow}>
@@ -118,7 +118,7 @@ const ManualOrderApprovalEmail = ({
  {it.intervalLabel && <Text style={itemDetail}> {it.intervalLabel}</Text>}
  {it.description && !it.stepDetails?.length && <Text style={itemDetail}>{it.description}</Text>}
  {it.stepDetails?.map((sd, j) => (
- <Text key={j} style={stepLine}> {sd.label}: <strong>{sd.value} {sd.unit || ''}</strong>{sd.subtotal != null ?` ${fmt(sd.subtotal)}` : ''}</Text>
+ <Text key={j} style={stepLine}> {sd.label}: <strong>{sd.value} {sd.unit || ''}</strong>{sd.subtotal != null ? ` ${fmt(sd.subtotal)}` : ''}</Text>
  ))}
  </td>
  <td style={{ verticalAlign: 'top', textAlign: 'right', minWidth: '70px' }}>
@@ -134,27 +134,27 @@ const ManualOrderApprovalEmail = ({
  )}
 
  <div style={totalRow}><span>I alt</span><span>{fmt(totalAmount)}</span></div>
- </Section>
+</Section>
 
  <Section style={buttonSection}>
  <Button style={button} href={approvalUrl}>Gennemgå og godkend bestilling</Button>
  <Text style={{ ...text, fontSize: '12px', color: '#64748b', marginTop: '12px' }}>
  Linket udløber om {expiresInDays} dag{expiresInDays === 1 ? '' : 'e'}.
- </Text>
- </Section>
+</Text>
+</Section>
 
  <Section style={helpBox}>
  <Text style={helpBoxTitle}>Spørgsmål før du svarer?</Text>
  <Text style={helpBoxText}>
- Kontakt {businessLabel} direkte{businessPhone ?` på ${businessPhone}` : ''}{businessEmail ?` eller ${businessEmail}` : ''}. Ved spørgsmål til platformen kan du skrive til <Link href={`mailto:${SUPPORT_EMAIL}`} style={link}>{SUPPORT_EMAIL}</Link>.
- </Text>
- </Section>
+ Kontakt {businessLabel} direkte{businessPhone ? ` på ${businessPhone}` : ''}{businessEmail ? ` eller ${businessEmail}` : ''}. Ved spørgsmål til platformen kan du skrive til <Link href={`mailto:${SUPPORT_EMAIL}`} style={link}>{SUPPORT_EMAIL}</Link>.
+</Text>
+</Section>
  </Container>
 
  <Section style={footer}>
  <Text style={footerText}><Link href={SITE_URL} style={footerLink}>serviceydere.dk</Link></Text>
  <Text style={footerText}>© {new Date().getFullYear()} {SITE_NAME}. Du modtager denne e-mail, fordi {businessLabel} har oprettet en bestilling til dig.</Text>
- </Section>
+</Section>
  </Container>
  </Body>
  </Html>
@@ -163,7 +163,7 @@ const ManualOrderApprovalEmail = ({
 
 export const template = {
  component: ManualOrderApprovalEmail,
- subject: (data) =>`Bestilling til godkendelse${data.businessName ?` fra ${data.businessName}` : ''}`,
+ subject: (data) =>`Bestilling til godkendelse${data.businessName ? ` fra ${data.businessName}` : ''}`,
  displayName: 'Manuel ordre kunde-godkendelse',
  previewData: {
  customerName: 'Mette Hansen',
