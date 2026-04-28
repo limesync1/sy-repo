@@ -560,6 +560,80 @@ const SettingsTab = ({ business }: { business: any }) => {
   const saveStatus: "saving" | "saved" | "idle" =
     updateBiz.isPending ? "saving" : (hasChanges ? "saving" : "saved");
 
+  // ─── Custom permalink (slug) ───
+  // Vi auto-tjekker tilgængelighed mens brugeren skriver, men gemmer KUN
+  // ved klik på "Gem permalink" — slug-skift påvirker URL'er, så vi
+  // undgår utilsigtede ændringer via auto-save.
+  const SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])?$/;
+  const slugChanged = slug !== business.slug;
+  useEffect(() => {
+    const next = slug.trim().toLowerCase();
+    if (next === business.slug) { setSlugStatus("current"); return; }
+    if (!SLUG_REGEX.test(next)) { setSlugStatus("invalid"); return; }
+    setSlugStatus("checking");
+    if (slugCheckTimer.current) window.clearTimeout(slugCheckTimer.current);
+    slugCheckTimer.current = window.setTimeout(async () => {
+      const { data, error } = await supabase
+        .from("businesses").select("id").eq("slug", next).maybeSingle();
+      if (error) { setSlugStatus("invalid"); return; }
+      setSlugStatus(data && data.id !== business.id ? "taken" : "available");
+    }, 400);
+    return () => { if (slugCheckTimer.current) window.clearTimeout(slugCheckTimer.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, business.slug, business.id]);
+
+  const handleSaveSlug = async () => {
+    const next = slug.trim().toLowerCase();
+    if (next === business.slug) return;
+    if (!SLUG_REGEX.test(next)) {
+      toast.error("Permalink må kun indeholde små bogstaver, tal og bindestreg (3-60 tegn).");
+      return;
+    }
+    if (slugStatus === "taken") {
+      toast.error("Det permalink er optaget. Prøv et andet.");
+      return;
+    }
+    const { error } = await supabase.from("businesses").update({ slug: next }).eq("id", business.id);
+    if (error) {
+      toast.error(error.message?.includes("duplicate") ? "Det permalink er optaget." : "Kunne ikke gemme permalink.");
+      return;
+    }
+    toast.success("Permalink opdateret. Din offentlige adresse er nu /v/" + next);
+    queryClient.invalidateQueries({ queryKey: ["my-business"] });
+    queryClient.invalidateQueries({ queryKey: ["business"] });
+  };
+
+  // ─── Custom domæne — verificer ───
+  const handleVerifyDomain = async () => {
+    const cleaned = customDomain.trim().toLowerCase()
+      .replace(/^https?:\/\//, "").replace(/\/+$/, "").split("/")[0];
+    if (!cleaned) { toast.error("Skriv et domæne først."); return; }
+    if (!/^([a-z0-9-]+\.)+[a-z]{2,}$/.test(cleaned)) {
+      toast.error("Domænet ser ikke gyldigt ud. Brug fx mitfirma.dk uden https:// eller stier.");
+      return;
+    }
+    setDomainVerifying(true);
+    setDomainResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-custom-domain", {
+        body: { business_id: business.id, domain: cleaned },
+      });
+      if (error) throw error;
+      setDomainResult(data);
+      if (data?.status === "verified") toast.success("Domænet er verificeret 🎉");
+      else toast.error(data?.message || "Domænet er ikke klar endnu — tjek dine DNS-records.");
+      queryClient.invalidateQueries({ queryKey: ["my-business"] });
+      queryClient.invalidateQueries({ queryKey: ["business"] });
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke verificere domænet lige nu. Prøv igen.");
+    } finally {
+      setDomainVerifying(false);
+    }
+  };
+
+  // Verifikations-token = de første 16 tegn af business.id (uden bindestreger)
+  const domainToken = (business.id || "").replace(/-/g, "").slice(0, 16);
+
   // ─── Live prisberegning ───
   // Bygger samme breakdown som "bliv udbyder", men ud fra brugerens nuværende
   // toggles. Bruges både til at vise oversigten og til at gemme den korrekte
