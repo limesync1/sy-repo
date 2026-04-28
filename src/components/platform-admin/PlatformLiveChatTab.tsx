@@ -89,6 +89,7 @@ const PlatformLiveChatTab = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const initialMessagesLoad = useRef(true);
+  const userScrolledUpRef = useRef(false);
 
   // Load canned with migration from v1
   useEffect(() => {
@@ -194,8 +195,24 @@ const PlatformLiveChatTab = () => {
 
   useEffect(() => {
     const el = scrollRef.current;
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: initialMessagesLoad.current ? "auto" : "smooth" });
+    if (!el) return;
+    if (initialMessagesLoad.current || !userScrolledUpRef.current) {
+      el.scrollTo({ top: el.scrollHeight, behavior: initialMessagesLoad.current ? "auto" : "smooth" });
+    }
   }, [messages, activeId]);
+
+  // Reset scroll-tracking when switching conversations and watch user scroll.
+  useEffect(() => {
+    userScrolledUpRef.current = false;
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+      userScrolledUpRef.current = distanceFromBottom > 80;
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [activeId]);
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
