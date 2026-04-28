@@ -25,8 +25,8 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
 
   return (
     <Link to={`/v/${biz.slug}`} className="group flex w-[270px] shrink-0 flex-col gap-3 sm:w-[292px]">
-      <article className="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-secondary">
+      <article className="rounded-[24px] border border-border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-[24px] bg-secondary">
           {biz.cover_image_url ? (
             <img
               src={biz.cover_image_url}
@@ -54,7 +54,15 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
           </div>
         </div>
 
-        <div className="space-y-3 p-4">
+        <div className="relative space-y-3 p-4 pt-7">
+          {/* Logo overlay — løftes op over coveret så virksomheden står tydeligt frem */}
+          <div className="absolute -top-7 left-4 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border-2 border-card bg-card shadow-md">
+            {biz.logo_url ? (
+              <img src={biz.logo_url} alt={`${biz.name} logo`} className="h-full w-full object-contain p-1" loading="lazy" decoding="async" />
+            ) : (
+              <span className="text-base font-bold text-accent">{biz.name.charAt(0)}</span>
+            )}
+          </div>
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <h3 className="truncate text-base font-semibold text-foreground">{biz.name}</h3>
