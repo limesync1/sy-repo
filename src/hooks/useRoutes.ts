@@ -174,6 +174,8 @@ export const useEndStopTime = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["stop-time-entries"] });
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+      qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke afslutte tidsregistrering"),
   });
@@ -269,6 +271,7 @@ export const useEndWorkday = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["my-workday"] });
+      qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke afslutte arbejdsdag"),
   });
@@ -675,6 +678,7 @@ export const useAddStop = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
     },
   });
 };
@@ -700,6 +704,10 @@ export const useUpdateStop = () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["route-stops"] });
       qc.invalidateQueries({ queryKey: ["stop-assignees-bulk"] });
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
+      qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
+      qc.invalidateQueries({ queryKey: ["my-day-stops"] });
+      qc.invalidateQueries({ queryKey: ["my-route-data"] });
     },
   });
 };
@@ -716,6 +724,7 @@ export const useReorderStops = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
     },
   });
 };
@@ -730,6 +739,7 @@ export const useDeleteStop = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
     },
   });
 };
