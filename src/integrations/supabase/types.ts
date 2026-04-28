@@ -154,6 +154,32 @@ export type Database = {
         }
         Relationships: []
       }
+      business_slug_history: {
+        Row: {
+          business_id: string
+          created_at: string
+          slug: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          slug: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_slug_history_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       businesses: {
         Row: {
           address: string | null
