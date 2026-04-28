@@ -155,6 +155,15 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
     }
   }, [STORAGE_KEY, businessId]);
 
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("serviceydere_open_chat_key") !== businessKey(businessId)) return;
+      sessionStorage.removeItem("serviceydere_open_chat_key");
+      setOpen(true);
+      setShowInbox(false);
+    } catch {}
+  }, [businessId, setOpen]);
+
   // Sørg for at denne virksomheds-chat er registreret så længe vi har en
   // aktiv samtale — så den dukker op i "Mine samtaler"-listen overalt.
   useEffect(() => {
@@ -464,6 +473,7 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
   const selectChat = (chat: RegisteredChat) => {
     const activeKey = businessKey(businessId);
     if (chat.key === activeKey) { setShowInbox(false); return; }
+    try { sessionStorage.setItem("serviceydere_open_chat_key", chat.key); } catch {}
     if (chat.scope === "business" && chat.href) window.location.href = chat.href;
     else if (chat.scope === "platform") window.location.href = "/";
   };
@@ -478,6 +488,10 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
       }
       setConversation(null);
       setMessages([]);
+    } else if (chat.scope === "business" && chat.businessId) {
+      try { localStorage.removeItem(`serviceydere_biz_chat_${chat.businessId}_v1`); } catch {}
+    } else if (chat.scope === "platform") {
+      try { localStorage.removeItem("serviceydere_chat_session_v1"); } catch {}
     }
     removeChat(chat.key);
     setChats(listChats());
