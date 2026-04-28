@@ -334,7 +334,7 @@ const LiveChatWidget = () => {
       const el = scrollRef.current;
       if (el) el.scrollTo({ top: el.scrollHeight, behavior: "auto" });
     });
-  }, [open]);
+  }, [open, conversation?.id, showInbox]);
 
   // Track whether the user has scrolled away from the bottom.
   useEffect(() => {
@@ -483,6 +483,28 @@ const LiveChatWidget = () => {
     setConversation((prev) => (prev ? { ...prev, status: "closed" } : prev));
   };
 
+  const deleteCurrentConversation = async () => {
+    if (!conversation) return;
+    if (!confirm("Vil du slette samtalen fra dine samtaler?")) return;
+    if (conversation.status !== "closed") {
+      await supabase.from("chat_messages").insert({
+        conversation_id: conversation.id,
+        sender_type: "visitor",
+        sender_name: conversation.visitor_name,
+        content: `${conversation.visitor_name} slettede samtalen fra sin oversigt`,
+        is_system: true,
+      });
+      await supabase.from("chat_conversations").update({ status: "closed" }).eq("id", conversation.id);
+    }
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    removeChat(platformKey());
+    setConversation(null);
+    setMessages([]);
+    setDraft("");
+    clearPendingImage();
+    chatSounds.system();
+  };
+
   const startNewConversation = () => {
     // Tøm lokal state og fjern session-token, så brugeren får start-formularen igen.
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
@@ -510,6 +532,25 @@ const LiveChatWidget = () => {
     if (conversation) {
       supabase.from("chat_conversations").update({ unread_visitor_count: 0 }).eq("id", conversation.id).then(() => {});
     }
+  };
+
+  const selectChat = (chat: RegisteredChat) => {
+    if (chat.key === platformKey()) { setShowInbox(false); return; }
+    if (chat.scope === "business" && chat.href) window.location.href = chat.href;
+  };
+
+  const deleteChat = (chat: RegisteredChat) => {
+    if (!confirm("Vil du slette samtalen fra dine samtaler?")) return;
+    if (chat.key === platformKey()) {
+      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+      if (conversation) {
+        supabase.from("chat_conversations").update({ status: "closed" }).eq("id", conversation.id).then(() => {});
+      }
+      setConversation(null);
+      setMessages([]);
+    }
+    removeChat(chat.key);
+    setChats(listChats());
   };
 
   // Adaptive positioning so we never overlap CartFab on mobile or desktop
