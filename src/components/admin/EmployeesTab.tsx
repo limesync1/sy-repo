@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   Mail, Phone, Briefcase, UserPlus, X,
-  Trash2, Power, PowerOff, Pencil, KeyRound, Users, Percent,
+  Trash2, Power, PowerOff, Pencil, KeyRound, Users, Percent, MessageCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
@@ -377,6 +377,7 @@ const EmployeeRow = ({
   const [editCommission, setEditCommission] = useState<string>(
     employee.commission_pct != null ? String(employee.commission_pct) : "0",
   );
+  const [editLivechat, setEditLivechat] = useState<boolean>(!!(employee as any).livechat_enabled);
   const resetPw = useResetEmployeePassword();
   const fallbackColor = employee.color || "#64748b";
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -563,12 +564,34 @@ const EmployeeRow = ({
               setEditPhone(employee.phone || "");
               setEditTitle(employee.title || "");
               setEditCommission(employee.commission_pct != null ? String(employee.commission_pct) : "0");
+              setEditLivechat(!!(employee as any).livechat_enabled);
               setEditOpen(true);
             }}
             className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
           >
             <Pencil className="h-4 w-4" />
           </button></TooltipTrigger><TooltipContent>Rediger oplysninger</TooltipContent></Tooltip>
+          <Tooltip><TooltipTrigger asChild><button
+            onClick={() => {
+              const next = !(employee as any).livechat_enabled;
+              onUpdate.mutate(
+                { id: employee.id, business_id: businessId, livechat_enabled: next } as any,
+                {
+                  onSuccess: () =>
+                    toast.success(next ? "Livechat-adgang aktiveret" : "Livechat-adgang fjernet"),
+                  onError: (e: any) => toast.error(e.message),
+                },
+              );
+            }}
+            className={cn(
+              "rounded-md p-2 transition-colors",
+              (employee as any).livechat_enabled
+                ? "bg-accent/10 text-accent hover:bg-accent/15"
+                : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+            )}
+          >
+            <MessageCircle className="h-4 w-4" />
+          </button></TooltipTrigger><TooltipContent>{(employee as any).livechat_enabled ? "Fjern livechat-adgang" : "Giv adgang til livechat"}</TooltipContent></Tooltip>
           {linked && (
             <Tooltip><TooltipTrigger asChild><button
               onClick={() => setConfirmReset(true)}
@@ -656,6 +679,25 @@ const EmployeeRow = ({
                 Andel af omsætningen for udførte opgaver. Mellem 0 og 100.
               </p>
             </div>
+            <div className="sm:col-span-2">
+              <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-secondary/40 p-3 transition-colors hover:bg-secondary">
+                <input
+                  type="checkbox"
+                  checked={editLivechat}
+                  onChange={(e) => setEditLivechat(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-accent"
+                />
+                <span className="flex-1">
+                  <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                    <MessageCircle className="h-3.5 w-3.5 text-accent" />
+                    Adgang til livechat
+                  </span>
+                  <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                    Når aktiveret kan medarbejderen besvare livechat-henvendelser fra kunder i deres eget medarbejderpanel.
+                  </span>
+                </span>
+              </label>
+            </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="ghost" onClick={() => setEditOpen(false)}>Annuller</Button>
@@ -679,6 +721,7 @@ const EmployeeRow = ({
                     phone: editPhone.trim() || null,
                     title: editTitle.trim() || null,
                     commission_pct: pctNum,
+                    livechat_enabled: editLivechat,
                   } as any,
                   {
                     onSuccess: () => {

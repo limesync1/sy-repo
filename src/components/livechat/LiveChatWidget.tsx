@@ -458,22 +458,17 @@ const LiveChatWidget = () => {
     !cartSheetOpen &&
     (pathname.startsWith("/v/") || pathname === "/demo" || pathname === "/tilbud");
 
-  // Position strategy: CartFab sits at bottom-right (right-5/6, bottom-5/6).
-  // - Mobile: stack chat FAB ABOVE the cart FAB to avoid horizontal squeeze.
-  // - Desktop: place chat FAB to the LEFT of the cart FAB.
-  // The open panel always anchors right edge so it can use full width on mobile.
+  // Layout: CartFab er rykket mod venstre på desktop, så livechat altid kan
+  // sidde yderst til højre. På mobil stables livechat ovenover bestilling
+  // (vi løfter bottom) for at undgå at de overlapper i siden.
   const fabBottomClass = cartFabVisible
     ? "bottom-[calc(env(safe-area-inset-bottom,0px)+5.25rem)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]"
     : "bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]";
-  const fabPositionClass = cartFabVisible
-    ? "right-[calc(env(safe-area-inset-right,0px)+1.25rem)] sm:right-[calc(env(safe-area-inset-right,0px)+11.5rem)]"
-    : "right-[calc(env(safe-area-inset-right,0px)+1.25rem)] sm:right-[calc(env(safe-area-inset-right,0px)+1.5rem)]";
-
-  const panelBottomClass = cartFabVisible
-    ? "bottom-[calc(env(safe-area-inset-bottom,0px)+5.25rem)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]"
-    : "bottom-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] sm:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]";
-  const panelPositionClass =
+  const fabPositionClass =
     "right-[calc(env(safe-area-inset-right,0px)+1.25rem)] sm:right-[calc(env(safe-area-inset-right,0px)+1.5rem)]";
+
+  const panelBottomClass = fabBottomClass;
+  const panelPositionClass = fabPositionClass;
 
   const lastAdminMsg = [...messages].reverse().find((m) => m.sender_type === "admin" && !m.is_system);
   const lastVisitorMsg = [...messages].reverse().find((m) => m.sender_type === "visitor" && !m.is_system);
@@ -496,12 +491,12 @@ const LiveChatWidget = () => {
           aria-label="Åbn livechat"
           className={`fixed z-40 flex items-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-[0_18px_40px_-16px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_22px_50px_-16px_hsl(var(--foreground)/0.6)] active:scale-95 ${fabBottomClass} ${fabPositionClass}`}
         >
-          <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-background/15 overflow-hidden">
+          <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-background overflow-hidden">
             <img
-              src="/serviceydere-logo-dark.webp"
+              src="/serviceydere-ikon.webp"
               alt=""
               aria-hidden="true"
-              className="h-4 w-4 object-contain invert"
+              className="h-5 w-5 object-contain"
             />
             <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
@@ -522,8 +517,12 @@ const LiveChatWidget = () => {
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background/10 ring-1 ring-background/20 backdrop-blur">
-                      <MessageCircle className="h-4 w-4 text-background" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background ring-1 ring-background/20 backdrop-blur overflow-hidden">
+                      <img
+                        src="/serviceydere-ikon.webp"
+                        alt="Serviceydere"
+                        className="h-7 w-7 object-contain"
+                      />
                     </div>
                     <span className={`absolute -bottom-0.5 -right-0.5 flex h-3 w-3 items-center justify-center rounded-full ring-2 ring-foreground ${closed ? "bg-muted-foreground" : "bg-accent"}`}>
                       {!closed && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-background" />}
