@@ -37,6 +37,8 @@ type Props = {
   businessName: string;
   /** Visningsnavn vist i header (fallback: businessName). */
   brandName?: string;
+  /** Virksomhedens logo — vises i FAB-knappens venstre cirkel. */
+  logoUrl?: string | null;
   /** Hvis sat: forsinker en evt. CartFab så vi ikke overlapper. */
   cartFabVisible?: boolean;
 };
@@ -58,7 +60,7 @@ const formatTime = (iso: string) => {
 const initials = (name: string) =>
   name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() || "").join("") || "S";
 
-const BusinessLiveChatWidget = ({ businessId, businessName, brandName, cartFabVisible = false }: Props) => {
+const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, cartFabVisible = false }: Props) => {
   const { user } = useAuth();
   // Egen storage-key pr. virksomhed så hver virksomhedsside har sin egen
   // session — så besøgende kan have parallelle samtaler hos forskellige
