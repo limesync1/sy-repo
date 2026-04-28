@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useBusinessBySlug, useServices, useReviews } from "@/hooks/useDatabase";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
 import BusinessSEO from "@/components/business/BusinessSEO";
@@ -6,15 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft, Star, Mail, Phone, MapPin, Clock, CheckCircle,
-  ArrowDown, Sparkles, BadgeCheck,
+  ArrowDown, Sparkles, BadgeCheck, Wrench,
 } from "lucide-react";
 import Footer from "@/components/landing/Footer";
 import BusinessLiveChatWidget from "@/components/livechat/BusinessLiveChatWidget";
 import { useCart } from "@/contexts/CartContext";
+import { supabase } from "@/integrations/supabase/client";
 
 /* ─── Opening-hours helpers ───
  * Sorter åbningstider i kanonisk rækkefølge (Man → Søn) uafhængigt af
@@ -39,6 +41,23 @@ const DynamicBusinessContent = () => {
   const { data: business, isLoading, error } = useBusinessBySlug(slug || "");
   const { data: services } = useServices(business?.id);
   const { data: reviews } = useReviews(business?.id);
+  // Hvis slug ikke matcher en aktuel virksomhed, slår vi op i historikken
+  // og redirecter til den nuværende adresse — så gamle links altid virker.
+  const [redirectTo, setRedirectTo] = useState<string | null>(null);
+  useEffect(() => {
+    if (!slug || business || isLoading) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("business_slug_history")
+        .select("business_id, businesses!inner(slug)")
+        .eq("slug", slug)
+        .maybeSingle();
+      const newSlug = (data as any)?.businesses?.slug;
+      if (!cancelled && newSlug && newSlug !== slug) setRedirectTo(`/v/${newSlug}`);
+    })();
+    return () => { cancelled = true; };
+  }, [slug, business, isLoading]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const { count: cartCount, sheetOpen: cartSheetOpen } = useCart();
   const cartFabVisible = cartCount > 0 && !cartSheetOpen;
@@ -89,6 +108,8 @@ const DynamicBusinessContent = () => {
   );
 
   if (isLoading) return <BusinessPageSkeleton />;
+
+  if (redirectTo) return <Navigate to={redirectTo} replace />;
 
   if (error || !business) return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4">
