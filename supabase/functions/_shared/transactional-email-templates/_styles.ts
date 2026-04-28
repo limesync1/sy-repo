@@ -35,7 +35,7 @@ export const headerBar = {
   marginBottom: '32px',
 }
 export const logoSection = { margin: 0 }
-export const logo = { display: 'block', height: '24px' }
+export const logo = { display: 'block', height: '32px' }
 export const headerSiteName = {
   color: ink,
   fontSize: '15px',

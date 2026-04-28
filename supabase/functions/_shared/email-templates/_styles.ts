@@ -28,7 +28,7 @@ export const container = {
 
 export const logo = {
   display: 'block',
-  height: '24px',
+  height: '32px',
 }
 
 export const eyebrow = {
