@@ -1,5 +1,8 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTour } from "./TourContext";
+import { TOURS } from "./tours";
+import TourOverlay from "./TourOverlay";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -56,6 +59,7 @@ type OnboardingHubProps = {
 
 export const OnboardingHub = ({ business }: OnboardingHubProps) => {
   const navigate = useNavigate();
+  const tour = useTour();
   const { data: plan } = useBusinessPlan(business?.id);
   const { data: services } = useServices(business?.id);
   const { data: employees } = useEmployees(business?.id);
@@ -138,7 +142,14 @@ export const OnboardingHub = ({ business }: OnboardingHubProps) => {
 
   const handleStepCta = (step: OnboardingStep) => {
     setOpen(false);
-    navigate(step.href);
+    // Hvis der findes en interaktiv tour for dette step → start den.
+    // Tour-overlayet håndterer selv navigation til den rigtige side.
+    const t = TOURS[step.id];
+    if (t) {
+      tour.start(t);
+    } else {
+      navigate(step.href);
+    }
   };
 
   const handleMarkDone = (step: OnboardingStep) => {
@@ -352,6 +363,9 @@ export const OnboardingHub = ({ business }: OnboardingHubProps) => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Interaktivt spotlight-overlay — vises når en tour er aktiv. */}
+      <TourOverlay businessId={business?.id} />
     </>
   );
 };
