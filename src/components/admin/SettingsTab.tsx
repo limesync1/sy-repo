@@ -319,8 +319,8 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [leadsEnabled, setLeadsEnabled] = useState<boolean>(
     !!(business.settings as any)?.leads_enabled
   );
-  // Live chat — gratis valgfri funktion. Når slået til vises en chat-widget
-  // på virksomhedens offentlige side, og en "Live chat"-fane tilføjes til
+  // Livechat — gratis valgfri funktion. Når slået til vises en chat-widget
+  // på virksomhedens offentlige side, og en "Livechat"-fane tilføjes til
   // admin-panelet hvor virksomheden kan svare på henvendelser.
   const [livechatEnabled, setLivechatEnabled] = useState<boolean>(
     !!(business.settings as any)?.livechat_enabled
@@ -1653,9 +1653,9 @@ const SettingsTab = ({ business }: { business: any }) => {
                 />
               </div>
 
-              {/* Live chat — gratis chat-widget på virksomhedssiden. Når slået
+              {/* Livechat — gratis chat-widget på virksomhedssiden. Når slået
                   til vises en chat-knap nederst i hjørnet på din offentlige
-                  side, og en "Live chat"-fane tilføjes til menuen her i panelet. */}
+                  side, og en "Livechat"-fane tilføjes til menuen her i panelet. */}
               <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
                 <div className="flex items-start gap-3 min-w-0">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
@@ -1663,11 +1663,11 @@ const SettingsTab = ({ business }: { business: any }) => {
                   </div>
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-foreground">Live chat på virksomhedssiden</p>
+                      <p className="text-sm font-semibold text-foreground">Livechat på virksomhedssiden</p>
                       <span className="text-[11px] font-semibold text-muted-foreground">Gratis</span>
                     </div>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      Når slået til vises en chat-knap nederst i hjørnet på din offentlige side, så besøgende kan skrive direkte til jer. Du modtager en email ved nye samtaler og svarer fra "Live chat"-fanen i menuen.
+                      Når slået til vises en chat-knap nederst i hjørnet på din offentlige side, så besøgende kan skrive direkte til jer. Du modtager en email ved nye samtaler og svarer fra "Livechat"-fanen i menuen.
                     </p>
                     <StatusPill
                       active={livechatEnabled}
