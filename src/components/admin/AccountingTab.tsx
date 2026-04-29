@@ -560,6 +560,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     const lastSync = integration.last_push_at && integration.last_pull_at
       ? (new Date(integration.last_push_at) > new Date(integration.last_pull_at) ? integration.last_push_at : integration.last_pull_at)
       : (integration.last_push_at ?? integration.last_pull_at);
+    const nextRun = nextHourlyRun();
+    const failedCount = failedJobs.length;
+    const pendingCount = Math.max(queueCount - failedCount, 0);
 
     return (
       <div className="space-y-6">
@@ -573,28 +576,50 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           }
         />
 
-        {/* Stats — samme rytme som Leads/Overblik */}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Synk-status — fuld oversigt over hvad der er sket og hvad der venter.
+            Følger samme 2-3 kolonne stat-grid rytme som Overblik/Leads. */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <StatCard
             label="Status"
-            value={hasError ? "Fejl" : "Aktiv"}
-            hint={hasError ? "Kræver opmærksomhed" : "Synkroniserer hver time"}
-            icon={hasError ? <AlertCircle /> : <Check />}
-            tone={hasError ? "amber" : "emerald"}
+            value={failedCount > 0 ? "Fejl" : hasError ? "Fejl" : "Aktiv"}
+            hint={failedCount > 0 ? `${failedCount} jobs fejlede` : hasError ? "Forbindelses-fejl" : "Kører automatisk"}
+            icon={(failedCount > 0 || hasError) ? <AlertCircle /> : <Check />}
+            tone={(failedCount > 0 || hasError) ? "amber" : "emerald"}
           />
           <StatCard
-            label="Sidste synk"
-            value={formatRelativeDanish(lastSync)}
-            hint={lastSync ? new Date(lastSync).toLocaleString("da-DK") : "Endnu ikke synkroniseret"}
-            icon={<Clock />}
+            label="Sendt (24t)"
+            value={pushedLast24h}
+            hint={lastSuccessPush ? `Sidst ${formatRelativeDanish(lastSuccessPush)}` : "Endnu intet sendt"}
+            icon={<Upload />}
             tone="blue"
           />
           <StatCard
-            label="I synk-kø"
-            value={queueCount}
-            hint={queueCount === 0 ? "Alt er sendt afsted" : "Sendes ved næste synk"}
-            icon={<ListChecks />}
+            label="Hentet (24t)"
+            value={pulledLast24h}
+            hint={lastSuccessPull ? `Sidst ${formatRelativeDanish(lastSuccessPull)}` : "Endnu intet hentet"}
+            icon={<Download />}
             tone="violet"
+          />
+          <StatCard
+            label="I kø"
+            value={pendingCount}
+            hint={pendingCount === 0 ? "Alt er sendt" : "Venter på næste kørsel"}
+            icon={<ListChecks />}
+            tone="neutral"
+          />
+          <StatCard
+            label="Fejlede jobs"
+            value={failedCount}
+            hint={failedCount === 0 ? "Ingen fejl" : "Se detaljer nedenfor"}
+            icon={<AlertTriangle />}
+            tone={failedCount > 0 ? "amber" : "emerald"}
+          />
+          <StatCard
+            label="Næste kørsel"
+            value={formatCountdown(nextRun)}
+            hint={`Kl. ${nextRun.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}`}
+            icon={<Clock />}
+            tone="accent"
           />
         </div>
 
@@ -606,17 +631,15 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
-                size="sm"
                 onClick={() => setConfirmSwitch(true)}
-                className="h-8"
+                className="h-9 rounded-lg text-xs font-medium"
               >
                 Skift program
               </Button>
               <Button
                 variant="outline"
-                size="sm"
                 onClick={() => setConfirmDisable(true)}
-                className="h-8 border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive active:bg-destructive/90"
+                className="h-9 rounded-lg border-border text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/40"
               >
                 <X className="mr-1.5 h-4 w-4" /> Afbryd
               </Button>
@@ -648,7 +671,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             <div className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <div className="min-w-0">
-                <div className="font-medium">Sidste fejl</div>
+                <div className="font-medium">Forbindelses-fejl</div>
                 <div className="text-destructive/90 break-words">{integration.last_error}</div>
                 {integration.last_error_at && (
                   <div className="mt-1 text-xs opacity-80">
@@ -660,13 +683,87 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           )}
         </SectionCard>
 
+        {/* Fejlende jobs — kun synlig hvis der faktisk er noget at handle på.
+            Hvert job viser entity-type, det interne id (kopierbart), den præcise
+            fejltekst fra adapteren og hvornår det sidst fejlede. */}
+        {failedJobs.length > 0 && (
+          <SectionCard
+            title="Synk-fejl"
+            icon={<AlertTriangle />}
+            description="Disse jobs blev forsøgt 5 gange uden held. Ret problemet og prøv igen."
+            action={
+              <Button
+                variant="outline"
+                onClick={handleRetryAllFailed}
+                disabled={syncing}
+                className="h-9 rounded-lg text-xs font-medium"
+              >
+                {syncing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RotateCw className="mr-1.5 h-3.5 w-3.5" />}
+                Prøv alle igen
+              </Button>
+            }
+          >
+            <div className="divide-y divide-border">
+              {failedJobs.map(job => (
+                <div key={job.id} className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-start">
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="destructive" className="gap-1 shrink-0">
+                        <AlertCircle className="h-3 w-3" />
+                        {ENTITY_LABEL[job.entity_type] ?? job.entity_type}
+                      </Badge>
+                      <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                        {job.operation} · forsøg {job.attempts}/5
+                      </span>
+                      <span className="text-xs text-muted-foreground tabular-nums">
+                        {formatRelativeDanish(job.updated_at)}
+                      </span>
+                    </div>
+                    <div className="break-words rounded-md border border-destructive/20 bg-destructive/5 px-2.5 py-1.5 text-xs text-destructive">
+                      {job.last_error || "Ukendt fejl"}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(job.entity_id);
+                        toast.success("ID kopieret");
+                      }}
+                      className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+                      title="Klik for at kopiere"
+                    >
+                      <Copy className="h-3 w-3" />
+                      {job.entity_id}
+                    </button>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleRetryJob(job.id)}
+                    disabled={retryingJobId === job.id}
+                    className="h-9 rounded-lg text-xs font-medium sm:w-auto"
+                  >
+                    {retryingJobId === job.id
+                      ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                      : <RotateCw className="mr-1.5 h-3.5 w-3.5" />}
+                    Prøv igen
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+        )}
+
         {/* Synk-indstillinger */}
         <SectionCard
           title="Synk-indstillinger"
           icon={<Settings2 />}
           description="Bestem hvordan og hvornår dine data sendes til regnskabsprogrammet."
           action={
-            <Button size="sm" variant="outline" onClick={handleSaveSettingsOnly} disabled={saving}>
+            <Button
+              variant="outline"
+              onClick={handleSaveSettingsOnly}
+              disabled={saving}
+              className="h-9 rounded-lg text-xs font-medium"
+            >
               {saving && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
               Gem
             </Button>
