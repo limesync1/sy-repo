@@ -3,13 +3,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Navigate, Link, useSearchParams } from "react-router-dom";
+import { Navigate, Link, useSearchParams, useNavigate } from "react-router-dom";
 import {
   Building2, User, ArrowLeft, ArrowRight, ShieldCheck, Sparkles,
   CheckCircle, HardHat, Quote, TrendingUp, Eye, EyeOff, Mail, AlertCircle,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import { translateAuthError } from "@/lib/auth-errors";
+import { detectUserRole, ROLE_HOME } from "@/lib/detect-user-role";
+import { supabase } from "@/integrations/supabase/client";
 
 /** Almindelige tastefejl i e-mail-domæner — vi tilbyder en venlig "mente du …?". */
 const EMAIL_DOMAIN_TYPOS: Record<string, string> = {
@@ -45,6 +47,9 @@ const passwordScore = (pw: string): { score: 0 | 1 | 2 | 3 | 4; label: string } 
 const Auth = () => {
   const { user, loading, signIn, signUp, resetPassword } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  // "mode" bruges KUN på opret-konto-flowet (vi skal vide hvilken type konto
+  // der oprettes). Log-ind kender vi rollen automatisk fra databasen.
   const mode = searchParams.get("mode");
   const signupParam = searchParams.get("signup");
   const isResetMode = searchParams.get("reset") === "1";
@@ -83,8 +88,12 @@ const Auth = () => {
   );
 
   if (user) {
+    // Hvis brugeren er logget ind men signup-flowet for virksomhed kører,
+    // skal de fortsætte til onboarding. Ellers send dem til deres panel.
+    if (mode === "business" && isSignUp) return <Navigate to="/opret-virksomhed" replace />;
     if (mode === "customer") return <Navigate to="/min-konto" replace />;
     if (mode === "employee") return <Navigate to="/medarbejder" replace />;
+    if (mode === "business") return <Navigate to="/virksomhed" replace />;
     return <Navigate to="/virksomhed" replace />;
   }
 
@@ -110,14 +119,28 @@ const Auth = () => {
     }
     setSubmitting(true);
     const { error } = isSignUp ? await signUp(email.trim(), password) : await signIn(email.trim(), password);
-    setSubmitting(false);
     if (error) {
+      setSubmitting(false);
       setFormError(translateAuthError(error, isSignUp ? "Vi kunne ikke oprette din konto. Prøv igen." : "Vi kunne ikke logge dig ind. Tjek e-mail og adgangskode."));
     } else if (isSignUp) {
+      setSubmitting(false);
       try { localStorage.setItem("sy-last-email", email.trim()); } catch {}
       toast.success("Konto oprettet! Tjek din e-mail for bekræftelse.");
     } else {
       try { localStorage.setItem("sy-last-email", email.trim()); } catch {}
+      // Log-ind: detect rolle og send brugeren direkte til rette panel.
+      try {
+        const { data } = await supabase.auth.getUser();
+        const uid = data.user?.id;
+        if (uid) {
+          const role = await detectUserRole(uid);
+          navigate(ROLE_HOME[role], { replace: true });
+          return;
+        }
+      } catch {
+        /* falder tilbage til standard <Navigate /> i render */
+      }
+      setSubmitting(false);
     }
   };
 
@@ -143,7 +166,11 @@ const Auth = () => {
   const isBusiness = mode === "business";
   const isCustomer = mode === "customer";
   const isEmployee = mode === "employee";
-  const showModeSelector = !mode && !isResetMode;
+  // Type-vælgeren skal KUN vises på opret-konto-flowet (signup) når brugeren
+  // ikke har valgt type endnu. Log-ind kører altid på samme form, fordi vi
+  // detekterer rollen automatisk efter login.
+  const showSignupTypeSelector = !mode && !isResetMode && isSignUp;
+  const showLoginForm = !mode && !isResetMode && !isSignUp;
 
   const heroTitle = isSignUp
     ? (isBusiness ? "Opret virksomhedskonto" : isEmployee ? "Aktivér medarbejderkonto" : "Opret din konto")
