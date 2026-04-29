@@ -1725,6 +1725,62 @@ const ServiceForm = ({
           {intervalOptions.length === 0 && (
             <p className="text-sm text-destructive">Vælg mindst ét interval</p>
           )}
+
+          {hasIntegration && (
+            <div className="mt-6 rounded-xl border border-border bg-secondary/30 p-4 space-y-4">
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">Regnskab ({integrationProvider})</h4>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Vælg hvor servicen skal bogføres. Du kan altid lade stå tom — så bruges virksomhedens standard.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {accountingGroups.product_groups.length > 0 && (
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">Produktgruppe</label>
+                    <Select
+                      value={accountingProductGroup || "__default__"}
+                      onValueChange={(v) => setAccountingProductGroup(v === "__default__" ? "" : v)}
+                    >
+                      <SelectTrigger className="bg-card"><SelectValue placeholder="Brug standard" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__default__">
+                          Brug virksomhedens standard{accountingDefaults.default_product_group ? ` (${accountingGroups.product_groups.find(g => g.id === accountingDefaults.default_product_group)?.name ?? accountingDefaults.default_product_group})` : ""}
+                        </SelectItem>
+                        {accountingGroups.product_groups.map(g => (
+                          <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {accountingGroups.income_accounts.length > 0 && (
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">Indtægtskonto</label>
+                    <Select
+                      value={accountingIncomeAccount || "__default__"}
+                      onValueChange={(v) => setAccountingIncomeAccount(v === "__default__" ? "" : v)}
+                    >
+                      <SelectTrigger className="bg-card"><SelectValue placeholder="Brug standard" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__default__">
+                          Brug virksomhedens standard{accountingDefaults.default_income_account ? ` (${accountingGroups.income_accounts.find(a => a.id === accountingDefaults.default_income_account)?.name ?? accountingDefaults.default_income_account})` : ""}
+                        </SelectItem>
+                        {accountingGroups.income_accounts.map(a => (
+                          <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {accountingGroups.product_groups.length === 0 && accountingGroups.income_accounts.length === 0 && (
+                  <p className="text-xs text-muted-foreground sm:col-span-2">
+                    {accountingLoading ? "Henter kategorier fra dit regnskabsprogram…" : "Ingen kategorier fundet — sæt en standard på Regnskab-fanen."}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
