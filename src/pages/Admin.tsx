@@ -762,6 +762,69 @@ const ServiceForm = ({
   const [aiLoading, setAiLoading] = useState(false);
   const [aiDescAutoTried, setAiDescAutoTried] = useState(!!existingService?.description);
 
+  // Regnskabsintegration: hvis virksomheden har en aktiv integration, lad
+  // brugeren vælge produktgruppe + indtægtskonto her ved oprettelse, så
+  // servicen lander det rigtige sted i regnskabsprogrammet.
+  const [accountingProductGroup, setAccountingProductGroup] = useState<string>(
+    existingService?.accounting_product_group || ""
+  );
+  const [accountingIncomeAccount, setAccountingIncomeAccount] = useState<string>(
+    existingService?.accounting_income_account || existingService?.accounting_account_number || ""
+  );
+  const [hasIntegration, setHasIntegration] = useState(false);
+  const [integrationProvider, setIntegrationProvider] = useState<string | null>(null);
+  const [accountingGroups, setAccountingGroups] = useState<{
+    product_groups: { id: string; name: string }[];
+    income_accounts: { id: string; name: string }[];
+  }>({ product_groups: [], income_accounts: [] });
+  const [accountingDefaults, setAccountingDefaults] = useState<{
+    default_product_group?: string; default_income_account?: string;
+  }>({});
+  const [accountingLoading, setAccountingLoading] = useState(false);
+
+  useEffect(() => {
+    if (!businessId) return;
+    let cancelled = false;
+    (async () => {
+      const { data: integ } = await supabase
+        .from("accounting_integrations" as any)
+        .select("provider, settings, is_active")
+        .eq("business_id", businessId)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (cancelled || !integ) return;
+      setHasIntegration(true);
+      setIntegrationProvider((integ as any).provider);
+      const s = (integ as any).settings ?? {};
+      setAccountingDefaults({
+        default_product_group: s.default_product_group,
+        default_income_account: s.default_income_account,
+      });
+      // Pre-fill med standarder, hvis service ikke selv har valgt
+      if (!existingService?.accounting_product_group && s.default_product_group) {
+        setAccountingProductGroup(s.default_product_group);
+      }
+      if (!existingService?.accounting_income_account && !existingService?.accounting_account_number && s.default_income_account) {
+        setAccountingIncomeAccount(s.default_income_account);
+      }
+      // Hent grupper
+      setAccountingLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("accounting-list-groups", {
+          body: { business_id: businessId },
+        });
+        if (!cancelled && !error && data) {
+          setAccountingGroups({
+            product_groups: (data as any).product_groups ?? [],
+            income_accounts: (data as any).income_accounts ?? [],
+          });
+        }
+      } catch { /* stille fejl */ }
+      finally { if (!cancelled) setAccountingLoading(false); }
+    })();
+    return () => { cancelled = true; };
+  }, [businessId, existingService?.id]);
+
   const generateAiDescription = async () => {
     if (!name.trim()) {
       toast.error("Skriv først et servicenavn");
