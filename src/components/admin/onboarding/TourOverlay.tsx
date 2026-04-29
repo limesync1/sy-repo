@@ -350,47 +350,77 @@ export const TourOverlay = ({ businessId }: { businessId?: string }) => {
 
       {/* Tooltip */}
       <div
-        className="absolute pointer-events-auto rounded-xl border border-border bg-card shadow-2xl"
+        className="absolute pointer-events-auto rounded-2xl border border-border bg-card shadow-2xl ring-1 ring-black/5 overflow-hidden animate-fade-in-soft"
         style={tooltipStyle}
       >
-        <div className="flex items-start justify-between gap-3 px-4 pt-4">
-          <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Trin {stepIndex + 1} af {active.steps.length}
-            </p>
-            <h3 className="mt-0.5 text-sm font-semibold text-foreground">{step.title}</h3>
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 px-5 pt-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-5 items-center rounded-full bg-accent/10 px-2 text-[10px] font-semibold uppercase tracking-wide text-accent">
+                Guide
+              </span>
+              <span className="text-[11px] font-medium text-muted-foreground">
+                Trin {stepIndex + 1} af {active.steps.length}
+              </span>
+            </div>
+            <h3 className="mt-1.5 text-[15px] font-semibold leading-tight text-foreground">
+              {step.title}
+            </h3>
           </div>
           <button
             onClick={stop}
-            className="rounded-md p-1 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            className="-mr-1 -mt-1 rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
             aria-label="Luk guide"
+            title="Luk guide"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
-        <p className="px-4 pt-2 text-sm text-muted-foreground">
+
+        {/* Body */}
+        <p className="px-5 pt-2 pb-4 text-[13px] leading-relaxed text-muted-foreground">
           {step.body}
         </p>
-        <div className="mt-4 flex items-center justify-between gap-2 border-t border-border bg-secondary/40 px-4 py-2.5 rounded-b-xl">
+
+        {/* Step-progress dots */}
+        <div className="px-5 pb-3 flex items-center gap-1">
+          {active.steps.map((_, i) => (
+            <span
+              key={i}
+              className={`h-1 flex-1 rounded-full transition-colors ${
+                i < stepIndex
+                  ? "bg-accent/70"
+                  : i === stepIndex
+                    ? "bg-accent"
+                    : "bg-border"
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between gap-2 border-t border-border bg-secondary/40 px-3 py-2.5">
           <Button
             variant="ghost" size="sm"
             onClick={prev}
             disabled={stepIndex === 0}
-            className="gap-1"
+            className="gap-1 h-8 px-2 text-xs"
           >
-            <ArrowLeft className="h-3.5 w-3.5" /> Forrige
+            <ArrowLeft className="h-3.5 w-3.5" /> Tilbage
           </Button>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             {step.skippable && !isLast && (
               <Button
                 variant="ghost" size="sm"
                 onClick={next}
-                className="gap-1 text-muted-foreground hover:text-foreground"
+                className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
+                title="Spring dette trin over"
               >
-                <SkipForward className="h-3.5 w-3.5" /> Spring over
+                Spring over
               </Button>
             )}
-            <Button size="sm" onClick={handleNext} className="gap-1">
+            <Button size="sm" onClick={handleNext} className="h-8 gap-1 px-3 text-xs">
               {isLast ? "Færdig" : <>Næste <ArrowRight className="h-3.5 w-3.5" /></>}
             </Button>
           </div>
