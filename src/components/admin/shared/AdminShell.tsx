@@ -287,7 +287,8 @@ export const AdminShell = ({
             const visible =
               !(item.requiresRoutePlanning && !routePlanningEnabled) &&
               !(item.requiresLeads && !leadsEnabled) &&
-              !(item.requiresLivechat && !livechatEnabled);
+              !(item.requiresLivechat && !livechatEnabled) &&
+              !(item.requiresAccounting && !accountingEnabled);
             return (
               <AnimatedNavItem
                 key={item.value}
