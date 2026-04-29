@@ -872,7 +872,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       <div className="grid gap-4">
         {/* Generelt — kun navn + beskrivelse */}
         <div id="settings-general" className="scroll-mt-6">
-          <SectionCard title="Virksomhed" icon={<Building2 />} description="Virksomhedsnavn og beskrivelse.">
+          <SectionCard title="Om virksomheden" icon={<Building2 />} description="Det navn og den korte beskrivelse kunderne ser øverst på jeres side.">
             <div className="space-y-4">
               <div data-tour="field-company-name">
                 <FieldLabel>Virksomhedsnavn</FieldLabel>
@@ -880,7 +880,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
               <div data-tour="field-company-description">
                 <FieldLabel>Beskrivelse</FieldLabel>
-                <Textarea placeholder="Hvad gør din virksomhed? Hvad er jeres speciale?" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={500} className="bg-card rounded-lg" />
+                <Textarea placeholder="Skriv 2-4 sætninger om hvad I laver, hvor I gør det, og hvad der gør jer gode. Det her er det første kunderne læser." value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={500} className="bg-card rounded-lg" />
                 <p className="mt-1 text-xs text-muted-foreground">{description.length}/500 tegn</p>
               </div>
             </div>
