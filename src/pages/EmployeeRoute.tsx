@@ -1653,11 +1653,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   {nextStopIdx + 1}
                 </span>
                 <div className="flex-1 text-left min-w-0">
-                  <p className="font-semibold text-sm text-foreground truncate leading-tight">
+                  <p
+                    className="font-semibold text-sm text-foreground truncate leading-tight"
+                    title={nextStop.customer_name || undefined}
+                  >
                     {nextStop.customer_name || "Stop"}
                   </p>
                   {(nextStop.full_address || nextStop.address) ? (
-                    <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
+                    <p
+                      className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5"
+                      title={nextStop.full_address || nextStop.address || undefined}
+                    >
                       <MapPin className="h-3 w-3 shrink-0" />
                       {nextStop.full_address || nextStop.address}
                     </p>
