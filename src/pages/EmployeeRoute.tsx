@@ -1612,7 +1612,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <Play className="h-5 w-5 fill-current" /> Start dagens rute
                 </Button>
                 <p className="text-[11px] text-muted-foreground text-center mt-2">
-                  Live navigation · GPS-følg · stemmevejledning
+                  Klar til at køre
                 </p>
               </div>
             </Card>
