@@ -36,6 +36,7 @@ const EmployeeApp           = lazy(() => import("./pages/EmployeeApp"));
 const EmployeeRoute         = lazy(() => import("./pages/EmployeeRoute"));
 const EmployeeRoutePrint    = lazy(() => import("./pages/EmployeeRoutePrint"));
 const EmployeeStats         = lazy(() => import("./pages/EmployeeStats"));
+const EmployeeLivechat      = lazy(() => import("./pages/EmployeeLivechat"));
 const ApproveOrder          = lazy(() => import("./pages/ApproveOrder"));
 const BusinessOnboarding    = lazy(() => import("./components/admin/BusinessOnboarding"));
 const PrivacyPolicy         = lazy(() => import("./pages/legal/PrivacyPolicy"));
@@ -100,6 +101,7 @@ const App = () => (
               <Route path="/virksomhed/ruter" element={<RoutePlanner />} />
               <Route path="/medarbejder" element={<EmployeeApp />} />
               <Route path="/medarbejder/statistik" element={<EmployeeStats />} />
+              <Route path="/medarbejder/livechat" element={<EmployeeLivechat />} />
               <Route path="/medarbejder/rute/:routeId" element={<EmployeeRoute />} />
               <Route path="/medarbejder/rute/:routeId/print" element={<EmployeeRoutePrint />} />
               <Route path="/min-konto" element={<CustomerDashboard />} />
