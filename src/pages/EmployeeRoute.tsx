@@ -329,7 +329,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const [noteDraft, setNoteDraft] = useState<Record<string, string>>({});
   const [listOpen, setListOpen] = useState(false);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
-  const [collapsed, setCollapsed] = useState(false);
+  // Default: kompakt (kun header) — så medarbejderen ALTID kan se kortet/ruten.
+  // Detaljer kan udvides med ét tap på kortet.
+  const [collapsed, setCollapsed] = useState(true);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [userHeading, setUserHeading] = useState<number | null>(null);
   // Rå GPS-fix fra browseren — sendes gennem useGpsFilter som udjævner
@@ -1694,50 +1696,50 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-3 pb-3 pointer-events-none">
+          <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-2.5 pb-2.5 pointer-events-none">
             <Card
-              className="overflow-hidden pointer-events-auto rounded-2xl border-border shadow-2xl"
+              className="overflow-hidden pointer-events-auto rounded-2xl border-border shadow-2xl bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/85"
             >
-              {/* Segmenteret progress — tydeligere segmenter, native-følelse */}
-              <div className="flex gap-1 px-3.5 pt-2.5 pb-2 bg-card border-b border-border/60">
+              {/* Segmenteret progress — tynd, diskret */}
+              <div className="flex gap-1 px-3 pt-2 pb-1.5">
                 {sortedStops.map((s, i) => (
                   <div
                     key={s.id}
-                    className="flex-1 h-1.5 rounded-full transition-all"
+                    className="flex-1 h-1 rounded-full transition-all"
                     style={{
                       background:
                         s.status === "completed"
                           ? "hsl(142 70% 45%)"
                           : i === nextStopIdx
                             ? themeColor
-                            : "hsl(220 14% 90%)",
+                            : "hsl(220 14% 92%)",
                     }}
                   />
                 ))}
               </div>
               <button
                 type="button"
-                className="w-full flex items-center gap-3 px-4 py-3.5 bg-card hover:bg-secondary/40 transition-colors border-b border-border"
+                className="group w-full flex items-center gap-3 px-3.5 py-3 hover:bg-secondary/50 active:bg-secondary/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
                 onClick={() => setCollapsed((c) => !c)}
                 aria-expanded={!collapsed}
                 aria-label={collapsed ? "Vis stop-detaljer" : "Skjul stop-detaljer"}
               >
                 <span
-                  className="flex h-11 w-11 items-center justify-center rounded-xl text-background text-base font-bold shrink-0 shadow-sm"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl text-background text-base font-bold shrink-0 shadow-sm"
                   style={{ background: themeColor }}
                 >
                   {nextStopIdx + 1}
                 </span>
                 <div className="flex-1 text-left min-w-0">
                   <p
-                    className="font-semibold text-sm text-foreground truncate leading-tight"
+                    className="font-semibold text-[14px] text-foreground truncate leading-tight"
                     title={nextStop.customer_name || undefined}
                   >
                     {nextStop.customer_name || "Stop"}
                   </p>
                   {(nextStop.full_address || nextStop.address) ? (
                     <p
-                      className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5"
+                      className="text-[11.5px] text-muted-foreground truncate flex items-center gap-1 mt-0.5"
                       title={nextStop.full_address || nextStop.address || undefined}
                     >
                       <MapPin className="h-3 w-3 shrink-0" />
@@ -1750,7 +1752,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   )}
                 </div>
                 {isAtNextStop ? (
-                  <Badge className="gap-1 text-[10px] h-6 px-2 border-0 font-semibold uppercase tracking-wide bg-emerald-500/10 text-emerald-600">
+                  <Badge className="gap-1 text-[10px] h-6 px-2 border-0 font-semibold uppercase tracking-wide bg-emerald-500/15 text-emerald-700">
                     <span className="h-1.5 w-1.5 rounded-full animate-pulse bg-emerald-500" />
                     Fremme
                   </Badge>
@@ -1764,14 +1766,61 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     </p>
                   </div>
                 ) : null}
-                {collapsed ? <ChevronUp className="h-4 w-4 text-muted-foreground ml-1" /> : <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" />}
+                <span className="ml-1 text-muted-foreground/70 group-hover:text-foreground transition-colors">
+                  {collapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </span>
               </button>
 
+              {/* Altid synlig: kompakt CTA-rad — så medarbejderen kan markere
+                  udført / navigere uden at åbne detaljer (og uden at miste
+                  kortvisningen). */}
+              {collapsed && (
+                <div className="px-3 pb-3 pt-1 grid grid-cols-[1fr_auto_auto] gap-2">
+                  <Button
+                    onClick={() => handleComplete(nextStop)}
+                    size="sm"
+                    className={`gap-1.5 h-10 rounded-xl text-[13px] font-semibold transition-all active:scale-[0.99] ${
+                      isAtNextStop
+                        ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-500/25"
+                        : "bg-foreground text-background hover:bg-foreground/90"
+                    }`}
+                    disabled={updateStatus.isPending}
+                  >
+                    {updateStatus.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="h-4 w-4" />
+                    )}
+                    {isAtNextStop ? "Markér udført" : "Markér udført"}
+                  </Button>
+                  <Button
+                    onClick={() => handleNavigate(nextStop)}
+                    variant="outline"
+                    size="sm"
+                    aria-label="Åbn i Maps"
+                    className="h-10 w-10 p-0 rounded-xl border-border hover:bg-secondary"
+                  >
+                    <Navigation className="h-4 w-4" />
+                  </Button>
+                  {nextStop.customer_phone ? (
+                    <Button asChild variant="outline" size="sm" aria-label="Ring til kunde" className="h-10 w-10 p-0 rounded-xl border-border hover:bg-secondary">
+                      <a href={`tel:${nextStop.customer_phone}`}>
+                        <Phone className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  ) : (
+                    <Button variant="outline" size="sm" aria-label="Ingen telefon" disabled className="h-10 w-10 p-0 rounded-xl border-border">
+                      <Phone className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              )}
+
               {!collapsed && (
-                <div className="p-3.5 space-y-3">
+                <div className="p-3 pt-2 space-y-2.5 border-t border-border/60">
                   {/* Adresse + service */}
                   {((nextStop.full_address || nextStop.address) || (nextStop.service_summary && stripPrices(nextStop.service_summary))) && (
-                    <div className="rounded-xl bg-secondary/40 border border-border/60 p-3 space-y-1.5">
+                    <div className="rounded-xl bg-secondary/40 border border-border/60 p-2.5 space-y-1.5">
                       {(nextStop.full_address || nextStop.address) && (
                         <p
                           className="text-[13px] flex items-start gap-1.5 leading-snug"
@@ -1792,13 +1841,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   {/* Info-grid: km, tid, ETA */}
                   {(directions || etaLabel) && (
                     <div className="grid grid-cols-3 divide-x divide-border rounded-xl border border-border bg-background overflow-hidden">
-                        <div className="px-2 py-2 text-center">
+                        <div className="px-2 py-1.5 text-center">
                           <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Distance</p>
                           <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
                             {directions?.distance_m != null ? formatKm(directions.distance_m) : "—"}
                           </p>
                         </div>
-                        <div className="px-2 py-2 text-center">
+                        <div className="px-2 py-1.5 text-center">
                           <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Tid</p>
                           <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
                             {(() => {
@@ -1807,7 +1856,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                             })()}
                           </p>
                         </div>
-                        <div className="px-2 py-2 text-center">
+                        <div className="px-2 py-1.5 text-center">
                           <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Ankomst</p>
                           <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">
                             {etaLabel || "—"}
@@ -1817,23 +1866,23 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   )}
 
                   {/* Sekundære handlinger — kompakt, ikon-først */}
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5">
                     <Button
                       onClick={() => handleNavigate(nextStop)}
                       variant="outline"
                       size="sm"
-                      className="gap-1.5 h-10 rounded-xl text-xs font-semibold border-border hover:bg-secondary"
+                      className="gap-1.5 h-9 rounded-lg text-xs font-semibold border-border hover:bg-secondary hover:border-foreground/20 transition-colors"
                     >
                       <Navigation className="h-3.5 w-3.5" /> Maps
                     </Button>
                     {nextStop.customer_phone ? (
-                      <Button asChild variant="outline" size="sm" className="gap-1.5 h-10 rounded-xl text-xs font-semibold border-border hover:bg-secondary">
+                      <Button asChild variant="outline" size="sm" className="gap-1.5 h-9 rounded-lg text-xs font-semibold border-border hover:bg-secondary hover:border-foreground/20 transition-colors">
                         <a href={`tel:${nextStop.customer_phone}`}>
                           <Phone className="h-3.5 w-3.5" /> Ring
                         </a>
                       </Button>
                     ) : (
-                      <Button variant="outline" size="sm" disabled className="gap-1.5 h-10 rounded-xl text-xs font-semibold border-border">
+                      <Button variant="outline" size="sm" disabled className="gap-1.5 h-9 rounded-lg text-xs font-semibold border-border">
                         <Phone className="h-3.5 w-3.5" /> Ring
                       </Button>
                     )}
@@ -1841,7 +1890,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       onClick={() => setSelectedId(nextStop.id)}
                       variant="outline"
                       size="sm"
-                      className="gap-1.5 h-10 rounded-xl text-xs font-semibold border-border hover:bg-secondary"
+                      className="gap-1.5 h-9 rounded-lg text-xs font-semibold border-border hover:bg-secondary hover:border-foreground/20 transition-colors"
                     >
                       <Info className="h-3.5 w-3.5" /> Detaljer
                     </Button>
@@ -1853,9 +1902,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <Button
                     onClick={() => handleComplete(nextStop)}
                     size="lg"
-                    className={`w-full gap-2 h-13 min-h-[52px] text-base font-bold rounded-2xl transition-all active:scale-[0.99] ${
+                    className={`w-full gap-2 h-12 min-h-[48px] text-[15px] font-bold rounded-xl transition-all active:scale-[0.99] hover:shadow-xl ${
                       isAtNextStop
-                        ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30"
+                        ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/35"
                         : "bg-foreground text-background hover:bg-foreground/90 shadow-lg"
                     }`}
                     disabled={updateStatus.isPending}
@@ -1939,7 +1988,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         <SheetContent
           side="bottom"
           className={`p-0 rounded-t-2xl flex flex-col transition-[max-height,height] duration-300 ease-out ${
-            sheetExpanded ? "max-h-[85vh] h-[85vh]" : "max-h-[45vh] h-[45vh]"
+            sheetExpanded ? "max-h-[82vh] h-[82vh]" : "max-h-[42vh] h-[42vh]"
           }`}
         >
           {/* Drag-handle bar — tap for at skifte højde, tryk-og-træk på mobile
@@ -1947,12 +1996,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           <button
             type="button"
             onClick={() => setSheetExpanded((v) => !v)}
-            className="w-full pt-2 pb-1 flex flex-col items-center gap-0.5 shrink-0 hover:bg-secondary/40 active:bg-secondary/60 transition-colors rounded-t-2xl"
+            className="w-full pt-2 pb-1 flex flex-col items-center gap-0.5 shrink-0 hover:bg-secondary/40 active:bg-secondary/60 transition-colors rounded-t-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             aria-label={sheetExpanded ? "Gør detaljer mindre" : "Gør detaljer større"}
             aria-expanded={sheetExpanded}
           >
-            <span className="h-1 w-10 rounded-full bg-muted-foreground/40" aria-hidden />
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium">
+            <span className="h-1.5 w-12 rounded-full bg-muted-foreground/50" aria-hidden />
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium mt-0.5">
               {sheetExpanded ? "Tryk for at gøre mindre" : "Tryk for at udvide"}
             </span>
           </button>
