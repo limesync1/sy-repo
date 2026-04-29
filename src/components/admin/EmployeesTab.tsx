@@ -732,23 +732,25 @@ const EmployeeRow = ({
         </div>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Pencil className="h-4 w-4 text-accent" />
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary text-foreground">
+                <Pencil className="h-3.5 w-3.5" />
+              </span>
               Rediger medarbejder
             </DialogTitle>
             <DialogDescription>
               Opdater oplysninger for {employee.name}.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Navn</label>
+              <FieldLabel required>Navn</FieldLabel>
               <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-10" />
             </div>
             <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
+              <FieldLabel required>Email</FieldLabel>
               <Input
                 type="email"
                 value={editEmail}
@@ -760,15 +762,15 @@ const EmployeeRow = ({
               </p>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Telefon</label>
+              <FieldLabel>Telefon</FieldLabel>
               <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-10" />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Titel</label>
+              <FieldLabel>Titel</FieldLabel>
               <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="h-10" />
             </div>
             <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Provision (%)</label>
+              <FieldLabel>Provision (%)</FieldLabel>
               <div className="relative">
                 <Input
                   type="number"
@@ -807,8 +809,8 @@ const EmployeeRow = ({
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="ghost" onClick={() => setEditOpen(false)}>Annuller</Button>
-            <Button
+            <Button variant="ghost" onClick={() => setEditOpen(false)} className="h-9">Annuller</Button>
+            <PrimaryButton
               onClick={() => {
                 if (!editName.trim() || !editEmail.trim()) {
                   toast.error("Navn og email er påkrævet");
@@ -840,10 +842,10 @@ const EmployeeRow = ({
                 );
               }}
               disabled={onUpdate.isPending}
-              className="bg-accent text-accent-foreground hover:bg-accent/90"
+              icon={<Pencil />}
             >
               {onUpdate.isPending ? "Gemmer..." : "Gem ændringer"}
-            </Button>
+            </PrimaryButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
