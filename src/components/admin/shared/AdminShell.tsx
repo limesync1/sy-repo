@@ -12,14 +12,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   LogOut, LayoutDashboard, Wrench, ShoppingCart, Star, Settings,
-  Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles, MessageCircle,
+  Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles, MessageCircle, Calculator,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 export type AdminTabKey =
   | "dashboard" | "services" | "orders" | "customers"
-  | "routes" | "employees" | "reviews" | "leads" | "livechat" | "settings";
+  | "routes" | "employees" | "reviews" | "leads" | "livechat" | "accounting" | "settings";
 
 /**
  * Animeret sidebar-item: collapser stille ind/ud når en feature toggles
@@ -125,6 +125,7 @@ const TAB_PREFETCH: Partial<Record<AdminTabKey, () => Promise<unknown>>> = {
   livechat:  () => import("@/components/admin/BusinessLiveChatTab"),
   settings:  () => import("@/components/admin/SettingsTab"),
   routes:    () => import("@/pages/RoutePlanner"),
+  accounting: () => import("@/components/admin/AccountingTab"),
 };
 const prefetched = new Set<AdminTabKey>();
 const prefetchTab = (key: AdminTabKey) => {
@@ -141,6 +142,7 @@ type NavItem = {
   requiresRoutePlanning?: boolean;
   requiresLeads?: boolean;
   requiresLivechat?: boolean;
+  requiresAccounting?: boolean;
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -153,6 +155,7 @@ const NAV_ITEMS: NavItem[] = [
   { value: "employees", label: "Medarbejdere", icon: Users, requiresRoutePlanning: true },
   { value: "reviews", label: "Anmeldelser", icon: Star },
   { value: "livechat", label: "Livechat", icon: MessageCircle, requiresLivechat: true },
+  { value: "accounting", label: "Regnskab", icon: Calculator, requiresAccounting: true },
   { value: "settings", label: "Indstillinger", icon: Settings },
 ];
 
@@ -192,10 +195,12 @@ export const AdminShell = ({
   const routePlanningEnabled = !!(business.settings as any)?.route_planning_enabled;
   const leadsEnabled = !!(business.settings as any)?.leads_enabled;
   const livechatEnabled = !!(business.settings as any)?.livechat_enabled;
+  const accountingEnabled = !!(business.settings as any)?.accounting_integration_enabled;
   const visibleNav = NAV_ITEMS.filter((n) => {
     if (n.requiresRoutePlanning && !routePlanningEnabled) return false;
     if (n.requiresLeads && !leadsEnabled) return false;
     if (n.requiresLivechat && !livechatEnabled) return false;
+    if (n.requiresAccounting && !accountingEnabled) return false;
     return true;
   });
   const currentNav = visibleNav.find((n) => n.value === activeTab) ?? NAV_ITEMS.find((n) => n.value === activeTab);
