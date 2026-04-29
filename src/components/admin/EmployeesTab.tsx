@@ -502,8 +502,8 @@ const EmployeeRow = ({
   return (
     <TooltipProvider delayDuration={200}>
     <div
-      className={`group grid w-full gap-3 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5
-                  sm:grid-cols-[minmax(0,1fr)_6rem_8rem_136px] sm:items-center
+      className={`group grid w-full gap-4 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5
+                  sm:grid-cols-[minmax(0,1fr)_8rem_8rem_13rem] sm:items-center
                   ${employee.is_active ? "" : "opacity-60"}`}
     >
         {/* Navn + kontakt + farve-styring (venstre kolonne) */}
@@ -606,18 +606,35 @@ const EmployeeRow = ({
           </div>
         </div>
 
-        {/* Kontostatus — kun "Afventer" vises (når medarbejder ikke har oprettet konto endnu) */}
-        <div className="hidden sm:flex w-24 items-center justify-end">
-          {!linked && (
+        {/* Kontostatus — viser altid en status så kolonnen ikke står tom.
+            Aktiv (grøn) · Afventer login (gul) · Deaktiveret (grå). */}
+        <div className="hidden sm:flex flex-col items-end justify-center gap-1 text-right">
+          {!employee.is_active ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
+              Deaktiveret
+            </span>
+          ) : !linked ? (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-              Afventer
+              Afventer login
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Aktiv
+            </span>
+          )}
+          {(employee as any).livechat_enabled && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-accent/20 bg-accent/10 px-1.5 py-0.5 text-[10px] font-medium text-accent">
+              <MessageCircle className="h-2.5 w-2.5" />
+              Livechat
             </span>
           )}
         </div>
 
         {/* Indtjening for valgt periode */}
-        <div className="hidden sm:flex w-32 flex-col items-end justify-center text-right">
+        <div className="hidden sm:flex flex-col items-end justify-center text-right">
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="cursor-help">
@@ -646,7 +663,7 @@ const EmployeeRow = ({
         </div>
 
         {/* Handlinger — samme stil som kunder-rækken */}
-        <div className="flex items-center justify-end gap-0.5 shrink-0 sm:w-[136px]">
+        <div className="flex items-center justify-end gap-1 shrink-0">
           <Tooltip><TooltipTrigger asChild><button
             onClick={() => {
               setEditName(employee.name || "");
