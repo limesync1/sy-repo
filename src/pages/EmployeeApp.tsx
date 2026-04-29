@@ -286,108 +286,12 @@ const EmployeeApp = () => {
           />
         </div>
 
-        {/* Arbejdsdag — smartere panel med levende status:
-            - Ikke startet: tydelig CTA + kontekst om hvor mange stop dagen indeholder
-            - I gang: stor tabular-nums tid siden start + næste stop hint
-            - Afsluttet: rolig opsummering med tidsrum + total varighed */}
-        {isCurrentDay && (
-          <Card
-            className={cn(
-              "overflow-hidden rounded-xl border shadow-sm",
-              dayStarted && !dayEnded
-                ? "border-feature-cool/30 bg-feature-cool/5"
-                : dayEnded
-                  ? "border-border/80 bg-secondary/20"
-                  : "border-border/80 bg-card",
-            )}
-          >
-            <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-5">
-              <div className="flex items-start gap-3 min-w-0">
-                <div
-                  className={cn(
-                    "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
-                    dayStarted && !dayEnded
-                      ? "bg-feature-cool text-feature-cool-foreground"
-                      : dayEnded
-                        ? "bg-secondary text-muted-foreground"
-                        : "bg-foreground text-background",
-                  )}
-                  aria-hidden
-                >
-                  {dayEnded ? (
-                    <CheckCircle2 className="h-5 w-5" />
-                  ) : dayStarted ? (
-                    <Clock className="h-5 w-5" />
-                  ) : (
-                    <PlayCircle className="h-5 w-5" />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Arbejdsdag
-                  </p>
-                  {dayEnded ? (
-                    <>
-                      <p className="mt-0.5 text-base font-semibold text-foreground">Dagen er afsluttet</p>
-                      <p className="mt-1 text-sm text-muted-foreground tabular-nums">
-                        {workday?.started_at && workday?.ended_at
-                          ? `${format(new Date(workday.started_at), "HH:mm")} – ${format(new Date(workday.ended_at), "HH:mm")} · ${workday.duration_minutes ?? 0} min`
-                          : "Tid registreret"}
-                      </p>
-                    </>
-                  ) : dayStarted ? (
-                    <>
-                      <p className="mt-0.5 text-base font-semibold text-foreground">Du er i gang</p>
-                      <p className="mt-1 text-sm text-muted-foreground tabular-nums">
-                        Start kl. {workday?.started_at ? format(new Date(workday.started_at), "HH:mm") : "—"}
-                        {elapsedLabel ? ` · ${elapsedLabel}` : ""}
-                        {totalStops > 0 ? ` · ${completedStops}/${totalStops} stop` : ""}
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="mt-0.5 text-base font-semibold text-foreground">Klar til at starte?</p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {totalStops > 0
-                          ? `Du har ${totalStops} ${totalStops === 1 ? "stop" : "stop"} planlagt i dag.`
-                          : "Ingen stop planlagt — du kan stadig registrere din arbejdstid."}
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
-              {!dayEnded && (
-                !dayStarted ? (
-                  <Button
-                    onClick={() => startDay.mutate(date)}
-                    disabled={startDay.isPending}
-                    size="lg"
-                    className="h-11 w-full shrink-0 gap-2 rounded-lg bg-foreground px-5 text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
-                  >
-                    <PlayCircle className="h-4 w-4" /> Start dag
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    onClick={() => endDay.mutate(date)}
-                    disabled={endDay.isPending}
-                    size="lg"
-                    className="h-11 w-full shrink-0 gap-2 rounded-lg border-border bg-card px-5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
-                  >
-                    <StopCircle className="h-4 w-4" /> Stop dag
-                  </Button>
-                )
-              )}
-            </div>
-          </Card>
-        )}
-
         {/* ─────────── Smart "Næste skridt" forslag ───────────
             Foreslår medarbejderen den mest logiske handling lige nu —
             samme princip som virksomhedspanelets AI-forslag på rute-
             planneren. Kontekst-bevidst: starter dagen, fortsætter ruten,
             afslutter dagen, eller printer kvitteringer. */}
-        {!routesLoading && !stopsLoading && isCurrentDay && routes.length > 0 && (() => {
+        {!routesLoading && !stopsLoading && isCurrentDay && (() => {
           // Find næste pending stop på tværs af alle ruter (først ruten
           // der allerede er i gang, ellers den med tidligst start).
           const sortedRoutes = [...routes].sort((a, b) => {
@@ -441,6 +345,16 @@ const EmployeeApp = () => {
               description: "Husk at afslutte din arbejdsdag, så tiden bliver registreret korrekt.",
               cta: { label: "Stop dag", icon: StopCircle, onClick: () => endDay.mutate(date) },
             };
+          } else if (dayStarted && !dayEnded && routes.length === 0) {
+            // Ingen ruter, men dagen kører — tilbyd at stoppe dagen.
+            suggestion = {
+              tone: "calm",
+              title: "Din arbejdsdag er i gang",
+              description: elapsedLabel
+                ? `Tid registreret: ${elapsedLabel}. Stop dagen, når du er færdig.`
+                : "Stop dagen, når du er færdig — så registreres din arbejdstid korrekt.",
+              cta: { label: "Stop dag", icon: StopCircle, onClick: () => endDay.mutate(date) },
+            };
           } else if (dayEnded && routes.length > 0) {
             suggestion = {
               tone: "calm",
@@ -452,37 +366,61 @@ const EmployeeApp = () => {
 
           if (!suggestion) return null;
 
-          const toneClasses =
-            suggestion.tone === "primary"
-              ? "border-foreground/15 bg-card"
-              : suggestion.tone === "calm"
-                ? "border-feature-cool/30 bg-feature-cool/5"
-                : "border-feature-warm/30 bg-feature-warm/5";
+          // Konsekvent med resten af medarbejderpanelet: ren bg-card +
+          // border-border/80, status formidles kun via ikon-badge.
+          const toneClasses = "surface-admin border-border/80 bg-card";
           const iconWrap =
             suggestion.tone === "primary"
               ? "bg-foreground text-background"
               : suggestion.tone === "calm"
-                ? "bg-feature-cool text-feature-cool-foreground"
-                : "bg-feature-warm text-feature-warm-foreground";
+                ? "bg-secondary text-foreground"
+                : "bg-secondary text-foreground";
 
           const Cta = suggestion.cta;
           return (
             <Card className={cn("overflow-hidden rounded-xl border shadow-sm", toneClasses)}>
-              <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-5">
+              <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-5">
                 <div className="flex items-start gap-3 min-w-0">
-                  <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl", iconWrap)} aria-hidden>
+                  <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", iconWrap)} aria-hidden>
                     <Sparkles className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Næste skridt
                     </p>
-                    <p className="mt-0.5 text-sm font-semibold text-foreground sm:text-base">
+                    <p className="mt-0.5 text-base font-semibold text-foreground">
                       {suggestion.title}
                     </p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
+                    <p className="mt-1 text-sm text-muted-foreground tabular-nums">
                       {suggestion.description}
                     </p>
+                    {/* Live arbejdsdag-status under forslaget — så medarbejderen
+                        altid kan se start, varighed og fremdrift uden et separat kort. */}
+                    {(dayStarted || dayEnded) && (
+                      <p className="mt-2 inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground tabular-nums">
+                        {dayEnded ? (
+                          <>
+                            <CheckCircle2 className="h-3.5 w-3.5 text-foreground/70" aria-hidden />
+                            <span>
+                              Arbejdsdag {workday?.started_at ? format(new Date(workday.started_at), "HH:mm") : "—"}
+                              {workday?.ended_at ? `–${format(new Date(workday.ended_at), "HH:mm")}` : ""}
+                              {workday?.duration_minutes != null
+                                ? ` · ${Math.floor(workday.duration_minutes / 60)}t ${workday.duration_minutes % 60}min`
+                                : ""}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="h-3.5 w-3.5 text-foreground/70" aria-hidden />
+                            <span>
+                              Start {workday?.started_at ? format(new Date(workday.started_at), "HH:mm") : "—"}
+                              {elapsedLabel ? ` · ${elapsedLabel}` : ""}
+                              {totalStops > 0 ? ` · ${completedStops}/${totalStops} stop` : ""}
+                            </span>
+                          </>
+                        )}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <Button
