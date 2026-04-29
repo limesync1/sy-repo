@@ -241,7 +241,15 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     customer_groups: { id: string; name: string }[];
     product_groups: { id: string; name: string; account_number?: string | null }[];
     income_accounts: { id: string; name: string }[];
-  }>({ customer_groups: [], product_groups: [], income_accounts: [] });
+    labels?: {
+      customer_groups?: string;
+      product_groups?: string;
+      income_accounts?: string;
+      customer_groups_help?: string;
+      product_groups_help?: string;
+      income_accounts_help?: string;
+    };
+  }>({ customer_groups: [], product_groups: [], income_accounts: [], labels: {} });
   const [groupsLoading, setGroupsLoading] = useState(false);
   const [lastSuccessPull, setLastSuccessPull] = useState<string | null>(null);
   // Re-render hvert minut så "om X min"-tæller forbliver retvisende
@@ -343,6 +351,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         customer_groups: (data as any)?.customer_groups ?? [],
         product_groups: (data as any)?.product_groups ?? [],
         income_accounts: (data as any)?.income_accounts ?? [],
+        labels: (data as any)?.labels ?? {},
       });
     } catch (e: any) {
       // Stille fejl — feltet falder bare tilbage til "tom liste"
