@@ -6,21 +6,23 @@ import { toast } from "sonner";
 import { Navigate, Link, useSearchParams } from "react-router-dom";
 import {
   Building2, User, ArrowLeft, ArrowRight, ShieldCheck, Sparkles,
-  CheckCircle, HardHat, Quote, TrendingUp, Eye, EyeOff,
+  CheckCircle, HardHat, Quote, TrendingUp, Eye, EyeOff, Mail,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import { translateAuthError } from "@/lib/auth-errors";
 
 const Auth = () => {
-  const { user, loading, signIn, signUp } = useAuth();
+  const { user, loading, signIn, signUp, resetPassword, signInWithGoogle } = useAuth();
   const [searchParams] = useSearchParams();
   const mode = searchParams.get("mode");
   const signupParam = searchParams.get("signup");
+  const isResetMode = searchParams.get("reset") === "1";
   const [isSignUp, setIsSignUp] = useState(signupParam === "1");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   useEffect(() => {
     setIsSignUp(signupParam === "1");
@@ -65,10 +67,41 @@ const Auth = () => {
     }
   };
 
+  /** Send mail med link til /reset-password. Vi viser altid en "tjek din mail"-besked
+   *  uanset om e-mailen findes — for at undgå at lække hvilke mails der har konto. */
+  const handleSendReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      toast.error("Skriv din e-mail for at fortsætte.");
+      return;
+    }
+    setSubmitting(true);
+    const { error } = await resetPassword(email.trim());
+    setSubmitting(false);
+    if (error) {
+      toast.error(translateAuthError(error, "Vi kunne ikke sende mailen. Prøv igen."));
+      return;
+    }
+    setResetSent(true);
+  };
+
+  /** Start Google OAuth-flow. Vi sender brugeren tilbage til samme mode-route,
+   *  så de lander det rigtige sted (kunde/virksomhed) efter login. */
+  const handleGoogle = async () => {
+    const target =
+      mode === "customer" ? "/min-konto"
+      : mode === "employee" ? "/medarbejder"
+      : "/virksomhed";
+    const { error } = await signInWithGoogle(target);
+    if (error) {
+      toast.error(translateAuthError(error, "Vi kunne ikke åbne Google-login. Prøv igen."));
+    }
+  };
+
   const isBusiness = mode === "business";
   const isCustomer = mode === "customer";
   const isEmployee = mode === "employee";
-  const showModeSelector = !mode;
+  const showModeSelector = !mode && !isResetMode;
 
   const heroTitle = isSignUp
     ? (isBusiness ? "Opret virksomhedskonto" : isEmployee ? "Aktivér medarbejderkonto" : "Opret din konto")
