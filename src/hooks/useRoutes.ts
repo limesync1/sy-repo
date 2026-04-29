@@ -258,8 +258,15 @@ export const useStartWorkday = () => {
       if (error) throw error;
       return data as EmployeeWorkday;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["my-workday"] });
+      // Tydelig bekræftelse med præcist tidsstempel — så medarbejderen
+      // altid ved hvad der er registreret.
+      const startedAt = data?.started_at ? new Date(data.started_at) : new Date();
+      const time = startedAt.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+      toast.success("Arbejdsdag startet", {
+        description: `Tidsregistrering begyndte kl. ${time}.`,
+      });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke starte arbejdsdag"),
   });
@@ -287,9 +294,22 @@ export const useEndWorkday = () => {
       if (error) throw error;
       return data as EmployeeWorkday | null;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["my-workday"] });
       qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
+      const endedAt = data?.ended_at ? new Date(data.ended_at) : new Date();
+      const startedAt = data?.started_at ? new Date(data.started_at) : null;
+      const endTime = endedAt.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+      const durationMin = data?.duration_minutes ?? (startedAt
+        ? Math.max(0, Math.round((endedAt.getTime() - startedAt.getTime()) / 60000))
+        : null);
+      const startTime = startedAt
+        ? startedAt.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })
+        : null;
+      const desc = startTime
+        ? `Registreret ${startTime}–${endTime}${durationMin != null ? ` · ${Math.floor(durationMin / 60)}t ${durationMin % 60}min` : ""}.`
+        : `Stoppet kl. ${endTime}.`;
+      toast.success("Arbejdsdag afsluttet", { description: desc });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke afslutte arbejdsdag"),
   });
