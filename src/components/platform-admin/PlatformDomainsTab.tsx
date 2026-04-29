@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { CheckCircle2, Clock, AlertCircle, ExternalLink, Globe, Copy, Loader2, Rocket } from "lucide-react";
 import { PageHeader, EmptyState } from "@/components/admin/shared/AdminUI";
+import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
 // Lovable-projektet hvor custom-domæner skal tilføjes. Når admin klikker
 // "Tilføj til Lovable" kopierer vi domænet og åbner Lovable's
@@ -155,7 +156,7 @@ const PlatformDomainsTab = () => {
       </div>
 
       {isLoading ? (
-        <Card className="p-6"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></Card>
+        <ListCardSkeleton rows={4} />
       ) : filtered.length === 0 ? (
         <EmptyState icon={<Globe />} title="Ingen domæner i denne kategori" description="Kunders custom domæner vises her når de tilføjer dem i deres virksomhedsindstillinger." />
       ) : (
