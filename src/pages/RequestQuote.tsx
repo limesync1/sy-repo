@@ -216,6 +216,8 @@ const RequestQuote = () => {
     updated_at: "",
     service_category: s.service_category || null,
     sort_order: 0,
+    default_vat_rate: 25,
+    accounting_account_number: null,
     interval_options: s.interval_options || ["engangskøb"],
     calculator_steps: s.calculator_steps.map((cs) => ({
       id: cs.id,
