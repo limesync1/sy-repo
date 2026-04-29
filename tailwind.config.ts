@@ -89,6 +89,14 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        // Konsekvent pulse — overrider Tailwinds default (2s, 0.5↔1)
+        // så skeletons føles ens på tværs af alle paneler. Lidt kortere
+        // periode + højere min-opacity giver et roligere, mere "premium"
+        // loading-look uden at blinke for meget.
+        "pulse": {
+          "0%, 100%": { opacity: "1" },
+          "50%":      { opacity: "0.6" },
+        },
         "fade-in": {
           "0%": { opacity: "0", transform: "translateY(12px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
@@ -126,6 +134,9 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        // Override af Tailwinds default `animate-pulse` så ALLE skeletons
+        // (Skeleton-base + ad-hoc pulse-divs) bruger nøjagtig samme rytme.
+        "pulse": "pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "fade-in": "fade-in 0.6s ease-out both",
         "fade-in-soft": "fade-in-soft 0.2s ease-out both",
         "slide-up-fade":   "slide-up-fade 0.45s cubic-bezier(0.22, 1, 0.36, 1) both",
