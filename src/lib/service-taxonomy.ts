@@ -355,6 +355,11 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
 // Kun templates for brancher virksomheden har valgt vises.
 export interface StepTemplate {
   label: string;
+  /** Søgeord der bruges til smart matching mod servicenavn/underkategori/beskrivelse.
+   *  Jo flere ord der matcher → jo højere confidence. */
+  keywords?: string[];
+  /** Underkategorier denne skabelon er bygget til (giver +3 i score ved direkte match). */
+  subcategories?: string[];
   steps: Array<{ label: string; unit: string; price_per_unit: number; min_value: number; max_value: number; default_value: number }>;
 }
 
