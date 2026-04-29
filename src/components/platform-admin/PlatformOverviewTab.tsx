@@ -12,6 +12,7 @@ import { exportCsv } from "./lib/csv";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { PageHeader, StatCard, SectionCard } from "@/components/admin/shared/AdminUI";
+import { StatGridSkeleton, ChartSkeleton, ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
 const fmt = (n: number) => n.toLocaleString("da-DK");
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
@@ -91,10 +92,13 @@ const PlatformOverviewTab = () => {
 
   if (isLoading || !data) {
     return (
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-32 rounded-xl bg-secondary/40 animate-pulse" />
-        ))}
+      <div className="space-y-4">
+        <StatGridSkeleton count={4} />
+        <div className="grid gap-3 lg:grid-cols-2">
+          <ChartSkeleton />
+          <ChartSkeleton />
+        </div>
+        <ListCardSkeleton rows={5} />
       </div>
     );
   }
