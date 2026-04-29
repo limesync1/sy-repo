@@ -4,6 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
   Loader2, RefreshCw, Check, AlertCircle, ExternalLink, Eye, EyeOff,
@@ -199,6 +203,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const [syncing, setSyncing] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [queueCount, setQueueCount] = useState(0);
+  const [confirmDisable, setConfirmDisable] = useState(false);
+  const [confirmSwitch, setConfirmSwitch] = useState(false);
 
   const currentProvider = useMemo(
     () => PROVIDERS.find(p => p.value === provider)!,
@@ -279,7 +285,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       const { error } = await supabase.from("accounting_integrations" as any)
         .upsert(payload, { onConflict: "business_id" });
       if (error) throw error;
-      toast.success(`${currentProvider.label} er nu integreret`);
+      // Seed-kø: læg ALLE eksisterende kunder, services og aftaler i synk-køen
+      // så det første push faktisk skubber data afsted (triggere fanger kun
+      // fremtidige ændringer).
+      await seedQueue(businessId);
+      toast.success(`${currentProvider.label} er nu integreret — synkroniserer dine data…`);
+      // Kør første synk i baggrunden så brugeren ser resultatet med det samme
+      runFullSync(businessId).catch(() => { /* fejl vises via load() */ });
       await load();
     } catch (e: any) {
       toast.error(e.message ?? "Kunne ikke gemme");
@@ -304,10 +316,17 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const handleSyncNow = async () => {
     setSyncing(true);
     try {
-      const r1 = await supabase.functions.invoke("accounting-sync", { body: { business_id: businessId, mode: "queue" } });
-      const r2 = await supabase.functions.invoke("accounting-sync", { body: { business_id: businessId, mode: "pull" } });
-      if (r1.error || r2.error) throw r1.error ?? r2.error;
-      toast.success("Synkronisering færdig");
+      // Hvis der intet er i køen, læg eksisterende data i køen så synk
+      // faktisk har noget at sende.
+      if (queueCount === 0) await seedQueue(businessId);
+      const result = await runFullSync(businessId);
+      const pushed = result.pushed ?? 0;
+      const pulled = (result.pulledCustomers ?? 0) + (result.pulledProducts ?? 0);
+      if (pushed === 0 && pulled === 0) {
+        toast.success("Alt er allerede synkroniseret");
+      } else {
+        toast.success(`Synkronisering færdig — sendt ${pushed}, hentet ${pulled}`);
+      }
       await load();
     } catch (e: any) {
       toast.error(e.message ?? "Synk fejlede");
@@ -316,7 +335,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
   const handleDisable = async () => {
     if (!integration) return;
-    if (!confirm("Vil du afbryde integrationen? Allerede synkroniserede data slettes ikke.")) return;
     await supabase.from("accounting_integrations" as any)
       .delete().eq("business_id", businessId);
     toast.success("Integration afbrudt");
@@ -327,11 +345,45 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   };
 
   const handleSwitchProvider = () => {
-    if (!confirm("Du kan kun have ét regnskabsprogram aktivt. Vil du erstatte det nuværende?")) return;
     setCreds({});
     setTestResult(null);
     startWizard();
   };
+
+  // Læg alle eksisterende kunder/services/ordrer i køen (idempotent — duplicates
+  // i samme batch giver bare lidt ekstra arbejde, ikke fejl).
+  async function seedQueue(bizId: string) {
+    const [{ data: bcs }, { data: pcs }, { data: svcs }, { data: ords }] = await Promise.all([
+      supabase.from("business_customers").select("id").eq("business_id", bizId),
+      supabase.from("private_customers").select("id").eq("business_id", bizId),
+      supabase.from("services").select("id").eq("business_id", bizId),
+      supabase.from("orders").select("id").eq("business_id", bizId).neq("status", "cancelled"),
+    ]);
+    const rows: any[] = [];
+    (bcs ?? []).forEach((r: any) => rows.push({ business_id: bizId, entity_type: "customer", entity_id: r.id, operation: "update" }));
+    (pcs ?? []).forEach((r: any) => rows.push({ business_id: bizId, entity_type: "customer", entity_id: r.id, operation: "update" }));
+    (svcs ?? []).forEach((r: any) => rows.push({ business_id: bizId, entity_type: "product", entity_id: r.id, operation: "update" }));
+    (ords ?? []).forEach((r: any) => rows.push({ business_id: bizId, entity_type: "order", entity_id: r.id, operation: "update" }));
+    if (rows.length > 0) {
+      // Splittes i batches af 200 for at undgå store payloads
+      for (let i = 0; i < rows.length; i += 200) {
+        await supabase.from("accounting_sync_queue" as any).insert(rows.slice(i, i + 200));
+      }
+    }
+  }
+
+  async function runFullSync(bizId: string) {
+    // Kør push (queue-drain) først så pull ikke overskriver lokale ændringer
+    const r1 = await supabase.functions.invoke("accounting-sync", { body: { business_id: bizId, mode: "queue" } });
+    if (r1.error) throw r1.error;
+    const r2 = await supabase.functions.invoke("accounting-sync", { body: { business_id: bizId, mode: "pull" } });
+    if (r2.error) throw r2.error;
+    return {
+      pushed: (r1.data as any)?.processed ?? 0,
+      pulledCustomers: (r2.data as any)?.customers ?? 0,
+      pulledProducts: (r2.data as any)?.products ?? 0,
+    };
+  }
 
   if (loading) {
     return (
@@ -437,10 +489,20 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           icon={<Plug />}
           action={
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" onClick={handleSwitchProvider}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmSwitch(true)}
+                className="h-8"
+              >
                 Skift program
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleDisable} className="text-muted-foreground hover:text-destructive">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmDisable(true)}
+                className="h-8 border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive active:bg-destructive/90"
+              >
                 <X className="mr-1.5 h-4 w-4" /> Afbryd
               </Button>
             </div>
@@ -566,6 +628,48 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             </p>
           </SectionCard>
         )}
+
+        {/* Bekræftelses-modaler */}
+        <AlertDialog open={confirmDisable} onOpenChange={setConfirmDisable}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Afbryd integration?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Vi stopper med at sende dine aftaler, kunder og varer til {activeDef.label}.
+                Allerede synkroniserede data forbliver i {activeDef.label} — intet slettes.
+                Du kan altid forbinde igen senere.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Behold integration</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDisable}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Ja, afbryd
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={confirmSwitch} onOpenChange={setConfirmSwitch}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Skift regnskabsprogram?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Du kan kun have ét regnskabsprogram forbundet ad gangen. Når du
+                vælger et nyt, stopper synkronisering med {activeDef.label} —
+                men dine data i begge systemer bevares.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Behold {activeDef.label}</AlertDialogCancel>
+              <AlertDialogAction onClick={() => { setConfirmSwitch(false); handleSwitchProvider(); }}>
+                Vælg nyt program
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }
