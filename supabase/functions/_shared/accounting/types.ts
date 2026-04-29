@@ -108,6 +108,19 @@ export interface ExternalGroups {
   customer_groups: ExternalGroup[];
   product_groups: ExternalGroup[];
   income_accounts: ExternalGroup[];
+  /**
+   * Provider-specific UI labels so the app can mirror the exact terminology
+   * used inside the connected accounting program (e.g. "Varegruppe" in
+   * e-conomic vs. "Produktgruppe" in Billy vs. "Konto" in Dinero).
+   */
+  labels?: {
+    customer_groups?: string;
+    product_groups?: string;
+    income_accounts?: string;
+    customer_groups_help?: string;
+    product_groups_help?: string;
+    income_accounts_help?: string;
+  };
 }
 
 export interface AccountingAdapter {

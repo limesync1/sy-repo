@@ -84,20 +84,43 @@ export function makeBillyAdapter(
 
     async listGroups(): Promise<ExternalGroups> {
       const orgId = await getOrgId(creds).catch(() => null);
+      const orgQ = orgId ? `?organizationId=${orgId}` : "";
+      const orgQ2 = orgId ? `&organizationId=${orgId}` : "";
       const [pg, accts] = await Promise.all([
-        billyRequest(creds, `/productGroups${orgId ? `?organizationId=${orgId}` : ""}`).catch(() => ({ productGroups: [] })),
-        billyRequest(creds, `/accounts?isIncome=true${orgId ? `&organizationId=${orgId}` : ""}`).catch(() => ({ accounts: [] })),
+        billyRequest(creds, `/productGroups${orgQ}`).catch(() => ({ productGroups: [] })),
+        // Billy: hent alle konti og filtrer til indtægts-natur i koden.
+        // (?isIncome=true er ikke et gyldigt filter i v2.)
+        billyRequest(creds, `/accounts?pageSize=1000${orgQ2}`).catch(() => ({ accounts: [] })),
       ]);
+      const incomeAccounts = ((accts?.accounts ?? []) as any[])
+        .filter(a => {
+          // Billy: natureId === 'revenue' eller 'income'. Fald tilbage til accountNo-range.
+          const nature = String(a.natureId ?? a.nature ?? "").toLowerCase();
+          if (nature === "revenue" || nature === "income" || nature === "sales") return true;
+          if (nature) return false;
+          const no = Number(a.accountNo ?? 0);
+          return no >= 1000 && no <= 3999;
+        })
+        .filter(a => a.isArchived !== true && a.isBankAccount !== true)
+        .sort((a, b) => Number(a.accountNo ?? 0) - Number(b.accountNo ?? 0));
       return {
         // Billy har ikke kundegrupper — returnér tom liste
         customer_groups: [],
         product_groups: ((pg?.productGroups ?? []) as any[]).map(g => ({
-          id: g.id, name: g.name,
+          id: g.id,
+          name: g.name,
           account_number: g.accountId ?? null,
         })),
-        income_accounts: ((accts?.accounts ?? []) as any[]).map(a => ({
-          id: a.id, name: `${a.accountNo ?? ""} — ${a.name}`.trim(),
+        income_accounts: incomeAccounts.map(a => ({
+          id: a.id,
+          name: a.accountNo ? `${a.accountNo} — ${a.name}` : a.name,
         })),
+        labels: {
+          product_groups: "Produktgruppe",
+          income_accounts: "Indtægtskonto",
+          product_groups_help: "Bruges når nye produkter oprettes i Billy.",
+          income_accounts_help: "Overstyrer produktgruppens standardkonto for nye produkter.",
+        },
       };
     },
 

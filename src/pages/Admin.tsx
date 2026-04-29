@@ -777,7 +777,8 @@ const ServiceForm = ({
   const [accountingGroups, setAccountingGroups] = useState<{
     product_groups: { id: string; name: string }[];
     income_accounts: { id: string; name: string }[];
-  }>({ product_groups: [], income_accounts: [] });
+    labels?: { product_groups?: string; income_accounts?: string };
+  }>({ product_groups: [], income_accounts: [], labels: {} });
   const [accountingDefaults, setAccountingDefaults] = useState<{
     default_product_group?: string; default_income_account?: string;
   }>({});
@@ -818,6 +819,7 @@ const ServiceForm = ({
           setAccountingGroups({
             product_groups: (data as any).product_groups ?? [],
             income_accounts: (data as any).income_accounts ?? [],
+            labels: (data as any).labels ?? {},
           });
         }
       } catch { /* stille fejl */ }
@@ -1737,7 +1739,9 @@ const ServiceForm = ({
               <div className="grid gap-3 sm:grid-cols-2">
                 {accountingGroups.product_groups.length > 0 && (
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-foreground">Produktgruppe</label>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">
+                      {accountingGroups.labels?.product_groups ?? "Produktgruppe"}
+                    </label>
                     <Select
                       value={accountingProductGroup || "__default__"}
                       onValueChange={(v) => setAccountingProductGroup(v === "__default__" ? "" : v)}
@@ -1756,7 +1760,9 @@ const ServiceForm = ({
                 )}
                 {accountingGroups.income_accounts.length > 0 && (
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-foreground">Indtægtskonto</label>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">
+                      {accountingGroups.labels?.income_accounts ?? "Indtægtskonto"}
+                    </label>
                     <Select
                       value={accountingIncomeAccount || "__default__"}
                       onValueChange={(v) => setAccountingIncomeAccount(v === "__default__" ? "" : v)}

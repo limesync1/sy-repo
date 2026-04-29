@@ -81,20 +81,41 @@ export function makeEconomicAdapter(
       const [cg, pg, accts] = await Promise.all([
         ecRequest(creds, "/customer-groups?pagesize=200").catch(() => ({ collection: [] })),
         ecRequest(creds, "/product-groups?pagesize=200").catch(() => ({ collection: [] })),
-        ecRequest(creds, "/accounts?pagesize=1000&filter=accountType$eq:revenue").catch(() => ({ collection: [] })),
+        // E-conomic har ingen "revenue" accountType. Vi henter alle P&L-konti
+        // og filtrerer til indtægts-relevante konti (typisk 1000-1999 i den
+        // danske kontoplan). Vi kan ikke bruge $like på accountNumber, så vi
+        // henter bredt og filtrerer i koden.
+        ecRequest(creds, "/accounts?pagesize=1000&filter=accountType$eq:profitAndLoss").catch(() => ({ collection: [] })),
       ]);
+      const incomeAccounts = ((accts?.collection ?? []) as any[])
+        .filter(a => {
+          const num = Number(a.accountNumber ?? 0);
+          // Standard dansk kontoplan: 1000-3999 = omsætning/indtægter
+          return num >= 1000 && num <= 3999 && a.barred !== true;
+        })
+        .sort((a, b) => Number(a.accountNumber) - Number(b.accountNumber));
       return {
         customer_groups: ((cg?.collection ?? []) as any[]).map(g => ({
-          id: String(g.customerGroupNumber), name: g.name,
+          id: String(g.customerGroupNumber),
+          name: `${g.customerGroupNumber} — ${g.name}`,
         })),
         product_groups: ((pg?.collection ?? []) as any[]).map(g => ({
-          id: String(g.productGroupNumber), name: g.name,
+          id: String(g.productGroupNumber),
+          name: `${g.productGroupNumber} — ${g.name}`,
           account_number: g.salesAccounts?.[0]?.account?.accountNumber
             ? String(g.salesAccounts[0].account.accountNumber) : null,
         })),
-        income_accounts: ((accts?.collection ?? []) as any[]).map(a => ({
+        income_accounts: incomeAccounts.map(a => ({
           id: String(a.accountNumber), name: `${a.accountNumber} — ${a.name}`,
         })),
+        labels: {
+          customer_groups: "Kundegruppe",
+          product_groups: "Varegruppe",
+          income_accounts: "Salgskonto",
+          customer_groups_help: "Bruges når nye kunder oprettes i e-conomic.",
+          product_groups_help: "Bruges når nye varer (services) oprettes i e-conomic. Salgskonto styres normalt af varegruppen.",
+          income_accounts_help: "Overstyrer varegruppens salgskonto for nye varer.",
+        },
       };
     },
 
