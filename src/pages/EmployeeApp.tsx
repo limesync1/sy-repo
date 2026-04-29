@@ -499,14 +499,13 @@ const EmployeeApp = () => {
                     ikke ligner et "klik for at åbne rute"-hint. */}
                 <div className="border-t border-border bg-secondary/30 px-4 py-3 sm:px-5">
                   <Button
-                    asChild
+                    type="button"
                     size="sm"
                     variant="outline"
+                    onClick={() => setPreviewRouteId(r.id)}
                     className="h-9 w-full gap-2 rounded-lg border-border bg-card text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
                   >
-                    <Link to={`/medarbejder/rute/${r.id}/print`}>
-                      <Printer className="h-3.5 w-3.5" /> Udskriv kvittering
-                    </Link>
+                    <Eye className="h-3.5 w-3.5" /> Vis & udskriv kvittering
                   </Button>
                 </div>
               </Card>
