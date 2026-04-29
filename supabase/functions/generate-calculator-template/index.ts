@@ -150,6 +150,7 @@ serve(async (req) => {
       serviceName,
       serviceCategory,
       subcategory,
+      serviceDescription,
       businessName,
       businessDescription,
       businessCategories,
@@ -179,6 +180,7 @@ serve(async (req) => {
       `Servicenavn: ${serviceName}`,
       serviceCategory ? `Kategori: ${serviceCategory}` : null,
       subcategory ? `Underkategori: ${subcategory}` : null,
+      serviceDescription ? `Beskrivelse: ${String(serviceDescription).slice(0, 800)}` : null,
       Array.isArray(intervalOptions) && intervalOptions.length > 0
         ? `Intervaller: ${intervalOptions.join(", ")}`
         : null,
@@ -217,7 +219,7 @@ ${categoryGuidelines
 Virksomhed: ${businessLine || "(ingen oplysninger)"}
 Service: ${serviceLine}
 
-Returnér 2-5 trin der præcist matcher denne service og kategori. Følg kategori-retningslinjerne i system-prompten for enheder og prisleje.`;
+Returnér 2-5 trin der præcist matcher denne service og kategori. Hvis der er en beskrivelse, så lad trinene afspejle hvad der faktisk indgår i ydelsen ifølge beskrivelsen (fx hvis beskrivelsen nævner "inkl. ovnrens" så lad det være en valgfri tilføjelse, ikke et separat obligatorisk trin). Følg kategori-retningslinjerne i system-prompten for enheder og prisleje.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
