@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
   ChevronUp, ChevronDown, Play, Volume2, VolumeX, Crosshair, Flag, TrafficCone,
-  Info,
+  Info, Layers,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import type { Marker as LeafletMarker } from "leaflet";
