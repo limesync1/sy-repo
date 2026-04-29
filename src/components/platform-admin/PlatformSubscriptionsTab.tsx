@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { exportCsv } from "./lib/csv";
 import { PageHeader, StatCard, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
+import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
 const fmtKr = (n: number) => `${Number(n).toLocaleString("da-DK")} kr`;
 
@@ -108,9 +109,7 @@ const PlatformSubscriptionsTab = () => {
       </div>
 
       {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-14 rounded-lg bg-secondary/40 animate-pulse" />)}
-        </div>
+        <ListCardSkeleton rows={5} />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={<Repeat />}
