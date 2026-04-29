@@ -340,6 +340,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   } | null>(null);
   const [routeStarted, setRouteStarted] = useState(false);
   const [followMode, setFollowMode] = useState(true);
+  // Stop-detaljer sheet kan veksle mellem kompakt (~45 % af skærm) og fuld
+  // (~85 %).  Default er kompakt, så medarbejderen altid ser kortet.  Klik
+  // på drag-bar'en eller chevron'en skifter højde.
+  const [sheetExpanded, setSheetExpanded] = useState(false);
   // Kort-stil: "map" (CARTO Voyager — som hidtil) eller "satellite" (Esri World Imagery).
   // Valget persistes så brugeren ikke skal vælge igen ved hver kørsel.
   const MAP_STYLE_KEY = "serviceydere:employee-route:map-style";
