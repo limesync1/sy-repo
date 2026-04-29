@@ -28,26 +28,30 @@ const EmployeeLivechat = () => {
 
   const businessId = employee?.business_id;
   const { data: business } = useQuery({
-    queryKey: ["business-name", businessId],
+    queryKey: ["business-name-livechat", businessId],
     enabled: !!businessId,
     queryFn: async () => {
       const { data } = await supabase
         .from("businesses")
-        .select("name")
+        .select("name, settings")
         .eq("id", businessId!)
         .maybeSingle();
       return data;
     },
   });
 
+  // Bloker også hvis virksomheden selv har slået livechat fra
+  useEffect(() => {
+    if (!business) return;
+    if (!(business.settings as any)?.livechat_enabled) navigate("/medarbejder");
+  }, [business, navigate]);
+
   return (
-    <EmployeeShell activeTab={"livechat" as any} title="Live chat" contentPadding={false}>
-      {businessId ? (
-        <div className="h-[calc(100vh-3.5rem)]">
-          <BusinessLiveChatTab businessId={businessId} businessName={business?.name || "Vores team"} />
-        </div>
+    <EmployeeShell activeTab={"livechat" as any} title="Live chat">
+      {businessId && business?.name ? (
+        <BusinessLiveChatTab businessId={businessId} businessName={business.name} />
       ) : (
-        <div className="p-6 text-sm text-muted-foreground">Indlæser…</div>
+        <div className="text-sm text-muted-foreground">Indlæser…</div>
       )}
     </EmployeeShell>
   );
