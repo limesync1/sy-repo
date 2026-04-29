@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useAdminFilters } from "./lib/AdminFiltersContext";
 import { exportCsv } from "./lib/csv";
 import { PageHeader, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
+import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
 const STATUS_OPTIONS = [
   { value: "pending", label: "Afventer" },
