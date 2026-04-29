@@ -293,6 +293,8 @@ const DashboardWrapper = ({ business, onNavigate }: { business: any; onNavigate:
       reviewsCount={reviews?.length || 0}
       pendingOrders={pendingOrders}
       recentOrders={orders || []}
+      reviews={reviews || []}
+      services={services || []}
       onNavigate={onNavigate}
     />
   );
