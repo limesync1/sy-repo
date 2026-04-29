@@ -651,7 +651,23 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   );
 };
 
-const ServiceRow = ({ service, orderCount, onEdit, onDelete }: { service: any; orderCount: number; onEdit: () => void; onDelete: () => void }) => {
+type AccountingMeta = {
+  provider: string | null;
+  productLabel: string;
+  groupLabel: string;
+  accountLabel: string;
+  productLinks: Record<string, string>;
+  productGroups: Record<string, string>;
+  incomeAccounts: Record<string, string>;
+};
+
+const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
+  service: any;
+  orderCount: number;
+  accountingMeta?: AccountingMeta;
+  onEdit: () => void;
+  onDelete: () => void;
+}) => {
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
   const intervalLabels: Record<string, string> = {
     engangskøb: "Engangskøb",
@@ -673,81 +689,145 @@ const ServiceRow = ({ service, orderCount, onEdit, onDelete }: { service: any; o
       ? `${service.calculator_steps?.length || 0} trin`
       : "Ikke angivet";
 
-  return (
-    <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-      <CardContent className="p-0">
-        <div className="grid gap-2.5 p-3.5 sm:p-4">
-          <div className="min-w-0">
-            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex min-w-0 items-start gap-2.5">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground">
-                  <span className="text-sm leading-none">{categoryIcon}</span>
-                </div>
+  const isActive = service.is_active !== false;
+  const provider = accountingMeta?.provider ?? null;
+  const externalNo = provider ? accountingMeta?.productLinks[service.id] : undefined;
+  const groupName = provider && service.accounting_product_group
+    ? (accountingMeta?.productGroups[service.accounting_product_group] ?? service.accounting_product_group)
+    : null;
+  const accountId = service.accounting_income_account ?? service.accounting_account_number ?? null;
+  const accountName = provider && accountId
+    ? (accountingMeta?.incomeAccounts[accountId] ?? accountId)
+    : null;
+  const providerLabel = provider === "economic" ? "e-conomic" : provider === "billy" ? "Billy" : provider === "dinero" ? "Dinero" : null;
 
+  return (
+    <Card className={`surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden transition-colors ${!isActive ? "opacity-70" : "hover:border-foreground/20"}`}>
+      <CardContent className="p-0">
+        <div className="flex items-stretch">
+          {/* Venstre accent — dæmpet kategorifarve */}
+          <div className="hidden w-1 shrink-0 bg-foreground/10 sm:block" aria-hidden />
+
+          <div className="min-w-0 flex-1 p-4 sm:p-5">
+            {/* Header: ikon + titel + meta + handlinger */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-secondary/50 text-base">
+                  <span className="leading-none">{categoryIcon}</span>
+                </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="truncate text-sm font-semibold text-foreground">{service.name}</h3>
+                    <h3 className="truncate text-[15px] font-semibold text-foreground">{service.name}</h3>
+                    {!isActive && (
+                      <Badge variant="outline" className="rounded-md border-destructive/30 px-2 py-0 text-[10px] uppercase tracking-wide text-destructive">
+                        Inaktiv
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
                     {service.service_category && (
-                      <span className="rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-foreground/70">
                         {service.service_category}
                       </span>
                     )}
-                  </div>
-
-                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                    <span>{service.subcategory || "Standard service"}</span>
-                    <span>•</span>
-                    <span>{pricingLabels[service.pricing_type] || service.pricing_type}</span>
+                    <span className="truncate">{service.subcategory || "Standard service"}</span>
+                    <span aria-hidden>·</span>
+                    <span className="inline-flex items-center gap-1">
+                      <Tag className="h-3 w-3" />
+                      {pricingLabels[service.pricing_type] || service.pricing_type}
+                    </span>
                     {hasRecurring && (
                       <>
-                        <span>•</span>
-                        <span>Abonnement muligt</span>
+                        <span aria-hidden>·</span>
+                        <span className="inline-flex items-center gap-1">
+                          <Repeat className="h-3 w-3" /> Abonnement
+                        </span>
                       </>
                     )}
                   </div>
-
-                  {service.is_active === false && (
-                    <Badge variant="outline" className="mt-2 rounded-md border-destructive/30 px-2 py-0.5 text-[10px] text-destructive">Inaktiv</Badge>
-                  )}
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5 sm:shrink-0">
-                <Button variant="outline" size="sm" onClick={onEdit} className="h-8 rounded-lg border-border px-3 text-xs text-foreground hover:bg-secondary hover:text-foreground">
+              <div className="flex shrink-0 items-center gap-1.5">
+                <Button variant="outline" size="sm" onClick={onEdit} className="h-8 rounded-lg border-border px-3 text-xs">
                   Rediger
                 </Button>
-                <Button variant="ghost" size="sm" onClick={onDelete} className="h-8 w-8 rounded-lg p-0 text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></Button>
+                <Button variant="ghost" size="sm" onClick={onDelete} className="h-8 w-8 rounded-lg p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
               </div>
             </div>
 
-            <div className="mt-2.5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-              <div className="rounded-lg border border-border bg-card px-3 py-2.5">
+            {/* Hovedstats — pris stort, resten kompakte celler */}
+            <div className="mt-4 grid items-stretch gap-3 sm:grid-cols-[minmax(0,1.2fr)_repeat(3,minmax(0,1fr))]">
+              <div className="rounded-lg border border-border bg-card px-3.5 py-3">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Pris</p>
-                <p className="mt-1 text-sm font-medium text-foreground truncate">{priceSummary}</p>
+                <p className="mt-1 text-lg font-semibold text-foreground tabular-nums truncate">{priceSummary}</p>
               </div>
-
-              <div className="rounded-lg border border-border bg-card px-3 py-2.5">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Interval</p>
-                <p className="mt-1 text-sm font-medium text-foreground line-clamp-1">{intervalSummary}</p>
-              </div>
-
-              <div className="rounded-lg border border-border bg-card px-3 py-2.5">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Bestillinger</p>
-                <p className="mt-1 text-sm font-semibold text-foreground tabular-nums">{orderCount}</p>
-              </div>
-
-              <div className="rounded-lg border border-border bg-card px-3 py-2.5">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Opsætning</p>
-                <p className="mt-1 text-sm font-medium text-foreground">
-                  {service.calculator_steps?.length > 0 ? `${service.calculator_steps.length} beregnertrin` : "Standard opsætning"}
-                </p>
-              </div>
+              <CompactStat label="Interval" value={intervalSummary} />
+              <CompactStat label="Bestillinger" value={orderCount.toString()} numeric />
+              <CompactStat
+                label="Opsætning"
+                value={service.calculator_steps?.length > 0 ? `${service.calculator_steps.length} trin` : "Standard"}
+              />
             </div>
+
+            {/* Regnskabsstribe — kun synlig hvis et regnskabsprogram er forbundet */}
+            {provider && (
+              <div className="mt-3 flex flex-wrap items-center gap-1.5 rounded-lg border border-dashed border-border bg-secondary/30 px-3 py-2">
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  <BookOpen className="h-3 w-3" /> {providerLabel}
+                </span>
+                <AccountingChip
+                  icon={<Receipt className="h-3 w-3" />}
+                  label={accountingMeta!.productLabel}
+                  value={externalNo || "afventer synk"}
+                  muted={!externalNo}
+                />
+                <AccountingChip
+                  icon={<FolderTree className="h-3 w-3" />}
+                  label={accountingMeta!.groupLabel}
+                  value={groupName || "standard"}
+                  muted={!groupName}
+                />
+                <AccountingChip
+                  icon={<Calculator className="h-3 w-3" />}
+                  label={accountingMeta!.accountLabel}
+                  value={accountName || "fra gruppe"}
+                  muted={!accountName}
+                />
+              </div>
+            )}
           </div>
         </div>
       </CardContent>
     </Card>
   );
+};
+
+// Lille genbrugelig stat-celle der matcher resten af admin-fanernes look
+const CompactStat = ({ label, value, numeric }: { label: string; value: string; numeric?: boolean }) => (
+  <div className="rounded-lg border border-border bg-card px-3 py-2.5">
+    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+    <p className={`mt-1 text-sm font-medium text-foreground line-clamp-1 ${numeric ? "tabular-nums" : ""}`}>{value}</p>
+  </div>
+);
+
+// Lille chip til regnskabs-info (vare-nr, gruppe, konto)
+const AccountingChip = ({ icon, label, value, muted }: { icon: React.ReactNode; label: string; value: string; muted?: boolean }) => (
+  <span className={`inline-flex max-w-full items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-[11px] ${muted ? "text-muted-foreground" : "text-foreground"}`}>
+    <span className="text-muted-foreground">{icon}</span>
+    <span className="font-medium text-muted-foreground">{label}:</span>
+    <span className="truncate font-medium">{value}</span>
+  </span>
+);
+
+// Hjælpe-export for at undgå unused-warnings hvis fremtidig refactor flytter typer
+export type { AccountingMeta };
+
+const _ServiceRowDeprecated = ({ service, orderCount, onEdit, onDelete }: { service: any; orderCount: number; onEdit: () => void; onDelete: () => void }) => {
+  void service; void orderCount; void onEdit; void onDelete;
+  return null;
 };
 
 /* ─── Calculator Preview ─── */
