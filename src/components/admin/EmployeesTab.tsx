@@ -358,7 +358,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
         <div className="space-y-3">
           {filteredActive.length > 0 && (
             <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-              <div className="grid items-center gap-3 border-b border-border px-4 py-3 sm:px-5 sm:grid-cols-[minmax(0,1fr)_6rem_8rem_136px]">
+              <div className="grid items-center gap-4 border-b border-border px-4 py-3 sm:px-5 sm:grid-cols-[minmax(0,1fr)_8rem_8rem_13rem]">
                 <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-foreground">Aktive medarbejdere</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
@@ -366,7 +366,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   </p>
                 </div>
                 {/* Kolonne-titler — bruger samme grid-template som rækken
-                    (1fr · 6rem · 8rem · 136px) så overskrifter står lodret
+                    (1fr · 8rem · 8rem · 13rem) så overskrifter står lodret
                     over de faktiske kolonner i hver række. */}
                 <span className="hidden sm:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Status</span>
                 <span className="hidden sm:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Indtjening</span>
@@ -390,7 +390,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 
           {filteredInactive.length > 0 && (
             <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-              <div className="grid items-center gap-3 border-b border-border px-4 py-3 sm:px-5 sm:grid-cols-[minmax(0,1fr)_6rem_8rem_136px]">
+              <div className="grid items-center gap-4 border-b border-border px-4 py-3 sm:px-5 sm:grid-cols-[minmax(0,1fr)_8rem_8rem_13rem]">
                 <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-foreground">Deaktiverede</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
