@@ -707,7 +707,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     <div className="space-y-4 pb-24">
       <PageHeader
         title="Indstillinger"
-        description="Administrer din virksomheds profil, kontakt, branding og notifikationer."
+        description="Her sætter du jeres virksomhed op — navn, kontakt, billeder, åbningstider og hvad I tilbyder."
         action={
           <div className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-muted-foreground">
             {saveStatus === "saving" ? (
@@ -830,7 +830,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       <SectionCard
         title="Automatisk udfyldning fra CVR"
         icon={<Sparkles />}
-        description="Indtast CVR-nummer eller virksomhedsnavn for at hente og udfylde alle felter automatisk."
+        description="Skriv jeres CVR-nummer eller firmanavn — så henter vi adresse, navn og oplysninger automatisk fra det officielle erhvervsregister."
       >
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input
@@ -1188,7 +1188,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Åbningstider"
             icon={<Clock />}
-            description="Slå dage til/fra og vælg fra-/til-tid. Brug ”Anvend på alle” for at kopiere én dags tider til de andre åbne dage."
+            description="Sæt flueben ved de dage I har åbent og indtast tiderne. Klik ”Anvend på alle” for at kopiere én dags tider over på de andre åbne dage."
           >
             <HoursEditor value={openHours} onChange={setOpenHours} />
           </SectionCard>
@@ -1199,7 +1199,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Notifikationer"
             icon={<Bell />}
-            description="Vælg hvilke hændelser du vil modtage email-varsler om."
+            description="Vælg hvad I vil have en e-mail om — fx når I får en ny ordre, en ny besked eller en ny anmeldelse."
           >
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {([
@@ -1229,7 +1229,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Priser og betaling"
             icon={<CreditCard />}
-            description="Se din pris-oversigt og administrér betalingskort. Vi bruger Stripe til sikker betalingshåndtering."
+            description="Her ser I jeres pakke, hvad det koster om måneden, og kan skifte betalingskort. Betalingen håndteres sikkert af Stripe — vi gemmer aldrig jeres kortoplysninger."
           >
             {/* Status-banner med dage tilbage */}
             {plan && plan.status !== "unknown" && (
@@ -1453,7 +1453,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Avanceret */}
         <div id="settings-advanced" className="scroll-mt-6">
-          <SectionCard title="Avanceret" icon={<Settings />} description="Aktivér ekstra funktioner. Pris opdateres automatisk i 'Priser og betaling' ovenfor.">
+          <SectionCard title="Ekstra funktioner" icon={<Settings />} description="Slå tilvalg til som ruteplanlægger eller live-chat. Prisen opdateres automatisk under ”Pris og betaling” ovenfor.">
             <div className="space-y-3">
               <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
                 <div className="flex items-start gap-3 min-w-0">
