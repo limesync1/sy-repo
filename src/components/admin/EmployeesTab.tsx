@@ -182,11 +182,18 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
           </Card>
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
             <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Konto aktiveret</p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{linkedCount}</p>
-              {pendingCount > 0 && (
-                <p className="mt-0.5 text-[11px] text-muted-foreground">{pendingCount} afventer login</p>
-              )}
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Udbetalt provision · {RANGE_LABELS[earnRange]}
+              </p>
+              <p className="mt-1 flex items-center gap-1.5 text-2xl font-semibold tabular-nums text-foreground">
+                <Wallet className="h-5 w-5 text-muted-foreground" />
+                {formatKr(
+                  earningsMap
+                    ? Array.from(earningsMap.values()).reduce((s, e) => s + e.earnings, 0)
+                    : 0,
+                )}
+              </p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">Beregnet ekskl. moms</p>
             </CardContent>
           </Card>
         </div>
@@ -209,6 +216,30 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
             >
               {label}
               {count > 0 && <span className="ml-1.5 tabular-nums">{count}</span>}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Periode-vælger til indtjening */}
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card/60 px-3 py-2.5">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          <TrendingUp className="h-3.5 w-3.5" />
+          Vis indtjening for:
+        </div>
+        <div className="flex flex-wrap gap-1">
+          {(Object.keys(RANGE_LABELS) as RangeKey[]).map((k) => (
+            <button
+              key={k}
+              onClick={() => setEarnRange(k)}
+              className={cn(
+                "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                earnRange === k
+                  ? "bg-foreground text-background shadow-sm"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+              )}
+            >
+              {RANGE_LABELS[k]}
             </button>
           ))}
         </div>
