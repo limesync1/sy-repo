@@ -1659,10 +1659,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <p className="font-semibold text-sm text-foreground truncate leading-tight">
                     {nextStop.customer_name || "Stop"}
                   </p>
-                  {nextStop.address ? (
+                  {(nextStop.full_address || nextStop.address) ? (
                     <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
                       <MapPin className="h-3 w-3 shrink-0" />
-                      {nextStop.address}
+                      {nextStop.full_address || nextStop.address}
                     </p>
                   ) : (
                     <p className="text-[11px] text-muted-foreground tabular-nums">
