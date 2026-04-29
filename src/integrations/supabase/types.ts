@@ -14,6 +14,279 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounting_customer_links: {
+        Row: {
+          business_customer_id: string | null
+          business_id: string
+          created_at: string
+          external_customer_number: string | null
+          external_data: Json | null
+          external_id: string
+          id: string
+          last_direction: string
+          last_synced_at: string
+          private_customer_id: string | null
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          business_customer_id?: string | null
+          business_id: string
+          created_at?: string
+          external_customer_number?: string | null
+          external_data?: Json | null
+          external_id: string
+          id?: string
+          last_direction?: string
+          last_synced_at?: string
+          private_customer_id?: string | null
+          provider: string
+          updated_at?: string
+        }
+        Update: {
+          business_customer_id?: string | null
+          business_id?: string
+          created_at?: string
+          external_customer_number?: string | null
+          external_data?: Json | null
+          external_id?: string
+          id?: string
+          last_direction?: string
+          last_synced_at?: string
+          private_customer_id?: string | null
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      accounting_integrations: {
+        Row: {
+          agreement_number: string | null
+          api_secret: string | null
+          api_token: string | null
+          business_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          last_error: string | null
+          last_error_at: string | null
+          last_pull_at: string | null
+          last_push_at: string | null
+          organization_id: string | null
+          provider: string
+          settings: Json
+          updated_at: string
+        }
+        Insert: {
+          agreement_number?: string | null
+          api_secret?: string | null
+          api_token?: string | null
+          business_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_error?: string | null
+          last_error_at?: string | null
+          last_pull_at?: string | null
+          last_push_at?: string | null
+          organization_id?: string | null
+          provider: string
+          settings?: Json
+          updated_at?: string
+        }
+        Update: {
+          agreement_number?: string | null
+          api_secret?: string | null
+          api_token?: string | null
+          business_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_error?: string | null
+          last_error_at?: string | null
+          last_pull_at?: string | null
+          last_push_at?: string | null
+          organization_id?: string | null
+          provider?: string
+          settings?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      accounting_order_links: {
+        Row: {
+          business_id: string
+          created_at: string
+          external_data: Json | null
+          external_id: string
+          external_number: string | null
+          external_type: string
+          id: string
+          last_pushed_at: string
+          last_status_synced: string | null
+          order_id: string
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          external_data?: Json | null
+          external_id: string
+          external_number?: string | null
+          external_type?: string
+          id?: string
+          last_pushed_at?: string
+          last_status_synced?: string | null
+          order_id: string
+          provider: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          external_data?: Json | null
+          external_id?: string
+          external_number?: string | null
+          external_type?: string
+          id?: string
+          last_pushed_at?: string
+          last_status_synced?: string | null
+          order_id?: string
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      accounting_product_links: {
+        Row: {
+          business_id: string
+          created_at: string
+          external_data: Json | null
+          external_id: string
+          external_product_number: string | null
+          id: string
+          is_manual_override: boolean
+          last_synced_at: string
+          provider: string
+          service_id: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          external_data?: Json | null
+          external_id: string
+          external_product_number?: string | null
+          id?: string
+          is_manual_override?: boolean
+          last_synced_at?: string
+          provider: string
+          service_id: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          external_data?: Json | null
+          external_id?: string
+          external_product_number?: string | null
+          id?: string
+          is_manual_override?: boolean
+          last_synced_at?: string
+          provider?: string
+          service_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      accounting_sync_log: {
+        Row: {
+          business_id: string
+          created_at: string
+          direction: string
+          entity_id: string | null
+          entity_type: string
+          external_id: string | null
+          id: string
+          message: string | null
+          payload: Json | null
+          provider: string
+          status: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          direction: string
+          entity_id?: string | null
+          entity_type: string
+          external_id?: string | null
+          id?: string
+          message?: string | null
+          payload?: Json | null
+          provider: string
+          status: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          direction?: string
+          entity_id?: string | null
+          entity_type?: string
+          external_id?: string | null
+          id?: string
+          message?: string | null
+          payload?: Json | null
+          provider?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      accounting_sync_queue: {
+        Row: {
+          attempts: number
+          business_id: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          last_error: string | null
+          operation: string
+          processed_at: string | null
+          scheduled_for: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          business_id: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          last_error?: string | null
+          operation: string
+          processed_at?: string | null
+          scheduled_for?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          business_id?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          last_error?: string | null
+          operation?: string
+          processed_at?: string | null
+          scheduled_for?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       business_customers: {
         Row: {
           address: string | null
@@ -23,12 +296,15 @@ export type Database = {
           company_name: string
           contact_name: string | null
           created_at: string
+          currency: string | null
           cvr: string | null
+          ean_number: string | null
           email: string
           id: string
           latitude: number | null
           longitude: number | null
           notes: string | null
+          payment_terms_days: number | null
           phone: string | null
           updated_at: string
           zip_code: string | null
@@ -41,12 +317,15 @@ export type Database = {
           company_name: string
           contact_name?: string | null
           created_at?: string
+          currency?: string | null
           cvr?: string | null
+          ean_number?: string | null
           email: string
           id?: string
           latitude?: number | null
           longitude?: number | null
           notes?: string | null
+          payment_terms_days?: number | null
           phone?: string | null
           updated_at?: string
           zip_code?: string | null
@@ -59,12 +338,15 @@ export type Database = {
           company_name?: string
           contact_name?: string | null
           created_at?: string
+          currency?: string | null
           cvr?: string | null
+          ean_number?: string | null
           email?: string
           id?: string
           latitude?: number | null
           longitude?: number | null
           notes?: string | null
+          payment_terms_days?: number | null
           phone?: string | null
           updated_at?: string
           zip_code?: string | null
@@ -817,6 +1099,8 @@ export type Database = {
       }
       orders: {
         Row: {
+          accounting_notes: string | null
+          accounting_synced_at: string | null
           address: string | null
           adjusted_amount: number | null
           adjusted_details: Json | null
@@ -836,12 +1120,14 @@ export type Database = {
           customer_response: string | null
           cvr: string | null
           estimated_duration_minutes: number | null
+          external_order_number: string | null
           id: string
           latitude: number | null
           longitude: number | null
           next_service_date: string | null
           notes: string | null
           parent_order_id: string | null
+          payment_terms_days: number | null
           preferred_date: string | null
           preferred_time_end: string | null
           preferred_time_start: string | null
@@ -852,6 +1138,8 @@ export type Database = {
           zip_code: string | null
         }
         Insert: {
+          accounting_notes?: string | null
+          accounting_synced_at?: string | null
           address?: string | null
           adjusted_amount?: number | null
           adjusted_details?: Json | null
@@ -871,12 +1159,14 @@ export type Database = {
           customer_response?: string | null
           cvr?: string | null
           estimated_duration_minutes?: number | null
+          external_order_number?: string | null
           id?: string
           latitude?: number | null
           longitude?: number | null
           next_service_date?: string | null
           notes?: string | null
           parent_order_id?: string | null
+          payment_terms_days?: number | null
           preferred_date?: string | null
           preferred_time_end?: string | null
           preferred_time_start?: string | null
@@ -887,6 +1177,8 @@ export type Database = {
           zip_code?: string | null
         }
         Update: {
+          accounting_notes?: string | null
+          accounting_synced_at?: string | null
           address?: string | null
           adjusted_amount?: number | null
           adjusted_details?: Json | null
@@ -906,12 +1198,14 @@ export type Database = {
           customer_response?: string | null
           cvr?: string | null
           estimated_duration_minutes?: number | null
+          external_order_number?: string | null
           id?: string
           latitude?: number | null
           longitude?: number | null
           next_service_date?: string | null
           notes?: string | null
           parent_order_id?: string | null
+          payment_terms_days?: number | null
           preferred_date?: string | null
           preferred_time_end?: string | null
           preferred_time_start?: string | null
@@ -1000,12 +1294,14 @@ export type Database = {
           business_id: string
           city: string | null
           created_at: string
+          currency: string | null
           email: string
           id: string
           latitude: number | null
           longitude: number | null
           name: string
           notes: string | null
+          payment_terms_days: number | null
           phone: string | null
           updated_at: string
           zip_code: string | null
@@ -1016,12 +1312,14 @@ export type Database = {
           business_id: string
           city?: string | null
           created_at?: string
+          currency?: string | null
           email: string
           id?: string
           latitude?: number | null
           longitude?: number | null
           name: string
           notes?: string | null
+          payment_terms_days?: number | null
           phone?: string | null
           updated_at?: string
           zip_code?: string | null
@@ -1032,12 +1330,14 @@ export type Database = {
           business_id?: string
           city?: string | null
           created_at?: string
+          currency?: string | null
           email?: string
           id?: string
           latitude?: number | null
           longitude?: number | null
           name?: string
           notes?: string | null
+          payment_terms_days?: number | null
           phone?: string | null
           updated_at?: string
           zip_code?: string | null
@@ -1629,9 +1929,11 @@ export type Database = {
       }
       services: {
         Row: {
+          accounting_account_number: string | null
           base_price: number | null
           business_id: string
           created_at: string
+          default_vat_rate: number | null
           description: string | null
           id: string
           image_url: string | null
@@ -1646,9 +1948,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accounting_account_number?: string | null
           base_price?: number | null
           business_id: string
           created_at?: string
+          default_vat_rate?: number | null
           description?: string | null
           id?: string
           image_url?: string | null
@@ -1663,9 +1967,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accounting_account_number?: string | null
           base_price?: number | null
           business_id?: string
           created_at?: string
+          default_vat_rate?: number | null
           description?: string | null
           id?: string
           image_url?: string | null
