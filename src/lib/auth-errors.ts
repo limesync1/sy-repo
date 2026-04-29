@@ -13,7 +13,7 @@ export function translateAuthError(input: unknown, fallback = "Noget gik galt. P
 
   // Login-fejl
   if (msg.includes("invalid login credentials") || msg.includes("invalid_credentials"))
-    return "Forkert e-mail eller adgangskode. Tjek dine oplysninger og prøv igen.";
+    return "Forkert e-mail eller adgangskode. Tjek stavemåden — eller tryk på \"Glemt adgangskode?\" hvis du har glemt din kode.";
   if (msg.includes("email not confirmed") || msg.includes("email_not_confirmed"))
     return "Din e-mail er ikke bekræftet endnu. Tjek din indbakke (og spam) for bekræftelseslinket.";
   if (msg.includes("user not found"))

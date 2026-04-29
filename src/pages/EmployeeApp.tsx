@@ -477,11 +477,6 @@ const EmployeeApp = () => {
                                 <Badge variant="outline" className={cn("h-5 shrink-0 px-1.5 text-[10px] font-medium", pay.className)}>
                                   {pay.label}
                                 </Badge>
-                                {s.order_amount != null && (
-                                  <span className="shrink-0 rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground">
-                                    {formatKr(s.order_amount)}
-                                  </span>
-                                )}
                               </div>
                             </div>
                             {arrivalLabel && (

@@ -29,7 +29,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { value: "today", label: "Min dag", icon: CalendarIcon, href: "/medarbejder" },
   { value: "stats", label: "Statistik", icon: BarChart3, href: "/medarbejder/statistik" },
-  { value: "livechat", label: "Live chat", icon: MessageCircle, href: "/medarbejder/livechat", requiresEmployeeFlag: "livechat_enabled" },
+  { value: "livechat", label: "Livechat", icon: MessageCircle, href: "/medarbejder/livechat", requiresEmployeeFlag: "livechat_enabled" },
 ];
 
 // Prefetch — start download af den anden side når brugeren hover'er nav-knappen.
