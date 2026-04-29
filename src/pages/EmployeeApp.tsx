@@ -509,34 +509,49 @@ const EmployeeApp = () => {
                   </div>
                 )}
 
-                {/* Handlinger */}
+                {/* Handlinger — afhænger af rutens status:
+                    - Færdig: ingen "genåbn"-knap, kun en rolig statusvisning
+                      (åbner ikke ruten igen, da kørslen alligevel auto-lukker)
+                    - I gang / ikke startet: tydelig primær CTA
+                    Print er altid tilgængelig som sekundær handling. */}
                 <div className="flex gap-2 pt-1">
-                  <Button
-                    asChild
-                    size="lg"
-                    className="h-11 flex-1 gap-2 rounded-lg bg-foreground font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
-                    disabled={total === 0}
-                  >
-                    <Link to={`/medarbejder/rute/${r.id}`}>
-                      {allDone ? (
-                        <><CheckCircle2 className="h-5 w-5" /> Genåbn</>
-                      ) : done > 0 ? (
-                        <><Navigation className="h-5 w-5" /> Fortsæt rute</>
+                  {allDone ? (
+                    <div
+                      className="flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-feature-cool/40 bg-feature-cool/15 px-4 text-sm font-semibold text-feature-cool-foreground"
+                      aria-label="Rute færdig"
+                    >
+                      <CheckCircle2 className="h-5 w-5" />
+                      Rute færdig
+                    </div>
+                  ) : (
+                    <Button
+                      asChild={total > 0}
+                      size="lg"
+                      className="h-11 flex-1 gap-2 rounded-lg bg-foreground font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                      disabled={total === 0}
+                    >
+                      {total > 0 ? (
+                        <Link to={`/medarbejder/rute/${r.id}`}>
+                          {done > 0 ? (
+                            <><Navigation className="h-5 w-5" /> Fortsæt rute</>
+                          ) : (
+                            <><Play className="h-5 w-5" /> Start rute</>
+                          )}
+                        </Link>
                       ) : (
-                        <><Play className="h-5 w-5" /> Start rute</>
+                        <><Play className="h-5 w-5" /> Ingen stop</>
                       )}
-                    </Link>
-                  </Button>
+                    </Button>
+                  )}
                   <Button
                     asChild
                     size="lg"
                     variant="outline"
                     className="h-11 shrink-0 rounded-lg border-border bg-card px-3 text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                    aria-label="Udskriv liste"
+                    title="Udskriv liste"
                   >
-                    <Link
-                      to={`/medarbejder/rute/${r.id}/print`}
-                      aria-label="Udskriv liste"
-                    >
+                    <Link to={`/medarbejder/rute/${r.id}/print`}>
                       <Printer className="h-4 w-4" />
                     </Link>
                   </Button>
