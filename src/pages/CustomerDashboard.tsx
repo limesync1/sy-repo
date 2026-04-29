@@ -256,7 +256,7 @@ const OrdersView = () => {
 
   if (isLoading) return (
     <div className="grid gap-4 sm:grid-cols-2">
-      {[1, 2].map((i) => <div key={i} className="h-48 animate-pulse rounded-2xl bg-secondary/50" />)}
+      {[1, 2].map((i) => <Skeleton key={i} className="h-48 rounded-2xl" />)}
     </div>
   );
 
