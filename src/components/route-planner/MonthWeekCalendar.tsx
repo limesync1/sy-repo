@@ -194,7 +194,7 @@ const DayCell = ({
           {format(date, "d")}
         </span>
         <div className="flex items-center gap-1">
-          {weather && inMonth && (
+          {weather && (
             <WeatherBadge weather={weather} size={compact ? "compact" : "full"} />
           )}
           <button
