@@ -23,6 +23,8 @@ import { INTERVAL_LABELS } from "@/types/service";
 import { Link } from "react-router-dom";
 import CustomerEditDialog, { type EditableCustomer } from "./CustomerEditDialog";
 import { PageHeader, PrimaryButton, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
+import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
 type Customer = {
@@ -618,7 +620,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
 
       {/* List */}
       {isLoading ? (
-        <div className="text-center py-12 text-muted-foreground">Indlæser kunder...</div>
+        <ListCardSkeleton rows={6} />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={<User />}
@@ -933,7 +935,11 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
               </div>
 
               {isLoading ? (
-                <p className="text-sm text-muted-foreground text-center py-4">Indlæser detaljer...</p>
+                <div className="space-y-2 py-2">
+                  <Skeleton className="h-12 w-full rounded-lg" />
+                  <Skeleton className="h-12 w-full rounded-lg" />
+                  <Skeleton className="h-12 w-2/3 rounded-lg" />
+                </div>
               ) : (
                 <>
                   {/* Subscriptions — split active vs paused */}

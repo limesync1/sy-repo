@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useAdminFilters } from "./lib/AdminFiltersContext";
 import { exportCsv } from "./lib/csv";
 import { PageHeader, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
+import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
 const STATUS_OPTIONS = [
   { value: "pending", label: "Afventer" },
@@ -176,9 +177,7 @@ const PlatformOrdersTab = () => {
       )}
 
       {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-14 rounded-lg bg-secondary/40 animate-pulse" />)}
-        </div>
+        <ListCardSkeleton rows={6} />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={<ShoppingCart />}

@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PageHeader, PrimaryButton, FieldLabel, SectionCard, EmptyState, SearchInput } from "@/components/admin/shared/AdminUI";
+import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
 interface Props {
   businessId: string;
@@ -334,7 +335,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
         </SectionCard>
       )}
 
-      {isLoading && <p className="text-sm text-muted-foreground">Indlæser…</p>}
+      {isLoading && <ListCardSkeleton rows={4} />}
 
       {/* Liste — ét stort kort med header-bar og rækker adskilt af divide-y, ligesom Kunder. */}
       {!isLoading && all.length === 0 && !showForm ? (

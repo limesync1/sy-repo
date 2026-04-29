@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, MessageSquare } from "lucide-react";
 import { PageHeader, EmptyState, SearchInput } from "@/components/admin/shared/AdminUI";
+import { StatGridSkeleton, ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
 interface Props {
   reviews: any[];
@@ -32,12 +33,9 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <PageHeader title="Anmeldelser" description="Indlæser anmeldelser..." />
-        <div className="grid gap-3 sm:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-20 rounded-xl bg-secondary/40 animate-pulse" />
-          ))}
-        </div>
+        <PageHeader title="Anmeldelser" description="Henter anmeldelser…" />
+        <StatGridSkeleton count={3} cols="sm:grid-cols-3" />
+        <ListCardSkeleton rows={4} />
       </div>
     );
   }

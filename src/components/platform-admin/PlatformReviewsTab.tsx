@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { exportCsv } from "./lib/csv";
 import { PageHeader, SearchInput, EmptyState, StatCard, SectionCard } from "@/components/admin/shared/AdminUI";
+import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
 const PlatformReviewsTab = () => {
   const qc = useQueryClient();
@@ -127,9 +128,7 @@ const PlatformReviewsTab = () => {
       </div>
 
       {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 rounded-lg bg-secondary/40 animate-pulse" />)}
-        </div>
+        <ListCardSkeleton rows={5} />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={<Star />}

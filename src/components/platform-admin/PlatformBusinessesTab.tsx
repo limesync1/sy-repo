@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { exportCsv } from "./lib/csv";
 import { PageHeader, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
+import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
 
@@ -177,9 +178,7 @@ const PlatformBusinessesTab = () => {
       )}
 
       {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-16 rounded-lg bg-secondary/40 animate-pulse" />)}
-        </div>
+        <ListCardSkeleton rows={5} />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={<Building2 />}

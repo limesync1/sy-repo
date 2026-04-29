@@ -53,12 +53,13 @@ import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrde
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AdminShell } from "@/components/admin/shared/AdminShell";
 import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
+import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
 const RoutePlanner = () => {
   const { user, loading } = useAuth();
-  if (loading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
+  if (loading) return <ShellSkeleton />;
   if (!user) return <Navigate to="/log-ind" replace />;
   return <Planner />;
 };
