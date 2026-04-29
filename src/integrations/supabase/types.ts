@@ -2339,6 +2339,10 @@ export type Database = {
         Args: { _route_id: string; _user_id: string }
         Returns: boolean
       }
+      kick_accounting_sync: {
+        Args: { _business_id: string }
+        Returns: undefined
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
