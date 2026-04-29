@@ -1879,27 +1879,6 @@ const ServiceForm = ({
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                {accountingGroups.product_groups.length > 0 && (
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium text-foreground">
-                      {accountingGroups.labels?.product_groups ?? "Produktgruppe"}
-                    </label>
-                    <Select
-                      value={accountingProductGroup || "__default__"}
-                      onValueChange={(v) => setAccountingProductGroup(v === "__default__" ? "" : v)}
-                    >
-                      <SelectTrigger className="bg-card"><SelectValue placeholder="Brug standard" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__default__">
-                          Brug virksomhedens standard{accountingDefaults.default_product_group ? ` (${accountingGroups.product_groups.find(g => g.id === accountingDefaults.default_product_group)?.name ?? accountingDefaults.default_product_group})` : ""}
-                        </SelectItem>
-                        {accountingGroups.product_groups.map(g => (
-                          <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
                 {accountingGroups.income_accounts.length > 0 && (
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-foreground">
@@ -1921,9 +1900,9 @@ const ServiceForm = ({
                     </Select>
                   </div>
                 )}
-                {accountingGroups.product_groups.length === 0 && accountingGroups.income_accounts.length === 0 && (
+                {accountingGroups.income_accounts.length === 0 && (
                   <p className="text-xs text-muted-foreground sm:col-span-2">
-                    {accountingLoading ? "Henter kategorier fra dit regnskabsprogram…" : "Ingen kategorier fundet — sæt en standard på Regnskab-fanen."}
+                    {accountingLoading ? "Henter konti fra dit regnskabsprogram…" : "Ingen indtægtskonti fundet — sæt en standard på Regnskab-fanen."}
                   </p>
                 )}
               </div>
