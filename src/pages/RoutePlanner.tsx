@@ -585,6 +585,25 @@ const Planner = () => {
         contentClassName="flex flex-col overflow-hidden"
         topbarRight={
           <div className="flex items-center gap-1.5 flex-wrap justify-end">
+            {/* Hurtig periode-statistik — gør det øjeblikkeligt klart hvor
+                meget arbejde der ligger i den viste måned/uge. */}
+            {periodSummary.routeCount > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="hidden md:inline-flex items-center gap-2 h-7 px-2.5 rounded-md bg-secondary/60 border border-border/60 text-[11px] tabular-nums">
+                    <span className="font-semibold text-foreground">{periodSummary.routeCount}</span>
+                    <span className="text-muted-foreground">{periodSummary.routeCount === 1 ? "rute" : "ruter"}</span>
+                    <span className="text-border">·</span>
+                    <span className="font-semibold text-foreground">{periodSummary.stopCount}</span>
+                    <span className="text-muted-foreground">{periodSummary.stopCount === 1 ? "stop" : "stop"}</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  Overblik for {view === "week" ? "den viste uge" : "den viste måned"}
+                </TooltipContent>
+              </Tooltip>
+            )}
+
             <Tabs value={view} onValueChange={(v) => setView(v as any)}>
               <TabsList className="h-7">
                 <TabsTrigger value="month" className="text-xs h-5 px-2">Måned</TabsTrigger>
