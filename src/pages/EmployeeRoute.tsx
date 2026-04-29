@@ -1307,6 +1307,22 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
            skygge-, ring- og active-feedback er 100% ensartet. Aktive states
            bruger fremhævet baggrund + en lille indikator-prik. */}
         <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
+          {/* Map-stil toggle — altid synlig (også før start), så medarbejderen
+              kan vælge satellit-visning når han skal genkende parkering, indkørsel mm. */}
+          <button
+            type="button"
+            onClick={() => setMapStyle(mapStyle === "map" ? "satellite" : "map")}
+            className={`relative h-12 w-12 rounded-full backdrop-blur-md border shadow-[0_6px_20px_-6px_rgba(0,0,0,0.25)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.3)] transition-all duration-150 active:scale-[0.93] flex items-center justify-center ${
+              mapStyle === "satellite"
+                ? "bg-foreground text-background border-transparent"
+                : "bg-card/95 border-border/80 text-foreground hover:bg-secondary"
+            }`}
+            aria-label={mapStyle === "satellite" ? "Skift til kortvisning" : "Skift til satellit"}
+            aria-pressed={mapStyle === "satellite"}
+            title={mapStyle === "satellite" ? "Satellit — tryk for kort" : "Kort — tryk for satellit"}
+          >
+            <Layers className="h-[19px] w-[19px]" strokeWidth={2.25} />
+          </button>
           {routeStarted && !allDone && (
             <button
               type="button"
