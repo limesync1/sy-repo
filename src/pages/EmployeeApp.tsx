@@ -454,37 +454,30 @@ const EmployeeApp = () => {
               key={r.id}
               className="group surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md"
             >
-              {/* Header bar — neutral admin-style med farvet rute-prik */}
+              {/* Header — samme prik+titel+badge mønster som virksomhedspanelets
+                  rutekort, men med ét enkelt status-badge til højre. */}
               <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 sm:px-5">
                 <span
-                  className="h-7 w-7 shrink-0 rounded-lg border border-border flex items-center justify-center"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border shadow-sm"
                   style={{ background: color }}
                   aria-hidden
                 >
-                  <RouteIcon className="h-3.5 w-3.5 text-background" />
+                  <RouteIcon className="h-4 w-4 text-background" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-semibold text-foreground truncate">
+                  <h3 className="truncate text-sm font-semibold text-foreground">
                     {r.name || `Rute ${format(parseISO(r.route_date), "d. MMM", { locale: da })}`}
                   </h3>
-                  <div className="mt-0.5 flex items-center gap-1.5">
-                    <span className="text-xs text-muted-foreground">
-                      {total > 0
-                        ? `${done} af ${total} stop færdige`
-                        : "Ingen stop"}
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-1.5 py-px text-[10px] font-medium text-muted-foreground">
-                      {isTeamRoute ? (
-                        <><Users className="h-2.5 w-2.5" /> Team</>
-                      ) : (
-                        <><UserIcon className="h-2.5 w-2.5" /> Tildelt mig</>
-                      )}
-                    </span>
-                  </div>
+                  <p className="mt-0.5 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    {isTeamRoute ? (
+                      <><Users className="h-3 w-3" /> Team-rute</>
+                    ) : (
+                      <><UserIcon className="h-3 w-3" /> Tildelt mig</>
+                    )}
+                    <span aria-hidden>·</span>
+                    <span className="tabular-nums">{total > 0 ? `${done} af ${total} stop færdige` : "Ingen stop"}</span>
+                  </p>
                 </div>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs font-semibold tabular-nums text-foreground shrink-0">
-                  {done}/{total}
-                </span>
               </div>
 
               {/* Kort-preview */}
@@ -492,50 +485,57 @@ const EmployeeApp = () => {
 
               {/* Body */}
               <div className="space-y-4 p-4 sm:p-5">
-                {/* Meta-rad: start, varighed, distance */}
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
-                  <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5" />
-                    Start <span className="font-semibold text-foreground tabular-nums">{startTime}</span>
-                  </span>
-                  {r.total_duration_minutes != null && r.total_duration_minutes > 0 && (
-                    <span className="text-muted-foreground tabular-nums">
-                      Varighed{" "}
-                      <span className="font-semibold text-foreground">
-                        ~{Math.round(r.total_duration_minutes / 60)}t {r.total_duration_minutes % 60}min
-                      </span>
-                    </span>
-                  )}
-                  {r.total_distance_km != null && r.total_distance_km > 0 && (
-                    <span className="text-muted-foreground tabular-nums">
-                      Distance <span className="font-semibold text-foreground">{r.total_distance_km.toFixed(1)} km</span>
-                    </span>
-                  )}
+                {/* Meta-grid — strukturerede tal-felter ligesom statskort i
+                    virksomhedspanelet. Tre faste kolonner = forudsigelig
+                    visuel rytme på alle skærmstørrelser. */}
+                <div className="grid grid-cols-3 gap-2 rounded-lg border border-border bg-secondary/30 p-2.5">
+                  <div className="px-1">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Start</p>
+                    <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{startTime}</p>
+                  </div>
+                  <div className="border-l border-border px-2">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Varighed</p>
+                    <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">
+                      {r.total_duration_minutes != null && r.total_duration_minutes > 0
+                        ? `${Math.round(r.total_duration_minutes / 60)}t ${r.total_duration_minutes % 60}min`
+                        : "—"}
+                    </p>
+                  </div>
+                  <div className="border-l border-border px-2">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Distance</p>
+                    <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">
+                      {r.total_distance_km != null && r.total_distance_km > 0
+                        ? `${r.total_distance_km.toFixed(1)} km`
+                        : "—"}
+                    </p>
+                  </div>
                 </div>
 
                 {r.start_address && (
-                  <div className="flex items-start gap-2 rounded-lg border border-border bg-secondary/40 px-3 py-2 text-xs">
-                    <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+                  <div className="flex items-start gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs">
+                    <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                     <div className="min-w-0">
-                      <p className="text-[10px] font-medium text-muted-foreground">Startadresse</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Startadresse</p>
                       <p className="truncate text-foreground">{r.start_address}</p>
                     </div>
                   </div>
                 )}
 
                 {/* Fremskridt */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Fremskridt</span>
-                    <span className="font-semibold tabular-nums text-foreground">{progress}%</span>
+                {total > 0 && (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="font-semibold uppercase tracking-wide text-muted-foreground">Fremskridt</span>
+                      <span className="font-bold tabular-nums text-foreground">{done}/{total} · {progress}%</span>
+                    </div>
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+                      <div
+                        className="h-full transition-all duration-500"
+                        style={{ width: `${progress}%`, background: color }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                    <div
-                      className="h-full transition-all duration-500"
-                      style={{ width: `${progress}%`, background: color }}
-                    />
-                  </div>
-                </div>
+                )}
 
                 {/* Stop-preview liste — divide-y row-stil ligesom kunder/aftaler */}
                 {total > 0 && (
