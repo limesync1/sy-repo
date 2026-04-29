@@ -848,50 +848,71 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           <div className="grid gap-4 sm:grid-cols-2">
             {groups.customer_groups.length > 0 && (
               <div>
-                <FieldLabel>Kundegruppe (nye kunder)</FieldLabel>
+                <FieldLabel>
+                  {groups.labels?.customer_groups ?? "Kundegruppe"} (nye kunder)
+                </FieldLabel>
                 <Select
                   value={settings.default_customer_group ?? ""}
                   onValueChange={v => setSettings({ ...settings, default_customer_group: v })}
                 >
-                  <SelectTrigger><SelectValue placeholder="Vælg kundegruppe…" /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder={`Vælg ${(groups.labels?.customer_groups ?? "kundegruppe").toLowerCase()}…`} />
+                  </SelectTrigger>
                   <SelectContent>
                     {groups.customer_groups.map(g => (
                       <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {groups.labels?.customer_groups_help && (
+                  <p className="mt-1.5 text-xs text-muted-foreground">{groups.labels.customer_groups_help}</p>
+                )}
               </div>
             )}
             {groups.product_groups.length > 0 && (
               <div>
-                <FieldLabel>Produktgruppe (nye services)</FieldLabel>
+                <FieldLabel>
+                  {groups.labels?.product_groups ?? "Produktgruppe"} (nye services)
+                </FieldLabel>
                 <Select
                   value={settings.default_product_group ?? ""}
                   onValueChange={v => setSettings({ ...settings, default_product_group: v })}
                 >
-                  <SelectTrigger><SelectValue placeholder="Vælg produktgruppe…" /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder={`Vælg ${(groups.labels?.product_groups ?? "produktgruppe").toLowerCase()}…`} />
+                  </SelectTrigger>
                   <SelectContent>
                     {groups.product_groups.map(g => (
                       <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {groups.labels?.product_groups_help && (
+                  <p className="mt-1.5 text-xs text-muted-foreground">{groups.labels.product_groups_help}</p>
+                )}
               </div>
             )}
             {groups.income_accounts.length > 0 && (
               <div className="sm:col-span-2">
-                <FieldLabel>Indtægtskonto</FieldLabel>
+                <FieldLabel>
+                  {groups.labels?.income_accounts ?? "Indtægtskonto"}
+                </FieldLabel>
                 <Select
                   value={settings.default_income_account ?? ""}
                   onValueChange={v => setSettings({ ...settings, default_income_account: v })}
                 >
-                  <SelectTrigger><SelectValue placeholder="Vælg indtægtskonto…" /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder={`Vælg ${(groups.labels?.income_accounts ?? "konto").toLowerCase()}…`} />
+                  </SelectTrigger>
                   <SelectContent>
                     {groups.income_accounts.map(g => (
                       <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {groups.labels?.income_accounts_help && (
+                  <p className="mt-1.5 text-xs text-muted-foreground">{groups.labels.income_accounts_help}</p>
+                )}
               </div>
             )}
             {groups.customer_groups.length === 0 &&
