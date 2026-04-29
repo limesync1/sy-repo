@@ -2196,11 +2196,9 @@ const StopDetailsContent = ({
   }, [stop.assignee_ids, stop.required_staff]);
 
   const myCommissionPct = Number(meEmployee?.commission_pct || 0);
-  const myShare = orderTotal > 0 && myCommissionPct > 0
-    ? (orderTotal * (myCommissionPct / 100)) / sharers
-    : 0;
-  const formatKr = (n: number) =>
-    `${Math.round(n).toLocaleString("da-DK")} kr`;
+  // Provision: ekskl. 25% moms + delt med antal medarbejdere på opgaven.
+  const myShare = calcEmployeeShare(orderTotal, myCommissionPct, sharers);
+  const formatKr = formatKrUtil;
 
   // Betalingsstatus afledt af ordrens status. Medarbejderen ser kun et
   // simpelt badge — ikke faktura-detaljer. completed = betalt, in_progress
