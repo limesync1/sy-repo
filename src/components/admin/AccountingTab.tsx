@@ -843,20 +843,25 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
         {/* Bekræftelses-modaler */}
         <AlertDialog open={confirmDisable} onOpenChange={setConfirmDisable}>
-          <AlertDialogContent>
+          <AlertDialogContent className="rounded-xl">
             <AlertDialogHeader>
-              <AlertDialogTitle>Afbryd integration?</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                Afbryd integration?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="leading-relaxed">
                 Vi stopper med at sende dine aftaler, kunder og varer til {activeDef.label}.
                 Allerede synkroniserede data forbliver i {activeDef.label} — intet slettes.
                 Du kan altid forbinde igen senere.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Behold integration</AlertDialogCancel>
+              <AlertDialogCancel className="h-9 rounded-lg text-sm font-medium">
+                Behold integration
+              </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDisable}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="h-9 rounded-lg text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive"
               >
                 Ja, afbryd
               </AlertDialogAction>
@@ -865,18 +870,26 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         </AlertDialog>
 
         <AlertDialog open={confirmSwitch} onOpenChange={setConfirmSwitch}>
-          <AlertDialogContent>
+          <AlertDialogContent className="rounded-xl">
             <AlertDialogHeader>
-              <AlertDialogTitle>Skift regnskabsprogram?</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <RefreshCw className="h-5 w-5 text-foreground" />
+                Skift regnskabsprogram?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="leading-relaxed">
                 Du kan kun have ét regnskabsprogram forbundet ad gangen. Når du
                 vælger et nyt, stopper synkronisering med {activeDef.label} —
                 men dine data i begge systemer bevares.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Behold {activeDef.label}</AlertDialogCancel>
-              <AlertDialogAction onClick={() => { setConfirmSwitch(false); handleSwitchProvider(); }}>
+              <AlertDialogCancel className="h-9 rounded-lg text-sm font-medium">
+                Behold {activeDef.label}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => { setConfirmSwitch(false); handleSwitchProvider(); }}
+                className="h-9 rounded-lg text-sm font-medium bg-foreground text-background hover:bg-foreground/90"
+              >
                 Vælg nyt program
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -901,7 +914,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         title={integration?.is_active ? "Skift regnskabsprogram" : "Forbind regnskabsprogram"}
         description="Vi guider dig igennem på 3 trin — det tager typisk under 2 minutter."
         action={
-          <Button variant="ghost" size="sm" onClick={() => setMode("overview")}>
+          <Button
+            variant="outline"
+            onClick={() => setMode("overview")}
+            className="h-9 rounded-lg text-xs font-medium"
+          >
             <X className="mr-1.5 h-4 w-4" /> Annullér
           </Button>
         }
