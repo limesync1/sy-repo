@@ -239,3 +239,117 @@ export const RouteViewSkeleton = () => (
     </div>
   </div>
 );
+
+/* ─────────── Filter / søge-skeleton ─────────── */
+/**
+ * Bruges i toppen af lister (Kunder/Leads/Ordrer) FØR data er klar, eller
+ * mens en filter-handling kører. Matcher den typiske toolbar med
+ * søgefelt + 1-2 select/segmented chips + en handling-knap.
+ */
+export const FilterBarSkeleton = ({
+  withAction = true,
+  chips = 2,
+}: { withAction?: boolean; chips?: number }) => (
+  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+    <Skeleton className="h-10 w-full rounded-lg sm:max-w-md" />
+    <div className="flex items-center gap-2">
+      {Array.from({ length: chips }).map((_, i) => (
+        <Skeleton key={i} className="h-9 w-24 rounded-lg" />
+      ))}
+      {withAction && <Skeleton className="h-9 w-28 rounded-lg" />}
+    </div>
+  </div>
+);
+
+/* ─────────── Dialog skeletons ─────────── */
+/**
+ * Generisk skeleton der matcher en åben Dialog/Sheet med titel + form.
+ * Brug i stedet for at vise en blank dialog mens detaljer hentes.
+ */
+export const DialogFormSkeleton = ({ fields = 5 }: { fields?: number }) => (
+  <div className="space-y-5">
+    {/* Header */}
+    <div className="flex items-start gap-3">
+      <Skeleton className="h-12 w-12 rounded-lg" />
+      <div className="flex-1 space-y-2">
+        <Skeleton className="h-5 w-1/2" />
+        <Skeleton className="h-3 w-1/3" />
+      </div>
+    </div>
+    {/* Felter */}
+    <div className="space-y-3">
+      {Array.from({ length: fields }).map((_, i) => (
+        <div key={i} className="space-y-2">
+          <Skeleton className="h-3 w-20" />
+          <Skeleton className="h-9 w-full rounded-md" />
+        </div>
+      ))}
+    </div>
+    {/* Footer */}
+    <div className="flex justify-end gap-2 pt-2">
+      <Skeleton className="h-9 w-24 rounded-md" />
+      <Skeleton className="h-9 w-28 rounded-md" />
+    </div>
+  </div>
+);
+
+/**
+ * Detalje-skeleton — bruges i Sheets der viser kunde/lead/ordre detaljer:
+ * sektioner med små header-labels og rækker med ikon + tekst.
+ */
+export const DialogDetailsSkeleton = ({ sections = 3 }: { sections?: number }) => (
+  <div className="space-y-5">
+    {Array.from({ length: sections }).map((_, s) => (
+      <div key={s} className="space-y-2">
+        <Skeleton className="h-3 w-20" />
+        <Card className="rounded-xl border-border/80 shadow-sm divide-y divide-border">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 p-3">
+              <Skeleton className="h-4 w-4 rounded-sm" />
+              <Skeleton className="h-3.5 flex-1" />
+            </div>
+          ))}
+        </Card>
+      </div>
+    ))}
+  </div>
+);
+
+/* ─────────── Inline tekst-skeleton (AI udkast, beskeder, beskrivelser) ─────────── */
+/**
+ * Bruges fx mens AI genererer et lead-svar — i stedet for en spinner viser
+ * vi tekst-linjer der pulserer, så feltet føles "fyldt" og brugeren ved at
+ * indhold er på vej.
+ */
+export const InlineTextSkeleton = ({
+  lines = 4,
+  className,
+}: { lines?: number; className?: string }) => (
+  <div className={cn("space-y-2", className)}>
+    {Array.from({ length: lines }).map((_, i) => (
+      <Skeleton
+        key={i}
+        className={cn(
+          "h-3.5",
+          i === lines - 1 ? "w-2/3" : i % 2 === 0 ? "w-full" : "w-11/12",
+        )}
+      />
+    ))}
+  </div>
+);
+
+/* ─────────── Resultatkort-grid (søgeside / katalog) ─────────── */
+export const CardGridSkeleton = ({
+  count = 8,
+  cols = "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+}: { count?: number; cols?: string }) => (
+  <div className={cn("grid gap-x-5 gap-y-8", cols)}>
+    {Array.from({ length: count }).map((_, i) => (
+      <div key={i} className="space-y-3">
+        <Skeleton className="aspect-[4/3] w-full rounded-2xl" />
+        <Skeleton className="h-4 w-2/3" />
+        <Skeleton className="h-3 w-1/2" />
+      </div>
+    ))}
+  </div>
+);
