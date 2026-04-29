@@ -685,10 +685,4 @@ const EmployeeApp = () => {
   );
 };
 
-const Loader = () => (
-  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-secondary">
-    <div className="h-4 w-4 rounded-full border-2 border-muted-foreground border-t-transparent animate-spin" />
-  </div>
-);
-
 export default EmployeeApp;
