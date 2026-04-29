@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import SmartLink from "@/components/SmartLink";
 import { Menu, X, LogOut, ChevronDown, User, Briefcase, ShieldCheck, Truck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
@@ -127,7 +128,7 @@ const SiteNav = ({ active, right }: Props) => {
               links plus højre-side knapper kan være på linjen. */}
           <div className="hidden items-center gap-1 rounded-full border border-border/70 bg-card/80 p-1 md:flex">
             {NAV_ITEMS.map((item) => (
-              <Link
+              <SmartLink
                 key={item.key}
                 to={item.to}
                 className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors lg:px-4 lg:py-2 ${
@@ -137,7 +138,7 @@ const SiteNav = ({ active, right }: Props) => {
                 }`}
               >
                 {item.label}
-              </Link>
+              </SmartLink>
             ))}
           </div>
 
@@ -214,7 +215,7 @@ const SiteNav = ({ active, right }: Props) => {
         {open && (
           <div className="mb-3 rounded-2xl border border-border bg-card p-2 shadow-lg md:hidden">
             {NAV_ITEMS.map((item) => (
-              <Link
+              <SmartLink
                 key={item.key}
                 to={item.to}
                 onClick={() => setOpen(false)}
@@ -223,7 +224,7 @@ const SiteNav = ({ active, right }: Props) => {
                 }`}
               >
                 {item.label}
-              </Link>
+              </SmartLink>
             ))}
             <div className="my-1 h-px bg-border" />
             {user ? (
