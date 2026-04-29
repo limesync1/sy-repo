@@ -531,21 +531,55 @@ async function pushCustomer(admin: SupabaseClient, integ: Integration, adapter: 
       ? `business_customer_id.eq.${customerId}`
       : `private_customer_id.eq.${customerId}`).maybeSingle();
 
-  const result = await adapter.upsertCustomer({
-    internal_id: customerId,
+  const fullPayload = {
     name: table === "business_customers" ? row.company_name : row.name,
-    email: row.email, phone: row.phone,
+    email: row.email,
+    phone: row.phone,
     cvr: table === "business_customers" ? row.cvr : null,
     ean: table === "business_customers" ? row.ean_number : null,
-    address: row.address, zip_code: row.zip_code, city: row.city,
+    address: row.address,
+    zip_code: row.zip_code,
+    city: row.city,
     payment_terms_days: row.payment_terms_days,
     currency: row.currency,
+  } as const;
+
+  // Felt-diff: send kun ændrede felter ved opdatering så vi ikke
+  // overskriver nyere værdier rettet i regnskabsprogrammet. Ved første
+  // push (intet eksisterende link) sender vi alt.
+  const state = existingLink?.external_id
+    ? await getFieldState(admin, integ.business_id, integ.provider, "customer", customerId)
+    : {};
+  const changed = existingLink?.external_id
+    ? diffForPush(fullPayload, state)
+    : { ...fullPayload };
+
+  // Hvis intet er ændret OG vi har et link OG link er nyt synket, skip.
+  if (existingLink?.external_id && Object.keys(changed).length === 0) {
+    return;
+  }
+
+  const result = await adapter.upsertCustomer({
+    internal_id: customerId,
+    // Navn skal altid med så Billy/Dinero ved hvilken kontakt vi mener
+    name: (changed as any).name ?? fullPayload.name,
+    email: (changed as any).email,
+    phone: (changed as any).phone,
+    cvr: (changed as any).cvr,
+    ean: (changed as any).ean,
+    address: (changed as any).address,
+    zip_code: (changed as any).zip_code,
+    city: (changed as any).city,
+    payment_terms_days: (changed as any).payment_terms_days,
+    currency: (changed as any).currency,
     external_id: existingLink?.external_id,
   });
   await upsertCustomerLink(
     admin, integ, { external_id: result.external_id, external_number: result.external_number, raw: result.raw },
     customerId, table === "business_customers" ? "business_customer" : "private_customer", "push",
   );
+  // Husk hvad vi sendte, så næste diff er korrekt.
+  await recordPushedFields(admin, integ.business_id, integ.provider, "customer", customerId, fullPayload);
   await logSync(admin, {
     business_id: integ.business_id, provider: integ.provider, direction: "push",
     entity_type: "customer", entity_id: customerId, external_id: result.external_id,
@@ -560,11 +594,31 @@ async function pushProduct(admin: SupabaseClient, integ: Integration, adapter: A
   const { data: existing } = await admin.from("accounting_product_links")
     .select("external_id").eq("business_id", integ.business_id)
     .eq("provider", integ.provider).eq("service_id", serviceId).maybeSingle();
-  const result = await adapter.upsertProduct({
-    internal_id: serviceId, name: svc.name, description: svc.description,
-    unit_price: Number(svc.base_price ?? 0), vat_rate: Number(svc.default_vat_rate ?? 25),
+  const fullPayload = {
+    name: svc.name,
+    description: svc.description,
+    unit_price: Number(svc.base_price ?? 0),
+    vat_rate: Number(svc.default_vat_rate ?? 25),
     account_number: svc.accounting_income_account ?? svc.accounting_account_number ?? null,
     product_group: svc.accounting_product_group ?? null,
+  } as const;
+
+  const state = existing?.external_id
+    ? await getFieldState(admin, integ.business_id, integ.provider, "product", serviceId)
+    : {};
+  const changed = existing?.external_id
+    ? diffForPush(fullPayload, state)
+    : { ...fullPayload };
+  if (existing?.external_id && Object.keys(changed).length === 0) return;
+
+  const result = await adapter.upsertProduct({
+    internal_id: serviceId,
+    name: (changed as any).name ?? fullPayload.name,
+    description: (changed as any).description,
+    unit_price: (changed as any).unit_price ?? fullPayload.unit_price,
+    vat_rate: (changed as any).vat_rate,
+    account_number: (changed as any).account_number,
+    product_group: (changed as any).product_group,
     external_id: existing?.external_id,
   });
   await admin.from("accounting_product_links").upsert({
@@ -572,6 +626,7 @@ async function pushProduct(admin: SupabaseClient, integ: Integration, adapter: A
     external_id: result.external_id, external_product_number: result.external_number,
     last_synced_at: new Date().toISOString(),
   }, { onConflict: "business_id,provider,service_id" });
+  await recordPushedFields(admin, integ.business_id, integ.provider, "product", serviceId, fullPayload);
   await logSync(admin, {
     business_id: integ.business_id, provider: integ.provider, direction: "push",
     entity_type: "product", entity_id: serviceId, external_id: result.external_id,
