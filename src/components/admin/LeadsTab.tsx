@@ -390,7 +390,6 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                     const qr = l.quote_request;
                     const status = STATUS_LABELS[l.status] ?? STATUS_LABELS.new;
                     const share = qr?.share_contact !== false;
-                    const isHot = l._p.priority === "hot" && l.status !== "won" && l.status !== "declined";
                     const isDue = !!l.follow_up_at && new Date(l.follow_up_at).getTime() <= Date.now() && l.status !== "won" && l.status !== "declined";
                     const isSelected = selected.has(l.id);
 
