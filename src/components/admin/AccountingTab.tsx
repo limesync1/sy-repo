@@ -12,7 +12,8 @@ import { toast } from "sonner";
 import {
   Loader2, RefreshCw, Check, AlertCircle, ExternalLink, Eye, EyeOff,
   ArrowLeft, ArrowRight, Plug, Settings2, ShieldCheck, Calculator,
-  Clock, ListChecks, Sparkles, X,
+  Clock, ListChecks, Sparkles, X, Upload, Download, RotateCw, AlertTriangle,
+  Copy,
 } from "lucide-react";
 import {
   PageHeader, PrimaryButton, SectionCard, StatCard, EmptyState, FieldLabel,
@@ -181,6 +182,31 @@ const formatRelativeDanish = (iso: string | null): string => {
   return new Date(iso).toLocaleDateString("da-DK");
 };
 
+// Cron-jobbet kører hver hele time (HH:00). Beregn hvornår næste kørsel er.
+const nextHourlyRun = (): Date => {
+  const d = new Date();
+  d.setMinutes(0, 0, 0);
+  d.setHours(d.getHours() + 1);
+  return d;
+};
+
+const formatCountdown = (d: Date): string => {
+  const ms = d.getTime() - Date.now();
+  if (ms <= 0) return "Nu";
+  const totalMin = Math.ceil(ms / 60_000);
+  if (totalMin < 60) return `om ${totalMin} min`;
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return m === 0 ? `om ${h} t.` : `om ${h} t. ${m} min`;
+};
+
+const ENTITY_LABEL: Record<string, string> = {
+  customer: "Kunde",
+  product: "Vare",
+  order: "Aftale",
+  connection: "Forbindelse",
+};
+
 export default function AccountingTab({ businessId }: { businessId: string; businessName: string }) {
   const [integration, setIntegration] = useState<Integration | null>(null);
   const [mode, setMode] = useState<Mode>("overview");
@@ -203,8 +229,20 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const [syncing, setSyncing] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [queueCount, setQueueCount] = useState(0);
+  const [failedJobs, setFailedJobs] = useState<any[]>([]);
+  const [pushedLast24h, setPushedLast24h] = useState(0);
+  const [pulledLast24h, setPulledLast24h] = useState(0);
+  const [lastSuccessPush, setLastSuccessPush] = useState<string | null>(null);
+  const [lastSuccessPull, setLastSuccessPull] = useState<string | null>(null);
+  // Re-render hvert minut så "om X min"-tæller forbliver retvisende
+  const [, setNowTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setNowTick(n => n + 1), 60_000);
+    return () => clearInterval(t);
+  }, []);
   const [confirmDisable, setConfirmDisable] = useState(false);
   const [confirmSwitch, setConfirmSwitch] = useState(false);
+  const [retryingJobId, setRetryingJobId] = useState<string | null>(null);
 
   const currentProvider = useMemo(
     () => PROVIDERS.find(p => p.value === provider)!,
@@ -238,6 +276,45 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       .select("*", { count: "exact", head: true })
       .eq("business_id", businessId).in("status", ["pending", "failed"]);
     setQueueCount(count ?? 0);
+
+    // Detaljeret fejl-liste fra køen (indeholder entity-id + præcis fejltekst)
+    const { data: failed } = await supabase.from("accounting_sync_queue" as any)
+      .select("*")
+      .eq("business_id", businessId)
+      .eq("status", "failed")
+      .order("updated_at", { ascending: false })
+      .limit(20);
+    setFailedJobs((failed as any) ?? []);
+
+    // Tællere for sidste 24 timer (push/pull) — viser i status-grid
+    const since24 = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const [{ count: pushedC }, { count: pulledC }] = await Promise.all([
+      supabase.from("accounting_sync_log" as any)
+        .select("*", { count: "exact", head: true })
+        .eq("business_id", businessId).eq("status", "success").eq("direction", "push")
+        .gte("created_at", since24),
+      supabase.from("accounting_sync_log" as any)
+        .select("*", { count: "exact", head: true })
+        .eq("business_id", businessId).eq("status", "success").eq("direction", "pull")
+        .gte("created_at", since24),
+    ]);
+    setPushedLast24h(pushedC ?? 0);
+    setPulledLast24h(pulledC ?? 0);
+
+    // Sidste succesrige push/pull tidspunkt — vises som "hint" på stat-cards
+    const [{ data: lastPush }, { data: lastPull }] = await Promise.all([
+      supabase.from("accounting_sync_log" as any)
+        .select("created_at").eq("business_id", businessId)
+        .eq("status", "success").eq("direction", "push")
+        .order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("accounting_sync_log" as any)
+        .select("created_at").eq("business_id", businessId)
+        .eq("status", "success").eq("direction", "pull")
+        .order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    ]);
+    setLastSuccessPush((lastPush as any)?.created_at ?? null);
+    setLastSuccessPull((lastPull as any)?.created_at ?? null);
+
     setLoading(false);
   };
 
@@ -348,6 +425,44 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     setCreds({});
     setTestResult(null);
     startWizard();
+  };
+
+  // Marker job som pending igen og kør synk med det samme. Bruges fra
+  // fejl-sektionen under hver fejlende række.
+  const handleRetryJob = async (jobId: string) => {
+    setRetryingJobId(jobId);
+    try {
+      const { error } = await supabase.from("accounting_sync_queue" as any)
+        .update({ status: "pending", scheduled_for: new Date().toISOString(), last_error: null })
+        .eq("id", jobId);
+      if (error) throw error;
+      const r = await supabase.functions.invoke("accounting-sync", {
+        body: { business_id: businessId, mode: "queue" },
+      });
+      if (r.error) throw r.error;
+      toast.success("Forsøgt igen");
+      await load();
+    } catch (e: any) {
+      toast.error(e.message ?? "Kunne ikke prøve igen");
+    } finally { setRetryingJobId(null); }
+  };
+
+  const handleRetryAllFailed = async () => {
+    if (failedJobs.length === 0) return;
+    setSyncing(true);
+    try {
+      await supabase.from("accounting_sync_queue" as any)
+        .update({ status: "pending", scheduled_for: new Date().toISOString(), last_error: null })
+        .eq("business_id", businessId).eq("status", "failed");
+      const r = await supabase.functions.invoke("accounting-sync", {
+        body: { business_id: businessId, mode: "queue" },
+      });
+      if (r.error) throw r.error;
+      toast.success("Alle fejlende jobs forsøgt igen");
+      await load();
+    } catch (e: any) {
+      toast.error(e.message ?? "Kunne ikke prøve igen");
+    } finally { setSyncing(false); }
   };
 
   // Læg alle eksisterende kunder/services/ordrer i køen (idempotent — duplicates
