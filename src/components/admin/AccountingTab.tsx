@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, RefreshCw, Check, AlertCircle, Calculator } from "lucide-react";
+import { Loader2, RefreshCw, Check, AlertCircle } from "lucide-react";
 import { PageHeader, SectionCard } from "@/components/admin/shared/AdminUI";
 
 type Provider = "economic" | "billy" | "dinero";
@@ -159,9 +159,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   return (
     <div className="space-y-6">
       <PageHeader
-        icon={Calculator}
         title="Regnskab"
-        subtitle="Forbind dit regnskabsprogram. Kunder, services og aftaler synkroniseres automatisk."
+        description="Forbind dit regnskabsprogram. Kunder, services og aftaler synkroniseres automatisk."
       />
 
       {/* Status */}
