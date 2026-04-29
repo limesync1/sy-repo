@@ -34,6 +34,7 @@ import { smoothPolyline } from "@/components/employee-route/smoothPolyline";
 import { useSmoothZoom } from "@/components/employee-route/useSmoothZoom";
 import { useQueryClient } from "@tanstack/react-query";
 import { pickDuration } from "@/components/route/EtaBreakdown";
+import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
 
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
