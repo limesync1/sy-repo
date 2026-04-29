@@ -1694,7 +1694,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pb-[50px] pointer-events-none">
+          <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-3 pb-3 pointer-events-none">
             <Card
               className="overflow-hidden pointer-events-auto rounded-2xl border-border shadow-2xl"
             >
