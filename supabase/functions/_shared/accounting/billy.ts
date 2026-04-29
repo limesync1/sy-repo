@@ -22,18 +22,38 @@ function makeHeaders(creds: AccountingCredentials): HeadersInit {
   };
 }
 
+function friendlyBillyError(status: number, body: string): string {
+  const lower = body.toLowerCase();
+  if (status === 401 || status === 403 || lower.includes("unauthorized")) {
+    return "Billy afviste API-nøglen. Tjek at dit Access Token er korrekt og ikke udløbet (Indstillinger → API i Billy).";
+  }
+  if (status === 404) return "Billy kunne ikke finde det forespurgte. Tjek at din konto er aktiv.";
+  if (status === 429) return "For mange forespørgsler til Billy — prøv igen om et øjeblik.";
+  if (status >= 500) return "Billys servere svarer ikke lige nu. Prøv igen om et par minutter.";
+  try {
+    const j = JSON.parse(body);
+    if (j?.errorMessage) return `Billy: ${j.errorMessage}`;
+    if (j?.helpUrl && j?.message) return `Billy: ${j.message}`;
+    if (j?.message) return `Billy: ${j.message}`;
+  } catch { /* ignore */ }
+  return `Billy afviste forespørgslen (${status}).`;
+}
+
 async function billyRequest(
   creds: AccountingCredentials,
   path: string,
   init: RequestInit = {},
 ): Promise<any> {
+  if (!creds.api_token) {
+    throw new Error("Mangler API Access Token.");
+  }
   const res = await fetch(`${BASE}${path}`, {
     ...init,
     headers: { ...makeHeaders(creds), ...(init.headers ?? {}) },
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Billy ${res.status}: ${text}`);
+    throw new Error(friendlyBillyError(res.status, text));
   }
   if (res.status === 204) return null;
   return await res.json();
