@@ -935,7 +935,11 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
               </div>
 
               {isLoading ? (
-                <p className="text-sm text-muted-foreground text-center py-4">Indlæser detaljer...</p>
+                <div className="space-y-2 py-2">
+                  <Skeleton className="h-12 w-full rounded-lg" />
+                  <Skeleton className="h-12 w-full rounded-lg" />
+                  <Skeleton className="h-12 w-2/3 rounded-lg" />
+                </div>
               ) : (
                 <>
                   {/* Subscriptions — split active vs paused */}
