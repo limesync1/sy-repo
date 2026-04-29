@@ -108,22 +108,35 @@ export function makeDineroAdapter(
     },
 
     async listGroups(): Promise<ExternalGroups> {
-      // Dinero har ikke kundegrupper. Indtægts-konti hentes via /accounts/entry.
-      // Produkt-"grupper" eksisterer ikke som sådan; bruger konti som proxy.
+      // Dinero har ikke kunde- eller produktgrupper. Det eneste relevante
+      // valg er hvilken konto varen skal bogføres på.
       const accts = await dineroRequest(creds, orgId, `/accounts/entry`).catch(() => []);
       const list = (Array.isArray(accts) ? accts : (accts?.Collection ?? [])) as any[];
-      const income = list.filter(a => {
-        const num = Number(a.AccountNumber ?? a.accountNumber ?? 0);
-        return num >= 1000 && num <= 1999;
-      });
+      const income = list
+        .filter(a => {
+          const num = Number(a.AccountNumber ?? a.accountNumber ?? 0);
+          // Dansk standardkontoplan: 1000-3999 = omsætning/indtægter
+          if (num >= 1000 && num <= 3999) return true;
+          // Eller kategori-feltet hvis det findes
+          const cat = String(a.Category ?? a.category ?? "").toLowerCase();
+          return cat.includes("sale") || cat.includes("revenue") || cat.includes("indt");
+        })
+        .filter(a => a.IsArchived !== true)
+        .sort((a, b) =>
+          Number(a.AccountNumber ?? a.accountNumber ?? 0) -
+          Number(b.AccountNumber ?? b.accountNumber ?? 0));
       const groups = income.map(a => ({
         id: String(a.AccountNumber ?? a.accountNumber),
         name: `${a.AccountNumber ?? a.accountNumber} — ${a.Name ?? a.name}`,
       }));
       return {
         customer_groups: [],
-        product_groups: groups,   // Dinero: produktgruppe = indtægtskonto
+        product_groups: [],   // Dinero har ikke produktgrupper
         income_accounts: groups,
+        labels: {
+          income_accounts: "Konto",
+          income_accounts_help: "Bogføringskonto for nye varer i Dinero (typisk 1000-serien for omsætning).",
+        },
       };
     },
 
