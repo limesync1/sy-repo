@@ -853,7 +853,7 @@ const ProfileView = () => {
     }
   }, [profile]);
 
-  if (isLoading) return <div className="h-40 animate-pulse rounded-2xl bg-secondary/50" />;
+  if (isLoading) return <Skeleton className="h-40 rounded-2xl" />;
 
   const handleSave = () => {
     if (!user) return;
