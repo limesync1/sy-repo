@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -13,7 +14,7 @@ import {
   Loader2, RefreshCw, Check, AlertCircle, ExternalLink, Eye, EyeOff,
   ArrowLeft, ArrowRight, Plug, Settings2, ShieldCheck, Calculator,
   Clock, ListChecks, Sparkles, X, Upload, Download, RotateCw, AlertTriangle,
-  Copy,
+  Copy, FolderTree,
 } from "lucide-react";
 import {
   PageHeader, PrimaryButton, SectionCard, StatCard, EmptyState, FieldLabel,
@@ -163,6 +164,9 @@ interface Integration {
     default_vat_rate?: number;
     auto_create_products?: boolean;
     send_order_as?: "order" | "invoice_draft" | "quote";
+    default_customer_group?: string;
+    default_product_group?: string;
+    default_income_account?: string;
   };
 }
 
