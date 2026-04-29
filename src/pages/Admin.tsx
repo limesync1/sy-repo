@@ -1407,7 +1407,7 @@ const ServiceForm = ({
               </div>
 
               {rankedTemplates.length > 0 && (
-                <div className="surface-admin rounded-xl border border-border/80 p-4 sm:p-5 space-y-3">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-2">
                       <Sparkles className="h-4 w-4 text-muted-foreground" />
@@ -1426,39 +1426,50 @@ const ServiceForm = ({
                       </span>
                     )}
                   </div>
-                  {steps.length === 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      Vælg den der passer bedst — du kan finjustere alle priser bagefter.
-                    </p>
-                  )}
-                  <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-                    {rankedTemplates.slice(0, 3).map((t, idx) => (
-                      <button
-                        key={t.label}
-                        type="button"
-                        onClick={() => applyTemplate(t)}
-                        className={`group relative rounded-xl border p-4 text-left transition-all hover:shadow-sm hover:-translate-y-0.5 ${
-                          idx === 0 && isBestMatch
-                            ? "border-foreground bg-card"
-                            : "border-border bg-card hover:border-foreground/40"
-                        }`}
-                      >
-                        {idx === 0 && isBestMatch && (
-                          <span className="absolute -top-2 left-3 rounded-full bg-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-background">
-                            Bedste match
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {rankedTemplates.slice(0, 3).map((t, idx) => {
+                      const isBest = idx === 0 && isBestMatch;
+                      return (
+                        <button
+                          key={t.label}
+                          type="button"
+                          onClick={() => applyTemplate(t)}
+                          className={`group relative flex flex-col rounded-xl border bg-card p-4 text-left transition-all hover:border-foreground/50 hover:shadow-md ${
+                            isBest ? "border-foreground/70 ring-1 ring-foreground/10" : "border-border"
+                          }`}
+                        >
+                          {isBest && (
+                            <span className="absolute -top-2 left-3 rounded-full bg-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-background">
+                              Bedste match
+                            </span>
+                          )}
+                          <span className="block text-sm font-semibold text-foreground">{t.label}</span>
+                          <span className="mt-1 block text-[11px] text-muted-foreground">
+                            {t.steps.length} trin · {Array.from(new Set(t.steps.map((s) => s.unit))).join(", ")}
                           </span>
-                        )}
-                        <span className="block text-sm font-semibold text-foreground">{t.label}</span>
-                        <span className="mt-1 block text-xs text-muted-foreground">
-                          {t.steps.length} trin · {Array.from(new Set(t.steps.map((s) => s.unit))).join(", ")}
-                        </span>
-                        <span className="mt-2 block text-xs text-muted-foreground/80 line-clamp-2">
-                          {t.steps.slice(0, 3).map((s) => s.label).join(" · ")}
-                          {t.steps.length > 3 ? " …" : ""}
-                        </span>
-                      </button>
-                    ))}
+                          <span className="mt-2 block text-xs text-muted-foreground/80 line-clamp-2">
+                            {t.steps.slice(0, 3).map((s) => s.label).join(" · ")}
+                            {t.steps.length > 3 ? " …" : ""}
+                          </span>
+                          <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-foreground/70 group-hover:text-foreground">
+                            Brug skabelon →
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSteps([]);
+                      setAutoSuggestionApplied(true);
+                      addStep();
+                    }}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card/50 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-foreground/40 hover:bg-card hover:text-foreground"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Byg selv fra bunden — uden skabelon
+                  </button>
                 </div>
               )}
 
