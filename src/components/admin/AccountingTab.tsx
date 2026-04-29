@@ -362,12 +362,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       const { error } = await supabase.from("accounting_integrations" as any)
         .upsert(payload, { onConflict: "business_id" });
       if (error) throw error;
-      // Seed-kø: læg ALLE eksisterende kunder, services og aftaler i synk-køen
-      // så det første push faktisk skubber data afsted (triggere fanger kun
-      // fremtidige ændringer).
-      await seedQueue(businessId);
       toast.success(`${currentProvider.label} er nu integreret — synkroniserer dine data…`);
       // Kør første synk i baggrunden så brugeren ser resultatet med det samme
+      // (edge function auto-seeder køen hvis den er tom — også for "skygge-
+      // kunder" der kun findes på orders.customer_email)
       runFullSync(businessId).catch(() => { /* fejl vises via load() */ });
       await load();
     } catch (e: any) {
