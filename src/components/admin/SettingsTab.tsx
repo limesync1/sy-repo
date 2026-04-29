@@ -988,9 +988,9 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <Link2 className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-foreground">Permalink (offentlig adresse)</p>
+                  <p className="text-sm font-semibold text-foreground">Jeres link på Serviceydere</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Den korte adresse til din virksomhed på Serviceydere. Skift kun, hvis det er nødvendigt — gamle links holder op med at virke.
+                    Det her er det link kunderne åbner, når de finder jer. Skriv jeres firmanavn med små bogstaver og bindestreger i stedet for mellemrum (fx <span className="font-mono">nord-rengoering</span>). Pas på med at ændre det, når I først har delt det — gamle links holder op med at virke.
                   </p>
                   <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                     <div className="flex h-10 items-center rounded-l-lg border border-r-0 border-border bg-muted px-3 text-xs text-muted-foreground">
@@ -1011,15 +1011,15 @@ const SettingsTab = ({ business }: { business: any }) => {
                       disabled={!slugChanged || slugStatus === "checking" || slugStatus === "taken" || slugStatus === "invalid"}
                       className="h-10 rounded-lg"
                     >
-                      Gem permalink
+                      Gem link
                     </Button>
                   </div>
                   <p className="mt-2 text-xs">
                     {slugStatus === "current" && <span className="text-muted-foreground">Aktuel adresse: <span className="font-mono text-foreground">/v/{business.slug}</span></span>}
-                    {slugStatus === "checking" && <span className="inline-flex items-center gap-1 text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Tjekker tilgængelighed…</span>}
-                    {slugStatus === "available" && <span className="inline-flex items-center gap-1 text-success"><CheckCircle2 className="h-3 w-3" /> Ledigt — klar til at gemme</span>}
-                    {slugStatus === "taken" && <span className="inline-flex items-center gap-1 text-destructive"><XCircle className="h-3 w-3" /> Optaget — vælg et andet</span>}
-                    {slugStatus === "invalid" && <span className="inline-flex items-center gap-1 text-destructive"><AlertCircle className="h-3 w-3" /> Brug 3-60 tegn: små bogstaver, tal og bindestreg</span>}
+                    {slugStatus === "checking" && <span className="inline-flex items-center gap-1 text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Tjekker om navnet er ledigt…</span>}
+                    {slugStatus === "available" && <span className="inline-flex items-center gap-1 text-success"><CheckCircle2 className="h-3 w-3" /> Ledigt — du kan trygt gemme</span>}
+                    {slugStatus === "taken" && <span className="inline-flex items-center gap-1 text-destructive"><XCircle className="h-3 w-3" /> En anden virksomhed bruger allerede dette — prøv noget andet</span>}
+                    {slugStatus === "invalid" && <span className="inline-flex items-center gap-1 text-destructive"><AlertCircle className="h-3 w-3" /> Brug 3-60 tegn — kun små bogstaver, tal og bindestreger (ingen æ, ø, å eller mellemrum)</span>}
                   </p>
                 </div>
               </div>
