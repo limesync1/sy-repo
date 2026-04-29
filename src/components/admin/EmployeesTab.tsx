@@ -52,6 +52,28 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "linked" | "pending">("all");
 
+  // Indtjenings-periode (i dag, denne uge, denne måned, seneste 6 mdr, YTD, alt)
+  type RangeKey = "today" | "week" | "month" | "6m" | "ytd" | "all";
+  const [earnRange, setEarnRange] = useState<RangeKey>("month");
+  const { from, to } = useMemo(() => {
+    const t = new Date();
+    const fmt = (d: Date) => format(d, "yyyy-MM-dd");
+    switch (earnRange) {
+      case "today":  return { from: fmt(t), to: fmt(t) };
+      case "week":   return { from: fmt(startOfWeek(t, { weekStartsOn: 1 })), to: fmt(endOfWeek(t, { weekStartsOn: 1 })) };
+      case "month":  return { from: fmt(startOfMonth(t)), to: fmt(endOfMonth(t)) };
+      case "6m":     return { from: fmt(subMonths(t, 6)), to: fmt(t) };
+      case "ytd":    return { from: fmt(startOfYear(t)), to: fmt(endOfYear(t)) };
+      case "all":
+      default:       return { from: "2000-01-01", to: fmt(t) };
+    }
+  }, [earnRange]);
+  const RANGE_LABELS: Record<RangeKey, string> = {
+    today: "I dag", week: "Denne uge", month: "Denne måned",
+    "6m": "Seneste 6 mdr", ytd: "I år", all: "I alt",
+  };
+  const { data: earningsMap } = useEmployeeEarnings(businessId, from, to);
+
   const resetForm = () => {
     setName(""); setEmail(""); setPhone(""); setTitle(""); setCommissionPct("");
     setShowForm(false);
