@@ -234,7 +234,7 @@ const buildSteps = (ctx: Ctx): Step[] => {
       title: "Slå live-chat til",
       description: "Med live-chat kan besøgende stille spørgsmål direkte fra jeres profil — det forvandler nysgerrige besøgende til kunder. Slås til under Ekstra funktioner.",
       cta: "Aktivér live-chat",
-      href: `${settingsHref}#extra-features`,
+      href: `${settingsHref}#settings-advanced`,
       icon: MessageCircle,
       // Kun relevant når basis-profilen er på plads — ellers spilder I tid
       // på at chatte med folk før profilen overhovedet er klar.
