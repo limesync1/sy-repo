@@ -24,6 +24,7 @@ import {
   unlockAudio, playArrivalChime, playSuccessChime, playCompleteFanfare, speak,
 } from "@/lib/employee-audio";
 import { ManeuverIcon, maneuverLabel } from "@/components/employee-route/ManeuverIcon";
+import { RouteViewSkeleton } from "@/components/admin/shared/Skeletons";
 import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuver";
 import { useSmoothPosition } from "@/components/employee-route/useSmoothPosition";
 import { useGpsFilter, type FilteredFix } from "@/components/employee-route/useGpsFilter";
@@ -310,11 +311,7 @@ const EmployeeRoute = () => {
   const { routeId } = useParams<{ routeId: string }>();
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
-        <Loader2 className="h-5 w-5 animate-spin mr-2" /> Indlæser...
-      </div>
-    );
+    return <RouteViewSkeleton />;
   }
   if (!user) return <Navigate to="/log-ind" replace />;
   if (!routeId) return <Navigate to="/medarbejder" replace />;
