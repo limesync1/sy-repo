@@ -1930,6 +1930,8 @@ export type Database = {
       services: {
         Row: {
           accounting_account_number: string | null
+          accounting_income_account: string | null
+          accounting_product_group: string | null
           base_price: number | null
           business_id: string
           created_at: string
@@ -1949,6 +1951,8 @@ export type Database = {
         }
         Insert: {
           accounting_account_number?: string | null
+          accounting_income_account?: string | null
+          accounting_product_group?: string | null
           base_price?: number | null
           business_id: string
           created_at?: string
@@ -1968,6 +1972,8 @@ export type Database = {
         }
         Update: {
           accounting_account_number?: string | null
+          accounting_income_account?: string | null
+          accounting_product_group?: string | null
           base_price?: number | null
           business_id?: string
           created_at?: string
