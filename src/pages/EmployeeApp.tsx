@@ -9,10 +9,11 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
+import { RoutePrintPreviewSheet } from "@/components/employee/RoutePrintPreviewSheet";
 import {
   Calendar as CalendarIcon, Play, Printer, MapPin, Clock, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
-  Users, User as UserIcon, Info, CalendarCheck,
+  Users, User as UserIcon, Info, CalendarCheck, Sparkles, ArrowRight, Eye,
 } from "lucide-react";
 import { format, addDays, parseISO, isToday, formatDistanceStrict } from "date-fns";
 import { da } from "date-fns/locale";
@@ -121,6 +122,8 @@ const EmployeeApp = () => {
   const [date, setDate] = useState(todayStr());
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [detailsStop, setDetailsStop] = useState<{ stop: RouteStop; index: number; routeName: string | null; routeColor: string | null; routeDate: string | null } | null>(null);
+  // Print-forhåndsvisning (rute-id der vises i preview-sheet'en)
+  const [previewRouteId, setPreviewRouteId] = useState<string | null>(null);
   const { data: routes = [], isLoading: routesLoading } = useMyDayRoutes(date);
   const { data: stops = [], isLoading: stopsLoading } = useMyDayStops(date);
   const { data: workday } = useMyWorkday(date);
@@ -371,6 +374,132 @@ const EmployeeApp = () => {
           </Card>
         )}
 
+        {/* ─────────── Smart "Næste skridt" forslag ───────────
+            Foreslår medarbejderen den mest logiske handling lige nu —
+            samme princip som virksomhedspanelets AI-forslag på rute-
+            planneren. Kontekst-bevidst: starter dagen, fortsætter ruten,
+            afslutter dagen, eller printer kvitteringer. */}
+        {!routesLoading && !stopsLoading && isCurrentDay && routes.length > 0 && (() => {
+          // Find næste pending stop på tværs af alle ruter (først ruten
+          // der allerede er i gang, ellers den med tidligst start).
+          const sortedRoutes = [...routes].sort((a, b) => {
+            const at = a.planned_start_time || "99:99";
+            const bt = b.planned_start_time || "99:99";
+            return at.localeCompare(bt);
+          });
+          let nextStop: RouteStop | null = null;
+          let nextRoute: typeof routes[number] | null = null;
+          for (const r of sortedRoutes) {
+            const rs = (stopsByRoute.get(r.id) || []).sort((a, b) => a.sequence - b.sequence);
+            const pending = rs.find((s) => s.status !== "completed");
+            if (pending) { nextStop = pending; nextRoute = r; break; }
+          }
+          const allRoutesDone = totalStops > 0 && completedStops === totalStops;
+
+          type Suggestion = {
+            tone: "primary" | "calm" | "warm";
+            title: string;
+            description: string;
+            cta: { label: string; icon: any; onClick?: () => void; to?: string };
+          };
+          let suggestion: Suggestion | null = null;
+
+          if (!dayStarted && !dayEnded) {
+            suggestion = {
+              tone: "primary",
+              title: "Start din arbejdsdag",
+              description: totalStops > 0
+                ? `Du har ${totalStops} stop planlagt. Start tidsregistreringen før første besøg.`
+                : "Start tidsregistreringen — så er din arbejdstid registreret korrekt.",
+              cta: { label: "Start dag", icon: PlayCircle, onClick: () => startDay.mutate(date) },
+            };
+          } else if (dayStarted && nextStop && nextRoute) {
+            const arr = nextStop.planned_arrival
+              ? format(new Date(nextStop.planned_arrival), "HH:mm")
+              : null;
+            suggestion = {
+              tone: "primary",
+              title: `Næste stop: ${nextStop.customer_name || "Stop"}`,
+              description: [
+                arr ? `Planlagt kl. ${arr}` : null,
+                nextStop.full_address || nextStop.address,
+              ].filter(Boolean).join(" · "),
+              cta: { label: "Fortsæt rute", icon: Navigation, to: `/medarbejder/rute/${nextRoute.id}` },
+            };
+          } else if (dayStarted && allRoutesDone && !dayEnded) {
+            suggestion = {
+              tone: "calm",
+              title: "Alle stop er færdige — godt arbejde!",
+              description: "Husk at afslutte din arbejdsdag, så tiden bliver registreret korrekt.",
+              cta: { label: "Stop dag", icon: StopCircle, onClick: () => endDay.mutate(date) },
+            };
+          } else if (dayEnded && routes.length > 0) {
+            suggestion = {
+              tone: "calm",
+              title: "Dagen er afsluttet",
+              description: "Du kan udskrive en kvittering for dagens ruter til arkivet.",
+              cta: { label: "Vis kvittering", icon: Eye, onClick: () => setPreviewRouteId(sortedRoutes[0].id) },
+            };
+          }
+
+          if (!suggestion) return null;
+
+          const toneClasses =
+            suggestion.tone === "primary"
+              ? "border-foreground/15 bg-card"
+              : suggestion.tone === "calm"
+                ? "border-feature-cool/30 bg-feature-cool/5"
+                : "border-feature-warm/30 bg-feature-warm/5";
+          const iconWrap =
+            suggestion.tone === "primary"
+              ? "bg-foreground text-background"
+              : suggestion.tone === "calm"
+                ? "bg-feature-cool text-feature-cool-foreground"
+                : "bg-feature-warm text-feature-warm-foreground";
+
+          const Cta = suggestion.cta;
+          return (
+            <Card className={cn("overflow-hidden rounded-xl border shadow-sm", toneClasses)}>
+              <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-5">
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl", iconWrap)} aria-hidden>
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Næste skridt
+                    </p>
+                    <p className="mt-0.5 text-sm font-semibold text-foreground sm:text-base">
+                      {suggestion.title}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {suggestion.description}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  asChild={!!Cta.to}
+                  onClick={Cta.onClick}
+                  size="lg"
+                  className="h-11 w-full shrink-0 gap-2 rounded-lg bg-foreground px-5 text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
+                >
+                  {Cta.to ? (
+                    <Link to={Cta.to}>
+                      <Cta.icon className="h-4 w-4" /> {Cta.label}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  ) : (
+                    <>
+                      <Cta.icon className="h-4 w-4" /> {Cta.label}
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </Card>
+          );
+        })()}
+
         {(routesLoading || stopsLoading) && (
           <div className="grid gap-4 lg:grid-cols-2">
             {[0, 1].map((i) => (
@@ -496,14 +625,13 @@ const EmployeeApp = () => {
                     ikke ligner et "klik for at åbne rute"-hint. */}
                 <div className="border-t border-border bg-secondary/30 px-4 py-3 sm:px-5">
                   <Button
-                    asChild
+                    type="button"
                     size="sm"
                     variant="outline"
+                    onClick={() => setPreviewRouteId(r.id)}
                     className="h-9 w-full gap-2 rounded-lg border-border bg-card text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
                   >
-                    <Link to={`/medarbejder/rute/${r.id}/print`}>
-                      <Printer className="h-3.5 w-3.5" /> Udskriv kvittering
-                    </Link>
+                    <Eye className="h-3.5 w-3.5" /> Vis & udskriv kvittering
                   </Button>
                 </div>
               </Card>
@@ -696,16 +824,15 @@ const EmployeeApp = () => {
                     )}
                   </Button>
                   <Button
-                    asChild
+                    type="button"
                     size="lg"
                     variant="outline"
+                    onClick={() => setPreviewRouteId(r.id)}
                     className="h-11 shrink-0 rounded-lg border-border bg-card px-3 text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
-                    aria-label="Udskriv liste"
-                    title="Udskriv liste"
+                    aria-label="Forhåndsvis & udskriv liste"
+                    title="Forhåndsvis & udskriv liste"
                   >
-                    <Link to={`/medarbejder/rute/${r.id}/print`}>
-                      <Printer className="h-4 w-4" />
-                    </Link>
+                    <Printer className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -730,6 +857,13 @@ const EmployeeApp = () => {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Print-forhåndsvisning — vis indholdet af kvitteringen før print */}
+      <RoutePrintPreviewSheet
+        open={!!previewRouteId}
+        onOpenChange={(o) => !o && setPreviewRouteId(null)}
+        routeId={previewRouteId}
+      />
     </EmployeeShell>
   );
 };
