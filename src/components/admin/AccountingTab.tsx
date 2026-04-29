@@ -362,12 +362,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       const { error } = await supabase.from("accounting_integrations" as any)
         .upsert(payload, { onConflict: "business_id" });
       if (error) throw error;
-      // Seed-kø: læg ALLE eksisterende kunder, services og aftaler i synk-køen
-      // så det første push faktisk skubber data afsted (triggere fanger kun
-      // fremtidige ændringer).
-      await seedQueue(businessId);
       toast.success(`${currentProvider.label} er nu integreret — synkroniserer dine data…`);
       // Kør første synk i baggrunden så brugeren ser resultatet med det samme
+      // (edge function auto-seeder køen hvis den er tom — også for "skygge-
+      // kunder" der kun findes på orders.customer_email)
       runFullSync(businessId).catch(() => { /* fejl vises via load() */ });
       await load();
     } catch (e: any) {
@@ -393,14 +391,16 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const handleSyncNow = async () => {
     setSyncing(true);
     try {
-      // Hvis der intet er i køen, læg eksisterende data i køen så synk
-      // faktisk har noget at sende.
-      if (queueCount === 0) await seedQueue(businessId);
+      // Edge function auto-seeder køen hvis den er tom, så første synk
+      // faktisk pusher eksisterende kunder/services/ordrer.
       const result = await runFullSync(businessId);
       const pushed = result.pushed ?? 0;
       const pulled = (result.pulledCustomers ?? 0) + (result.pulledProducts ?? 0);
-      if (pushed === 0 && pulled === 0) {
+      const seeded = result.seeded ?? 0;
+      if (pushed === 0 && pulled === 0 && seeded === 0) {
         toast.success("Alt er allerede synkroniseret");
+      } else if (seeded > 0 && pushed < seeded) {
+        toast.success(`Synk startet — ${seeded} elementer lagt i kø, ${pushed} sendt indtil videre. Resten kører i baggrunden.`);
       } else {
         toast.success(`Synkronisering færdig — sendt ${pushed}, hentet ${pulled}`);
       }
@@ -465,28 +465,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     } finally { setSyncing(false); }
   };
 
-  // Læg alle eksisterende kunder/services/ordrer i køen (idempotent — duplicates
-  // i samme batch giver bare lidt ekstra arbejde, ikke fejl).
-  async function seedQueue(bizId: string) {
-    const [{ data: bcs }, { data: pcs }, { data: svcs }, { data: ords }] = await Promise.all([
-      supabase.from("business_customers").select("id").eq("business_id", bizId),
-      supabase.from("private_customers").select("id").eq("business_id", bizId),
-      supabase.from("services").select("id").eq("business_id", bizId),
-      supabase.from("orders").select("id").eq("business_id", bizId).neq("status", "cancelled"),
-    ]);
-    const rows: any[] = [];
-    (bcs ?? []).forEach((r: any) => rows.push({ business_id: bizId, entity_type: "customer", entity_id: r.id, operation: "update" }));
-    (pcs ?? []).forEach((r: any) => rows.push({ business_id: bizId, entity_type: "customer", entity_id: r.id, operation: "update" }));
-    (svcs ?? []).forEach((r: any) => rows.push({ business_id: bizId, entity_type: "product", entity_id: r.id, operation: "update" }));
-    (ords ?? []).forEach((r: any) => rows.push({ business_id: bizId, entity_type: "order", entity_id: r.id, operation: "update" }));
-    if (rows.length > 0) {
-      // Splittes i batches af 200 for at undgå store payloads
-      for (let i = 0; i < rows.length; i += 200) {
-        await supabase.from("accounting_sync_queue" as any).insert(rows.slice(i, i + 200));
-      }
-    }
-  }
-
   async function runFullSync(bizId: string) {
     // Kør push (queue-drain) først så pull ikke overskriver lokale ændringer
     const r1 = await supabase.functions.invoke("accounting-sync", { body: { business_id: bizId, mode: "queue" } });
@@ -495,6 +473,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     if (r2.error) throw r2.error;
     return {
       pushed: (r1.data as any)?.processed ?? 0,
+      seeded: (r1.data as any)?.seeded ?? 0,
       pulledCustomers: (r2.data as any)?.customers ?? 0,
       pulledProducts: (r2.data as any)?.products ?? 0,
     };

@@ -54,9 +54,23 @@ Deno.serve(async (req) => {
       await pushOrder(admin, integration, adapter, order_id);
       return json({ ok: true });
     }
-    // default: drain queue
+    if (mode === "seed") {
+      const seeded = await seedQueue(admin, business_id);
+      return json({ ok: true, seeded });
+    }
+    // default: drain queue. Auto-seed if empty so first sync actually
+    // pushes existing customers/services/orders to the provider.
+    let seeded = 0;
+    const { count } = await admin
+      .from("accounting_sync_queue")
+      .select("*", { count: "exact", head: true })
+      .eq("business_id", business_id)
+      .in("status", ["pending", "failed", "processing"]);
+    if (!count || count === 0) {
+      seeded = await seedQueue(admin, business_id);
+    }
     const drained = await drainQueue(admin, integration, adapter);
-    return json({ ok: true, processed: drained });
+    return json({ ok: true, processed: drained, seeded });
   } catch (e) {
     console.error("accounting-sync error", e);
     return json({ error: e instanceof Error ? e.message : String(e) }, 500);
@@ -68,6 +82,87 @@ function json(data: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+// ─── SEED ────────────────────────────────────────────────────────────────
+// Læg alle eksisterende kunder, services og ordrer i køen så første synk
+// faktisk har noget at sende til regnskabsprogrammet.
+// Inkluderer også "skygge-kunder" der kun findes som denormaliseret data
+// på orders (customer_email/customer_name) — dem opretter vi som rigtige
+// kunde-rækker og enqueuer dem også.
+async function seedQueue(admin: SupabaseClient, business_id: string): Promise<number> {
+  const rows: any[] = [];
+
+  // 1) Eksisterende kunder
+  const [bcs, pcs, svcs, ords] = await Promise.all([
+    admin.from("business_customers").select("id").eq("business_id", business_id),
+    admin.from("private_customers").select("id").eq("business_id", business_id),
+    admin.from("services").select("id").eq("business_id", business_id),
+    admin.from("orders").select("id, customer_email, customer_name, customer_phone, address, zip_code, city, cvr, company_name")
+      .eq("business_id", business_id).neq("status", "cancelled"),
+  ]);
+
+  const seenEmails = new Set<string>();
+  for (const r of bcs.data ?? []) rows.push({ business_id, entity_type: "customer", entity_id: r.id, operation: "update" });
+  for (const r of pcs.data ?? []) rows.push({ business_id, entity_type: "customer", entity_id: r.id, operation: "update" });
+  for (const r of svcs.data ?? []) rows.push({ business_id, entity_type: "product", entity_id: r.id, operation: "update" });
+
+  // 2) Skygge-kunder fra orders (typisk efter offentlig bestilling)
+  for (const o of ords.data ?? []) {
+    const email = (o.customer_email ?? "").trim().toLowerCase();
+    if (!email || seenEmails.has(email)) {
+      if (email) seenEmails.add(email);
+      continue;
+    }
+    seenEmails.add(email);
+
+    const isCompany = !!o.cvr;
+    if (isCompany) {
+      // Findes der allerede en business_customer med samme cvr/email?
+      const { data: ex } = await admin.from("business_customers").select("id")
+        .eq("business_id", business_id)
+        .or(`cvr.eq.${o.cvr},email.eq.${email}`)
+        .maybeSingle();
+      if (ex) {
+        rows.push({ business_id, entity_type: "customer", entity_id: ex.id, operation: "update" });
+      } else {
+        const { data: created } = await admin.from("business_customers").insert({
+          business_id,
+          company_name: o.company_name ?? o.customer_name ?? email,
+          email,
+          phone: o.customer_phone, cvr: o.cvr,
+          address: o.address, zip_code: o.zip_code, city: o.city,
+        }).select("id").single();
+        if (created) rows.push({ business_id, entity_type: "customer", entity_id: created.id, operation: "create" });
+      }
+    } else {
+      const { data: ex } = await admin.from("private_customers").select("id")
+        .eq("business_id", business_id).eq("email", email).maybeSingle();
+      if (ex) {
+        rows.push({ business_id, entity_type: "customer", entity_id: ex.id, operation: "update" });
+      } else {
+        const { data: created } = await admin.from("private_customers").insert({
+          business_id,
+          name: o.customer_name ?? email,
+          email,
+          phone: o.customer_phone,
+          address: o.address, zip_code: o.zip_code, city: o.city,
+        }).select("id").single();
+        if (created) rows.push({ business_id, entity_type: "customer", entity_id: created.id, operation: "create" });
+      }
+    }
+  }
+
+  // 3) Ordrer
+  for (const o of ords.data ?? []) {
+    rows.push({ business_id, entity_type: "order", entity_id: o.id, operation: "update" });
+  }
+
+  if (rows.length === 0) return 0;
+  for (let i = 0; i < rows.length; i += 200) {
+    await admin.from("accounting_sync_queue").insert(rows.slice(i, i + 200));
+  }
+  return rows.length;
 }
 
 // ─── helpers ────────────────────────────────────────────────────────────
