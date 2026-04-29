@@ -26,6 +26,7 @@ import { Separator } from "@/components/ui/separator";
 import SEO from "@/components/SEO";
 import CustomerShell from "@/components/customer/CustomerShell";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "Afventer godkendelse", variant: "outline" },
@@ -148,7 +149,7 @@ const FavoritesView = () => {
 
   if (isLoading) return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {[1, 2, 3].map((i) => <div key={i} className="h-64 animate-pulse rounded-2xl bg-secondary/50" />)}
+      {[1, 2, 3].map((i) => <Skeleton key={i} className="h-64 rounded-2xl" />)}
     </div>
   );
 
