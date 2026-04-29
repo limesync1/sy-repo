@@ -3,6 +3,8 @@ import {
   useEmployees, useCreateEmployee,
   useUpdateEmployee, useDeleteEmployee, useResetEmployeePassword,
 } from "@/hooks/useEmployees";
+import { useEmployeeEarnings } from "@/hooks/useEmployeeEarnings";
+import { formatKr } from "@/lib/commission";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,10 +12,15 @@ import { toast } from "sonner";
 import {
   Mail, Phone, Briefcase, UserPlus, X,
   Trash2, Power, PowerOff, Pencil, KeyRound, Users, Percent, MessageCircle,
+  Wallet, TrendingUp,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
 import { cn } from "@/lib/utils";
+import {
+  startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear,
+  subMonths, format,
+} from "date-fns";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
