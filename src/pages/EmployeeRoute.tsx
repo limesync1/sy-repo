@@ -774,9 +774,23 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     setTimeout(() => speak("Godt arbejde. Alle stop er klaret."), 800);
   }, [allDone, audioEnabled]);
 
-  /* Auto-redirect når alt er færdigt */
+  /* Auto-redirect når alt er færdigt.
+   *
+   * To scenarier:
+   *  1. Brugeren har lige afsluttet sidste stop i denne session
+   *     (`routeStarted === true`) → vis "Rute færdig"-kortet med en blød
+   *     8-sek nedtælling så de når at se opsummeringen.
+   *  2. Brugeren åbner en rute der allerede VAR fuldt afsluttet inden
+   *     besøget (typisk via direkte URL eller gammelt browserlink) →
+   *     send dem straks tilbage til oversigten. Det giver ingen mening
+   *     at "genåbne" en færdig rute, og selve oversigten i Min dag viser
+   *     allerede status. */
   useEffect(() => {
     if (!allDone) return;
+    if (!routeStarted) {
+      navigate("/medarbejder", { replace: true });
+      return;
+    }
     setAutoReturn(8);
     const tick = setInterval(() => {
       setAutoReturn((n) => {
@@ -786,7 +800,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       });
     }, 1000);
     return () => clearInterval(tick);
-  }, [allDone, navigate]);
+  }, [allDone, routeStarted, navigate]);
 
   const etaLabel: string | null = useMemo(() => {
     if (!directions?.duration_s) return null;
