@@ -154,8 +154,6 @@ export function makeBillyAdapter(
         name: input.name,
         countryId: "DK",
         isCustomer: true,
-        email: input.email ?? undefined,
-        phone: input.phone ?? undefined,
         registrationNo: input.cvr ?? undefined,
         ean: input.ean ?? undefined,
         street: input.address ?? undefined,
@@ -172,6 +170,7 @@ export function makeBillyAdapter(
           body: JSON.stringify({ contact }),
         });
         const c = updated?.contacts?.[0] ?? updated?.contact;
+        await syncBillyContactPerson(creds, c.id, input);
         return {
           external_id: c.id,
           external_number: c.contactNo ?? null,
@@ -183,6 +182,7 @@ export function makeBillyAdapter(
           body: JSON.stringify({ contact }),
         });
         const c = created?.contacts?.[0] ?? created?.contact;
+        await syncBillyContactPerson(creds, c.id, input);
         return {
           external_id: c.id,
           external_number: c.contactNo ?? null,
