@@ -439,11 +439,14 @@ const EmployeeApp = () => {
                           : null;
                         const pay = paymentMeta(s.order_status);
                         return (
-                          <div
+                          <button
                             key={s.id}
+                            type="button"
+                            onClick={() => setDetailsStop({ stop: s, index: i, routeName: r.name, routeColor: r.color, routeDate: r.route_date })}
                             className={`flex items-center gap-3 px-3 py-2.5 ${
                               isNext ? "bg-secondary/60" : ""
-                            }`}
+                            } w-full text-left transition-colors hover:bg-secondary/80`}
+                            aria-label={`Vis detaljer for ${s.customer_name || "stop"}`}
                           >
                             <span
                               className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
@@ -487,7 +490,8 @@ const EmployeeApp = () => {
                                 {arrivalLabel}
                               </span>
                             )}
-                          </div>
+                            <Info className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                          </button>
                         );
                       })}
                       {myStops.length > 4 && (
