@@ -468,6 +468,12 @@ const Auth = () => {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {formError && (
+                    <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/25 bg-rose-500/5 px-3.5 py-3 text-xs text-rose-700">
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span>{formError}</span>
+                    </div>
+                  )}
                   <div>
                     <label htmlFor="auth-email" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">E-mail</label>
                     <Input
@@ -479,6 +485,15 @@ const Auth = () => {
                       onChange={(e) => setEmail(e.target.value)}
                       className="h-12 rounded-xl border-border bg-card px-4 text-[15px]"
                     />
+                    {emailSuggestion && (
+                      <button
+                        type="button"
+                        onClick={() => setEmail(emailSuggestion)}
+                        className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        Mente du <span className="font-semibold text-foreground underline-offset-2 group-hover:underline">{emailSuggestion}</span>?
+                      </button>
+                    )}
                   </div>
                   <div>
                     <div className="mb-2 flex items-center justify-between">
@@ -500,6 +515,9 @@ const Auth = () => {
                         placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        onKeyUp={(e) => setCapsLockOn(e.getModifierState && e.getModifierState("CapsLock"))}
+                        onKeyDown={(e) => setCapsLockOn(e.getModifierState && e.getModifierState("CapsLock"))}
+                        onBlur={() => setCapsLockOn(false)}
                         className="h-12 rounded-xl border-border bg-card px-4 pr-12 text-[15px]"
                       />
                       <button
@@ -511,7 +529,35 @@ const Auth = () => {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                    {isSignUp && (
+                    {capsLockOn && (
+                      <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-amber-700">
+                        <AlertCircle className="h-3.5 w-3.5" /> Caps Lock er slået til
+                      </p>
+                    )}
+                    {isSignUp && password.length > 0 && (
+                      <div className="mt-2 space-y-1.5">
+                        <div className="flex gap-1">
+                          {[1,2,3,4].map((i) => (
+                            <span
+                              key={i}
+                              className={`h-1 flex-1 rounded-full transition-colors ${
+                                i <= pwStrength.score
+                                  ? pwStrength.score <= 1 ? "bg-rose-500"
+                                    : pwStrength.score === 2 ? "bg-amber-500"
+                                    : pwStrength.score === 3 ? "bg-emerald-500"
+                                    : "bg-emerald-600"
+                                  : "bg-secondary"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {pwStrength.label || "Mindst 6 tegn."}
+                          {pwStrength.score < 3 && password.length >= 6 && " — bland gerne tal og store bogstaver."}
+                        </p>
+                      </div>
+                    )}
+                    {isSignUp && password.length === 0 && (
                       <p className="mt-2 text-xs text-muted-foreground/80">Mindst 6 tegn.</p>
                     )}
                   </div>
