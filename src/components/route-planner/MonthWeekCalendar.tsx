@@ -303,7 +303,8 @@ const DayCell = memo(DayCellInner, (prev, next) => {
     prev.draggingType === next.draggingType &&
     prev.optimizingRouteId === next.optimizingRouteId &&
     prev.loadingRoutes === next.loadingRoutes &&
-    prev.loadingWeather === next.loadingWeather
+    prev.loadingWeather === next.loadingWeather &&
+    prev.weatherError === next.weatherError
   );
 });
 
