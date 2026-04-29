@@ -731,6 +731,13 @@ const EmployeeApp = () => {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Print-forhåndsvisning — vis indholdet af kvitteringen før print */}
+      <RoutePrintPreviewSheet
+        open={!!previewRouteId}
+        onOpenChange={(o) => !o && setPreviewRouteId(null)}
+        routeId={previewRouteId}
+      />
     </EmployeeShell>
   );
 };
