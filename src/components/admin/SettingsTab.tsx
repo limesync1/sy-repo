@@ -60,14 +60,14 @@ const formatHours = (open: string, close: string) => `${open} - ${close}`;
 // ─── Sub-nav sektioner ───
 // Vises som sticky sidebar (lg+) eller chip-rækken (mobil).
 const SECTIONS = [
-  { id: "general",       label: "Virksomhed",     icon: Building2, hint: "Navn og beskrivelse" },
-  { id: "industries",    label: "Brancher",       icon: Sparkles,  hint: "Hvad I tilbyder" },
-  { id: "contact",       label: "Kontakt",        icon: Contact,   hint: "Adresse og kontakt" },
-  { id: "branding",      label: "Branding",       icon: ImageIcon, hint: "Domæne og billeder" },
-  { id: "hours",         label: "Åbningstider",   icon: Clock,     hint: "Hverdage og weekend" },
-  { id: "notifications", label: "Notifikationer", icon: Bell,      hint: "Email-varsler" },
-  { id: "billing",       label: "Priser og betaling", icon: CreditCard, hint: "Pakke og betalingskort" },
-  { id: "advanced",      label: "Avanceret",      icon: Route,     hint: "Ekstra funktioner" },
+  { id: "general",       label: "Om virksomheden",    icon: Building2, hint: "Navn og kort beskrivelse" },
+  { id: "industries",    label: "Hvad I tilbyder",    icon: Sparkles,  hint: "Brancher og kategorier" },
+  { id: "contact",       label: "Kontakt og adresse", icon: Contact,   hint: "Telefon, e-mail, adresse" },
+  { id: "branding",      label: "Profil og webadresse", icon: ImageIcon, hint: "Logo, billede og link" },
+  { id: "hours",         label: "Åbningstider",       icon: Clock,     hint: "Hvornår I tager telefonen" },
+  { id: "notifications", label: "E-mail-beskeder",    icon: Bell,      hint: "Hvad I vil have besked om" },
+  { id: "billing",       label: "Pris og betaling",   icon: CreditCard, hint: "Pakke og betalingskort" },
+  { id: "advanced",      label: "Ekstra funktioner",  icon: Route,     hint: "Tilvalg som ruteplan m.m." },
 ] as const;
 
 /* ─── Toggle-switch (delt mellem notifikations- og rute-felter) ─── */
@@ -593,12 +593,12 @@ const SettingsTab = ({ business }: { business: any }) => {
       return;
     }
     if (slugStatus === "taken") {
-      toast.error("Det permalink er optaget. Prøv et andet.");
+      toast.error("Det link er allerede taget af en anden virksomhed. Prøv et andet.");
       return;
     }
     const { error } = await supabase.from("businesses").update({ slug: next }).eq("id", business.id);
     if (error) {
-      toast.error(error.message?.includes("duplicate") ? "Det permalink er optaget." : "Kunne ikke gemme permalink.");
+      toast.error(error.message?.includes("duplicate") ? "Det link er allerede taget af en anden virksomhed." : "Vi kunne ikke gemme dit link. Prøv igen om lidt.");
       return;
     }
     toast.success("Permalink opdateret. Din offentlige adresse er nu /v/" + next);
@@ -624,7 +624,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       if (error) throw error;
       setDomainResult(data);
       if (data?.status === "verified") toast.success("Domænet er verificeret 🎉");
-      else toast.error(data?.message || "Domænet er ikke klar endnu — tjek dine DNS-records.");
+      else toast.error(data?.message || "Webnavnet er ikke klar endnu — tjek at I har tilføjet de to linjer korrekt hos jeres webudbyder.");
       queryClient.invalidateQueries({ queryKey: ["my-business"] });
       queryClient.invalidateQueries({ queryKey: ["business"] });
     } catch (e: any) {
@@ -707,7 +707,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     <div className="space-y-4 pb-24">
       <PageHeader
         title="Indstillinger"
-        description="Administrer din virksomheds profil, kontakt, branding og notifikationer."
+        description="Her sætter du jeres virksomhed op — navn, kontakt, billeder, åbningstider og hvad I tilbyder."
         action={
           <div className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-muted-foreground">
             {saveStatus === "saving" ? (
@@ -830,7 +830,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       <SectionCard
         title="Automatisk udfyldning fra CVR"
         icon={<Sparkles />}
-        description="Indtast CVR-nummer eller virksomhedsnavn for at hente og udfylde alle felter automatisk."
+        description="Skriv jeres CVR-nummer eller firmanavn — så henter vi adresse, navn og oplysninger automatisk fra det officielle erhvervsregister."
       >
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input
@@ -872,7 +872,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       <div className="grid gap-4">
         {/* Generelt — kun navn + beskrivelse */}
         <div id="settings-general" className="scroll-mt-6">
-          <SectionCard title="Virksomhed" icon={<Building2 />} description="Virksomhedsnavn og beskrivelse.">
+          <SectionCard title="Om virksomheden" icon={<Building2 />} description="Det navn og den korte beskrivelse kunderne ser øverst på jeres side.">
             <div className="space-y-4">
               <div data-tour="field-company-name">
                 <FieldLabel>Virksomhedsnavn</FieldLabel>
@@ -880,7 +880,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
               <div data-tour="field-company-description">
                 <FieldLabel>Beskrivelse</FieldLabel>
-                <Textarea placeholder="Hvad gør din virksomhed? Hvad er jeres speciale?" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={500} className="bg-card rounded-lg" />
+                <Textarea placeholder="Skriv 2-4 sætninger om hvad I laver, hvor I gør det, og hvad der gør jer gode. Det her er det første kunderne læser." value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={500} className="bg-card rounded-lg" />
                 <p className="mt-1 text-xs text-muted-foreground">{description.length}/500 tegn</p>
               </div>
             </div>
@@ -892,7 +892,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Brancher & kategorier"
             icon={<Sparkles />}
-            description="Vælg jeres brancher og hvilke konkrete kategorier I tilbyder. Det styrer alt — services, søgning og forslag."
+            description="Vælg de brancher I arbejder i, og kryds de konkrete typer opgaver af, I tager. Det er det her, der bestemmer hvilke kunder der finder jer."
           >
             <div className="space-y-5">
               <div>
@@ -925,7 +925,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Kontakt */}
         <div id="settings-contact" className="scroll-mt-6">
-          <SectionCard title="Kontakt & adresse" icon={<Contact />} description="Sådan kan kunder få fat i dig.">
+          <SectionCard title="Kontakt og adresse" icon={<Contact />} description="Sådan kan kunderne ringe, skrive eller finde vej til jer. Bruges også på fakturaer.">
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div data-tour="field-phone">
@@ -965,7 +965,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Branding */}
         <div id="settings-branding" className="scroll-mt-6">
-          <SectionCard title="Domæne og billeder" icon={<ImageIcon />} description="Domæne, logo og coverbillede vises på din virksomhedsside.">
+          <SectionCard title="Profil og webadresse" icon={<ImageIcon />} description="Logoet, det store forsidebillede og linket kunderne får, når I deler jeres profil.">
             {/* Side-om-side så cover ikke fylder hele bredden — kun en kompakt
                 preview, da fuld bannervisning ikke er nødvendig her. */}
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
@@ -988,9 +988,9 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <Link2 className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-foreground">Permalink (offentlig adresse)</p>
+                  <p className="text-sm font-semibold text-foreground">Jeres link på Serviceydere</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Den korte adresse til din virksomhed på Serviceydere. Skift kun, hvis det er nødvendigt — gamle links holder op med at virke.
+                    Det her er det link kunderne åbner, når de finder jer. Skriv jeres firmanavn med små bogstaver og bindestreger i stedet for mellemrum (fx <span className="font-mono">nord-rengoering</span>). Pas på med at ændre det, når I først har delt det — gamle links holder op med at virke.
                   </p>
                   <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                     <div className="flex h-10 items-center rounded-l-lg border border-r-0 border-border bg-muted px-3 text-xs text-muted-foreground">
@@ -1011,15 +1011,15 @@ const SettingsTab = ({ business }: { business: any }) => {
                       disabled={!slugChanged || slugStatus === "checking" || slugStatus === "taken" || slugStatus === "invalid"}
                       className="h-10 rounded-lg"
                     >
-                      Gem permalink
+                      Gem link
                     </Button>
                   </div>
                   <p className="mt-2 text-xs">
                     {slugStatus === "current" && <span className="text-muted-foreground">Aktuel adresse: <span className="font-mono text-foreground">/v/{business.slug}</span></span>}
-                    {slugStatus === "checking" && <span className="inline-flex items-center gap-1 text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Tjekker tilgængelighed…</span>}
-                    {slugStatus === "available" && <span className="inline-flex items-center gap-1 text-success"><CheckCircle2 className="h-3 w-3" /> Ledigt — klar til at gemme</span>}
-                    {slugStatus === "taken" && <span className="inline-flex items-center gap-1 text-destructive"><XCircle className="h-3 w-3" /> Optaget — vælg et andet</span>}
-                    {slugStatus === "invalid" && <span className="inline-flex items-center gap-1 text-destructive"><AlertCircle className="h-3 w-3" /> Brug 3-60 tegn: små bogstaver, tal og bindestreg</span>}
+                    {slugStatus === "checking" && <span className="inline-flex items-center gap-1 text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Tjekker om navnet er ledigt…</span>}
+                    {slugStatus === "available" && <span className="inline-flex items-center gap-1 text-success"><CheckCircle2 className="h-3 w-3" /> Ledigt — du kan trygt gemme</span>}
+                    {slugStatus === "taken" && <span className="inline-flex items-center gap-1 text-destructive"><XCircle className="h-3 w-3" /> En anden virksomhed bruger allerede dette — prøv noget andet</span>}
+                    {slugStatus === "invalid" && <span className="inline-flex items-center gap-1 text-destructive"><AlertCircle className="h-3 w-3" /> Brug 3-60 tegn — kun små bogstaver, tal og bindestreger (ingen æ, ø, å eller mellemrum)</span>}
                   </p>
                 </div>
               </div>
@@ -1033,7 +1033,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm font-semibold text-foreground">Eget domæne (valgfrit)</p>
+                    <p className="text-sm font-semibold text-foreground">Brug jeres eget webnavn (valgfrit)</p>
                     {customDomain.trim() && (
                       domainStatus === "active" ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
@@ -1045,7 +1045,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                         </span>
                       ) : domainStatus === "pending_dns" ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-600">
-                          <AlertCircle className="h-3 w-3" /> Ejerskab OK · DNS mangler
+                          <AlertCircle className="h-3 w-3" /> Ejerskab er OK · venter på pegningen (CNAME)
                         </span>
                       ) : domainStatus === "pending_ownership" ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
@@ -1063,8 +1063,8 @@ const SettingsTab = ({ business }: { business: any }) => {
                     )}
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Brug dit eget domæne som hovedadresse. Når verificeret, viser Google og delinger dit domæne fremfor{" "}
-                    <span className="font-mono">serviceydere.dk/v/{business.slug}</span>.
+                    Har I allerede købt et webnavn (fx <span className="font-mono">mitfirma.dk</span>)? Så kan I bruge det i stedet for{" "}
+                    <span className="font-mono">serviceydere.dk/v/{business.slug}</span>. Det ser mere professionelt ud i Google og når I deler links. Det kræver lidt teknisk opsætning hos den, hvor I har købt webnavnet — vi guider jer trin for trin.
                   </p>
                   <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                     <div className="flex h-10 items-center rounded-l-lg border border-r-0 border-border bg-muted px-3 text-xs text-muted-foreground">
@@ -1079,16 +1079,20 @@ const SettingsTab = ({ business }: { business: any }) => {
                       spellCheck={false}
                     />
                     <Button type="button" onClick={handleVerifyDomain} disabled={domainVerifying || !customDomain.trim()} className="h-10 rounded-lg">
-                      {domainVerifying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verificer"}
+                      {domainVerifying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Tjek nu"}
                     </Button>
                   </div>
 
                   {customDomain.trim() && (
                     <div className="mt-4 space-y-3 rounded-lg border border-border bg-background/60 p-3">
-                      <p className="text-xs font-semibold text-foreground">Sådan opsætter du dit domæne:</p>
+                      <p className="text-xs font-semibold text-foreground">Sådan kobler I jeres webnavn til Serviceydere:</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Log ind hos den, hvor I har købt webnavnet (fx One.com, Simply.com, GoDaddy) og find punktet "DNS" eller "DNS-indstillinger". Tilføj de to linjer nedenfor. Det lyder teknisk, men det tager kun 2-3 minutter — kontakt jeres webudbyder, hvis I er i tvivl.
+                      </p>
                       <div className="space-y-2 text-xs text-muted-foreground">
                         <div>
-                          <p className="font-medium text-foreground">1) Ejerskab — TXT-record</p>
+                          <p className="font-medium text-foreground">1) Bevis at det er jeres webnavn</p>
+                          <p className="text-[11px]">Tilføj en linje af typen <span className="font-mono">TXT</span>:</p>
                           <div className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 font-mono text-[11px]">
                             <span className="text-muted-foreground">Type:</span><span>TXT</span>
                             <span className="text-muted-foreground">Navn:</span><span>_serviceydere</span>
@@ -1097,14 +1101,15 @@ const SettingsTab = ({ business }: { business: any }) => {
                           </div>
                         </div>
                         <div>
-                          <p className="font-medium text-foreground">2) Pegning — CNAME-record</p>
+                          <p className="font-medium text-foreground">2) Send besøgende til jeres side hos os</p>
+                          <p className="text-[11px]">Tilføj en linje af typen <span className="font-mono">CNAME</span>:</p>
                           <div className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 font-mono text-[11px]">
                             <span className="text-muted-foreground">Type:</span><span>CNAME</span>
                             <span className="text-muted-foreground">Navn:</span><span>{customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "").split("/")[0] || "@"}</span>
                             <span className="text-muted-foreground">Værdi:</span><span>serviceydere.dk</span>
                           </div>
                         </div>
-                        <p>DNS-ændringer kan tage op til 24 timer at slå igennem. Klik <strong className="text-foreground">Verificer</strong> når du har tilføjet records.</p>
+                        <p>Når I har gemt linjerne hos jeres webudbyder, klik <strong className="text-foreground">Tjek nu</strong>. Det kan tage alt fra et par minutter op til et døgn, før det virker — så bare klik igen, hvis det ikke virker første gang.</p>
                       </div>
                       {domainResult?.message && (
                         <p className={`text-xs ${domainResult.status === "verified" ? "text-success" : "text-destructive"}`}>
@@ -1122,7 +1127,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                                 <XCircle className="mt-0.5 h-3 w-3 shrink-0 text-destructive" />
                               )}
                               <span className={domainResult.checks.ownership_ok ? "text-muted-foreground" : "text-foreground"}>
-                                TXT-record på <span className="font-mono">_serviceydere</span> med værdi{" "}
+                                Linjen af typen <span className="font-mono">TXT</span> med navnet <span className="font-mono">_serviceydere</span> og værdien{" "}
                                 <span className="font-mono">serviceydere-verify={domainToken}</span>
                               </span>
                             </li>
@@ -1133,12 +1138,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                                 <XCircle className="mt-0.5 h-3 w-3 shrink-0 text-destructive" />
                               )}
                               <span className={domainResult.checks.pointing_ok ? "text-muted-foreground" : "text-foreground"}>
-                                CNAME (eller A-record) der peger på <span className="font-mono">serviceydere.dk</span>
+                                Linjen af typen <span className="font-mono">CNAME</span> der peger på <span className="font-mono">serviceydere.dk</span>
                               </span>
                             </li>
                           </ul>
                           <p className="pt-1 text-[10px] text-muted-foreground">
-                            DNS-ændringer kan tage op til 24 timer. Klik <strong>Verificer</strong> igen efter ventetiden.
+                            Når I gemmer ændringerne hos jeres webudbyder, kan det tage fra et par minutter op til et døgn før det slår igennem. Klik <strong>Tjek nu</strong> igen efter et stykke tid.
                           </p>
                         </div>
                       )}
@@ -1147,13 +1152,13 @@ const SettingsTab = ({ business }: { business: any }) => {
                       )}
                       {(domainStatus === "pending_activation" || domainStatus === "verified") && (
                         <div className="rounded-md border border-blue-500/30 bg-blue-500/10 p-2.5 text-[11px] leading-relaxed text-blue-900 dark:text-blue-200">
-                          <p className="font-semibold">✓ DNS er korrekt opsat — vi aktiverer domænet for dig</p>
+                          <p className="font-semibold">✓ Alt er sat op korrekt — vi gør jeres webnavn klar</p>
                           <p className="mt-1">
-                            Vi har automatisk modtaget din anmodning. Domænet bliver aktiveret med SSL-certifikat hurtigst muligt — typisk inden for 1 hverdag.
-                            Du kan godt lukke siden imens; status opdateres automatisk her, og du får besked på{" "}
-                            <span className="font-mono">{(business as any).email || "din kontakt-email"}</span> når{" "}
+                            Vi har modtaget jeres anmodning. Vi sætter et sikkert {"\""}https{"\""}-certifikat op for jer hurtigst muligt — typisk inden for 1 hverdag.
+                            I kan godt lukke siden imens; status opdateres automatisk her, og I får besked på{" "}
+                            <span className="font-mono">{(business as any).email || "jeres kontakt-e-mail"}</span> når{" "}
                             <span className="font-mono">{customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "").split("/")[0]}</span>{" "}
-                            er live.
+                            er klar at bruge.
                           </p>
                           <p className="mt-1">
                             Indtil da kan du dele linket{" "}
@@ -1183,7 +1188,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Åbningstider"
             icon={<Clock />}
-            description="Slå dage til/fra og vælg fra-/til-tid. Brug ”Anvend på alle” for at kopiere én dags tider til de andre åbne dage."
+            description="Sæt flueben ved de dage I har åbent og indtast tiderne. Klik ”Anvend på alle” for at kopiere én dags tider over på de andre åbne dage."
           >
             <HoursEditor value={openHours} onChange={setOpenHours} />
           </SectionCard>
@@ -1194,7 +1199,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Notifikationer"
             icon={<Bell />}
-            description="Vælg hvilke hændelser du vil modtage email-varsler om."
+            description="Vælg hvad I vil have en e-mail om — fx når I får en ny ordre, en ny besked eller en ny anmeldelse."
           >
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {([
@@ -1224,7 +1229,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Priser og betaling"
             icon={<CreditCard />}
-            description="Se din pris-oversigt og administrér betalingskort. Vi bruger Stripe til sikker betalingshåndtering."
+            description="Her ser I jeres pakke, hvad det koster om måneden, og kan skifte betalingskort. Betalingen håndteres sikkert af Stripe — vi gemmer aldrig jeres kortoplysninger."
           >
             {/* Status-banner med dage tilbage */}
             {plan && plan.status !== "unknown" && (
@@ -1448,7 +1453,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Avanceret */}
         <div id="settings-advanced" className="scroll-mt-6">
-          <SectionCard title="Avanceret" icon={<Settings />} description="Aktivér ekstra funktioner. Pris opdateres automatisk i 'Priser og betaling' ovenfor.">
+          <SectionCard title="Ekstra funktioner" icon={<Settings />} description="Slå tilvalg til som ruteplanlægger eller live-chat. Prisen opdateres automatisk under ”Pris og betaling” ovenfor.">
             <div className="space-y-3">
               <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
                 <div className="flex items-start gap-3 min-w-0">

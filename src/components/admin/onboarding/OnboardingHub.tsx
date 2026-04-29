@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils";
 import {
   Check, ChevronRight, ChevronLeft, Sparkles, X, ArrowRight,
   PartyPopper, Building2, Wrench, Users, Route as RouteIcon,
-  Image as ImageIcon, Rocket, Tag, Clock, type LucideIcon,
+  Image as ImageIcon, Rocket, Tag, Clock, MessageCircle, Link2,
+  FileText, Phone, type LucideIcon,
 } from "lucide-react";
 import {
   useOnboardingProgress, useUpdateOnboardingProgress, useCompleteOnboardingStep,
@@ -52,12 +53,16 @@ type Ctx = {
 
 const buildSteps = (ctx: Ctx): Step[] => {
   const settingsHref = "/virksomhed?tab=settings";
+  const business = ctx.business;
+  const settings = (business?.settings as any) || {};
+  const description = (business?.description || "").trim();
+
   const all: Step[] = [
     {
       id: "company-info",
       title: "Udfyld virksomhedsoplysninger",
-      description: "Beskrivelse, telefon og adresse — så kunderne ved hvem I er, og leads kan finde jer.",
-      cta: "Åbn indstillinger",
+      description: "Skriv en kort beskrivelse, telefon og adresse — så kunderne ved hvem I er, og leads kan finde jer.",
+      cta: "Udfyld nu",
       href: settingsHref,
       icon: Building2,
       isDone: ({ business }) =>
@@ -66,7 +71,7 @@ const buildSteps = (ctx: Ctx): Step[] => {
     {
       id: "categories",
       title: "Vælg brancher og kategorier",
-      description: "Vælg de brancher og underkategorier I tilbyder, så jeres profil dukker op de rigtige steder.",
+      description: "Kryds af hvad I tilbyder — det bestemmer hvilke kunder der finder jer på Serviceydere.",
       cta: "Vælg brancher",
       href: settingsHref,
       icon: Tag,
@@ -78,8 +83,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     {
       id: "opening-hours",
       title: "Tilføj åbningstider",
-      description: "Lad kunder vide hvornår I er åbne — så I ikke mister henvendelser uden for åbningstid.",
-      cta: "Sæt åbningstider",
+      description: "Lad kunderne vide hvornår I tager telefonen — så I ikke mister henvendelser uden for åbningstid.",
+      cta: "Sæt tider",
       href: settingsHref,
       icon: Clock,
       isDone: ({ business }) => {
@@ -90,26 +95,73 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "branding",
-      title: "Tilføj logo og forsidebillede",
-      description: "Et professionelt udtryk gør stor forskel for kundernes tillid.",
-      cta: "Tilføj billeder",
+      title: "Tilføj jeres logo",
+      description: "Et logo gør jer langt mere troværdige. Det vises øverst på jeres profil og overalt I dukker op.",
+      cta: "Upload logo",
       href: settingsHref,
       icon: ImageIcon,
       isDone: ({ business }) => !!business?.logo_url,
     },
     {
+      id: "cover-image",
+      title: "Tilføj et forsidebillede",
+      description: "Et stort billede øverst på profilen viser kunderne jeres arbejde, hold eller butik. Profiler med forsidebillede får markant flere henvendelser.",
+      cta: "Upload forsidebillede",
+      href: settingsHref,
+      icon: ImageIcon,
+      isDone: ({ business }) => !!business?.cover_image_url || !!business?.cover_url,
+      // Vis kun hvis logo allerede er på plads — ellers er det dobbelt-besked
+      isRelevant: ({ business }) => !!business?.logo_url,
+    },
+    {
+      id: "good-description",
+      title: "Gør jeres beskrivelse stærkere",
+      description: "Jeres beskrivelse er lidt kort. 2-4 sætninger om hvad I gør, hvor I gør det, og hvorfor I er gode, øger kundernes tillid mærkbart.",
+      cta: "Skriv mere",
+      href: settingsHref,
+      icon: FileText,
+      // Kun relevant hvis der ER en beskrivelse, men den er for kort til at virke overbevisende
+      isRelevant: () => description.length > 0 && description.length < 80,
+      isDone: () => description.length >= 80,
+    },
+    {
+      id: "share-link",
+      title: "Tjek og gem jeres link",
+      description: "Vælg en kort, læsevenlig webadresse til jeres profil (fx /v/nord-rengoering). Den deler I på Facebook, visitkort og e-mail-signaturer.",
+      cta: "Gennemgå link",
+      href: settingsHref,
+      icon: Link2,
+      // Vis kun hvis slug er den autogenererede (typisk uuid-agtig eller meget lang)
+      isRelevant: ({ business }) => {
+        const slug = (business?.slug || "") as string;
+        return slug.length === 0 || slug.length > 30 || /[0-9a-f]{8}/i.test(slug);
+      },
+      // Markeres færdig manuelt — vi ved ikke hvornår "godt nok" er
+      isDone: () => false,
+    },
+    {
       id: "services",
       title: "Opret jeres første service",
-      description: "Uden services kan kunder ikke booke. Vælg fast pris, timepris eller en prisberegner.",
+      description: "Uden services kan kunderne ikke booke. Vælg fast pris, timepris eller en prisberegner.",
       cta: "Opret service",
       href: "/virksomhed?tab=services",
       icon: Wrench,
       isDone: ({ servicesCount }) => servicesCount > 0,
     },
     {
+      id: "more-services",
+      title: "Tilføj flere services",
+      description: "I har én service oprettet — kunderne booker oftere når de kan se 3+ services. Tilføj fx en standard- og en premium-pakke.",
+      cta: "Tilføj service",
+      href: "/virksomhed?tab=services",
+      icon: Wrench,
+      isRelevant: ({ servicesCount }) => servicesCount > 0 && servicesCount < 3,
+      isDone: ({ servicesCount }) => servicesCount >= 3,
+    },
+    {
       id: "employees",
       title: "Inviter jeres medarbejdere",
-      description: "Giv teamet adgang til medarbejder-appen, så I kan tildele opgaver.",
+      description: "Giv teamet adgang til medarbejder-appen, så I kan tildele opgaver og se hvem der har gjort hvad.",
       cta: "Tilføj medarbejder",
       href: "/virksomhed?tab=employees",
       icon: Users,
@@ -119,13 +171,40 @@ const buildSteps = (ctx: Ctx): Step[] => {
     {
       id: "route-planning",
       title: "Planlæg jeres første rute",
-      description: "Træk dagens aftaler ind i kalenderen og tildel dem til jeres team.",
+      description: "Træk dagens aftaler ind i kalenderen og tildel dem til jeres team — så ved alle hvad de skal hvornår.",
       cta: "Åbn ruteplanlægger",
       href: "/virksomhed/ruter",
       icon: RouteIcon,
       // Kan kun markeres færdig manuelt eller via "Spring over".
       isDone: () => false,
-      isRelevant: ({ business }) => !!(business?.settings as any)?.route_planning_enabled,
+      isRelevant: ({ business, employeesCount }) =>
+        !!(business?.settings as any)?.route_planning_enabled && employeesCount > 0,
+    },
+    {
+      id: "enable-livechat",
+      title: "Slå live-chat til",
+      description: "Med live-chat kan besøgende stille spørgsmål direkte fra jeres profil — det forvandler nysgerrige besøgende til kunder. Slås til under Ekstra funktioner.",
+      cta: "Aktivér live-chat",
+      href: settingsHref,
+      icon: MessageCircle,
+      isRelevant: () => !settings.live_chat_enabled,
+      isDone: () => !!settings.live_chat_enabled,
+    },
+    {
+      id: "set-phone-format",
+      title: "Tjek jeres telefonnummer",
+      description: "Telefonnummeret bør være på 8 cifre (med eller uden landekode). Det her er det vigtigste kontaktpunkt for nye kunder.",
+      cta: "Ret telefonnummer",
+      href: settingsHref,
+      icon: Phone,
+      isRelevant: ({ business }) => {
+        const p = (business?.phone || "").replace(/\D/g, "");
+        return p.length > 0 && p.length < 8;
+      },
+      isDone: ({ business }) => {
+        const p = (business?.phone || "").replace(/\D/g, "");
+        return p.length >= 8;
+      },
     },
   ];
   return all.filter((s) => (s.isRelevant ? s.isRelevant(ctx) : true));
@@ -171,9 +250,11 @@ export const OnboardingHub = ({ business }: { business: any }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    services?.length, employees?.length, business?.logo_url,
-    business?.description, business?.phone, business?.address,
+    services?.length, employees?.length,
+    business?.logo_url, business?.cover_image_url, business?.cover_url,
+    business?.description, business?.phone, business?.address, business?.slug,
     JSON.stringify(business?.categories), JSON.stringify(business?.opening_hours),
+    JSON.stringify(business?.settings),
   ]);
 
   // Markér onboarding som færdig når alle trin er overstået.

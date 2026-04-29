@@ -1,6 +1,5 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
@@ -11,8 +10,6 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
-  signInWithGoogle: (redirectTo?: string) => Promise<{ error: Error | null }>;
-  signInWithApple: (redirectTo?: string) => Promise<{ error: Error | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -73,30 +70,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error: error as Error | null };
   };
 
-  /**
-   * Starter Google OAuth-flow. Efter login sendes brugeren tilbage til den
-   * angivne sti (default: forsiden — Auth-siden redirecter selv videre når
-   * sessionen er aktiv).
-   */
-  const signInWithGoogle = async (redirectTo?: string) => {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}${redirectTo || "/"}`,
-    });
-    return { error: (result as any).error ?? null };
-  };
-
-  /**
-   * Starter Apple OAuth-flow. Samme princip som Google.
-   */
-  const signInWithApple = async (redirectTo?: string) => {
-    const result = await lovable.auth.signInWithOAuth("apple", {
-      redirect_uri: `${window.location.origin}${redirectTo || "/"}`,
-    });
-    return { error: (result as any).error ?? null };
-  };
-
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, resetPassword, signInWithGoogle, signInWithApple }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );
