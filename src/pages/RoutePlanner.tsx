@@ -108,6 +108,9 @@ const Planner = () => {
 
   // Vejrudsigt — bruger gennemsnit af stop-koordinater i det viste interval,
   // ellers Danmarks centrum. Open-Meteo kan levere op til 16 dage frem.
+  // Vi henter altid maks. forecast (i dag → +15 dage) så vejret allerede er
+  // cached når brugeren bladrer en uge eller måned frem — der er ingen
+  // ekstra omkostning ved at hente flere dage på én gang.
   const weatherCenter = useMemo(() => {
     const coords = calendarStops
       .filter((s) => s.latitude != null && s.longitude != null)
@@ -118,9 +121,20 @@ const Planner = () => {
     return { lat, lng };
   }, [calendarStops]);
 
+  // Bredt vejr-interval: fra MIN(synlig start, i dag) til MAX(synlig slut, i dag+15).
+  // På den måde er forecast altid tilgængelig for både fortid (= ingen data) og
+  // fremtidige måneder/uger uden ekstra refetch ved navigation.
+  const weatherRange = useMemo(() => {
+    const today = todayStr();
+    const farFuture = format(addDays(new Date(), 15), "yyyy-MM-dd");
+    const start = calendarRange.start < today ? today : calendarRange.start;
+    const end = calendarRange.end > farFuture ? farFuture : (calendarRange.end < today ? farFuture : calendarRange.end);
+    return { start, end };
+  }, [calendarRange.start, calendarRange.end]);
+
   const { data: weatherDays = [] } = useWeatherForecast({
-    startDate: calendarRange.start,
-    endDate: calendarRange.end,
+    startDate: weatherRange.start,
+    endDate: weatherRange.end,
     latitude: weatherCenter.lat,
     longitude: weatherCenter.lng,
   });
@@ -210,6 +224,14 @@ const Planner = () => {
     () => filteredUnassigned.reduce((s: number, j: any) => s + Number(j.total_amount || 0), 0),
     [filteredUnassigned],
   );
+
+  /** Periode-overblik vist i toolbaren — giver hurtigt overblik over hvor
+   *  meget arbejde der er planlagt i den viste måned/uge. */
+  const periodSummary = useMemo(() => {
+    const routeCount = calendarRoutesRaw.length;
+    const stopCount = calendarStops.length;
+    return { routeCount, stopCount };
+  }, [calendarRoutesRaw.length, calendarStops.length]);
 
   /* Stop assignment handler */
   /* Build CalendarRoute[] for MonthWeekCalendar (range covers month/week view) */
@@ -563,6 +585,25 @@ const Planner = () => {
         contentClassName="flex flex-col overflow-hidden"
         topbarRight={
           <div className="flex items-center gap-1.5 flex-wrap justify-end">
+            {/* Hurtig periode-statistik — gør det øjeblikkeligt klart hvor
+                meget arbejde der ligger i den viste måned/uge. */}
+            {periodSummary.routeCount > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="hidden md:inline-flex items-center gap-2 h-7 px-2.5 rounded-md bg-secondary/60 border border-border/60 text-[11px] tabular-nums">
+                    <span className="font-semibold text-foreground">{periodSummary.routeCount}</span>
+                    <span className="text-muted-foreground">{periodSummary.routeCount === 1 ? "rute" : "ruter"}</span>
+                    <span className="text-border">·</span>
+                    <span className="font-semibold text-foreground">{periodSummary.stopCount}</span>
+                    <span className="text-muted-foreground">{periodSummary.stopCount === 1 ? "stop" : "stop"}</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  Overblik for {view === "week" ? "den viste uge" : "den viste måned"}
+                </TooltipContent>
+              </Tooltip>
+            )}
+
             <Tabs value={view} onValueChange={(v) => setView(v as any)}>
               <TabsList className="h-7">
                 <TabsTrigger value="month" className="text-xs h-5 px-2">Måned</TabsTrigger>
