@@ -16,6 +16,9 @@ export interface AccountingSettings {
   default_vat_rate?: number;
   auto_create_products?: boolean;
   default_product_account?: string;
+  default_customer_group?: string;     // kundegruppe id (e-conomic) / contactType (billy) / contactGroup (dinero)
+  default_product_group?: string;      // produktgruppe id (e-conomic productGroupNumber, billy productGroupId, dinero account)
+  default_income_account?: string;     // indtægtskonto-nr (typisk 1000-serien)
   send_order_as?: "order" | "invoice_draft" | "quote";
   [key: string]: unknown;
 }
@@ -78,6 +81,7 @@ export interface UpsertProductInput {
   unit_price: number;
   vat_rate?: number | null;
   account_number?: string | null;
+  product_group?: string | null;
   external_id?: string | null;
 }
 
@@ -94,10 +98,25 @@ export interface UpsertOrderInput {
   lines: OrderLineInput[];
 }
 
+export interface ExternalGroup {
+  id: string;
+  name: string;
+  account_number?: string | null;
+}
+
+export interface ExternalGroups {
+  customer_groups: ExternalGroup[];
+  product_groups: ExternalGroup[];
+  income_accounts: ExternalGroup[];
+}
+
 export interface AccountingAdapter {
   provider: AccountingProvider;
 
   testConnection(): Promise<{ ok: boolean; message?: string }>;
+
+  // Lookups for dropdowns in UI
+  listGroups(): Promise<ExternalGroups>;
 
   // Customers
   listCustomers(updatedSince?: Date): Promise<ExternalCustomer[]>;
