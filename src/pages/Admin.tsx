@@ -1526,38 +1526,44 @@ const ServiceForm = ({
             {steps.map((step, i) => {
               const rowTotal = (Number(step.price_per_unit) || 0) * (Number(step.default_value) || 0);
               return (
-                <Card key={i} className="rounded-xl shadow-sm border-border overflow-hidden">
-                  <div className="flex items-center justify-between gap-2 bg-secondary/40 px-3 py-2 border-b border-border">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-foreground text-[11px] font-bold text-background">
+                 <Card key={i} className="group/step rounded-xl shadow-sm border-border overflow-hidden transition-colors hover:border-foreground/15">
+                   <div className="flex items-center justify-between gap-2 bg-secondary/50 px-3 py-2 border-b border-border">
+                     <div className="flex items-center gap-2 min-w-0">
+                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-foreground text-[11px] font-bold text-background">
                         {i + 1}
                       </span>
                       <span className="truncate text-sm font-semibold text-foreground">
                         {step.label || `Trin ${i + 1}`}
                       </span>
                       {rowTotal > 0 && (
-                        <span className="ml-1 shrink-0 rounded-md bg-card px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground tabular-nums">
+                        <span className="ml-1 shrink-0 rounded-md border border-border bg-card px-1.5 py-0.5 text-[10px] font-medium text-foreground/80 tabular-nums">
                           {rowTotal.toLocaleString("da-DK")} kr
                         </span>
                       )}
                     </div>
-                    <div className="flex shrink-0 items-center gap-0.5">
-                      <Button variant="ghost" size="sm" onClick={() => moveStep(i, -1)} disabled={i === 0}
-                        className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-30">
-                        <ArrowUp className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => moveStep(i, 1)} disabled={i === steps.length - 1}
-                        className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-30">
-                        <ArrowDown className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => duplicateStep(i)}
-                        className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-foreground">
-                        <Copy className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => removeStep(i)}
-                        className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                    <div className="flex shrink-0 items-center gap-1">
+                      <div className="flex items-center rounded-lg border border-border bg-card p-0.5 shadow-sm">
+                        <button type="button" onClick={() => moveStep(i, -1)} disabled={i === 0}
+                          aria-label="Flyt op" title="Flyt op"
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground">
+                          <ArrowUp className="h-3.5 w-3.5" />
+                        </button>
+                        <button type="button" onClick={() => moveStep(i, 1)} disabled={i === steps.length - 1}
+                          aria-label="Flyt ned" title="Flyt ned"
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground">
+                          <ArrowDown className="h-3.5 w-3.5" />
+                        </button>
+                        <button type="button" onClick={() => duplicateStep(i)}
+                          aria-label="Dupliker trin" title="Dupliker"
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                          <Copy className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <button type="button" onClick={() => removeStep(i)}
+                        aria-label="Slet trin" title="Slet trin"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-sm transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40">
                         <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                      </button>
                     </div>
                   </div>
                   <CardContent className="p-4 space-y-3">
