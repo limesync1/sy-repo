@@ -12,7 +12,8 @@ import { toast } from "sonner";
 import {
   Loader2, RefreshCw, Check, AlertCircle, ExternalLink, Eye, EyeOff,
   ArrowLeft, ArrowRight, Plug, Settings2, ShieldCheck, Calculator,
-  Clock, ListChecks, Sparkles, X,
+  Clock, ListChecks, Sparkles, X, Upload, Download, RotateCw, AlertTriangle,
+  Copy,
 } from "lucide-react";
 import {
   PageHeader, PrimaryButton, SectionCard, StatCard, EmptyState, FieldLabel,
@@ -181,6 +182,31 @@ const formatRelativeDanish = (iso: string | null): string => {
   return new Date(iso).toLocaleDateString("da-DK");
 };
 
+// Cron-jobbet kører hver hele time (HH:00). Beregn hvornår næste kørsel er.
+const nextHourlyRun = (): Date => {
+  const d = new Date();
+  d.setMinutes(0, 0, 0);
+  d.setHours(d.getHours() + 1);
+  return d;
+};
+
+const formatCountdown = (d: Date): string => {
+  const ms = d.getTime() - Date.now();
+  if (ms <= 0) return "Nu";
+  const totalMin = Math.ceil(ms / 60_000);
+  if (totalMin < 60) return `om ${totalMin} min`;
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return m === 0 ? `om ${h} t.` : `om ${h} t. ${m} min`;
+};
+
+const ENTITY_LABEL: Record<string, string> = {
+  customer: "Kunde",
+  product: "Vare",
+  order: "Aftale",
+  connection: "Forbindelse",
+};
+
 export default function AccountingTab({ businessId }: { businessId: string; businessName: string }) {
   const [integration, setIntegration] = useState<Integration | null>(null);
   const [mode, setMode] = useState<Mode>("overview");
@@ -203,8 +229,20 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const [syncing, setSyncing] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [queueCount, setQueueCount] = useState(0);
+  const [failedJobs, setFailedJobs] = useState<any[]>([]);
+  const [pushedLast24h, setPushedLast24h] = useState(0);
+  const [pulledLast24h, setPulledLast24h] = useState(0);
+  const [lastSuccessPush, setLastSuccessPush] = useState<string | null>(null);
+  const [lastSuccessPull, setLastSuccessPull] = useState<string | null>(null);
+  // Re-render hvert minut så "om X min"-tæller forbliver retvisende
+  const [, setNowTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setNowTick(n => n + 1), 60_000);
+    return () => clearInterval(t);
+  }, []);
   const [confirmDisable, setConfirmDisable] = useState(false);
   const [confirmSwitch, setConfirmSwitch] = useState(false);
+  const [retryingJobId, setRetryingJobId] = useState<string | null>(null);
 
   const currentProvider = useMemo(
     () => PROVIDERS.find(p => p.value === provider)!,
@@ -238,6 +276,45 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       .select("*", { count: "exact", head: true })
       .eq("business_id", businessId).in("status", ["pending", "failed"]);
     setQueueCount(count ?? 0);
+
+    // Detaljeret fejl-liste fra køen (indeholder entity-id + præcis fejltekst)
+    const { data: failed } = await supabase.from("accounting_sync_queue" as any)
+      .select("*")
+      .eq("business_id", businessId)
+      .eq("status", "failed")
+      .order("updated_at", { ascending: false })
+      .limit(20);
+    setFailedJobs((failed as any) ?? []);
+
+    // Tællere for sidste 24 timer (push/pull) — viser i status-grid
+    const since24 = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const [{ count: pushedC }, { count: pulledC }] = await Promise.all([
+      supabase.from("accounting_sync_log" as any)
+        .select("*", { count: "exact", head: true })
+        .eq("business_id", businessId).eq("status", "success").eq("direction", "push")
+        .gte("created_at", since24),
+      supabase.from("accounting_sync_log" as any)
+        .select("*", { count: "exact", head: true })
+        .eq("business_id", businessId).eq("status", "success").eq("direction", "pull")
+        .gte("created_at", since24),
+    ]);
+    setPushedLast24h(pushedC ?? 0);
+    setPulledLast24h(pulledC ?? 0);
+
+    // Sidste succesrige push/pull tidspunkt — vises som "hint" på stat-cards
+    const [{ data: lastPush }, { data: lastPull }] = await Promise.all([
+      supabase.from("accounting_sync_log" as any)
+        .select("created_at").eq("business_id", businessId)
+        .eq("status", "success").eq("direction", "push")
+        .order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("accounting_sync_log" as any)
+        .select("created_at").eq("business_id", businessId)
+        .eq("status", "success").eq("direction", "pull")
+        .order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    ]);
+    setLastSuccessPush((lastPush as any)?.created_at ?? null);
+    setLastSuccessPull((lastPull as any)?.created_at ?? null);
+
     setLoading(false);
   };
 
@@ -350,6 +427,44 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     startWizard();
   };
 
+  // Marker job som pending igen og kør synk med det samme. Bruges fra
+  // fejl-sektionen under hver fejlende række.
+  const handleRetryJob = async (jobId: string) => {
+    setRetryingJobId(jobId);
+    try {
+      const { error } = await supabase.from("accounting_sync_queue" as any)
+        .update({ status: "pending", scheduled_for: new Date().toISOString(), last_error: null })
+        .eq("id", jobId);
+      if (error) throw error;
+      const r = await supabase.functions.invoke("accounting-sync", {
+        body: { business_id: businessId, mode: "queue" },
+      });
+      if (r.error) throw r.error;
+      toast.success("Forsøgt igen");
+      await load();
+    } catch (e: any) {
+      toast.error(e.message ?? "Kunne ikke prøve igen");
+    } finally { setRetryingJobId(null); }
+  };
+
+  const handleRetryAllFailed = async () => {
+    if (failedJobs.length === 0) return;
+    setSyncing(true);
+    try {
+      await supabase.from("accounting_sync_queue" as any)
+        .update({ status: "pending", scheduled_for: new Date().toISOString(), last_error: null })
+        .eq("business_id", businessId).eq("status", "failed");
+      const r = await supabase.functions.invoke("accounting-sync", {
+        body: { business_id: businessId, mode: "queue" },
+      });
+      if (r.error) throw r.error;
+      toast.success("Alle fejlende jobs forsøgt igen");
+      await load();
+    } catch (e: any) {
+      toast.error(e.message ?? "Kunne ikke prøve igen");
+    } finally { setSyncing(false); }
+  };
+
   // Læg alle eksisterende kunder/services/ordrer i køen (idempotent — duplicates
   // i samme batch giver bare lidt ekstra arbejde, ikke fejl).
   async function seedQueue(bizId: string) {
@@ -445,6 +560,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     const lastSync = integration.last_push_at && integration.last_pull_at
       ? (new Date(integration.last_push_at) > new Date(integration.last_pull_at) ? integration.last_push_at : integration.last_pull_at)
       : (integration.last_push_at ?? integration.last_pull_at);
+    const nextRun = nextHourlyRun();
+    const failedCount = failedJobs.length;
+    const pendingCount = Math.max(queueCount - failedCount, 0);
 
     return (
       <div className="space-y-6">
@@ -458,28 +576,50 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           }
         />
 
-        {/* Stats — samme rytme som Leads/Overblik */}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Synk-status — fuld oversigt over hvad der er sket og hvad der venter.
+            Følger samme 2-3 kolonne stat-grid rytme som Overblik/Leads. */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <StatCard
             label="Status"
-            value={hasError ? "Fejl" : "Aktiv"}
-            hint={hasError ? "Kræver opmærksomhed" : "Synkroniserer hver time"}
-            icon={hasError ? <AlertCircle /> : <Check />}
-            tone={hasError ? "amber" : "emerald"}
+            value={failedCount > 0 ? "Fejl" : hasError ? "Fejl" : "Aktiv"}
+            hint={failedCount > 0 ? `${failedCount} jobs fejlede` : hasError ? "Forbindelses-fejl" : "Kører automatisk"}
+            icon={(failedCount > 0 || hasError) ? <AlertCircle /> : <Check />}
+            tone={(failedCount > 0 || hasError) ? "amber" : "emerald"}
           />
           <StatCard
-            label="Sidste synk"
-            value={formatRelativeDanish(lastSync)}
-            hint={lastSync ? new Date(lastSync).toLocaleString("da-DK") : "Endnu ikke synkroniseret"}
-            icon={<Clock />}
+            label="Sendt (24t)"
+            value={pushedLast24h}
+            hint={lastSuccessPush ? `Sidst ${formatRelativeDanish(lastSuccessPush)}` : "Endnu intet sendt"}
+            icon={<Upload />}
             tone="blue"
           />
           <StatCard
-            label="I synk-kø"
-            value={queueCount}
-            hint={queueCount === 0 ? "Alt er sendt afsted" : "Sendes ved næste synk"}
-            icon={<ListChecks />}
+            label="Hentet (24t)"
+            value={pulledLast24h}
+            hint={lastSuccessPull ? `Sidst ${formatRelativeDanish(lastSuccessPull)}` : "Endnu intet hentet"}
+            icon={<Download />}
             tone="violet"
+          />
+          <StatCard
+            label="I kø"
+            value={pendingCount}
+            hint={pendingCount === 0 ? "Alt er sendt" : "Venter på næste kørsel"}
+            icon={<ListChecks />}
+            tone="neutral"
+          />
+          <StatCard
+            label="Fejlede jobs"
+            value={failedCount}
+            hint={failedCount === 0 ? "Ingen fejl" : "Se detaljer nedenfor"}
+            icon={<AlertTriangle />}
+            tone={failedCount > 0 ? "amber" : "emerald"}
+          />
+          <StatCard
+            label="Næste kørsel"
+            value={formatCountdown(nextRun)}
+            hint={`Kl. ${nextRun.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}`}
+            icon={<Clock />}
+            tone="accent"
           />
         </div>
 
@@ -491,17 +631,15 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
-                size="sm"
                 onClick={() => setConfirmSwitch(true)}
-                className="h-8"
+                className="h-9 rounded-lg text-xs font-medium"
               >
                 Skift program
               </Button>
               <Button
                 variant="outline"
-                size="sm"
                 onClick={() => setConfirmDisable(true)}
-                className="h-8 border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive active:bg-destructive/90"
+                className="h-9 rounded-lg border-border text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/40"
               >
                 <X className="mr-1.5 h-4 w-4" /> Afbryd
               </Button>
@@ -533,7 +671,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             <div className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <div className="min-w-0">
-                <div className="font-medium">Sidste fejl</div>
+                <div className="font-medium">Forbindelses-fejl</div>
                 <div className="text-destructive/90 break-words">{integration.last_error}</div>
                 {integration.last_error_at && (
                   <div className="mt-1 text-xs opacity-80">
@@ -545,13 +683,87 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           )}
         </SectionCard>
 
+        {/* Fejlende jobs — kun synlig hvis der faktisk er noget at handle på.
+            Hvert job viser entity-type, det interne id (kopierbart), den præcise
+            fejltekst fra adapteren og hvornår det sidst fejlede. */}
+        {failedJobs.length > 0 && (
+          <SectionCard
+            title="Synk-fejl"
+            icon={<AlertTriangle />}
+            description="Disse jobs blev forsøgt 5 gange uden held. Ret problemet og prøv igen."
+            action={
+              <Button
+                variant="outline"
+                onClick={handleRetryAllFailed}
+                disabled={syncing}
+                className="h-9 rounded-lg text-xs font-medium"
+              >
+                {syncing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RotateCw className="mr-1.5 h-3.5 w-3.5" />}
+                Prøv alle igen
+              </Button>
+            }
+          >
+            <div className="divide-y divide-border">
+              {failedJobs.map(job => (
+                <div key={job.id} className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-start">
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="destructive" className="gap-1 shrink-0">
+                        <AlertCircle className="h-3 w-3" />
+                        {ENTITY_LABEL[job.entity_type] ?? job.entity_type}
+                      </Badge>
+                      <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                        {job.operation} · forsøg {job.attempts}/5
+                      </span>
+                      <span className="text-xs text-muted-foreground tabular-nums">
+                        {formatRelativeDanish(job.updated_at)}
+                      </span>
+                    </div>
+                    <div className="break-words rounded-md border border-destructive/20 bg-destructive/5 px-2.5 py-1.5 text-xs text-destructive">
+                      {job.last_error || "Ukendt fejl"}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(job.entity_id);
+                        toast.success("ID kopieret");
+                      }}
+                      className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+                      title="Klik for at kopiere"
+                    >
+                      <Copy className="h-3 w-3" />
+                      {job.entity_id}
+                    </button>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleRetryJob(job.id)}
+                    disabled={retryingJobId === job.id}
+                    className="h-9 rounded-lg text-xs font-medium sm:w-auto"
+                  >
+                    {retryingJobId === job.id
+                      ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                      : <RotateCw className="mr-1.5 h-3.5 w-3.5" />}
+                    Prøv igen
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+        )}
+
         {/* Synk-indstillinger */}
         <SectionCard
           title="Synk-indstillinger"
           icon={<Settings2 />}
           description="Bestem hvordan og hvornår dine data sendes til regnskabsprogrammet."
           action={
-            <Button size="sm" variant="outline" onClick={handleSaveSettingsOnly} disabled={saving}>
+            <Button
+              variant="outline"
+              onClick={handleSaveSettingsOnly}
+              disabled={saving}
+              className="h-9 rounded-lg text-xs font-medium"
+            >
               {saving && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
               Gem
             </Button>
@@ -631,20 +843,25 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
         {/* Bekræftelses-modaler */}
         <AlertDialog open={confirmDisable} onOpenChange={setConfirmDisable}>
-          <AlertDialogContent>
+          <AlertDialogContent className="rounded-xl">
             <AlertDialogHeader>
-              <AlertDialogTitle>Afbryd integration?</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                Afbryd integration?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="leading-relaxed">
                 Vi stopper med at sende dine aftaler, kunder og varer til {activeDef.label}.
                 Allerede synkroniserede data forbliver i {activeDef.label} — intet slettes.
                 Du kan altid forbinde igen senere.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Behold integration</AlertDialogCancel>
+              <AlertDialogCancel className="h-9 rounded-lg text-sm font-medium">
+                Behold integration
+              </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDisable}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="h-9 rounded-lg text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive"
               >
                 Ja, afbryd
               </AlertDialogAction>
@@ -653,18 +870,26 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         </AlertDialog>
 
         <AlertDialog open={confirmSwitch} onOpenChange={setConfirmSwitch}>
-          <AlertDialogContent>
+          <AlertDialogContent className="rounded-xl">
             <AlertDialogHeader>
-              <AlertDialogTitle>Skift regnskabsprogram?</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <RefreshCw className="h-5 w-5 text-foreground" />
+                Skift regnskabsprogram?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="leading-relaxed">
                 Du kan kun have ét regnskabsprogram forbundet ad gangen. Når du
                 vælger et nyt, stopper synkronisering med {activeDef.label} —
                 men dine data i begge systemer bevares.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Behold {activeDef.label}</AlertDialogCancel>
-              <AlertDialogAction onClick={() => { setConfirmSwitch(false); handleSwitchProvider(); }}>
+              <AlertDialogCancel className="h-9 rounded-lg text-sm font-medium">
+                Behold {activeDef.label}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => { setConfirmSwitch(false); handleSwitchProvider(); }}
+                className="h-9 rounded-lg text-sm font-medium bg-foreground text-background hover:bg-foreground/90"
+              >
                 Vælg nyt program
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -689,7 +914,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         title={integration?.is_active ? "Skift regnskabsprogram" : "Forbind regnskabsprogram"}
         description="Vi guider dig igennem på 3 trin — det tager typisk under 2 minutter."
         action={
-          <Button variant="ghost" size="sm" onClick={() => setMode("overview")}>
+          <Button
+            variant="outline"
+            onClick={() => setMode("overview")}
+            className="h-9 rounded-lg text-xs font-medium"
+          >
             <X className="mr-1.5 h-4 w-4" /> Annullér
           </Button>
         }
