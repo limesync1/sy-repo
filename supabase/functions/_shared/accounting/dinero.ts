@@ -17,7 +17,27 @@ const BASE = "https://api.dinero.dk/v1";
 
 const tokenCache = new Map<string, { token: string; expires: number }>();
 
+function friendlyDineroError(status: number, body: string): string {
+  const lower = body.toLowerCase();
+  if (status === 401 || status === 403 || lower.includes("unauthorized") || lower.includes("invalid_grant") || lower.includes("invalid_client")) {
+    return "Dinero afviste login. Tjek Client ID, Client Secret og at du har givet adgang til organisationen.";
+  }
+  if (status === 404) return "Dinero kunne ikke finde organisationen. Tjek at Organisations-ID er korrekt.";
+  if (status === 429) return "For mange forespørgsler til Dinero — prøv igen om et øjeblik.";
+  if (status >= 500) return "Dineros servere svarer ikke lige nu. Prøv igen om et par minutter.";
+  try {
+    const j = JSON.parse(body);
+    if (j?.Message) return `Dinero: ${j.Message}`;
+    if (j?.error_description) return `Dinero: ${j.error_description}`;
+    if (j?.error) return `Dinero: ${j.error}`;
+  } catch { /* ignore */ }
+  return `Dinero afviste forespørgslen (${status}).`;
+}
+
 async function getToken(creds: AccountingCredentials): Promise<string> {
+  if (!creds.api_token || !creds.api_secret) {
+    throw new Error("Mangler Client ID eller Client Secret.");
+  }
   const key = `${creds.api_token ?? ""}::${creds.api_secret ?? ""}`;
   const cached = tokenCache.get(key);
   if (cached && cached.expires > Date.now() + 60_000) return cached.token;
@@ -33,7 +53,7 @@ async function getToken(creds: AccountingCredentials): Promise<string> {
       encodeURIComponent(creds.api_token ?? "") +
       "&password=" + encodeURIComponent(creds.api_secret ?? ""),
   });
-  if (!res.ok) throw new Error(`Dinero auth ${res.status}: ${await res.text()}`);
+  if (!res.ok) throw new Error(friendlyDineroError(res.status, await res.text()));
   const data = await res.json();
   tokenCache.set(key, {
     token: data.access_token,
@@ -48,6 +68,7 @@ async function dineroRequest(
   path: string,
   init: RequestInit = {},
 ): Promise<any> {
+  if (!orgId) throw new Error("Mangler Organisations-ID.");
   const token = await getToken(creds);
   const res = await fetch(`${BASE}/${orgId}${path}`, {
     ...init,
@@ -60,7 +81,7 @@ async function dineroRequest(
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Dinero ${res.status}: ${text}`);
+    throw new Error(friendlyDineroError(res.status, text));
   }
   if (res.status === 204) return null;
   return await res.json();

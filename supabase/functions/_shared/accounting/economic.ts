@@ -23,18 +23,38 @@ function makeHeaders(creds: AccountingCredentials): HeadersInit {
   };
 }
 
+function friendlyEconomicError(status: number, body: string): string {
+  const lower = body.toLowerCase();
+  if (status === 401 || status === 403 || lower.includes("unauthorized") || lower.includes("invalid token")) {
+    return "Forbindelsen blev afvist. Tjek at både App Secret Token og Agreement Grant Token er korrekte og at app'en er installeret på din e-conomic-aftale.";
+  }
+  if (status === 404) return "E-conomic kunne ikke finde det forespurgte. Tjek at din aftale er aktiv.";
+  if (status === 429) return "For mange forespørgsler til e-conomic — prøv igen om et øjeblik.";
+  if (status >= 500) return "E-conomics servere svarer ikke lige nu. Prøv igen om et par minutter.";
+  // Try to surface their JSON message
+  try {
+    const j = JSON.parse(body);
+    if (j?.message) return `E-conomic: ${j.message}`;
+    if (j?.errors?.[0]?.errorMessage) return `E-conomic: ${j.errors[0].errorMessage}`;
+  } catch { /* ignore */ }
+  return `E-conomic afviste forespørgslen (${status}).`;
+}
+
 async function ecRequest(
   creds: AccountingCredentials,
   path: string,
   init: RequestInit = {},
 ): Promise<any> {
+  if (!creds.api_secret || !creds.api_token) {
+    throw new Error("Mangler App Secret Token eller Agreement Grant Token.");
+  }
   const res = await fetch(`${BASE}${path}`, {
     ...init,
     headers: { ...makeHeaders(creds), ...(init.headers ?? {}) },
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`E-conomic ${res.status}: ${text}`);
+    throw new Error(friendlyEconomicError(res.status, text));
   }
   if (res.status === 204) return null;
   return await res.json();
