@@ -132,7 +132,7 @@ const Planner = () => {
     return { start, end };
   }, [calendarRange.start, calendarRange.end]);
 
-  const { data: weatherDays = [], isLoading: loadingWeather } = useWeatherForecast({
+  const { data: weatherDays = [], isLoading: loadingWeather, isError: weatherError } = useWeatherForecast({
     startDate: weatherRange.start,
     endDate: weatherRange.end,
     latitude: weatherCenter.lat,
@@ -864,6 +864,7 @@ const Planner = () => {
                   weatherByDate={weatherByDate}
                   loadingRoutes={loadingCalendarRoutes || loadingCalendarStops}
                   loadingWeather={loadingWeather}
+                  weatherError={weatherError}
                 />
                 </div>
               </ResizablePanel>
