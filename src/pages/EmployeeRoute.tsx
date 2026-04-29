@@ -1917,7 +1917,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         */}
         <SheetContent
           side="bottom"
-          hideClose
           className={`p-0 rounded-t-2xl flex flex-col transition-[max-height,height] duration-300 ease-out ${
             sheetExpanded ? "max-h-[85vh] h-[85vh]" : "max-h-[45vh] h-[45vh]"
           }`}
