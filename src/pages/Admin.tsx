@@ -1432,7 +1432,7 @@ const ServiceForm = ({
                     <Button
                       type="button"
                       size="sm"
-                      onClick={generateAiTemplate}
+                      onClick={() => generateAiTemplate()}
                       disabled={aiTemplateLoading || !name.trim()}
                       className="gap-1.5"
                     >
