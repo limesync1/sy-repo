@@ -301,7 +301,7 @@ type RoutePillProps = {
   jobDragActive?: boolean;
 };
 
-const RoutePill = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive }: RoutePillProps) => {
+const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive }: RoutePillProps) => {
   // Drag-handle: hele pillen kan trækkes til ny dato
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
     id: `route:${route.id}`,
@@ -447,3 +447,12 @@ const RoutePill = ({ route, onSelect, onSelectStop, onOptimize, optimizing, comp
     </div>
   );
 };
+
+const RoutePill = memo(RoutePillInner, (prev, next) => {
+  return (
+    prev.route === next.route &&
+    prev.optimizing === next.optimizing &&
+    prev.compact === next.compact &&
+    prev.jobDragActive === next.jobDragActive
+  );
+});
