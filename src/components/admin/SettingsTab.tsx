@@ -60,14 +60,14 @@ const formatHours = (open: string, close: string) => `${open} - ${close}`;
 // ─── Sub-nav sektioner ───
 // Vises som sticky sidebar (lg+) eller chip-rækken (mobil).
 const SECTIONS = [
-  { id: "general",       label: "Virksomhed",     icon: Building2, hint: "Navn og beskrivelse" },
-  { id: "industries",    label: "Brancher",       icon: Sparkles,  hint: "Hvad I tilbyder" },
-  { id: "contact",       label: "Kontakt",        icon: Contact,   hint: "Adresse og kontakt" },
-  { id: "branding",      label: "Branding",       icon: ImageIcon, hint: "Domæne og billeder" },
-  { id: "hours",         label: "Åbningstider",   icon: Clock,     hint: "Hverdage og weekend" },
-  { id: "notifications", label: "Notifikationer", icon: Bell,      hint: "Email-varsler" },
-  { id: "billing",       label: "Priser og betaling", icon: CreditCard, hint: "Pakke og betalingskort" },
-  { id: "advanced",      label: "Avanceret",      icon: Route,     hint: "Ekstra funktioner" },
+  { id: "general",       label: "Om virksomheden",    icon: Building2, hint: "Navn og kort beskrivelse" },
+  { id: "industries",    label: "Hvad I tilbyder",    icon: Sparkles,  hint: "Brancher og kategorier" },
+  { id: "contact",       label: "Kontakt og adresse", icon: Contact,   hint: "Telefon, e-mail, adresse" },
+  { id: "branding",      label: "Profil og webadresse", icon: ImageIcon, hint: "Logo, billede og link" },
+  { id: "hours",         label: "Åbningstider",       icon: Clock,     hint: "Hvornår I tager telefonen" },
+  { id: "notifications", label: "E-mail-beskeder",    icon: Bell,      hint: "Hvad I vil have besked om" },
+  { id: "billing",       label: "Pris og betaling",   icon: CreditCard, hint: "Pakke og betalingskort" },
+  { id: "advanced",      label: "Ekstra funktioner",  icon: Route,     hint: "Tilvalg som ruteplan m.m." },
 ] as const;
 
 /* ─── Toggle-switch (delt mellem notifikations- og rute-felter) ─── */
