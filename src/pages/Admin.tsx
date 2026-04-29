@@ -31,7 +31,7 @@ import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 import OnboardingHub from "@/components/admin/onboarding/OnboardingHub";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
-import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
+import { ShellSkeleton, ListCardSkeleton, StatGridSkeleton } from "@/components/admin/shared/Skeletons";
 import TrialBanner from "@/components/admin/TrialBanner";
 import ReactivateDialog from "@/components/admin/ReactivateDialog";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
@@ -421,7 +421,12 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   const activeServices = (services || []).filter((s: any) => s.is_active !== false).length;
   const totalOrders = Object.values(orderCountByService).reduce((a, b) => a + b, 0);
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser services...</p>;
+  if (isLoading) return (
+    <div className="space-y-4">
+      <StatGridSkeleton count={3} cols="sm:grid-cols-3" />
+      <ListCardSkeleton rows={5} />
+    </div>
+  );
 
   // Focus-mode: når man opretter eller redigerer en service, skjuler vi alt andet
   // (statistik, filtre og listen) så man kun ser formularen.
