@@ -153,7 +153,7 @@ const SERVICE_CATEGORIES: Record<string, Record<string, string[]>> = {
 /* ─── Entry ─── */
 const Admin = () => {
   const { user, loading } = useAuth();
-  if (loading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
+  if (loading) return <ShellSkeleton />;
   if (!user) return <Navigate to="/log-ind" replace />;
   return <AdminDashboard />;
 };
@@ -206,7 +206,7 @@ const AdminDashboard = () => {
     }
   };
 
-  if (isLoading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Indlæser...</div>;
+  if (isLoading) return <ShellSkeleton />;
   if (!business) return <BusinessOnboarding />;
 
   // Hvis leads-fanen er slået fra i Indstillinger → Avanceret, men URL'en peger
