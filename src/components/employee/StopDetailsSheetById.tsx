@@ -3,7 +3,6 @@
 // rækken + dens rute, og rendrer den fælles StopDetailsContent. Erstatter
 // "kun vis adresse + ordre-id"-flowet, så medarbejderen ser præcis det samme
 // detaljepanel som på sin "min dag"/rutekørsel — bare uden markér-udført.
-import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -72,14 +71,14 @@ const useStopWithRoute = (stopId: string | null) => {
 export const StopDetailsSheetById = ({ open, onOpenChange, stopId }: Props) => {
   const { data, isLoading } = useStopWithRoute(stopId);
 
-  // Lås body-scroll håndteres af Sheet selv; ingen ekstra effekt nødvendig.
-  useEffect(() => {}, [open]);
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
+      {/* Højre-side sheet på desktop (matcher virksomhedspanelets
+          StopDetailSheet) og fuld bottom-sheet på mobil for hurtig
+          tommel-adgang. Samme byggeklodser som planlæggeren bruger. */}
       <SheetContent
-        side="bottom"
-        className="h-[92vh] sm:h-[88vh] p-0 flex flex-col rounded-t-2xl sm:max-w-2xl sm:mx-auto"
+        side="right"
+        className="w-full p-0 flex flex-col sm:max-w-lg"
       >
         {isLoading || !data ? (
           <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground gap-2">
