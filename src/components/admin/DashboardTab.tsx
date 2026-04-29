@@ -10,6 +10,7 @@ import {
 import type { Business } from "@/hooks/useDatabase";
 import { useMemo } from "react";
 import { PageHeader, EmptyState } from "@/components/admin/shared/AdminUI";
+import { cn } from "@/lib/utils";
 
 interface Props {
   business: Business;
