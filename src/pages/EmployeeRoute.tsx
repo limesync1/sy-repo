@@ -1159,12 +1159,33 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             inertiaDeceleration={2400}
             preferCanvas
           >
+            {/*
+              To overlejrede TileLayers + CSS-opacity crossfade:
+              begge er altid mounted (så satellit-fliserne er forhåndshentet
+              og skiftet er instant), men vi fader mellem dem via en wrapper-
+              klasse på .leaflet-tile-pane.  Det giver en blød 320 ms overgang
+              uden at fliserne hak'er ind.
+            */}
             <TileLayer
               url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
               attribution='&copy; OpenStreetMap &copy; CARTO'
               updateWhenIdle={false}
               updateWhenZooming={false}
               keepBuffer={4}
+              opacity={mapStyle === "map" ? 1 : 0}
+              className="map-tile-fade"
+              zIndex={1}
+            />
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              attribution='Tiles &copy; Esri'
+              updateWhenIdle={false}
+              updateWhenZooming={false}
+              keepBuffer={4}
+              opacity={mapStyle === "satellite" ? 1 : 0}
+              className="map-tile-fade"
+              zIndex={2}
+              maxZoom={19}
             />
 
             {/* Fit overview when not started */}
