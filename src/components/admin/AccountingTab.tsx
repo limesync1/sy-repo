@@ -827,9 +827,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </div>
         </SectionCard>
 
-        {/* Standard kategorier hentet fra regnskabsprogrammet */}
+        {/* Standard kundegruppe/indtægtskonto hentet fra regnskabsprogrammet */}
         <SectionCard
-          title="Standard kategorier"
+          title="Standard kundegruppe/indtægtskonto"
           icon={<FolderTree />}
           description="Hentet direkte fra dit regnskabsprogram. Bruges som standard for nye kunder og services — du kan altid overstyre per service."
           action={

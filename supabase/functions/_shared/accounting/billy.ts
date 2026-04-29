@@ -238,7 +238,6 @@ export function makeBillyAdapter(
         cityText: input.city ?? undefined,
         paymentTermsMode: "net",
         paymentTermsDays: input.payment_terms_days ?? settings.default_payment_terms_days ?? 14,
-        defaultCurrencyId: input.currency ?? "DKK",
       };
 
       if (input.external_id) {
