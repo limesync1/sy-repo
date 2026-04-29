@@ -2069,9 +2069,9 @@ const StopListPanel = ({
                       {meta.label}
                     </Badge>
                   </div>
-                  {s.address && (
+                  {(s.full_address || s.address) && (
                     <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-1">
-                      <MapPin className="h-3 w-3 shrink-0" />{s.address}
+                      <MapPin className="h-3 w-3 shrink-0" />{s.full_address || s.address}
                     </p>
                   )}
                   {s.duration_minutes > 0 && (
