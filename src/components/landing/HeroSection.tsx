@@ -1,5 +1,4 @@
 import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
 import SmartLink from "@/components/SmartLink";
 import heroImage from "@/assets/hero-window-cleaning.webp";
 import { Button } from "@/components/ui/button";
