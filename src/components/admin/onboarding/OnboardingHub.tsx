@@ -471,10 +471,20 @@ const ChecklistCard = ({
             <Button size="sm" onClick={onCta} className="h-8 gap-1.5 text-xs">
               {activeStep.cta} <ArrowRight className="h-3.5 w-3.5" />
             </Button>
-            <Button size="sm" variant="ghost" onClick={onMarkDone} className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground">
-              Markér som færdig
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onMarkDone}
+              className="h-8 gap-1.5 px-2.5 text-xs text-foreground bg-card border-border hover:bg-secondary hover:text-foreground"
+            >
+              <Check className="h-3.5 w-3.5" /> Markér som færdig
             </Button>
-            <Button size="sm" variant="ghost" onClick={onSkip} className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onSkip}
+              className="h-8 px-2 text-xs text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
+            >
               Spring over
             </Button>
           </div>
