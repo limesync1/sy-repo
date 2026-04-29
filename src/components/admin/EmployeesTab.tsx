@@ -503,7 +503,7 @@ const EmployeeRow = ({
     <TooltipProvider delayDuration={200}>
     <div
       className={`group grid w-full gap-3 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5
-                  sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:items-center
+                  sm:grid-cols-[minmax(0,1fr)_6rem_8rem_136px] sm:items-center
                   ${employee.is_active ? "" : "opacity-60"}`}
     >
         {/* Navn + kontakt + farve-styring (venstre kolonne) */}
