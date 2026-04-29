@@ -10,6 +10,7 @@ import EmployeeShell from "@/components/employee/EmployeeShell";
 import BusinessLiveChatTab from "@/components/admin/BusinessLiveChatTab";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
 const EmployeeLivechat = () => {
   const navigate = useNavigate();
@@ -51,7 +52,7 @@ const EmployeeLivechat = () => {
       {businessId && business?.name ? (
         <BusinessLiveChatTab businessId={businessId} businessName={business.name} />
       ) : (
-        <div className="text-sm text-muted-foreground">Indlæser…</div>
+        <ListCardSkeleton rows={5} />
       )}
     </EmployeeShell>
   );
