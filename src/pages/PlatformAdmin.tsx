@@ -190,7 +190,7 @@ const PlatformAdmin = () => {
             {/* PageTransition fader nyt indhold ind når tab skifter,
                 Suspense viser ensartet skeleton-loading på første åbning. */}
             <PageTransition transitionKey={tab}>
-              <Suspense fallback={<PageSkeleton statsCount={4} rows={6} />}>
+              <Suspense fallback={<PageSkeleton statsCount={4} rows={6} withFilters />}>
                 {tab === "overview" && <PlatformOverviewTab />}
                 {tab === "businesses" && <PlatformBusinessesTab />}
                 {tab === "users" && <PlatformUsersTab />}

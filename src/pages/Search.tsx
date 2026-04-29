@@ -27,6 +27,7 @@ import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
 import { topCategories } from "@/lib/service-taxonomy";
 import SearchSuggest from "@/components/landing/SearchSuggest";
+import { CardGridSkeleton } from "@/components/admin/shared/Skeletons";
 
 /** Brancher hentes fra det kanoniske taksonomi-katalog så de matcher
  *  præcis det virksomheder kan vælge i panelet. */
@@ -404,17 +405,7 @@ const SearchPage = () => {
 
         {/* Results — list or map */}
         {isLoading ? (
-          <div className="grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="aspect-[4/3] w-full rounded-2xl bg-muted" />
-                <div className="mt-3 space-y-2">
-                  <div className="h-4 w-2/3 rounded bg-muted" />
-                  <div className="h-3 w-1/2 rounded bg-muted" />
-                </div>
-              </div>
-            ))}
-          </div>
+          <CardGridSkeleton count={8} />
         ) : rankedBusinesses && rankedBusinesses.length > 0 ? (
           view === "map" ? (
             <ResultsMap
