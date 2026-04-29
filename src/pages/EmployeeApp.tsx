@@ -313,10 +313,37 @@ const EmployeeApp = () => {
         )}
 
         {(routesLoading || stopsLoading) && (
-          <Card className="rounded-xl border-border p-8 text-center text-muted-foreground shadow-sm">
-            <Loader />
-            <p className="text-sm mt-2">Indlæser dine ruter...</p>
-          </Card>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {[0, 1].map((i) => (
+              <Card key={i} className="overflow-hidden rounded-xl border-border/80 shadow-sm">
+                <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 sm:px-5">
+                  <Skeleton className="h-7 w-7 rounded-lg" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                  <Skeleton className="h-6 w-12 rounded-full" />
+                </div>
+                <Skeleton className="h-40 w-full rounded-none" />
+                <div className="space-y-3 p-4 sm:p-5">
+                  <div className="flex gap-3">
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                  <Skeleton className="h-2 w-full rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-10 w-full rounded-lg" />
+                    <Skeleton className="h-10 w-full rounded-lg" />
+                  </div>
+                  <div className="flex gap-2">
+                    <Skeleton className="h-11 flex-1 rounded-lg" />
+                    <Skeleton className="h-11 w-11 rounded-lg" />
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
         )}
 
         {!routesLoading && !stopsLoading && routes.length === 0 && (
@@ -348,6 +375,79 @@ const EmployeeApp = () => {
           // En rute er "team" hvis et eller flere stop ikke er specifikt
           // tildelt nogen (assignee) — så er hele ruten en fælles opgave.
           const isTeamRoute = myStops.some((s) => !s.assigned_employee_id);
+
+          // ───── Færdig rute = kompakt, ikke-klikbar opsummering ─────
+          // Brugeren skal ikke kunne "åbne" en færdig rute igen — vi viser
+          // kun et roligt resumé så listen forbliver overskuelig.
+          if (allDone) {
+            const lastDoneAt = myStops
+              .map((s) => s.completed_at)
+              .filter(Boolean)
+              .sort()
+              .at(-1);
+            return (
+              <Card
+                key={r.id}
+                className="surface-admin overflow-hidden rounded-xl border-border/80 opacity-95 shadow-sm"
+                aria-label={`Rute ${r.name || ""} er færdig`}
+              >
+                <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 sm:px-5">
+                  <span
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border"
+                    style={{ background: color }}
+                    aria-hidden
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5 text-background" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-sm font-semibold text-foreground">
+                      {r.name || `Rute ${format(parseISO(r.route_date), "d. MMM", { locale: da })}`}
+                    </h3>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Alle {total} stop er færdige
+                      {lastDoneAt ? ` · sidst kl. ${format(new Date(lastDoneAt), "HH:mm")}` : ""}
+                    </p>
+                  </div>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-feature-cool/40 bg-feature-cool/10 px-2.5 py-1 text-[11px] font-semibold text-feature-cool-foreground shrink-0">
+                    <CheckCircle2 className="h-3 w-3" /> Færdig
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-3 p-4 sm:p-5 text-xs">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Stop</p>
+                    <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{total}</p>
+                  </div>
+                  {r.total_duration_minutes != null && r.total_duration_minutes > 0 && (
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Varighed</p>
+                      <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">
+                        ~{Math.round(r.total_duration_minutes / 60)}t {r.total_duration_minutes % 60}min
+                      </p>
+                    </div>
+                  )}
+                  {r.total_distance_km != null && r.total_distance_km > 0 && (
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Distance</p>
+                      <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{r.total_distance_km.toFixed(1)} km</p>
+                    </div>
+                  )}
+                </div>
+                {/* Print som eneste sekundære handling — ingen "genåbn" */}
+                <div className="border-t border-border bg-secondary/30 px-4 py-2.5 sm:px-5">
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 gap-1.5 px-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                  >
+                    <Link to={`/medarbejder/rute/${r.id}/print`}>
+                      <Printer className="h-3.5 w-3.5" /> Udskriv kvittering
+                    </Link>
+                  </Button>
+                </div>
+              </Card>
+            );
+          }
 
           return (
             <Card
