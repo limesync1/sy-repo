@@ -862,6 +862,8 @@ const Planner = () => {
                   optimizingRouteId={optimizingRouteId}
                   draggingType={activeDragData?.type === "job" ? "job" : activeDragData?.type === "route" ? "route" : null}
                   weatherByDate={weatherByDate}
+                  loadingRoutes={loadingCalendarRoutes || loadingCalendarStops}
+                  loadingWeather={loadingWeather}
                 />
                 </div>
               </ResizablePanel>
