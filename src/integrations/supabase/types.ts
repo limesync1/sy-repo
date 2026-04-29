@@ -59,6 +59,51 @@ export type Database = {
         }
         Relationships: []
       }
+      accounting_field_state: {
+        Row: {
+          business_id: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          field_name: string
+          field_value: Json | null
+          id: string
+          last_pulled_at: string | null
+          last_pushed_at: string | null
+          provider: string
+          remote_value: Json | null
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          field_name: string
+          field_value?: Json | null
+          id?: string
+          last_pulled_at?: string | null
+          last_pushed_at?: string | null
+          provider: string
+          remote_value?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          field_name?: string
+          field_value?: Json | null
+          id?: string
+          last_pulled_at?: string | null
+          last_pushed_at?: string | null
+          provider?: string
+          remote_value?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       accounting_integrations: {
         Row: {
           agreement_number: string | null
