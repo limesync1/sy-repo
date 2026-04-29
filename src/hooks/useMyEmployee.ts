@@ -178,14 +178,20 @@ export const useMyEmployeeStats = (
       // 4) Omsætning + status fra completede ordrer (pr. ordre, så vi kan dele pr. stop)
       const orderAmountMap = new Map<string, number>();
       const orderStatusMap = new Map<string, string>();
+      const orderAddressMap = new Map<string, { address: string | null; zip: string | null; city: string | null }>();
       if (completedOrderIds.length > 0) {
         const { data: orders } = await supabase
           .from("orders")
-          .select("id, total_amount, adjusted_amount, status")
+          .select("id, total_amount, adjusted_amount, status, address, zip_code, city")
           .in("id", completedOrderIds);
         (orders || []).forEach((o: any) => {
           orderAmountMap.set(o.id, Number(o.adjusted_amount ?? o.total_amount ?? 0));
           orderStatusMap.set(o.id, String(o.status || ""));
+          orderAddressMap.set(o.id, {
+            address: o.address ?? null,
+            zip: o.zip_code ?? null,
+            city: o.city ?? null,
+          });
         });
       }
       const revenue = completedStops.reduce(
@@ -291,6 +297,19 @@ export const useMyEmployeeStats = (
         const sharers = explicit > 0
           ? explicit
           : Math.max(teamSizeByRoute.get(s.route_id) || 1, 1);
+        // Sammensæt fuld adresse: vej + postnr by — så medarbejderen
+        // ALDRIG ser kun gaden uden by (jf. konsekvent adresseformat
+        // i hele medarbejderpanelet).
+        const ord = orderAddressMap.get(s.order_id);
+        const street = (s as any).address || ord?.address || null;
+        const cityLine = [ord?.zip, ord?.city].filter(Boolean).join(" ");
+        const fullAddress = (() => {
+          if (!street && !cityLine) return null;
+          if (street && cityLine && !street.toLowerCase().includes(cityLine.toLowerCase())) {
+            return `${street}, ${cityLine}`;
+          }
+          return street || cityLine || null;
+        })();
         row.entries.push({
           stopId: s.id,
           customerName: s.customer_name ?? null,
@@ -298,7 +317,7 @@ export const useMyEmployeeStats = (
           share,
           paymentStatus,
           completedAt: s.completed_at ?? null,
-          address: (s as any).address ?? null,
+          address: fullAddress,
           serviceName: (s as any).service_summary ?? null,
           sharers,
           note: (s as any).notes ?? null,

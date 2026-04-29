@@ -275,38 +275,97 @@ const EmployeeApp = () => {
           />
         </div>
 
-        {/* Start dag / Stop dag — kun for i dag */}
-        {isCurrentDay && !dayEnded && (
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-            <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Arbejdsdag</p>
-                <p className="mt-1 text-base font-semibold text-foreground">
-                  {dayStarted ? "Du er i gang" : "Klar til at starte?"}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {dayStarted
-                    ? "Husk at stoppe dagen når du er færdig — så bliver tiden registreret korrekt."
-                    : "Start din arbejdsdag for at registrere tid og fremgang på dine ruter."}
-                </p>
+        {/* Arbejdsdag — smartere panel med levende status:
+            - Ikke startet: tydelig CTA + kontekst om hvor mange stop dagen indeholder
+            - I gang: stor tabular-nums tid siden start + næste stop hint
+            - Afsluttet: rolig opsummering med tidsrum + total varighed */}
+        {isCurrentDay && (
+          <Card
+            className={cn(
+              "overflow-hidden rounded-xl border shadow-sm",
+              dayStarted && !dayEnded
+                ? "border-feature-cool/30 bg-feature-cool/5"
+                : dayEnded
+                  ? "border-border/80 bg-secondary/20"
+                  : "border-border/80 bg-card",
+            )}
+          >
+            <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-5">
+              <div className="flex items-start gap-3 min-w-0">
+                <div
+                  className={cn(
+                    "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+                    dayStarted && !dayEnded
+                      ? "bg-feature-cool text-feature-cool-foreground"
+                      : dayEnded
+                        ? "bg-secondary text-muted-foreground"
+                        : "bg-foreground text-background",
+                  )}
+                  aria-hidden
+                >
+                  {dayEnded ? (
+                    <CheckCircle2 className="h-5 w-5" />
+                  ) : dayStarted ? (
+                    <Clock className="h-5 w-5" />
+                  ) : (
+                    <PlayCircle className="h-5 w-5" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Arbejdsdag
+                  </p>
+                  {dayEnded ? (
+                    <>
+                      <p className="mt-0.5 text-base font-semibold text-foreground">Dagen er afsluttet</p>
+                      <p className="mt-1 text-sm text-muted-foreground tabular-nums">
+                        {workday?.started_at && workday?.ended_at
+                          ? `${format(new Date(workday.started_at), "HH:mm")} – ${format(new Date(workday.ended_at), "HH:mm")} · ${workday.duration_minutes ?? 0} min`
+                          : "Tid registreret"}
+                      </p>
+                    </>
+                  ) : dayStarted ? (
+                    <>
+                      <p className="mt-0.5 text-base font-semibold text-foreground">Du er i gang</p>
+                      <p className="mt-1 text-sm text-muted-foreground tabular-nums">
+                        Start kl. {workday?.started_at ? format(new Date(workday.started_at), "HH:mm") : "—"}
+                        {elapsedLabel ? ` · ${elapsedLabel}` : ""}
+                        {totalStops > 0 ? ` · ${completedStops}/${totalStops} stop` : ""}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="mt-0.5 text-base font-semibold text-foreground">Klar til at starte?</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {totalStops > 0
+                          ? `Du har ${totalStops} ${totalStops === 1 ? "stop" : "stop"} planlagt i dag.`
+                          : "Ingen stop planlagt — du kan stadig registrere din arbejdstid."}
+                      </p>
+                    </>
+                  )}
+                </div>
               </div>
-              {!dayStarted ? (
-                <Button
-                  onClick={() => startDay.mutate(date)}
-                  disabled={startDay.isPending}
-                  className="h-10 w-full shrink-0 gap-2 rounded-lg bg-foreground px-5 text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
-                >
-                  <PlayCircle className="h-4 w-4" /> Start dag
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  onClick={() => endDay.mutate(date)}
-                  disabled={endDay.isPending}
-                  className="h-10 w-full shrink-0 gap-2 rounded-lg border-border bg-card px-5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
-                >
-                  <StopCircle className="h-4 w-4" /> Stop dag
-                </Button>
+              {!dayEnded && (
+                !dayStarted ? (
+                  <Button
+                    onClick={() => startDay.mutate(date)}
+                    disabled={startDay.isPending}
+                    size="lg"
+                    className="h-11 w-full shrink-0 gap-2 rounded-lg bg-foreground px-5 text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
+                  >
+                    <PlayCircle className="h-4 w-4" /> Start dag
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={() => endDay.mutate(date)}
+                    disabled={endDay.isPending}
+                    size="lg"
+                    className="h-11 w-full shrink-0 gap-2 rounded-lg border-border bg-card px-5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
+                  >
+                    <StopCircle className="h-4 w-4" /> Stop dag
+                  </Button>
+                )
               )}
             </div>
           </Card>
@@ -432,13 +491,15 @@ const EmployeeApp = () => {
                     </div>
                   )}
                 </div>
-                {/* Print som eneste sekundære handling — ingen "genåbn" */}
-                <div className="border-t border-border bg-secondary/30 px-4 py-2.5 sm:px-5">
+                {/* Print som eneste sekundære handling — ingen "genåbn".
+                    Pænere outline-stil med tydelig ikon-boks så knappen
+                    ikke ligner et "klik for at åbne rute"-hint. */}
+                <div className="border-t border-border bg-secondary/30 px-4 py-3 sm:px-5">
                   <Button
                     asChild
                     size="sm"
-                    variant="ghost"
-                    className="h-8 gap-1.5 px-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                    variant="outline"
+                    className="h-9 w-full gap-2 rounded-lg border-border bg-card text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
                   >
                     <Link to={`/medarbejder/rute/${r.id}/print`}>
                       <Printer className="h-3.5 w-3.5" /> Udskriv kvittering
