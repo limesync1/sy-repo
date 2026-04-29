@@ -1491,11 +1491,7 @@ const ServiceForm = ({
                   </div>
                   <button
                     type="button"
-                    onClick={() => {
-                      setSteps([]);
-                      setAutoSuggestionApplied(true);
-                      addStep();
-                    }}
+                    onClick={startFromScratch}
                     className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card/50 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-foreground/40 hover:bg-card hover:text-foreground"
                   >
                     <Plus className="h-4 w-4" />
