@@ -31,6 +31,7 @@ import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 import OnboardingHub from "@/components/admin/onboarding/OnboardingHub";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
+import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 import TrialBanner from "@/components/admin/TrialBanner";
 import ReactivateDialog from "@/components/admin/ReactivateDialog";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
