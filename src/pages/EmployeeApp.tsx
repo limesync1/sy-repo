@@ -12,7 +12,7 @@ import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
 import {
   Calendar as CalendarIcon, Play, Printer, MapPin, Clock, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
-  Users, User as UserIcon, Info,
+  Users, User as UserIcon, Info, CalendarCheck,
 } from "lucide-react";
 import { format, addDays, parseISO, isToday, formatDistanceStrict } from "date-fns";
 import { da } from "date-fns/locale";
@@ -217,7 +217,7 @@ const EmployeeApp = () => {
     <EmployeeShell activeTab="today" title="Min dag">
       {/* PageTransition fader indholdet ind når brugeren skifter dag,
           så det føles som en blød navigation frem for et hårdt re-render. */}
-      <PageTransition transitionKey={date} className="mx-auto w-full max-w-7xl space-y-4 pb-24 sm:pb-20">
+      <PageTransition transitionKey={date} className="w-full space-y-4 pb-24 sm:pb-20">
         <PageHeader
           title={<span className="capitalize">{format(dateObj, "EEEE d. MMMM", { locale: da })}</span>}
           description={
