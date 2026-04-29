@@ -1162,6 +1162,8 @@ export const useMyDayRoutes = (date: string) => {
   return useQuery({
     queryKey: ["my-day-routes", employeeId, date],
     enabled: !!employeeId,
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
     queryFn: async () => {
       if (!employeeId) return [];
       // Find ruter via junction-tabel (nye ruter, evt. team) ELLER legacy
