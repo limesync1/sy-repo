@@ -541,6 +541,22 @@ const EmployeeApp = () => {
         })}
         </div>
       </PageTransition>
+
+      {/* Detaljer-modal — viser fulde oplysninger for den valgte aftale
+          (kunde, fuld adresse med postnr+by, opgaver, beløb, kontakt). */}
+      <Sheet open={!!detailsStop} onOpenChange={(o) => !o && setDetailsStop(null)}>
+        <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto p-0">
+          {detailsStop && (
+            <StopDetailsContent
+              stop={detailsStop.stop}
+              index={detailsStop.index}
+              themeColor={detailsStop.routeColor || "hsl(var(--foreground))"}
+              route={{ name: detailsStop.routeName, color: detailsStop.routeColor, date: detailsStop.routeDate }}
+              readOnly
+            />
+          )}
+        </SheetContent>
+      </Sheet>
     </EmployeeShell>
   );
 };
