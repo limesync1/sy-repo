@@ -1179,6 +1179,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               opacity={mapStyle === "map" ? 1 : 0}
               className="map-tile-fade"
               zIndex={1}
+              detectRetina
+              maxZoom={20}
+              maxNativeZoom={19}
             />
             <TileLayer
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
@@ -1189,7 +1192,25 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               opacity={mapStyle === "satellite" ? 1 : 0}
               className="map-tile-fade"
               zIndex={2}
-              maxZoom={19}
+              detectRetina
+              maxZoom={20}
+              maxNativeZoom={19}
+            />
+            {/* Vejnavne + labels-overlay på satellit — uden dette ser satellit-
+                visningen ud som ren luftfoto uden at man kan læse vej- eller
+                bynavne.  Esri's "Reference"-lag matcher World Imagery 1:1. */}
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+              attribution=''
+              updateWhenIdle={false}
+              updateWhenZooming={false}
+              keepBuffer={4}
+              opacity={mapStyle === "satellite" ? 1 : 0}
+              className="map-tile-fade"
+              zIndex={3}
+              detectRetina
+              maxZoom={20}
+              maxNativeZoom={19}
             />
 
             {/* Fit overview when not started */}
@@ -1558,7 +1579,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Pre-start CTA: big start button at the bottom ─── */}
         {!routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pb-[50px]">
+          <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-3 pb-3">
             <Card className="overflow-hidden rounded-xl border-border shadow-xl">
               {/* Dagens overblik — øverste sektion */}
               <div className="px-4 pt-3.5 pb-3 bg-card border-b border-border">
@@ -1673,7 +1694,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pb-[50px] pointer-events-none">
+          <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-3 pb-3 pointer-events-none">
             <Card
               className="overflow-hidden pointer-events-auto rounded-2xl border-border shadow-2xl"
             >
@@ -1854,7 +1875,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Done state ─── */}
         {allDone && (
-          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pb-[50px]">
+          <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-3 pb-3">
             <Card className="overflow-hidden shadow-xl rounded-xl border-border">
               <div className="p-5 text-center space-y-3">
                 <div className="h-14 w-14 mx-auto rounded-xl flex items-center justify-center bg-secondary">
@@ -2110,11 +2131,19 @@ const StopListPanel = ({
             const meta = statusMeta(s);
             const plannedTime = formatPlannedTime(s.planned_arrival);
             return (
-              <button
+              <div
                 key={s.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => onSelectStop(s)}
                 onDoubleClick={() => onOpenDetails(s)}
-                className={`w-full text-left p-3 rounded-xl border flex items-stretch gap-3 transition-all hover:bg-muted/40 active:scale-[0.99] ${
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onSelectStop(s);
+                  }
+                }}
+                className={`w-full text-left p-3 rounded-xl border flex items-stretch gap-3 transition-all hover:bg-muted/40 active:scale-[0.99] cursor-pointer ${
                   isHl ? "ring-2 ring-ring ring-offset-1" : ""
                 } ${isDone ? "opacity-60" : ""} ${
                   isNext
@@ -2183,7 +2212,7 @@ const StopListPanel = ({
                 >
                   Detaljer
                 </button>
-              </button>
+              </div>
             );
           })}
         </div>
