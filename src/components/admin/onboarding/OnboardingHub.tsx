@@ -49,7 +49,7 @@ type Step = {
    * 100 = blokerer kunder fra at booke (fx ingen services).
    *  80 = stærkt boost til konvertering (logo, beskrivelse, kategorier).
    *  60 = vigtigt for tillid/SEO (cover, åbningstider, telefon).
-   *  40 = optimering (live-chat, ekstra services).
+   *  40 = optimering (livechat, ekstra services).
    *  20 = polish (slug, ekstra trin).
    */
   impact: number;
@@ -231,9 +231,9 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "enable-livechat",
-      title: "Slå live-chat til",
-      description: "Med live-chat kan besøgende stille spørgsmål direkte fra jeres profil — det forvandler nysgerrige besøgende til kunder. Slås til under Ekstra funktioner.",
-      cta: "Aktivér live-chat",
+      title: "Slå livechat til",
+      description: "Med livechat kan besøgende stille spørgsmål direkte fra jeres profil — det forvandler nysgerrige besøgende til kunder. Slås til under Ekstra funktioner.",
+      cta: "Aktivér livechat",
       href: `${settingsHref}#settings-advanced`,
       icon: MessageCircle,
       // Kun relevant når basis-profilen er på plads — ellers spilder I tid

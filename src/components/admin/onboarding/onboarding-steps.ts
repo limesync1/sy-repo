@@ -104,10 +104,10 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     id: "livechat",
-    title: "Sæt live chat op",
+    title: "Sæt livechat op",
     description: "Svar dine besøgende direkte på din side — øg konvertering markant.",
     icon: MessageCircle,
-    cta: "Åbn live chat",
+    cta: "Åbn livechat",
     href: "/virksomhed?tab=livechat",
     enabled: ({ business }) => !!(business?.settings as any)?.livechat_enabled,
     isDone: () => false,

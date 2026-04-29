@@ -400,7 +400,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   }, []);
 
   // Når brugeren lander på Indstillinger fra et deep-link (fx onboarding-knap
-  // "Aktivér live-chat" → #settings-advanced), så scroll automatisk ned til
+  // "Aktivér livechat" → #settings-advanced), så scroll automatisk ned til
   // den ønskede sektion. Vi venter et øjeblik, så DOM'et er fuldt monteret.
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1524,7 +1524,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Avanceret */}
         <div id="settings-advanced" className="scroll-mt-6">
-          <SectionCard title="Ekstra funktioner" icon={<Settings />} description="Slå tilvalg til som ruteplanlægger eller live-chat. Prisen opdateres automatisk under ”Pris og betaling” ovenfor.">
+          <SectionCard title="Ekstra funktioner" icon={<Settings />} description="Slå tilvalg til som ruteplanlægger eller livechat. Prisen opdateres automatisk under ”Pris og betaling” ovenfor.">
             <div className="space-y-3">
               <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
                 <div className="flex items-start gap-3 min-w-0">
