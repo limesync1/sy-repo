@@ -22,9 +22,13 @@ type Rect = { top: number; left: number; width: number; height: number };
 
 const PADDING = 8;
 const POLL_MS = 100;
-const POLL_TIMEOUT_MS = 6000;
-/** Hvis et trin ikke kan findes inden for timeout, skip det stille til næste. */
-const AUTO_SKIP_ON_MISSING = true;
+const POLL_TIMEOUT_MS = 8000;
+/**
+ * Hvis et trin ikke kan findes inden for timeout: vi springer IKKE automatisk.
+ * I stedet viser vi tooltippen centreret med teksten — så brugeren stadig kan
+ * læse forklaringen og selv klikke "Næste" eller "Spring over". Det undgår at
+ * fx leads- eller chat-trin lukker for hurtigt når der ikke er noget data endnu.
+ */
 
 export const TourOverlay = ({ businessId }: { businessId?: string }) => {
   const { active, stepIndex, next, prev, stop } = useTour();
@@ -90,10 +94,8 @@ export const TourOverlay = ({ businessId }: { businessId?: string }) => {
       elapsed += POLL_MS;
       if (elapsed >= POLL_TIMEOUT_MS) {
         setMissing(true);
-        if (AUTO_SKIP_ON_MISSING) {
-          // Hop stille videre — bedre end at vise en fejl
-          setTimeout(() => { if (!cancelled) next(); }, 50);
-        }
+        // Ingen auto-skip — vi lader tooltippen blive vist centreret så
+        // brugeren selv kan læse og navigere videre.
         return;
       }
       pollTimer = window.setTimeout(tryFind, POLL_MS);
