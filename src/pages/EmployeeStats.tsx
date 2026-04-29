@@ -199,7 +199,7 @@ const EmployeeStats = () => {
     <EmployeeShell activeTab="stats" title="Statistik">
       {/* Fade indholdet ind ved hvert range-skift så tal-ændringer føles
           guidede frem for at "blinke" pludseligt. */}
-      <PageTransition transitionKey={`${range}|${from}|${to}`} className="mx-auto w-full max-w-7xl space-y-4 pb-24 sm:space-y-5 sm:pb-20">
+      <PageTransition transitionKey={`${range}|${from}|${to}`} className="w-full space-y-4 pb-24 sm:space-y-5 sm:pb-20">
         <PageHeader
           title={<span className="capitalize">{headerLabel}</span>}
           description={
