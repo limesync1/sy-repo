@@ -66,16 +66,15 @@ async function getOrgId(creds: AccountingCredentials): Promise<string> {
   return res?.organization?.id ?? res?.organizations?.[0]?.id;
 }
 
-// Billy gemmer email/phone på contactPersons (ikke på contact selv).
-// Vi opretter/opdaterer den primære kontaktperson hvis vi har email eller phone.
+// Billy gemmer email på contactPersons, mens telefonnummer ligger direkte på contact.
+// Vi opretter/opdaterer den primære kontaktperson når vi har email.
 async function syncBillyContactPerson(
   creds: AccountingCredentials,
   contactId: string,
   input: UpsertCustomerInput,
 ): Promise<void> {
   const email = input.email?.trim() || null;
-  const phone = input.phone?.trim() || null;
-  if (!email && !phone) return;
+  if (!email) return;
 
   // Find eksisterende kontaktpersoner for denne contact
   let persons: any[] = [];
@@ -92,8 +91,7 @@ async function syncBillyContactPerson(
   const person: Record<string, unknown> = {
     contactId,
     name: input.name,
-    email: email ?? undefined,
-    phone: phone ?? undefined,
+    email,
     isPrimary: true,
   };
 
@@ -115,21 +113,18 @@ async function syncBillyContactPerson(
   }
 }
 
-// Hent email/telefon fra primær kontaktperson under listCustomers.
-async function fetchBillyContactPersonInfo(
+// Hent email fra primær kontaktperson under listCustomers.
+async function fetchBillyContactPersonEmail(
   creds: AccountingCredentials,
   contactId: string,
-): Promise<{ email: string | null; phone: string | null }> {
+): Promise<string | null> {
   try {
     const res = await billyRequest(creds, `/contactPersons?contactId=${contactId}`);
     const persons: any[] = res?.contactPersons ?? [];
     const primary = persons.find(p => p.isPrimary) ?? persons[0];
-    return {
-      email: primary?.email ?? null,
-      phone: primary?.phone ?? null,
-    };
+    return primary?.email ?? null;
   } catch {
-    return { email: null, phone: null };
+    return null;
   }
 }
 
@@ -202,13 +197,13 @@ export function makeBillyAdapter(
       for (let i = 0; i < customers.length; i += batchSize) {
         const batch = customers.slice(i, i + batchSize);
         const enriched = await Promise.all(batch.map(async (c) => {
-          const info = await fetchBillyContactPersonInfo(creds, c.id);
+          const email = await fetchBillyContactPersonEmail(creds, c.id);
           return {
             external_id: c.id,
             external_number: c.contactNo ?? null,
             name: c.name,
-            email: info.email,
-            phone: info.phone,
+            email,
+            phone: c.phone ?? null,
             cvr: c.registrationNo ?? null,
             ean: c.ean ?? null,
             address: c.street ?? null,
@@ -236,6 +231,7 @@ export function makeBillyAdapter(
         street: input.address ?? undefined,
         zipcodeText: input.zip_code ?? undefined,
         cityText: input.city ?? undefined,
+        phone: input.phone ?? undefined,
         paymentTermsMode: "net",
         paymentTermsDays: input.payment_terms_days ?? settings.default_payment_terms_days ?? 14,
       };
