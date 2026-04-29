@@ -666,10 +666,10 @@ const EmployeeApp = () => {
         </div>
       </PageTransition>
 
-      {/* Detaljer-modal — viser fulde oplysninger for den valgte aftale
-          (kunde, fuld adresse med postnr+by, opgaver, beløb, kontakt). */}
+      {/* Detaljer-sheet — højre-side på desktop (matcher virksomhedspanelet)
+          og fuld bottom-sheet på mobil. Viser fulde oplysninger for aftalen. */}
       <Sheet open={!!detailsStop} onOpenChange={(o) => !o && setDetailsStop(null)}>
-        <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto p-0">
+        <SheetContent side="right" className="w-full p-0 flex flex-col sm:max-w-lg">
           {detailsStop && (
             <StopDetailsContent
               stop={detailsStop.stop}
