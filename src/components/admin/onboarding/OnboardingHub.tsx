@@ -118,6 +118,9 @@ export const OnboardingHub = ({ business }: OnboardingHubProps) => {
   // Åbn automatisk første gang (kun hvis intet er færdigt og brugeren ikke har dismissed).
   useEffect(() => {
     if (isLoading) return;
+    // Hvis hele onboardingen allerede er markeret færdig → ÅBN ALDRIG automatisk.
+    // Brugeren kan stadig genåbne via floating launcher hvis de vil.
+    if (progress?.fully_completed_at) return;
     const isFirstTime = !progress;
     const notDismissedAndNotDone =
       progress && !progress.wizard_dismissed && !progress.fully_completed_at && doneCount < totalCount;
@@ -177,7 +180,7 @@ export const OnboardingHub = ({ business }: OnboardingHubProps) => {
     <>
       {/* Floating launcher — vises altid (medmindre alt er færdigt og dialog er lukket).
           Klik åbner checklist/wizard. */}
-      {(!allDone || open) && (
+      {(!progress?.fully_completed_at || open) && (
         <button
           onClick={handleReopen}
           className={cn(
