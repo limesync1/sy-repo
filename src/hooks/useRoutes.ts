@@ -213,6 +213,8 @@ export const useMyWorkday = (date: string) => {
   return useQuery({
     queryKey: ["my-workday", employeeId, date],
     enabled: !!employeeId,
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
     queryFn: async () => {
       if (!employeeId) return null;
       const { data, error } = await supabase
