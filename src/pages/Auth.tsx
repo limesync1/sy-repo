@@ -6,21 +6,23 @@ import { toast } from "sonner";
 import { Navigate, Link, useSearchParams } from "react-router-dom";
 import {
   Building2, User, ArrowLeft, ArrowRight, ShieldCheck, Sparkles,
-  CheckCircle, HardHat, Quote, TrendingUp, Eye, EyeOff,
+  CheckCircle, HardHat, Quote, TrendingUp, Eye, EyeOff, Mail,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import { translateAuthError } from "@/lib/auth-errors";
 
 const Auth = () => {
-  const { user, loading, signIn, signUp } = useAuth();
+  const { user, loading, signIn, signUp, resetPassword, signInWithGoogle } = useAuth();
   const [searchParams] = useSearchParams();
   const mode = searchParams.get("mode");
   const signupParam = searchParams.get("signup");
+  const isResetMode = searchParams.get("reset") === "1";
   const [isSignUp, setIsSignUp] = useState(signupParam === "1");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   useEffect(() => {
     setIsSignUp(signupParam === "1");
@@ -65,10 +67,41 @@ const Auth = () => {
     }
   };
 
+  /** Send mail med link til /reset-password. Vi viser altid en "tjek din mail"-besked
+   *  uanset om e-mailen findes — for at undgå at lække hvilke mails der har konto. */
+  const handleSendReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      toast.error("Skriv din e-mail for at fortsætte.");
+      return;
+    }
+    setSubmitting(true);
+    const { error } = await resetPassword(email.trim());
+    setSubmitting(false);
+    if (error) {
+      toast.error(translateAuthError(error, "Vi kunne ikke sende mailen. Prøv igen."));
+      return;
+    }
+    setResetSent(true);
+  };
+
+  /** Start Google OAuth-flow. Vi sender brugeren tilbage til samme mode-route,
+   *  så de lander det rigtige sted (kunde/virksomhed) efter login. */
+  const handleGoogle = async () => {
+    const target =
+      mode === "customer" ? "/min-konto"
+      : mode === "employee" ? "/medarbejder"
+      : "/virksomhed";
+    const { error } = await signInWithGoogle(target);
+    if (error) {
+      toast.error(translateAuthError(error, "Vi kunne ikke åbne Google-login. Prøv igen."));
+    }
+  };
+
   const isBusiness = mode === "business";
   const isCustomer = mode === "customer";
   const isEmployee = mode === "employee";
-  const showModeSelector = !mode;
+  const showModeSelector = !mode && !isResetMode;
 
   const heroTitle = isSignUp
     ? (isBusiness ? "Opret virksomhedskonto" : isEmployee ? "Aktivér medarbejderkonto" : "Opret din konto")
@@ -183,6 +216,88 @@ const Auth = () => {
 
         <div className="flex flex-1 items-center justify-center px-5 pb-12 pt-2 sm:px-8 lg:px-12">
           <div className="w-full max-w-[420px] space-y-7">
+
+            {/* ── Glemt adgangskode ── */}
+            {isResetMode && (
+              <div className="space-y-6">
+                <Link
+                  to={`/log-ind${mode ? `?mode=${mode}` : ""}`}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <ArrowLeft className="h-4 w-4" /> Tilbage til log ind
+                </Link>
+
+                <div>
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <h1 className="text-[2rem] font-bold leading-[1.1] tracking-tight text-foreground sm:text-[2.25rem]">
+                    Glemt din adgangskode?
+                  </h1>
+                  <p className="mt-3 text-[15px] leading-6 text-muted-foreground">
+                    Skriv din e-mail, så sender vi dig et link til at vælge en ny.
+                  </p>
+                </div>
+
+                {resetSent ? (
+                  <div className="rounded-2xl border border-accent/25 bg-accent/5 p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/15 text-accent">
+                        <Mail className="h-5 w-5" />
+                      </div>
+                      <p className="text-sm font-semibold text-foreground">Tjek din indbakke</p>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                      Hvis <span className="font-medium text-foreground">{email.trim()}</span> er knyttet til en konto, har vi sendt dig en mail med et link til at vælge ny adgangskode. Linket virker i 1 time.
+                    </p>
+                    <div className="mt-4 flex gap-2">
+                      <Button asChild variant="outline" size="sm">
+                        <Link to={`/log-ind${mode ? `?mode=${mode}` : ""}`}>Tilbage til log ind</Link>
+                      </Button>
+                      <Button
+                        size="sm" variant="ghost"
+                        onClick={() => { setResetSent(false); }}
+                      >
+                        Send igen
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSendReset} className="space-y-4">
+                    <div>
+                      <label htmlFor="reset-email" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        E-mail
+                      </label>
+                      <Input
+                        id="reset-email"
+                        type="email"
+                        autoComplete="email"
+                        placeholder="din@email.dk"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="h-12 rounded-xl border-border bg-card px-4 text-[15px]"
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={submitting}
+                      className="group h-12 w-full rounded-xl bg-foreground text-[15px] font-semibold text-background hover:bg-foreground/90"
+                    >
+                      {submitting ? (
+                        <span className="inline-flex items-center gap-2">
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-background/40 border-t-background" />
+                          Sender…
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-2">
+                          Send link <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                        </span>
+                      )}
+                    </Button>
+                  </form>
+                )}
+              </div>
+            )}
 
             {/* ── Mode Selector ── */}
             {showModeSelector && (
@@ -327,7 +442,10 @@ const Auth = () => {
                     <div className="mb-2 flex items-center justify-between">
                       <label htmlFor="auth-password" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Adgangskode</label>
                       {!isSignUp && (
-                        <Link to="/log-ind?reset=1" className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:underline">
+                        <Link
+                          to={`/log-ind?reset=1${mode ? `&mode=${mode}` : ""}`}
+                          className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:underline"
+                        >
                           Glemt?
                         </Link>
                       )}
@@ -374,6 +492,31 @@ const Auth = () => {
                     )}
                   </Button>
                 </form>
+
+                {/* Google login — vises ikke for medarbejdere (de logger ind via invitation). */}
+                {!isEmployee && (
+                  <div className="space-y-3">
+                    <div className="relative flex items-center">
+                      <div className="flex-1 border-t border-border" />
+                      <span className="px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">eller</span>
+                      <div className="flex-1 border-t border-border" />
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={handleGoogle}
+                      variant="outline"
+                      className="h-12 w-full gap-3 rounded-xl border-border bg-card text-[15px] font-semibold text-foreground hover:bg-secondary"
+                    >
+                      <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                      </svg>
+                      Fortsæt med Google
+                    </Button>
+                  </div>
+                )}
 
                 <div className="text-center">
                   {isBusiness && !isSignUp ? (

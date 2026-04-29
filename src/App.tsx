@@ -18,6 +18,7 @@ import GlobalTourMount from "@/components/admin/onboarding/GlobalTourMount";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import ResetPassword from "./pages/ResetPassword";
 
 // CartSheet/CartFab er kun relevante når brugeren faktisk har items i kurven —
 // de trækker ~35KB JS + ikoner som ikke skal blokere initial paint.
@@ -99,6 +100,7 @@ const App = () => (
 
               {/* ── New Danish routes ── */}
               <Route path="/log-ind" element={<Auth />} />
+             <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/admin" element={<PlatformAdmin />} />
               <Route path="/virksomhed" element={<Admin />} />
               <Route path="/virksomhed/ruter" element={<RoutePlanner />} />
