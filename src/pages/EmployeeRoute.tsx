@@ -329,7 +329,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const [noteDraft, setNoteDraft] = useState<Record<string, string>>({});
   const [listOpen, setListOpen] = useState(false);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
-  const [collapsed, setCollapsed] = useState(false);
+  // Default: kompakt (kun header) — så medarbejderen ALTID kan se kortet/ruten.
+  // Detaljer kan udvides med ét tap på kortet.
+  const [collapsed, setCollapsed] = useState(true);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [userHeading, setUserHeading] = useState<number | null>(null);
   // Rå GPS-fix fra browseren — sendes gennem useGpsFilter som udjævner
