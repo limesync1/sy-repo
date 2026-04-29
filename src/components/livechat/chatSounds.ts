@@ -1,4 +1,4 @@
-// Lightweight WebAudio chime utility for the live chat.
+// Lightweight WebAudio chime utility for the livechat.
 // No external assets — uses small synthesized tones so it works offline
 // and respects the user's prefers-reduced-motion / muted preference.
 

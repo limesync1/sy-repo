@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -18,30 +18,38 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ResetPassword from "./pages/ResetPassword";
 
-// CartSheet/CartFab er kun relevante når brugeren faktisk har items i kurven —
-// de trækker ~35KB JS + ikoner som ikke skal blokere initial paint.
-const CartSheet              = lazy(() => import("@/components/business/CartSheet"));
-const CartFab                = lazy(() => import("@/components/business/CartFab"));
-const LiveChatWidget         = lazy(() => import("@/components/livechat/LiveChatWidget"));
-const BusinessPage          = lazy(() => import("./pages/BusinessPage"));
-const DynamicBusinessPage   = lazy(() => import("./pages/DynamicBusinessPage"));
-const Admin                 = lazy(() => import("./pages/Admin"));
-const PlatformAdmin         = lazy(() => import("./pages/PlatformAdmin"));
-const CustomerDashboard     = lazy(() => import("./pages/CustomerDashboard"));
-const Search                = lazy(() => import("./pages/Search"));
-const RequestQuote          = lazy(() => import("./pages/RequestQuote"));
-const Unsubscribe           = lazy(() => import("./pages/Unsubscribe"));
-const RoutePlanner          = lazy(() => import("./pages/RoutePlanner"));
-const EmployeeApp           = lazy(() => import("./pages/EmployeeApp"));
-const EmployeeRoute         = lazy(() => import("./pages/EmployeeRoute"));
-const EmployeeRoutePrint    = lazy(() => import("./pages/EmployeeRoutePrint"));
-const EmployeeStats         = lazy(() => import("./pages/EmployeeStats"));
-const EmployeeLivechat      = lazy(() => import("./pages/EmployeeLivechat"));
-const ApproveOrder          = lazy(() => import("./pages/ApproveOrder"));
-const BusinessOnboarding    = lazy(() => import("./components/admin/BusinessOnboarding"));
-const PrivacyPolicy         = lazy(() => import("./pages/legal/PrivacyPolicy"));
-const Terms                 = lazy(() => import("./pages/legal/Terms"));
-const Cookies               = lazy(() => import("./pages/legal/Cookies"));
+// Vi pakker lazy-imports som named factories, så vi kan trigge dem manuelt
+// (idle-prefetch og hover-prefetch fra <SmartLink/>) — det får navigation til
+// at føles instant uden at trække alt med ned i den initielle bundle.
+import { registerLazyRoute } from "@/lib/route-prefetch";
+
+const lazyRoute = <T,>(key: string, loader: () => Promise<T>) => {
+  registerLazyRoute(key, loader as any);
+  return lazy(loader as any);
+};
+
+const CartSheet              = lazyRoute("cart-sheet", () => import("@/components/business/CartSheet"));
+const CartFab                = lazyRoute("cart-fab", () => import("@/components/business/CartFab"));
+const LiveChatWidget         = lazyRoute("livechat-widget", () => import("@/components/livechat/LiveChatWidget"));
+const BusinessPage           = lazyRoute("business-page", () => import("./pages/BusinessPage"));
+const DynamicBusinessPage    = lazyRoute("dynamic-business-page", () => import("./pages/DynamicBusinessPage"));
+const Admin                  = lazyRoute("admin", () => import("./pages/Admin"));
+const PlatformAdmin          = lazyRoute("platform-admin", () => import("./pages/PlatformAdmin"));
+const CustomerDashboard      = lazyRoute("customer-dashboard", () => import("./pages/CustomerDashboard"));
+const Search                 = lazyRoute("/virksomheder", () => import("./pages/Search"));
+const RequestQuote           = lazyRoute("/tilbud", () => import("./pages/RequestQuote"));
+const Unsubscribe            = lazyRoute("unsubscribe", () => import("./pages/Unsubscribe"));
+const RoutePlanner           = lazyRoute("route-planner", () => import("./pages/RoutePlanner"));
+const EmployeeApp            = lazyRoute("employee-app", () => import("./pages/EmployeeApp"));
+const EmployeeRoute          = lazyRoute("employee-route", () => import("./pages/EmployeeRoute"));
+const EmployeeRoutePrint     = lazyRoute("employee-route-print", () => import("./pages/EmployeeRoutePrint"));
+const EmployeeStats          = lazyRoute("employee-stats", () => import("./pages/EmployeeStats"));
+const EmployeeLivechat       = lazyRoute("employee-livechat", () => import("./pages/EmployeeLivechat"));
+const ApproveOrder           = lazyRoute("approve-order", () => import("./pages/ApproveOrder"));
+const BusinessOnboarding     = lazyRoute("/opret-virksomhed", () => import("./components/admin/BusinessOnboarding"));
+const PrivacyPolicy          = lazyRoute("privacy", () => import("./pages/legal/PrivacyPolicy"));
+const Terms                  = lazyRoute("terms", () => import("./pages/legal/Terms"));
+const Cookies                = lazyRoute("cookies", () => import("./pages/legal/Cookies"));
 
 // Sensible cache defaults så fane-skift i virksomhedspanelet føles øjeblikkeligt
 // (cached data vises først, refetch i baggrunden) og vi ikke spammer DB ved hvert
@@ -62,6 +70,29 @@ const PageFallback = () => (
   // Browseren viser stadig forrige route via Suspense indtil næste er klar.
   <div className="min-h-screen bg-background" aria-hidden />
 );
+
+/** Forwarmer de mest sandsynlige næste-sider (Find services, Få tilbud,
+ *  Bliv udbyder) i browser-idle, så et klik fra forsiden føles instant. */
+const useIdlePrefetch = () => {
+  useEffect(() => {
+    const keys = ["/virksomheder", "/tilbud", "/opret-virksomhed"];
+    const ric = (window as any).requestIdleCallback as
+      | ((cb: () => void, opts?: { timeout: number }) => number)
+      | undefined;
+    const trigger = () => {
+      import("@/lib/route-prefetch").then((m) => {
+        keys.forEach((k) => m.prefetchLazyRoute(k));
+      });
+    };
+    if (ric) ric(trigger, { timeout: 2000 });
+    else setTimeout(trigger, 1500);
+  }, []);
+};
+
+const IdlePrefetcher = () => {
+  useIdlePrefetch();
+  return null;
+};
 
 // Helper to preserve query strings on redirect
 const RedirectWithQuery = ({ to }: { to: string }) => {
@@ -89,6 +120,7 @@ const App = () => (
             </Suspense>
             {/* Cookie-banner — vises kun første gang valget træffes. */}
             <CookieConsent />
+            <IdlePrefetcher />
             <Suspense fallback={<PageFallback />}>
             <Routes>
               <Route path="/" element={<Index />} />

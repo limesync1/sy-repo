@@ -1,4 +1,4 @@
-// EmployeeLivechat — viser virksomhedens live-chat indbakke for medarbejdere
+// EmployeeLivechat — viser virksomhedens livechat-indbakke for medarbejdere
 // der har fået `livechat_enabled = true` på deres employee-record.
 // Genbruger BusinessLiveChatTab så medarbejderen ser præcis det samme som
 // virksomhedsejeren (filtreret på business_id), bare i medarbejder-shellen.

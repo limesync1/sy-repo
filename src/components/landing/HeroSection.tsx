@@ -1,5 +1,5 @@
 import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import SmartLink from "@/components/SmartLink";
 import heroImage from "@/assets/hero-window-cleaning.webp";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
@@ -52,12 +52,12 @@ const HeroSection = () => {
           </div>
 
           <div className="animate-fade-in [animation-delay:320ms] mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Link to="/virksomheder" className="sm:w-auto">
+            <SmartLink to="/virksomheder" className="sm:w-auto">
               <Button size="lg" className="h-11 w-full rounded-full bg-background px-6 text-sm font-semibold text-foreground shadow-md transition-all duration-200 hover:bg-background/90 hover:shadow-lg active:scale-[0.98] sm:w-auto">
                 Find services
               </Button>
-            </Link>
-            <Link to="/tilbud" className="sm:w-auto">
+            </SmartLink>
+            <SmartLink to="/tilbud" className="sm:w-auto">
               <Button
                 size="lg"
                 variant="outline"
@@ -66,7 +66,7 @@ const HeroSection = () => {
                 Indhent 3 tilbud
                 <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </Button>
-            </Link>
+            </SmartLink>
           </div>
         </div>
       </div>
