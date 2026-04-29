@@ -624,7 +624,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       if (error) throw error;
       setDomainResult(data);
       if (data?.status === "verified") toast.success("Domænet er verificeret 🎉");
-      else toast.error(data?.message || "Domænet er ikke klar endnu — tjek dine DNS-records.");
+      else toast.error(data?.message || "Webnavnet er ikke klar endnu — tjek at I har tilføjet de to linjer korrekt hos jeres webudbyder.");
       queryClient.invalidateQueries({ queryKey: ["my-business"] });
       queryClient.invalidateQueries({ queryKey: ["business"] });
     } catch (e: any) {
@@ -1045,7 +1045,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                         </span>
                       ) : domainStatus === "pending_dns" ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-600">
-                          <AlertCircle className="h-3 w-3" /> Ejerskab OK · DNS mangler
+                          <AlertCircle className="h-3 w-3" /> Ejerskab er OK · venter på pegningen (CNAME)
                         </span>
                       ) : domainStatus === "pending_ownership" ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
@@ -1079,7 +1079,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                       spellCheck={false}
                     />
                     <Button type="button" onClick={handleVerifyDomain} disabled={domainVerifying || !customDomain.trim()} className="h-10 rounded-lg">
-                      {domainVerifying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verificer"}
+                      {domainVerifying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Tjek nu"}
                     </Button>
                   </div>
 
@@ -1127,7 +1127,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                                 <XCircle className="mt-0.5 h-3 w-3 shrink-0 text-destructive" />
                               )}
                               <span className={domainResult.checks.ownership_ok ? "text-muted-foreground" : "text-foreground"}>
-                                TXT-record på <span className="font-mono">_serviceydere</span> med værdi{" "}
+                                Linjen af typen <span className="font-mono">TXT</span> med navnet <span className="font-mono">_serviceydere</span> og værdien{" "}
                                 <span className="font-mono">serviceydere-verify={domainToken}</span>
                               </span>
                             </li>
@@ -1138,12 +1138,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                                 <XCircle className="mt-0.5 h-3 w-3 shrink-0 text-destructive" />
                               )}
                               <span className={domainResult.checks.pointing_ok ? "text-muted-foreground" : "text-foreground"}>
-                                CNAME (eller A-record) der peger på <span className="font-mono">serviceydere.dk</span>
+                                Linjen af typen <span className="font-mono">CNAME</span> der peger på <span className="font-mono">serviceydere.dk</span>
                               </span>
                             </li>
                           </ul>
                           <p className="pt-1 text-[10px] text-muted-foreground">
-                            DNS-ændringer kan tage op til 24 timer. Klik <strong>Verificer</strong> igen efter ventetiden.
+                            Når I gemmer ændringerne hos jeres webudbyder, kan det tage fra et par minutter op til et døgn før det slår igennem. Klik <strong>Tjek nu</strong> igen efter et stykke tid.
                           </p>
                         </div>
                       )}
@@ -1152,13 +1152,13 @@ const SettingsTab = ({ business }: { business: any }) => {
                       )}
                       {(domainStatus === "pending_activation" || domainStatus === "verified") && (
                         <div className="rounded-md border border-blue-500/30 bg-blue-500/10 p-2.5 text-[11px] leading-relaxed text-blue-900 dark:text-blue-200">
-                          <p className="font-semibold">✓ DNS er korrekt opsat — vi aktiverer domænet for dig</p>
+                          <p className="font-semibold">✓ Alt er sat op korrekt — vi gør jeres webnavn klar</p>
                           <p className="mt-1">
-                            Vi har automatisk modtaget din anmodning. Domænet bliver aktiveret med SSL-certifikat hurtigst muligt — typisk inden for 1 hverdag.
-                            Du kan godt lukke siden imens; status opdateres automatisk her, og du får besked på{" "}
-                            <span className="font-mono">{(business as any).email || "din kontakt-email"}</span> når{" "}
+                            Vi har modtaget jeres anmodning. Vi sætter et sikkert {"\""}https{"\""}-certifikat op for jer hurtigst muligt — typisk inden for 1 hverdag.
+                            I kan godt lukke siden imens; status opdateres automatisk her, og I får besked på{" "}
+                            <span className="font-mono">{(business as any).email || "jeres kontakt-e-mail"}</span> når{" "}
                             <span className="font-mono">{customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "").split("/")[0]}</span>{" "}
-                            er live.
+                            er klar at bruge.
                           </p>
                           <p className="mt-1">
                             Indtil da kan du dele linket{" "}
