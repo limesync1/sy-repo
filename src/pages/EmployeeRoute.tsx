@@ -340,6 +340,20 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   } | null>(null);
   const [routeStarted, setRouteStarted] = useState(false);
   const [followMode, setFollowMode] = useState(true);
+  // Kort-stil: "map" (CARTO Voyager — som hidtil) eller "satellite" (Esri World Imagery).
+  // Valget persistes så brugeren ikke skal vælge igen ved hver kørsel.
+  const MAP_STYLE_KEY = "serviceydere:employee-route:map-style";
+  const [mapStyle, setMapStyleState] = useState<"map" | "satellite">(() => {
+    if (typeof window === "undefined") return "map";
+    try {
+      const v = window.localStorage.getItem(MAP_STYLE_KEY);
+      return v === "satellite" ? "satellite" : "map";
+    } catch { return "map"; }
+  });
+  const setMapStyle = (next: "map" | "satellite") => {
+    setMapStyleState(next);
+    try { window.localStorage.setItem(MAP_STYLE_KEY, next); } catch { /* ignorer */ }
+  };
   // Lyd-indstilling persistes i localStorage så valget overlever app-genstart
   // og lange perioder uden brug.  Initial værdi læses synkront for at undgå
   // at brugeren først ser "lyd til" og bagefter et flicker.
