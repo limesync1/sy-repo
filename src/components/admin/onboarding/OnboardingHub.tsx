@@ -8,13 +8,14 @@ import {
   Check, ChevronRight, ChevronLeft, Sparkles, X, ArrowRight,
   PartyPopper, Building2, Wrench, Users, Route as RouteIcon,
   Image as ImageIcon, Rocket, Tag, Clock, MessageCircle, Link2,
-  FileText, Phone, type LucideIcon,
+  FileText, Phone, Mail, Star, Share2, Megaphone, type LucideIcon,
 } from "lucide-react";
 import {
   useOnboardingProgress, useUpdateOnboardingProgress, useCompleteOnboardingStep,
 } from "@/hooks/useOnboarding";
 import { useServices } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
+import { useReviews, useOrders } from "@/hooks/useDatabase";
 
 /**
  * OnboardingHub — én sammenhængende onboarding-oplevelse:
@@ -43,12 +44,31 @@ type Step = {
   isDone: (ctx: Ctx) => boolean;
   /** Optional: skjul trin hvis ikke relevant for denne virksomhed. */
   isRelevant?: (ctx: Ctx) => boolean;
+  /**
+   * Hvor stor forskel gør dette trin for forretningen?
+   * 100 = blokerer kunder fra at booke (fx ingen services).
+   *  80 = stærkt boost til konvertering (logo, beskrivelse, kategorier).
+   *  60 = vigtigt for tillid/SEO (cover, åbningstider, telefon).
+   *  40 = optimering (live-chat, ekstra services).
+   *  20 = polish (slug, ekstra trin).
+   */
+  impact: number;
+  /** Andre step-id'er der bør være færdige før dette giver mening at vise. */
+  dependsOn?: string[];
 };
 
 type Ctx = {
   business: any;
   servicesCount: number;
   employeesCount: number;
+  reviewsCount: number;
+  averageRating: number;
+  ordersCount: number;
+  pendingOrdersCount: number;
+  /** Dage siden sidste ordre — null hvis aldrig haft ordrer. */
+  daysSinceLastOrder: number | null;
+  /** Dage siden virksomheden blev oprettet. */
+  ageInDays: number;
 };
 
 const buildSteps = (ctx: Ctx): Step[] => {
@@ -56,6 +76,9 @@ const buildSteps = (ctx: Ctx): Step[] => {
   const business = ctx.business;
   const settings = (business?.settings as any) || {};
   const description = (business?.description || "").trim();
+  const hasCategories = Array.isArray(business?.categories) && business.categories.length > 0;
+  const hasCoreContact =
+    !!business?.description?.trim() && !!business?.phone?.trim() && !!business?.address?.trim();
 
   const all: Step[] = [
     {
@@ -67,6 +90,7 @@ const buildSteps = (ctx: Ctx): Step[] => {
       icon: Building2,
       isDone: ({ business }) =>
         !!business?.description?.trim() && !!business?.phone?.trim() && !!business?.address?.trim(),
+      impact: 90,
     },
     {
       id: "categories",
@@ -79,6 +103,7 @@ const buildSteps = (ctx: Ctx): Step[] => {
         const cats = (business?.categories as string[]) || (business?.category ? [business.category] : []);
         return Array.isArray(cats) && cats.length > 0;
       },
+      impact: 95,
     },
     {
       id: "opening-hours",
@@ -92,6 +117,7 @@ const buildSteps = (ctx: Ctx): Step[] => {
         if (!hrs || typeof hrs !== "object") return false;
         return Object.values(hrs).some((v: any) => typeof v === "string" && v.trim().length > 0);
       },
+      impact: 60,
     },
     {
       id: "branding",
@@ -101,6 +127,7 @@ const buildSteps = (ctx: Ctx): Step[] => {
       href: settingsHref,
       icon: ImageIcon,
       isDone: ({ business }) => !!business?.logo_url,
+      impact: 75,
     },
     {
       id: "cover-image",
@@ -112,6 +139,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
       isDone: ({ business }) => !!business?.cover_image_url || !!business?.cover_url,
       // Vis kun hvis logo allerede er på plads — ellers er det dobbelt-besked
       isRelevant: ({ business }) => !!business?.logo_url,
+      impact: 55,
+      dependsOn: ["branding"],
     },
     {
       id: "good-description",
@@ -123,6 +152,18 @@ const buildSteps = (ctx: Ctx): Step[] => {
       // Kun relevant hvis der ER en beskrivelse, men den er for kort til at virke overbevisende
       isRelevant: () => description.length > 0 && description.length < 80,
       isDone: () => description.length >= 80,
+      impact: 65,
+    },
+    {
+      id: "contact-email",
+      title: "Tilføj en kontakt-e-mail",
+      description: "E-mail bruges når kunder ikke kan ringe — og når vi sender jer kvitteringer og notifikationer. Manglende e-mail koster jer typisk 1 ud af 5 leads.",
+      cta: "Tilføj e-mail",
+      href: settingsHref,
+      icon: Mail,
+      isRelevant: ({ business }) => !business?.email?.trim(),
+      isDone: ({ business }) => !!business?.email?.trim(),
+      impact: 70,
     },
     {
       id: "share-link",
@@ -138,6 +179,7 @@ const buildSteps = (ctx: Ctx): Step[] => {
       },
       // Markeres færdig manuelt — vi ved ikke hvornår "godt nok" er
       isDone: () => false,
+      impact: 25,
     },
     {
       id: "services",
@@ -147,6 +189,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
       href: "/virksomhed?tab=services",
       icon: Wrench,
       isDone: ({ servicesCount }) => servicesCount > 0,
+      impact: 100,
+      dependsOn: ["categories"],
     },
     {
       id: "more-services",
@@ -157,6 +201,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
       icon: Wrench,
       isRelevant: ({ servicesCount }) => servicesCount > 0 && servicesCount < 3,
       isDone: ({ servicesCount }) => servicesCount >= 3,
+      impact: 45,
+      dependsOn: ["services"],
     },
     {
       id: "employees",
@@ -167,6 +213,7 @@ const buildSteps = (ctx: Ctx): Step[] => {
       icon: Users,
       isDone: ({ employeesCount }) => employeesCount > 0,
       isRelevant: ({ business }) => !!(business?.settings as any)?.route_planning_enabled,
+      impact: 50,
     },
     {
       id: "route-planning",
@@ -179,6 +226,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
       isDone: () => false,
       isRelevant: ({ business, employeesCount }) =>
         !!(business?.settings as any)?.route_planning_enabled && employeesCount > 0,
+      impact: 35,
+      dependsOn: ["employees"],
     },
     {
       id: "enable-livechat",
@@ -187,8 +236,12 @@ const buildSteps = (ctx: Ctx): Step[] => {
       cta: "Aktivér live-chat",
       href: settingsHref,
       icon: MessageCircle,
-      isRelevant: () => !settings.live_chat_enabled,
+      // Kun relevant når basis-profilen er på plads — ellers spilder I tid
+      // på at chatte med folk før profilen overhovedet er klar.
+      isRelevant: () => !settings.live_chat_enabled && hasCoreContact,
       isDone: () => !!settings.live_chat_enabled,
+      impact: 40,
+      dependsOn: ["company-info"],
     },
     {
       id: "set-phone-format",
@@ -205,6 +258,69 @@ const buildSteps = (ctx: Ctx): Step[] => {
         const p = (business?.phone || "").replace(/\D/g, "");
         return p.length >= 8;
       },
+      impact: 65,
+    },
+    /* ───────── Vækst-trin: aktiveres når basis er på plads ───────── */
+    {
+      id: "promote-profile",
+      title: "Del jeres profil for første gang",
+      description: "Profilen er klar — men kunderne finder den først når I deler linket. Læg det på jeres hjemmeside, Facebook eller e-mail-signatur.",
+      cta: "Sådan deler I",
+      href: settingsHref,
+      icon: Share2,
+      // Kun når basis er på plads, og I endnu ikke har fået ordrer i platformen.
+      isRelevant: ({ ordersCount }) =>
+        ordersCount === 0 && hasCoreContact && hasCategories && ctx.servicesCount > 0,
+      isDone: ({ ordersCount }) => ordersCount > 0,
+      impact: 80,
+      dependsOn: ["services", "company-info"],
+    },
+    {
+      id: "ask-for-review",
+      title: "Bed om jeres første anmeldelse",
+      description: "Profiler med 3+ anmeldelser konverterer 2-3× bedre. Send en kort besked til en glad eksisterende kunde og bed dem anmelde jer.",
+      cta: "Sådan beder I om anmeldelse",
+      href: "/virksomhed?tab=reviews",
+      icon: Star,
+      // Først relevant når I har afsluttet mindst én ordre, men ingen anmeldelser endnu
+      isRelevant: ({ ordersCount, reviewsCount }) => ordersCount > 0 && reviewsCount === 0,
+      isDone: ({ reviewsCount }) => reviewsCount > 0,
+      impact: 75,
+    },
+    {
+      id: "respond-to-reviews",
+      title: "Svar på jeres anmeldelser",
+      description: "Når I svarer på anmeldelser viser I nye kunder at I tager feedback alvorligt. Det øger tilliden markant — også ved kritiske anmeldelser.",
+      cta: "Gå til anmeldelser",
+      href: "/virksomhed?tab=reviews",
+      icon: MessageCircle,
+      // Vis kun ved lave/blandede anmeldelser hvor det virkelig betyder noget
+      isRelevant: ({ reviewsCount, averageRating }) => reviewsCount >= 1 && averageRating < 4.5,
+      isDone: () => false,
+      impact: 55,
+    },
+    {
+      id: "answer-pending",
+      title: "Svar på jeres afventende bestillinger",
+      description: "I har bestillinger der venter på svar. Kunder der ikke får svar inden for 2 timer går ofte videre til en konkurrent.",
+      cta: "Gennemgå bestillinger",
+      href: "/virksomhed?tab=orders",
+      icon: Megaphone,
+      isRelevant: ({ pendingOrdersCount }) => pendingOrdersCount > 0,
+      isDone: ({ pendingOrdersCount }) => pendingOrdersCount === 0,
+      impact: 100,
+    },
+    {
+      id: "reactivate",
+      title: "Få gang i bestillingerne igen",
+      description: "I har ikke fået nye bestillinger i over 14 dage. Del jeres profil eller tilføj en ny pakke — det plejer at sætte gang i tingene.",
+      cta: "Se hvad I kan gøre",
+      href: "/virksomhed?tab=services",
+      icon: Megaphone,
+      isRelevant: ({ daysSinceLastOrder, ordersCount }) =>
+        ordersCount > 0 && (daysSinceLastOrder ?? 0) >= 14,
+      isDone: ({ daysSinceLastOrder }) => (daysSinceLastOrder ?? 999) < 7,
+      impact: 70,
     },
   ];
   return all.filter((s) => (s.isRelevant ? s.isRelevant(ctx) : true));
@@ -214,15 +330,40 @@ export const OnboardingHub = ({ business }: { business: any }) => {
   const navigate = useNavigate();
   const { data: services } = useServices(business?.id);
   const { data: employees } = useEmployees(business?.id);
+  const { data: reviews } = useReviews(business?.id);
+  const { data: orders } = useOrders(business?.id);
   const { data: progress, isLoading } = useOnboardingProgress(business?.id);
   const updateProgress = useUpdateOnboardingProgress(business?.id);
   const completeStep = useCompleteOnboardingStep(business?.id);
 
-  const ctx: Ctx = useMemo(() => ({
-    business,
-    servicesCount: services?.length || 0,
-    employeesCount: employees?.length || 0,
-  }), [business, services, employees]);
+  const ctx: Ctx = useMemo(() => {
+    const reviewsCount = reviews?.length || 0;
+    const averageRating = reviewsCount > 0
+      ? (reviews!.reduce((sum, r: any) => sum + (r.rating || 0), 0) / reviewsCount)
+      : 0;
+    const ordersCount = orders?.length || 0;
+    const pendingOrdersCount = (orders || []).filter((o: any) => o.status === "pending").length;
+    const lastOrderTs = (orders || [])
+      .map((o: any) => +new Date(o.created_at))
+      .filter((n: number) => Number.isFinite(n))
+      .sort((a: number, b: number) => b - a)[0];
+    const daysSinceLastOrder = lastOrderTs
+      ? Math.floor((Date.now() - lastOrderTs) / (1000 * 60 * 60 * 24))
+      : null;
+    const createdTs = business?.created_at ? +new Date(business.created_at) : Date.now();
+    const ageInDays = Math.max(0, Math.floor((Date.now() - createdTs) / (1000 * 60 * 60 * 24)));
+    return {
+      business,
+      servicesCount: services?.length || 0,
+      employeesCount: employees?.length || 0,
+      reviewsCount,
+      averageRating,
+      ordersCount,
+      pendingOrdersCount,
+      daysSinceLastOrder,
+      ageInDays,
+    };
+  }, [business, services, employees, reviews, orders]);
 
   const steps = useMemo(() => buildSteps(ctx), [ctx]);
 
@@ -317,8 +458,24 @@ export const OnboardingHub = ({ business }: { business: any }) => {
   };
 
   /* ───────── Inline checklist ───────── */
-  // Find aktivt anbefalet trin = første ufærdige
-  const activeStep = steps.find((s) => !isDone(s));
+  // Smart valg af aktivt trin:
+  //  1) Spring trin over hvis dets `dependsOn` ikke er færdige (så vi ikke
+  //     foreslår "tilføj rute" før medarbejderne overhovedet er inviteret).
+  //  2) Vælg det trin med højest `impact` blandt de tilbageværende — så
+  //     vi altid foreslår det der reelt rykker mest for forretningen lige nu.
+  //  3) Ved ligeværdige impact: behold deklarations­rækkefølgen (basis først).
+  const undone = steps.filter((s) => !isDone(s));
+  const eligibleUndone = undone.filter((s) => {
+    if (!s.dependsOn || s.dependsOn.length === 0) return true;
+    return s.dependsOn.every((depId) => {
+      const dep = steps.find((x) => x.id === depId);
+      return !dep || isDone(dep);
+    });
+  });
+  const pickList = eligibleUndone.length > 0 ? eligibleUndone : undone;
+  const activeStep = pickList
+    .map((s, i) => ({ s, i }))
+    .sort((a, b) => (b.s.impact - a.s.impact) || (a.i - b.i))[0]?.s;
   const showChecklist = !isLoading && !!business && !allDone && !wizardOpen && !!progress;
 
   const handleSkip = (s: Step) => {

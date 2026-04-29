@@ -6,10 +6,41 @@ import { toast } from "sonner";
 import { Navigate, Link, useSearchParams } from "react-router-dom";
 import {
   Building2, User, ArrowLeft, ArrowRight, ShieldCheck, Sparkles,
-  CheckCircle, HardHat, Quote, TrendingUp, Eye, EyeOff, Mail,
+  CheckCircle, HardHat, Quote, TrendingUp, Eye, EyeOff, Mail, AlertCircle,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import { translateAuthError } from "@/lib/auth-errors";
+
+/** Almindelige tastefejl i e-mail-domæner — vi tilbyder en venlig "mente du …?". */
+const EMAIL_DOMAIN_TYPOS: Record<string, string> = {
+  "gnail.com": "gmail.com", "gmial.com": "gmail.com", "gmal.com": "gmail.com",
+  "gmai.com": "gmail.com", "gmail.co": "gmail.com", "gmail.dk": "gmail.com",
+  "hotmial.com": "hotmail.com", "hotmai.com": "hotmail.com", "hotmial.dk": "hotmail.dk",
+  "hotmal.com": "hotmail.com", "hotnail.com": "hotmail.com",
+  "outloo.com": "outlook.com", "outlok.com": "outlook.com", "outlook.dk": "outlook.com",
+  "yaho.com": "yahoo.com", "yahooo.com": "yahoo.com",
+  "live.dk": "live.com", "icoud.com": "icloud.com", "iclud.com": "icloud.com",
+};
+const suggestEmailFix = (email: string): string | null => {
+  const at = email.lastIndexOf("@");
+  if (at < 1) return null;
+  const domain = email.slice(at + 1).toLowerCase().trim();
+  const fix = EMAIL_DOMAIN_TYPOS[domain];
+  if (!fix || fix === domain) return null;
+  return email.slice(0, at + 1) + fix;
+};
+
+/** Simpel password-styrke 0-4: længde + variation. */
+const passwordScore = (pw: string): { score: 0 | 1 | 2 | 3 | 4; label: string } => {
+  if (!pw) return { score: 0, label: "" };
+  let score = 0;
+  if (pw.length >= 6) score++;
+  if (pw.length >= 10) score++;
+  if (/[A-ZÆØÅ]/.test(pw) && /[a-zæøå]/.test(pw)) score++;
+  if (/\d/.test(pw) || /[^A-Za-z0-9]/.test(pw)) score++;
+  const labels = ["", "Svag", "Okay", "God", "Stærk"] as const;
+  return { score: Math.min(4, score) as 0|1|2|3|4, label: labels[Math.min(4, score)] };
+};
 
 const Auth = () => {
   const { user, loading, signIn, signUp, resetPassword } = useAuth();
@@ -23,10 +54,24 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [capsLockOn, setCapsLockOn] = useState(false);
+
+  // Pre-fill email fra localStorage så folk ikke skal indtaste den hver gang
+  useEffect(() => {
+    const stored = typeof window !== "undefined" ? localStorage.getItem("sy-last-email") : null;
+    if (stored) setEmail(stored);
+  }, []);
 
   useEffect(() => {
     setIsSignUp(signupParam === "1");
   }, [signupParam]);
+
+  // Skift mode? Nulstil fejl så den ikke hænger fra forrige forsøg
+  useEffect(() => { setFormError(null); }, [isSignUp, mode, isResetMode]);
+
+  const emailSuggestion = suggestEmailFix(email);
+  const pwStrength = passwordScore(password);
 
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-background">
@@ -49,21 +94,30 @@ const Auth = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     if (!email.trim() || !password) {
-      toast.error("Udfyld både e-mail og adgangskode for at fortsætte.");
+      setFormError("Udfyld både e-mail og adgangskode for at fortsætte.");
+      return;
+    }
+    // Basal e-mail-validering inden vi kalder serveren
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setFormError("Det ser ikke ud som en gyldig e-mail. Tjek lige stavemåden.");
       return;
     }
     if (isSignUp && password.length < 6) {
-      toast.error("Adgangskoden er for kort. Vælg mindst 6 tegn.");
+      setFormError("Adgangskoden er for kort. Vælg mindst 6 tegn.");
       return;
     }
     setSubmitting(true);
     const { error } = isSignUp ? await signUp(email.trim(), password) : await signIn(email.trim(), password);
     setSubmitting(false);
     if (error) {
-      toast.error(translateAuthError(error, isSignUp ? "Vi kunne ikke oprette din konto. Prøv igen." : "Vi kunne ikke logge dig ind. Prøv igen."));
+      setFormError(translateAuthError(error, isSignUp ? "Vi kunne ikke oprette din konto. Prøv igen." : "Vi kunne ikke logge dig ind. Tjek e-mail og adgangskode."));
     } else if (isSignUp) {
+      try { localStorage.setItem("sy-last-email", email.trim()); } catch {}
       toast.success("Konto oprettet! Tjek din e-mail for bekræftelse.");
+    } else {
+      try { localStorage.setItem("sy-last-email", email.trim()); } catch {}
     }
   };
 
@@ -71,15 +125,16 @@ const Auth = () => {
    *  uanset om e-mailen findes — for at undgå at lække hvilke mails der har konto. */
   const handleSendReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     if (!email.trim()) {
-      toast.error("Skriv din e-mail for at fortsætte.");
+      setFormError("Skriv din e-mail for at fortsætte.");
       return;
     }
     setSubmitting(true);
     const { error } = await resetPassword(email.trim());
     setSubmitting(false);
     if (error) {
-      toast.error(translateAuthError(error, "Vi kunne ikke sende mailen. Prøv igen."));
+      setFormError(translateAuthError(error, "Vi kunne ikke sende mailen. Prøv igen."));
       return;
     }
     setResetSent(true);
@@ -251,6 +306,12 @@ const Auth = () => {
                   </div>
                 ) : (
                   <form onSubmit={handleSendReset} className="space-y-4">
+                    {formError && (
+                      <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/25 bg-rose-500/5 px-3.5 py-3 text-xs text-rose-700">
+                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                        <span>{formError}</span>
+                      </div>
+                    )}
                     <div>
                       <label htmlFor="reset-email" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         E-mail
@@ -264,6 +325,15 @@ const Auth = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         className="h-12 rounded-xl border-border bg-card px-4 text-[15px]"
                       />
+                      {emailSuggestion && (
+                        <button
+                          type="button"
+                          onClick={() => setEmail(emailSuggestion)}
+                          className="mt-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          Mente du <span className="font-semibold text-foreground">{emailSuggestion}</span>?
+                        </button>
+                      )}
                     </div>
                     <Button
                       type="submit"
@@ -413,6 +483,12 @@ const Auth = () => {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {formError && (
+                    <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/25 bg-rose-500/5 px-3.5 py-3 text-xs text-rose-700">
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span>{formError}</span>
+                    </div>
+                  )}
                   <div>
                     <label htmlFor="auth-email" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">E-mail</label>
                     <Input
@@ -424,6 +500,15 @@ const Auth = () => {
                       onChange={(e) => setEmail(e.target.value)}
                       className="h-12 rounded-xl border-border bg-card px-4 text-[15px]"
                     />
+                    {emailSuggestion && (
+                      <button
+                        type="button"
+                        onClick={() => setEmail(emailSuggestion)}
+                        className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        Mente du <span className="font-semibold text-foreground underline-offset-2 group-hover:underline">{emailSuggestion}</span>?
+                      </button>
+                    )}
                   </div>
                   <div>
                     <div className="mb-2 flex items-center justify-between">
@@ -445,6 +530,9 @@ const Auth = () => {
                         placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        onKeyUp={(e) => setCapsLockOn(e.getModifierState && e.getModifierState("CapsLock"))}
+                        onKeyDown={(e) => setCapsLockOn(e.getModifierState && e.getModifierState("CapsLock"))}
+                        onBlur={() => setCapsLockOn(false)}
                         className="h-12 rounded-xl border-border bg-card px-4 pr-12 text-[15px]"
                       />
                       <button
@@ -456,7 +544,35 @@ const Auth = () => {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                    {isSignUp && (
+                    {capsLockOn && (
+                      <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-amber-700">
+                        <AlertCircle className="h-3.5 w-3.5" /> Caps Lock er slået til
+                      </p>
+                    )}
+                    {isSignUp && password.length > 0 && (
+                      <div className="mt-2 space-y-1.5">
+                        <div className="flex gap-1">
+                          {[1,2,3,4].map((i) => (
+                            <span
+                              key={i}
+                              className={`h-1 flex-1 rounded-full transition-colors ${
+                                i <= pwStrength.score
+                                  ? pwStrength.score <= 1 ? "bg-rose-500"
+                                    : pwStrength.score === 2 ? "bg-amber-500"
+                                    : pwStrength.score === 3 ? "bg-emerald-500"
+                                    : "bg-emerald-600"
+                                  : "bg-secondary"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {pwStrength.label || "Mindst 6 tegn."}
+                          {pwStrength.score < 3 && password.length >= 6 && " — bland gerne tal og store bogstaver."}
+                        </p>
+                      </div>
+                    )}
+                    {isSignUp && password.length === 0 && (
                       <p className="mt-2 text-xs text-muted-foreground/80">Mindst 6 tegn.</p>
                     )}
                   </div>
