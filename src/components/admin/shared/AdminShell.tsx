@@ -152,7 +152,7 @@ const NAV_ITEMS: NavItem[] = [
   { value: "routes", label: "Ruter", icon: RouteIcon, requiresRoutePlanning: true, href: "/virksomhed/ruter" },
   { value: "employees", label: "Medarbejdere", icon: Users, requiresRoutePlanning: true },
   { value: "reviews", label: "Anmeldelser", icon: Star },
-  { value: "livechat", label: "Live chat", icon: MessageCircle, requiresLivechat: true },
+  { value: "livechat", label: "Livechat", icon: MessageCircle, requiresLivechat: true },
   { value: "settings", label: "Indstillinger", icon: Settings },
 ];
 
