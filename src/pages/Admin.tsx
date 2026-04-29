@@ -985,6 +985,44 @@ const ServiceForm = ({
     toast.success(`Skabelon "${template.label}" anvendt`);
   };
 
+  // ── AI-genereret prisberegner-skabelon ──────────────────────────────
+  // Kalder edge-funktionen `generate-calculator-template`, som bygger
+  // 2-5 trin specifikt tilpasset denne service (kategori + underkategori
+  // + beskrivelse). Resultatet erstatter de nuværende trin.
+  const [aiTemplateLoading, setAiTemplateLoading] = useState(false);
+  const generateAiTemplate = async () => {
+    if (!name.trim()) {
+      toast.error("Skriv først et servicenavn");
+      return;
+    }
+    setAiTemplateLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-calculator-template", {
+        body: {
+          serviceName: name.trim(),
+          serviceCategory: serviceCategory || null,
+          subcategory: subcategory || null,
+          serviceDescription: description?.trim() || null,
+          businessName: business?.name || null,
+          businessDescription: business?.description || null,
+          businessCategories: Array.isArray(business?.categories) ? business?.categories : null,
+          businessCity: business?.city || null,
+          intervalOptions: Array.isArray(intervalOptions) ? intervalOptions : null,
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const aiSteps = ((data as any)?.steps ?? []) as any[];
+      if (!Array.isArray(aiSteps) || aiSteps.length === 0) throw new Error("AI returnerede ingen trin");
+      setSteps(aiSteps.map((s, i) => ({ ...s, sort_order: i })));
+      toast.success("AI-skabelon genereret ud fra din beskrivelse");
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke generere AI-skabelon");
+    } finally {
+      setAiTemplateLoading(false);
+    }
+  };
+
   const canGoNext = () => {
     if (currentStep === 1) return !!serviceCategory;
     if (currentStep === 2) return !!name.trim();
@@ -1318,6 +1356,28 @@ const ServiceForm = ({
                         Tilpasset {subcategory}
                       </span>
                     )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-foreground/20 bg-card p-3">
+                    <Sparkles className="h-4 w-4 text-foreground" />
+                    <div className="flex-1 min-w-[160px]">
+                      <p className="text-xs font-semibold text-foreground">AI-tilpasset skabelon</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Lad AI bygge en prisberegner ud fra service­navn, kategori og beskrivelse — så trinnene afspejler præcis hvad I tilbyder.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={generateAiTemplate}
+                      disabled={aiTemplateLoading || !name.trim()}
+                      className="gap-1.5"
+                    >
+                      {aiTemplateLoading ? (
+                        <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Genererer…</>
+                      ) : (
+                        <><Sparkles className="h-3.5 w-3.5" /> Generér med AI</>
+                      )}
+                    </Button>
                   </div>
                   {steps.length === 0 && (
                     <p className="text-sm text-muted-foreground">
