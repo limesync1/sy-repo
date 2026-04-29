@@ -2,7 +2,7 @@ import { useEffect, useState, useLayoutEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
-import { X, ArrowLeft, ArrowRight, SkipForward } from "lucide-react";
+import { X, ArrowLeft, ArrowRight } from "lucide-react";
 import { useTour } from "./TourContext";
 import { useCompleteOnboardingStep } from "@/hooks/useOnboarding";
 import { toast } from "sonner";
