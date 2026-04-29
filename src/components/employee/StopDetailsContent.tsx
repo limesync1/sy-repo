@@ -1,12 +1,14 @@
 // StopDetailsContent — fælles "se detaljer" panel for et rute-stop.
 // Bruges både fra EmployeeRoute (med markér-som-udført + note) og fra
-// EmployeeApp (read-only "Vis detaljer" på dagens stop). Henter fulde
-// ordre-detaljer (zip/by, opgave-linjer, kunde-besked, beløb) — så
-// medarbejderen aldrig bare ser en gade-adresse uden postnr og by.
+// EmployeeApp/EmployeeStats (read-only "Vis detaljer"). Bruger SAMME
+// SheetHeaderBlock + Section byggeklodser som virksomhedspanelets
+// StopDetailSheet, så medarbejder- og virksomhedspanel har 100% ens
+// visuelt sprog når man åbner detaljer for en aftale.
 import { useMemo } from "react";
 import {
-  CheckCircle2, Clock, ClipboardList, Info, Loader2, MapPin, MessageSquare,
+  CheckCircle2, Clock, ClipboardList, Loader2, MapPin, MessageSquare,
   Phone, Route as RouteIcon, Wallet, Calendar as CalendarIcon, Users,
+  User as UserIcon, Package,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,26 +20,22 @@ import { useOrderForStop } from "@/hooks/useRoutes";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { calcEmployeeShare, formatKr as formatKrUtil } from "@/lib/commission";
 import { stripPrices } from "@/lib/employee-display";
+import { SheetHeaderBlock, Section } from "@/components/route-planner/SheetSection";
 
 type RouteContext = {
-  /** Rutens navn ("Mandag-team", "Aarhus C", …). */
   name: string | null;
-  /** Rute-farve (hex/hsl). */
   color?: string | null;
-  /** Rute-dato (yyyy-MM-dd) — vises hvis der er flere ruter / man kigger frem i tid. */
   date?: string | null;
 };
 
 type Props = {
   stop: RouteStop;
-  /** Stop-nummer i ruten (1-baseret) — vises i header-cirklen. */
+  /** Stop-nummer i ruten (1-baseret) — vises i header-badge. */
   index: number;
   themeColor: string;
-  /** Optional ruten dette stop tilhører — vises som ekstra kontekst. */
   route?: RouteContext;
-  /** Read-only: skjul "markér udført" + note-feltet. Default false. */
+  /** Read-only: skjul "markér udført" + note-feltet. */
   readOnly?: boolean;
-  /** Note-felt (kun når !readOnly). */
   noteDraft?: string;
   onNoteChange?: (v: string) => void;
   onComplete?: () => void;
@@ -53,20 +51,19 @@ export const StopDetailsContent = ({
   const { data: meEmployee } = useMyEmployee();
   const isDone = stop.status === "completed";
 
-  // Fuld adresse: vej + postnummer + by — vi viser ALDRIG kun gaden uden
-  // postnr/by, fordi flere danske vejnavne findes i flere byer.
+  // Fuld adresse: vej + postnr + by — vi viser ALDRIG kun gaden uden
+  // postnr/by, da flere danske vejnavne findes i flere byer.
   const fullAddress = useMemo(() => {
-    const parts: string[] = [];
-    const street = stop.address || order?.address || null;
-    const zip = order?.zip_code || null;
-    const city = order?.city || null;
-    if (street) parts.push(street);
-    const zipCity = [zip, city].filter(Boolean).join(" ");
-    if (zipCity && (!street || !street.toLowerCase().includes(zipCity.toLowerCase()))) {
-      parts.push(zipCity);
+    const street = stop.address || (order as any)?.address || null;
+    const zip = (order as any)?.zip_code || null;
+    const city = (order as any)?.city || null;
+    const cityLine = [zip, city].filter(Boolean).join(" ");
+    if (!street && !cityLine) return null;
+    if (street && cityLine && !street.toLowerCase().includes(cityLine.toLowerCase())) {
+      return `${street}, ${cityLine}`;
     }
-    return parts.join(", ");
-  }, [stop.address, order?.address, order?.zip_code, order?.city]);
+    return street || cityLine;
+  }, [stop.address, order]);
 
   const addressForMaps = encodeURIComponent(fullAddress || stop.address || "");
 
@@ -80,19 +77,20 @@ export const StopDetailsContent = ({
   };
 
   const tasks: TaskLine[] = useMemo(() => {
-    const items = (order?.order_items || []) as any[];
+    const items = ((order as any)?.order_items || []) as any[];
     return items.map((it) => {
       const svc = it.services || {};
       const details = it.details || {};
       const selections: Array<{ label: string; value: string }> = [];
-      if (Array.isArray(details.steps)) {
-        for (const step of details.steps) {
-          if (step?.label != null && step?.value != null) {
-            selections.push({
-              label: String(step.label),
-              value: `${step.value}${step.unit ? ` ${step.unit}` : ""}`,
-            });
-          }
+      const stepDetails: any[] = Array.isArray(details.stepDetails)
+        ? details.stepDetails
+        : Array.isArray(details.steps) ? details.steps : [];
+      for (const step of stepDetails) {
+        if (step?.label != null && step?.value != null) {
+          selections.push({
+            label: String(step.label),
+            value: `${step.value}${step.unit ? ` ${step.unit}` : ""}`,
+          });
         }
       }
       if (details.interval) {
@@ -116,7 +114,7 @@ export const StopDetailsContent = ({
         selections,
       };
     });
-  }, [order?.order_items]);
+  }, [order]);
 
   const fallbackSummary = !tasks.length && stop.service_summary ? stripPrices(stop.service_summary) : null;
   const customerNote: string | null = (order as any)?.notes || null;
@@ -149,291 +147,239 @@ export const StopDetailsContent = ({
     : "Status ukendt";
   const paymentClasses =
     paymentStatus === "paid"
-      ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20"
+      ? "bg-feature-cool text-feature-cool-foreground border-transparent"
       : paymentStatus === "settling"
-        ? "bg-blue-500/10 text-blue-700 border-blue-500/20"
+        ? "bg-feature-lilac text-feature-lilac-foreground border-transparent"
         : paymentStatus === "pending"
-          ? "bg-amber-500/10 text-amber-700 border-amber-500/20"
-          : "bg-secondary text-muted-foreground border-border";
+          ? "bg-feature-warm text-feature-warm-foreground border-transparent"
+          : "bg-secondary text-muted-foreground border-transparent";
 
-  // Planned / completed timestamps i lokal tid
   const arrivalLabel = stop.planned_arrival
     ? format(new Date(stop.planned_arrival), "HH:mm", { locale: da })
     : null;
   const completedLabel = stop.completed_at
     ? format(new Date(stop.completed_at), "EEEE d. MMM 'kl.' HH:mm", { locale: da })
     : null;
+  const accent = route?.color || "hsl(var(--primary))";
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header med stop-nummer, navn, status og fuld adresse */}
-      <div className="px-5 pt-5 pb-4 border-b border-border bg-card">
-        <div className="flex items-start gap-3">
-          <span
-            className={`flex h-12 w-12 items-center justify-center rounded-xl text-background font-semibold text-base shrink-0 ${
-              isDone ? "bg-emerald-500" : "bg-foreground"
-            }`}
+    <div className="flex flex-col h-full bg-secondary/20">
+      {/* Header — samme SheetHeaderBlock som virksomhedspanelets StopDetailSheet */}
+      <div className="px-5 py-4 border-b shrink-0 bg-card">
+        <SheetHeaderBlock
+          accent={accent}
+          badge={isDone ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
+          title={<span className="text-base font-semibold">{stop.customer_name || "Stop"}</span>}
+          description={
+            route?.name ? (
+              <span>På rute <strong>{route.name}</strong>{route.date ? ` · ${format(new Date(route.date), "d. MMM yyyy", { locale: da })}` : ""}</span>
+            ) : (
+              <span>Detaljer for dette stop</span>
+            )
+          }
+        >
+          <Badge
+            variant="secondary"
+            className={isDone
+              ? "gap-1 text-[10px] bg-feature-cool/15 text-feature-cool-foreground border-transparent"
+              : "gap-1 text-[10px]"}
           >
-            {isDone ? <CheckCircle2 className="h-6 w-6" /> : index + 1}
-          </span>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-semibold text-lg leading-tight truncate text-foreground">
-                {stop.customer_name || "Stop"}
-              </h3>
-              <Badge
-                variant="secondary"
-                className={`text-[10px] uppercase tracking-wide font-semibold border-0 ${
-                  isDone ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400" : ""
-                }`}
-              >
-                {isDone ? "Færdig" : "Klar"}
-              </Badge>
-            </div>
+            {isDone ? <><CheckCircle2 className="h-2.5 w-2.5" />Færdig</> : <>Klar</>}
+          </Badge>
+          <Badge variant="outline" className={`gap-1 text-[10px] ${paymentClasses}`}>
+            <Wallet className="h-2.5 w-2.5" />{paymentLabel}
+          </Badge>
+          {arrivalLabel && (
+            <Badge variant="outline" className="gap-1 text-[10px]">
+              <Clock className="h-2.5 w-2.5" />Planlagt {arrivalLabel}
+            </Badge>
+          )}
+          {stop.duration_minutes > 0 && (
+            <Badge variant="outline" className="gap-1 text-[10px]">
+              <Clock className="h-2.5 w-2.5" />~{stop.duration_minutes} min
+            </Badge>
+          )}
+          {sharers > 1 && (
+            <Badge variant="outline" className="gap-1 text-[10px]">
+              <Users className="h-2.5 w-2.5" />Delt med {sharers - 1} kollega{sharers - 1 === 1 ? "" : "er"}
+            </Badge>
+          )}
+        </SheetHeaderBlock>
+        {completedLabel && (
+          <p className="mt-2 inline-flex items-center gap-1 rounded-md bg-feature-cool/10 px-2 py-0.5 text-[11px] font-medium text-feature-cool-foreground">
+            <CheckCircle2 className="h-3 w-3" /> Markeret færdig {completedLabel}
+          </p>
+        )}
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+        {/* Kunde-sektion — adresse + kontakt */}
+        <Section icon={<UserIcon className="h-3.5 w-3.5" />} title="Kunde">
+          <div className="space-y-1.5 text-sm">
             {fullAddress && (
               <a
                 href={`https://www.google.com/maps/search/?api=1&query=${addressForMaps}`}
                 target="_blank"
                 rel="noreferrer"
-                className="text-sm text-foreground/80 hover:text-foreground underline-offset-2 hover:underline flex items-start gap-1.5 mt-1.5 leading-snug"
+                className="flex items-start gap-2 text-foreground hover:underline underline-offset-2"
               >
-                <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                 <span>{fullAddress}</span>
               </a>
             )}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-[11px] text-muted-foreground">
-              {arrivalLabel && (
-                <span className="inline-flex items-center gap-1 tabular-nums">
-                  <Clock className="h-3 w-3" /> Planlagt {arrivalLabel}
-                </span>
-              )}
-              {stop.duration_minutes > 0 && (
-                <span className="inline-flex items-center gap-1 tabular-nums">
-                  <Clock className="h-3 w-3" /> ~{stop.duration_minutes} min
-                </span>
-              )}
-              {sharers > 1 && (
-                <span className="inline-flex items-center gap-1">
-                  <Users className="h-3 w-3" /> Delt med {sharers - 1} kollega{sharers - 1 === 1 ? "" : "er"}
-                </span>
-              )}
-            </div>
-            {completedLabel && (
-              <p className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
-                <CheckCircle2 className="h-3 w-3" /> Markeret færdig {completedLabel}
-              </p>
+            {stop.customer_phone && (
+              <a
+                href={`tel:${stop.customer_phone}`}
+                className="flex items-center gap-2 text-foreground hover:underline"
+              >
+                <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+                <span>{stop.customer_phone}</span>
+              </a>
             )}
           </div>
-        </div>
+        </Section>
 
-        {/* Rute-kontekst — hvilken rute hører stoppet til? */}
-        {route && (
-          <div className="mt-3 flex items-center gap-2 rounded-lg border border-border bg-secondary/40 px-2.5 py-2 text-xs">
-            <span
-              className="h-5 w-5 shrink-0 rounded-md border border-border flex items-center justify-center"
-              style={{ background: route.color || "hsl(var(--secondary))" }}
-            >
-              <RouteIcon className="h-3 w-3 text-background" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">På rute</p>
-              <p className="truncate font-semibold text-foreground">
-                {route.name || "Rute"}
-              </p>
+        {/* Opgaver */}
+        <Section
+          icon={<Package className="h-3.5 w-3.5" />}
+          title="Bestilte ydelser"
+          hint={tasks.length > 0 ? `${tasks.length} ${tasks.length === 1 ? "ydelse" : "ydelser"}` : undefined}
+        >
+          {loadingOrder && tasks.length === 0 && !fallbackSummary ? (
+            <div className="rounded-lg border bg-secondary/30 p-3 flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Henter detaljer…
             </div>
-            {route.date && (
-              <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground tabular-nums">
-                <CalendarIcon className="h-3 w-3" />
-                {format(new Date(route.date), "d. MMM yyyy", { locale: da })}
+          ) : tasks.length > 0 ? (
+            <div className="rounded-lg border divide-y bg-card">
+              {tasks.map((t, i) => (
+                <div key={i} className="px-3 py-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium leading-tight">{t.name}</p>
+                      {t.subcategory && (
+                        <p className="text-[11px] text-muted-foreground mt-0.5">{t.subcategory}</p>
+                      )}
+                    </div>
+                    {t.quantity > 1 && (
+                      <Badge variant="outline" className="tabular-nums text-[10px] h-4 px-1.5 shrink-0">
+                        × {t.quantity}{t.unit ? ` ${t.unit}` : ""}
+                      </Badge>
+                    )}
+                  </div>
+                  {t.description && (
+                    <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">
+                      {t.description}
+                    </p>
+                  )}
+                  {t.selections.length > 0 && (
+                    <div className="mt-2 rounded-md bg-secondary/40 divide-y divide-border/50">
+                      {t.selections.map((sel, k) => (
+                        <div key={k} className="flex justify-between px-2.5 py-1 text-[11px]">
+                          <span className="text-muted-foreground">{sel.label}</span>
+                          <span className="font-medium text-foreground tabular-nums">{sel.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : fallbackSummary ? (
+            <div className="rounded-lg border bg-card p-3">
+              <p className="text-sm leading-relaxed">{fallbackSummary}</p>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed bg-secondary/20 p-3 text-center">
+              <p className="text-[12px] text-muted-foreground">Ingen detaljer på denne opgave</p>
+            </div>
+          )}
+        </Section>
+
+        {customerNote && customerNote.trim() && (
+          <Section icon={<MessageSquare className="h-3.5 w-3.5" />} title="Besked fra kunden">
+            <div className="rounded-lg border-l-4 border-l-foreground bg-secondary/40 px-3 py-2">
+              <p className="text-sm leading-relaxed whitespace-pre-line">{customerNote}</p>
+            </div>
+          </Section>
+        )}
+
+        {orderTotal > 0 && (
+          <Section icon={<Wallet className="h-3.5 w-3.5" />} title="Beløb">
+            <div className="rounded-lg border bg-card p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Aftalens beløb</span>
+                <span className="text-sm font-semibold tabular-nums text-foreground">
+                  {formatKrUtil(orderTotal)}
+                </span>
+              </div>
+              {myCommissionPct > 0 && (
+                <div className="flex items-center justify-between border-t border-border pt-2">
+                  <span className="text-sm text-muted-foreground">
+                    Min andel
+                    {sharers > 1 && (
+                      <span className="text-[10px] text-muted-foreground/80 ml-1">
+                        (delt med {sharers - 1} kollega{sharers - 1 === 1 ? "" : "er"})
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-base font-bold tabular-nums text-foreground">
+                    {formatKrUtil(myShare)}
+                  </span>
+                </div>
+              )}
+            </div>
+          </Section>
+        )}
+
+        {route && (
+          <Section icon={<RouteIcon className="h-3.5 w-3.5" />} title="Rute-info">
+            <div className="flex items-center gap-2.5">
+              <span
+                className="h-7 w-7 shrink-0 rounded-md border border-border flex items-center justify-center"
+                style={{ background: route.color || "hsl(var(--secondary))" }}
+              >
+                <RouteIcon className="h-3.5 w-3.5 text-background" />
               </span>
-            )}
-          </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-foreground">{route.name || "Rute"}</p>
+                {route.date && (
+                  <p className="text-[11px] text-muted-foreground tabular-nums inline-flex items-center gap-1">
+                    <CalendarIcon className="h-3 w-3" />
+                    {format(new Date(route.date), "EEEE d. MMM yyyy", { locale: da })}
+                  </p>
+                )}
+              </div>
+            </div>
+          </Section>
+        )}
+
+        {!readOnly && (
+          <Section icon={<ClipboardList className="h-3.5 w-3.5" />} title="Din note" hint="synlig for virksomheden">
+            <Textarea
+              placeholder="Tilføj en note om besøget…"
+              value={noteDraft}
+              onChange={(e) => onNoteChange?.(e.target.value)}
+              rows={3}
+              className="resize-none rounded-md"
+            />
+          </Section>
+        )}
+
+        {readOnly && stop.notes && stop.notes.trim() && (
+          <Section icon={<ClipboardList className="h-3.5 w-3.5" />} title="Note fra besøget">
+            <div className="rounded-lg border bg-card p-3">
+              <p className="text-sm leading-relaxed whitespace-pre-line text-foreground">{stop.notes}</p>
+            </div>
+          </Section>
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-5 space-y-4">
-          {/* Opgave-sektion */}
-          <section>
-            <div className="flex items-center gap-2 mb-2">
-              <ClipboardList className="h-4 w-4 text-muted-foreground" />
-              <h4 className="text-[11px] uppercase tracking-wide font-bold text-muted-foreground">
-                Opgave hos kunden
-              </h4>
-            </div>
-            {loadingOrder && tasks.length === 0 && !fallbackSummary ? (
-              <div className="rounded-xl border bg-secondary/30 p-3 flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Henter opgavedetaljer…
-              </div>
-            ) : tasks.length > 0 ? (
-              <div className="space-y-2">
-                {tasks.map((t, i) => (
-                  <div key={i} className="rounded-xl border bg-card p-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm leading-tight">{t.name}</p>
-                        {t.subcategory && (
-                          <p className="text-[11px] text-muted-foreground mt-0.5">{t.subcategory}</p>
-                        )}
-                      </div>
-                      {t.quantity > 1 && (
-                        <Badge variant="outline" className="tabular-nums text-[10px] shrink-0">
-                          × {t.quantity}{t.unit ? ` ${t.unit}` : ""}
-                        </Badge>
-                      )}
-                    </div>
-                    {t.description && (
-                      <p className="text-[12px] text-foreground/75 mt-2 leading-relaxed">
-                        {t.description}
-                      </p>
-                    )}
-                    {t.selections.length > 0 && (
-                      <div className="mt-2.5 grid grid-cols-2 gap-1.5">
-                        {t.selections.map((sel, k) => (
-                          <div
-                            key={k}
-                            className="flex items-center justify-between gap-2 rounded-lg bg-secondary/50 px-2 py-1.5"
-                          >
-                            <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold truncate">
-                              {sel.label}
-                            </span>
-                            <span className="text-[12px] font-bold tabular-nums truncate">
-                              {sel.value}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : fallbackSummary ? (
-              <div className="rounded-xl border bg-card p-3">
-                <p className="text-sm leading-relaxed">{fallbackSummary}</p>
-              </div>
-            ) : (
-              <div className="rounded-xl border border-dashed bg-secondary/20 p-3 text-center">
-                <p className="text-[12px] text-muted-foreground">Ingen detaljer på denne opgave</p>
-              </div>
-            )}
-          </section>
-
-          {customerNote && customerNote.trim() && (
-            <section>
-              <div className="flex items-center gap-2 mb-2">
-                <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                <h4 className="text-[11px] uppercase tracking-wide font-bold text-muted-foreground">
-                  Besked fra kunden
-                </h4>
-              </div>
-              <div className="rounded-xl border border-l-4 border-l-foreground border-border bg-secondary/40 p-3">
-                <p className="text-sm leading-relaxed whitespace-pre-line">{customerNote}</p>
-              </div>
-            </section>
-          )}
-
-          {orderTotal > 0 && (
-            <section>
-              <div className="flex items-center gap-2 mb-2">
-                <Wallet className="h-4 w-4 text-muted-foreground" />
-                <h4 className="text-[11px] uppercase tracking-wide font-bold text-muted-foreground">
-                  Beløb
-                </h4>
-              </div>
-              <div className="rounded-xl border bg-card p-3 space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm text-muted-foreground">Aftalens beløb</span>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant="outline"
-                      className={`h-5 border px-1.5 text-[10px] font-medium ${paymentClasses}`}
-                    >
-                      {paymentLabel}
-                    </Badge>
-                    <span className="text-sm font-semibold tabular-nums text-foreground">
-                      {formatKrUtil(orderTotal)}
-                    </span>
-                  </div>
-                </div>
-                {myCommissionPct > 0 && (
-                  <div className="flex items-center justify-between border-t border-border pt-2">
-                    <span className="text-sm text-muted-foreground">
-                      Min andel
-                      {sharers > 1 && (
-                        <span className="text-[10px] text-muted-foreground/80 ml-1">
-                          (delt med {sharers - 1} kollega{sharers - 1 === 1 ? "" : "er"})
-                        </span>
-                      )}
-                    </span>
-                    <span className="text-base font-bold tabular-nums text-emerald-600">
-                      {formatKrUtil(myShare)}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </section>
-          )}
-
-          {stop.customer_phone && (
-            <section>
-              <div className="flex items-center gap-2 mb-2">
-                <Info className="h-4 w-4 text-muted-foreground" />
-                <h4 className="text-[11px] uppercase tracking-wide font-bold text-muted-foreground">
-                  Kontakt
-                </h4>
-              </div>
-              <Button asChild variant="outline" className="w-full gap-2 h-11 rounded-xl justify-start font-medium">
-                <a href={`tel:${stop.customer_phone}`}>
-                  <Phone className="h-4 w-4" /> Ring til {stop.customer_name || "kunden"}
-                  <span className="ml-auto text-xs text-muted-foreground tabular-nums">
-                    {stop.customer_phone}
-                  </span>
-                </a>
-              </Button>
-            </section>
-          )}
-
-          {!readOnly && (
-            <section>
-              <label className="text-[11px] uppercase tracking-wide font-bold text-muted-foreground mb-2 flex items-center gap-2">
-                <ClipboardList className="h-4 w-4" /> Din note
-                <span className="text-[10px] font-medium normal-case tracking-normal text-muted-foreground/80">
-                  (synlig for virksomheden)
-                </span>
-              </label>
-              <Textarea
-                placeholder="Tilføj en note om besøget…"
-                value={noteDraft}
-                onChange={(e) => onNoteChange?.(e.target.value)}
-                rows={3}
-                className="resize-none rounded-xl"
-              />
-            </section>
-          )}
-
-          {/* Read-only: vis evt. allerede-gemt note */}
-          {readOnly && stop.notes && stop.notes.trim() && (
-            <section>
-              <div className="flex items-center gap-2 mb-2">
-                <ClipboardList className="h-4 w-4 text-muted-foreground" />
-                <h4 className="text-[11px] uppercase tracking-wide font-bold text-muted-foreground">
-                  Note fra besøget
-                </h4>
-              </div>
-              <div className="rounded-xl border bg-secondary/30 p-3">
-                <p className="text-sm leading-relaxed whitespace-pre-line text-foreground">{stop.notes}</p>
-              </div>
-            </section>
-          )}
-        </div>
-      </div>
-
       {!readOnly && (
-        <div className="border-t border-border bg-background/95 backdrop-blur p-4 shrink-0">
+        <div className="border-t border-border bg-card p-4 shrink-0">
           {!isDone ? (
             <Button
               onClick={onComplete}
-              className="w-full gap-2 h-12 text-base font-semibold rounded-xl shadow-md bg-foreground text-background hover:bg-foreground/90"
+              className="w-full gap-2 h-12 text-base font-semibold rounded-lg shadow-sm bg-foreground text-background hover:bg-foreground/90"
               size="lg"
               disabled={!!isPending}
             >
@@ -441,7 +387,7 @@ export const StopDetailsContent = ({
               Markér som udført
             </Button>
           ) : (
-            <Button onClick={onUndo} variant="outline" className="w-full h-12 rounded-xl">
+            <Button onClick={onUndo} variant="outline" className="w-full h-12 rounded-lg">
               Fortryd udført
             </Button>
           )}
