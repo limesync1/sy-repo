@@ -444,9 +444,9 @@ const Auth = () => {
                       {!isSignUp && (
                         <Link
                           to={`/log-ind?reset=1${mode ? `&mode=${mode}` : ""}`}
-                          className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:underline"
+                          className="text-xs font-semibold text-accent underline-offset-2 transition-colors hover:underline"
                         >
-                          Glemt?
+                          Glemt adgangskode?
                         </Link>
                       )}
                     </div>
