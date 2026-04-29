@@ -1988,7 +1988,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         <SheetContent
           side="bottom"
           className={`p-0 rounded-t-2xl flex flex-col transition-[max-height,height] duration-300 ease-out ${
-            sheetExpanded ? "max-h-[85vh] h-[85vh]" : "max-h-[45vh] h-[45vh]"
+            sheetExpanded ? "max-h-[82vh] h-[82vh]" : "max-h-[42vh] h-[42vh]"
           }`}
         >
           {/* Drag-handle bar — tap for at skifte højde, tryk-og-træk på mobile
@@ -1996,12 +1996,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           <button
             type="button"
             onClick={() => setSheetExpanded((v) => !v)}
-            className="w-full pt-2 pb-1 flex flex-col items-center gap-0.5 shrink-0 hover:bg-secondary/40 active:bg-secondary/60 transition-colors rounded-t-2xl"
+            className="w-full pt-2 pb-1 flex flex-col items-center gap-0.5 shrink-0 hover:bg-secondary/40 active:bg-secondary/60 transition-colors rounded-t-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             aria-label={sheetExpanded ? "Gør detaljer mindre" : "Gør detaljer større"}
             aria-expanded={sheetExpanded}
           >
-            <span className="h-1 w-10 rounded-full bg-muted-foreground/40" aria-hidden />
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium">
+            <span className="h-1.5 w-12 rounded-full bg-muted-foreground/50" aria-hidden />
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium mt-0.5">
               {sheetExpanded ? "Tryk for at gøre mindre" : "Tryk for at udvide"}
             </span>
           </button>
