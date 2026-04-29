@@ -367,7 +367,8 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 </div>
                 {/* Kolonne-titler — matcher bredder i hver række */}
                 <div className="hidden sm:flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  <span className="w-28 text-right">Kontostatus</span>
+                  <span className="w-24 text-right">Status</span>
+                  <span className="w-32 text-right">Indtjening</span>
                   <span className="w-[136px] text-right pr-2">Handlinger</span>
                 </div>
               </div>
@@ -397,7 +398,8 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   </p>
                 </div>
                 <div className="hidden sm:flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  <span className="w-28 text-right">Kontostatus</span>
+                  <span className="w-24 text-right">Status</span>
+                  <span className="w-32 text-right">Indtjening</span>
                   <span className="w-[136px] text-right pr-2">Handlinger</span>
                 </div>
               </div>
