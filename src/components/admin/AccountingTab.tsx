@@ -237,6 +237,12 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const [pushedLast24h, setPushedLast24h] = useState(0);
   const [pulledLast24h, setPulledLast24h] = useState(0);
   const [lastSuccessPush, setLastSuccessPush] = useState<string | null>(null);
+  const [groups, setGroups] = useState<{
+    customer_groups: { id: string; name: string }[];
+    product_groups: { id: string; name: string; account_number?: string | null }[];
+    income_accounts: { id: string; name: string }[];
+  }>({ customer_groups: [], product_groups: [], income_accounts: [] });
+  const [groupsLoading, setGroupsLoading] = useState(false);
   const [lastSuccessPull, setLastSuccessPull] = useState<string | null>(null);
   // Re-render hvert minut så "om X min"-tæller forbliver retvisende
   const [, setNowTick] = useState(0);
