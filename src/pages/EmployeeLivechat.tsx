@@ -47,7 +47,7 @@ const EmployeeLivechat = () => {
   }, [business, navigate]);
 
   return (
-    <EmployeeShell activeTab={"livechat" as any} title="Live chat">
+    <EmployeeShell activeTab={"livechat" as any} title="Livechat">
       {businessId && business?.name ? (
         <BusinessLiveChatTab businessId={businessId} businessName={business.name} />
       ) : (
