@@ -66,6 +66,73 @@ async function getOrgId(creds: AccountingCredentials): Promise<string> {
   return res?.organization?.id ?? res?.organizations?.[0]?.id;
 }
 
+// Billy gemmer email/phone på contactPersons (ikke på contact selv).
+// Vi opretter/opdaterer den primære kontaktperson hvis vi har email eller phone.
+async function syncBillyContactPerson(
+  creds: AccountingCredentials,
+  contactId: string,
+  input: UpsertCustomerInput,
+): Promise<void> {
+  const email = input.email?.trim() || null;
+  const phone = input.phone?.trim() || null;
+  if (!email && !phone) return;
+
+  // Find eksisterende kontaktpersoner for denne contact
+  let persons: any[] = [];
+  try {
+    const res = await billyRequest(creds, `/contactPersons?contactId=${contactId}`);
+    persons = res?.contactPersons ?? [];
+  } catch { /* ignore */ }
+
+  // Match på email hvis muligt, ellers første person
+  const existing = email
+    ? persons.find(p => (p.email ?? "").toLowerCase() === email.toLowerCase()) ?? persons[0]
+    : persons[0];
+
+  const person: Record<string, unknown> = {
+    contactId,
+    name: input.name,
+    email: email ?? undefined,
+    phone: phone ?? undefined,
+    isPrimary: true,
+  };
+
+  try {
+    if (existing) {
+      await billyRequest(creds, `/contactPersons/${existing.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ contactPerson: person }),
+      });
+    } else {
+      await billyRequest(creds, `/contactPersons`, {
+        method: "POST",
+        body: JSON.stringify({ contactPerson: person }),
+      });
+    }
+  } catch (e) {
+    // Lad ikke kontaktperson-fejl vælte hele customer-syncen.
+    console.warn("Billy contactPerson sync failed:", e instanceof Error ? e.message : e);
+  }
+}
+
+// Hent email/telefon fra primær kontaktperson under listCustomers.
+async function fetchBillyContactPersonInfo(
+  creds: AccountingCredentials,
+  contactId: string,
+): Promise<{ email: string | null; phone: string | null }> {
+  try {
+    const res = await billyRequest(creds, `/contactPersons?contactId=${contactId}`);
+    const persons: any[] = res?.contactPersons ?? [];
+    const primary = persons.find(p => p.isPrimary) ?? persons[0];
+    return {
+      email: primary?.email ?? null,
+      phone: primary?.phone ?? null,
+    };
+  } catch {
+    return { email: null, phone: null };
+  }
+}
+
 export function makeBillyAdapter(
   creds: AccountingCredentials,
   settings: AccountingSettings,
