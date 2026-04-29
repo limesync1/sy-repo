@@ -89,6 +89,8 @@ export type RouteStop = {
   order_status?: string | null;
   /** Aftalens fulde beløb, inkl. evt. justering. */
   order_amount?: number | null;
+  /** Vej + postnr + by — beregnet i useMyDayStops så listen ikke kun viser gaden. */
+  full_address?: string | null;
 };
 
 export type RouteEmployee = {
