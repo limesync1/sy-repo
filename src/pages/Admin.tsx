@@ -412,6 +412,13 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      // Hård feature-gate: vis kun regnskabs-info hvis virksomheden har
+      // aktiveret integrationen i sine indstillinger.
+      const accountingEnabled = !!(business?.settings as any)?.accounting_integration_enabled;
+      if (!accountingEnabled) {
+        if (!cancelled) setAccountingMeta(m => ({ ...m, provider: null, productLinks: {}, productGroups: {}, incomeAccounts: {} }));
+        return;
+      }
       const { data: integ } = await supabase
         .from("accounting_integrations" as any)
         .select("provider, is_active")
@@ -426,7 +433,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
       const labels = i.provider === "economic"
         ? { productLabel: "Varenr", groupLabel: "Varegruppe", accountLabel: "Salgskonto" }
         : i.provider === "billy"
-          ? { productLabel: "Produktnr", groupLabel: "Produktgruppe", accountLabel: "Indtægtskonto" }
+          ? { productLabel: "Produktnr", groupLabel: "", accountLabel: "Indtægtskonto" }
           : { productLabel: "Varenr", groupLabel: "Konto", accountLabel: "Konto" };
 
       const { data: links } = await supabase
@@ -463,7 +470,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
       }
     })();
     return () => { cancelled = true; };
-  }, [businessId]);
+  }, [businessId, business?.settings]);
 
   const isFocusMode = showForm || editingId !== null;
 
@@ -783,12 +790,6 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
                   label={accountingMeta!.productLabel}
                   value={externalNo || "afventer synk"}
                   muted={!externalNo}
-                />
-                <AccountingChip
-                  icon={<FolderTree className="h-3 w-3" />}
-                  label={accountingMeta!.groupLabel}
-                  value={groupName || "standard"}
-                  muted={!groupName}
                 />
                 <AccountingChip
                   icon={<Calculator className="h-3 w-3" />}
@@ -1878,27 +1879,6 @@ const ServiceForm = ({
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                {accountingGroups.product_groups.length > 0 && (
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium text-foreground">
-                      {accountingGroups.labels?.product_groups ?? "Produktgruppe"}
-                    </label>
-                    <Select
-                      value={accountingProductGroup || "__default__"}
-                      onValueChange={(v) => setAccountingProductGroup(v === "__default__" ? "" : v)}
-                    >
-                      <SelectTrigger className="bg-card"><SelectValue placeholder="Brug standard" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__default__">
-                          Brug virksomhedens standard{accountingDefaults.default_product_group ? ` (${accountingGroups.product_groups.find(g => g.id === accountingDefaults.default_product_group)?.name ?? accountingDefaults.default_product_group})` : ""}
-                        </SelectItem>
-                        {accountingGroups.product_groups.map(g => (
-                          <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
                 {accountingGroups.income_accounts.length > 0 && (
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-foreground">
@@ -1920,9 +1900,9 @@ const ServiceForm = ({
                     </Select>
                   </div>
                 )}
-                {accountingGroups.product_groups.length === 0 && accountingGroups.income_accounts.length === 0 && (
+                {accountingGroups.income_accounts.length === 0 && (
                   <p className="text-xs text-muted-foreground sm:col-span-2">
-                    {accountingLoading ? "Henter kategorier fra dit regnskabsprogram…" : "Ingen kategorier fundet — sæt en standard på Regnskab-fanen."}
+                    {accountingLoading ? "Henter konti fra dit regnskabsprogram…" : "Ingen indtægtskonti fundet — sæt en standard på Regnskab-fanen."}
                   </p>
                 )}
               </div>
