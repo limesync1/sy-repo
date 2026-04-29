@@ -985,6 +985,44 @@ const ServiceForm = ({
     toast.success(`Skabelon "${template.label}" anvendt`);
   };
 
+  // ── AI-genereret prisberegner-skabelon ──────────────────────────────
+  // Kalder edge-funktionen `generate-calculator-template`, som bygger
+  // 2-5 trin specifikt tilpasset denne service (kategori + underkategori
+  // + beskrivelse). Resultatet erstatter de nuværende trin.
+  const [aiTemplateLoading, setAiTemplateLoading] = useState(false);
+  const generateAiTemplate = async () => {
+    if (!name.trim()) {
+      toast.error("Skriv først et servicenavn");
+      return;
+    }
+    setAiTemplateLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-calculator-template", {
+        body: {
+          serviceName: name.trim(),
+          serviceCategory: serviceCategory || null,
+          subcategory: subcategory || null,
+          serviceDescription: description?.trim() || null,
+          businessName: business?.name || null,
+          businessDescription: business?.description || null,
+          businessCategories: Array.isArray(business?.categories) ? business?.categories : null,
+          businessCity: business?.city || null,
+          intervalOptions: Array.isArray(intervalOptions) ? intervalOptions : null,
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const aiSteps = ((data as any)?.steps ?? []) as any[];
+      if (!Array.isArray(aiSteps) || aiSteps.length === 0) throw new Error("AI returnerede ingen trin");
+      setSteps(aiSteps.map((s, i) => ({ ...s, sort_order: i })));
+      toast.success("AI-skabelon genereret ud fra din beskrivelse");
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke generere AI-skabelon");
+    } finally {
+      setAiTemplateLoading(false);
+    }
+  };
+
   const canGoNext = () => {
     if (currentStep === 1) return !!serviceCategory;
     if (currentStep === 2) return !!name.trim();
