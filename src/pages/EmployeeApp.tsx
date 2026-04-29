@@ -12,7 +12,7 @@ import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
 import {
   Calendar as CalendarIcon, Play, Printer, MapPin, Clock, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
-  Users, User as UserIcon, Info,
+  Users, User as UserIcon, Info, CalendarCheck,
 } from "lucide-react";
 import { format, addDays, parseISO, isToday, formatDistanceStrict } from "date-fns";
 import { da } from "date-fns/locale";
@@ -148,9 +148,12 @@ const EmployeeApp = () => {
 
   // Date navigator — kompakt, klar visuel struktur:
   //  [‹]  [📅 dato (popover)]  [›]   [Gå til i dag?]
+  // Date navigator — én sammenhængende boks så "Gå til i dag"-knappen
+  // ALDRIG dækker forrige/næste-pilene. Når man IKKE er på dagens dato,
+  // vises en lille knap helt til højre indeni boksen.
   const dateNav = (
-    <div className="flex w-full items-center gap-2 sm:w-auto">
-      <div className="flex flex-1 items-center gap-1 rounded-xl border border-border bg-card p-1 shadow-sm sm:flex-initial">
+    <div className="flex w-full items-center sm:w-auto">
+      <div className="flex w-full items-center gap-1 rounded-xl border border-border bg-card p-1 shadow-sm sm:w-auto">
         <Button
           size="icon"
           variant="ghost"
@@ -197,19 +200,22 @@ const EmployeeApp = () => {
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
+        {!isCurrentDay && (
+          <>
+            <span className="mx-0.5 h-5 w-px bg-border" aria-hidden />
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => setDate(todayStr())}
+              aria-label="Gå til i dag"
+              title="Gå til i dag"
+              className="h-9 w-9 shrink-0 rounded-lg bg-foreground text-background transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]"
+            >
+              <CalendarCheck className="h-4 w-4" />
+            </Button>
+          </>
+        )}
       </div>
-      {!isCurrentDay && (
-        <Button
-          size="sm"
-          onClick={() => setDate(todayStr())}
-          className={cn(
-            "h-10 shrink-0 rounded-xl px-3 text-xs font-semibold shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.97]",
-            "bg-foreground text-background hover:bg-foreground/90 hover:text-background sm:h-9 sm:rounded-lg",
-          )}
-        >
-          I dag
-        </Button>
-      )}
     </div>
   );
 
@@ -217,7 +223,7 @@ const EmployeeApp = () => {
     <EmployeeShell activeTab="today" title="Min dag">
       {/* PageTransition fader indholdet ind når brugeren skifter dag,
           så det føles som en blød navigation frem for et hårdt re-render. */}
-      <PageTransition transitionKey={date} className="mx-auto w-full max-w-7xl space-y-4 pb-24 sm:pb-20">
+      <PageTransition transitionKey={date} className="w-full space-y-4 pb-24 sm:pb-20">
         <PageHeader
           title={<span className="capitalize">{format(dateObj, "EEEE d. MMMM", { locale: da })}</span>}
           description={
