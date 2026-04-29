@@ -1579,7 +1579,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Pre-start CTA: big start button at the bottom ─── */}
         {!routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pb-[50px]">
+          <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-3 pb-3">
             <Card className="overflow-hidden rounded-xl border-border shadow-xl">
               {/* Dagens overblik — øverste sektion */}
               <div className="px-4 pt-3.5 pb-3 bg-card border-b border-border">
@@ -1875,7 +1875,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Done state ─── */}
         {allDone && (
-          <div className="absolute bottom-0 inset-x-0 z-[1000] p-3 pb-[50px]">
+          <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-3 pb-3">
             <Card className="overflow-hidden shadow-xl rounded-xl border-border">
               <div className="p-5 text-center space-y-3">
                 <div className="h-14 w-14 mx-auto rounded-xl flex items-center justify-center bg-secondary">
