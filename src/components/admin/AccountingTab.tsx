@@ -684,6 +684,18 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             >
               {currentProvider.helpUrlLabel} <ExternalLink className="h-3.5 w-3.5" />
             </a>
+            {currentProvider.note && (
+              <div
+                className={`mt-4 rounded-lg border p-3 text-xs ${
+                  currentProvider.note.tone === "warning"
+                    ? "border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200"
+                    : "border-blue-500/20 bg-blue-500/5 text-foreground"
+                }`}
+              >
+                <div className="font-semibold mb-1">{currentProvider.note.title}</div>
+                <div className="opacity-90 leading-relaxed">{currentProvider.note.body}</div>
+              </div>
+            )}
           </SectionCard>
 
           <SectionCard
