@@ -7,24 +7,27 @@
 //   </EmployeeShell>
 import { Link, useNavigate } from "react-router-dom";
 import { useState, type ReactNode } from "react";
-import { LogOut, Menu, X, Calendar as CalendarIcon, BarChart3 } from "lucide-react";
+import { LogOut, Menu, X, Calendar as CalendarIcon, BarChart3, MessageCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
-export type EmployeeTabKey = "today" | "stats";
+export type EmployeeTabKey = "today" | "stats" | "livechat";
 
 type NavItem = {
   value: EmployeeTabKey;
   label: string;
   icon: any;
   href: string;
+  /** Hvis sat, vises kun når medarbejderen har dette flag i sin record. */
+  requiresEmployeeFlag?: "livechat_enabled";
 };
 
 const NAV_ITEMS: NavItem[] = [
   { value: "today", label: "Min dag", icon: CalendarIcon, href: "/medarbejder" },
   { value: "stats", label: "Statistik", icon: BarChart3, href: "/medarbejder/statistik" },
+  { value: "livechat", label: "Live chat", icon: MessageCircle, href: "/medarbejder/livechat", requiresEmployeeFlag: "livechat_enabled" },
 ];
 
 // Prefetch — start download af den anden side når brugeren hover'er nav-knappen.
@@ -32,6 +35,7 @@ const NAV_ITEMS: NavItem[] = [
 const TAB_PREFETCH: Record<string, () => Promise<unknown>> = {
   today: () => import("@/pages/EmployeeApp"),
   stats: () => import("@/pages/EmployeeStats"),
+  livechat: () => import("@/pages/EmployeeLivechat"),
 };
 const prefetched = new Set<string>();
 const prefetchTab = (key: string) => {
@@ -63,6 +67,10 @@ export const EmployeeShell = ({
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const visibleNav = NAV_ITEMS.filter((n) => {
+    if (!n.requiresEmployeeFlag) return true;
+    return !!(employee as any)?.[n.requiresEmployeeFlag];
+  });
   const currentNav = NAV_ITEMS.find((n) => n.value === activeTab);
   const displayName =
     employee?.name ||
@@ -134,7 +142,7 @@ export const EmployeeShell = ({
         </div>
 
         <nav className="flex-1 space-y-1 px-3 pt-1 pb-2 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
+          {visibleNav.map((item) => {
             const isActive = activeTab === item.value;
             const baseClasses = cn(
               "flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors text-left",
