@@ -66,6 +66,18 @@ export type EmployeeStats = {
       orderAmount: number;
       share: number;
       paymentStatus: "paid" | "settling" | "pending" | "unknown";
+      /** Tidspunkt opgaven blev markeret færdig (ISO). */
+      completedAt: string | null;
+      /** Adresse / lokation for opgaven. */
+      address: string | null;
+      /** Servicenavn (hvis kendt fra ordren). */
+      serviceName: string | null;
+      /** Antal medarbejdere som delte opgaven (provisionsdeling). */
+      sharers: number;
+      /** Note fra medarbejderen ifm. udførelsen (hvis udfyldt). */
+      note: string | null;
+      /** Ordrenummer/-id (sidste 6 tegn af id'et — bruges som reference). */
+      orderRef: string | null;
     }[];
   }[];
 };
@@ -146,7 +158,7 @@ export const useMyEmployeeStats = (
       // 3) Hent alle stop på de ruter
       const { data: stops } = await supabase
         .from("route_stops")
-        .select("id, route_id, status, assigned_employee_id, completed_at, order_id, customer_name")
+        .select("id, route_id, status, assigned_employee_id, completed_at, order_id, customer_name, address, notes, service_summary, planned_arrival, duration_minutes")
         .in("route_id", routeIds);
 
       // Filtrér stop som tilhører medarbejderen (specifik tildeling eller team)
@@ -275,12 +287,22 @@ export const useMyEmployeeStats = (
           : orderStatus === "in_progress" || orderStatus === "confirmed" ? "settling"
           : orderStatus === "pending" ? "pending"
           : "unknown";
+        const explicit = assigneeCountByStop.get(s.id) || 0;
+        const sharers = explicit > 0
+          ? explicit
+          : Math.max(teamSizeByRoute.get(s.route_id) || 1, 1);
         row.entries.push({
           stopId: s.id,
           customerName: s.customer_name ?? null,
           orderAmount,
           share,
           paymentStatus,
+          completedAt: s.completed_at ?? null,
+          address: (s as any).address ?? null,
+          serviceName: (s as any).service_summary ?? null,
+          sharers,
+          note: (s as any).notes ?? null,
+          orderRef: s.order_id ? String(s.order_id).slice(0, 8).toUpperCase() : null,
         });
         perDayMap.set(d, row);
       });

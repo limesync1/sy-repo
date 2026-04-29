@@ -358,7 +358,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
         <div className="space-y-3">
           {filteredActive.length > 0 && (
             <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-              <div className="grid items-center gap-3 border-b border-border px-4 py-3 sm:px-5 sm:grid-cols-[minmax(0,1fr)_6rem_8rem_136px]">
+              <div className="grid items-center gap-4 border-b border-border px-4 py-3 sm:px-5 sm:grid-cols-[minmax(0,1fr)_8rem_8rem_13rem]">
                 <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-foreground">Aktive medarbejdere</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
@@ -366,7 +366,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   </p>
                 </div>
                 {/* Kolonne-titler — bruger samme grid-template som rækken
-                    (1fr · 6rem · 8rem · 136px) så overskrifter står lodret
+                    (1fr · 8rem · 8rem · 13rem) så overskrifter står lodret
                     over de faktiske kolonner i hver række. */}
                 <span className="hidden sm:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Status</span>
                 <span className="hidden sm:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Indtjening</span>
@@ -390,7 +390,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 
           {filteredInactive.length > 0 && (
             <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-              <div className="grid items-center gap-3 border-b border-border px-4 py-3 sm:px-5 sm:grid-cols-[minmax(0,1fr)_6rem_8rem_136px]">
+              <div className="grid items-center gap-4 border-b border-border px-4 py-3 sm:px-5 sm:grid-cols-[minmax(0,1fr)_8rem_8rem_13rem]">
                 <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-foreground">Deaktiverede</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
@@ -502,8 +502,8 @@ const EmployeeRow = ({
   return (
     <TooltipProvider delayDuration={200}>
     <div
-      className={`group grid w-full gap-3 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5
-                  sm:grid-cols-[minmax(0,1fr)_6rem_8rem_136px] sm:items-center
+      className={`group grid w-full gap-4 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5
+                  sm:grid-cols-[minmax(0,1fr)_8rem_8rem_13rem] sm:items-center
                   ${employee.is_active ? "" : "opacity-60"}`}
     >
         {/* Navn + kontakt + farve-styring (venstre kolonne) */}
@@ -606,18 +606,35 @@ const EmployeeRow = ({
           </div>
         </div>
 
-        {/* Kontostatus — kun "Afventer" vises (når medarbejder ikke har oprettet konto endnu) */}
-        <div className="hidden sm:flex w-24 items-center justify-end">
-          {!linked && (
+        {/* Kontostatus — viser altid en status så kolonnen ikke står tom.
+            Aktiv (grøn) · Afventer login (gul) · Deaktiveret (grå). */}
+        <div className="hidden sm:flex flex-col items-end justify-center gap-1 text-right">
+          {!employee.is_active ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
+              Deaktiveret
+            </span>
+          ) : !linked ? (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-              Afventer
+              Afventer login
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Aktiv
+            </span>
+          )}
+          {(employee as any).livechat_enabled && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-accent/20 bg-accent/10 px-1.5 py-0.5 text-[10px] font-medium text-accent">
+              <MessageCircle className="h-2.5 w-2.5" />
+              Livechat
             </span>
           )}
         </div>
 
         {/* Indtjening for valgt periode */}
-        <div className="hidden sm:flex w-32 flex-col items-end justify-center text-right">
+        <div className="hidden sm:flex flex-col items-end justify-center text-right">
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="cursor-help">
@@ -646,7 +663,7 @@ const EmployeeRow = ({
         </div>
 
         {/* Handlinger — samme stil som kunder-rækken */}
-        <div className="flex items-center justify-end gap-0.5 shrink-0 sm:w-[136px]">
+        <div className="flex items-center justify-end gap-1 shrink-0">
           <Tooltip><TooltipTrigger asChild><button
             onClick={() => {
               setEditName(employee.name || "");
@@ -715,23 +732,25 @@ const EmployeeRow = ({
         </div>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Pencil className="h-4 w-4 text-accent" />
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary text-foreground">
+                <Pencil className="h-3.5 w-3.5" />
+              </span>
               Rediger medarbejder
             </DialogTitle>
             <DialogDescription>
               Opdater oplysninger for {employee.name}.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Navn</label>
+              <FieldLabel required>Navn</FieldLabel>
               <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-10" />
             </div>
             <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
+              <FieldLabel required>Email</FieldLabel>
               <Input
                 type="email"
                 value={editEmail}
@@ -743,15 +762,15 @@ const EmployeeRow = ({
               </p>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Telefon</label>
+              <FieldLabel>Telefon</FieldLabel>
               <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-10" />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Titel</label>
+              <FieldLabel>Titel</FieldLabel>
               <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="h-10" />
             </div>
             <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Provision (%)</label>
+              <FieldLabel>Provision (%)</FieldLabel>
               <div className="relative">
                 <Input
                   type="number"
@@ -790,8 +809,8 @@ const EmployeeRow = ({
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="ghost" onClick={() => setEditOpen(false)}>Annuller</Button>
-            <Button
+            <Button variant="ghost" onClick={() => setEditOpen(false)} className="h-9">Annuller</Button>
+            <PrimaryButton
               onClick={() => {
                 if (!editName.trim() || !editEmail.trim()) {
                   toast.error("Navn og email er påkrævet");
@@ -823,10 +842,10 @@ const EmployeeRow = ({
                 );
               }}
               disabled={onUpdate.isPending}
-              className="bg-accent text-accent-foreground hover:bg-accent/90"
+              icon={<Pencil />}
             >
               {onUpdate.isPending ? "Gemmer..." : "Gem ændringer"}
-            </Button>
+            </PrimaryButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
