@@ -620,7 +620,8 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                 </div>
               </div>
 
-              <div ref={scrollRef} className="flex-1 space-y-2.5 overflow-y-auto bg-secondary/20 px-4 py-4">
+              <div className="relative flex-1 overflow-hidden">
+              <div ref={scrollRef} className="absolute inset-0 space-y-2.5 overflow-y-auto bg-secondary/20 px-4 py-4">
                 {messages.map((m, i) => {
                   if (m.is_system) {
                     return (
@@ -664,6 +665,20 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                     </div>
                   );
                 })}
+              </div>
+              {showJumpToBottom && (
+                <button
+                  type="button"
+                  onClick={jumpToBottom}
+                  className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 inline-flex items-center gap-1.5 rounded-full bg-foreground px-3.5 py-1.5 text-xs font-semibold text-background shadow-lg ring-2 ring-background/40 transition-all hover:bg-foreground/90 active:scale-95"
+                  aria-label="Hop til seneste beskeder"
+                >
+                  <ArrowDown className="h-3.5 w-3.5" />
+                  {unseenCount > 0
+                    ? `${unseenCount} ${unseenCount === 1 ? "ny besked" : "nye beskeder"}`
+                    : "Hop til seneste"}
+                </button>
+              )}
               </div>
 
               {active.status === "closed" ? (
