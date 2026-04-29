@@ -66,6 +66,73 @@ async function getOrgId(creds: AccountingCredentials): Promise<string> {
   return res?.organization?.id ?? res?.organizations?.[0]?.id;
 }
 
+// Billy gemmer email/phone på contactPersons (ikke på contact selv).
+// Vi opretter/opdaterer den primære kontaktperson hvis vi har email eller phone.
+async function syncBillyContactPerson(
+  creds: AccountingCredentials,
+  contactId: string,
+  input: UpsertCustomerInput,
+): Promise<void> {
+  const email = input.email?.trim() || null;
+  const phone = input.phone?.trim() || null;
+  if (!email && !phone) return;
+
+  // Find eksisterende kontaktpersoner for denne contact
+  let persons: any[] = [];
+  try {
+    const res = await billyRequest(creds, `/contactPersons?contactId=${contactId}`);
+    persons = res?.contactPersons ?? [];
+  } catch { /* ignore */ }
+
+  // Match på email hvis muligt, ellers første person
+  const existing = email
+    ? persons.find(p => (p.email ?? "").toLowerCase() === email.toLowerCase()) ?? persons[0]
+    : persons[0];
+
+  const person: Record<string, unknown> = {
+    contactId,
+    name: input.name,
+    email: email ?? undefined,
+    phone: phone ?? undefined,
+    isPrimary: true,
+  };
+
+  try {
+    if (existing) {
+      await billyRequest(creds, `/contactPersons/${existing.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ contactPerson: person }),
+      });
+    } else {
+      await billyRequest(creds, `/contactPersons`, {
+        method: "POST",
+        body: JSON.stringify({ contactPerson: person }),
+      });
+    }
+  } catch (e) {
+    // Lad ikke kontaktperson-fejl vælte hele customer-syncen.
+    console.warn("Billy contactPerson sync failed:", e instanceof Error ? e.message : e);
+  }
+}
+
+// Hent email/telefon fra primær kontaktperson under listCustomers.
+async function fetchBillyContactPersonInfo(
+  creds: AccountingCredentials,
+  contactId: string,
+): Promise<{ email: string | null; phone: string | null }> {
+  try {
+    const res = await billyRequest(creds, `/contactPersons?contactId=${contactId}`);
+    const persons: any[] = res?.contactPersons ?? [];
+    const primary = persons.find(p => p.isPrimary) ?? persons[0];
+    return {
+      email: primary?.email ?? null,
+      phone: primary?.phone ?? null,
+    };
+  } catch {
+    return { email: null, phone: null };
+  }
+}
+
 export function makeBillyAdapter(
   creds: AccountingCredentials,
   settings: AccountingSettings,
@@ -128,23 +195,33 @@ export function makeBillyAdapter(
       const q = updatedSince ? `?updatedSince=${updatedSince.toISOString()}` : "";
       const data = await billyRequest(creds, `/contacts${q}`);
       const items = (data?.contacts ?? []) as any[];
-      return items
-        .filter((c) => c.isCustomer)
-        .map((c): ExternalCustomer => ({
-          external_id: c.id,
-          external_number: c.contactNo ?? null,
-          name: c.name,
-          email: c.email ?? null,
-          phone: c.phone ?? null,
-          cvr: c.registrationNo ?? null,
-          ean: c.ean ?? null,
-          address: c.street ?? null,
-          zip_code: c.zipcodeText ?? null,
-          city: c.cityText ?? null,
-          payment_terms_days: c.paymentTermsDays ?? null,
-          currency: c.defaultCurrencyId ?? "DKK",
-          raw: c,
+      const customers = items.filter((c) => c.isCustomer);
+      // Hent kontaktperson-info parallelt (max 5 ad gangen for at undgå rate limit)
+      const results: ExternalCustomer[] = [];
+      const batchSize = 5;
+      for (let i = 0; i < customers.length; i += batchSize) {
+        const batch = customers.slice(i, i + batchSize);
+        const enriched = await Promise.all(batch.map(async (c) => {
+          const info = await fetchBillyContactPersonInfo(creds, c.id);
+          return {
+            external_id: c.id,
+            external_number: c.contactNo ?? null,
+            name: c.name,
+            email: info.email,
+            phone: info.phone,
+            cvr: c.registrationNo ?? null,
+            ean: c.ean ?? null,
+            address: c.street ?? null,
+            zip_code: c.zipcodeText ?? null,
+            city: c.cityText ?? null,
+            payment_terms_days: c.paymentTermsDays ?? null,
+            currency: c.defaultCurrencyId ?? "DKK",
+            raw: c,
+          } satisfies ExternalCustomer;
         }));
+        results.push(...enriched);
+      }
+      return results;
     },
 
     async upsertCustomer(input: UpsertCustomerInput) {
@@ -154,8 +231,6 @@ export function makeBillyAdapter(
         name: input.name,
         countryId: "DK",
         isCustomer: true,
-        email: input.email ?? undefined,
-        phone: input.phone ?? undefined,
         registrationNo: input.cvr ?? undefined,
         ean: input.ean ?? undefined,
         street: input.address ?? undefined,
@@ -172,6 +247,7 @@ export function makeBillyAdapter(
           body: JSON.stringify({ contact }),
         });
         const c = updated?.contacts?.[0] ?? updated?.contact;
+        await syncBillyContactPerson(creds, c.id, input);
         return {
           external_id: c.id,
           external_number: c.contactNo ?? null,
@@ -183,6 +259,7 @@ export function makeBillyAdapter(
           body: JSON.stringify({ contact }),
         });
         const c = created?.contacts?.[0] ?? created?.contact;
+        await syncBillyContactPerson(creds, c.id, input);
         return {
           external_id: c.id,
           external_number: c.contactNo ?? null,
