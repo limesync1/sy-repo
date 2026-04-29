@@ -1210,6 +1210,8 @@ const ServiceForm = ({
         service_category: serviceCategory.trim() || null,
         image_url: imageUrl || null,
         interval_options: intervalOptions.length > 0 ? intervalOptions : ["engangskøb"],
+        accounting_product_group: accountingProductGroup || null,
+        accounting_income_account: accountingIncomeAccount || null,
       };
 
       if (existingService) {
