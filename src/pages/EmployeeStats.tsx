@@ -18,7 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import {
   Calendar as CalendarIcon, CheckCircle2, Clock,
   MapPin, Route as RouteIcon, Wallet, ChevronDown,
-  ListChecks, Users as UsersIcon, FileText, Hash,
+  ListChecks, Users as UsersIcon, FileText, Eye,
 } from "lucide-react";
 import {
   format, parseISO,
@@ -31,6 +31,7 @@ import type { DateRange } from "react-day-picker";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { StopDetailsSheetById } from "@/components/employee/StopDetailsSheetById";
 
 type RangeKey = "today" | "week" | "month" | "year" | "all" | "custom";
 
@@ -108,6 +109,8 @@ const EmployeeStats = () => {
   const [customRange, setCustomRange] = useState<DateRange | undefined>();
   const [calendarOpen, setCalendarOpen] = useState(false);
   const isMobile = useIsMobile();
+  // Stop som er valgt for "Vis detaljer"-modalen.
+  const [detailStopId, setDetailStopId] = useState<string | null>(null);
   const { from, to } = useMemo(
     () => computeRange(range, customRange),
     [range, customRange],
@@ -392,12 +395,6 @@ const EmployeeStats = () => {
                                                 Delt på {e.sharers}
                                               </span>
                                             )}
-                                            {e.orderRef && (
-                                              <span className="inline-flex items-center gap-1 font-mono">
-                                                <Hash className="h-3 w-3" />
-                                                {e.orderRef}
-                                              </span>
-                                            )}
                                           </div>
                                           {e.note && (
                                             <p className="mt-1 flex items-start gap-1.5 rounded-md bg-card px-2 py-1.5 text-[11px] text-muted-foreground">
@@ -405,6 +402,14 @@ const EmployeeStats = () => {
                                               <span>{e.note}</span>
                                             </p>
                                           )}
+                                          <button
+                                            type="button"
+                                            onClick={() => setDetailStopId(e.stopId)}
+                                            className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-semibold text-foreground hover:bg-secondary"
+                                          >
+                                            <Eye className="h-3 w-3" />
+                                            Vis detaljer
+                                          </button>
                                         </div>
                                         <div className="flex items-center justify-between gap-4 rounded-md bg-card px-3 py-2 sm:flex-col sm:items-end sm:gap-1 sm:bg-transparent sm:p-0">
                                           <div className="text-right">
@@ -437,6 +442,11 @@ const EmployeeStats = () => {
           </>
         )}
       </PageTransition>
+      <StopDetailsSheetById
+        open={!!detailStopId}
+        onOpenChange={(open) => { if (!open) setDetailStopId(null); }}
+        stopId={detailStopId}
+      />
     </EmployeeShell>
   );
 };

@@ -106,6 +106,11 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const initialMessagesLoad = useRef(true);
   const userScrolledUpRef = useRef(false);
+  // Når brugeren skifter samtale skal vi PÅ NÆSTE render af messages
+  // tvinge scroll til bunden — uanset om det er den første eller en
+  // efterfølgende load. Sættes i activeId-effekten, ryddes når vi har
+  // scrollet for den pågældende samtale.
+  const forceBottomOnNextRenderRef = useRef(false);
 
   // SLA-tæller — opdater 1× pr. 30s for at holde "X min uden svar" frisk
   useEffect(() => {
@@ -177,6 +182,8 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
     if (!activeId) return;
     let cancelled = false;
     initialMessagesLoad.current = true;
+    forceBottomOnNextRenderRef.current = true;
+    userScrolledUpRef.current = false;
     supabase
       .from("chat_messages")
       .select("*")
@@ -210,8 +217,21 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    if (initialMessagesLoad.current || !userScrolledUpRef.current) {
-      el.scrollTo({ top: el.scrollHeight, behavior: initialMessagesLoad.current ? "auto" : "smooth" });
+    // Forcér start-i-bunden første gang en samtale åbnes — også når der
+    // allerede er gamle beskeder i state fra en anden samtale.
+    if (forceBottomOnNextRenderRef.current) {
+      // To rAF: vent på at billeder/layout har målt sig, så scrollHeight er korrekt.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const e2 = scrollRef.current;
+          if (e2) e2.scrollTo({ top: e2.scrollHeight, behavior: "auto" });
+          forceBottomOnNextRenderRef.current = false;
+        });
+      });
+      return;
+    }
+    if (!userScrolledUpRef.current) {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
     }
   }, [messages, activeId]);
 
