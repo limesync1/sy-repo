@@ -330,15 +330,40 @@ export const OnboardingHub = ({ business }: { business: any }) => {
   const navigate = useNavigate();
   const { data: services } = useServices(business?.id);
   const { data: employees } = useEmployees(business?.id);
+  const { data: reviews } = useReviews(business?.id);
+  const { data: orders } = useOrders(business?.id);
   const { data: progress, isLoading } = useOnboardingProgress(business?.id);
   const updateProgress = useUpdateOnboardingProgress(business?.id);
   const completeStep = useCompleteOnboardingStep(business?.id);
 
-  const ctx: Ctx = useMemo(() => ({
-    business,
-    servicesCount: services?.length || 0,
-    employeesCount: employees?.length || 0,
-  }), [business, services, employees]);
+  const ctx: Ctx = useMemo(() => {
+    const reviewsCount = reviews?.length || 0;
+    const averageRating = reviewsCount > 0
+      ? (reviews!.reduce((sum, r: any) => sum + (r.rating || 0), 0) / reviewsCount)
+      : 0;
+    const ordersCount = orders?.length || 0;
+    const pendingOrdersCount = (orders || []).filter((o: any) => o.status === "pending").length;
+    const lastOrderTs = (orders || [])
+      .map((o: any) => +new Date(o.created_at))
+      .filter((n: number) => Number.isFinite(n))
+      .sort((a: number, b: number) => b - a)[0];
+    const daysSinceLastOrder = lastOrderTs
+      ? Math.floor((Date.now() - lastOrderTs) / (1000 * 60 * 60 * 24))
+      : null;
+    const createdTs = business?.created_at ? +new Date(business.created_at) : Date.now();
+    const ageInDays = Math.max(0, Math.floor((Date.now() - createdTs) / (1000 * 60 * 60 * 24)));
+    return {
+      business,
+      servicesCount: services?.length || 0,
+      employeesCount: employees?.length || 0,
+      reviewsCount,
+      averageRating,
+      ordersCount,
+      pendingOrdersCount,
+      daysSinceLastOrder,
+      ageInDays,
+    };
+  }, [business, services, employees, reviews, orders]);
 
   const steps = useMemo(() => buildSteps(ctx), [ctx]);
 
@@ -433,8 +458,24 @@ export const OnboardingHub = ({ business }: { business: any }) => {
   };
 
   /* ───────── Inline checklist ───────── */
-  // Find aktivt anbefalet trin = første ufærdige
-  const activeStep = steps.find((s) => !isDone(s));
+  // Smart valg af aktivt trin:
+  //  1) Spring trin over hvis dets `dependsOn` ikke er færdige (så vi ikke
+  //     foreslår "tilføj rute" før medarbejderne overhovedet er inviteret).
+  //  2) Vælg det trin med højest `impact` blandt de tilbageværende — så
+  //     vi altid foreslår det der reelt rykker mest for forretningen lige nu.
+  //  3) Ved ligeværdige impact: behold deklarations­rækkefølgen (basis først).
+  const undone = steps.filter((s) => !isDone(s));
+  const eligibleUndone = undone.filter((s) => {
+    if (!s.dependsOn || s.dependsOn.length === 0) return true;
+    return s.dependsOn.every((depId) => {
+      const dep = steps.find((x) => x.id === depId);
+      return !dep || isDone(dep);
+    });
+  });
+  const pickList = eligibleUndone.length > 0 ? eligibleUndone : undone;
+  const activeStep = pickList
+    .map((s, i) => ({ s, i }))
+    .sort((a, b) => (b.s.impact - a.s.impact) || (a.i - b.i))[0]?.s;
   const showChecklist = !isLoading && !!business && !allDone && !wizardOpen && !!progress;
 
   const handleSkip = (s: Step) => {
