@@ -103,6 +103,16 @@ const PAYMENT_BADGE: Record<string, string> = {
   unknown: "bg-secondary text-muted-foreground border-transparent",
 };
 
+// Diskrete outline-badges — matcher virksomhedspanelets StopDetailSheet
+// hvor status vises som dæmpede outline-chips. Bruges inde i daglig
+// aktivitet hvor de forrige fyldte chips var for høj-kontrast.
+const PAYMENT_BADGE_OUTLINE: Record<string, string> = {
+  paid: "border-feature-cool/40 bg-feature-cool/10 text-feature-cool-foreground",
+  settling: "border-feature-lilac/40 bg-feature-lilac/10 text-feature-lilac-foreground",
+  pending: "border-feature-warm/40 bg-feature-warm/10 text-feature-warm-foreground",
+  unknown: "border-border bg-secondary/50 text-muted-foreground",
+};
+
 const EmployeeStats = () => {
   const { user, loading } = useAuth();
   const { data: employee, isLoading: empLoading } = useMyEmployee();
