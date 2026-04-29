@@ -892,7 +892,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Brancher & kategorier"
             icon={<Sparkles />}
-            description="Vælg jeres brancher og hvilke konkrete kategorier I tilbyder. Det styrer alt — services, søgning og forslag."
+            description="Vælg de brancher I arbejder i, og kryds de konkrete typer opgaver af, I tager. Det er det her, der bestemmer hvilke kunder der finder jer."
           >
             <div className="space-y-5">
               <div>
@@ -925,7 +925,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Kontakt */}
         <div id="settings-contact" className="scroll-mt-6">
-          <SectionCard title="Kontakt & adresse" icon={<Contact />} description="Sådan kan kunder få fat i dig.">
+          <SectionCard title="Kontakt og adresse" icon={<Contact />} description="Sådan kan kunderne ringe, skrive eller finde vej til jer. Bruges også på fakturaer.">
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div data-tour="field-phone">
@@ -965,7 +965,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Branding */}
         <div id="settings-branding" className="scroll-mt-6">
-          <SectionCard title="Domæne og billeder" icon={<ImageIcon />} description="Domæne, logo og coverbillede vises på din virksomhedsside.">
+          <SectionCard title="Profil og webadresse" icon={<ImageIcon />} description="Logoet, det store forsidebillede og linket kunderne får, når I deler jeres profil.">
             {/* Side-om-side så cover ikke fylder hele bredden — kun en kompakt
                 preview, da fuld bannervisning ikke er nødvendig her. */}
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
