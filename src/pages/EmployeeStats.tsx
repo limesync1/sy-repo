@@ -387,7 +387,7 @@ const EmployeeStats = () => {
                                   {d.entries.map((e) => (
                                     <li
                                       key={e.stopId}
-                                      className="rounded-lg px-2 py-3"
+                                      className="group rounded-lg p-3 transition-colors hover:bg-card/60"
                                     >
                                       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
                                         <div className="min-w-0 space-y-1.5">
@@ -398,8 +398,8 @@ const EmployeeStats = () => {
                                             <Badge
                                               variant="outline"
                                               className={cn(
-                                                "inline-flex h-5 w-fit border px-1.5 text-[10px] font-medium",
-                                                PAYMENT_BADGE[e.paymentStatus],
+                                                "inline-flex h-5 w-fit gap-1 border px-1.5 text-[10px] font-medium",
+                                                PAYMENT_BADGE_OUTLINE[e.paymentStatus],
                                               )}
                                             >
                                               {PAYMENT_LABEL[e.paymentStatus]}
@@ -416,9 +416,9 @@ const EmployeeStats = () => {
                                               </span>
                                             )}
                                             {e.address && (
-                                              <span className="inline-flex items-center gap-1 truncate">
-                                                <MapPin className="h-3 w-3 shrink-0" />
-                                                <span className="truncate">{e.address}</span>
+                                              <span className="inline-flex min-w-0 max-w-full items-start gap-1">
+                                                <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
+                                                <span className="break-words">{e.address}</span>
                                               </span>
                                             )}
                                             {e.sharers > 1 && (
@@ -434,14 +434,6 @@ const EmployeeStats = () => {
                                               <span>{e.note}</span>
                                             </p>
                                           )}
-                                          <button
-                                            type="button"
-                                            onClick={() => setDetailStopId(e.stopId)}
-                                            className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-semibold text-foreground hover:bg-secondary"
-                                          >
-                                            <Eye className="h-3 w-3" />
-                                            Vis detaljer
-                                          </button>
                                         </div>
                                         <div className="flex items-center justify-between gap-4 rounded-md bg-card px-3 py-2 sm:flex-col sm:items-end sm:gap-1 sm:bg-transparent sm:p-0">
                                           <div className="text-right">
@@ -457,6 +449,18 @@ const EmployeeStats = () => {
                                             </p>
                                           </div>
                                         </div>
+                                      </div>
+                                      <div className="mt-3 flex justify-end border-t border-border/50 pt-2">
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => setDetailStopId(e.stopId)}
+                                          className="h-8 gap-1.5 rounded-md px-2.5 text-[11px] font-semibold text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                                        >
+                                          <Eye className="h-3.5 w-3.5" />
+                                          Vis detaljer
+                                        </Button>
                                       </div>
                                     </li>
                                   ))}
