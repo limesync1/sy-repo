@@ -49,6 +49,7 @@ interface ProviderDef {
   helpUrlLabel: string;
   fields: ProviderField[];
   setupSteps: string[];
+  note?: { tone: "info" | "warning"; title: string; body: string };
 }
 
 const PROVIDERS: ProviderDef[] = [
@@ -58,20 +59,27 @@ const PROVIDERS: ProviderDef[] = [
     logo: economicLogo,
     tagline: "Markedsledende i Danmark",
     description: "Send aftaler som salgsordrer direkte i e-conomic. Kunder og varer holdes synkroniseret begge veje.",
-    helpUrl: "https://www.e-conomic.dk/regnskabsprogram/api",
-    helpUrlLabel: "Sådan finder du dine tokens",
+    helpUrl: "https://www.e-conomic.com/developer",
+    helpUrlLabel: "Åbn e-conomic Developer Portal",
     fields: [
       { key: "api_secret", label: "App Secret Token", type: "password",
-        help: "Identificerer Serviceydere-appen i e-conomic.", placeholder: "demo-secret-token" },
+        help: "Den 'App Secret Token' du får når du opretter din egen app i Developer Portal.", placeholder: "fx demo-XXXXXXXXXXXXXXXX" },
       { key: "api_token", label: "Agreement Grant Token", type: "password",
-        help: "Giver appen adgang til netop din e-conomic-aftale.", placeholder: "demo-agreement-token" },
+        help: "Genereres når du installerer din egen app på din e-conomic-aftale.", placeholder: "fx demo-XXXXXXXXXXXXXXXX" },
     ],
     setupSteps: [
-      "Log ind på e-conomic og åbn App Marketplace.",
-      "Find Serviceydere-appen og installér den på din aftale.",
-      "Når appen er installeret vises både App Secret Token og Agreement Grant Token.",
-      "Kopiér dem ind herunder og tryk 'Test forbindelse'.",
+      "Gå til e-conomic Developer Portal (linket nedenfor) og log ind med din e-conomic-bruger.",
+      "Klik 'Create new app' → giv den fx navnet 'Serviceydere' og vælg adgang til Customers, Products og Sales Orders.",
+      "Når app'en er oprettet vises et 'App Secret Token' — kopiér det ind i feltet 'App Secret Token' herunder.",
+      "Tryk på 'Install on agreement' øverst i app'en og vælg din e-conomic-aftale.",
+      "Du får nu et 'Agreement Grant Token' — kopiér det ind i feltet 'Agreement Grant Token' herunder.",
+      "Tryk 'Test forbindelse' for at bekræfte at alt virker.",
     ],
+    note: {
+      tone: "info",
+      title: "Hvorfor opretter jeg selv en app?",
+      body: "E-conomic kræver at hver integration sker via en developer-app. Ved at oprette din egen app i din egen e-conomic-aftale undgår du månedlige app-gebyrer — det er 100% gratis og tager ca. 2 minutter.",
+    },
   },
   {
     value: "billy",
@@ -79,41 +87,55 @@ const PROVIDERS: ProviderDef[] = [
     logo: billyLogo,
     tagline: "Enkelt og hurtigt",
     description: "Synkroniser kunder, varer og fakturakladder med Billy.",
-    helpUrl: "https://www.billy.dk/support/article/api-access-token/",
-    helpUrlLabel: "Find dit Access Token i Billy",
+    helpUrl: "https://www.billy.dk/app/#/settings/access-tokens",
+    helpUrlLabel: "Åbn Billy → Access Tokens",
     fields: [
       { key: "api_token", label: "API Access Token", type: "password",
-        help: "Hentes under Indstillinger → API i din Billy-konto.", placeholder: "abc123…" },
+        help: "Et token genereres på din Billy-konto under Indstillinger → Access Tokens.", placeholder: "fx 8f3a9b1c2d4e…" },
     ],
     setupSteps: [
-      "Log ind på Billy.",
-      "Gå til Indstillinger → API.",
-      "Tryk 'Generér nyt access token'.",
-      "Kopiér tokenet ind herunder og tryk 'Test forbindelse'.",
+      "Log ind på Billy med din admin-bruger.",
+      "Klik på dit navn nederst til venstre → 'Indstillinger'.",
+      "Vælg menupunktet 'Access tokens' (eller åbn direkte via linket nedenfor).",
+      "Tryk 'Opret nyt access token' → giv det navnet 'Serviceydere' og tryk 'Opret'.",
+      "Kopiér det viste token (det vises kun én gang!) og indsæt det i feltet herunder.",
+      "Tryk 'Test forbindelse' for at bekræfte at alt virker.",
     ],
+    note: {
+      tone: "info",
+      title: "100% gratis og uden ekstra opsætning",
+      body: "Billy giver alle kunder fri adgang til API'et. Du behøver ikke et bestemt abonnement — det virker også på Mikro/Basis-pakkerne.",
+    },
   },
   {
     value: "dinero",
     label: "Dinero",
     logo: dineroLogo,
-    tagline: "Smart for små virksomheder",
+    tagline: "Kræver Dinero Pro",
     description: "Synkroniser kunder, varer og fakturakladder med Dinero.",
-    helpUrl: "https://api.dinero.dk/docs/",
-    helpUrlLabel: "Dineros API-dokumentation",
+    helpUrl: "https://developer.dinero.dk/",
+    helpUrlLabel: "Åbn Dinero Developer Portal",
     fields: [
-      { key: "api_token", label: "Client ID", type: "text",
-        help: "Oprettes via Dineros developer-portal.", placeholder: "din-client-id" },
+      { key: "api_token", label: "Client ID (API-nøgle)", type: "text",
+        help: "Oprettes via developer.dinero.dk når du har Dinero Pro.", placeholder: "fx 5f3a-1b2c-…" },
       { key: "api_secret", label: "Client Secret", type: "password",
-        help: "Den tilhørende secret.", placeholder: "din-client-secret" },
+        help: "Den tilhørende secret — vises kun én gang ved oprettelse.", placeholder: "fx 9c2d-…" },
       { key: "organization_id", label: "Organisations-ID", type: "text",
-        help: "Findes i URL'en når du er logget ind, fx /198765/.", placeholder: "198765" },
+        help: "Det 6-cifrede tal som står i URL'en når du er logget ind på Dinero, fx app.dinero.dk/198765/…", placeholder: "fx 198765" },
     ],
     setupSteps: [
-      "Log ind på Dinero og find dit organisations-ID i URL'en.",
-      "Opret en API-integration i Dineros developer-portal.",
-      "Kopiér Client ID og Client Secret ind herunder.",
-      "Tryk 'Test forbindelse'.",
+      "Tjek at din Dinero-konto er på 'Pro'-pakken (API-adgang er ikke tilgængelig på Small/Medium).",
+      "Log ind på Dinero og find dit organisations-ID i adresselinjen — det 6-cifrede tal efter 'app.dinero.dk/'.",
+      "Gå til developer.dinero.dk og log ind med din Dinero-bruger.",
+      "Opret en ny 'API integration' og giv adgang til Contacts, Products og Vouchers.",
+      "Kopiér Client ID og Client Secret ind i felterne herunder (secret vises kun én gang!).",
+      "Indsæt dit organisations-ID og tryk 'Test forbindelse'.",
     ],
+    note: {
+      tone: "warning",
+      title: "Kræver Dinero Pro-abonnement",
+      body: "Dinero giver kun API-adgang til kunder på Pro-pakken. Hvis du har Small eller Medium skal du opgradere først, ellers vil forbindelsen blive afvist. Opgradér via Dinero → Indstillinger → Abonnement.",
+    },
   },
 ];
 
