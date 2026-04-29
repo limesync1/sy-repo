@@ -195,23 +195,33 @@ export function makeBillyAdapter(
       const q = updatedSince ? `?updatedSince=${updatedSince.toISOString()}` : "";
       const data = await billyRequest(creds, `/contacts${q}`);
       const items = (data?.contacts ?? []) as any[];
-      return items
-        .filter((c) => c.isCustomer)
-        .map((c): ExternalCustomer => ({
-          external_id: c.id,
-          external_number: c.contactNo ?? null,
-          name: c.name,
-          email: c.email ?? null,
-          phone: c.phone ?? null,
-          cvr: c.registrationNo ?? null,
-          ean: c.ean ?? null,
-          address: c.street ?? null,
-          zip_code: c.zipcodeText ?? null,
-          city: c.cityText ?? null,
-          payment_terms_days: c.paymentTermsDays ?? null,
-          currency: c.defaultCurrencyId ?? "DKK",
-          raw: c,
+      const customers = items.filter((c) => c.isCustomer);
+      // Hent kontaktperson-info parallelt (max 5 ad gangen for at undgå rate limit)
+      const results: ExternalCustomer[] = [];
+      const batchSize = 5;
+      for (let i = 0; i < customers.length; i += batchSize) {
+        const batch = customers.slice(i, i + batchSize);
+        const enriched = await Promise.all(batch.map(async (c) => {
+          const info = await fetchBillyContactPersonInfo(creds, c.id);
+          return {
+            external_id: c.id,
+            external_number: c.contactNo ?? null,
+            name: c.name,
+            email: info.email,
+            phone: info.phone,
+            cvr: c.registrationNo ?? null,
+            ean: c.ean ?? null,
+            address: c.street ?? null,
+            zip_code: c.zipcodeText ?? null,
+            city: c.cityText ?? null,
+            payment_terms_days: c.paymentTermsDays ?? null,
+            currency: c.defaultCurrencyId ?? "DKK",
+            raw: c,
+          } satisfies ExternalCustomer;
         }));
+        results.push(...enriched);
+      }
+      return results;
     },
 
     async upsertCustomer(input: UpsertCustomerInput) {
