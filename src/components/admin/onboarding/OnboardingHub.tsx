@@ -180,7 +180,7 @@ export const OnboardingHub = ({ business }: OnboardingHubProps) => {
     <>
       {/* Floating launcher — vises altid (medmindre alt er færdigt og dialog er lukket).
           Klik åbner checklist/wizard. */}
-      {(!allDone || open) && (
+      {(!progress?.fully_completed_at || open) && (
         <button
           onClick={handleReopen}
           className={cn(
