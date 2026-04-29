@@ -306,6 +306,12 @@ const Auth = () => {
                   </div>
                 ) : (
                   <form onSubmit={handleSendReset} className="space-y-4">
+                    {formError && (
+                      <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/25 bg-rose-500/5 px-3.5 py-3 text-xs text-rose-700">
+                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                        <span>{formError}</span>
+                      </div>
+                    )}
                     <div>
                       <label htmlFor="reset-email" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         E-mail
@@ -319,6 +325,15 @@ const Auth = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         className="h-12 rounded-xl border-border bg-card px-4 text-[15px]"
                       />
+                      {emailSuggestion && (
+                        <button
+                          type="button"
+                          onClick={() => setEmail(emailSuggestion)}
+                          className="mt-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          Mente du <span className="font-semibold text-foreground">{emailSuggestion}</span>?
+                        </button>
+                      )}
                     </div>
                     <Button
                       type="submit"
