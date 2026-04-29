@@ -6,6 +6,7 @@ import type {
   AccountingCredentials,
   AccountingSettings,
   ExternalCustomer,
+  ExternalGroups,
   ExternalProduct,
   UpsertCustomerInput,
   UpsertOrderInput,
@@ -79,6 +80,25 @@ export function makeBillyAdapter(
       } catch (e) {
         return { ok: false, message: e instanceof Error ? e.message : String(e) };
       }
+    },
+
+    async listGroups(): Promise<ExternalGroups> {
+      const orgId = await getOrgId(creds).catch(() => null);
+      const [pg, accts] = await Promise.all([
+        billyRequest(creds, `/productGroups${orgId ? `?organizationId=${orgId}` : ""}`).catch(() => ({ productGroups: [] })),
+        billyRequest(creds, `/accounts?isIncome=true${orgId ? `&organizationId=${orgId}` : ""}`).catch(() => ({ accounts: [] })),
+      ]);
+      return {
+        // Billy har ikke kundegrupper — returnér tom liste
+        customer_groups: [],
+        product_groups: ((pg?.productGroups ?? []) as any[]).map(g => ({
+          id: g.id, name: g.name,
+          account_number: g.accountId ?? null,
+        })),
+        income_accounts: ((accts?.accounts ?? []) as any[]).map(a => ({
+          id: a.id, name: `${a.accountNo ?? ""} — ${a.name}`.trim(),
+        })),
+      };
     },
 
     async listCustomers(updatedSince?: Date) {
@@ -169,6 +189,8 @@ export function makeBillyAdapter(
         name: input.name,
         description: input.description ?? undefined,
         productNo: `SY-${input.internal_id.slice(0, 8)}`,
+        productGroupId: input.product_group ?? settings.default_product_group ?? undefined,
+        accountId: input.account_number ?? settings.default_income_account ?? undefined,
         prices: [{ unitPrice: input.unit_price, currencyId: "DKK" }],
       };
       if (input.external_id) {

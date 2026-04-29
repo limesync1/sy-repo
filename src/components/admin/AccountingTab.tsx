@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -13,7 +14,7 @@ import {
   Loader2, RefreshCw, Check, AlertCircle, ExternalLink, Eye, EyeOff,
   ArrowLeft, ArrowRight, Plug, Settings2, ShieldCheck, Calculator,
   Clock, ListChecks, Sparkles, X, Upload, Download, RotateCw, AlertTriangle,
-  Copy,
+  Copy, FolderTree,
 } from "lucide-react";
 import {
   PageHeader, PrimaryButton, SectionCard, StatCard, EmptyState, FieldLabel,
@@ -163,6 +164,9 @@ interface Integration {
     default_vat_rate?: number;
     auto_create_products?: boolean;
     send_order_as?: "order" | "invoice_draft" | "quote";
+    default_customer_group?: string;
+    default_product_group?: string;
+    default_income_account?: string;
   };
 }
 
@@ -233,6 +237,12 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const [pushedLast24h, setPushedLast24h] = useState(0);
   const [pulledLast24h, setPulledLast24h] = useState(0);
   const [lastSuccessPush, setLastSuccessPush] = useState<string | null>(null);
+  const [groups, setGroups] = useState<{
+    customer_groups: { id: string; name: string }[];
+    product_groups: { id: string; name: string; account_number?: string | null }[];
+    income_accounts: { id: string; name: string }[];
+  }>({ customer_groups: [], product_groups: [], income_accounts: [] });
+  const [groupsLoading, setGroupsLoading] = useState(false);
   const [lastSuccessPull, setLastSuccessPull] = useState<string | null>(null);
   // Re-render hvert minut så "om X min"-tæller forbliver retvisende
   const [, setNowTick] = useState(0);
@@ -319,6 +329,34 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [businessId]);
+
+  const loadGroups = async () => {
+    if (!integration) return;
+    setGroupsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-list-groups", {
+        body: { business_id: businessId },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      setGroups({
+        customer_groups: (data as any)?.customer_groups ?? [],
+        product_groups: (data as any)?.product_groups ?? [],
+        income_accounts: (data as any)?.income_accounts ?? [],
+      });
+    } catch (e: any) {
+      // Stille fejl — feltet falder bare tilbage til "tom liste"
+      console.warn("Kunne ikke hente kategorier fra regnskabsprogram:", e?.message);
+    } finally {
+      setGroupsLoading(false);
+    }
+  };
+
+  // Hent grupper én gang når integrationen er aktiv (eller skifter udbyder)
+  useEffect(() => {
+    if (integration?.is_active) loadGroups();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [integration?.is_active, integration?.provider]);
 
   const startWizard = (preselect?: Provider) => {
     if (preselect) setProvider(preselect);
@@ -777,6 +815,96 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   onChange={e => setSettings({ ...settings, default_vat_rate: Number(e.target.value) || 0 })} />
               </div>
             </div>
+          </div>
+        </SectionCard>
+
+        {/* Standard kategorier hentet fra regnskabsprogrammet */}
+        <SectionCard
+          title="Standard kategorier"
+          icon={<FolderTree />}
+          description="Hentet direkte fra dit regnskabsprogram. Bruges som standard for nye kunder og services — du kan altid overstyre per service."
+          action={
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadGroups}
+              disabled={groupsLoading}
+              className="h-9 rounded-lg text-xs font-medium"
+            >
+              <RotateCw className={`mr-2 h-3.5 w-3.5 ${groupsLoading ? "animate-spin" : ""}`} />
+              Opdater liste
+            </Button>
+          }
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            {groups.customer_groups.length > 0 && (
+              <div>
+                <FieldLabel>Kundegruppe (nye kunder)</FieldLabel>
+                <Select
+                  value={settings.default_customer_group ?? ""}
+                  onValueChange={v => setSettings({ ...settings, default_customer_group: v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Vælg kundegruppe…" /></SelectTrigger>
+                  <SelectContent>
+                    {groups.customer_groups.map(g => (
+                      <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {groups.product_groups.length > 0 && (
+              <div>
+                <FieldLabel>Produktgruppe (nye services)</FieldLabel>
+                <Select
+                  value={settings.default_product_group ?? ""}
+                  onValueChange={v => setSettings({ ...settings, default_product_group: v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Vælg produktgruppe…" /></SelectTrigger>
+                  <SelectContent>
+                    {groups.product_groups.map(g => (
+                      <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {groups.income_accounts.length > 0 && (
+              <div className="sm:col-span-2">
+                <FieldLabel>Indtægtskonto</FieldLabel>
+                <Select
+                  value={settings.default_income_account ?? ""}
+                  onValueChange={v => setSettings({ ...settings, default_income_account: v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Vælg indtægtskonto…" /></SelectTrigger>
+                  <SelectContent>
+                    {groups.income_accounts.map(g => (
+                      <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {groups.customer_groups.length === 0 &&
+             groups.product_groups.length === 0 &&
+             groups.income_accounts.length === 0 && (
+              <p className="text-sm text-muted-foreground sm:col-span-2">
+                {groupsLoading
+                  ? "Henter kategorier fra regnskabsprogrammet…"
+                  : "Ingen kategorier fundet. Opret dem i dit regnskabsprogram og tryk Opdater liste."}
+              </p>
+            )}
+          </div>
+          <div className="mt-4 flex justify-end">
+            <Button
+              variant="outline"
+              onClick={handleSaveSettingsOnly}
+              disabled={saving}
+              className="h-9 rounded-lg text-xs font-medium"
+            >
+              {saving && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+              Gem standard
+            </Button>
           </div>
         </SectionCard>
 

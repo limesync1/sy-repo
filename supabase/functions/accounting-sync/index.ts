@@ -431,7 +431,9 @@ async function pushProduct(admin: SupabaseClient, integ: Integration, adapter: A
   const result = await adapter.upsertProduct({
     internal_id: serviceId, name: svc.name, description: svc.description,
     unit_price: Number(svc.base_price ?? 0), vat_rate: Number(svc.default_vat_rate ?? 25),
-    account_number: svc.accounting_account_number, external_id: existing?.external_id,
+    account_number: svc.accounting_income_account ?? svc.accounting_account_number ?? null,
+    product_group: svc.accounting_product_group ?? null,
+    external_id: existing?.external_id,
   });
   await admin.from("accounting_product_links").upsert({
     business_id: integ.business_id, provider: integ.provider, service_id: serviceId,

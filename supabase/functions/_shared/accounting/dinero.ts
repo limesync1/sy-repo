@@ -6,6 +6,7 @@ import type {
   AccountingCredentials,
   AccountingSettings,
   ExternalCustomer,
+  ExternalGroups,
   ExternalProduct,
   UpsertCustomerInput,
   UpsertOrderInput,
@@ -106,6 +107,26 @@ export function makeDineroAdapter(
       }
     },
 
+    async listGroups(): Promise<ExternalGroups> {
+      // Dinero har ikke kundegrupper. Indtægts-konti hentes via /accounts/entry.
+      // Produkt-"grupper" eksisterer ikke som sådan; bruger konti som proxy.
+      const accts = await dineroRequest(creds, orgId, `/accounts/entry`).catch(() => []);
+      const list = (Array.isArray(accts) ? accts : (accts?.Collection ?? [])) as any[];
+      const income = list.filter(a => {
+        const num = Number(a.AccountNumber ?? a.accountNumber ?? 0);
+        return num >= 1000 && num <= 1999;
+      });
+      const groups = income.map(a => ({
+        id: String(a.AccountNumber ?? a.accountNumber),
+        name: `${a.AccountNumber ?? a.accountNumber} — ${a.Name ?? a.name}`,
+      }));
+      return {
+        customer_groups: [],
+        product_groups: groups,   // Dinero: produktgruppe = indtægtskonto
+        income_accounts: groups,
+      };
+    },
+
     async listCustomers(updatedSince?: Date) {
       const filter = updatedSince ? `&changesSince=${updatedSince.toISOString()}` : "";
       const data = await dineroRequest(
@@ -183,14 +204,17 @@ export function makeDineroAdapter(
     },
 
     async upsertProduct(input: UpsertProductInput) {
+      const account = input.account_number
+        ?? input.product_group
+        ?? settings.default_income_account
+        ?? settings.default_product_account
+        ?? settings.default_product_group;
       const body: Record<string, unknown> = {
         ProductNumber: `SY-${input.internal_id.slice(0, 8)}`,
         Name: input.name,
         Comment: input.description ?? undefined,
         BaseAmountValue: input.unit_price,
-        AccountNumber: input.account_number
-          ? Number(input.account_number)
-          : (settings.default_product_account ? Number(settings.default_product_account) : 1000),
+        AccountNumber: account ? Number(account) : 1000,
         Quantity: 1,
       };
       if (input.external_id) {

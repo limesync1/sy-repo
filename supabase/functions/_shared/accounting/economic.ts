@@ -6,6 +6,7 @@ import type {
   AccountingCredentials,
   AccountingSettings,
   ExternalCustomer,
+  ExternalGroups,
   ExternalProduct,
   UpsertCustomerInput,
   UpsertOrderInput,
@@ -76,6 +77,27 @@ export function makeEconomicAdapter(
       }
     },
 
+    async listGroups(): Promise<ExternalGroups> {
+      const [cg, pg, accts] = await Promise.all([
+        ecRequest(creds, "/customer-groups?pagesize=200").catch(() => ({ collection: [] })),
+        ecRequest(creds, "/product-groups?pagesize=200").catch(() => ({ collection: [] })),
+        ecRequest(creds, "/accounts?pagesize=1000&filter=accountType$eq:revenue").catch(() => ({ collection: [] })),
+      ]);
+      return {
+        customer_groups: ((cg?.collection ?? []) as any[]).map(g => ({
+          id: String(g.customerGroupNumber), name: g.name,
+        })),
+        product_groups: ((pg?.collection ?? []) as any[]).map(g => ({
+          id: String(g.productGroupNumber), name: g.name,
+          account_number: g.salesAccounts?.[0]?.account?.accountNumber
+            ? String(g.salesAccounts[0].account.accountNumber) : null,
+        })),
+        income_accounts: ((accts?.collection ?? []) as any[]).map(a => ({
+          id: String(a.accountNumber), name: `${a.accountNumber} — ${a.name}`,
+        })),
+      };
+    },
+
     async listCustomers(updatedSince?: Date) {
       const filter = updatedSince
         ? `?filter=lastUpdated$gte:${updatedSince.toISOString()}`
@@ -111,7 +133,7 @@ export function makeEconomicAdapter(
         city: input.city ?? undefined,
         country: "Danmark",
         currency: input.currency ?? "DKK",
-        customerGroup: { customerGroupNumber: 1 },
+        customerGroup: { customerGroupNumber: Number(settings.default_customer_group ?? 1) },
         paymentTerms: {
           paymentTermsNumber: 1,
           daysOfCredit: input.payment_terms_days ?? settings.default_payment_terms_days ?? 14,
@@ -161,12 +183,15 @@ export function makeEconomicAdapter(
 
     async upsertProduct(input: UpsertProductInput) {
       const productNumber = input.external_id ?? `SY-${input.internal_id.slice(0, 8)}`;
+      const productGroupNumber = Number(
+        input.product_group ?? settings.default_product_group ?? 1,
+      );
       const body: Record<string, unknown> = {
         productNumber,
         name: input.name,
         description: input.description ?? undefined,
         salesPrice: input.unit_price,
-        productGroup: { productGroupNumber: 1 },
+        productGroup: { productGroupNumber },
       };
       if (input.external_id) {
         await ecRequest(creds, `/products/${input.external_id}`, {
