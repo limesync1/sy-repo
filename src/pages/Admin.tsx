@@ -777,7 +777,8 @@ const ServiceForm = ({
   const [accountingGroups, setAccountingGroups] = useState<{
     product_groups: { id: string; name: string }[];
     income_accounts: { id: string; name: string }[];
-  }>({ product_groups: [], income_accounts: [] });
+    labels?: { product_groups?: string; income_accounts?: string };
+  }>({ product_groups: [], income_accounts: [], labels: {} });
   const [accountingDefaults, setAccountingDefaults] = useState<{
     default_product_group?: string; default_income_account?: string;
   }>({});
@@ -818,6 +819,7 @@ const ServiceForm = ({
           setAccountingGroups({
             product_groups: (data as any).product_groups ?? [],
             income_accounts: (data as any).income_accounts ?? [],
+            labels: (data as any).labels ?? {},
           });
         }
       } catch { /* stille fejl */ }
