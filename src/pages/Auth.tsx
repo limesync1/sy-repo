@@ -383,25 +383,21 @@ const Auth = () => {
               </div>
             )}
 
-            {/* ── Mode Selector ── */}
-            {showModeSelector && (
+            {/* ── Log ind: én samlet formular. Vi gætter rolle automatisk efter login ── */}
+            {showLoginForm && (
               <div className="space-y-7">
                 <div className="flex rounded-full border border-border bg-secondary/60 p-1">
                   <button
                     type="button"
                     onClick={() => setIsSignUp(false)}
-                    className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
-                      !isSignUp ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                    }`}
+                    className="flex-1 rounded-full bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm"
                   >
                     Log ind
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsSignUp(true)}
-                    className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
-                      isSignUp ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                    }`}
+                    className="flex-1 rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
                   >
                     Opret konto
                   </button>
@@ -409,20 +405,150 @@ const Auth = () => {
 
                 <div>
                   <h1 className="text-[2rem] font-bold leading-[1.1] tracking-tight text-foreground sm:text-[2.4rem]">
-                    {isSignUp ? "Kom i gang." : "Velkommen tilbage."}
+                    Velkommen tilbage.
                   </h1>
                   <p className="mt-3 text-[15px] leading-6 text-muted-foreground">
-                    {isSignUp
-                      ? "Vælg hvilken type konto du vil oprette."
-                      : "Vælg hvordan du logger ind."}
+                    Skriv din e-mail og adgangskode — vi sender dig automatisk
+                    til det rigtige sted.
+                  </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {formError && (
+                    <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/25 bg-rose-500/5 px-3.5 py-3 text-xs text-rose-700">
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span>{formError}</span>
+                    </div>
+                  )}
+                  <div>
+                    <label htmlFor="auth-email-main" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">E-mail</label>
+                    <Input
+                      id="auth-email-main"
+                      type="email"
+                      autoComplete="email"
+                      placeholder="din@email.dk"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="h-12 rounded-xl border-border bg-card px-4 text-[15px]"
+                    />
+                    {emailSuggestion && (
+                      <button
+                        type="button"
+                        onClick={() => setEmail(emailSuggestion)}
+                        className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        Mente du <span className="font-semibold text-foreground">{emailSuggestion}</span>?
+                      </button>
+                    )}
+                  </div>
+                  <div>
+                    <div className="mb-2 flex items-center justify-between">
+                      <label htmlFor="auth-password-main" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Adgangskode</label>
+                      <Link
+                        to="/log-ind?reset=1"
+                        className="text-xs font-semibold text-accent underline-offset-2 transition-colors hover:underline"
+                      >
+                        Glemt adgangskode?
+                      </Link>
+                    </div>
+                    <div className="relative">
+                      <Input
+                        id="auth-password-main"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="current-password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        onKeyUp={(e) => setCapsLockOn(e.getModifierState && e.getModifierState("CapsLock"))}
+                        onKeyDown={(e) => setCapsLockOn(e.getModifierState && e.getModifierState("CapsLock"))}
+                        onBlur={() => setCapsLockOn(false)}
+                        className="h-12 rounded-xl border-border bg-card px-4 pr-12 text-[15px]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        aria-label={showPassword ? "Skjul adgangskode" : "Vis adgangskode"}
+                        className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {capsLockOn && (
+                      <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-amber-700">
+                        <AlertCircle className="h-3.5 w-3.5" /> Caps Lock er slået til
+                      </p>
+                    )}
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={submitting}
+                    className="group h-12 w-full rounded-xl bg-foreground text-[15px] font-semibold text-background shadow-[0_12px_30px_-12px_hsl(var(--foreground)/0.5)] transition-all hover:bg-foreground/90 hover:shadow-[0_16px_36px_-12px_hsl(var(--foreground)/0.55)]"
+                  >
+                    {submitting ? (
+                      <span className="inline-flex items-center gap-2">
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-background/40 border-t-background" />
+                        Logger ind…
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-2">
+                        Log ind
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                      </span>
+                    )}
+                  </Button>
+                </form>
+
+                <p className="text-center text-sm text-muted-foreground">
+                  Har du ikke en konto?{" "}
+                  <button onClick={() => setIsSignUp(true)} className="font-semibold text-foreground hover:underline">
+                    Opret konto
+                  </button>
+                </p>
+
+                {/* Trust strip */}
+                <div className="flex items-center justify-center gap-5 border-t border-border/60 pt-5 text-xs text-muted-foreground/80">
+                  <span className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-accent" /> Gratis</span>
+                  <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-accent" /> Sikker</span>
+                  <span className="flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5 text-accent" /> Dansk support</span>
+                </div>
+              </div>
+            )}
+
+            {/* ── Opret konto: vælg type først ── */}
+            {showSignupTypeSelector && (
+              <div className="space-y-7">
+                <div className="flex rounded-full border border-border bg-secondary/60 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsSignUp(false)}
+                    className="flex-1 rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Log ind
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsSignUp(true)}
+                    className="flex-1 rounded-full bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm"
+                  >
+                    Opret konto
+                  </button>
+                </div>
+
+                <div>
+                  <h1 className="text-[2rem] font-bold leading-[1.1] tracking-tight text-foreground sm:text-[2.4rem]">
+                    Kom i gang.
+                  </h1>
+                  <p className="mt-3 text-[15px] leading-6 text-muted-foreground">
+                    Vælg hvilken type konto du vil oprette.
                   </p>
                 </div>
 
                 <div className="space-y-2.5">
                   {[
-                    { to: `/log-ind?mode=customer${isSignUp ? "&signup=1" : ""}`, icon: User, title: "Privat / kunde", sub: isSignUp ? "Find og bestil services hos verificerede udbydere" : "Log ind på din kundekonto", tone: "accent" as const },
-                    { to: `/log-ind?mode=business${isSignUp ? "&signup=1" : ""}`, icon: Building2, title: "Virksomhed", sub: isSignUp ? "Tilbyd dine services og få nye kunder" : "Administrer services og bestillinger", tone: "foreground" as const, badge: isSignUp ? "Mest valgt" : undefined },
-                    { to: `/log-ind?mode=employee${isSignUp ? "&signup=1" : ""}`, icon: HardHat, title: "Medarbejder", sub: isSignUp ? "Aktivér din invitation fra arbejdsgiveren" : "Se dine ruter og opgaver", tone: "muted" as const },
+                    { to: `/log-ind?mode=customer&signup=1`, icon: User, title: "Privat / kunde", sub: "Find og bestil services hos verificerede udbydere", tone: "accent" as const },
+                    { to: `/log-ind?mode=business&signup=1`, icon: Building2, title: "Virksomhed", sub: "Tilbyd dine services og få nye kunder", tone: "foreground" as const },
+                    { to: `/log-ind?mode=employee&signup=1`, icon: HardHat, title: "Medarbejder", sub: "Aktivér din invitation fra arbejdsgiveren", tone: "muted" as const },
                   ].map((opt) => (
                     <Link key={opt.to} to={opt.to} className="group block">
                       <div className="relative flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-[0_18px_44px_-22px_hsl(var(--foreground)/0.28)]">
@@ -432,14 +558,7 @@ const Auth = () => {
                           <opt.icon className="h-5 w-5" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-[15px] font-semibold text-foreground">{opt.title}</h3>
-                            {opt.badge && (
-                              <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
-                                {opt.badge}
-                              </span>
-                            )}
-                          </div>
+                          <h3 className="text-[15px] font-semibold text-foreground">{opt.title}</h3>
                           <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{opt.sub}</p>
                         </div>
                         <ArrowRight className="h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-foreground" />
@@ -448,7 +567,13 @@ const Auth = () => {
                   ))}
                 </div>
 
-                {/* Trust strip */}
+                <p className="text-center text-sm text-muted-foreground">
+                  Har du allerede en konto?{" "}
+                  <button onClick={() => setIsSignUp(false)} className="font-semibold text-foreground hover:underline">
+                    Log ind
+                  </button>
+                </p>
+
                 <div className="flex items-center justify-center gap-5 border-t border-border/60 pt-5 text-xs text-muted-foreground/80">
                   <span className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-accent" /> Gratis</span>
                   <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-accent" /> Sikker</span>
