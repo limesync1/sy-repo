@@ -1357,6 +1357,28 @@ const ServiceForm = ({
                       </span>
                     )}
                   </div>
+                  <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-foreground/20 bg-card p-3">
+                    <Sparkles className="h-4 w-4 text-foreground" />
+                    <div className="flex-1 min-w-[160px]">
+                      <p className="text-xs font-semibold text-foreground">AI-tilpasset skabelon</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Lad AI bygge en prisberegner ud fra service­navn, kategori og beskrivelse — så trinnene afspejler præcis hvad I tilbyder.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={generateAiTemplate}
+                      disabled={aiTemplateLoading || !name.trim()}
+                      className="gap-1.5"
+                    >
+                      {aiTemplateLoading ? (
+                        <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Genererer…</>
+                      ) : (
+                        <><Sparkles className="h-3.5 w-3.5" /> Generér med AI</>
+                      )}
+                    </Button>
+                  </div>
                   {steps.length === 0 && (
                     <p className="text-sm text-muted-foreground">
                       Skabelonerne er sorteret efter hvad der bedst matcher{" "}
