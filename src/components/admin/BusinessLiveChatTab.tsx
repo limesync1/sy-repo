@@ -428,7 +428,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Live chat"
+        title="Livechat"
         description={`Samtaler startet fra din virksomhedsside${totalUnread > 0 ? ` · ${totalUnread} ulæst${totalUnread === 1 ? "" : "e"}` : ""}.`}
       />
 

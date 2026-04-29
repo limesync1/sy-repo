@@ -1,7 +1,7 @@
 // BusinessLiveChatWidget — gratis livechat på en specifik virksomhedsside.
 // Genbruger samme visuelle sprog som platform-widgeten (LiveChatWidget),
 // men er bundet til ét business_id, så samtaler havner direkte hos
-// virksomhedsejeren i deres egen "Live chat"-fane.
+// virksomhedsejeren i deres egen "Livechat"-fane.
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
