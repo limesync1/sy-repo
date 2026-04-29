@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown } from "lucide-react";
+import { CloudOff } from "lucide-react";
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   addDays, eachDayOfInterval, getISOWeek, isSameMonth, isToday, isSameDay,
@@ -49,6 +50,8 @@ type Props = {
   loadingRoutes?: boolean;
   /** Vejrudsigten henter stadig — vis lille pulserende pille i højre hjørne. */
   loadingWeather?: boolean;
+  /** Vejr-API fejlede — vis diskret fallback-ikon så brugeren ved at vejret er utilgængeligt. */
+  weatherError?: boolean;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
@@ -56,7 +59,7 @@ const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, weatherByDate,
-  loadingRoutes, loadingWeather,
+  loadingRoutes, loadingWeather, weatherError,
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
@@ -140,6 +143,7 @@ export const MonthWeekCalendar = ({
                     weather={weatherByDate?.get(dateStr) ?? null}
                     loadingRoutes={!!loadingRoutes}
                     loadingWeather={!!loadingWeather}
+                    weatherError={!!weatherError}
                   />
                 );
               })}
