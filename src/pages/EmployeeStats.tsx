@@ -7,7 +7,6 @@ import { useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
-import { LoadingScreen } from "@/components/admin/shared/LoadingScreen";
 import { PageTransition } from "@/components/admin/shared/PageTransition";
 import { useMyEmployee, useMyEmployeeStats } from "@/hooks/useMyEmployee";
 import { StatCard, PageHeader } from "@/components/admin/shared/AdminUI";
@@ -33,6 +32,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useIsMobile } from "@/hooks/use-mobile";
 import { StopDetailsSheetById } from "@/components/employee/StopDetailsSheetById";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatKr } from "@/lib/commission";
+import { PageSkeleton } from "@/components/admin/shared/Skeletons";
 
 type RangeKey = "today" | "week" | "month" | "year" | "all" | "custom";
 
@@ -86,9 +87,6 @@ const formatHours = (minutes: number) => {
   return `${h}t ${m}m`;
 };
 
-const formatKr = (n: number) =>
-  `${Math.round(n).toLocaleString("da-DK")} kr`;
-
 const PAYMENT_LABEL: Record<string, string> = {
   paid: "Betalt",
   settling: "Afregnes",
@@ -134,7 +132,11 @@ const EmployeeStats = () => {
   );
 
   if (loading) {
-    return <LoadingScreen full label="Indlæser statistik…" />;
+    return (
+      <EmployeeShell activeTab="stats" title="Statistik">
+        <PageSkeleton statsCount={5} rows={4} />
+      </EmployeeShell>
+    );
   }
   if (!user) return <Navigate to="/log-ind" replace />;
 

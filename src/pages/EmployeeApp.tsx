@@ -21,16 +21,18 @@ import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
-import { LoadingScreen } from "@/components/admin/shared/LoadingScreen";
 import { PageTransition } from "@/components/admin/shared/PageTransition";
 import { PageHeader, StatCard } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageSkeleton } from "@/components/admin/shared/Skeletons";
+import { formatKr as formatKrShared } from "@/lib/commission";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
-const formatKr = (n?: number | null) => `${Math.round(n || 0).toLocaleString("da-DK")} kr`;
+// Vis ALTID ører — så medarbejderen ser præcist beløb i hele appen.
+const formatKr = (n?: number | null) => formatKrShared(Number(n) || 0);
 
 const paymentMeta = (status?: string | null) => {
   // Diskrete outline-badges — matcher virksomhedspanelets sprog så
@@ -131,7 +133,13 @@ const EmployeeApp = () => {
   const endDay = useEndWorkday();
 
   if (loading) {
-    return <LoadingScreen full label="Indlæser dine ruter…" />;
+    // Vis shell med skeleton fra første millisekund — ingen blank
+    // spinner-skærm. Layoutet føles "fyldt" med det samme.
+    return (
+      <EmployeeShell activeTab="today" title="Min dag">
+        <PageSkeleton statsCount={4} rows={4} />
+      </EmployeeShell>
+    );
   }
   if (!user) return <Navigate to="/log-ind" replace />;
 
