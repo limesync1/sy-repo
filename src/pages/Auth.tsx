@@ -217,6 +217,88 @@ const Auth = () => {
         <div className="flex flex-1 items-center justify-center px-5 pb-12 pt-2 sm:px-8 lg:px-12">
           <div className="w-full max-w-[420px] space-y-7">
 
+            {/* ── Glemt adgangskode ── */}
+            {isResetMode && (
+              <div className="space-y-6">
+                <Link
+                  to={`/log-ind${mode ? `?mode=${mode}` : ""}`}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <ArrowLeft className="h-4 w-4" /> Tilbage til log ind
+                </Link>
+
+                <div>
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <h1 className="text-[2rem] font-bold leading-[1.1] tracking-tight text-foreground sm:text-[2.25rem]">
+                    Glemt din adgangskode?
+                  </h1>
+                  <p className="mt-3 text-[15px] leading-6 text-muted-foreground">
+                    Skriv din e-mail, så sender vi dig et link til at vælge en ny.
+                  </p>
+                </div>
+
+                {resetSent ? (
+                  <div className="rounded-2xl border border-accent/25 bg-accent/5 p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/15 text-accent">
+                        <Mail className="h-5 w-5" />
+                      </div>
+                      <p className="text-sm font-semibold text-foreground">Tjek din indbakke</p>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                      Hvis <span className="font-medium text-foreground">{email.trim()}</span> er knyttet til en konto, har vi sendt dig en mail med et link til at vælge ny adgangskode. Linket virker i 1 time.
+                    </p>
+                    <div className="mt-4 flex gap-2">
+                      <Button asChild variant="outline" size="sm">
+                        <Link to={`/log-ind${mode ? `?mode=${mode}` : ""}`}>Tilbage til log ind</Link>
+                      </Button>
+                      <Button
+                        size="sm" variant="ghost"
+                        onClick={() => { setResetSent(false); }}
+                      >
+                        Send igen
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSendReset} className="space-y-4">
+                    <div>
+                      <label htmlFor="reset-email" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        E-mail
+                      </label>
+                      <Input
+                        id="reset-email"
+                        type="email"
+                        autoComplete="email"
+                        placeholder="din@email.dk"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="h-12 rounded-xl border-border bg-card px-4 text-[15px]"
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={submitting}
+                      className="group h-12 w-full rounded-xl bg-foreground text-[15px] font-semibold text-background hover:bg-foreground/90"
+                    >
+                      {submitting ? (
+                        <span className="inline-flex items-center gap-2">
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-background/40 border-t-background" />
+                          Sender…
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-2">
+                          Send link <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                        </span>
+                      )}
+                    </Button>
+                  </form>
+                )}
+              </div>
+            )}
+
             {/* ── Mode Selector ── */}
             {showModeSelector && (
               <div className="space-y-7">
