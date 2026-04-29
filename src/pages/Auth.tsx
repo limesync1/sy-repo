@@ -12,7 +12,7 @@ import SEO from "@/components/SEO";
 import { translateAuthError } from "@/lib/auth-errors";
 
 const Auth = () => {
-  const { user, loading, signIn, signUp, resetPassword, signInWithGoogle } = useAuth();
+  const { user, loading, signIn, signUp, resetPassword, signInWithGoogle, signInWithApple } = useAuth();
   const [searchParams] = useSearchParams();
   const mode = searchParams.get("mode");
   const signupParam = searchParams.get("signup");
@@ -95,6 +95,18 @@ const Auth = () => {
     const { error } = await signInWithGoogle(target);
     if (error) {
       toast.error(translateAuthError(error, "Vi kunne ikke åbne Google-login. Prøv igen."));
+    }
+  };
+
+  /** Start Apple OAuth-flow. */
+  const handleApple = async () => {
+    const target =
+      mode === "customer" ? "/min-konto"
+      : mode === "employee" ? "/medarbejder"
+      : "/virksomhed";
+    const { error } = await signInWithApple(target);
+    if (error) {
+      toast.error(translateAuthError(error, "Vi kunne ikke åbne Apple-login. Prøv igen."));
     }
   };
 
