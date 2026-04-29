@@ -1739,7 +1739,9 @@ const ServiceForm = ({
               <div className="grid gap-3 sm:grid-cols-2">
                 {accountingGroups.product_groups.length > 0 && (
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-foreground">Produktgruppe</label>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">
+                      {accountingGroups.labels?.product_groups ?? "Produktgruppe"}
+                    </label>
                     <Select
                       value={accountingProductGroup || "__default__"}
                       onValueChange={(v) => setAccountingProductGroup(v === "__default__" ? "" : v)}
@@ -1758,7 +1760,9 @@ const ServiceForm = ({
                 )}
                 {accountingGroups.income_accounts.length > 0 && (
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-foreground">Indtægtskonto</label>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">
+                      {accountingGroups.labels?.income_accounts ?? "Indtægtskonto"}
+                    </label>
                     <Select
                       value={accountingIncomeAccount || "__default__"}
                       onValueChange={(v) => setAccountingIncomeAccount(v === "__default__" ? "" : v)}
