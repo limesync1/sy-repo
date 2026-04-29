@@ -1238,6 +1238,8 @@ export const useMyDayStops = (date: string) => {
   return useQuery({
     queryKey: ["my-day-stops", employeeId, date],
     enabled: !!employeeId,
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
     queryFn: async () => {
       if (!employeeId) return [];
       const [linksRes, legacyRes, stopAssignRes] = await Promise.all([
