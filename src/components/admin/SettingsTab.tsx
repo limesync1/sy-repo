@@ -1033,7 +1033,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm font-semibold text-foreground">Eget domæne (valgfrit)</p>
+                    <p className="text-sm font-semibold text-foreground">Brug jeres eget webnavn (valgfrit)</p>
                     {customDomain.trim() && (
                       domainStatus === "active" ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
@@ -1063,8 +1063,8 @@ const SettingsTab = ({ business }: { business: any }) => {
                     )}
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Brug dit eget domæne som hovedadresse. Når verificeret, viser Google og delinger dit domæne fremfor{" "}
-                    <span className="font-mono">serviceydere.dk/v/{business.slug}</span>.
+                    Har I allerede købt et webnavn (fx <span className="font-mono">mitfirma.dk</span>)? Så kan I bruge det i stedet for{" "}
+                    <span className="font-mono">serviceydere.dk/v/{business.slug}</span>. Det ser mere professionelt ud i Google og når I deler links. Det kræver lidt teknisk opsætning hos den, hvor I har købt webnavnet — vi guider jer trin for trin.
                   </p>
                   <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                     <div className="flex h-10 items-center rounded-l-lg border border-r-0 border-border bg-muted px-3 text-xs text-muted-foreground">
@@ -1085,10 +1085,14 @@ const SettingsTab = ({ business }: { business: any }) => {
 
                   {customDomain.trim() && (
                     <div className="mt-4 space-y-3 rounded-lg border border-border bg-background/60 p-3">
-                      <p className="text-xs font-semibold text-foreground">Sådan opsætter du dit domæne:</p>
+                      <p className="text-xs font-semibold text-foreground">Sådan kobler I jeres webnavn til Serviceydere:</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Log ind hos den, hvor I har købt webnavnet (fx One.com, Simply.com, GoDaddy) og find punktet "DNS" eller "DNS-indstillinger". Tilføj de to linjer nedenfor. Det lyder teknisk, men det tager kun 2-3 minutter — kontakt jeres webudbyder, hvis I er i tvivl.
+                      </p>
                       <div className="space-y-2 text-xs text-muted-foreground">
                         <div>
-                          <p className="font-medium text-foreground">1) Ejerskab — TXT-record</p>
+                          <p className="font-medium text-foreground">1) Bevis at det er jeres webnavn</p>
+                          <p className="text-[11px]">Tilføj en linje af typen <span className="font-mono">TXT</span>:</p>
                           <div className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 font-mono text-[11px]">
                             <span className="text-muted-foreground">Type:</span><span>TXT</span>
                             <span className="text-muted-foreground">Navn:</span><span>_serviceydere</span>
@@ -1097,14 +1101,15 @@ const SettingsTab = ({ business }: { business: any }) => {
                           </div>
                         </div>
                         <div>
-                          <p className="font-medium text-foreground">2) Pegning — CNAME-record</p>
+                          <p className="font-medium text-foreground">2) Send besøgende til jeres side hos os</p>
+                          <p className="text-[11px]">Tilføj en linje af typen <span className="font-mono">CNAME</span>:</p>
                           <div className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 font-mono text-[11px]">
                             <span className="text-muted-foreground">Type:</span><span>CNAME</span>
                             <span className="text-muted-foreground">Navn:</span><span>{customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "").split("/")[0] || "@"}</span>
                             <span className="text-muted-foreground">Værdi:</span><span>serviceydere.dk</span>
                           </div>
                         </div>
-                        <p>DNS-ændringer kan tage op til 24 timer at slå igennem. Klik <strong className="text-foreground">Verificer</strong> når du har tilføjet records.</p>
+                        <p>Når I har gemt linjerne hos jeres webudbyder, klik <strong className="text-foreground">Tjek nu</strong>. Det kan tage alt fra et par minutter op til et døgn, før det virker — så bare klik igen, hvis det ikke virker første gang.</p>
                       </div>
                       {domainResult?.message && (
                         <p className={`text-xs ${domainResult.status === "verified" ? "text-success" : "text-destructive"}`}>
