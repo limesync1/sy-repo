@@ -13,9 +13,9 @@ import {
   ArrowLeft, ArrowRight, Plug, Settings2, ListChecks, ShieldCheck,
 } from "lucide-react";
 import { PageHeader, SectionCard } from "@/components/admin/shared/AdminUI";
-import economicLogo from "@/assets/accounting/economic.svg";
-import billyLogo from "@/assets/accounting/billy.svg";
-import dineroLogo from "@/assets/accounting/dinero.svg";
+import economicLogo from "@/assets/accounting/economic.png";
+import billyLogo from "@/assets/accounting/billy.png";
+import dineroLogo from "@/assets/accounting/dinero.png";
 
 type Provider = "economic" | "billy" | "dinero";
 

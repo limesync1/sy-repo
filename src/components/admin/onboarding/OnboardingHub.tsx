@@ -276,18 +276,6 @@ const buildSteps = (ctx: Ctx): Step[] => {
       dependsOn: ["services", "company-info"],
     },
     {
-      id: "ask-for-review",
-      title: "Bed om jeres første anmeldelse",
-      description: "Profiler med 3+ anmeldelser konverterer 2-3× bedre. Send en kort besked til en glad eksisterende kunde og bed dem anmelde jer.",
-      cta: "Sådan beder I om anmeldelse",
-      href: "/virksomhed?tab=reviews",
-      icon: Star,
-      // Først relevant når I har afsluttet mindst én ordre, men ingen anmeldelser endnu
-      isRelevant: ({ ordersCount, reviewsCount }) => ordersCount > 0 && reviewsCount === 0,
-      isDone: ({ reviewsCount }) => reviewsCount > 0,
-      impact: 75,
-    },
-    {
       id: "respond-to-reviews",
       title: "Svar på jeres anmeldelser",
       description: "Når I svarer på anmeldelser viser I nye kunder at I tager feedback alvorligt. Det øger tilliden markant — også ved kritiske anmeldelser.",
