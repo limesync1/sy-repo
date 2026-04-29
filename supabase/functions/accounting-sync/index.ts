@@ -542,7 +542,7 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
     status: order.status,
     notes: order.notes ?? order.accounting_notes,
     payment_terms_days: order.payment_terms_days,
-    currency: "DKK",
+    currency: "DKK", // altid danske kroner
     date: order.preferred_date ?? new Date().toISOString().slice(0, 10),
     lines,
   });
