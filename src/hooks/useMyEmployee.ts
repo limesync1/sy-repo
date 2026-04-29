@@ -158,7 +158,7 @@ export const useMyEmployeeStats = (
       // 3) Hent alle stop på de ruter
       const { data: stops } = await supabase
         .from("route_stops")
-        .select("id, route_id, status, assigned_employee_id, completed_at, order_id, customer_name, address, completion_notes, service_name")
+        .select("id, route_id, status, assigned_employee_id, completed_at, order_id, customer_name, address, notes, service_summary, planned_arrival, duration_minutes")
         .in("route_id", routeIds);
 
       // Filtrér stop som tilhører medarbejderen (specifik tildeling eller team)
@@ -178,16 +178,14 @@ export const useMyEmployeeStats = (
       // 4) Omsætning + status fra completede ordrer (pr. ordre, så vi kan dele pr. stop)
       const orderAmountMap = new Map<string, number>();
       const orderStatusMap = new Map<string, string>();
-      const orderServiceMap = new Map<string, string>();
       if (completedOrderIds.length > 0) {
         const { data: orders } = await supabase
           .from("orders")
-          .select("id, total_amount, adjusted_amount, status, service_name")
+          .select("id, total_amount, adjusted_amount, status")
           .in("id", completedOrderIds);
         (orders || []).forEach((o: any) => {
           orderAmountMap.set(o.id, Number(o.adjusted_amount ?? o.total_amount ?? 0));
           orderStatusMap.set(o.id, String(o.status || ""));
-          if (o.service_name) orderServiceMap.set(o.id, String(o.service_name));
         });
       }
       const revenue = completedStops.reduce(
@@ -301,9 +299,9 @@ export const useMyEmployeeStats = (
           paymentStatus,
           completedAt: s.completed_at ?? null,
           address: (s as any).address ?? null,
-          serviceName: (s as any).service_name ?? orderServiceMap.get(s.order_id) ?? null,
+          serviceName: (s as any).service_summary ?? null,
           sharers,
-          note: (s as any).completion_notes ?? null,
+          note: (s as any).notes ?? null,
           orderRef: s.order_id ? String(s.order_id).slice(0, 8).toUpperCase() : null,
         });
         perDayMap.set(d, row);
