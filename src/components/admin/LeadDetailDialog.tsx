@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 import { formatDistanceToNow, format, isSameDay, addDays, addHours, isBefore, startOfDay } from "date-fns";
 import { da } from "date-fns/locale";
+import { InlineTextSkeleton } from "@/components/admin/shared/Skeletons";
 
 export type LeadDetailLead = {
   id: string;
@@ -545,19 +546,24 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
               />
             </div>
 
-            {generating && !draft && (
-              <div className="flex items-center gap-2 rounded-md border border-dashed border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                AI skriver et personligt udkast baseret på forespørgslen…
+            {generating && !draft ? (
+              <div className="rounded-md border border-dashed border-border bg-secondary/40 p-4">
+                <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  AI skriver et personligt udkast baseret på forespørgslen…
+                </div>
+                {/* Skeleton-linjer i stedet for tom textarea, så det føles
+                    som om svaret allerede er ved at "lande". */}
+                <InlineTextSkeleton lines={6} />
               </div>
+            ) : (
+              <Textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder="Klik 'Generer udkast' for at lade AI skrive et personligt svar baseret på kundens forespørgsel — eller skriv dit eget."
+                className="min-h-[220px] resize-y text-sm"
+              />
             )}
-
-            <Textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              placeholder="Klik 'Generer udkast' for at lade AI skrive et personligt svar baseret på kundens forespørgsel — eller skriv dit eget."
-              className="min-h-[220px] resize-y text-sm"
-            />
 
             <div className="flex flex-wrap gap-2">
               <Button onClick={sendDraftAsEmail} className="gap-1.5" disabled={!qr?.customer_email}>
