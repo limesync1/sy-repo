@@ -102,9 +102,9 @@ const Planner = () => {
     const me = endOfWeek(endOfMonth(anchor), { weekStartsOn: 1 });
     return { start: format(ms, "yyyy-MM-dd"), end: format(me, "yyyy-MM-dd") };
   }, [date, view]);
-  const { data: calendarRoutesRaw = [] } = useRoutesForRange(businessId, calendarRange.start, calendarRange.end);
+  const { data: calendarRoutesRaw = [], isLoading: loadingCalendarRoutes } = useRoutesForRange(businessId, calendarRange.start, calendarRange.end);
   const calendarRouteIds = useMemo(() => calendarRoutesRaw.map((r) => r.id), [calendarRoutesRaw]);
-  const { data: calendarStops = [] } = useStopsForRoutes(calendarRouteIds);
+  const { data: calendarStops = [], isLoading: loadingCalendarStops } = useStopsForRoutes(calendarRouteIds);
 
   // Vejrudsigt — bruger gennemsnit af stop-koordinater i det viste interval,
   // ellers Danmarks centrum. Open-Meteo kan levere op til 16 dage frem.
@@ -132,7 +132,7 @@ const Planner = () => {
     return { start, end };
   }, [calendarRange.start, calendarRange.end]);
 
-  const { data: weatherDays = [] } = useWeatherForecast({
+  const { data: weatherDays = [], isLoading: loadingWeather } = useWeatherForecast({
     startDate: weatherRange.start,
     endDate: weatherRange.end,
     latitude: weatherCenter.lat,
@@ -862,6 +862,8 @@ const Planner = () => {
                   optimizingRouteId={optimizingRouteId}
                   draggingType={activeDragData?.type === "job" ? "job" : activeDragData?.type === "route" ? "route" : null}
                   weatherByDate={weatherByDate}
+                  loadingRoutes={loadingCalendarRoutes || loadingCalendarStops}
+                  loadingWeather={loadingWeather}
                 />
                 </div>
               </ResizablePanel>

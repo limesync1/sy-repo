@@ -1423,12 +1423,46 @@ export const useMyRouteData = (routeId: string | undefined) => {
           assigneeMap.set(a.stop_id, entry);
         });
       }
+      // Hent ordrer for at berige med postnr+by → fuld adresse vises i appen
+      // (ellers ser medarbejderen kun gadenavnet på map-popups og rute-kortet,
+      // hvilket flere gange fører til besøg på forkert postdistrikt).
+      const orderIds = Array.from(
+        new Set(filteredStops.map((s: any) => s.order_id).filter(Boolean)),
+      );
+      const orderMap = new Map<string, { status: string | null; amount: number; zip_code: string | null; city: string | null }>();
+      if (orderIds.length > 0) {
+        const { data: orderRows } = await supabase
+          .from("orders")
+          .select("id,status,total_amount,adjusted_amount,zip_code,city")
+          .in("id", orderIds);
+        (orderRows || []).forEach((o: any) => {
+          orderMap.set(o.id, {
+            status: o.status as string | null,
+            amount: Number(o.adjusted_amount ?? o.total_amount ?? 0),
+            zip_code: (o.zip_code as string | null) ?? null,
+            city: (o.city as string | null) ?? null,
+          });
+        });
+      }
       const stops = filteredStops.map((s: any) => {
         const entry = assigneeMap.get(s.id);
+        const order = s.order_id ? orderMap.get(s.order_id) : null;
+        const street = (s.address as string | null) || null;
+        const cityLine = [order?.zip_code, order?.city].filter(Boolean).join(" ");
+        const fullAddress = (() => {
+          if (!street && !cityLine) return null;
+          if (street && cityLine && !street.toLowerCase().includes(cityLine.toLowerCase())) {
+            return `${street}, ${cityLine}`;
+          }
+          return street || cityLine || null;
+        })();
         return {
           ...s,
           assignee_ids: entry?.ids || (s.assigned_employee_id ? [s.assigned_employee_id] : []),
           lead_employee_id: entry?.lead ?? s.assigned_employee_id ?? null,
+          order_status: order?.status ?? null,
+          order_amount: order?.amount ?? null,
+          full_address: fullAddress,
         };
       });
 

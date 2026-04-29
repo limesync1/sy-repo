@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import SmartLink from "@/components/SmartLink";
 import { ArrowRight, Building2, Users, Route, Calculator, Sparkles, ShieldCheck } from "lucide-react";
 
 /**
@@ -51,14 +51,14 @@ const ForBusinesses = () => {
               Få kunder, planlæg ruter og opkræv betaling fra ét samlet dashboard — og brug mindre tid på papirarbejde.
             </p>
           </div>
-          <Link
+          <SmartLink
             to="/opret-virksomhed"
             className="group inline-flex items-center gap-2 self-start rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md md:self-auto"
           >
             <Sparkles className="h-4 w-4" />
             Opret virksomhed gratis
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
+          </SmartLink>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

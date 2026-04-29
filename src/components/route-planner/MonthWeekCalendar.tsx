@@ -21,6 +21,8 @@ import { cn } from "@/lib/utils";
 import type { Route, RouteStop } from "@/hooks/useRoutes";
 import { WeatherBadge } from "./WeatherBadge";
 import type { WeatherDay } from "@/hooks/useWeather";
+import { Skeleton } from "@/components/ui/skeleton";
+import { memo, useMemo } from "react";
 
 export type CalendarRoute = Route & {
   stops: RouteStop[];
@@ -42,6 +44,11 @@ type Props = {
   draggingType?: "job" | "route" | null;
   /** Map fra yyyy-MM-dd → vejrudsigt for dagen. */
   weatherByDate?: Map<string, WeatherDay>;
+  /** Vi henter stadig ruter/stops til perioden — vis skeleton-piller i hver dag-celle
+   *  så layoutet ikke "hopper" når data lander. */
+  loadingRoutes?: boolean;
+  /** Vejrudsigten henter stadig — vis lille pulserende pille i højre hjørne. */
+  loadingWeather?: boolean;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
@@ -49,34 +56,37 @@ const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, weatherByDate,
+  loadingRoutes, loadingWeather,
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
-  // Beregn dage at vise
-  const days: Date[] = (() => {
-    if (view === "week") {
-      const ws = startOfWeek(anchor, { weekStartsOn: 1 });
-      return eachDayOfInterval({ start: ws, end: addDays(ws, 6) });
+  // Memo: beregn synlige uger og rute-mapping kun når input ændrer sig.  Tidligere
+  // blev disse rebygget hver render (= hver gang vejret eller drag-tilstand
+  // ændrede sig), hvilket gjorde at hele kalenderen rerender'ede selv ved
+  // bagatel-opdateringer.  Sammen med React.memo på DayCell/RoutePill gør det
+  // bladring og drag-and-drop spækfedt.
+  const weeks = useMemo<Date[][]>(() => {
+    const days: Date[] = view === "week"
+      ? eachDayOfInterval({ start: startOfWeek(anchor, { weekStartsOn: 1 }), end: addDays(startOfWeek(anchor, { weekStartsOn: 1 }), 6) })
+      : eachDayOfInterval({
+          start: startOfWeek(startOfMonth(anchor), { weekStartsOn: 1 }),
+          end: endOfWeek(endOfMonth(anchor), { weekStartsOn: 1 }),
+        });
+    const out: Date[][] = [];
+    for (let i = 0; i < days.length; i += 7) out.push(days.slice(i, i + 7));
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, anchorDate]);
+
+  const routesByDate = useMemo(() => {
+    const m = new Map<string, CalendarRoute[]>();
+    for (const r of routes) {
+      const arr = m.get(r.route_date) || [];
+      arr.push(r);
+      m.set(r.route_date, arr);
     }
-    // month: starter mandag inden månedens start, slutter søndag efter månedens slut
-    const ms = startOfWeek(startOfMonth(anchor), { weekStartsOn: 1 });
-    const me = endOfWeek(endOfMonth(anchor), { weekStartsOn: 1 });
-    return eachDayOfInterval({ start: ms, end: me });
-  })();
-
-  // Grupper dage i uger (rækker af 7)
-  const weeks: Date[][] = [];
-  for (let i = 0; i < days.length; i += 7) {
-    weeks.push(days.slice(i, i + 7));
-  }
-
-  // Map route_date → routes
-  const routesByDate = new Map<string, CalendarRoute[]>();
-  for (const r of routes) {
-    const arr = routesByDate.get(r.route_date) || [];
-    arr.push(r);
-    routesByDate.set(r.route_date, arr);
-  }
+    return m;
+  }, [routes]);
 
   const weekdayLabels = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
 
@@ -128,6 +138,8 @@ export const MonthWeekCalendar = ({
                     compact={view === "month"}
                     draggingType={draggingType}
                     weather={weatherByDate?.get(dateStr) ?? null}
+                    loadingRoutes={!!loadingRoutes}
+                    loadingWeather={!!loadingWeather}
                   />
                 );
               })}
@@ -154,11 +166,14 @@ type DayCellProps = {
   compact: boolean;
   draggingType?: "job" | "route" | null;
   weather?: WeatherDay | null;
+  loadingRoutes?: boolean;
+  loadingWeather?: boolean;
 };
 
-const DayCell = ({
+const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
   onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, weather,
+  loadingRoutes, loadingWeather,
 }: DayCellProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `day:${dateStr}`,
@@ -197,6 +212,9 @@ const DayCell = ({
           {weather && (
             <WeatherBadge weather={weather} size={compact ? "compact" : "full"} />
           )}
+          {!weather && loadingWeather && (
+            <Skeleton className={cn("rounded-md", compact ? "h-4 w-8" : "h-5 w-12")} />
+          )}
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onCreateRoute(dateStr); }}
@@ -211,6 +229,15 @@ const DayCell = ({
 
       {/* Rute-piller */}
       <div className="flex-1 flex flex-col gap-1 min-h-0">
+        {/* Skeleton pille mens vi henter ruter — kun synlig på dage i den
+            aktive måned, så "udenfor"-dage ikke larmer.  Holder layoutet
+            stabilt mellem måned/uge-skift. */}
+        {loadingRoutes && routes.length === 0 && inMonth && (
+          <>
+            <Skeleton className="h-5 rounded-md" />
+            {!compact && <Skeleton className="h-5 rounded-md w-3/4" />}
+          </>
+        )}
         {routes.map((r) => (
           <RoutePill
             key={r.id}
@@ -245,6 +272,24 @@ const DayCell = ({
   );
 };
 
+/** memo: en dag-celle skal kun rerender når dens egen data ændrer sig
+ *  (rute-array, vejret, drag-tilstand).  Det betyder at kalenderens 42 celler
+ *  ikke alle re-rendrer hver gang vejret for én anden dag opdateres. */
+const DayCell = memo(DayCellInner, (prev, next) => {
+  return (
+    prev.dateStr === next.dateStr &&
+    prev.inMonth === next.inMonth &&
+    prev.today === next.today &&
+    prev.compact === next.compact &&
+    prev.routes === next.routes &&
+    prev.weather === next.weather &&
+    prev.draggingType === next.draggingType &&
+    prev.optimizingRouteId === next.optimizingRouteId &&
+    prev.loadingRoutes === next.loadingRoutes &&
+    prev.loadingWeather === next.loadingWeather
+  );
+});
+
 /* ─── Rute-pille (drag + drop target for aftaler) ─── */
 type RoutePillProps = {
   route: CalendarRoute;
@@ -256,7 +301,7 @@ type RoutePillProps = {
   jobDragActive?: boolean;
 };
 
-const RoutePill = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive }: RoutePillProps) => {
+const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive }: RoutePillProps) => {
   // Drag-handle: hele pillen kan trækkes til ny dato
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
     id: `route:${route.id}`,
@@ -402,3 +447,12 @@ const RoutePill = ({ route, onSelect, onSelectStop, onOptimize, optimizing, comp
     </div>
   );
 };
+
+const RoutePill = memo(RoutePillInner, (prev, next) => {
+  return (
+    prev.route === next.route &&
+    prev.optimizing === next.optimizing &&
+    prev.compact === next.compact &&
+    prev.jobDragActive === next.jobDragActive
+  );
+});

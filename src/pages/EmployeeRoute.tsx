@@ -1562,10 +1562,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     <p className="font-semibold text-sm text-foreground truncate leading-tight mt-0.5">
                       {nextStop.customer_name || "Stop"}
                     </p>
-                    {nextStop.address && (
+                    {(nextStop.full_address || nextStop.address) && (
                       <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
                         <MapPin className="h-3 w-3 shrink-0" />
-                        {nextStop.address}
+                        {nextStop.full_address || nextStop.address}
                       </p>
                     )}
                   </div>
@@ -1659,10 +1659,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <p className="font-semibold text-sm text-foreground truncate leading-tight">
                     {nextStop.customer_name || "Stop"}
                   </p>
-                  {nextStop.address ? (
+                  {(nextStop.full_address || nextStop.address) ? (
                     <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
                       <MapPin className="h-3 w-3 shrink-0" />
-                      {nextStop.address}
+                      {nextStop.full_address || nextStop.address}
                     </p>
                   ) : (
                     <p className="text-[11px] text-muted-foreground tabular-nums">
@@ -1691,12 +1691,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               {!collapsed && (
                 <div className="p-3.5 space-y-3">
                   {/* Adresse + service */}
-                  {(nextStop.address || (nextStop.service_summary && stripPrices(nextStop.service_summary))) && (
+                  {((nextStop.full_address || nextStop.address) || (nextStop.service_summary && stripPrices(nextStop.service_summary))) && (
                     <div className="rounded-xl bg-secondary/40 border border-border/60 p-3 space-y-1.5">
-                      {nextStop.address && (
+                      {(nextStop.full_address || nextStop.address) && (
                         <p className="text-[13px] flex items-start gap-1.5 leading-snug">
                           <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
-                          <span className="font-semibold text-foreground">{nextStop.address}</span>
+                          <span className="font-semibold text-foreground">{nextStop.full_address || nextStop.address}</span>
                         </p>
                       )}
                       {nextStop.service_summary && stripPrices(nextStop.service_summary) && (
@@ -2069,9 +2069,9 @@ const StopListPanel = ({
                       {meta.label}
                     </Badge>
                   </div>
-                  {s.address && (
+                  {(s.full_address || s.address) && (
                     <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-1">
-                      <MapPin className="h-3 w-3 shrink-0" />{s.address}
+                      <MapPin className="h-3 w-3 shrink-0" />{s.full_address || s.address}
                     </p>
                   )}
                   {s.duration_minutes > 0 && (
