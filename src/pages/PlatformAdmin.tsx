@@ -12,6 +12,7 @@ import { AdminFiltersProvider } from "@/components/platform-admin/lib/AdminFilte
 import RangePicker from "@/components/platform-admin/RangePicker";
 import { PageTransition } from "@/components/admin/shared/PageTransition";
 import { LoadingScreen } from "@/components/admin/shared/LoadingScreen";
+import { PageSkeleton, ShellSkeleton } from "@/components/admin/shared/Skeletons";
 
 // Lazy-load alle tabs så hver fane først downloades når brugeren rent faktisk
 // åbner den. Det matcher mønstret i virksomhedspanelet (Admin.tsx) og holder
@@ -66,7 +67,8 @@ const PlatformAdmin = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (loading || roleLoading) {
-    return <LoadingScreen full label="Indlæser admin…" />;
+    // Vis layout-skeleton fra første millisekund — ingen blank skærm.
+    return <ShellSkeleton />;
   }
   if (!user) return <Navigate to="/log-ind" replace />;
   if (!isAdmin) return <Navigate to="/" replace />;
@@ -189,7 +191,7 @@ const PlatformAdmin = () => {
             {/* PageTransition fader nyt indhold ind når tab skifter,
                 Suspense viser ensartet skeleton-loading på første åbning. */}
             <PageTransition transitionKey={tab}>
-              <Suspense fallback={<LoadingScreen label="Indlæser…" />}>
+              <Suspense fallback={<PageSkeleton statsCount={4} rows={6} />}>
                 {tab === "overview" && <PlatformOverviewTab />}
                 {tab === "businesses" && <PlatformBusinessesTab />}
                 {tab === "users" && <PlatformUsersTab />}
