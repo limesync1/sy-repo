@@ -399,6 +399,18 @@ const SettingsTab = ({ business }: { business: any }) => {
     window.setTimeout(() => { isProgrammaticScroll.current = false; }, 700);
   }, []);
 
+  // Når brugeren lander på Indstillinger fra et deep-link (fx onboarding-knap
+  // "Aktivér live-chat" → #settings-advanced), så scroll automatisk ned til
+  // den ønskede sektion. Vi venter et øjeblik, så DOM'et er fuldt monteret.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash;
+    if (!hash || !hash.startsWith("#settings-")) return;
+    const id = hash.replace("#settings-", "");
+    const t = window.setTimeout(() => scrollToSection(id), 120);
+    return () => window.clearTimeout(t);
+  }, [scrollToSection]);
+
   // Auto-detect aktiv sektion via IntersectionObserver — så sidebar fremhæver
   // den sektion der er i viewporten mens man scroller manuelt.
   useEffect(() => {
