@@ -235,11 +235,18 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
           zip_code: ec.zip_code ?? undefined,
           city: ec.city ?? undefined,
           payment_terms_days: ec.payment_terms_days ?? undefined,
-          currency: ec.currency ?? undefined,
+          // Standard-valuta i Serviceydere er altid DKK.
+          currency: "DKK",
           ...(matched.table === "business_customers"
             ? { cvr: ec.cvr ?? undefined, ean_number: ec.ean ?? undefined, company_name: ec.name }
             : { name: ec.name }),
         }).eq("id", matched.id);
+        // Sørg for at link findes så fremtidige opdateringer matcher
+        await upsertCustomerLink(
+          admin, integ, ec, matched.id,
+          matched.table === "business_customers" ? "business_customer" : "private_customer",
+          "pull",
+        );
       } else {
         // Create new customer in Serviceydere
         const isCompany = !!ec.cvr;
@@ -250,7 +257,7 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
             email: ec.email ?? `unknown+${ec.external_id}@example.com`,
             phone: ec.phone, cvr: ec.cvr, ean_number: ec.ean,
             address: ec.address, zip_code: ec.zip_code, city: ec.city,
-            payment_terms_days: ec.payment_terms_days, currency: ec.currency ?? "DKK",
+            payment_terms_days: ec.payment_terms_days, currency: "DKK",
           }).select("id").single();
           if (created) await upsertCustomerLink(admin, integ, ec, created.id, "business_customer", "pull");
         } else {
@@ -258,7 +265,7 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
             business_id: integ.business_id, name: ec.name,
             email: ec.email ?? `unknown+${ec.external_id}@example.com`,
             phone: ec.phone, address: ec.address, zip_code: ec.zip_code, city: ec.city,
-            payment_terms_days: ec.payment_terms_days, currency: ec.currency ?? "DKK",
+            payment_terms_days: ec.payment_terms_days, currency: "DKK",
           }).select("id").single();
           if (created) await upsertCustomerLink(admin, integ, ec, created.id, "private_customer", "pull");
         }
@@ -268,9 +275,10 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
 
     const products = await adapter.listProducts(since);
     for (const ep of products) {
-      // Only link to existing services with matching name (loose match) — never auto-create services
+      // To-vejs synk: opdatér både link OG den interne service med pris/navn
+      // hvis brugeren har ændret det i regnskabsprogrammet.
       const { data: existing } = await admin.from("accounting_product_links")
-        .select("id").eq("business_id", integ.business_id)
+        .select("id, service_id").eq("business_id", integ.business_id)
         .eq("provider", integ.provider).eq("external_id", ep.external_id).maybeSingle();
       if (existing) {
         await admin.from("accounting_product_links").update({
@@ -278,6 +286,15 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
           last_synced_at: new Date().toISOString(),
           external_data: ep.raw ?? {},
         }).eq("id", existing.id);
+        // Pull pris/navn ind på den koblede service
+        if (existing.service_id) {
+          const update: Record<string, unknown> = {};
+          if (ep.name) update.name = ep.name;
+          if (Number.isFinite(ep.unit_price) && ep.unit_price > 0) update.base_price = ep.unit_price;
+          if (Object.keys(update).length > 0) {
+            await admin.from("services").update(update).eq("id", existing.service_id);
+          }
+        }
       }
       productsPulled++;
     }
