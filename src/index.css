@@ -265,3 +265,9 @@ img[loading="lazy"].is-error {
 .leaflet-tile-container .map-tile-fade {
   transition: opacity 320ms ease;
 }
+
+/* React-leaflet's TileLayer renderer wrapper får className på den ydre
+   <div class="leaflet-layer …"> — så transition på opacity virker direkte. */
+.leaflet-layer.map-tile-fade {
+  transition: opacity 320ms ease;
+}
