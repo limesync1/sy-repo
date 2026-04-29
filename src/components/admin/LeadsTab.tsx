@@ -390,7 +390,6 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                     const qr = l.quote_request;
                     const status = STATUS_LABELS[l.status] ?? STATUS_LABELS.new;
                     const share = qr?.share_contact !== false;
-                    const pmeta = PRIORITY_META[l._p.priority];
                     const isHot = l._p.priority === "hot" && l.status !== "won" && l.status !== "declined";
                     const isDue = !!l.follow_up_at && new Date(l.follow_up_at).getTime() <= Date.now() && l.status !== "won" && l.status !== "declined";
                     const isSelected = selected.has(l.id);
@@ -405,7 +404,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                           setOpenId(l.id);
                         }}
                         className={`surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm transition-all hover:border-foreground/20 hover:shadow-md cursor-pointer ${
-                          isSelected ? "ring-2 ring-foreground/30" : isDue ? "ring-1 ring-destructive/40" : isHot ? "ring-1 ring-orange-200/60 dark:ring-orange-900/40" : ""
+                          isSelected ? "ring-2 ring-foreground/30" : isDue ? "ring-1 ring-destructive/40" : ""
                         }`}
                       >
                         <CardContent className="p-0">
@@ -413,11 +412,6 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                           {isDue && (
                             <div className="flex items-center gap-2 bg-destructive/10 px-5 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-destructive">
                               <BellRing className="h-3 w-3" /> Opfølgning forfalden — {formatDistanceToNow(new Date(l.follow_up_at!), { addSuffix: true, locale: da })}
-                            </div>
-                          )}
-                          {!isDue && isHot && (
-                            <div className="flex items-center gap-2 bg-gradient-to-r from-orange-50 via-orange-50/50 to-transparent px-5 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-orange-700 dark:from-orange-950/40 dark:to-transparent dark:text-orange-300">
-                              <Flame className="h-3 w-3" /> AI anbefaler: kontakt nu
                             </div>
                           )}
                           <div className="flex gap-3 p-5">
@@ -436,53 +430,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                                 <div className="flex flex-wrap items-center gap-2">
                                   <Badge className={`${status.className} border rounded-md pointer-events-none`}>{status.label}</Badge>
 
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Badge variant="outline" className={`gap-1 rounded-md border ${pmeta.cls} cursor-help`}>
-                                        {pmeta.icon} {pmeta.label}
-                                      </Badge>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top" className="max-w-xs">
-                                      <div className="space-y-1.5">
-                                        <p className="font-semibold">AI-prioritet: {l._p.score}/100</p>
-                                        {l._p.signals.length > 0 ? (
-                                          <ul className="space-y-0.5 text-xs">
-                                            {l._p.signals.map((s, i) => (
-                                              <li key={i} className="flex items-center gap-1.5">
-                                                <CheckCircle2 className="h-3 w-3" /> {s}
-                                              </li>
-                                            ))}
-                                          </ul>
-                                        ) : (
-                                          <p className="text-xs opacity-80">Ingen særlige signaler</p>
-                                        )}
-                                      </div>
-                                    </TooltipContent>
-                                  </Tooltip>
-
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Badge variant="outline" className="gap-1 rounded-md cursor-help">
-                                        <Sparkles className="h-3 w-3" /> {l.match_score}/100
-                                      </Badge>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top">
-                                      <p className="text-xs">Match-score baseret på kategori, område og kapacitet</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-
                                   {qr?.category && <Badge variant="secondary" className="rounded-md pointer-events-none">{qr.category}</Badge>}
-
-                                  {l.ai_draft && (
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Badge variant="outline" className="gap-1 rounded-md border-accent/40 text-accent cursor-help">
-                                          <Brain className="h-3 w-3" /> Udkast klar
-                                        </Badge>
-                                      </TooltipTrigger>
-                                      <TooltipContent><p className="text-xs">AI-svar er genereret og klar til at sende</p></TooltipContent>
-                                    </Tooltip>
-                                  )}
 
                                   {l.follow_up_at && !isDue && (
                                     <Tooltip>
@@ -558,14 +506,6 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
 
                               {/* Action column */}
                               <div className="flex shrink-0 flex-col gap-2 sm:w-48" onClick={(e) => e.stopPropagation()}>
-                                <div className="rounded-lg border border-border/80 bg-card p-2.5">
-                                  <div className="mb-1.5 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                                    <span>AI-prioritet</span>
-                                    <span className="tabular-nums text-foreground">{l._p.score}</span>
-                                  </div>
-                                  <Progress value={l._p.score} className="h-1.5" />
-                                </div>
-
                                 <Button
                                   size="sm"
                                   onClick={() => setOpenId(l.id)}
