@@ -698,16 +698,15 @@ const EmployeeApp = () => {
                     )}
                   </Button>
                   <Button
-                    asChild
+                    type="button"
                     size="lg"
                     variant="outline"
+                    onClick={() => setPreviewRouteId(r.id)}
                     className="h-11 shrink-0 rounded-lg border-border bg-card px-3 text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
-                    aria-label="Udskriv liste"
-                    title="Udskriv liste"
+                    aria-label="Forhåndsvis & udskriv liste"
+                    title="Forhåndsvis & udskriv liste"
                   >
-                    <Link to={`/medarbejder/rute/${r.id}/print`}>
-                      <Printer className="h-4 w-4" />
-                    </Link>
+                    <Printer className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
