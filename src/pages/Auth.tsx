@@ -12,7 +12,7 @@ import SEO from "@/components/SEO";
 import { translateAuthError } from "@/lib/auth-errors";
 
 const Auth = () => {
-  const { user, loading, signIn, signUp, resetPassword, signInWithGoogle, signInWithApple } = useAuth();
+  const { user, loading, signIn, signUp, resetPassword } = useAuth();
   const [searchParams] = useSearchParams();
   const mode = searchParams.get("mode");
   const signupParam = searchParams.get("signup");
@@ -83,31 +83,6 @@ const Auth = () => {
       return;
     }
     setResetSent(true);
-  };
-
-  /** Start Google OAuth-flow. Vi sender brugeren tilbage til samme mode-route,
-   *  så de lander det rigtige sted (kunde/virksomhed) efter login. */
-  const handleGoogle = async () => {
-    const target =
-      mode === "customer" ? "/min-konto"
-      : mode === "employee" ? "/medarbejder"
-      : "/virksomhed";
-    const { error } = await signInWithGoogle(target);
-    if (error) {
-      toast.error(translateAuthError(error, "Vi kunne ikke åbne Google-login. Prøv igen."));
-    }
-  };
-
-  /** Start Apple OAuth-flow. */
-  const handleApple = async () => {
-    const target =
-      mode === "customer" ? "/min-konto"
-      : mode === "employee" ? "/medarbejder"
-      : "/virksomhed";
-    const { error } = await signInWithApple(target);
-    if (error) {
-      toast.error(translateAuthError(error, "Vi kunne ikke åbne Apple-login. Prøv igen."));
-    }
   };
 
   const isBusiness = mode === "business";
