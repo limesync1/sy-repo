@@ -25,16 +25,19 @@ import { PageTransition } from "@/components/admin/shared/PageTransition";
 import { PageHeader, StatCard } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
 const formatKr = (n?: number | null) => `${Math.round(n || 0).toLocaleString("da-DK")} kr`;
 
 const paymentMeta = (status?: string | null) => {
-  if (status === "completed") return { label: "Betalt", className: "bg-feature-cool text-feature-cool-foreground border-transparent" };
-  if (status === "confirmed" || status === "in_progress") return { label: "Afregnes", className: "bg-feature-lilac text-feature-lilac-foreground border-transparent" };
-  if (status === "pending") return { label: "Afventer", className: "bg-feature-warm text-feature-warm-foreground border-transparent" };
-  return { label: "Status ukendt", className: "bg-secondary text-muted-foreground border-transparent" };
+  // Diskrete outline-badges — matcher virksomhedspanelets sprog så
+  // status-chips ikke "skriger" i en ellers rolig liste.
+  if (status === "completed") return { label: "Betalt", className: "border-feature-cool/40 bg-feature-cool/10 text-feature-cool-foreground" };
+  if (status === "confirmed" || status === "in_progress") return { label: "Afregnes", className: "border-feature-lilac/40 bg-feature-lilac/10 text-feature-lilac-foreground" };
+  if (status === "pending") return { label: "Afventer", className: "border-feature-warm/40 bg-feature-warm/10 text-feature-warm-foreground" };
+  return { label: "Status ukendt", className: "border-border bg-secondary/50 text-muted-foreground" };
 };
 
 const miniStopIcon = (n: number, color: string, done: boolean) =>
