@@ -8,7 +8,7 @@ import { useMemo } from "react";
 import {
   CheckCircle2, Clock, ClipboardList, Loader2, MapPin, MessageSquare,
   Phone, Route as RouteIcon, Wallet, Calendar as CalendarIcon, Users,
-  User as UserIcon, Package,
+  Package,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
