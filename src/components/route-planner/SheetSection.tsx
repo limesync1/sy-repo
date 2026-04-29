@@ -7,6 +7,7 @@
 import * as React from "react";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { ChevronDown } from "lucide-react";
 
 /* ───────── Header ─────────
    Bruges som indhold i SheetHeader/DialogHeader.
@@ -86,6 +87,54 @@ export const Section = ({
     {children}
   </div>
 );
+
+/* ───────── CollapsibleSection ─────────
+   Samme look som <Section>, men hele headeren er en knap der folder
+   indholdet ud/ind.  Bruges til sekundære oplysninger (beløb, rute-info,
+   noter…) i mobile sheets hvor vi vil holde modalen kompakt. */
+export const CollapsibleSection = ({
+  icon,
+  title,
+  hint,
+  defaultOpen = false,
+  children,
+  className,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  hint?: React.ReactNode;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  const [open, setOpen] = React.useState(defaultOpen);
+  return (
+    <div className={cn("bg-background rounded-lg border", className)}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="w-full flex items-center gap-1.5 px-3.5 py-2.5 hover:bg-secondary/40 active:bg-secondary/60 transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+      >
+        <span className="text-muted-foreground inline-flex items-center justify-center h-4 w-4">
+          {icon}
+        </span>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">
+          {title}
+        </h3>
+        {hint && <span className="ml-auto text-[10px] text-muted-foreground">{hint}</span>}
+        <ChevronDown
+          className={cn(
+            "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
+            hint ? "ml-1.5" : "ml-auto",
+            open && "rotate-180",
+          )}
+        />
+      </button>
+      {open && <div className="px-3.5 pb-3.5 pt-0.5">{children}</div>}
+    </div>
+  );
+};
 
 /* ───────── Field ───────── */
 export const Field = ({
