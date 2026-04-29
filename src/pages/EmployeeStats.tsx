@@ -18,7 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import {
   Calendar as CalendarIcon, CheckCircle2, Clock,
   MapPin, Route as RouteIcon, Wallet, ChevronDown,
-  ListChecks,
+  ListChecks, Users as UsersIcon, FileText, Hash,
 } from "lucide-react";
 import {
   format, parseISO,
@@ -352,33 +352,74 @@ const EmployeeStats = () => {
                                   {d.entries.map((e) => (
                                     <li
                                       key={e.stopId}
-                                      className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 rounded-lg px-2 py-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:gap-4"
+                                      className="rounded-lg px-2 py-3"
                                     >
-                                      <div className="min-w-0">
-                                        <p className="truncate text-sm font-medium text-foreground">
-                                          {e.customerName || "Opgave"}
-                                        </p>
-                                        <Badge
-                                          variant="outline"
-                                          className={cn(
-                                            "mt-1 inline-flex h-5 w-fit border px-1.5 text-[10px] font-medium",
-                                            PAYMENT_BADGE[e.paymentStatus],
+                                      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+                                        <div className="min-w-0 space-y-1.5">
+                                          <div className="flex flex-wrap items-center gap-2">
+                                            <p className="truncate text-sm font-semibold text-foreground">
+                                              {e.customerName || "Opgave"}
+                                            </p>
+                                            <Badge
+                                              variant="outline"
+                                              className={cn(
+                                                "inline-flex h-5 w-fit border px-1.5 text-[10px] font-medium",
+                                                PAYMENT_BADGE[e.paymentStatus],
+                                              )}
+                                            >
+                                              {PAYMENT_LABEL[e.paymentStatus]}
+                                            </Badge>
+                                          </div>
+                                          {e.serviceName && (
+                                            <p className="text-xs text-muted-foreground">{e.serviceName}</p>
                                           )}
-                                        >
-                                          {PAYMENT_LABEL[e.paymentStatus]}
-                                        </Badge>
-                                      </div>
-                                      <div className="text-right">
-                                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Aftale</p>
-                                        <p className="text-xs font-medium tabular-nums text-muted-foreground">
-                                          {formatKr(e.orderAmount)}
-                                        </p>
-                                      </div>
-                                      <div className="col-span-2 flex items-center justify-between rounded-md bg-card px-3 py-2 text-right sm:col-span-1 sm:block sm:bg-transparent sm:p-0">
-                                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Min andel</p>
-                                        <p className="text-sm font-bold tabular-nums text-foreground">
-                                          {formatKr(e.share)}
-                                        </p>
+                                          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                                            {e.completedAt && (
+                                              <span className="inline-flex items-center gap-1 tabular-nums">
+                                                <Clock className="h-3 w-3" />
+                                                Færdig {format(new Date(e.completedAt), "HH:mm", { locale: da })}
+                                              </span>
+                                            )}
+                                            {e.address && (
+                                              <span className="inline-flex items-center gap-1 truncate">
+                                                <MapPin className="h-3 w-3 shrink-0" />
+                                                <span className="truncate">{e.address}</span>
+                                              </span>
+                                            )}
+                                            {e.sharers > 1 && (
+                                              <span className="inline-flex items-center gap-1">
+                                                <UsersIcon className="h-3 w-3" />
+                                                Delt på {e.sharers}
+                                              </span>
+                                            )}
+                                            {e.orderRef && (
+                                              <span className="inline-flex items-center gap-1 font-mono">
+                                                <Hash className="h-3 w-3" />
+                                                {e.orderRef}
+                                              </span>
+                                            )}
+                                          </div>
+                                          {e.note && (
+                                            <p className="mt-1 flex items-start gap-1.5 rounded-md bg-card px-2 py-1.5 text-[11px] text-muted-foreground">
+                                              <FileText className="mt-0.5 h-3 w-3 shrink-0" />
+                                              <span>{e.note}</span>
+                                            </p>
+                                          )}
+                                        </div>
+                                        <div className="flex items-center justify-between gap-4 rounded-md bg-card px-3 py-2 sm:flex-col sm:items-end sm:gap-1 sm:bg-transparent sm:p-0">
+                                          <div className="text-right">
+                                            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Aftale</p>
+                                            <p className="text-xs font-medium tabular-nums text-muted-foreground">
+                                              {formatKr(e.orderAmount)}
+                                            </p>
+                                          </div>
+                                          <div className="text-right">
+                                            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Min andel</p>
+                                            <p className="text-sm font-bold tabular-nums text-foreground">
+                                              {formatKr(e.share)}
+                                            </p>
+                                          </div>
+                                        </div>
                                       </div>
                                     </li>
                                   ))}
