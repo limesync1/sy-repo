@@ -503,7 +503,7 @@ const EmployeeRow = ({
     <TooltipProvider delayDuration={200}>
     <div
       className={`group grid w-full gap-3 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5
-                  sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center
+                  sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:items-center
                   ${employee.is_active ? "" : "opacity-60"}`}
     >
         {/* Navn + kontakt + farve-styring (venstre kolonne) */}
@@ -607,13 +607,42 @@ const EmployeeRow = ({
         </div>
 
         {/* Kontostatus — kun "Afventer" vises (når medarbejder ikke har oprettet konto endnu) */}
-        <div className="hidden sm:flex w-28 items-center justify-end">
+        <div className="hidden sm:flex w-24 items-center justify-end">
           {!linked && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
               Afventer
             </span>
           )}
+        </div>
+
+        {/* Indtjening for valgt periode */}
+        <div className="hidden sm:flex w-32 flex-col items-end justify-center text-right">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="cursor-help">
+                <p className="text-sm font-semibold tabular-nums text-foreground">
+                  {formatKr(earning?.earnings ?? 0)}
+                </p>
+                <p className="mt-0.5 text-[10px] text-muted-foreground">
+                  {earning?.stopsCompleted ?? 0} {earning?.stopsCompleted === 1 ? "opgave" : "opgaver"}
+                </p>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <div className="text-xs">
+                <p className="font-medium">Provision · {rangeLabel}</p>
+                <p className="mt-1 text-muted-foreground">
+                  {Number(employee.commission_pct || 0)}% af beløb ekskl. moms.
+                </p>
+                {earning && earning.revenue > 0 && (
+                  <p className="mt-0.5 text-muted-foreground tabular-nums">
+                    Omsætning: {formatKr(earning.revenue)} (inkl. moms)
+                  </p>
+                )}
+              </div>
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         {/* Handlinger — samme stil som kunder-rækken */}
