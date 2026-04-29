@@ -1846,6 +1846,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 stop={s}
                 index={idx}
                 themeColor={themeColor}
+                route={route ? { name: route.name, color: route.color, date: route.route_date } : undefined}
                 noteDraft={noteDraft[s.id] ?? s.notes ?? ""}
                 onNoteChange={(v) => setNoteDraft((d) => ({ ...d, [s.id]: v }))}
                 onComplete={() => handleComplete(s)}
