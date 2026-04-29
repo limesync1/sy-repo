@@ -9,10 +9,11 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
+import { RoutePrintPreviewSheet } from "@/components/employee/RoutePrintPreviewSheet";
 import {
   Calendar as CalendarIcon, Play, Printer, MapPin, Clock, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
-  Users, User as UserIcon, Info, CalendarCheck,
+  Users, User as UserIcon, Info, CalendarCheck, Sparkles, ArrowRight, Eye,
 } from "lucide-react";
 import { format, addDays, parseISO, isToday, formatDistanceStrict } from "date-fns";
 import { da } from "date-fns/locale";
@@ -121,6 +122,8 @@ const EmployeeApp = () => {
   const [date, setDate] = useState(todayStr());
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [detailsStop, setDetailsStop] = useState<{ stop: RouteStop; index: number; routeName: string | null; routeColor: string | null; routeDate: string | null } | null>(null);
+  // Print-forhåndsvisning (rute-id der vises i preview-sheet'en)
+  const [previewRouteId, setPreviewRouteId] = useState<string | null>(null);
   const { data: routes = [], isLoading: routesLoading } = useMyDayRoutes(date);
   const { data: stops = [], isLoading: stopsLoading } = useMyDayStops(date);
   const { data: workday } = useMyWorkday(date);
