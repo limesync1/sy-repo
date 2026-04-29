@@ -154,10 +154,12 @@ export const PageSkeleton = ({
   withStats = true,
   statsCount = 4,
   rows = 5,
-}: { withStats?: boolean; statsCount?: number; rows?: number }) => (
+  withFilters = false,
+}: { withStats?: boolean; statsCount?: number; rows?: number; withFilters?: boolean }) => (
   <div className="w-full space-y-4 sm:space-y-5">
     <PageHeaderSkeleton />
     {withStats && <StatGridSkeleton count={statsCount} />}
+    {withFilters && <FilterBarSkeleton />}
     <ListCardSkeleton rows={rows} />
   </div>
 );
