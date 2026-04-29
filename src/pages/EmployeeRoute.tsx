@@ -2131,11 +2131,19 @@ const StopListPanel = ({
             const meta = statusMeta(s);
             const plannedTime = formatPlannedTime(s.planned_arrival);
             return (
-              <button
+              <div
                 key={s.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => onSelectStop(s)}
                 onDoubleClick={() => onOpenDetails(s)}
-                className={`w-full text-left p-3 rounded-xl border flex items-stretch gap-3 transition-all hover:bg-muted/40 active:scale-[0.99] ${
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onSelectStop(s);
+                  }
+                }}
+                className={`w-full text-left p-3 rounded-xl border flex items-stretch gap-3 transition-all hover:bg-muted/40 active:scale-[0.99] cursor-pointer ${
                   isHl ? "ring-2 ring-ring ring-offset-1" : ""
                 } ${isDone ? "opacity-60" : ""} ${
                   isNext
@@ -2204,7 +2212,7 @@ const StopListPanel = ({
                 >
                   Detaljer
                 </button>
-              </button>
+              </div>
             );
           })}
         </div>
