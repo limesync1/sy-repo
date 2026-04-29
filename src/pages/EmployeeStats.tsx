@@ -32,6 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { StopDetailsSheetById } from "@/components/employee/StopDetailsSheetById";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type RangeKey = "today" | "week" | "month" | "year" | "all" | "custom";
 
@@ -211,12 +212,43 @@ const EmployeeStats = () => {
         />
 
         {isLoading || !s ? (
-          <Card className="p-10 text-center text-muted-foreground">
-            <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-secondary mb-2">
-              <div className="h-4 w-4 rounded-full border-2 border-muted-foreground border-t-transparent animate-spin" />
+          <>
+            <Card className="overflow-hidden rounded-xl border-border shadow-sm">
+              <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-12 w-12 rounded-xl sm:h-14 sm:w-14" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-8 w-40" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-1">
+                  <Skeleton className="h-10 w-full sm:w-24" />
+                  <Skeleton className="h-10 w-full sm:w-24" />
+                </div>
+              </div>
+            </Card>
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-20 rounded-xl" />
+              ))}
             </div>
-            <p className="text-sm">Indlæser statistik…</p>
-          </Card>
+            <Card className="rounded-xl border-border shadow-sm">
+              <div className="space-y-2 p-5">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="flex items-center gap-3 py-2">
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                    <Skeleton className="h-2 flex-1" />
+                    <Skeleton className="h-8 w-20" />
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </>
         ) : (
           <>
             {/* Hero: medarbejderens egen indtjening — fremhævet som det vigtigste tal */}

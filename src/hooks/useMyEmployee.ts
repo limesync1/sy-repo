@@ -1,6 +1,6 @@
 // useMyEmployee — henter medarbejder-record for nuværende auth-user
 // samt aggregerede statistik-data over en periode.
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
@@ -90,6 +90,8 @@ export const useMyEmployeeStats = (
   return useQuery({
     queryKey: ["my-employee-stats", employeeId, from, to],
     enabled: !!employeeId,
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
     queryFn: async (): Promise<EmployeeStats> => {
       if (!employeeId) {
         return {

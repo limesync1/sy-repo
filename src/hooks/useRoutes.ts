@@ -89,6 +89,8 @@ export type RouteStop = {
   order_status?: string | null;
   /** Aftalens fulde beløb, inkl. evt. justering. */
   order_amount?: number | null;
+  /** Vej + postnr + by — beregnet i useMyDayStops så listen ikke kun viser gaden. */
+  full_address?: string | null;
 };
 
 export type RouteEmployee = {
@@ -211,6 +213,8 @@ export const useMyWorkday = (date: string) => {
   return useQuery({
     queryKey: ["my-workday", employeeId, date],
     enabled: !!employeeId,
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
     queryFn: async () => {
       if (!employeeId) return null;
       const { data, error } = await supabase
@@ -1158,6 +1162,8 @@ export const useMyDayRoutes = (date: string) => {
   return useQuery({
     queryKey: ["my-day-routes", employeeId, date],
     enabled: !!employeeId,
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
     queryFn: async () => {
       if (!employeeId) return [];
       // Find ruter via junction-tabel (nye ruter, evt. team) ELLER legacy
@@ -1232,6 +1238,8 @@ export const useMyDayStops = (date: string) => {
   return useQuery({
     queryKey: ["my-day-stops", employeeId, date],
     enabled: !!employeeId,
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
     queryFn: async () => {
       if (!employeeId) return [];
       const [linksRes, legacyRes, stopAssignRes] = await Promise.all([
@@ -1298,7 +1306,7 @@ export const useMyDayStops = (date: string) => {
 
       const { data: orderRows } = await supabase
         .from("orders")
-        .select("id,status,total_amount,adjusted_amount")
+        .select("id,status,total_amount,adjusted_amount,zip_code,city")
         .in("id", orderIds);
       const orderMap = new Map(
         (orderRows || []).map((o: any) => [
@@ -1306,16 +1314,31 @@ export const useMyDayStops = (date: string) => {
           {
             status: o.status as string | null,
             amount: Number(o.adjusted_amount ?? o.total_amount ?? 0),
+            zip_code: (o.zip_code as string | null) ?? null,
+            city: (o.city as string | null) ?? null,
           },
         ]),
       );
 
       return filtered.map((s: any) => {
         const order = s.order_id ? orderMap.get(s.order_id) : null;
+        // Saml fuld adresse: vej + postnr + by — så medarbejderens
+        // overbliksliste ALDRIG viser kun et vejnavn (flere danske
+        // adresser eksisterer i flere byer).
+        const street = (s.address as string | null) || null;
+        const cityLine = [order?.zip_code, order?.city].filter(Boolean).join(" ");
+        const fullAddress = (() => {
+          if (!street && !cityLine) return null;
+          if (street && cityLine && !street.toLowerCase().includes(cityLine.toLowerCase())) {
+            return `${street}, ${cityLine}`;
+          }
+          return street || cityLine || null;
+        })();
         return {
           ...s,
           order_status: order?.status ?? null,
           order_amount: order?.amount ?? null,
+          full_address: fullAddress,
         };
       }) as RouteStop[];
     },

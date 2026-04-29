@@ -21,6 +21,7 @@ import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { calcEmployeeShare, formatKr as formatKrUtil } from "@/lib/commission";
 import { stripPrices } from "@/lib/employee-display";
 import { SheetHeaderBlock, Section } from "@/components/route-planner/SheetSection";
+import { INTERVAL_LABELS } from "@/types/service";
 
 type RouteContext = {
   name: string | null;
@@ -94,15 +95,21 @@ export const StopDetailsContent = ({
         }
       }
       if (details.interval) {
-        const intervalMap: Record<string, string> = {
-          weekly: "Hver uge",
-          biweekly: "Hver 2. uge",
-          monthly: "Hver måned",
-          quarterly: "Hver 3. måned",
+        // Brug projektets fælles INTERVAL_LABELS-map så medarbejderen
+        // ser præcis samme tekst som virksomhedspanelet ("Hver 14. dag"
+        // i stedet for det rå "hver_14_dag" eller engelske aliaser).
+        const legacyAliases: Record<string, string> = {
+          weekly: "ugentlig",
+          biweekly: "hver_14_dag",
+          monthly: "månedlig",
+          quarterly: "kvartalsvis",
+          daily: "daglig",
         };
+        const key = legacyAliases[details.interval] ?? String(details.interval);
+        const value = INTERVAL_LABELS[key] || INTERVAL_LABELS[String(details.interval)] || String(details.interval);
         selections.push({
           label: "Frekvens",
-          value: intervalMap[details.interval] || String(details.interval),
+          value,
         });
       }
       return {
@@ -145,14 +152,17 @@ export const StopDetailsContent = ({
     : paymentStatus === "settling" ? "Afregnes"
     : paymentStatus === "pending" ? "Afventer betaling"
     : "Status ukendt";
+  // Diskrete outline-badges — matcher virksomhedspanelets StopDetailSheet,
+  // hvor status/abonnement/GPS vises som dæmpede outline-badges frem for
+  // farverige fyldte chips. Holder header-blokken rolig at se på.
   const paymentClasses =
     paymentStatus === "paid"
-      ? "bg-feature-cool text-feature-cool-foreground border-transparent"
+      ? "border-feature-cool/40 text-feature-cool-foreground bg-feature-cool/10"
       : paymentStatus === "settling"
-        ? "bg-feature-lilac text-feature-lilac-foreground border-transparent"
+        ? "border-feature-lilac/40 text-feature-lilac-foreground bg-feature-lilac/10"
         : paymentStatus === "pending"
-          ? "bg-feature-warm text-feature-warm-foreground border-transparent"
-          : "bg-secondary text-muted-foreground border-transparent";
+          ? "border-feature-warm/40 text-feature-warm-foreground bg-feature-warm/10"
+          : "border-border text-muted-foreground bg-secondary/50";
 
   const arrivalLabel = stop.planned_arrival
     ? format(new Date(stop.planned_arrival), "HH:mm", { locale: da })
@@ -178,14 +188,13 @@ export const StopDetailsContent = ({
             )
           }
         >
-          <Badge
-            variant="secondary"
-            className={isDone
-              ? "gap-1 text-[10px] bg-feature-cool/15 text-feature-cool-foreground border-transparent"
-              : "gap-1 text-[10px]"}
-          >
-            {isDone ? <><CheckCircle2 className="h-2.5 w-2.5" />Færdig</> : <>Klar</>}
-          </Badge>
+          {isDone ? (
+            <Badge variant="outline" className="gap-1 text-[10px] border-feature-cool/40 bg-feature-cool/10 text-feature-cool-foreground">
+              <CheckCircle2 className="h-2.5 w-2.5" />Færdig
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="gap-1 text-[10px]">Klar</Badge>
+          )}
           <Badge variant="outline" className={`gap-1 text-[10px] ${paymentClasses}`}>
             <Wallet className="h-2.5 w-2.5" />{paymentLabel}
           </Badge>
