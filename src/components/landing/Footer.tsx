@@ -1,4 +1,8 @@
-import { Link } from "react-router-dom";
+import SmartLink from "@/components/SmartLink";
+
+// Alle interne links i footeren bruger SmartLink, så hover/touch starter
+// chunk-prefetch og navigationen føles instant.
+const Link = SmartLink;
 
 const Footer = () => {
   return (
