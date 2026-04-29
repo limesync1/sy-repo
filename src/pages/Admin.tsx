@@ -930,6 +930,16 @@ const ServiceForm = ({
     if (!businessId) return;
     let cancelled = false;
     (async () => {
+      // Tjek først om regnskabsintegration overhovedet er aktiveret i virksomhedens indstillinger.
+      // Hvis ikke, skal vi hverken vise UI'et eller hente data fra regnskabsprogrammet.
+      const { data: biz } = await supabase
+        .from("businesses")
+        .select("settings")
+        .eq("id", businessId)
+        .maybeSingle();
+      const accountingEnabled = !!(biz?.settings as any)?.accounting_integration_enabled;
+      if (cancelled || !accountingEnabled) return;
+
       const { data: integ } = await supabase
         .from("accounting_integrations" as any)
         .select("provider, settings, is_active")
