@@ -261,7 +261,7 @@ const OrderDragHandle = ({ orderId, order }: { orderId: string; order: any }) =>
       {...attributes}
       onClick={(e) => e.stopPropagation()}
       aria-label="Træk aftalen til en rute"
-      title="Træk til en rute i Rute-pool"
+      title="Træk aftalen over til en rute"
       className={`flex h-9 w-5 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground active:cursor-grabbing ${
         isDragging ? "opacity-40" : ""
       }`}
@@ -1071,7 +1071,7 @@ const AftaleTab = ({
 
         // 1) Sluppet udenfor enhver droppable-zone
         if (!over) {
-          toast.error("Slip aftalen direkte oven på en rute i Rute-poolen til højre", {
+          toast.error("Slip aftalen direkte oven på en rute til højre", {
             description: "Træk hen over et rute-kort indtil det lyser op, før du slipper.",
           });
           return;
@@ -1080,8 +1080,8 @@ const AftaleTab = ({
         const o: any = over.data.current;
         // 2) Sluppet et ugyldigt sted (ikke en pool-rute)
         if (o?.type !== "pool-route") {
-          toast.error("Aftaler kan kun slippes på et rute-kort i Rute-poolen", {
-            description: "Find ruten i sidebar'en til højre og slip aftalen direkte oven på den.",
+          toast.error("Aftaler kan kun slippes på et rute-kort", {
+            description: "Find ruten i panelet til højre og slip aftalen direkte oven på den.",
           });
           return;
         }
@@ -1680,7 +1680,7 @@ const AftaleTab = ({
       )}
         </div>
 
-        {/* ─── Sidebar: Rute-pool ───
+        {/* ─── Sidebar: Ruter ───
             Viser ruter for de næste 14 dage. Aftaler kan trækkes direkte
             fra venstre kolonne over på en rute her — så er den planlagt.
             Skjules helt når ruteplanlægning er deaktiveret. */}
@@ -1691,7 +1691,7 @@ const AftaleTab = ({
               <div className="flex items-center gap-2 min-w-0">
                 <RouteIcon className="h-4 w-4 text-foreground shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-foreground">Rute-pool</p>
+                  <p className="text-sm font-semibold text-foreground">Ruter</p>
                   <p className="text-[11px] text-muted-foreground">Træk en aftale herover for at planlægge den</p>
                 </div>
               </div>
