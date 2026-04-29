@@ -206,7 +206,7 @@ const DashboardTab = ({ business, ordersCount, revenue, servicesCount, averageRa
         action={business.slug ? (
           <a href={`/v/${business.slug}`} target="_blank" rel="noopener noreferrer"
             className="hidden sm:flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors">
-            <Eye className="h-3.5 w-3.5" /> Se jeres profil <ArrowRight className="h-3 w-3" />
+            <Eye className="h-3.5 w-3.5" /> Se din side <ArrowRight className="h-3 w-3" />
           </a>
         ) : null}
       />

@@ -7,10 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Progress } from "@/components/ui/progress";
 import {
-  Sparkles, MapPin, Mail, Phone, Loader2, Inbox, Search, TrendingUp, Trophy, Filter,
-  Flame, Clock, Brain, CheckCircle2, XCircle, Zap, Target, Lightbulb,
+  MapPin, Mail, Phone, Loader2, Inbox, Search, TrendingUp, Trophy, Filter,
+  Clock, XCircle, Target,
   Calendar, StickyNote, Bell, BellRing, MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -31,6 +30,11 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
 
 type Priority = "hot" | "warm" | "cold";
 
+/**
+ * computePriority — bruges KUN internt til smart sortering. Vi viser ikke
+ * scoren eller "hot/warm/cold" i UI'et længere; det skabte mere forvirring
+ * end værdi for ejeren. Logikken bevares, men holdes usynlig.
+ */
 const computePriority = (l: Lead): { priority: Priority; score: number; signals: string[] } => {
   const signals: string[] = [];
   let score = l.match_score || 50;
@@ -50,78 +54,6 @@ const computePriority = (l: Lead): { priority: Priority; score: number; signals:
   if (score >= 80) priority = "hot";
   else if (score >= 60) priority = "warm";
   return { priority, score, signals };
-};
-
-const PRIORITY_META: Record<Priority, { label: string; icon: React.ReactNode; cls: string }> = {
-  hot:  { label: "Hot lead", icon: <Flame className="h-3 w-3" />, cls: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-900" },
-  warm: { label: "Warm",     icon: <Zap className="h-3 w-3" />,   cls: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900" },
-  cold: { label: "Kold",     icon: <Clock className="h-3 w-3" />, cls: "bg-muted text-muted-foreground border-border" },
-};
-
-/* ─── AI Insight bar ─── */
-const AIInsightCard = ({ leads }: { leads: (Lead & { _p: ReturnType<typeof computePriority> })[] }) => {
-  const insights = useMemo(() => {
-    if (leads.length === 0) return [];
-    const items: { icon: React.ReactNode; text: string; tone: string }[] = [];
-    const dueFollowUps = leads.filter((l) => l.follow_up_at && new Date(l.follow_up_at).getTime() <= Date.now() && l.status !== "won" && l.status !== "declined");
-    const hot = leads.filter((l) => l._p.priority === "hot" && l.status !== "won" && l.status !== "declined");
-    const stale = leads.filter((l) => {
-      const ageH = (Date.now() - new Date(l.created_at).getTime()) / 3600000;
-      return ageH > 24 && l.status === "viewed";
-    });
-    const unread = leads.filter((l) => l.status === "new");
-
-    if (dueFollowUps.length > 0) items.push({
-      icon: <BellRing className="h-4 w-4 text-destructive" />,
-      text: `${dueFollowUps.length} opfølgning${dueFollowUps.length > 1 ? "er" : ""} er forfalden — kontakt nu`,
-      tone: "text-destructive font-medium",
-    });
-    if (hot.length > 0) items.push({
-      icon: <Flame className="h-4 w-4 text-orange-500" />,
-      text: `${hot.length} hot lead${hot.length > 1 ? "s" : ""} — kontakt nu for bedst chance`,
-      tone: "text-orange-700 dark:text-orange-300",
-    });
-    if (unread.length > 0) items.push({
-      icon: <Sparkles className="h-4 w-4 text-accent" />,
-      text: `${unread.length} ulæst${unread.length > 1 ? "e" : ""} forespørgsel — gennemse dem først`,
-      tone: "text-foreground",
-    });
-    if (stale.length > 0) items.push({
-      icon: <Clock className="h-4 w-4 text-amber-500" />,
-      text: `${stale.length} lead${stale.length > 1 ? "s" : ""} er set men ikke kontaktet — følg op`,
-      tone: "text-amber-700 dark:text-amber-300",
-    });
-    if (items.length === 0) items.push({
-      icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
-      text: "Du er ajour med alle leads — godt arbejde!",
-      tone: "text-emerald-700 dark:text-emerald-300",
-    });
-    return items;
-  }, [leads]);
-
-  if (insights.length === 0) return null;
-
-  return (
-    <Card className="surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm">
-      <CardContent className="p-0">
-        <div className="flex items-center gap-2 border-b border-border/80 bg-gradient-to-r from-accent/5 via-transparent to-transparent px-4 py-2.5">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-accent/15 text-accent">
-            <Brain className="h-3.5 w-3.5" />
-          </div>
-          <span className="text-xs font-semibold uppercase tracking-wide text-foreground">AI-anbefalinger</span>
-          <Badge variant="outline" className="ml-auto rounded-md text-[10px] font-medium uppercase">Live</Badge>
-        </div>
-        <ul className="divide-y divide-border/60">
-          {insights.map((it, i) => (
-            <li key={i} className="flex items-center gap-3 px-4 py-2.5 text-sm">
-              <span className="shrink-0">{it.icon}</span>
-              <span className={`flex-1 ${it.tone}`}>{it.text}</span>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
-  );
 };
 
 const StatCard = ({ label, value, sub, icon, tone }: {
@@ -305,17 +237,14 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
       <div className="space-y-5">
         <PageHeader
           title="Leads"
-          description={`${allLeads.length} leads i alt${counts.new ? ` · ${counts.new} nye` : ""}${counts.hot ? ` · ${counts.hot} hot` : ""}${counts.dueFollowUps ? ` · ${counts.dueFollowUps} opfølgning${counts.dueFollowUps > 1 ? "er" : ""}` : ""}`}
+          description={`${allLeads.length} leads i alt${counts.new ? ` · ${counts.new} nye` : ""}${counts.dueFollowUps ? ` · ${counts.dueFollowUps} opfølgning${counts.dueFollowUps > 1 ? "er" : ""}` : ""}`}
         />
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-3">
           <StatCard label="Aktive leads" value={counts.active || 0} icon={<Target className="h-4 w-4" />} />
-          <StatCard label="Hot leads" value={counts.hot || 0} sub="AI-prioriteret" icon={<Flame className="h-4 w-4" />} tone={counts.hot > 0 ? "warn" : "default"} />
           <StatCard label="Konvertering" value={`${convStats.conversionRate}%`} sub={`${convStats.contactRate}% kontaktet`} icon={<TrendingUp className="h-4 w-4" />} tone="ok" />
           <StatCard label="Svartid (snit)" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)}m` : `${convStats.avgRespHours.toFixed(1)}t`) : "—"} sub="Hurtigere = flere aftaler" icon={<Clock className="h-4 w-4" />} />
         </div>
-
-        <AIInsightCard leads={enriched} />
 
         {allLeads.length === 0 ? (
           <EmptyState
@@ -339,15 +268,14 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="h-10 w-full rounded-lg sm:w-[200px]">
                   <div className="flex items-center gap-2 text-sm">
-                    <Lightbulb className="h-4 w-4 text-muted-foreground" />
+                    <Filter className="h-4 w-4 text-muted-foreground" />
                     <SelectValue />
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="smart">Smart sortering (AI)</SelectItem>
+                  <SelectItem value="smart">Anbefalet rækkefølge</SelectItem>
                   <SelectItem value="newest">Nyeste først</SelectItem>
                   <SelectItem value="oldest">Ældste først</SelectItem>
-                  <SelectItem value="match">Højeste match</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -405,20 +333,6 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
               })()}
 
               <div className="ml-auto flex flex-wrap items-center gap-2">
-                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                  <SelectTrigger className="h-9 w-[150px] rounded-lg text-xs">
-                    <div className="flex items-center gap-1.5">
-                      <Flame className="h-3.5 w-3.5 text-muted-foreground" />
-                      <SelectValue />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Al prioritet</SelectItem>
-                    <SelectItem value="hot">🔥 Hot</SelectItem>
-                    <SelectItem value="warm">⚡ Warm</SelectItem>
-                    <SelectItem value="cold">🕒 Kold</SelectItem>
-                  </SelectContent>
-                </Select>
                 {allCategories.length > 1 && (
                   <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                     <SelectTrigger className="h-9 w-[180px] rounded-lg text-xs">
@@ -476,8 +390,6 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                     const qr = l.quote_request;
                     const status = STATUS_LABELS[l.status] ?? STATUS_LABELS.new;
                     const share = qr?.share_contact !== false;
-                    const pmeta = PRIORITY_META[l._p.priority];
-                    const isHot = l._p.priority === "hot" && l.status !== "won" && l.status !== "declined";
                     const isDue = !!l.follow_up_at && new Date(l.follow_up_at).getTime() <= Date.now() && l.status !== "won" && l.status !== "declined";
                     const isSelected = selected.has(l.id);
 
@@ -491,7 +403,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                           setOpenId(l.id);
                         }}
                         className={`surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm transition-all hover:border-foreground/20 hover:shadow-md cursor-pointer ${
-                          isSelected ? "ring-2 ring-foreground/30" : isDue ? "ring-1 ring-destructive/40" : isHot ? "ring-1 ring-orange-200/60 dark:ring-orange-900/40" : ""
+                          isSelected ? "ring-2 ring-foreground/30" : isDue ? "ring-1 ring-destructive/40" : ""
                         }`}
                       >
                         <CardContent className="p-0">
@@ -499,11 +411,6 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                           {isDue && (
                             <div className="flex items-center gap-2 bg-destructive/10 px-5 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-destructive">
                               <BellRing className="h-3 w-3" /> Opfølgning forfalden — {formatDistanceToNow(new Date(l.follow_up_at!), { addSuffix: true, locale: da })}
-                            </div>
-                          )}
-                          {!isDue && isHot && (
-                            <div className="flex items-center gap-2 bg-gradient-to-r from-orange-50 via-orange-50/50 to-transparent px-5 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-orange-700 dark:from-orange-950/40 dark:to-transparent dark:text-orange-300">
-                              <Flame className="h-3 w-3" /> AI anbefaler: kontakt nu
                             </div>
                           )}
                           <div className="flex gap-3 p-5">
@@ -522,53 +429,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                                 <div className="flex flex-wrap items-center gap-2">
                                   <Badge className={`${status.className} border rounded-md pointer-events-none`}>{status.label}</Badge>
 
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Badge variant="outline" className={`gap-1 rounded-md border ${pmeta.cls} cursor-help`}>
-                                        {pmeta.icon} {pmeta.label}
-                                      </Badge>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top" className="max-w-xs">
-                                      <div className="space-y-1.5">
-                                        <p className="font-semibold">AI-prioritet: {l._p.score}/100</p>
-                                        {l._p.signals.length > 0 ? (
-                                          <ul className="space-y-0.5 text-xs">
-                                            {l._p.signals.map((s, i) => (
-                                              <li key={i} className="flex items-center gap-1.5">
-                                                <CheckCircle2 className="h-3 w-3" /> {s}
-                                              </li>
-                                            ))}
-                                          </ul>
-                                        ) : (
-                                          <p className="text-xs opacity-80">Ingen særlige signaler</p>
-                                        )}
-                                      </div>
-                                    </TooltipContent>
-                                  </Tooltip>
-
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Badge variant="outline" className="gap-1 rounded-md cursor-help">
-                                        <Sparkles className="h-3 w-3" /> {l.match_score}/100
-                                      </Badge>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top">
-                                      <p className="text-xs">Match-score baseret på kategori, område og kapacitet</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-
                                   {qr?.category && <Badge variant="secondary" className="rounded-md pointer-events-none">{qr.category}</Badge>}
-
-                                  {l.ai_draft && (
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Badge variant="outline" className="gap-1 rounded-md border-accent/40 text-accent cursor-help">
-                                          <Brain className="h-3 w-3" /> Udkast klar
-                                        </Badge>
-                                      </TooltipTrigger>
-                                      <TooltipContent><p className="text-xs">AI-svar er genereret og klar til at sende</p></TooltipContent>
-                                    </Tooltip>
-                                  )}
 
                                   {l.follow_up_at && !isDue && (
                                     <Tooltip>
@@ -644,14 +505,6 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
 
                               {/* Action column */}
                               <div className="flex shrink-0 flex-col gap-2 sm:w-48" onClick={(e) => e.stopPropagation()}>
-                                <div className="rounded-lg border border-border/80 bg-card p-2.5">
-                                  <div className="mb-1.5 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                                    <span>AI-prioritet</span>
-                                    <span className="tabular-nums text-foreground">{l._p.score}</span>
-                                  </div>
-                                  <Progress value={l._p.score} className="h-1.5" />
-                                </div>
-
                                 <Button
                                   size="sm"
                                   onClick={() => setOpenId(l.id)}

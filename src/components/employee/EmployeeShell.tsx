@@ -10,6 +10,8 @@ import { useState, type ReactNode } from "react";
 import { LogOut, Menu, X, Calendar as CalendarIcon, BarChart3, MessageCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -67,8 +69,28 @@ export const EmployeeShell = ({
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Hent virksomhedens egen livechat-indstilling — medarbejderen må kun se
+  // livechat-fanen hvis BÅDE virksomheden har funktionen aktiveret OG
+  // medarbejderen har fået adgang individuelt.
+  const { data: businessLivechatEnabled } = useQuery({
+    queryKey: ["business-livechat-enabled", employee?.business_id],
+    enabled: !!employee?.business_id,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("businesses")
+        .select("settings")
+        .eq("id", employee!.business_id)
+        .maybeSingle();
+      return !!(data?.settings as any)?.livechat_enabled;
+    },
+  });
+
   const visibleNav = NAV_ITEMS.filter((n) => {
     if (!n.requiresEmployeeFlag) return true;
+    if (n.requiresEmployeeFlag === "livechat_enabled") {
+      return !!(employee as any)?.livechat_enabled && !!businessLivechatEnabled;
+    }
     return !!(employee as any)?.[n.requiresEmployeeFlag];
   });
   const currentNav = NAV_ITEMS.find((n) => n.value === activeTab);
