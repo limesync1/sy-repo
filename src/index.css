@@ -255,3 +255,13 @@ img[loading="lazy"].is-error {
     animation: none;
   }
 }
+
+/* Smooth crossfade mellem kort/satellit i medarbejder-rute-visningen.
+   Begge TileLayers er altid mounted; vi animerer kun deres opacity. */
+.leaflet-layer .map-tile-fade,
+.leaflet-pane .map-tile-fade {
+  transition: opacity 320ms ease;
+}
+.leaflet-tile-container .map-tile-fade {
+  transition: opacity 320ms ease;
+}
