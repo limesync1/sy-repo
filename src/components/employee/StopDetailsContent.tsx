@@ -175,14 +175,16 @@ export const StopDetailsContent = ({
   return (
     <div className="flex flex-col h-full bg-secondary/20">
       {/* Header — samme SheetHeaderBlock som virksomhedspanelets StopDetailSheet */}
-      <div className="px-5 py-4 border-b shrink-0 bg-card">
+      <div className="px-5 pt-3 pb-3 border-b shrink-0 bg-card">
         <SheetHeaderBlock
           accent={accent}
           badge={isDone ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
           title={<span className="text-base font-semibold">{stop.customer_name || "Stop"}</span>}
           description={
-            route?.name ? (
-              <span>På rute <strong>{route.name}</strong>{route.date ? ` · ${format(new Date(route.date), "d. MMM yyyy", { locale: da })}` : ""}</span>
+            fullAddress ? (
+              <span className="line-clamp-1">{fullAddress}</span>
+            ) : route?.name ? (
+              <span>På rute <strong>{route.name}</strong></span>
             ) : (
               <span>Detaljer for dette stop</span>
             )
@@ -195,9 +197,6 @@ export const StopDetailsContent = ({
           ) : (
             <Badge variant="secondary" className="gap-1 text-[10px]">Klar</Badge>
           )}
-          <Badge variant="outline" className={`gap-1 text-[10px] ${paymentClasses}`}>
-            <Wallet className="h-2.5 w-2.5" />{paymentLabel}
-          </Badge>
           {arrivalLabel && (
             <Badge variant="outline" className="gap-1 text-[10px]">
               <Clock className="h-2.5 w-2.5" />Planlagt {arrivalLabel}
@@ -208,6 +207,9 @@ export const StopDetailsContent = ({
               <Clock className="h-2.5 w-2.5" />~{stop.duration_minutes} min
             </Badge>
           )}
+          <Badge variant="outline" className={`gap-1 text-[10px] ${paymentClasses}`}>
+            <Wallet className="h-2.5 w-2.5" />{paymentLabel}
+          </Badge>
           {sharers > 1 && (
             <Badge variant="outline" className="gap-1 text-[10px]">
               <Users className="h-2.5 w-2.5" />Delt med {sharers - 1} kollega{sharers - 1 === 1 ? "" : "er"}
@@ -218,6 +220,40 @@ export const StopDetailsContent = ({
           <p className="mt-2 inline-flex items-center gap-1 rounded-md bg-feature-cool/10 px-2 py-0.5 text-[11px] font-medium text-feature-cool-foreground">
             <CheckCircle2 className="h-3 w-3" /> Markeret færdig {completedLabel}
           </p>
+        )}
+        {/* Hurtig-handlinger: Maps + Ring direkte i header — ingen scroll nødvendig.
+            Stor touch-target, kompakt layout, samme stil som virksomhedspanelet. */}
+        {!readOnly && (fullAddress || stop.customer_phone) && (
+          <div className="mt-3 flex gap-2">
+            {fullAddress && (
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="flex-1 gap-1.5 h-10 rounded-lg text-xs font-semibold border-border hover:bg-secondary"
+              >
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${addressForMaps}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <MapPin className="h-3.5 w-3.5" /> Maps
+                </a>
+              </Button>
+            )}
+            {stop.customer_phone && (
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="flex-1 gap-1.5 h-10 rounded-lg text-xs font-semibold border-border hover:bg-secondary"
+              >
+                <a href={`tel:${stop.customer_phone}`}>
+                  <Phone className="h-3.5 w-3.5" /> Ring
+                </a>
+              </Button>
+            )}
+          </div>
         )}
       </div>
 

@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
   ChevronUp, ChevronDown, Play, Volume2, VolumeX, Crosshair, Flag, TrafficCone,
-  Info,
+  Info, Layers,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import type { Marker as LeafletMarker } from "leaflet";
@@ -340,6 +340,24 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   } | null>(null);
   const [routeStarted, setRouteStarted] = useState(false);
   const [followMode, setFollowMode] = useState(true);
+  // Stop-detaljer sheet kan veksle mellem kompakt (~45 % af skærm) og fuld
+  // (~85 %).  Default er kompakt, så medarbejderen altid ser kortet.  Klik
+  // på drag-bar'en eller chevron'en skifter højde.
+  const [sheetExpanded, setSheetExpanded] = useState(false);
+  // Kort-stil: "map" (CARTO Voyager — som hidtil) eller "satellite" (Esri World Imagery).
+  // Valget persistes så brugeren ikke skal vælge igen ved hver kørsel.
+  const MAP_STYLE_KEY = "serviceydere:employee-route:map-style";
+  const [mapStyle, setMapStyleState] = useState<"map" | "satellite">(() => {
+    if (typeof window === "undefined") return "map";
+    try {
+      const v = window.localStorage.getItem(MAP_STYLE_KEY);
+      return v === "satellite" ? "satellite" : "map";
+    } catch { return "map"; }
+  });
+  const setMapStyle = (next: "map" | "satellite") => {
+    setMapStyleState(next);
+    try { window.localStorage.setItem(MAP_STYLE_KEY, next); } catch { /* ignorer */ }
+  };
   // Lyd-indstilling persistes i localStorage så valget overlever app-genstart
   // og lange perioder uden brug.  Initial værdi læses synkront for at undgå
   // at brugeren først ser "lyd til" og bagefter et flicker.
@@ -1145,12 +1163,33 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             inertiaDeceleration={2400}
             preferCanvas
           >
+            {/*
+              To overlejrede TileLayers + CSS-opacity crossfade:
+              begge er altid mounted (så satellit-fliserne er forhåndshentet
+              og skiftet er instant), men vi fader mellem dem via en wrapper-
+              klasse på .leaflet-tile-pane.  Det giver en blød 320 ms overgang
+              uden at fliserne hak'er ind.
+            */}
             <TileLayer
               url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
               attribution='&copy; OpenStreetMap &copy; CARTO'
               updateWhenIdle={false}
               updateWhenZooming={false}
               keepBuffer={4}
+              opacity={mapStyle === "map" ? 1 : 0}
+              className="map-tile-fade"
+              zIndex={1}
+            />
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              attribution='Tiles &copy; Esri'
+              updateWhenIdle={false}
+              updateWhenZooming={false}
+              keepBuffer={4}
+              opacity={mapStyle === "satellite" ? 1 : 0}
+              className="map-tile-fade"
+              zIndex={2}
+              maxZoom={19}
             />
 
             {/* Fit overview when not started */}
@@ -1272,6 +1311,22 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
            skygge-, ring- og active-feedback er 100% ensartet. Aktive states
            bruger fremhævet baggrund + en lille indikator-prik. */}
         <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
+          {/* Map-stil toggle — altid synlig (også før start), så medarbejderen
+              kan vælge satellit-visning når han skal genkende parkering, indkørsel mm. */}
+          <button
+            type="button"
+            onClick={() => setMapStyle(mapStyle === "map" ? "satellite" : "map")}
+            className={`relative h-12 w-12 rounded-full backdrop-blur-md border shadow-[0_6px_20px_-6px_rgba(0,0,0,0.25)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.3)] transition-all duration-150 active:scale-[0.93] flex items-center justify-center ${
+              mapStyle === "satellite"
+                ? "bg-foreground text-background border-transparent"
+                : "bg-card/95 border-border/80 text-foreground hover:bg-secondary"
+            }`}
+            aria-label={mapStyle === "satellite" ? "Skift til kortvisning" : "Skift til satellit"}
+            aria-pressed={mapStyle === "satellite"}
+            title={mapStyle === "satellite" ? "Satellit — tryk for kort" : "Kort — tryk for satellit"}
+          >
+            <Layers className="h-[19px] w-[19px]" strokeWidth={2.25} />
+          </button>
           {routeStarted && !allDone && (
             <button
               type="button"
@@ -1845,17 +1900,42 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       </div>
 
       {/* ─── Stop detail sheet ─── */}
-      <Sheet open={!!selectedId} onOpenChange={(o) => !o && setSelectedId(null)}>
+      <Sheet
+        open={!!selectedId}
+        onOpenChange={(o) => {
+          if (!o) {
+            setSelectedId(null);
+            setSheetExpanded(false);
+          }
+        }}
+      >
         {/*
-          Kompakt bottom-sheet: dækker maks ~65 % af skærmen så kortet stadig
-          er synligt bag.  Brugeren skal kunne se hvor han kører selv mens
-          aftale-detaljer er åbne.  Sheet'en kan scrolles internt for resten
-          af indholdet (opgaver, noter, kontakt).
+          To-trins bottom-sheet: kompakt (~45 vh, default) eller fuld (~85 vh).
+          Drag-bar'en øverst er klikbar — ét tryk skifter mellem størrelserne.
+          Sådan kan medarbejderen altid hurtigt gøre detaljer mindre uden at
+          lukke dem helt.
         */}
         <SheetContent
           side="bottom"
-          className="max-h-[65vh] overflow-y-auto p-0 rounded-t-2xl"
+          className={`p-0 rounded-t-2xl flex flex-col transition-[max-height,height] duration-300 ease-out ${
+            sheetExpanded ? "max-h-[85vh] h-[85vh]" : "max-h-[45vh] h-[45vh]"
+          }`}
         >
+          {/* Drag-handle bar — tap for at skifte højde, tryk-og-træk på mobile
+              er allerede dækket af bottom-sheet's swipe-luk gesture. */}
+          <button
+            type="button"
+            onClick={() => setSheetExpanded((v) => !v)}
+            className="w-full pt-2 pb-1 flex flex-col items-center gap-0.5 shrink-0 hover:bg-secondary/40 active:bg-secondary/60 transition-colors rounded-t-2xl"
+            aria-label={sheetExpanded ? "Gør detaljer mindre" : "Gør detaljer større"}
+            aria-expanded={sheetExpanded}
+          >
+            <span className="h-1 w-10 rounded-full bg-muted-foreground/40" aria-hidden />
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium">
+              {sheetExpanded ? "Tryk for at gøre mindre" : "Tryk for at udvide"}
+            </span>
+          </button>
+          <div className="flex-1 overflow-y-auto">
           {(() => {
             const s = sortedStops.find((x) => x.id === selectedId);
             if (!s) return null;
@@ -1874,6 +1954,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               />
             );
           })()}
+          </div>
         </SheetContent>
       </Sheet>
 
