@@ -593,12 +593,12 @@ const SettingsTab = ({ business }: { business: any }) => {
       return;
     }
     if (slugStatus === "taken") {
-      toast.error("Det permalink er optaget. Prøv et andet.");
+      toast.error("Det link er allerede taget af en anden virksomhed. Prøv et andet.");
       return;
     }
     const { error } = await supabase.from("businesses").update({ slug: next }).eq("id", business.id);
     if (error) {
-      toast.error(error.message?.includes("duplicate") ? "Det permalink er optaget." : "Kunne ikke gemme permalink.");
+      toast.error(error.message?.includes("duplicate") ? "Det link er allerede taget af en anden virksomhed." : "Vi kunne ikke gemme dit link. Prøv igen om lidt.");
       return;
     }
     toast.success("Permalink opdateret. Din offentlige adresse er nu /v/" + next);
