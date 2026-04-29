@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { da } from "date-fns/locale";
 import { PageHeader, EmptyState } from "@/components/admin/shared/AdminUI";
+import { PageSkeleton } from "@/components/admin/shared/Skeletons";
 import { LeadDetailDialog, type LeadDetailLead } from "@/components/admin/LeadDetailDialog";
 
 type Lead = LeadDetailLead & { viewed_at?: string | null; responded_at?: string | null };
@@ -229,7 +230,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
   };
 
   if (loading) {
-    return <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
+    return <PageSkeleton statsCount={3} rows={5} />;
   }
 
   return (
