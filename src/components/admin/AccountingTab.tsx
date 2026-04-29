@@ -409,10 +409,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       const { error } = await supabase.from("accounting_integrations" as any)
         .upsert(payload, { onConflict: "business_id" });
       if (error) throw error;
-      toast.success(`${currentProvider.label} er nu integreret — synkroniserer dine data…`);
-      // Kør første synk i baggrunden så brugeren ser resultatet med det samme
-      // (edge function auto-seeder køen hvis den er tom — også for "skygge-
-      // kunder" der kun findes på orders.customer_email)
+      toast.success(`${currentProvider.label} er nu integreret`);
+      // Stille første synk i baggrunden — ingen toasts. Realtime-trigger
+      // overtager fremadrettet ved rigtige ændringer.
       runFullSync(businessId).catch(() => { /* fejl vises via load() */ });
       await load();
     } catch (e: any) {
@@ -438,19 +437,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const handleSyncNow = async () => {
     setSyncing(true);
     try {
-      // Edge function auto-seeder køen hvis den er tom, så første synk
-      // faktisk pusher eksisterende kunder/services/ordrer.
-      const result = await runFullSync(businessId);
-      const pushed = result.pushed ?? 0;
-      const pulled = (result.pulledCustomers ?? 0) + (result.pulledProducts ?? 0);
-      const seeded = result.seeded ?? 0;
-      if (pushed === 0 && pulled === 0 && seeded === 0) {
-        toast.success("Alt er allerede synkroniseret");
-      } else if (seeded > 0 && pushed < seeded) {
-        toast.success(`Synk startet — ${seeded} elementer lagt i kø, ${pushed} sendt indtil videre. Resten kører i baggrunden.`);
-      } else {
-        toast.success(`Synkronisering færdig — sendt ${pushed}, hentet ${pulled}`);
-      }
+      // Stille manuel synk — ingen success-toast. Realtime-trigger holder
+      // tingene synkroniseret automatisk; "Synk nu" er nu mest til at
+      // hente nye data ned fra regnskabsprogrammet.
+      await runFullSync(businessId);
       await load();
     } catch (e: any) {
       toast.error(e.message ?? "Synk fejlede");
@@ -487,7 +477,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         body: { business_id: businessId, mode: "queue" },
       });
       if (r.error) throw r.error;
-      toast.success("Forsøgt igen");
       await load();
     } catch (e: any) {
       toast.error(e.message ?? "Kunne ikke prøve igen");
@@ -505,7 +494,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         body: { business_id: businessId, mode: "queue" },
       });
       if (r.error) throw r.error;
-      toast.success("Alle fejlende jobs forsøgt igen");
       await load();
     } catch (e: any) {
       toast.error(e.message ?? "Kunne ikke prøve igen");
