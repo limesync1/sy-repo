@@ -172,12 +172,13 @@ type DayCellProps = {
   weather?: WeatherDay | null;
   loadingRoutes?: boolean;
   loadingWeather?: boolean;
+  weatherError?: boolean;
 };
 
 const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
   onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, weather,
-  loadingRoutes, loadingWeather,
+  loadingRoutes, loadingWeather, weatherError,
 }: DayCellProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `day:${dateStr}`,
@@ -218,6 +219,18 @@ const DayCellInner = ({
           )}
           {!weather && loadingWeather && (
             <Skeleton className={cn("rounded-md", compact ? "h-4 w-8" : "h-5 w-12")} />
+          )}
+          {!weather && !loadingWeather && weatherError && inMonth && (
+            <span
+              className={cn(
+                "inline-flex items-center justify-center rounded-md bg-muted/60 text-muted-foreground ring-1 ring-border/60",
+                compact ? "h-4 w-4" : "h-5 w-5",
+              )}
+              title="Vejrudsigt utilgængelig — prøv igen senere"
+              aria-label="Vejrudsigt utilgængelig"
+            >
+              <CloudOff className={compact ? "h-2.5 w-2.5" : "h-3 w-3"} />
+            </span>
           )}
           <button
             type="button"
