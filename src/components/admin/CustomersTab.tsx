@@ -23,7 +23,7 @@ import { INTERVAL_LABELS } from "@/types/service";
 import { Link } from "react-router-dom";
 import CustomerEditDialog, { type EditableCustomer } from "./CustomerEditDialog";
 import { PageHeader, PrimaryButton, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
-import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
+import { ListCardSkeleton, DialogDetailsSkeleton } from "@/components/admin/shared/Skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
@@ -935,11 +935,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
               </div>
 
               {isLoading ? (
-                <div className="space-y-2 py-2">
-                  <Skeleton className="h-12 w-full rounded-lg" />
-                  <Skeleton className="h-12 w-full rounded-lg" />
-                  <Skeleton className="h-12 w-2/3 rounded-lg" />
-                </div>
+                <DialogDetailsSkeleton sections={2} />
               ) : (
                 <>
                   {/* Subscriptions — split active vs paused */}
