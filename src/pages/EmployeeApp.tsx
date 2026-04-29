@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
 import {
   Calendar as CalendarIcon, Play, Printer, MapPin, Clock, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
-  Users, User as UserIcon,
+  Users, User as UserIcon, Info,
 } from "lucide-react";
 import { format, addDays, parseISO, isToday, formatDistanceStrict } from "date-fns";
 import { da } from "date-fns/locale";
