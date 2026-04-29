@@ -66,6 +66,63 @@ async function getOrgId(creds: AccountingCredentials): Promise<string> {
   return res?.organization?.id ?? res?.organizations?.[0]?.id;
 }
 
+// Find eller opret en Billy-produktgruppe der peger på den ønskede konto.
+// Brugeren ser kun "Indtægtskonto" i Serviceydere, men Billy kræver en
+// produktgruppe på alle varer. Vi cacher pr. konto pr. organisation.
+const productGroupCache = new Map<string, string>();
+async function ensureBillyProductGroup(
+  creds: AccountingCredentials,
+  orgId: string,
+  accountId: string | null,
+  productName: string,
+): Promise<string | null> {
+  const cacheKey = `${orgId}::${accountId ?? "default"}`;
+  const cached = productGroupCache.get(cacheKey);
+  if (cached) return cached;
+
+  try {
+    const list = await billyRequest(
+      creds, `/productGroups?organizationId=${orgId}`,
+    );
+    const groups: any[] = list?.productGroups ?? [];
+
+    // Hvis ingen konto er valgt, brug bare første eksisterende gruppe
+    if (!accountId) {
+      const first = groups[0];
+      if (first?.id) {
+        productGroupCache.set(cacheKey, first.id);
+        return first.id;
+      }
+      return null;
+    }
+
+    // Find gruppe der allerede peger på samme konto
+    const match = groups.find(g => g.accountId === accountId);
+    if (match?.id) {
+      productGroupCache.set(cacheKey, match.id);
+      return match.id;
+    }
+
+    // Opret en ny "Serviceydere" gruppe der peger på kontoen
+    const created = await billyRequest(creds, `/productGroups`, {
+      method: "POST",
+      body: JSON.stringify({
+        productGroup: {
+          organizationId: orgId,
+          name: `Serviceydere – konto ${accountId.slice(0, 6)}`,
+          accountId,
+        },
+      }),
+    });
+    const newId = created?.productGroups?.[0]?.id ?? created?.productGroup?.id ?? null;
+    if (newId) productGroupCache.set(cacheKey, newId);
+    return newId;
+  } catch (e) {
+    console.warn("ensureBillyProductGroup failed:", e instanceof Error ? e.message : e);
+    return null;
+  }
+}
+
 // Billy gemmer email på contactPersons, mens telefonnummer ligger direkte på contact.
 // Vi opretter/opdaterer den primære kontaktperson når vi har email.
 async function syncBillyContactPerson(
