@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMyRouteData, useDirections, useUpdateStopStatus, useOrderForStop, type RouteStop, type Route } from "@/hooks/useRoutes";
-import { useMyEmployee } from "@/hooks/useMyEmployee";
+import { useMyRouteData, useDirections, useUpdateStopStatus, type RouteStop, type Route } from "@/hooks/useRoutes";
 import { useStartStopTime, useEndStopTime } from "@/hooks/useRoutes";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
-  ChevronUp, ChevronDown, Play, Volume2, VolumeX, Crosshair, Flag, AlertTriangle, TrafficCone,
+  ChevronUp, ChevronDown, Play, Volume2, VolumeX, Crosshair, Flag, TrafficCone,
   Info,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
