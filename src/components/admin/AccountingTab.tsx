@@ -2,20 +2,32 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Loader2, RefreshCw, Check, AlertCircle, ExternalLink, Eye, EyeOff,
-  ArrowLeft, ArrowRight, Plug, Settings2, ListChecks, ShieldCheck,
+  ArrowLeft, ArrowRight, Plug, Settings2, ShieldCheck, Calculator,
+  Clock, ListChecks, Sparkles, X,
 } from "lucide-react";
-import { PageHeader, SectionCard } from "@/components/admin/shared/AdminUI";
+import {
+  PageHeader, PrimaryButton, SectionCard, StatCard, EmptyState, FieldLabel,
+} from "@/components/admin/shared/AdminUI";
 import economicLogo from "@/assets/accounting/economic.png";
 import billyLogo from "@/assets/accounting/billy.png";
 import dineroLogo from "@/assets/accounting/dinero.png";
+
+/**
+ * AccountingTab — virksomhedens regnskabs-integration.
+ *
+ *  • Når intet er forbundet: viser EmptyState + udbyder-kort til at starte
+ *    integrationsguiden.
+ *  • Når noget er forbundet: viser StatCards (status, kø, sidste synk),
+ *    SectionCard med synk-indstillinger, og en log-sektion. Følger samme
+ *    visuelle sprog som de andre admin-faner (Kunder, Medarbejdere, Leads).
+ *  • Integrationsguiden er en fuldskærms 3-trins wizard med tydelig progress
+ *    og venlige fejlmeddelelser fra adapter-laget.
+ */
 
 type Provider = "economic" | "billy" | "dinero";
 
@@ -45,20 +57,20 @@ const PROVIDERS: ProviderDef[] = [
     label: "e-conomic",
     logo: economicLogo,
     tagline: "Markedsledende i Danmark",
-    description: "Send aftaler som salgsordrer direkte i e-conomic. Synkroniser kunder og varer.",
+    description: "Send aftaler som salgsordrer direkte i e-conomic. Kunder og varer holdes synkroniseret begge veje.",
     helpUrl: "https://www.e-conomic.dk/regnskabsprogram/api",
     helpUrlLabel: "Sådan finder du dine tokens",
     fields: [
       { key: "api_secret", label: "App Secret Token", type: "password",
-        help: "Bruges til at identificere appen.", placeholder: "demo-secret-token" },
+        help: "Identificerer Serviceydere-appen i e-conomic.", placeholder: "demo-secret-token" },
       { key: "api_token", label: "Agreement Grant Token", type: "password",
-        help: "Bruges til at give adgang til netop din aftale.", placeholder: "demo-agreement-token" },
+        help: "Giver appen adgang til netop din e-conomic-aftale.", placeholder: "demo-agreement-token" },
     ],
     setupSteps: [
-      "Log ind i e-conomic og åbn App Marketplace.",
-      "Find vores Serviceydere-app og installér den på din aftale.",
-      "Når den er installeret, vises både App Secret Token og Agreement Grant Token.",
-      "Kopiér dem ind herunder og tryk Test forbindelse.",
+      "Log ind på e-conomic og åbn App Marketplace.",
+      "Find Serviceydere-appen og installér den på din aftale.",
+      "Når appen er installeret vises både App Secret Token og Agreement Grant Token.",
+      "Kopiér dem ind herunder og tryk 'Test forbindelse'.",
     ],
   },
   {
@@ -68,16 +80,16 @@ const PROVIDERS: ProviderDef[] = [
     tagline: "Enkelt og hurtigt",
     description: "Synkroniser kunder, varer og fakturakladder med Billy.",
     helpUrl: "https://www.billy.dk/support/article/api-access-token/",
-    helpUrlLabel: "Find dit Access Token",
+    helpUrlLabel: "Find dit Access Token i Billy",
     fields: [
       { key: "api_token", label: "API Access Token", type: "password",
         help: "Hentes under Indstillinger → API i din Billy-konto.", placeholder: "abc123…" },
     ],
     setupSteps: [
-      "Log ind i Billy.",
+      "Log ind på Billy.",
       "Gå til Indstillinger → API.",
       "Tryk 'Generér nyt access token'.",
-      "Kopiér tokenet ind herunder og tryk Test forbindelse.",
+      "Kopiér tokenet ind herunder og tryk 'Test forbindelse'.",
     ],
   },
   {
@@ -100,7 +112,7 @@ const PROVIDERS: ProviderDef[] = [
       "Log ind på Dinero og find dit organisations-ID i URL'en.",
       "Opret en API-integration i Dineros developer-portal.",
       "Kopiér Client ID og Client Secret ind herunder.",
-      "Tryk Test forbindelse.",
+      "Tryk 'Test forbindelse'.",
     ],
   },
 ];
@@ -128,6 +140,20 @@ interface Integration {
 }
 
 type Mode = "overview" | "wizard";
+
+const formatRelativeDanish = (iso: string | null): string => {
+  if (!iso) return "Aldrig";
+  const ts = new Date(iso).getTime();
+  const diffMs = Date.now() - ts;
+  const min = Math.floor(diffMs / 60_000);
+  if (min < 1) return "Lige nu";
+  if (min < 60) return `${min} min siden`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `${h} t. siden`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d} dage siden`;
+  return new Date(iso).toLocaleDateString("da-DK");
+};
 
 export default function AccountingTab({ businessId }: { businessId: string; businessName: string }) {
   const [integration, setIntegration] = useState<Integration | null>(null);
@@ -238,6 +264,21 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     } finally { setSaving(false); }
   };
 
+  const handleSaveSettingsOnly = async () => {
+    if (!integration) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("accounting_integrations" as any)
+        .update({ settings: settings as any })
+        .eq("business_id", businessId);
+      if (error) throw error;
+      toast.success("Indstillinger gemt");
+      await load();
+    } catch (e: any) {
+      toast.error(e.message ?? "Kunne ikke gemme");
+    } finally { setSaving(false); }
+  };
+
   const handleSyncNow = async () => {
     setSyncing(true);
     try {
@@ -278,7 +319,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     );
   }
 
-  // ===== OVERVIEW (no integration) =====
+  /* ============================================================
+   * OVERVIEW — INGEN INTEGRATION
+   * ============================================================ */
   if (mode === "overview" && !integration?.is_active) {
     return (
       <div className="space-y-6">
@@ -287,17 +330,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           description="Forbind ét regnskabsprogram. Kunder, services og aftaler synkroniseres automatisk begge veje."
         />
 
-        <SectionCard>
-          <div className="flex items-start gap-3">
-            <div className="rounded-lg bg-secondary p-2"><Plug className="h-5 w-5" /></div>
-            <div className="flex-1">
-              <div className="font-semibold">Vælg dit regnskabsprogram</div>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                Du kan have ét program integreret ad gangen. Du kan altid skifte senere.
-              </p>
-            </div>
-          </div>
-        </SectionCard>
+        <EmptyState
+          icon={<Calculator />}
+          title="Ingen regnskabsintegration endnu"
+          description="Vælg dit regnskabsprogram nedenfor — vi guider dig igennem på under 2 minutter."
+        />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {PROVIDERS.map(p => (
@@ -305,15 +342,17 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               key={p.value}
               type="button"
               onClick={() => startWizard(p.value)}
-              className="group flex flex-col rounded-2xl border border-border bg-card p-5 text-left transition hover:border-foreground hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="group flex flex-col rounded-xl border border-border bg-card p-5 text-left shadow-sm transition-colors duration-150 hover:border-foreground/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <div className="flex items-center justify-center rounded-xl bg-secondary/40 p-4">
-                <img src={p.logo} alt={p.label} className="h-10 w-auto" />
+              <div className="flex h-20 items-center justify-center rounded-lg bg-secondary/40 px-4">
+                <img src={p.logo} alt={p.label} className="h-10 w-auto object-contain" />
               </div>
-              <div className="mt-4 font-semibold">{p.label}</div>
-              <div className="text-xs text-muted-foreground">{p.tagline}</div>
-              <p className="mt-2 text-sm text-muted-foreground">{p.description}</p>
-              <div className="mt-4 flex items-center gap-1 text-sm font-medium text-foreground opacity-0 transition group-hover:opacity-100">
+              <div className="mt-4 flex items-baseline justify-between gap-2">
+                <div className="font-semibold text-foreground">{p.label}</div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{p.tagline}</div>
+              </div>
+              <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{p.description}</p>
+              <div className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-foreground transition-opacity opacity-70 group-hover:opacity-100">
                 Forbind <ArrowRight className="h-4 w-4" />
               </div>
             </button>
@@ -323,232 +362,320 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     );
   }
 
-  // ===== OVERVIEW (active integration) =====
+  /* ============================================================
+   * OVERVIEW — AKTIV INTEGRATION
+   * ============================================================ */
   if (mode === "overview" && integration?.is_active) {
     const activeDef = PROVIDERS.find(p => p.value === integration.provider)!;
+    const hasError = !!integration.last_error;
+    const lastSync = integration.last_push_at && integration.last_pull_at
+      ? (new Date(integration.last_push_at) > new Date(integration.last_pull_at) ? integration.last_push_at : integration.last_pull_at)
+      : (integration.last_push_at ?? integration.last_pull_at);
+
     return (
       <div className="space-y-6">
         <PageHeader
           title="Regnskab"
-          description="Dit regnskabsprogram er forbundet og synkroniserer automatisk."
+          description={`Forbundet med ${activeDef.label}. Aftaler, kunder og varer synkroniseres automatisk.`}
+          action={
+            <PrimaryButton onClick={handleSyncNow} disabled={syncing} icon={syncing ? <Loader2 className="animate-spin" /> : <RefreshCw />}>
+              {syncing ? "Synkroniserer…" : "Synk nu"}
+            </PrimaryButton>
+          }
         />
 
-        <Card className="overflow-hidden">
-          <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-24 items-center justify-center rounded-xl bg-secondary/40">
-                <img src={activeDef.logo} alt={activeDef.label} className="h-9 w-auto" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <div className="font-semibold">{activeDef.label}</div>
-                  {integration.last_error ? (
-                    <Badge variant="destructive" className="gap-1"><AlertCircle className="h-3 w-3" />Fejl</Badge>
-                  ) : (
-                    <Badge variant="secondary" className="gap-1 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
-                      <Check className="h-3 w-3" />Aktiv
-                    </Badge>
-                  )}
-                  {queueCount > 0 && <Badge variant="outline">{queueCount} i kø</Badge>}
-                </div>
-                <div className="mt-0.5 text-xs text-muted-foreground">
-                  {integration.last_push_at && <>Sidste push: {new Date(integration.last_push_at).toLocaleString("da-DK")}</>}
-                  {integration.last_push_at && integration.last_pull_at && " · "}
-                  {integration.last_pull_at && <>Sidste pull: {new Date(integration.last_pull_at).toLocaleString("da-DK")}</>}
-                  {!integration.last_push_at && !integration.last_pull_at && "Endnu ikke synkroniseret"}
-                </div>
-              </div>
-            </div>
+        {/* Stats — samme rytme som Leads/Overblik */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard
+            label="Status"
+            value={hasError ? "Fejl" : "Aktiv"}
+            hint={hasError ? "Kræver opmærksomhed" : "Synkroniserer hver time"}
+            icon={hasError ? <AlertCircle /> : <Check />}
+            tone={hasError ? "amber" : "emerald"}
+          />
+          <StatCard
+            label="Sidste synk"
+            value={formatRelativeDanish(lastSync)}
+            hint={lastSync ? new Date(lastSync).toLocaleString("da-DK") : "Endnu ikke synkroniseret"}
+            icon={<Clock />}
+            tone="blue"
+          />
+          <StatCard
+            label="I synk-kø"
+            value={queueCount}
+            hint={queueCount === 0 ? "Alt er sendt afsted" : "Sendes ved næste synk"}
+            icon={<ListChecks />}
+            tone="violet"
+          />
+        </div>
+
+        {/* Forbindelses-kort */}
+        <SectionCard
+          title="Forbundet program"
+          icon={<Plug />}
+          action={
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" onClick={handleSyncNow} disabled={syncing}>
-                {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                <span className="ml-2">Synk nu</span>
+              <Button variant="outline" size="sm" onClick={handleSwitchProvider}>
+                Skift program
               </Button>
-              <Button variant="outline" size="sm" onClick={handleSwitchProvider}>Skift program</Button>
-              <Button variant="ghost" size="sm" onClick={handleDisable}>Afbryd</Button>
+              <Button variant="ghost" size="sm" onClick={handleDisable} className="text-muted-foreground hover:text-destructive">
+                <X className="mr-1.5 h-4 w-4" /> Afbryd
+              </Button>
+            </div>
+          }
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="flex h-16 w-28 items-center justify-center rounded-lg border border-border bg-secondary/40 p-2">
+              <img src={activeDef.logo} alt={activeDef.label} className="h-10 w-auto object-contain" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="font-semibold text-foreground">{activeDef.label}</div>
+                {hasError ? (
+                  <Badge variant="destructive" className="gap-1">
+                    <AlertCircle className="h-3 w-3" /> Fejl
+                  </Badge>
+                ) : (
+                  <Badge className="gap-1 bg-emerald-500/15 text-emerald-700 border-0 hover:bg-emerald-500/15 dark:text-emerald-400">
+                    <Check className="h-3 w-3" /> Aktiv
+                  </Badge>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">{activeDef.description}</p>
             </div>
           </div>
-          {integration.last_error && (
-            <div className="border-t border-destructive/20 bg-destructive/5 px-5 py-3 text-sm text-destructive">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                <div>
-                  <div className="font-medium">Sidste fejl</div>
-                  <div className="text-destructive/90">{integration.last_error}</div>
-                </div>
+
+          {hasError && (
+            <div className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <div className="min-w-0">
+                <div className="font-medium">Sidste fejl</div>
+                <div className="text-destructive/90 break-words">{integration.last_error}</div>
+                {integration.last_error_at && (
+                  <div className="mt-1 text-xs opacity-80">
+                    {new Date(integration.last_error_at).toLocaleString("da-DK")}
+                  </div>
+                )}
               </div>
             </div>
           )}
-        </Card>
+        </SectionCard>
 
-        {/* Settings */}
-        <Card>
-          <CardHeader><CardTitle className="text-base">Synk-indstillinger</CardTitle></CardHeader>
-          <CardContent className="space-y-5">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <div className="text-sm font-medium">Send afventende aftaler</div>
-                <p className="text-xs text-muted-foreground">Hvis fra: kun bekræftede/færdige aftaler sendes.</p>
+        {/* Synk-indstillinger */}
+        <SectionCard
+          title="Synk-indstillinger"
+          icon={<Settings2 />}
+          description="Bestem hvordan og hvornår dine data sendes til regnskabsprogrammet."
+          action={
+            <Button size="sm" variant="outline" onClick={handleSaveSettingsOnly} disabled={saving}>
+              {saving && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+              Gem
+            </Button>
+          }
+        >
+          <div className="divide-y divide-border">
+            <div className="flex items-start justify-between gap-4 py-3 first:pt-0">
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-foreground">Send afventende aftaler</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">Hvis fra: kun bekræftede og færdige aftaler sendes.</p>
               </div>
               <Switch checked={settings.push_pending !== false}
                 onCheckedChange={v => setSettings({ ...settings, push_pending: v })} />
             </div>
-            <Separator />
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <div className="text-sm font-medium">Auto-opret varer</div>
-                <p className="text-xs text-muted-foreground">Opret automatisk vare-nr i regnskabsprogrammet for hver service.</p>
+            <div className="flex items-start justify-between gap-4 py-3">
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-foreground">Auto-opret varer</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">Opret automatisk vare-nr i regnskabsprogrammet for hver service.</p>
               </div>
               <Switch checked={settings.auto_create_products !== false}
                 onCheckedChange={v => setSettings({ ...settings, auto_create_products: v })} />
             </div>
-            <Separator />
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label>Standard betalingsfrist (dage)</Label>
-                <Input type="number" value={settings.default_payment_terms_days ?? 14}
+            <div className="grid gap-4 py-3 sm:grid-cols-2 sm:gap-3 last:pb-0">
+              <div>
+                <FieldLabel>Standard betalingsfrist (dage)</FieldLabel>
+                <Input type="number" min={0} value={settings.default_payment_terms_days ?? 14}
                   onChange={e => setSettings({ ...settings, default_payment_terms_days: Number(e.target.value) || 0 })} />
               </div>
-              <div className="space-y-1.5">
-                <Label>Standard moms-sats (%)</Label>
-                <Input type="number" value={settings.default_vat_rate ?? 25}
+              <div>
+                <FieldLabel>Standard moms-sats (%)</FieldLabel>
+                <Input type="number" min={0} max={100} value={settings.default_vat_rate ?? 25}
                   onChange={e => setSettings({ ...settings, default_vat_rate: Number(e.target.value) || 0 })} />
               </div>
             </div>
-            <div className="flex justify-end">
-              <Button onClick={handleSave} disabled={saving} size="sm">
-                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Gem indstillinger
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </SectionCard>
 
-        {/* Logs */}
-        {logs.length > 0 && (
-          <Card>
-            <CardHeader><CardTitle className="text-base">Seneste synkronisering</CardTitle></CardHeader>
-            <CardContent>
-              <div className="space-y-1.5 text-sm">
-                {logs.map(l => (
-                  <div key={l.id} className="flex items-start gap-2 border-b border-border/50 py-1.5 last:border-0">
-                    <Badge variant={l.status === "success" ? "secondary" : l.status === "error" ? "destructive" : "outline"} className="shrink-0 capitalize">{l.status}</Badge>
-                    <span className="text-muted-foreground">{new Date(l.created_at).toLocaleString("da-DK")}</span>
-                    <span className="capitalize">{l.direction} {l.entity_type}</span>
-                    {l.message && <span className="truncate text-muted-foreground">— {l.message}</span>}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        {/* Log */}
+        {logs.length > 0 ? (
+          <SectionCard
+            title="Seneste synkronisering"
+            icon={<RefreshCw />}
+            description="De sidste 15 hændelser. Bruges hvis noget driller."
+          >
+            <div className="divide-y divide-border text-sm">
+              {logs.map(l => (
+                <div key={l.id} className="flex flex-wrap items-center gap-2 py-2 first:pt-0 last:pb-0">
+                  <Badge
+                    variant={l.status === "success" ? "secondary" : l.status === "error" ? "destructive" : "outline"}
+                    className="shrink-0 capitalize"
+                  >
+                    {l.status === "success" ? "Ok" : l.status === "error" ? "Fejl" : l.status}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {new Date(l.created_at).toLocaleString("da-DK")}
+                  </span>
+                  <span className="text-foreground capitalize">{l.direction} · {l.entity_type}</span>
+                  {l.message && (
+                    <span className="min-w-0 flex-1 truncate text-muted-foreground" title={l.message}>
+                      {l.message}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+        ) : (
+          <SectionCard
+            title="Seneste synkronisering"
+            icon={<RefreshCw />}
+          >
+            <p className="text-sm text-muted-foreground">
+              Ingen synkroniseringer endnu. Tryk på "Synk nu" øverst for at starte den første kørsel.
+            </p>
+          </SectionCard>
         )}
       </div>
     );
   }
 
-  // ===== WIZARD =====
+  /* ============================================================
+   * WIZARD
+   * ============================================================ */
+  const stepsMeta = [
+    { n: 1, label: "Vælg program", icon: Plug },
+    { n: 2, label: "Forbind", icon: ShieldCheck },
+    { n: 3, label: "Indstillinger", icon: Settings2 },
+  ] as const;
+
   return (
     <div className="space-y-6">
       <PageHeader
         title={integration?.is_active ? "Skift regnskabsprogram" : "Forbind regnskabsprogram"}
-        description="Vi guider dig igennem i 3 enkle trin."
+        description="Vi guider dig igennem på 3 trin — det tager typisk under 2 minutter."
+        action={
+          <Button variant="ghost" size="sm" onClick={() => setMode("overview")}>
+            <X className="mr-1.5 h-4 w-4" /> Annullér
+          </Button>
+        }
       />
 
       {/* Stepper */}
-      <div className="flex items-center gap-2">
-        {[
-          { n: 1, label: "Vælg program", icon: Plug },
-          { n: 2, label: "Test forbindelse", icon: ShieldCheck },
-          { n: 3, label: "Indstillinger", icon: Settings2 },
-        ].map((s, idx) => {
-          const active = step === s.n;
-          const done = step > s.n;
-          const Icon = s.icon;
-          return (
-            <div key={s.n} className="flex flex-1 items-center gap-2">
-              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border ${
-                done ? "bg-foreground text-background border-foreground"
-                : active ? "border-foreground" : "border-border text-muted-foreground"
-              }`}>
-                {done ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+      <SectionCard className="bg-secondary/30">
+        <div className="flex items-center gap-2">
+          {stepsMeta.map((s, idx) => {
+            const active = step === s.n;
+            const done = step > s.n;
+            const Icon = s.icon;
+            return (
+              <div key={s.n} className="flex flex-1 items-center gap-2">
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors ${
+                  done ? "bg-foreground text-background border-foreground"
+                  : active ? "border-foreground bg-background text-foreground"
+                  : "border-border bg-background text-muted-foreground"
+                }`}>
+                  {done ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                </div>
+                <div className={`hidden text-sm sm:block ${active ? "font-medium text-foreground" : "text-muted-foreground"}`}>
+                  Trin {s.n} · {s.label}
+                </div>
+                {idx < stepsMeta.length - 1 && (
+                  <div className={`mx-1 h-px flex-1 ${done ? "bg-foreground" : "bg-border"}`} />
+                )}
               </div>
-              <div className={`text-sm ${active ? "font-medium" : "text-muted-foreground"} hidden sm:block`}>{s.label}</div>
-              {idx < 2 && <div className={`mx-2 h-px flex-1 ${done ? "bg-foreground" : "bg-border"}`} />}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Step 1: choose */}
-      {step === 1 && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {PROVIDERS.map(p => (
-            <button
-              key={p.value}
-              type="button"
-              onClick={() => { setProvider(p.value); setCreds({}); setTestResult(null); }}
-              className={`flex flex-col rounded-2xl border p-5 text-left transition ${
-                provider === p.value
-                  ? "border-foreground bg-secondary/40 ring-2 ring-foreground/10"
-                  : "border-border hover:border-foreground/50 hover:bg-secondary/20"
-              }`}
-            >
-              <div className="flex items-center justify-center rounded-xl bg-background p-4">
-                <img src={p.logo} alt={p.label} className="h-10 w-auto" />
-              </div>
-              <div className="mt-4 flex items-center justify-between">
-                <div className="font-semibold">{p.label}</div>
-                {provider === p.value && <Check className="h-4 w-4" />}
-              </div>
-              <div className="text-xs text-muted-foreground">{p.tagline}</div>
-              <p className="mt-2 text-sm text-muted-foreground">{p.description}</p>
-            </button>
-          ))}
+            );
+          })}
         </div>
+      </SectionCard>
+
+      {/* TRIN 1 */}
+      {step === 1 && (
+        <SectionCard
+          title="Vælg dit regnskabsprogram"
+          icon={<Sparkles />}
+          description="Du kan altid skifte program senere — alt forbliver gemt i Serviceydere."
+        >
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {PROVIDERS.map(p => {
+              const selected = provider === p.value;
+              return (
+                <button
+                  key={p.value}
+                  type="button"
+                  onClick={() => { setProvider(p.value); setCreds({}); setTestResult(null); }}
+                  className={`group flex flex-col rounded-xl border p-4 text-left transition-colors ${
+                    selected
+                      ? "border-foreground bg-secondary/40 ring-2 ring-foreground/10"
+                      : "border-border bg-card hover:border-foreground/30 hover:bg-secondary/20"
+                  }`}
+                >
+                  <div className="flex h-16 items-center justify-center rounded-lg bg-background px-4">
+                    <img src={p.logo} alt={p.label} className="h-9 w-auto object-contain" />
+                  </div>
+                  <div className="mt-3 flex items-center justify-between gap-2">
+                    <div className="font-semibold text-foreground">{p.label}</div>
+                    {selected && (
+                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-background">
+                        <Check className="h-3 w-3" />
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{p.tagline}</div>
+                  <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{p.description}</p>
+                </button>
+              );
+            })}
+          </div>
+        </SectionCard>
       )}
 
-      {/* Step 2: connect + test */}
+      {/* TRIN 2 */}
       {step === 2 && (
-        <div className="grid gap-6 lg:grid-cols-[1fr,1.4fr]">
-          {/* Setup guide */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <img src={currentProvider.logo} alt={currentProvider.label} className="h-8 w-auto" />
-                <div>
-                  <CardTitle className="text-base">Sådan kommer du i gang</CardTitle>
-                  <p className="text-xs text-muted-foreground">Følg trinene for {currentProvider.label}.</p>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ol className="space-y-3 text-sm">
-                {currentProvider.setupSteps.map((s, i) => (
-                  <li key={i} className="flex gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold">{i + 1}</span>
-                    <span className="text-muted-foreground">{s}</span>
-                  </li>
-                ))}
-              </ol>
-              <a href={currentProvider.helpUrl} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm font-medium text-foreground underline-offset-4 hover:underline">
-                {currentProvider.helpUrlLabel} <ExternalLink className="h-3.5 w-3.5" />
-              </a>
-            </CardContent>
-          </Card>
+        <div className="grid gap-4 lg:grid-cols-[1fr,1.4fr]">
+          <SectionCard
+            title="Sådan finder du dine nøgler"
+            icon={<img src={currentProvider.logo} alt="" className="h-4 w-auto" />}
+            description={`Trin-for-trin guide til ${currentProvider.label}.`}
+          >
+            <ol className="space-y-3 text-sm">
+              {currentProvider.setupSteps.map((s, i) => (
+                <li key={i} className="flex gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">{i + 1}</span>
+                  <span className="text-muted-foreground pt-0.5">{s}</span>
+                </li>
+              ))}
+            </ol>
+            <a
+              href={currentProvider.helpUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              {currentProvider.helpUrlLabel} <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          </SectionCard>
 
-          {/* Credentials */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">API-oplysninger</CardTitle>
-              <p className="text-xs text-muted-foreground">Dine nøgler gemmes krypteret og bruges kun til synk.</p>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <SectionCard
+            title="API-oplysninger"
+            icon={<ShieldCheck />}
+            description="Dine nøgler gemmes krypteret og bruges kun til synkronisering."
+          >
+            <div className="space-y-4">
               {currentProvider.fields.map(f => {
                 const isPwd = f.type === "password";
                 const reveal = !!showSecret[f.key];
                 return (
-                  <div key={f.key} className="space-y-1.5">
-                    <Label>{f.label}</Label>
+                  <div key={f.key}>
+                    <FieldLabel>{f.label}</FieldLabel>
                     <div className="relative">
                       <Input
                         type={isPwd && !reveal ? "password" : "text"}
@@ -559,111 +686,121 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                         className={isPwd ? "pr-10" : undefined}
                       />
                       {isPwd && (
-                        <button type="button"
+                        <button
+                          type="button"
                           onClick={() => setShowSecret(s => ({ ...s, [f.key]: !s[f.key] }))}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:bg-secondary hover:text-foreground"
-                          aria-label={reveal ? "Skjul" : "Vis"}>
+                          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                          aria-label={reveal ? "Skjul" : "Vis"}
+                        >
                           {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       )}
                     </div>
-                    {f.help && <p className="text-xs text-muted-foreground">{f.help}</p>}
+                    {f.help && <p className="mt-1.5 text-xs text-muted-foreground">{f.help}</p>}
                   </div>
                 );
               })}
 
-              {/* Test result */}
               {testResult && (
                 <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
                   testResult.ok
                     ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
                     : "border-destructive/30 bg-destructive/10 text-destructive"
                 }`}>
-                  {testResult.ok ? <Check className="mt-0.5 h-4 w-4" /> : <AlertCircle className="mt-0.5 h-4 w-4" />}
-                  <div>
-                    <div className="font-medium">{testResult.ok ? "Forbindelsen virker" : "Forbindelsen fejlede"}</div>
-                    {testResult.message && <div className="opacity-90">{testResult.message}</div>}
+                  {testResult.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
+                  <div className="min-w-0">
+                    <div className="font-medium">{testResult.ok ? "Forbindelsen virker — du er klar!" : "Forbindelsen fejlede"}</div>
+                    {testResult.message && <div className="opacity-90 break-words">{testResult.message}</div>}
                   </div>
                 </div>
               )}
 
-              <div className="flex justify-end">
-                <Button variant="outline" onClick={handleTest} disabled={testing || !credsValid}>
-                  {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-                  <span className="ml-2">Test forbindelse</span>
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs text-muted-foreground">
+                  {credsValid ? "Klik 'Test forbindelse' for at tjekke at alt virker." : "Udfyld alle felter for at fortsætte."}
+                </p>
+                <Button
+                  variant={testResult?.ok ? "outline" : "default"}
+                  onClick={handleTest}
+                  disabled={testing || !credsValid}
+                >
+                  {testing
+                    ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    : testResult?.ok ? <RefreshCw className="mr-2 h-4 w-4" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
+                  {testResult?.ok ? "Test igen" : "Test forbindelse"}
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </SectionCard>
         </div>
       )}
 
-      {/* Step 3: settings */}
+      {/* TRIN 3 */}
       {step === 3 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Synk-indstillinger</CardTitle>
-            <p className="text-xs text-muted-foreground">Du kan altid ændre disse senere.</p>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <div className="text-sm font-medium">Send afventende aftaler</div>
-                <p className="text-xs text-muted-foreground">Hvis fra: kun bekræftede/færdige aftaler sendes.</p>
+        <SectionCard
+          title="Synk-indstillinger"
+          icon={<Settings2 />}
+          description="Standardværdier der bruges når vi sender aftaler. Du kan altid ændre dem senere."
+        >
+          <div className="divide-y divide-border">
+            <div className="flex items-start justify-between gap-4 py-3 first:pt-0">
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-foreground">Send afventende aftaler</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">Hvis fra: kun bekræftede og færdige aftaler sendes.</p>
               </div>
               <Switch checked={settings.push_pending !== false}
                 onCheckedChange={v => setSettings({ ...settings, push_pending: v })} />
             </div>
-            <Separator />
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <div className="text-sm font-medium">Auto-opret varer</div>
-                <p className="text-xs text-muted-foreground">Opret automatisk vare-nr for hver service.</p>
+            <div className="flex items-start justify-between gap-4 py-3">
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-foreground">Auto-opret varer</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">Opret automatisk vare-nr i regnskabsprogrammet for hver service.</p>
               </div>
               <Switch checked={settings.auto_create_products !== false}
                 onCheckedChange={v => setSettings({ ...settings, auto_create_products: v })} />
             </div>
-            <Separator />
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label>Standard betalingsfrist (dage)</Label>
-                <Input type="number" value={settings.default_payment_terms_days ?? 14}
+            <div className="grid gap-4 py-3 sm:grid-cols-2 sm:gap-3 last:pb-0">
+              <div>
+                <FieldLabel>Standard betalingsfrist (dage)</FieldLabel>
+                <Input type="number" min={0} value={settings.default_payment_terms_days ?? 14}
                   onChange={e => setSettings({ ...settings, default_payment_terms_days: Number(e.target.value) || 0 })} />
               </div>
-              <div className="space-y-1.5">
-                <Label>Standard moms-sats (%)</Label>
-                <Input type="number" value={settings.default_vat_rate ?? 25}
+              <div>
+                <FieldLabel>Standard moms-sats (%)</FieldLabel>
+                <Input type="number" min={0} max={100} value={settings.default_vat_rate ?? 25}
                   onChange={e => setSettings({ ...settings, default_vat_rate: Number(e.target.value) || 0 })} />
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </SectionCard>
       )}
 
-      {/* Footer nav */}
+      {/* Footer-navigation */}
       <div className="flex items-center justify-between gap-2 pt-2">
-        <Button variant="ghost" onClick={() => {
-          if (step === 1) setMode("overview");
-          else setStep((step - 1) as 1 | 2 | 3);
-        }}>
+        <Button
+          variant="ghost"
+          onClick={() => {
+            if (step === 1) setMode("overview");
+            else setStep((step - 1) as 1 | 2 | 3);
+          }}
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {step === 1 ? "Annullér" : "Tilbage"}
+          {step === 1 ? "Tilbage til oversigt" : "Forrige"}
         </Button>
 
         {step < 3 ? (
-          <Button
+          <PrimaryButton
             onClick={() => setStep((step + 1) as 1 | 2 | 3)}
-            disabled={(step === 2 && (!testResult?.ok))}
+            disabled={step === 2 && !testResult?.ok}
             title={step === 2 && !testResult?.ok ? "Test forbindelsen først" : undefined}
           >
             {step === 2 && !testResult?.ok ? "Test forbindelsen først" : "Næste"}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+            <ArrowRight className="ml-1.5 h-4 w-4" />
+          </PrimaryButton>
         ) : (
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ListChecks className="mr-2 h-4 w-4" />}
-            Aktiver integration
-          </Button>
+          <PrimaryButton onClick={handleSave} disabled={saving} icon={saving ? <Loader2 className="animate-spin" /> : <Check />}>
+            {saving ? "Aktiverer…" : "Aktiver integration"}
+          </PrimaryButton>
         )}
       </div>
     </div>
