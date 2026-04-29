@@ -8,7 +8,7 @@ import {
   Send, Loader2, Search, User, Mail, Inbox, Archive,
   Paperclip, Image as ImageIcon, X as XIcon, Volume2, VolumeX, CheckCheck,
   Clock, Zap, Calendar as CalendarIcon, BookText, Plus, Trash2, Pencil, UserPlus,
-  Eye, X, ArrowLeft,
+  Eye, X, ArrowLeft, ArrowDown,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { da } from "date-fns/locale";
@@ -106,6 +106,12 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const initialMessagesLoad = useRef(true);
   const userScrolledUpRef = useRef(false);
+  // Vises som flydende "Hop til seneste"-knap når brugeren har scrollet
+  // op i samtalen — matcher state'en på userScrolledUpRef.
+  const [showJumpToBottom, setShowJumpToBottom] = useState(false);
+  // Tæller af nye beskeder modtaget mens brugeren har scrollet væk fra
+  // bunden, så de kan se hvor mange de er bag.
+  const [unseenCount, setUnseenCount] = useState(0);
   // Når brugeren skifter samtale skal vi PÅ NÆSTE render af messages
   // tvinge scroll til bunden — uanset om det er den første eller en
   // efterfølgende load. Sættes i activeId-effekten, ryddes når vi har
@@ -237,15 +243,47 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
 
   useEffect(() => {
     userScrolledUpRef.current = false;
+    setShowJumpToBottom(false);
+    setUnseenCount(0);
     const el = scrollRef.current;
     if (!el) return;
     const onScroll = () => {
       const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-      userScrolledUpRef.current = distanceFromBottom > 80;
+      const isUp = distanceFromBottom > 80;
+      userScrolledUpRef.current = isUp;
+      setShowJumpToBottom(isUp);
+      if (!isUp) setUnseenCount(0);
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
   }, [activeId]);
+
+  // Når brugeren er scrollet op og en ny besked kommer ind, øg
+  // unseen-tæller (initial-load tæller ikke med).
+  const lastMessageIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const last = messages[messages.length - 1];
+    const lastId = last?.id || null;
+    if (initialMessagesLoad.current) {
+      lastMessageIdRef.current = lastId;
+      return;
+    }
+    if (lastId && lastId !== lastMessageIdRef.current) {
+      lastMessageIdRef.current = lastId;
+      if (userScrolledUpRef.current) {
+        setUnseenCount((c) => c + 1);
+      }
+    }
+  }, [messages]);
+
+  const jumpToBottom = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    userScrolledUpRef.current = false;
+    setShowJumpToBottom(false);
+    setUnseenCount(0);
+  }, []);
 
   useEffect(() => {
     const el = textareaRef.current;
