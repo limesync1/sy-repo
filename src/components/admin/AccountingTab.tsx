@@ -330,6 +330,34 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [businessId]);
 
+  const loadGroups = async () => {
+    if (!integration) return;
+    setGroupsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-list-groups", {
+        body: { business_id: businessId },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      setGroups({
+        customer_groups: (data as any)?.customer_groups ?? [],
+        product_groups: (data as any)?.product_groups ?? [],
+        income_accounts: (data as any)?.income_accounts ?? [],
+      });
+    } catch (e: any) {
+      // Stille fejl — feltet falder bare tilbage til "tom liste"
+      console.warn("Kunne ikke hente kategorier fra regnskabsprogram:", e?.message);
+    } finally {
+      setGroupsLoading(false);
+    }
+  };
+
+  // Hent grupper én gang når integrationen er aktiv (eller skifter udbyder)
+  useEffect(() => {
+    if (integration?.is_active) loadGroups();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [integration?.is_active, integration?.provider]);
+
   const startWizard = (preselect?: Provider) => {
     if (preselect) setProvider(preselect);
     setStep(1);
