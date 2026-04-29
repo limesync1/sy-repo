@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
+import AddressAutocomplete from "@/components/admin/AddressAutocomplete";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -939,25 +940,31 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
               <div data-tour="field-address">
                 <FieldLabel>Adresse</FieldLabel>
-                <Input placeholder="Vejnavn 123" value={address} onChange={(e) => setAddress(e.target.value)} className="bg-card h-10 rounded-lg" />
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div data-tour="field-zip">
-                  <FieldLabel>Postnummer</FieldLabel>
-                  <div className="relative">
-                    <Input placeholder="2100" value={zipCode} onChange={(e) => handleZipChange(e.target.value)} className="bg-card h-10 rounded-lg" maxLength={4} />
-                    {zipLoading && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted-foreground/20 border-t-accent" />
-                      </div>
-                    )}
+                <AddressAutocomplete
+                  value={address}
+                  onChange={setAddress}
+                  onSelect={(r) => {
+                    setAddress(r.address);
+                    if (r.zipCode) setZipCode(r.zipCode);
+                    if (r.city) setCity(r.city);
+                  }}
+                />
+                {(zipCode || city) && (
+                  <div className="mt-2 flex items-center gap-2 rounded-lg border border-border bg-secondary/40 px-3 py-2 text-xs text-muted-foreground">
+                    <span className="font-medium text-foreground tabular-nums">
+                      {zipCode || "—"}
+                    </span>
+                    <span>·</span>
+                    <span className="text-foreground">{city || "—"}</span>
+                    <button
+                      type="button"
+                      onClick={() => { setZipCode(""); setCity(""); }}
+                      className="ml-auto text-[11px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                    >
+                      Ryd
+                    </button>
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">By udfyldes automatisk</p>
-                </div>
-                <div data-tour="field-city">
-                  <FieldLabel>By</FieldLabel>
-                  <Input placeholder="København" value={city} onChange={(e) => setCity(e.target.value)} className="bg-card h-10 rounded-lg" />
-                </div>
+                )}
               </div>
             </div>
           </SectionCard>

@@ -3,6 +3,8 @@ import {
   useEmployees, useCreateEmployee,
   useUpdateEmployee, useDeleteEmployee, useResetEmployeePassword,
 } from "@/hooks/useEmployees";
+import { useEmployeeEarnings } from "@/hooks/useEmployeeEarnings";
+import { formatKr } from "@/lib/commission";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,10 +12,15 @@ import { toast } from "sonner";
 import {
   Mail, Phone, Briefcase, UserPlus, X,
   Trash2, Power, PowerOff, Pencil, KeyRound, Users, Percent, MessageCircle,
+  Wallet, TrendingUp,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
 import { cn } from "@/lib/utils";
+import {
+  startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear,
+  subMonths, format,
+} from "date-fns";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
@@ -44,6 +51,28 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const [commissionPct, setCommissionPct] = useState<string>("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "linked" | "pending">("all");
+
+  // Indtjenings-periode (i dag, denne uge, denne måned, seneste 6 mdr, YTD, alt)
+  type RangeKey = "today" | "week" | "month" | "6m" | "ytd" | "all";
+  const [earnRange, setEarnRange] = useState<RangeKey>("month");
+  const { from, to } = useMemo(() => {
+    const t = new Date();
+    const fmt = (d: Date) => format(d, "yyyy-MM-dd");
+    switch (earnRange) {
+      case "today":  return { from: fmt(t), to: fmt(t) };
+      case "week":   return { from: fmt(startOfWeek(t, { weekStartsOn: 1 })), to: fmt(endOfWeek(t, { weekStartsOn: 1 })) };
+      case "month":  return { from: fmt(startOfMonth(t)), to: fmt(endOfMonth(t)) };
+      case "6m":     return { from: fmt(subMonths(t, 6)), to: fmt(t) };
+      case "ytd":    return { from: fmt(startOfYear(t)), to: fmt(endOfYear(t)) };
+      case "all":
+      default:       return { from: "2000-01-01", to: fmt(t) };
+    }
+  }, [earnRange]);
+  const RANGE_LABELS: Record<RangeKey, string> = {
+    today: "I dag", week: "Denne uge", month: "Denne måned",
+    "6m": "Seneste 6 mdr", ytd: "I år", all: "I alt",
+  };
+  const { data: earningsMap } = useEmployeeEarnings(businessId, from, to);
 
   const resetForm = () => {
     setName(""); setEmail(""); setPhone(""); setTitle(""); setCommissionPct("");
@@ -153,11 +182,18 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
           </Card>
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
             <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Konto aktiveret</p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{linkedCount}</p>
-              {pendingCount > 0 && (
-                <p className="mt-0.5 text-[11px] text-muted-foreground">{pendingCount} afventer login</p>
-              )}
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Udbetalt provision · {RANGE_LABELS[earnRange]}
+              </p>
+              <p className="mt-1 flex items-center gap-1.5 text-2xl font-semibold tabular-nums text-foreground">
+                <Wallet className="h-5 w-5 text-muted-foreground" />
+                {formatKr(
+                  earningsMap
+                    ? Array.from(earningsMap.values()).reduce((s, e) => s + e.earnings, 0)
+                    : 0,
+                )}
+              </p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">Beregnet ekskl. moms</p>
             </CardContent>
           </Card>
         </div>
@@ -180,6 +216,30 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
             >
               {label}
               {count > 0 && <span className="ml-1.5 tabular-nums">{count}</span>}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Periode-vælger til indtjening */}
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card/60 px-3 py-2.5">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          <TrendingUp className="h-3.5 w-3.5" />
+          Vis indtjening for:
+        </div>
+        <div className="flex flex-wrap gap-1">
+          {(Object.keys(RANGE_LABELS) as RangeKey[]).map((k) => (
+            <button
+              key={k}
+              onClick={() => setEarnRange(k)}
+              className={cn(
+                "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                earnRange === k
+                  ? "bg-foreground text-background shadow-sm"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+              )}
+            >
+              {RANGE_LABELS[k]}
             </button>
           ))}
         </div>
@@ -307,7 +367,8 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 </div>
                 {/* Kolonne-titler — matcher bredder i hver række */}
                 <div className="hidden sm:flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  <span className="w-28 text-right">Kontostatus</span>
+                  <span className="w-24 text-right">Status</span>
+                  <span className="w-32 text-right">Indtjening</span>
                   <span className="w-[136px] text-right pr-2">Handlinger</span>
                 </div>
               </div>
@@ -319,6 +380,8 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                     businessId={businessId}
                     onUpdate={update}
                     onRemove={remove}
+                    earning={earningsMap?.get(emp.id) ?? null}
+                    rangeLabel={RANGE_LABELS[earnRange]}
                   />
                 ))}
               </div>
@@ -335,7 +398,8 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   </p>
                 </div>
                 <div className="hidden sm:flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  <span className="w-28 text-right">Kontostatus</span>
+                  <span className="w-24 text-right">Status</span>
+                  <span className="w-32 text-right">Indtjening</span>
                   <span className="w-[136px] text-right pr-2">Handlinger</span>
                 </div>
               </div>
@@ -347,6 +411,8 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                     businessId={businessId}
                     onUpdate={update}
                     onRemove={remove}
+                    earning={earningsMap?.get(emp.id) ?? null}
+                    rangeLabel={RANGE_LABELS[earnRange]}
                   />
                 ))}
               </div>
@@ -359,12 +425,14 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 };
 
 const EmployeeRow = ({
-  employee, businessId, onUpdate, onRemove,
+  employee, businessId, onUpdate, onRemove, earning, rangeLabel,
 }: {
   employee: any;
   businessId: string;
   onUpdate: ReturnType<typeof useUpdateEmployee>;
   onRemove: ReturnType<typeof useDeleteEmployee>;
+  earning: { earnings: number; stopsCompleted: number; revenue: number } | null;
+  rangeLabel: string;
 }) => {
   const linked = !!employee.user_id;
   const [uploading, setUploading] = useState(false);
@@ -437,7 +505,7 @@ const EmployeeRow = ({
     <TooltipProvider delayDuration={200}>
     <div
       className={`group grid w-full gap-3 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5
-                  sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center
+                  sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:items-center
                   ${employee.is_active ? "" : "opacity-60"}`}
     >
         {/* Navn + kontakt + farve-styring (venstre kolonne) */}
@@ -541,13 +609,42 @@ const EmployeeRow = ({
         </div>
 
         {/* Kontostatus — kun "Afventer" vises (når medarbejder ikke har oprettet konto endnu) */}
-        <div className="hidden sm:flex w-28 items-center justify-end">
+        <div className="hidden sm:flex w-24 items-center justify-end">
           {!linked && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
               Afventer
             </span>
           )}
+        </div>
+
+        {/* Indtjening for valgt periode */}
+        <div className="hidden sm:flex w-32 flex-col items-end justify-center text-right">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="cursor-help">
+                <p className="text-sm font-semibold tabular-nums text-foreground">
+                  {formatKr(earning?.earnings ?? 0)}
+                </p>
+                <p className="mt-0.5 text-[10px] text-muted-foreground">
+                  {earning?.stopsCompleted ?? 0} {earning?.stopsCompleted === 1 ? "opgave" : "opgaver"}
+                </p>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <div className="text-xs">
+                <p className="font-medium">Provision · {rangeLabel}</p>
+                <p className="mt-1 text-muted-foreground">
+                  {Number(employee.commission_pct || 0)}% af beløb ekskl. moms.
+                </p>
+                {earning && earning.revenue > 0 && (
+                  <p className="mt-0.5 text-muted-foreground tabular-nums">
+                    Omsætning: {formatKr(earning.revenue)} (inkl. moms)
+                  </p>
+                )}
+              </div>
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         {/* Handlinger — samme stil som kunder-rækken */}

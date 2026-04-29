@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
+import { calcEmployeeShare, exclVat } from "@/lib/commission";
 
 export type Employee = Tables<"employees">;
 
@@ -211,8 +212,8 @@ export const useMyEmployeeStats = (
         });
       }
 
-      const myPctFraction = Number(commissionPct || 0) / 100;
-      // Pr. completed stop: hvor mange deler provisionen + medarbejderens andel.
+      // Provision deles ligeligt mellem medarbejdere på opgaven OG beregnes
+      // KUN af beløb uden moms (jf. lib/commission.ts).
       const shareByStop = new Map<string, number>();
       const commission = completedStops.reduce((sum: number, s: any) => {
         const orderAmount = orderAmountMap.get(s.order_id) || 0;
@@ -220,7 +221,7 @@ export const useMyEmployeeStats = (
         const sharers = explicit > 0
           ? explicit
           : Math.max(teamSizeByRoute.get(s.route_id) || 1, 1);
-        const share = (orderAmount * myPctFraction) / sharers;
+        const share = calcEmployeeShare(orderAmount, commissionPct, sharers);
         shareByStop.set(s.id, share);
         return sum + share;
       }, 0);
