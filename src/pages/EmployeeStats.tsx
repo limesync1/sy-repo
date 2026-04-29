@@ -33,6 +33,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useIsMobile } from "@/hooks/use-mobile";
 import { StopDetailsSheetById } from "@/components/employee/StopDetailsSheetById";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatKr } from "@/lib/commission";
 
 type RangeKey = "today" | "week" | "month" | "year" | "all" | "custom";
 
@@ -85,9 +86,6 @@ const formatHours = (minutes: number) => {
   if (m === 0) return `${h}t`;
   return `${h}t ${m}m`;
 };
-
-const formatKr = (n: number) =>
-  `${Math.round(n).toLocaleString("da-DK")} kr`;
 
 const PAYMENT_LABEL: Record<string, string> = {
   paid: "Betalt",
