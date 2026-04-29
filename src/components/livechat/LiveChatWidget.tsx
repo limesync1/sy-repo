@@ -675,18 +675,27 @@ const LiveChatWidget = () => {
                           <MoreVertical className="h-4 w-4" />
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" sideOffset={8} className="z-[80] w-60 rounded-xl border-border bg-card text-foreground shadow-xl">
+                      <DropdownMenuContent align="end" sideOffset={8} className="z-[80] w-60 rounded-xl border border-border bg-card p-1 text-foreground shadow-xl">
                         {!closed && (
-                          <DropdownMenuItem onSelect={endChatSession} className="cursor-pointer gap-2 text-[13px] focus:bg-secondary/70">
+                          <DropdownMenuItem
+                            onSelect={endChatSession}
+                            className="cursor-pointer gap-2 rounded-md text-[13px] text-foreground focus:bg-secondary focus:text-foreground"
+                          >
                             <XIcon className="h-3.5 w-3.5 text-muted-foreground" />
                             Afslut denne samtale
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem onSelect={startNewConversation} className="cursor-pointer gap-2 text-[13px] focus:bg-secondary/70">
+                        <DropdownMenuItem
+                          onSelect={startNewConversation}
+                          className="cursor-pointer gap-2 rounded-md text-[13px] text-foreground focus:bg-secondary focus:text-foreground"
+                        >
                           <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
                           Start ny samtale
                         </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={deleteCurrentConversation} className="cursor-pointer gap-2 text-[13px] text-destructive focus:bg-destructive/10 focus:text-destructive">
+                        <DropdownMenuItem
+                          onSelect={deleteCurrentConversation}
+                          className="cursor-pointer gap-2 rounded-md text-[13px] text-destructive focus:bg-destructive/10 focus:text-destructive"
+                        >
                           <Trash2 className="h-3.5 w-3.5" />
                           Slet samtale
                         </DropdownMenuItem>

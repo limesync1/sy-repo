@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import {
   Check, ChevronRight, ChevronLeft, Sparkles, X, ArrowRight,
   PartyPopper, Building2, Wrench, Users, Route as RouteIcon,
-  Image as ImageIcon, Rocket, type LucideIcon,
+  Image as ImageIcon, Rocket, Tag, Clock, type LucideIcon,
 } from "lucide-react";
 import {
   useOnboardingProgress, useUpdateOnboardingProgress, useCompleteOnboardingStep,
@@ -62,6 +62,31 @@ const buildSteps = (ctx: Ctx): Step[] => {
       icon: Building2,
       isDone: ({ business }) =>
         !!business?.description?.trim() && !!business?.phone?.trim() && !!business?.address?.trim(),
+    },
+    {
+      id: "categories",
+      title: "Vælg brancher og kategorier",
+      description: "Vælg de brancher og underkategorier I tilbyder, så jeres profil dukker op de rigtige steder.",
+      cta: "Vælg brancher",
+      href: settingsHref,
+      icon: Tag,
+      isDone: ({ business }) => {
+        const cats = (business?.categories as string[]) || (business?.category ? [business.category] : []);
+        return Array.isArray(cats) && cats.length > 0;
+      },
+    },
+    {
+      id: "opening-hours",
+      title: "Tilføj åbningstider",
+      description: "Lad kunder vide hvornår I er åbne — så I ikke mister henvendelser uden for åbningstid.",
+      cta: "Sæt åbningstider",
+      href: settingsHref,
+      icon: Clock,
+      isDone: ({ business }) => {
+        const hrs = business?.opening_hours;
+        if (!hrs || typeof hrs !== "object") return false;
+        return Object.values(hrs).some((v: any) => typeof v === "string" && v.trim().length > 0);
+      },
     },
     {
       id: "branding",
@@ -145,7 +170,11 @@ export const OnboardingHub = ({ business }: { business: any }) => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [services?.length, employees?.length, business?.logo_url, business?.description, business?.phone, business?.address]);
+  }, [
+    services?.length, employees?.length, business?.logo_url,
+    business?.description, business?.phone, business?.address,
+    JSON.stringify(business?.categories), JSON.stringify(business?.opening_hours),
+  ]);
 
   // Markér onboarding som færdig når alle trin er overstået.
   useEffect(() => {
