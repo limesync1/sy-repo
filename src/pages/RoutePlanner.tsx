@@ -108,6 +108,9 @@ const Planner = () => {
 
   // Vejrudsigt — bruger gennemsnit af stop-koordinater i det viste interval,
   // ellers Danmarks centrum. Open-Meteo kan levere op til 16 dage frem.
+  // Vi henter altid maks. forecast (i dag → +15 dage) så vejret allerede er
+  // cached når brugeren bladrer en uge eller måned frem — der er ingen
+  // ekstra omkostning ved at hente flere dage på én gang.
   const weatherCenter = useMemo(() => {
     const coords = calendarStops
       .filter((s) => s.latitude != null && s.longitude != null)
@@ -118,9 +121,20 @@ const Planner = () => {
     return { lat, lng };
   }, [calendarStops]);
 
+  // Bredt vejr-interval: fra MIN(synlig start, i dag) til MAX(synlig slut, i dag+15).
+  // På den måde er forecast altid tilgængelig for både fortid (= ingen data) og
+  // fremtidige måneder/uger uden ekstra refetch ved navigation.
+  const weatherRange = useMemo(() => {
+    const today = todayStr();
+    const farFuture = format(addDays(new Date(), 15), "yyyy-MM-dd");
+    const start = calendarRange.start < today ? today : calendarRange.start;
+    const end = calendarRange.end > farFuture ? farFuture : (calendarRange.end < today ? farFuture : calendarRange.end);
+    return { start, end };
+  }, [calendarRange.start, calendarRange.end]);
+
   const { data: weatherDays = [] } = useWeatherForecast({
-    startDate: calendarRange.start,
-    endDate: calendarRange.end,
+    startDate: weatherRange.start,
+    endDate: weatherRange.end,
     latitude: weatherCenter.lat,
     longitude: weatherCenter.lng,
   });
