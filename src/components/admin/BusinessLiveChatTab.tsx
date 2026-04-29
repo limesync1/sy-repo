@@ -85,6 +85,8 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  // Navnet på afsender — vi bruger ALTID virksomhedens navn, både når
+  // ejeren og en medarbejder svarer, så kunden ser ét konsistent afsendernavn.
   const [adminName, setAdminName] = useState(businessName);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
@@ -111,12 +113,11 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
     return () => window.clearInterval(id);
   }, []);
 
+  // Hold afsendernavnet i sync med virksomhedens navn (i tilfælde af at det
+  // ændres mens fanen er åben). Vi henter IKKE længere brugerens eget navn.
   useEffect(() => {
-    if (!user) return;
-    supabase.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle().then(({ data }) => {
-      if (data?.display_name) setAdminName(data.display_name);
-    });
-  }, [user]);
+    setAdminName(businessName);
+  }, [businessName]);
 
   // Load skabeloner og medarbejdere med livechat-adgang
   useEffect(() => {
