@@ -792,12 +792,6 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
                   muted={!externalNo}
                 />
                 <AccountingChip
-                  icon={<FolderTree className="h-3 w-3" />}
-                  label={accountingMeta!.groupLabel}
-                  value={groupName || "standard"}
-                  muted={!groupName}
-                />
-                <AccountingChip
                   icon={<Calculator className="h-3 w-3" />}
                   label={accountingMeta!.accountLabel}
                   value={accountName || "fra gruppe"}
