@@ -500,33 +500,33 @@ export const LeadDetailDialog = ({ lead, open, onOpenChange, onChange }: Props) 
               </a>
             )}
           </div>
-          {lead.reason && (
-            <div className="mt-3 flex items-start gap-2 rounded-md border border-accent/20 bg-accent/5 p-2.5 text-xs">
-              <Brain className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
-              <p className="text-foreground/80"><span className="font-medium text-foreground">AI-match:</span> {lead.reason}</p>
-            </div>
-          )}
         </div>
 
         <Tabs defaultValue="reply" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="reply" className="gap-1.5"><Brain className="h-3.5 w-3.5" /> AI-svar</TabsTrigger>
+            <TabsTrigger value="reply" className="gap-1.5"><Brain className="h-3.5 w-3.5" /> Svar kunden</TabsTrigger>
             <TabsTrigger value="note" className="gap-1.5"><StickyNote className="h-3.5 w-3.5" /> Note</TabsTrigger>
             <TabsTrigger value="followup" className="gap-1.5"><Bell className="h-3.5 w-3.5" /> Opfølg</TabsTrigger>
           </TabsList>
 
           {/* AI reply tab */}
           <TabsContent value="reply" className="space-y-3">
+            <div className="rounded-lg border border-border bg-secondary/40 p-3 text-xs leading-5 text-muted-foreground">
+              <p className="text-foreground font-semibold mb-1 flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-accent" /> Sådan virker det
+              </p>
+              Vælg en tone, og få automatisk skrevet et personligt svar baseret på kundens forespørgsel. Du kan altid redigere teksten, før du sender den som mail eller kopierer den.
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               <Select value={tone} onValueChange={setTone}>
-                <SelectTrigger className="h-9 w-[220px] text-xs"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-9 w-[220px] text-xs"><SelectValue placeholder="Vælg tone" /></SelectTrigger>
                 <SelectContent>
                   {TONES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Button size="sm" variant="outline" onClick={() => generateDraft(false)} disabled={generating} className="gap-1.5">
                 {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-                {draft ? "Generer på ny" : "Generer udkast"}
+                {draft ? "Skriv nyt forslag" : "Skriv forslag"}
               </Button>
               {lead.ai_draft_generated_at && (
                 <span className="text-[11px] text-muted-foreground">
