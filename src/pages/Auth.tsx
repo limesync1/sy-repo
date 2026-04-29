@@ -360,7 +360,10 @@ const Auth = () => {
                     <div className="mb-2 flex items-center justify-between">
                       <label htmlFor="auth-password" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Adgangskode</label>
                       {!isSignUp && (
-                        <Link to="/log-ind?reset=1" className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:underline">
+                        <Link
+                          to={`/log-ind?reset=1${mode ? `&mode=${mode}` : ""}`}
+                          className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:underline"
+                        >
                           Glemt?
                         </Link>
                       )}
