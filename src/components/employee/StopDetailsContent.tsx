@@ -8,7 +8,7 @@ import { useMemo } from "react";
 import {
   CheckCircle2, Clock, ClipboardList, Loader2, MapPin, MessageSquare,
   Phone, Route as RouteIcon, Wallet, Calendar as CalendarIcon, Users,
-  User as UserIcon, Package,
+  Package,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import { useOrderForStop } from "@/hooks/useRoutes";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { calcEmployeeShare, formatKr as formatKrUtil } from "@/lib/commission";
 import { stripPrices } from "@/lib/employee-display";
-import { SheetHeaderBlock, Section } from "@/components/route-planner/SheetSection";
+import { SheetHeaderBlock, Section, CollapsibleSection } from "@/components/route-planner/SheetSection";
 import { INTERVAL_LABELS } from "@/types/service";
 
 type RouteContext = {
@@ -194,12 +194,10 @@ export const StopDetailsContent = ({
             <Badge variant="outline" className="gap-1 text-[10px] border-feature-cool/40 bg-feature-cool/10 text-feature-cool-foreground">
               <CheckCircle2 className="h-2.5 w-2.5" />Færdig
             </Badge>
-          ) : (
-            <Badge variant="secondary" className="gap-1 text-[10px]">Klar</Badge>
-          )}
+          ) : null}
           {arrivalLabel && (
             <Badge variant="outline" className="gap-1 text-[10px]">
-              <Clock className="h-2.5 w-2.5" />Planlagt {arrivalLabel}
+              <Clock className="h-2.5 w-2.5" />{arrivalLabel}
             </Badge>
           )}
           {stop.duration_minutes > 0 && (
@@ -210,11 +208,6 @@ export const StopDetailsContent = ({
           <Badge variant="outline" className={`gap-1 text-[10px] ${paymentClasses}`}>
             <Wallet className="h-2.5 w-2.5" />{paymentLabel}
           </Badge>
-          {sharers > 1 && (
-            <Badge variant="outline" className="gap-1 text-[10px]">
-              <Users className="h-2.5 w-2.5" />Delt med {sharers - 1} kollega{sharers - 1 === 1 ? "" : "er"}
-            </Badge>
-          )}
         </SheetHeaderBlock>
         {completedLabel && (
           <p className="mt-2 inline-flex items-center gap-1 rounded-md bg-feature-cool/10 px-2 py-0.5 text-[11px] font-medium text-feature-cool-foreground">
@@ -258,32 +251,6 @@ export const StopDetailsContent = ({
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-        {/* Kunde-sektion — adresse + kontakt */}
-        <Section icon={<UserIcon className="h-3.5 w-3.5" />} title="Kunde">
-          <div className="space-y-1.5 text-sm">
-            {fullAddress && (
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${addressForMaps}`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-start gap-2 text-foreground hover:underline underline-offset-2"
-              >
-                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                <span>{fullAddress}</span>
-              </a>
-            )}
-            {stop.customer_phone && (
-              <a
-                href={`tel:${stop.customer_phone}`}
-                className="flex items-center gap-2 text-foreground hover:underline"
-              >
-                <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
-                <span>{stop.customer_phone}</span>
-              </a>
-            )}
-          </div>
-        </Section>
-
         {/* Opgaver */}
         <Section
           icon={<Package className="h-3.5 w-3.5" />}
@@ -341,43 +308,48 @@ export const StopDetailsContent = ({
         </Section>
 
         {customerNote && customerNote.trim() && (
-          <Section icon={<MessageSquare className="h-3.5 w-3.5" />} title="Besked fra kunden">
+          <CollapsibleSection
+            icon={<MessageSquare className="h-3.5 w-3.5" />}
+            title="Besked fra kunden"
+            defaultOpen={false}
+          >
             <div className="rounded-lg border-l-4 border-l-foreground bg-secondary/40 px-3 py-2">
               <p className="text-sm leading-relaxed whitespace-pre-line">{customerNote}</p>
             </div>
-          </Section>
+          </CollapsibleSection>
         )}
 
         {orderTotal > 0 && (
-          <Section icon={<Wallet className="h-3.5 w-3.5" />} title="Beløb">
-            <div className="rounded-lg border bg-card p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Aftalens beløb</span>
-                <span className="text-sm font-semibold tabular-nums text-foreground">
-                  {formatKrUtil(orderTotal)}
-                </span>
+          <CollapsibleSection
+            icon={<Wallet className="h-3.5 w-3.5" />}
+            title="Beløb"
+            hint={myCommissionPct > 0 ? formatKrUtil(myShare) : formatKrUtil(orderTotal)}
+            defaultOpen={false}
+          >
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Aftalens beløb</span>
+                <span className="font-semibold tabular-nums">{formatKrUtil(orderTotal)}</span>
               </div>
               {myCommissionPct > 0 && (
-                <div className="flex items-center justify-between border-t border-border pt-2">
+                <div className="flex items-center justify-between border-t pt-1.5">
                   <span className="text-sm text-muted-foreground">
-                    Min andel
-                    {sharers > 1 && (
-                      <span className="text-[10px] text-muted-foreground/80 ml-1">
-                        (delt med {sharers - 1} kollega{sharers - 1 === 1 ? "" : "er"})
-                      </span>
-                    )}
+                    Min andel{sharers > 1 ? ` (÷${sharers})` : ""}
                   </span>
-                  <span className="text-base font-bold tabular-nums text-foreground">
-                    {formatKrUtil(myShare)}
-                  </span>
+                  <span className="text-base font-bold tabular-nums">{formatKrUtil(myShare)}</span>
                 </div>
               )}
             </div>
-          </Section>
+          </CollapsibleSection>
         )}
 
         {route && (
-          <Section icon={<RouteIcon className="h-3.5 w-3.5" />} title="Rute-info">
+          <CollapsibleSection
+            icon={<RouteIcon className="h-3.5 w-3.5" />}
+            title="Rute-info"
+            hint={route.name || undefined}
+            defaultOpen={false}
+          >
             <div className="flex items-center gap-2.5">
               <span
                 className="h-7 w-7 shrink-0 rounded-md border border-border flex items-center justify-center"
@@ -395,11 +367,21 @@ export const StopDetailsContent = ({
                 )}
               </div>
             </div>
-          </Section>
+            {sharers > 1 && (
+              <p className="mt-2 text-[11px] text-muted-foreground inline-flex items-center gap-1">
+                <Users className="h-3 w-3" /> Delt med {sharers - 1} kollega{sharers - 1 === 1 ? "" : "er"}
+              </p>
+            )}
+          </CollapsibleSection>
         )}
 
         {!readOnly && (
-          <Section icon={<ClipboardList className="h-3.5 w-3.5" />} title="Din note" hint="synlig for virksomheden">
+          <CollapsibleSection
+            icon={<ClipboardList className="h-3.5 w-3.5" />}
+            title="Din note"
+            hint={noteDraft?.trim() ? "udfyldt" : "synlig for virksomheden"}
+            defaultOpen={!!noteDraft?.trim()}
+          >
             <Textarea
               placeholder="Tilføj en note om besøget…"
               value={noteDraft}
@@ -407,15 +389,19 @@ export const StopDetailsContent = ({
               rows={3}
               className="resize-none rounded-md"
             />
-          </Section>
+          </CollapsibleSection>
         )}
 
         {readOnly && stop.notes && stop.notes.trim() && (
-          <Section icon={<ClipboardList className="h-3.5 w-3.5" />} title="Note fra besøget">
+          <CollapsibleSection
+            icon={<ClipboardList className="h-3.5 w-3.5" />}
+            title="Note fra besøget"
+            defaultOpen={false}
+          >
             <div className="rounded-lg border bg-card p-3">
               <p className="text-sm leading-relaxed whitespace-pre-line text-foreground">{stop.notes}</p>
             </div>
-          </Section>
+          </CollapsibleSection>
         )}
       </div>
 

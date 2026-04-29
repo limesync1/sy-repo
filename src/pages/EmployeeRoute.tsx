@@ -1865,56 +1865,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     </div>
                   )}
 
-                  {/* Sekundære handlinger — kompakt, ikon-først */}
-                  <div className="grid grid-cols-3 gap-1.5">
-                    <Button
-                      onClick={() => handleNavigate(nextStop)}
-                      variant="outline"
-                      size="sm"
-                      className="gap-1.5 h-9 rounded-lg text-xs font-semibold border-border hover:bg-secondary hover:border-foreground/20 transition-colors"
-                    >
-                      <Navigation className="h-3.5 w-3.5" /> Maps
-                    </Button>
-                    {nextStop.customer_phone ? (
-                      <Button asChild variant="outline" size="sm" className="gap-1.5 h-9 rounded-lg text-xs font-semibold border-border hover:bg-secondary hover:border-foreground/20 transition-colors">
-                        <a href={`tel:${nextStop.customer_phone}`}>
-                          <Phone className="h-3.5 w-3.5" /> Ring
-                        </a>
-                      </Button>
-                    ) : (
-                      <Button variant="outline" size="sm" disabled className="gap-1.5 h-9 rounded-lg text-xs font-semibold border-border">
-                        <Phone className="h-3.5 w-3.5" /> Ring
-                      </Button>
-                    )}
-                    <Button
-                      onClick={() => setSelectedId(nextStop.id)}
-                      variant="outline"
-                      size="sm"
-                      className="gap-1.5 h-9 rounded-lg text-xs font-semibold border-border hover:bg-secondary hover:border-foreground/20 transition-colors"
-                    >
-                      <Info className="h-3.5 w-3.5" /> Detaljer
-                    </Button>
-                  </div>
-
-                  {/* Primær CTA — neutral foreground (admin-stil) når man kører,
-                      grøn ankomst-indikator når man er fremme.  Ingen pulserende
-                      ring (forvirrende), kun en let glow når fremme. */}
+                  {/* Sekundær handling — kun "Detaljer" (Maps/Ring/Markér udført
+                      ligger allerede i den altid-synlige action-rad ovenfor, så
+                      vi undgår dobbeltvisning og holder kortet kompakt). */}
                   <Button
-                    onClick={() => handleComplete(nextStop)}
-                    size="lg"
-                    className={`w-full gap-2 h-12 min-h-[48px] text-[15px] font-bold rounded-xl transition-all active:scale-[0.99] hover:shadow-xl ${
-                      isAtNextStop
-                        ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/35"
-                        : "bg-foreground text-background hover:bg-foreground/90 shadow-lg"
-                    }`}
-                    disabled={updateStatus.isPending}
+                    onClick={() => setSelectedId(nextStop.id)}
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-1.5 h-10 rounded-lg text-xs font-semibold border-border hover:bg-secondary transition-colors"
                   >
-                    {updateStatus.isPending ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <CheckCircle2 className="h-5 w-5" />
-                    )}
-                    {isAtNextStop ? "Du er fremme — markér udført" : "Markér som udført"}
+                    <Info className="h-3.5 w-3.5" /> Se alle detaljer
                   </Button>
                 </div>
               )}
