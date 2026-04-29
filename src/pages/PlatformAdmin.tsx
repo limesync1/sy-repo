@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 import { AdminFiltersProvider } from "@/components/platform-admin/lib/AdminFiltersContext";
 import RangePicker from "@/components/platform-admin/RangePicker";
 import { PageTransition } from "@/components/admin/shared/PageTransition";
-import { LoadingScreen } from "@/components/admin/shared/LoadingScreen";
 import { PageSkeleton, ShellSkeleton } from "@/components/admin/shared/Skeletons";
 
 // Lazy-load alle tabs så hver fane først downloades når brugeren rent faktisk
