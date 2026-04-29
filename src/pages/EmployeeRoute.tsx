@@ -1611,9 +1611,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 >
                   <Play className="h-5 w-5 fill-current" /> Start dagens rute
                 </Button>
-                <p className="text-[11px] text-muted-foreground text-center mt-2">
-                  Klar til at køre
-                </p>
               </div>
             </Card>
           </div>
@@ -1656,11 +1653,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   {nextStopIdx + 1}
                 </span>
                 <div className="flex-1 text-left min-w-0">
-                  <p className="font-semibold text-sm text-foreground truncate leading-tight">
+                  <p
+                    className="font-semibold text-sm text-foreground truncate leading-tight"
+                    title={nextStop.customer_name || undefined}
+                  >
                     {nextStop.customer_name || "Stop"}
                   </p>
                   {(nextStop.full_address || nextStop.address) ? (
-                    <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
+                    <p
+                      className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5"
+                      title={nextStop.full_address || nextStop.address || undefined}
+                    >
                       <MapPin className="h-3 w-3 shrink-0" />
                       {nextStop.full_address || nextStop.address}
                     </p>
@@ -1694,7 +1697,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   {((nextStop.full_address || nextStop.address) || (nextStop.service_summary && stripPrices(nextStop.service_summary))) && (
                     <div className="rounded-xl bg-secondary/40 border border-border/60 p-3 space-y-1.5">
                       {(nextStop.full_address || nextStop.address) && (
-                        <p className="text-[13px] flex items-start gap-1.5 leading-snug">
+                        <p
+                          className="text-[13px] flex items-start gap-1.5 leading-snug"
+                          title={nextStop.full_address || nextStop.address || undefined}
+                        >
                           <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
                           <span className="font-semibold text-foreground">{nextStop.full_address || nextStop.address}</span>
                         </p>

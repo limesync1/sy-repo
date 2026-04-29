@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown } from "lucide-react";
+import { CloudOff } from "lucide-react";
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   addDays, eachDayOfInterval, getISOWeek, isSameMonth, isToday, isSameDay,
@@ -49,6 +50,8 @@ type Props = {
   loadingRoutes?: boolean;
   /** Vejrudsigten henter stadig — vis lille pulserende pille i højre hjørne. */
   loadingWeather?: boolean;
+  /** Vejr-API fejlede — vis diskret fallback-ikon så brugeren ved at vejret er utilgængeligt. */
+  weatherError?: boolean;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
@@ -56,7 +59,7 @@ const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, weatherByDate,
-  loadingRoutes, loadingWeather,
+  loadingRoutes, loadingWeather, weatherError,
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
@@ -140,6 +143,7 @@ export const MonthWeekCalendar = ({
                     weather={weatherByDate?.get(dateStr) ?? null}
                     loadingRoutes={!!loadingRoutes}
                     loadingWeather={!!loadingWeather}
+                    weatherError={!!weatherError}
                   />
                 );
               })}
@@ -168,12 +172,13 @@ type DayCellProps = {
   weather?: WeatherDay | null;
   loadingRoutes?: boolean;
   loadingWeather?: boolean;
+  weatherError?: boolean;
 };
 
 const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
   onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, weather,
-  loadingRoutes, loadingWeather,
+  loadingRoutes, loadingWeather, weatherError,
 }: DayCellProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `day:${dateStr}`,
@@ -214,6 +219,18 @@ const DayCellInner = ({
           )}
           {!weather && loadingWeather && (
             <Skeleton className={cn("rounded-md", compact ? "h-4 w-8" : "h-5 w-12")} />
+          )}
+          {!weather && !loadingWeather && weatherError && inMonth && (
+            <span
+              className={cn(
+                "inline-flex items-center justify-center rounded-md bg-muted/60 text-muted-foreground ring-1 ring-border/60",
+                compact ? "h-4 w-4" : "h-5 w-5",
+              )}
+              title="Vejrudsigt utilgængelig — prøv igen senere"
+              aria-label="Vejrudsigt utilgængelig"
+            >
+              <CloudOff className={compact ? "h-2.5 w-2.5" : "h-3 w-3"} />
+            </span>
           )}
           <button
             type="button"
@@ -286,7 +303,8 @@ const DayCell = memo(DayCellInner, (prev, next) => {
     prev.draggingType === next.draggingType &&
     prev.optimizingRouteId === next.optimizingRouteId &&
     prev.loadingRoutes === next.loadingRoutes &&
-    prev.loadingWeather === next.loadingWeather
+    prev.loadingWeather === next.loadingWeather &&
+    prev.weatherError === next.weatherError
   );
 });
 
