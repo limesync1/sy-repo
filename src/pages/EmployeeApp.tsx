@@ -27,10 +27,12 @@ import { PageHeader, StatCard } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatKr as formatKrShared } from "@/lib/commission";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
-const formatKr = (n?: number | null) => `${Math.round(n || 0).toLocaleString("da-DK")} kr`;
+// Vis ALTID ører — så medarbejderen ser præcist beløb i hele appen.
+const formatKr = (n?: number | null) => formatKrShared(Number(n) || 0);
 
 const paymentMeta = (status?: string | null) => {
   // Diskrete outline-badges — matcher virksomhedspanelets sprog så
