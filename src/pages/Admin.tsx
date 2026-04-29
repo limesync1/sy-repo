@@ -822,14 +822,6 @@ const AccountingChip = ({ icon, label, value, muted }: { icon: React.ReactNode; 
   </span>
 );
 
-// Hjælpe-export for at undgå unused-warnings hvis fremtidig refactor flytter typer
-export type { AccountingMeta };
-
-const _ServiceRowDeprecated = ({ service, orderCount, onEdit, onDelete }: { service: any; orderCount: number; onEdit: () => void; onDelete: () => void }) => {
-  void service; void orderCount; void onEdit; void onDelete;
-  return null;
-};
-
 /* ─── Calculator Preview ─── */
 const CalculatorPreview = ({ steps }: { steps: any[] }) => {
   const [values, setValues] = useState<Record<number, number>>(() => {
