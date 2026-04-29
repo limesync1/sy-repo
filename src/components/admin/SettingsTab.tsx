@@ -827,7 +827,8 @@ const SettingsTab = ({ business }: { business: any }) => {
         </aside>
 
         <div className="space-y-4">
-      {/* ─── CVR Lookup — fuld bredde, øverst ─── */}
+      {/* ─── CVR Lookup — vises kun når virksomheden mangler adresse/by ─── */}
+      {(!business.address || !business.city || !business.zip_code) && (
       <SectionCard
         title="Automatisk udfyldning fra CVR"
         icon={<Sparkles />}
@@ -868,6 +869,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           </div>
         )}
       </SectionCard>
+      )}
 
       {/* ─── Hovedindhold: 1-kolonne (sidebar håndterer navigation) ─── */}
       <div className="grid gap-4">
