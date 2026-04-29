@@ -393,14 +393,16 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const handleSyncNow = async () => {
     setSyncing(true);
     try {
-      // Hvis der intet er i køen, læg eksisterende data i køen så synk
-      // faktisk har noget at sende.
-      if (queueCount === 0) await seedQueue(businessId);
+      // Edge function auto-seeder køen hvis den er tom, så første synk
+      // faktisk pusher eksisterende kunder/services/ordrer.
       const result = await runFullSync(businessId);
       const pushed = result.pushed ?? 0;
       const pulled = (result.pulledCustomers ?? 0) + (result.pulledProducts ?? 0);
-      if (pushed === 0 && pulled === 0) {
+      const seeded = result.seeded ?? 0;
+      if (pushed === 0 && pulled === 0 && seeded === 0) {
         toast.success("Alt er allerede synkroniseret");
+      } else if (seeded > 0 && pushed < seeded) {
+        toast.success(`Synk startet — ${seeded} elementer lagt i kø, ${pushed} sendt indtil videre. Resten kører i baggrunden.`);
       } else {
         toast.success(`Synkronisering færdig — sendt ${pushed}, hentet ${pulled}`);
       }
@@ -495,6 +497,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     if (r2.error) throw r2.error;
     return {
       pushed: (r1.data as any)?.processed ?? 0,
+      seeded: (r1.data as any)?.seeded ?? 0,
       pulledCustomers: (r2.data as any)?.customers ?? 0,
       pulledProducts: (r2.data as any)?.products ?? 0,
     };
