@@ -26,6 +26,7 @@ import {
 } from "@dnd-kit/core";
 import { INTERVAL_LABELS } from "@/types/service";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
+import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 import { useRoutesForRange, useStopsForRoutes, useAddStop, useCreateRoute, useDeleteRoute } from "@/hooks/useRoutes";
 import { ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
@@ -727,7 +728,7 @@ const AftaleTab = ({
 
   const dndSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Indlæser aftaler...</p>;
+  if (isLoading) return <ListCardSkeleton rows={6} />;
 
   const servicesById = (services || []).reduce<Record<string, BusinessService>>((acc, s) => {
     acc[s.id] = s as BusinessService;
