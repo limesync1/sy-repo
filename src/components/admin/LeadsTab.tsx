@@ -7,10 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Progress } from "@/components/ui/progress";
 import {
-  Sparkles, MapPin, Mail, Phone, Loader2, Inbox, Search, TrendingUp, Trophy, Filter,
-  Flame, Clock, Brain, CheckCircle2, XCircle, Zap, Target, Lightbulb,
+  MapPin, Mail, Phone, Loader2, Inbox, Search, TrendingUp, Trophy, Filter,
+  Clock, XCircle, Target,
   Calendar, StickyNote, Bell, BellRing, MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
