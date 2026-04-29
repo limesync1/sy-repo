@@ -146,14 +146,13 @@ export function makeBillyAdapter(
 
     async listGroups(): Promise<ExternalGroups> {
       const orgId = await getOrgId(creds).catch(() => null);
-      const orgQ = orgId ? `?organizationId=${orgId}` : "";
       const orgQ2 = orgId ? `&organizationId=${orgId}` : "";
-      const [pg, accts] = await Promise.all([
-        billyRequest(creds, `/productGroups${orgQ}`).catch(() => ({ productGroups: [] })),
-        // Billy: hent alle konti og filtrer til indtægts-natur i koden.
-        // (?isIncome=true er ikke et gyldigt filter i v2.)
-        billyRequest(creds, `/accounts?pageSize=1000${orgQ2}`).catch(() => ({ accounts: [] })),
-      ]);
+      // Billy "produktgruppe" og "indtægtskonto" er reelt det samme valg for
+      // brugeren — gruppen styrer bare hvilken konto varen lander på. Vi
+      // viser kun indtægtskontoen for at undgå dobbelt-spørgsmål.
+      const accts = await billyRequest(
+        creds, `/accounts?pageSize=1000${orgQ2}`,
+      ).catch(() => ({ accounts: [] }));
       const incomeAccounts = ((accts?.accounts ?? []) as any[])
         .filter(a => {
           // Billy: natureId === 'revenue' eller 'income'. Fald tilbage til accountNo-range.
@@ -168,20 +167,15 @@ export function makeBillyAdapter(
       return {
         // Billy har ikke kundegrupper — returnér tom liste
         customer_groups: [],
-        product_groups: ((pg?.productGroups ?? []) as any[]).map(g => ({
-          id: g.id,
-          name: g.name,
-          account_number: g.accountId ?? null,
-        })),
+        // Skjult i UI — produktgruppe = indtægtskonto i Billy-flowet.
+        product_groups: [],
         income_accounts: incomeAccounts.map(a => ({
           id: a.id,
           name: a.accountNo ? `${a.accountNo} — ${a.name}` : a.name,
         })),
         labels: {
-          product_groups: "Produktgruppe",
           income_accounts: "Indtægtskonto",
-          product_groups_help: "Bruges når nye produkter oprettes i Billy.",
-          income_accounts_help: "Overstyrer produktgruppens standardkonto for nye produkter.",
+          income_accounts_help: "Den konto nye services lander på i Billy (typisk 1000-serien).",
         },
       };
     },
@@ -223,6 +217,7 @@ export function makeBillyAdapter(
       const orgId = await getOrgId(creds);
       const contact: Record<string, unknown> = {
         organizationId: orgId,
+        type: input.cvr ? "company" : "person",
         name: input.name,
         countryId: "DK",
         isCustomer: true,
@@ -279,13 +274,22 @@ export function makeBillyAdapter(
 
     async upsertProduct(input: UpsertProductInput) {
       const orgId = await getOrgId(creds);
+      // Billy kræver en productGroupId. Hvis brugeren har valgt en
+      // indtægtskonto bruger vi den til at finde/oprette en matchende
+      // produktgruppe så varen lander på den ønskede konto.
+      const accountId = input.account_number
+        ?? settings.default_income_account
+        ?? null;
+      const productGroupId = await ensureBillyProductGroup(
+        creds, orgId, accountId, input.name,
+      );
       const product: Record<string, unknown> = {
         organizationId: orgId,
         name: input.name,
         description: input.description ?? undefined,
-        productNo: `SY-${input.internal_id.slice(0, 8)}`,
-        productGroupId: input.product_group ?? settings.default_product_group ?? undefined,
-        accountId: input.account_number ?? settings.default_income_account ?? undefined,
+        // Sæt kun productNo ved oprettelse — bevar Billys egen nummerering ved opdatering.
+        productNo: input.external_id ? undefined : `SY-${input.internal_id.slice(0, 8)}`,
+        productGroupId: productGroupId ?? undefined,
         prices: [{ unitPrice: input.unit_price, currencyId: "DKK" }],
       };
       if (input.external_id) {
@@ -327,7 +331,8 @@ export function makeBillyAdapter(
         paymentTermsDays: input.payment_terms_days ?? settings.default_payment_terms_days ?? 14,
         paymentTermsMode: "net",
         state: "draft",
-        currencyId: input.currency ?? "DKK",
+        // Standard-valuta i Serviceydere er altid DKK.
+        currencyId: "DKK",
         lines: input.lines.map((l) => ({
           productId: l.product_external_id ?? undefined,
           description: l.description,
