@@ -339,7 +339,7 @@ const EmployeeStats = () => {
                   </div>
                 ) : (
                   <div className="divide-y divide-border">
-                                  {/* placeholder to keep structure, replaced below */}
+                    {s.perDay.map((d) => {
                       const max = Math.max(...s.perDay.map((x) => x.stops), 1);
                       const pct = (d.stops / max) * 100;
                       return (
