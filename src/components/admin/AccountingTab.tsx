@@ -465,28 +465,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     } finally { setSyncing(false); }
   };
 
-  // Læg alle eksisterende kunder/services/ordrer i køen (idempotent — duplicates
-  // i samme batch giver bare lidt ekstra arbejde, ikke fejl).
-  async function seedQueue(bizId: string) {
-    const [{ data: bcs }, { data: pcs }, { data: svcs }, { data: ords }] = await Promise.all([
-      supabase.from("business_customers").select("id").eq("business_id", bizId),
-      supabase.from("private_customers").select("id").eq("business_id", bizId),
-      supabase.from("services").select("id").eq("business_id", bizId),
-      supabase.from("orders").select("id").eq("business_id", bizId).neq("status", "cancelled"),
-    ]);
-    const rows: any[] = [];
-    (bcs ?? []).forEach((r: any) => rows.push({ business_id: bizId, entity_type: "customer", entity_id: r.id, operation: "update" }));
-    (pcs ?? []).forEach((r: any) => rows.push({ business_id: bizId, entity_type: "customer", entity_id: r.id, operation: "update" }));
-    (svcs ?? []).forEach((r: any) => rows.push({ business_id: bizId, entity_type: "product", entity_id: r.id, operation: "update" }));
-    (ords ?? []).forEach((r: any) => rows.push({ business_id: bizId, entity_type: "order", entity_id: r.id, operation: "update" }));
-    if (rows.length > 0) {
-      // Splittes i batches af 200 for at undgå store payloads
-      for (let i = 0; i < rows.length; i += 200) {
-        await supabase.from("accounting_sync_queue" as any).insert(rows.slice(i, i + 200));
-      }
-    }
-  }
-
   async function runFullSync(bizId: string) {
     // Kør push (queue-drain) først så pull ikke overskriver lokale ændringer
     const r1 = await supabase.functions.invoke("accounting-sync", { body: { business_id: bizId, mode: "queue" } });
