@@ -159,7 +159,7 @@ export const TourOverlay = ({ businessId }: { businessId?: string }) => {
     if (!rect) return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
     const margin = 14;
     const tooltipW = 320;
-    const tooltipH = 200; // konservativt skøn — vi clamper alligevel
+    const tooltipH = 240; // konservativt skøn — vi clamper alligevel
     const vh = window.innerHeight;
     const vw = window.innerWidth;
 
