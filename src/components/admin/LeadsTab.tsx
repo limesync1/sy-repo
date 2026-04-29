@@ -237,17 +237,14 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
       <div className="space-y-5">
         <PageHeader
           title="Leads"
-          description={`${allLeads.length} leads i alt${counts.new ? ` · ${counts.new} nye` : ""}${counts.hot ? ` · ${counts.hot} hot` : ""}${counts.dueFollowUps ? ` · ${counts.dueFollowUps} opfølgning${counts.dueFollowUps > 1 ? "er" : ""}` : ""}`}
+          description={`${allLeads.length} leads i alt${counts.new ? ` · ${counts.new} nye` : ""}${counts.dueFollowUps ? ` · ${counts.dueFollowUps} opfølgning${counts.dueFollowUps > 1 ? "er" : ""}` : ""}`}
         />
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-3">
           <StatCard label="Aktive leads" value={counts.active || 0} icon={<Target className="h-4 w-4" />} />
-          <StatCard label="Hot leads" value={counts.hot || 0} sub="AI-prioriteret" icon={<Flame className="h-4 w-4" />} tone={counts.hot > 0 ? "warn" : "default"} />
           <StatCard label="Konvertering" value={`${convStats.conversionRate}%`} sub={`${convStats.contactRate}% kontaktet`} icon={<TrendingUp className="h-4 w-4" />} tone="ok" />
           <StatCard label="Svartid (snit)" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)}m` : `${convStats.avgRespHours.toFixed(1)}t`) : "—"} sub="Hurtigere = flere aftaler" icon={<Clock className="h-4 w-4" />} />
         </div>
-
-        <AIInsightCard leads={enriched} />
 
         {allLeads.length === 0 ? (
           <EmptyState
@@ -271,15 +268,14 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="h-10 w-full rounded-lg sm:w-[200px]">
                   <div className="flex items-center gap-2 text-sm">
-                    <Lightbulb className="h-4 w-4 text-muted-foreground" />
+                    <Filter className="h-4 w-4 text-muted-foreground" />
                     <SelectValue />
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="smart">Smart sortering (AI)</SelectItem>
+                  <SelectItem value="smart">Anbefalet rækkefølge</SelectItem>
                   <SelectItem value="newest">Nyeste først</SelectItem>
                   <SelectItem value="oldest">Ældste først</SelectItem>
-                  <SelectItem value="match">Højeste match</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -337,20 +333,6 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
               })()}
 
               <div className="ml-auto flex flex-wrap items-center gap-2">
-                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                  <SelectTrigger className="h-9 w-[150px] rounded-lg text-xs">
-                    <div className="flex items-center gap-1.5">
-                      <Flame className="h-3.5 w-3.5 text-muted-foreground" />
-                      <SelectValue />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Al prioritet</SelectItem>
-                    <SelectItem value="hot">🔥 Hot</SelectItem>
-                    <SelectItem value="warm">⚡ Warm</SelectItem>
-                    <SelectItem value="cold">🕒 Kold</SelectItem>
-                  </SelectContent>
-                </Select>
                 {allCategories.length > 1 && (
                   <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                     <SelectTrigger className="h-9 w-[180px] rounded-lg text-xs">
