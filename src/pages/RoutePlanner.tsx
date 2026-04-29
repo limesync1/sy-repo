@@ -225,6 +225,14 @@ const Planner = () => {
     [filteredUnassigned],
   );
 
+  /** Periode-overblik vist i toolbaren — giver hurtigt overblik over hvor
+   *  meget arbejde der er planlagt i den viste måned/uge. */
+  const periodSummary = useMemo(() => {
+    const routeCount = calendarRoutesRaw.length;
+    const stopCount = calendarStops.length;
+    return { routeCount, stopCount };
+  }, [calendarRoutesRaw.length, calendarStops.length]);
+
   /* Stop assignment handler */
   /* Build CalendarRoute[] for MonthWeekCalendar (range covers month/week view) */
   const calendarRoutes: CalendarRoute[] = useMemo(() => {
