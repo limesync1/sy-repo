@@ -1697,7 +1697,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   {((nextStop.full_address || nextStop.address) || (nextStop.service_summary && stripPrices(nextStop.service_summary))) && (
                     <div className="rounded-xl bg-secondary/40 border border-border/60 p-3 space-y-1.5">
                       {(nextStop.full_address || nextStop.address) && (
-                        <p className="text-[13px] flex items-start gap-1.5 leading-snug">
+                        <p
+                          className="text-[13px] flex items-start gap-1.5 leading-snug"
+                          title={nextStop.full_address || nextStop.address || undefined}
+                        >
                           <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
                           <span className="font-semibold text-foreground">{nextStop.full_address || nextStop.address}</span>
                         </p>
