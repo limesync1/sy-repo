@@ -67,7 +67,12 @@ const ResetPassword = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-5 py-10">
-      <SEO title="Vælg ny adgangskode – Serviceydere" canonicalPath="/reset-password" noIndex />
+      <SEO
+        title="Vælg ny adgangskode – Serviceydere"
+        description="Vælg en ny adgangskode til din Serviceydere-konto."
+        canonicalPath="/reset-password"
+        noIndex
+      />
       <div className="w-full max-w-[420px]">
         <Link to="/log-ind" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Tilbage til log ind
