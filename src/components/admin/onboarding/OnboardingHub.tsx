@@ -250,9 +250,11 @@ export const OnboardingHub = ({ business }: { business: any }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    services?.length, employees?.length, business?.logo_url,
-    business?.description, business?.phone, business?.address,
+    services?.length, employees?.length,
+    business?.logo_url, business?.cover_image_url, business?.cover_url,
+    business?.description, business?.phone, business?.address, business?.slug,
     JSON.stringify(business?.categories), JSON.stringify(business?.opening_hours),
+    JSON.stringify(business?.settings),
   ]);
 
   // Markér onboarding som færdig når alle trin er overstået.
