@@ -30,6 +30,11 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
 
 type Priority = "hot" | "warm" | "cold";
 
+/**
+ * computePriority — bruges KUN internt til smart sortering. Vi viser ikke
+ * scoren eller "hot/warm/cold" i UI'et længere; det skabte mere forvirring
+ * end værdi for ejeren. Logikken bevares, men holdes usynlig.
+ */
 const computePriority = (l: Lead): { priority: Priority; score: number; signals: string[] } => {
   const signals: string[] = [];
   let score = l.match_score || 50;
@@ -49,78 +54,6 @@ const computePriority = (l: Lead): { priority: Priority; score: number; signals:
   if (score >= 80) priority = "hot";
   else if (score >= 60) priority = "warm";
   return { priority, score, signals };
-};
-
-const PRIORITY_META: Record<Priority, { label: string; icon: React.ReactNode; cls: string }> = {
-  hot:  { label: "Hot lead", icon: <Flame className="h-3 w-3" />, cls: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-900" },
-  warm: { label: "Warm",     icon: <Zap className="h-3 w-3" />,   cls: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900" },
-  cold: { label: "Kold",     icon: <Clock className="h-3 w-3" />, cls: "bg-muted text-muted-foreground border-border" },
-};
-
-/* ─── AI Insight bar ─── */
-const AIInsightCard = ({ leads }: { leads: (Lead & { _p: ReturnType<typeof computePriority> })[] }) => {
-  const insights = useMemo(() => {
-    if (leads.length === 0) return [];
-    const items: { icon: React.ReactNode; text: string; tone: string }[] = [];
-    const dueFollowUps = leads.filter((l) => l.follow_up_at && new Date(l.follow_up_at).getTime() <= Date.now() && l.status !== "won" && l.status !== "declined");
-    const hot = leads.filter((l) => l._p.priority === "hot" && l.status !== "won" && l.status !== "declined");
-    const stale = leads.filter((l) => {
-      const ageH = (Date.now() - new Date(l.created_at).getTime()) / 3600000;
-      return ageH > 24 && l.status === "viewed";
-    });
-    const unread = leads.filter((l) => l.status === "new");
-
-    if (dueFollowUps.length > 0) items.push({
-      icon: <BellRing className="h-4 w-4 text-destructive" />,
-      text: `${dueFollowUps.length} opfølgning${dueFollowUps.length > 1 ? "er" : ""} er forfalden — kontakt nu`,
-      tone: "text-destructive font-medium",
-    });
-    if (hot.length > 0) items.push({
-      icon: <Flame className="h-4 w-4 text-orange-500" />,
-      text: `${hot.length} hot lead${hot.length > 1 ? "s" : ""} — kontakt nu for bedst chance`,
-      tone: "text-orange-700 dark:text-orange-300",
-    });
-    if (unread.length > 0) items.push({
-      icon: <Sparkles className="h-4 w-4 text-accent" />,
-      text: `${unread.length} ulæst${unread.length > 1 ? "e" : ""} forespørgsel — gennemse dem først`,
-      tone: "text-foreground",
-    });
-    if (stale.length > 0) items.push({
-      icon: <Clock className="h-4 w-4 text-amber-500" />,
-      text: `${stale.length} lead${stale.length > 1 ? "s" : ""} er set men ikke kontaktet — følg op`,
-      tone: "text-amber-700 dark:text-amber-300",
-    });
-    if (items.length === 0) items.push({
-      icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
-      text: "Du er ajour med alle leads — godt arbejde!",
-      tone: "text-emerald-700 dark:text-emerald-300",
-    });
-    return items;
-  }, [leads]);
-
-  if (insights.length === 0) return null;
-
-  return (
-    <Card className="surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm">
-      <CardContent className="p-0">
-        <div className="flex items-center gap-2 border-b border-border/80 bg-gradient-to-r from-accent/5 via-transparent to-transparent px-4 py-2.5">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-accent/15 text-accent">
-            <Brain className="h-3.5 w-3.5" />
-          </div>
-          <span className="text-xs font-semibold uppercase tracking-wide text-foreground">AI-anbefalinger</span>
-          <Badge variant="outline" className="ml-auto rounded-md text-[10px] font-medium uppercase">Live</Badge>
-        </div>
-        <ul className="divide-y divide-border/60">
-          {insights.map((it, i) => (
-            <li key={i} className="flex items-center gap-3 px-4 py-2.5 text-sm">
-              <span className="shrink-0">{it.icon}</span>
-              <span className={`flex-1 ${it.tone}`}>{it.text}</span>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
-  );
 };
 
 const StatCard = ({ label, value, sub, icon, tone }: {
