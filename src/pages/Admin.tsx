@@ -1064,7 +1064,7 @@ const ServiceForm = ({
   //   1) Hvis vi har en stærk skabelon-match (score ≥ 5) → anvend lydløst.
   //   2) Hvis match er svagt og navnet er udfyldt → kald AI automatisk.
   // Kører kun én gang pr. ny service-form (resettes når man gemmer/lukker).
-  React.useEffect(() => {
+  useEffect(() => {
     if (existingService) return; // ved redigering: bevar eksisterende trin
     if (pricingType !== "prisberegner") return;
     if (steps.length > 0) return;
