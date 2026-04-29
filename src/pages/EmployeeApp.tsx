@@ -584,9 +584,9 @@ const EmployeeApp = () => {
                                 )}
                               </p>
                               <div className="mt-1 flex min-w-0 flex-wrap items-center gap-1.5">
-                                {s.address && (
+                                {(s.full_address || s.address) && (
                                   <p className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
-                                    {s.address}
+                                    {s.full_address || s.address}
                                   </p>
                                 )}
                                 <Badge variant="outline" className={cn("h-5 shrink-0 px-1.5 text-[10px] font-medium", pay.className)}>
