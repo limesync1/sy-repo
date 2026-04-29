@@ -15,7 +15,7 @@ import { useEffect, useState, lazy, Suspense } from "react";
 import {
   Plus, Trash2,
   Sparkles, Calculator, Wrench, Wand2, Loader2, Check,
-  ArrowUp, ArrowDown, Copy,
+  ArrowUp, ArrowDown, Copy, Tag, FolderTree, Receipt, BookOpen, Repeat,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { supabase } from "@/integrations/supabase/client";
