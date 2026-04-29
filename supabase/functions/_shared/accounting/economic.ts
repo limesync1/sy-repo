@@ -1,0 +1,234 @@
+// E-conomic adapter
+// Docs: https://restdocs.e-conomic.com/
+// Auth: X-AppSecretToken (per-app) + X-AgreementGrantToken (per agreement)
+import type {
+  AccountingAdapter,
+  AccountingCredentials,
+  AccountingSettings,
+  ExternalCustomer,
+  ExternalProduct,
+  UpsertCustomerInput,
+  UpsertOrderInput,
+  UpsertProductInput,
+} from "./types.ts";
+
+const BASE = "https://restapi.e-conomic.com";
+
+function makeHeaders(creds: AccountingCredentials): HeadersInit {
+  return {
+    "X-AppSecretToken": creds.api_secret ?? "",
+    "X-AgreementGrantToken": creds.api_token ?? "",
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  };
+}
+
+async function ecRequest(
+  creds: AccountingCredentials,
+  path: string,
+  init: RequestInit = {},
+): Promise<any> {
+  const res = await fetch(`${BASE}${path}`, {
+    ...init,
+    headers: { ...makeHeaders(creds), ...(init.headers ?? {}) },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`E-conomic ${res.status}: ${text}`);
+  }
+  if (res.status === 204) return null;
+  return await res.json();
+}
+
+export function makeEconomicAdapter(
+  creds: AccountingCredentials,
+  settings: AccountingSettings,
+): AccountingAdapter {
+  return {
+    provider: "economic",
+
+    async testConnection() {
+      try {
+        await ecRequest(creds, "/self");
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, message: e instanceof Error ? e.message : String(e) };
+      }
+    },
+
+    async listCustomers(updatedSince?: Date) {
+      const filter = updatedSince
+        ? `?filter=lastUpdated$gte:${updatedSince.toISOString()}`
+        : "";
+      const data = await ecRequest(creds, `/customers${filter}`);
+      const items = (data?.collection ?? []) as any[];
+      return items.map((c): ExternalCustomer => ({
+        external_id: String(c.customerNumber),
+        external_number: String(c.customerNumber),
+        name: c.name,
+        email: c.email ?? null,
+        phone: c.telephoneAndFaxNumber ?? null,
+        cvr: c.corporateIdentificationNumber ?? null,
+        ean: c.ean ?? null,
+        address: c.address ?? null,
+        zip_code: c.zip ?? null,
+        city: c.city ?? null,
+        payment_terms_days: c.paymentTerms?.daysOfCredit ?? null,
+        currency: c.currency ?? "DKK",
+        raw: c,
+      }));
+    },
+
+    async upsertCustomer(input: UpsertCustomerInput) {
+      const body: Record<string, unknown> = {
+        name: input.name,
+        email: input.email ?? undefined,
+        telephoneAndFaxNumber: input.phone ?? undefined,
+        corporateIdentificationNumber: input.cvr ?? undefined,
+        ean: input.ean ?? undefined,
+        address: input.address ?? undefined,
+        zip: input.zip_code ?? undefined,
+        city: input.city ?? undefined,
+        country: "Danmark",
+        currency: input.currency ?? "DKK",
+        customerGroup: { customerGroupNumber: 1 },
+        paymentTerms: {
+          paymentTermsNumber: 1,
+          daysOfCredit: input.payment_terms_days ?? settings.default_payment_terms_days ?? 14,
+        },
+        vatZone: { vatZoneNumber: 1 },
+      };
+
+      if (input.external_id) {
+        await ecRequest(creds, `/customers/${input.external_id}`, {
+          method: "PUT",
+          body: JSON.stringify(body),
+        });
+        return {
+          external_id: input.external_id,
+          external_number: input.external_id,
+          name: input.name,
+        };
+      } else {
+        const created = await ecRequest(creds, `/customers`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+        return {
+          external_id: String(created.customerNumber),
+          external_number: String(created.customerNumber),
+          name: created.name,
+          raw: created,
+        };
+      }
+    },
+
+    async listProducts(updatedSince?: Date) {
+      const filter = updatedSince
+        ? `?filter=lastUpdated$gte:${updatedSince.toISOString()}`
+        : "";
+      const data = await ecRequest(creds, `/products${filter}`);
+      const items = (data?.collection ?? []) as any[];
+      return items.map((p): ExternalProduct => ({
+        external_id: String(p.productNumber),
+        external_number: String(p.productNumber),
+        name: p.name,
+        unit_price: Number(p.salesPrice ?? 0),
+        vat_rate: null,
+        raw: p,
+      }));
+    },
+
+    async upsertProduct(input: UpsertProductInput) {
+      const productNumber = input.external_id ?? `SY-${input.internal_id.slice(0, 8)}`;
+      const body: Record<string, unknown> = {
+        productNumber,
+        name: input.name,
+        description: input.description ?? undefined,
+        salesPrice: input.unit_price,
+        productGroup: { productGroupNumber: 1 },
+      };
+      if (input.external_id) {
+        await ecRequest(creds, `/products/${input.external_id}`, {
+          method: "PUT",
+          body: JSON.stringify(body),
+        });
+        return {
+          external_id: input.external_id,
+          external_number: input.external_id,
+          name: input.name,
+          unit_price: input.unit_price,
+        };
+      } else {
+        const created = await ecRequest(creds, `/products`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+        return {
+          external_id: String(created.productNumber),
+          external_number: String(created.productNumber),
+          name: created.name,
+          unit_price: Number(created.salesPrice ?? 0),
+          raw: created,
+        };
+      }
+    },
+
+    async upsertOrder(input: UpsertOrderInput) {
+      // E-conomic uses /sales-orders for "ordrer" — fallback to invoice-drafts otherwise.
+      const sendAs = input.external_type ?? settings.send_order_as ?? "order";
+      const path = sendAs === "order" ? "/sales-orders" : "/invoices/drafts";
+      const date = (input.date ?? new Date().toISOString()).slice(0, 10);
+      const body: Record<string, unknown> = {
+        date,
+        currency: input.currency ?? "DKK",
+        paymentTerms: {
+          paymentTermsNumber: 1,
+          daysOfCredit: input.payment_terms_days ?? settings.default_payment_terms_days ?? 14,
+        },
+        customer: { customerNumber: Number(input.customer_external_id) },
+        recipient: { name: "", vatZone: { vatZoneNumber: 1 } },
+        layout: { layoutNumber: 19 },
+        notes: { textLine1: (input.notes ?? "").slice(0, 200) },
+        lines: input.lines.map((l, idx) => ({
+          lineNumber: idx + 1,
+          description: l.description,
+          quantity: l.quantity,
+          unitNetPrice: l.unit_price,
+          product: l.product_external_id
+            ? { productNumber: l.product_external_id }
+            : undefined,
+        })),
+      };
+
+      if (input.external_id) {
+        await ecRequest(creds, `${path}/${input.external_id}`, {
+          method: "PUT",
+          body: JSON.stringify(body),
+        });
+        return {
+          external_id: input.external_id,
+          external_number: input.external_id,
+          external_type: sendAs,
+        };
+      } else {
+        const created = await ecRequest(creds, path, {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+        const num = String(created.orderNumber ?? created.draftInvoiceNumber ?? created.id);
+        return {
+          external_id: num,
+          external_number: num,
+          external_type: sendAs,
+        };
+      }
+    },
+
+    async deleteOrder(externalId: string) {
+      const sendAs = settings.send_order_as ?? "order";
+      const path = sendAs === "order" ? "/sales-orders" : "/invoices/drafts";
+      await ecRequest(creds, `${path}/${externalId}`, { method: "DELETE" });
+    },
+  };
+}

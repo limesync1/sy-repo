@@ -28,6 +28,7 @@ const CustomersTab = lazy(() => import("@/components/admin/CustomersTab"));
 const SettingsTab = lazy(() => import("@/components/admin/SettingsTab"));
 const LeadsTab = lazy(() => import("@/components/admin/LeadsTab"));
 const BusinessLiveChatTab = lazy(() => import("@/components/admin/BusinessLiveChatTab"));
+const AccountingTab = lazy(() => import("@/components/admin/AccountingTab"));
 import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 import OnboardingHub from "@/components/admin/onboarding/OnboardingHub";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
@@ -237,6 +238,7 @@ const AdminDashboard = () => {
       case "reviews": return <ReviewsWrapper businessId={business.id} />;
       case "leads": return <LeadsTab businessId={business.id} />;
       case "livechat": return <BusinessLiveChatTab businessId={business.id} businessName={business.name} />;
+      case "accounting": return <AccountingTab businessId={business.id} businessName={business.name} />;
       case "settings": return <SettingsTab business={business} />;
       default: return null;
     }

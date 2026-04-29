@@ -37,3 +37,9 @@ project_id = "gkectsellkpltrxvusot"
     verify_jwt = false
   [functions.generate-lead-reply]
     verify_jwt = false
+  [functions.accounting-test-connection]
+    verify_jwt = true
+  [functions.accounting-sync]
+    verify_jwt = false
+  [functions.accounting-cron]
+    verify_jwt = false
