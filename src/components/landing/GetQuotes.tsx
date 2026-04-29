@@ -1,6 +1,6 @@
 import { Zap, ShieldCheck, ArrowRight, Quote } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import SmartLink from "@/components/SmartLink";
 
 const GetQuotes = () => {
   const matches = [
@@ -27,12 +27,12 @@ const GetQuotes = () => {
               </p>
 
               <div className="mt-5 flex flex-wrap gap-3">
-                <Link to="/tilbud">
+                <SmartLink to="/tilbud">
                   <Button size="lg" className="h-11 gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground hover:bg-accent/90">
                     Start gratis
                     <ArrowRight className="h-4 w-4" />
                   </Button>
-                </Link>
+                </SmartLink>
                 <div className="inline-flex items-center gap-2 rounded-full bg-background/10 px-4 py-2 text-sm font-medium text-background/85">
                   <Zap className="h-4 w-4 text-accent" />
                   Prioriteret efter relevans
