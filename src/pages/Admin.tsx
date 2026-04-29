@@ -904,10 +904,31 @@ const ServiceForm = ({
     .split(/\s+/)
     .filter((w) => w.length >= 3);
 
-  const scoreTemplate = (t: { label: string; steps: { label: string }[] }) => {
-    if (haystack.length === 0) return 0;
+  // Score: subcategory direct match (+5), keyword overlap (+2 hver), label/step overlap (+1 hver),
+  // beskrivelse overlap (+1 hver). Højere score = bedre match.
+  const descTokens = (description || "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 4)
+    .slice(0, 30);
+  const scoreTemplate = (t: { label: string; steps: { label: string }[]; keywords?: string[]; subcategories?: string[] }) => {
+    let score = 0;
+    // Direkte underkategori-match: stærkest signal
+    if (subcategory && t.subcategories?.some((s) => s.toLowerCase() === subcategory.toLowerCase())) {
+      score += 5;
+    }
     const text = `${t.label} ${t.steps.map((s) => s.label).join(" ")}`.toLowerCase();
-    return haystack.reduce((acc, w) => acc + (text.includes(w) ? 1 : 0), 0);
+    const kwText = (t.keywords || []).join(" ").toLowerCase();
+    haystack.forEach((w) => {
+      if (kwText.includes(w)) score += 2;
+      else if (text.includes(w)) score += 1;
+    });
+    descTokens.forEach((w) => {
+      if (kwText.includes(w)) score += 1;
+      else if (text.includes(w)) score += 0.5;
+    });
+    return score;
   };
 
   // Generiske fallback-templates — altid relevante, men nedtonede når
@@ -967,8 +988,12 @@ const ServiceForm = ({
     .map((s) => s.t);
 
   const bestTemplate = rankedTemplates[0];
+  const bestScore = bestTemplate ? scoreTemplate(bestTemplate) : 0;
+  // Stærkt match: vi anvender automatisk uden at spørge AI.
+  const isStrongMatch = bestScore >= 5;
+  // Brugbart match: vi viser "Bedste match" badge.
   const isBestMatch = !!(bestTemplate && rankedTemplates.length > 1 &&
-    (subcategory || name).trim().length > 2 && scoreTemplate(bestTemplate) > 0);
+    (subcategory || name).trim().length > 2 && bestScore > 0);
 
   const totalSteps = 4;
   const FORM_STEPS = [
@@ -998,7 +1023,8 @@ const ServiceForm = ({
   // 2-5 trin specifikt tilpasset denne service (kategori + underkategori
   // + beskrivelse). Resultatet erstatter de nuværende trin.
   const [aiTemplateLoading, setAiTemplateLoading] = useState(false);
-  const generateAiTemplate = async () => {
+  const [autoSuggestionApplied, setAutoSuggestionApplied] = useState(false);
+  const generateAiTemplate = async (opts?: { silent?: boolean }) => {
     if (!name.trim()) {
       toast.error("Skriv først et servicenavn");
       return;
@@ -1023,13 +1049,43 @@ const ServiceForm = ({
       const aiSteps = ((data as any)?.steps ?? []) as any[];
       if (!Array.isArray(aiSteps) || aiSteps.length === 0) throw new Error("AI returnerede ingen trin");
       setSteps(aiSteps.map((s, i) => ({ ...s, sort_order: i })));
-      toast.success("AI-skabelon genereret ud fra din beskrivelse");
+      if (!opts?.silent) toast.success("AI-skabelon genereret ud fra din beskrivelse");
+      else toast.success("AI byggede en skræddersyet prisberegner til dig");
     } catch (e: any) {
-      toast.error(e?.message || "Kunne ikke generere AI-skabelon");
+      if (!opts?.silent) toast.error(e?.message || "Kunne ikke generere AI-skabelon");
+      else console.warn("Auto-AI-skabelon fejlede:", e?.message);
     } finally {
       setAiTemplateLoading(false);
     }
   };
+
+  // ── Smart auto-anvend ────────────────────────────────────────────────
+  // Når brugeren skifter til prisberegner og endnu ikke har trin:
+  //   1) Hvis vi har en stærk skabelon-match (score ≥ 5) → anvend lydløst.
+  //   2) Hvis match er svagt og navnet er udfyldt → kald AI automatisk.
+  // Kører kun én gang pr. ny service-form (resettes når man gemmer/lukker).
+  useEffect(() => {
+    if (existingService) return; // ved redigering: bevar eksisterende trin
+    if (pricingType !== "prisberegner") return;
+    if (steps.length > 0) return;
+    if (autoSuggestionApplied) return;
+    if (!name.trim() || name.trim().length < 3) return;
+
+    if (isStrongMatch && bestTemplate) {
+      setSteps(bestTemplate.steps.map((s, i) => ({ ...s, sort_order: i })));
+      setAutoSuggestionApplied(true);
+      toast.success(`Skabelon "${bestTemplate.label}" anvendt automatisk`, {
+        description: "Vi fandt en perfekt skabelon — du kan altid skifte nedenfor.",
+      });
+      return;
+    }
+    // Svagt eller intet match → lad AI bygge en skræddersyet skabelon
+    if (bestScore < 3 && !aiTemplateLoading) {
+      setAutoSuggestionApplied(true);
+      void generateAiTemplate({ silent: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pricingType, name, subcategory, serviceCategory, isStrongMatch, bestScore]);
 
   const canGoNext = () => {
     if (currentStep === 1) return !!serviceCategory;
@@ -1376,7 +1432,7 @@ const ServiceForm = ({
                     <Button
                       type="button"
                       size="sm"
-                      onClick={generateAiTemplate}
+                      onClick={() => generateAiTemplate()}
                       disabled={aiTemplateLoading || !name.trim()}
                       className="gap-1.5"
                     >

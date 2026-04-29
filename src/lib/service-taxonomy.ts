@@ -355,117 +355,360 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
 // Kun templates for brancher virksomheden har valgt vises.
 export interface StepTemplate {
   label: string;
+  /** Søgeord der bruges til smart matching mod servicenavn/underkategori/beskrivelse.
+   *  Jo flere ord der matcher → jo højere confidence. */
+  keywords?: string[];
+  /** Underkategorier denne skabelon er bygget til (giver +3 i score ved direkte match). */
+  subcategories?: string[];
   steps: Array<{ label: string; unit: string; price_per_unit: number; min_value: number; max_value: number; default_value: number }>;
 }
 
 export const STEP_TEMPLATES_BY_INDUSTRY: Record<string, StepTemplate[]> = {
   "Rengøring": [
-    { label: "Kontor / erhvervsrengøring", steps: [
-      { label: "Støvsugning", unit: "m²", price_per_unit: 5, min_value: 10, max_value: 500, default_value: 50 },
-      { label: "Tømning af skraldespande", unit: "stk", price_per_unit: 5, min_value: 1, max_value: 50, default_value: 5 },
-      { label: "Aftørring af borde", unit: "stk", price_per_unit: 12, min_value: 1, max_value: 50, default_value: 5 },
-      { label: "Gulvvask", unit: "m²", price_per_unit: 8, min_value: 10, max_value: 500, default_value: 50 },
-    ]},
-    { label: "Privat hjemmerengøring", steps: [
-      { label: "Antal rum", unit: "rum", price_per_unit: 80, min_value: 1, max_value: 15, default_value: 4 },
-      { label: "Badeværelser", unit: "stk", price_per_unit: 120, min_value: 0, max_value: 5, default_value: 1 },
-      { label: "Køkken", unit: "stk", price_per_unit: 150, min_value: 0, max_value: 2, default_value: 1 },
-    ]},
-    { label: "Flytterengøring", steps: [
-      { label: "Boligstørrelse", unit: "m²", price_per_unit: 15, min_value: 20, max_value: 300, default_value: 80 },
-      { label: "Ovn rengøring", unit: "stk", price_per_unit: 200, min_value: 0, max_value: 2, default_value: 1 },
-      { label: "Køleskab rengøring", unit: "stk", price_per_unit: 150, min_value: 0, max_value: 3, default_value: 1 },
-    ]},
+    { label: "Privat hjemmerengøring", subcategories: ["Privatrengøring"],
+      keywords: ["privat","hjem","ugentlig","14-dages","månedlig","fast"],
+      steps: [
+        { label: "Boligstørrelse", unit: "m²", price_per_unit: 11, min_value: 30, max_value: 400, default_value: 90 },
+        { label: "Antal badeværelser", unit: "stk", price_per_unit: 195, min_value: 1, max_value: 5, default_value: 1 },
+        { label: "Vinduer indvendigt", unit: "stk", price_per_unit: 35, min_value: 0, max_value: 30, default_value: 0 },
+      ]},
+    { label: "Hovedrengøring", subcategories: ["Hovedrengøring"],
+      keywords: ["hoved","forår","grundig","top-til-tå"],
+      steps: [
+        { label: "Boligstørrelse", unit: "m²", price_per_unit: 24, min_value: 50, max_value: 400, default_value: 110 },
+        { label: "Antal badeværelser", unit: "stk", price_per_unit: 245, min_value: 1, max_value: 5, default_value: 1 },
+        { label: "Ovnrens", unit: "stk", price_per_unit: 375, min_value: 0, max_value: 2, default_value: 1 },
+        { label: "Køleskab indvendig", unit: "stk", price_per_unit: 245, min_value: 0, max_value: 2, default_value: 0 },
+      ]},
+    { label: "Flytterengøring (med garanti)", subcategories: ["Flytterengøring"],
+      keywords: ["flytter","fraflytning","k-mærket","garanti","tilbageleveret"],
+      steps: [
+        { label: "Boligstørrelse", unit: "m²", price_per_unit: 28, min_value: 30, max_value: 350, default_value: 80 },
+        { label: "Antal badeværelser", unit: "stk", price_per_unit: 295, min_value: 1, max_value: 5, default_value: 1 },
+        { label: "Ovnrens", unit: "stk", price_per_unit: 395, min_value: 0, max_value: 2, default_value: 1 },
+        { label: "Køleskab + fryser", unit: "stk", price_per_unit: 295, min_value: 0, max_value: 2, default_value: 1 },
+      ]},
+    { label: "Dødsbo­rengøring & tømning", subcategories: ["Dødsbo­rengøring"],
+      keywords: ["dødsbo","tømning","bortskaffelse","arvinger"],
+      steps: [
+        { label: "Boligstørrelse", unit: "m²", price_per_unit: 95, min_value: 25, max_value: 300, default_value: 75 },
+        { label: "Bortkørsel m³", unit: "stk", price_per_unit: 850, min_value: 1, max_value: 30, default_value: 8 },
+        { label: "Slut­rengøring", unit: "m²", price_per_unit: 28, min_value: 25, max_value: 300, default_value: 75 },
+      ]},
+    { label: "Kontor­rengøring (fast)", subcategories: ["Kontorrengøring"],
+      keywords: ["kontor","erhverv","virksomhed","arbejdsplads","daglig","ugentlig"],
+      steps: [
+        { label: "Areal", unit: "m²", price_per_unit: 7, min_value: 50, max_value: 2000, default_value: 250 },
+        { label: "Antal toiletter", unit: "stk", price_per_unit: 95, min_value: 1, max_value: 20, default_value: 2 },
+        { label: "Tømning skraldespande", unit: "stk", price_per_unit: 8, min_value: 1, max_value: 100, default_value: 10 },
+      ]},
+    { label: "Erhvervsrengøring (industri/lager/butik)", subcategories: ["Erhvervsrengøring"],
+      keywords: ["industri","lager","butik","klinik","skole","institution","restaurant"],
+      steps: [
+        { label: "Areal", unit: "m²", price_per_unit: 9, min_value: 100, max_value: 5000, default_value: 400 },
+        { label: "Gulvvask (våd)", unit: "m²", price_per_unit: 5, min_value: 0, max_value: 5000, default_value: 200 },
+        { label: "Ekstra opgaver pr. uge", unit: "timer", price_per_unit: 345, min_value: 0, max_value: 20, default_value: 0 },
+      ]},
+    { label: "Trappevask & opgang", subcategories: ["Trappevask"],
+      keywords: ["trappe","opgang","bolig­forening","fælles­arealer"],
+      steps: [
+        { label: "Antal etager", unit: "stk", price_per_unit: 145, min_value: 1, max_value: 10, default_value: 4 },
+        { label: "Antal opgange", unit: "stk", price_per_unit: 245, min_value: 1, max_value: 20, default_value: 1 },
+        { label: "Frekvens pr. md.", unit: "stk", price_per_unit: 195, min_value: 1, max_value: 8, default_value: 4 },
+      ]},
+    { label: "Bygge­rengøring", subcategories: ["Byggerengøring"],
+      keywords: ["bygge","nybyg","slut­rengøring","aflevering"],
+      steps: [
+        { label: "Areal", unit: "m²", price_per_unit: 32, min_value: 30, max_value: 1000, default_value: 150 },
+        { label: "Vinduespudsning inkl.", unit: "stk", price_per_unit: 38, min_value: 0, max_value: 80, default_value: 12 },
+      ]},
+    { label: "Tæpperens i hjemmet", subcategories: ["Tæpperens"],
+      keywords: ["tæppe","møbelpolstring","sofa","sæder"],
+      steps: [
+        { label: "Tæppeareal", unit: "m²", price_per_unit: 95, min_value: 1, max_value: 100, default_value: 12 },
+        { label: "Sofa (3-pers.)", unit: "stk", price_per_unit: 695, min_value: 0, max_value: 5, default_value: 0 },
+        { label: "Lænestole", unit: "stk", price_per_unit: 295, min_value: 0, max_value: 8, default_value: 0 },
+      ]},
   ],
   "Vinduespudsning": [
-    { label: "Privat vinduespudsning", steps: [
-      { label: "Vinduer", unit: "stk", price_per_unit: 25, min_value: 1, max_value: 100, default_value: 10 },
-      { label: "Franske altandøre", unit: "stk", price_per_unit: 60, min_value: 0, max_value: 20, default_value: 0 },
-      { label: "Ovenlys", unit: "stk", price_per_unit: 45, min_value: 0, max_value: 20, default_value: 0 },
-    ]},
-    { label: "Erhverv vinduespudsning", steps: [
-      { label: "Facade­meter", unit: "m", price_per_unit: 30, min_value: 1, max_value: 200, default_value: 20 },
-      { label: "Højde", unit: "m", price_per_unit: 20, min_value: 1, max_value: 20, default_value: 3 },
-    ]},
+    { label: "Privat villa (vinduesfag)", subcategories: ["Privat vinduespudsning"],
+      keywords: ["villa","privat","hjem","fag","ruder"],
+      steps: [
+        { label: "Antal vinduesfag", unit: "stk", price_per_unit: 38, min_value: 4, max_value: 80, default_value: 14 },
+        { label: "Karme & rammer", unit: "stk", price_per_unit: 16, min_value: 0, max_value: 80, default_value: 0 },
+        { label: "Tagvinduer / Velux", unit: "stk", price_per_unit: 95, min_value: 0, max_value: 8, default_value: 0 },
+      ]},
+    { label: "Erhverv (m² glasareal)", subcategories: ["Erhverv vinduespudsning"],
+      keywords: ["butik","kontor","facade","restaurant","glasareal"],
+      steps: [
+        { label: "Glasareal", unit: "m²", price_per_unit: 38, min_value: 10, max_value: 1000, default_value: 80 },
+        { label: "Etager over stuen", unit: "stk", price_per_unit: 145, min_value: 0, max_value: 8, default_value: 0 },
+      ]},
+    { label: "Glasfacader & højhuse", subcategories: ["Glasfacader & højhuse"],
+      keywords: ["højhus","facade","lift","reb","klatre"],
+      steps: [
+        { label: "Glasareal", unit: "m²", price_per_unit: 65, min_value: 20, max_value: 5000, default_value: 250 },
+        { label: "Etager (lift/reb)", unit: "stk", price_per_unit: 425, min_value: 1, max_value: 30, default_value: 5 },
+      ]},
+    { label: "Rentvands­anlæg (stang)", subcategories: ["Rentvands­anlæg"],
+      keywords: ["rentvand","stang","op til 20m"],
+      steps: [
+        { label: "Antal vinduesfag", unit: "stk", price_per_unit: 32, min_value: 4, max_value: 100, default_value: 18 },
+        { label: "Etager over stuen", unit: "stk", price_per_unit: 95, min_value: 0, max_value: 6, default_value: 1 },
+      ]},
+    { label: "Solcelle­rens", subcategories: ["Solceller"],
+      keywords: ["solcelle","solpanel","panel"],
+      steps: [
+        { label: "Antal paneler", unit: "stk", price_per_unit: 45, min_value: 4, max_value: 200, default_value: 24 },
+      ]},
+    { label: "Tagvinduer / glas­tage", subcategories: ["Ovenlys & glas­tage"],
+      keywords: ["ovenlys","velux","glastag","vinter­have"],
+      steps: [
+        { label: "Antal tagvinduer", unit: "stk", price_per_unit: 145, min_value: 1, max_value: 20, default_value: 4 },
+        { label: "Glas­tag areal", unit: "m²", price_per_unit: 85, min_value: 0, max_value: 100, default_value: 0 },
+      ]},
   ],
   "Algebehandling": [
-    { label: "Algebehandling tag", steps: [
-      { label: "Tagareal", unit: "m²", price_per_unit: 35, min_value: 20, max_value: 500, default_value: 120 },
-      { label: "Imprægnering", unit: "m²", price_per_unit: 25, min_value: 0, max_value: 500, default_value: 0 },
-    ]},
-    { label: "Algebehandling fliser", steps: [
-      { label: "Fliseareal", unit: "m²", price_per_unit: 25, min_value: 10, max_value: 500, default_value: 50 },
-    ]},
+    { label: "Algebehandling tag", keywords: ["tag","tag­plader","tegl","eternit"],
+      steps: [
+        { label: "Tagareal", unit: "m²", price_per_unit: 38, min_value: 30, max_value: 500, default_value: 130 },
+        { label: "Imprægnering", unit: "m²", price_per_unit: 28, min_value: 0, max_value: 500, default_value: 130 },
+      ]},
+    { label: "Algebehandling fliser & terrasse", keywords: ["fliser","terrasse","indkørsel","belægning"],
+      steps: [
+        { label: "Fliseareal", unit: "m²", price_per_unit: 28, min_value: 10, max_value: 500, default_value: 60 },
+        { label: "Højtryksspuling", unit: "m²", price_per_unit: 22, min_value: 0, max_value: 500, default_value: 0 },
+      ]},
+    { label: "Facade­algebehandling", keywords: ["facade","mur","puds"],
+      steps: [
+        { label: "Facadeareal", unit: "m²", price_per_unit: 42, min_value: 20, max_value: 500, default_value: 90 },
+      ]},
   ],
   "Haveservice": [
-    { label: "Græsslåning", steps: [
-      { label: "Areal", unit: "m²", price_per_unit: 2, min_value: 50, max_value: 5000, default_value: 200 },
-      { label: "Kantklipning", unit: "m", price_per_unit: 5, min_value: 0, max_value: 200, default_value: 20 },
-    ]},
-    { label: "Hækkeklipning", steps: [
-      { label: "Hæklængde", unit: "m", price_per_unit: 40, min_value: 1, max_value: 200, default_value: 10 },
-      { label: "Højde", unit: "m", price_per_unit: 30, min_value: 1, max_value: 5, default_value: 2 },
-    ]},
+    { label: "Græsslåning (abonnement)", subcategories: ["Havevedligehold"],
+      keywords: ["græs","plæne","slåning","klipning"],
+      steps: [
+        { label: "Plæneareal", unit: "m²", price_per_unit: 3, min_value: 50, max_value: 5000, default_value: 250 },
+        { label: "Kantklipning", unit: "m", price_per_unit: 7, min_value: 0, max_value: 200, default_value: 25 },
+      ]},
+    { label: "Hækkeklipning", keywords: ["hæk","hækklipning","løbende meter"],
+      steps: [
+        { label: "Hæklængde", unit: "m", price_per_unit: 65, min_value: 1, max_value: 200, default_value: 15 },
+        { label: "Højde over 2m", unit: "stk", price_per_unit: 25, min_value: 0, max_value: 200, default_value: 0 },
+      ]},
+    { label: "Træfældning & beskæring", subcategories: ["Træfældning"],
+      keywords: ["træ","fældning","beskæring","stub","klatre"],
+      steps: [
+        { label: "Træer (op til 8m)", unit: "stk", price_per_unit: 1450, min_value: 1, max_value: 20, default_value: 1 },
+        { label: "Beskæring", unit: "stk", price_per_unit: 695, min_value: 0, max_value: 30, default_value: 0 },
+        { label: "Stubbefræsning", unit: "stk", price_per_unit: 895, min_value: 0, max_value: 10, default_value: 0 },
+      ]},
+    { label: "Anlæg (fliser/terrasse)", subcategories: ["Anlægsarbejde"],
+      keywords: ["anlæg","fliser","terrasse","belægning","beplantning"],
+      steps: [
+        { label: "Areal", unit: "m²", price_per_unit: 895, min_value: 5, max_value: 200, default_value: 25 },
+        { label: "Bortkørsel jord/affald", unit: "stk", price_per_unit: 695, min_value: 0, max_value: 20, default_value: 2 },
+      ]},
+    { label: "Ukrudtsbekæmpelse fliser", keywords: ["ukrudt","mos","fliser"],
+      steps: [
+        { label: "Fliseareal", unit: "m²", price_per_unit: 14, min_value: 10, max_value: 500, default_value: 60 },
+      ]},
   ],
   "Maler": [
-    { label: "Vægmaling", steps: [
-      { label: "Vægflade", unit: "m²", price_per_unit: 45, min_value: 5, max_value: 500, default_value: 30 },
-      { label: "Loftflade", unit: "m²", price_per_unit: 55, min_value: 0, max_value: 200, default_value: 0 },
-      { label: "Antal strøg", unit: "stk", price_per_unit: 15, min_value: 1, max_value: 3, default_value: 2 },
-    ]},
+    { label: "Indvendig maling", subcategories: ["Indvendig maling"],
+      keywords: ["indvendig","væg","loft","stue","værelse"],
+      steps: [
+        { label: "Vægareal", unit: "m²", price_per_unit: 145, min_value: 5, max_value: 500, default_value: 45 },
+        { label: "Loftareal", unit: "m²", price_per_unit: 165, min_value: 0, max_value: 200, default_value: 20 },
+        { label: "Døre m. karm", unit: "stk", price_per_unit: 645, min_value: 0, max_value: 15, default_value: 0 },
+      ]},
+    { label: "Udvendig facademaling", subcategories: ["Udvendig maling"],
+      keywords: ["facade","udvendig","mur","træværk"],
+      steps: [
+        { label: "Facadeareal", unit: "m²", price_per_unit: 195, min_value: 20, max_value: 500, default_value: 80 },
+        { label: "Træværk (vinduer/døre)", unit: "stk", price_per_unit: 495, min_value: 0, max_value: 30, default_value: 4 },
+      ]},
+    { label: "Tapetsering", subcategories: ["Tapetsering"],
+      keywords: ["tapet","fibervæv"],
+      steps: [
+        { label: "Vægareal", unit: "m²", price_per_unit: 235, min_value: 5, max_value: 200, default_value: 25 },
+      ]},
   ],
   "Tømrer": [
-    { label: "Generelt tømrerarbejde", steps: [
-      { label: "Arbejdstimer", unit: "timer", price_per_unit: 450, min_value: 1, max_value: 40, default_value: 4 },
-      { label: "Materialer", unit: "kr", price_per_unit: 1, min_value: 0, max_value: 20000, default_value: 0 },
-    ]},
+    { label: "Tømrer (timepris + materialer)", keywords: ["tømrer","snedker","reparation","montering"],
+      steps: [
+        { label: "Udkald", unit: "stk", price_per_unit: 545, min_value: 1, max_value: 1, default_value: 1 },
+        { label: "Arbejdstimer", unit: "timer", price_per_unit: 545, min_value: 1, max_value: 40, default_value: 4 },
+        { label: "Materialer", unit: "kr", price_per_unit: 1, min_value: 0, max_value: 50000, default_value: 0 },
+      ]},
+    { label: "Tagarbejde", subcategories: ["Tagarbejde"],
+      keywords: ["tag","tagsten","spær","undertag"],
+      steps: [
+        { label: "Tagareal", unit: "m²", price_per_unit: 695, min_value: 20, max_value: 400, default_value: 100 },
+        { label: "Stillads/lift", unit: "stk", price_per_unit: 4500, min_value: 0, max_value: 1, default_value: 1 },
+      ]},
+    { label: "Altan / tilbygning", subcategories: ["Altan","Tilbygning"],
+      keywords: ["altan","tilbygning","carport"],
+      steps: [
+        { label: "Areal", unit: "m²", price_per_unit: 8500, min_value: 4, max_value: 60, default_value: 12 },
+      ]},
+  ],
+  "Murer": [
+    { label: "Murer (timepris)", keywords: ["murer","murværk"],
+      steps: [
+        { label: "Udkald", unit: "stk", price_per_unit: 595, min_value: 1, max_value: 1, default_value: 1 },
+        { label: "Arbejdstimer", unit: "timer", price_per_unit: 565, min_value: 1, max_value: 60, default_value: 6 },
+        { label: "Materialer", unit: "kr", price_per_unit: 1, min_value: 0, max_value: 80000, default_value: 0 },
+      ]},
+    { label: "Flisearbejde", subcategories: ["Flisearbejde"],
+      keywords: ["fliser","klinker","badeværelse"],
+      steps: [
+        { label: "Fliseareal", unit: "m²", price_per_unit: 945, min_value: 5, max_value: 100, default_value: 15 },
+      ]},
   ],
   "VVS": [
-    { label: "VVS-arbejde", steps: [
-      { label: "Arbejdstimer", unit: "timer", price_per_unit: 500, min_value: 1, max_value: 20, default_value: 1 },
-      { label: "Materialer", unit: "kr", price_per_unit: 1, min_value: 0, max_value: 10000, default_value: 0 },
-      { label: "Kørsel", unit: "km", price_per_unit: 8, min_value: 0, max_value: 100, default_value: 10 },
-    ]},
+    { label: "VVS akut udkald", keywords: ["akut","udkald","døgn","weekend","nat"],
+      steps: [
+        { label: "Udkald (akut)", unit: "stk", price_per_unit: 1195, min_value: 1, max_value: 1, default_value: 1 },
+        { label: "Arbejdstimer", unit: "timer", price_per_unit: 845, min_value: 1, max_value: 8, default_value: 1 },
+        { label: "Materialer", unit: "kr", price_per_unit: 1, min_value: 0, max_value: 30000, default_value: 0 },
+      ]},
+    { label: "VVS standard", keywords: ["vvs","blikkenslager","installation"],
+      steps: [
+        { label: "Udkald", unit: "stk", price_per_unit: 745, min_value: 1, max_value: 1, default_value: 1 },
+        { label: "Arbejdstimer", unit: "timer", price_per_unit: 695, min_value: 1, max_value: 16, default_value: 2 },
+        { label: "Materialer", unit: "kr", price_per_unit: 1, min_value: 0, max_value: 30000, default_value: 0 },
+      ]},
+    { label: "Toilet / vandhane udskiftning", subcategories: ["Vandinstallation"],
+      keywords: ["toilet","vandhane","blandingsbatteri","håndvask"],
+      steps: [
+        { label: "Udkald", unit: "stk", price_per_unit: 745, min_value: 1, max_value: 1, default_value: 1 },
+        { label: "Toilet udskiftning", unit: "stk", price_per_unit: 2895, min_value: 0, max_value: 3, default_value: 1 },
+        { label: "Blandingsbatteri", unit: "stk", price_per_unit: 1395, min_value: 0, max_value: 5, default_value: 0 },
+      ]},
+    { label: "Varmeinstallation", subcategories: ["Varmeinstallation"],
+      keywords: ["varme","radiator","gulvvarme","varmepumpe"],
+      steps: [
+        { label: "Udkald", unit: "stk", price_per_unit: 845, min_value: 1, max_value: 1, default_value: 1 },
+        { label: "Arbejdstimer", unit: "timer", price_per_unit: 745, min_value: 1, max_value: 40, default_value: 6 },
+        { label: "Materialer", unit: "kr", price_per_unit: 1, min_value: 0, max_value: 80000, default_value: 0 },
+      ]},
   ],
   "Elektriker": [
-    { label: "El-arbejde", steps: [
-      { label: "Arbejdstimer", unit: "timer", price_per_unit: 450, min_value: 1, max_value: 20, default_value: 1 },
-      { label: "Stikkontakter", unit: "stk", price_per_unit: 350, min_value: 0, max_value: 20, default_value: 0 },
-      { label: "Lampeudtag", unit: "stk", price_per_unit: 400, min_value: 0, max_value: 20, default_value: 0 },
-    ]},
+    { label: "Elektriker akut", keywords: ["akut","udkald","døgn","weekend"],
+      steps: [
+        { label: "Udkald (akut)", unit: "stk", price_per_unit: 1095, min_value: 1, max_value: 1, default_value: 1 },
+        { label: "Arbejdstimer", unit: "timer", price_per_unit: 795, min_value: 1, max_value: 8, default_value: 1 },
+        { label: "Materialer", unit: "kr", price_per_unit: 1, min_value: 0, max_value: 20000, default_value: 0 },
+      ]},
+    { label: "Elinstallation", subcategories: ["Elinstallation"],
+      keywords: ["stikkontakt","lampeudtag","spots","installation"],
+      steps: [
+        { label: "Udkald", unit: "stk", price_per_unit: 695, min_value: 1, max_value: 1, default_value: 1 },
+        { label: "Stikkontakter", unit: "stk", price_per_unit: 495, min_value: 0, max_value: 30, default_value: 2 },
+        { label: "Lampeudtag/spots", unit: "stk", price_per_unit: 545, min_value: 0, max_value: 30, default_value: 0 },
+        { label: "HFI/HPFI gruppe", unit: "stk", price_per_unit: 1895, min_value: 0, max_value: 5, default_value: 0 },
+      ]},
+    { label: "El-tjek (eftersyn)", subcategories: ["EL-tjek"],
+      keywords: ["eftersyn","el-tjek","sikkerhed","elftersynsrapport"],
+      steps: [
+        { label: "Eftersyn (grundgebyr)", unit: "stk", price_per_unit: 1495, min_value: 1, max_value: 1, default_value: 1 },
+        { label: "Antal el-grupper", unit: "stk", price_per_unit: 145, min_value: 1, max_value: 30, default_value: 8 },
+      ]},
   ],
   "Flyttehjælp": [
-    { label: "Lokal flytning", steps: [
-      { label: "Boligstørrelse", unit: "m²", price_per_unit: 25, min_value: 20, max_value: 300, default_value: 80 },
-      { label: "Etager", unit: "stk", price_per_unit: 300, min_value: 0, max_value: 8, default_value: 0 },
-      { label: "Mandskab", unit: "timer", price_per_unit: 400, min_value: 1, max_value: 12, default_value: 4 },
-    ]},
+    { label: "Lokal flytning (privat)", subcategories: ["Privat flytning"],
+      keywords: ["lokal","privat","flytning","lejlighed","hus"],
+      steps: [
+        { label: "Boligstørrelse", unit: "m²", price_per_unit: 55, min_value: 30, max_value: 350, default_value: 80 },
+        { label: "Etager uden elevator", unit: "stk", price_per_unit: 495, min_value: 0, max_value: 8, default_value: 0 },
+        { label: "Klaver/tungt gods", unit: "stk", price_per_unit: 2295, min_value: 0, max_value: 3, default_value: 0 },
+      ]},
+    { label: "Langdistance flytning", keywords: ["langdistance","over land","jylland-sjælland"],
+      steps: [
+        { label: "Boligstørrelse", unit: "m²", price_per_unit: 75, min_value: 30, max_value: 350, default_value: 80 },
+        { label: "Afstand", unit: "km", price_per_unit: 14, min_value: 25, max_value: 500, default_value: 150 },
+      ]},
+    { label: "Erhvervsflytning", subcategories: ["Erhvervsflytning"],
+      keywords: ["kontor","erhverv","virksomhed","lager"],
+      steps: [
+        { label: "Antal mand", unit: "stk", price_per_unit: 545, min_value: 2, max_value: 8, default_value: 3 },
+        { label: "Timer", unit: "timer", price_per_unit: 1, min_value: 1, max_value: 40, default_value: 8 },
+      ]},
+    { label: "Pakkeservice", keywords: ["pakke","kasser","ned­pakning"],
+      steps: [
+        { label: "Boligstørrelse", unit: "m²", price_per_unit: 25, min_value: 30, max_value: 300, default_value: 80 },
+        { label: "Antal mand­timer", unit: "timer", price_per_unit: 445, min_value: 1, max_value: 20, default_value: 4 },
+      ]},
   ],
   "Skorstensfejer": [
-    { label: "Lovpligtig fejning", steps: [
-      { label: "Antal skorstene", unit: "stk", price_per_unit: 350, min_value: 1, max_value: 5, default_value: 1 },
-    ]},
+    { label: "Lovpligtig fejning", keywords: ["lovpligtig","fejning","skorsten","brændeovn"],
+      steps: [
+        { label: "Antal skorstene", unit: "stk", price_per_unit: 395, min_value: 1, max_value: 5, default_value: 1 },
+        { label: "Antal brændeovne", unit: "stk", price_per_unit: 295, min_value: 0, max_value: 5, default_value: 1 },
+      ]},
   ],
   "Isolering": [
-    { label: "Loftisolering", steps: [
-      { label: "Loftareal", unit: "m²", price_per_unit: 120, min_value: 20, max_value: 400, default_value: 120 },
-      { label: "Isoleringstykkelse", unit: "mm", price_per_unit: 0.5, min_value: 100, max_value: 500, default_value: 300 },
-    ]},
-    { label: "Hulmursisolering", steps: [
-      { label: "Facadeareal", unit: "m²", price_per_unit: 180, min_value: 20, max_value: 400, default_value: 100 },
-    ]},
+    { label: "Loftisolering", keywords: ["loft","isolering","granulat"],
+      steps: [
+        { label: "Loftareal", unit: "m²", price_per_unit: 145, min_value: 20, max_value: 400, default_value: 130 },
+      ]},
+    { label: "Hulmursisolering", keywords: ["hulmur","facade","granulat"],
+      steps: [
+        { label: "Facadeareal", unit: "m²", price_per_unit: 215, min_value: 20, max_value: 400, default_value: 110 },
+      ]},
   ],
   "Gravstedspleje": [
-    { label: "Årlig gravstedspleje", steps: [
-      { label: "Antal besøg pr. år", unit: "stk", price_per_unit: 250, min_value: 1, max_value: 24, default_value: 8 },
-      { label: "Gravsteds­størrelse", unit: "m²", price_per_unit: 80, min_value: 1, max_value: 20, default_value: 4 },
-    ]},
+    { label: "Årlig gravstedspleje", keywords: ["gravsted","kirkegård","grav"],
+      steps: [
+        { label: "Antal besøg pr. år", unit: "stk", price_per_unit: 295, min_value: 1, max_value: 24, default_value: 8 },
+        { label: "Gravsteds­størrelse", unit: "m²", price_per_unit: 95, min_value: 1, max_value: 20, default_value: 4 },
+      ]},
   ],
   "Autoservice": [
-    { label: "Mobil bilrengøring", steps: [
-      { label: "Bil­størrelse", unit: "stk", price_per_unit: 600, min_value: 1, max_value: 3, default_value: 1 },
-      { label: "Polering", unit: "timer", price_per_unit: 500, min_value: 0, max_value: 6, default_value: 0 },
-    ]},
+    { label: "Mobil bilrengøring", keywords: ["bil","auto","klargøring","detailing"],
+      steps: [
+        { label: "Bilstørrelse (S/M/L)", unit: "stk", price_per_unit: 695, min_value: 1, max_value: 3, default_value: 2 },
+        { label: "Indvendig pleje", unit: "stk", price_per_unit: 445, min_value: 0, max_value: 1, default_value: 1 },
+        { label: "Polering", unit: "timer", price_per_unit: 595, min_value: 0, max_value: 6, default_value: 0 },
+      ]},
+  ],
+  "Skadedyrsbekæmpelse": [
+    { label: "Skadedyr (rotter/mus/insekter)", keywords: ["rotte","mus","insekt","skadedyr","væggelus"],
+      steps: [
+        { label: "Inspektion + grundgebyr", unit: "stk", price_per_unit: 945, min_value: 1, max_value: 1, default_value: 1 },
+        { label: "Areal", unit: "m²", price_per_unit: 8, min_value: 30, max_value: 2000, default_value: 100 },
+        { label: "Opfølgningsbesøg", unit: "stk", price_per_unit: 595, min_value: 0, max_value: 6, default_value: 1 },
+      ]},
+  ],
+  "Sikkerhed": [
+    { label: "Låsesmed udkald", keywords: ["lås","låsesmed","døroplukning"],
+      steps: [
+        { label: "Udkald", unit: "stk", price_per_unit: 945, min_value: 1, max_value: 1, default_value: 1 },
+        { label: "Arbejdstimer", unit: "timer", price_per_unit: 745, min_value: 1, max_value: 4, default_value: 1 },
+        { label: "Lås udskiftet", unit: "stk", price_per_unit: 1495, min_value: 0, max_value: 6, default_value: 0 },
+      ]},
+    { label: "Alarm/overvågning installation", subcategories: ["Alarmsystemer","Videoovervågning"],
+      keywords: ["alarm","kamera","overvågning","ip"],
+      steps: [
+        { label: "Centralenhed", unit: "stk", price_per_unit: 2895, min_value: 1, max_value: 1, default_value: 1 },
+        { label: "IP-kameraer", unit: "stk", price_per_unit: 2495, min_value: 0, max_value: 10, default_value: 2 },
+        { label: "Bevægelses­sensorer", unit: "stk", price_per_unit: 695, min_value: 0, max_value: 15, default_value: 4 },
+      ]},
+  ],
+  "Anlægsgartner": [
+    { label: "Anlægs­arbejde (fliser/belægning)", keywords: ["anlæg","fliser","belægning","indkørsel"],
+      steps: [
+        { label: "Areal", unit: "m²", price_per_unit: 945, min_value: 10, max_value: 300, default_value: 40 },
+        { label: "Afgravning + bortkørsel", unit: "m²", price_per_unit: 295, min_value: 0, max_value: 300, default_value: 40 },
+      ]},
+  ],
+  "Gulvlægger": [
+    { label: "Gulvlægning", keywords: ["gulv","trægulv","vinyl","laminat","epoxy"],
+      steps: [
+        { label: "Gulvareal", unit: "m²", price_per_unit: 295, min_value: 10, max_value: 300, default_value: 40 },
+        { label: "Afretning af underlag", unit: "m²", price_per_unit: 95, min_value: 0, max_value: 300, default_value: 0 },
+      ]},
   ],
 };
 
