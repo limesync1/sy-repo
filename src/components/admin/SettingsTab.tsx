@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
 import { toast } from "sonner";
 import {
   Sparkles, Settings, Bell, Route, Contact, Image as ImageIcon, Clock,
@@ -36,6 +39,53 @@ import {
 
 const DAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"] as const;
 const WEEKDAYS = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag"] as const;
+
+/* Genererer 15-min slots til klokkeslæt-vælgeren — pænt scroll-bart i popover. */
+const TIME_SLOTS: string[] = (() => {
+  const out: string[] = [];
+  for (let h = 0; h < 24; h++) {
+    for (const m of [0, 15, 30, 45]) {
+      out.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+    }
+  }
+  return out;
+})();
+
+/** TimePicker — en lille pop-over med 15-min slots der matcher resten af UI'et.
+ *  Erstatter native <input type="time"> som ser anderledes ud i hver browser. */
+const TimePicker = ({ value, onChange, label }: { value: string; onChange: (v: string) => void; label?: string }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label={label}
+          className="inline-flex h-9 w-[88px] items-center justify-center gap-1.5 rounded-lg border border-border bg-background text-sm tabular-nums font-medium text-foreground transition-colors hover:border-foreground/40 focus:border-foreground focus:outline-none"
+        >
+          <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+          {value}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-[112px] p-1">
+        <div className="max-h-64 overflow-y-auto">
+          {TIME_SLOTS.map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => { onChange(t); setOpen(false); }}
+              className={`block w-full rounded-md px-2 py-1.5 text-center text-sm tabular-nums transition-colors ${
+                t === value ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
 
 // Header offset i topbaren (h-14 = 56px) + lille luft, bruges både til sticky
 // sidebar og smooth-scroll så ankret lander præcist under headeren.
