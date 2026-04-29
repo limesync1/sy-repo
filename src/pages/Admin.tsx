@@ -1003,8 +1003,38 @@ const ServiceForm = ({
     { num: 4, label: "Interval", color: "bg-cyan-500" },
   ];
 
+  const blankStep = (sortOrder: number) => ({
+    label: "",
+    unit: "stk",
+    price_per_unit: 0,
+    min_value: 1,
+    max_value: 10,
+    default_value: 1,
+    sort_order: sortOrder,
+  });
   const addStep = () => {
-    setSteps([...steps, { label: "", unit: "stk", price_per_unit: 0, min_value: 0, max_value: 100, default_value: 0, sort_order: steps.length }]);
+    setSteps((prev) => [...prev, blankStep(prev.length)]);
+  };
+  const duplicateStep = (i: number) => {
+    setSteps((prev) => {
+      const copy = { ...prev[i], label: `${prev[i].label || `Trin ${i + 1}`} (kopi)` };
+      const next = [...prev];
+      next.splice(i + 1, 0, copy);
+      return next.map((s, idx) => ({ ...s, sort_order: idx }));
+    });
+  };
+  const moveStep = (i: number, dir: -1 | 1) => {
+    setSteps((prev) => {
+      const j = i + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next.map((s, idx) => ({ ...s, sort_order: idx }));
+    });
+  };
+  const startFromScratch = () => {
+    setSteps([blankStep(0)]);
+    setAutoSuggestionApplied(true);
   };
   const updateStep = (i: number, field: string, value: any) => {
     const updated = [...steps];
