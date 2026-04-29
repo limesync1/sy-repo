@@ -1840,7 +1840,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
       {/* ─── Stop detail sheet ─── */}
       <Sheet open={!!selectedId} onOpenChange={(o) => !o && setSelectedId(null)}>
-        <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto p-0">
+        {/*
+          Kompakt bottom-sheet: dækker maks ~65 % af skærmen så kortet stadig
+          er synligt bag.  Brugeren skal kunne se hvor han kører selv mens
+          aftale-detaljer er åbne.  Sheet'en kan scrolles internt for resten
+          af indholdet (opgaver, noter, kontakt).
+        */}
+        <SheetContent
+          side="bottom"
+          className="max-h-[65vh] overflow-y-auto p-0 rounded-t-2xl"
+        >
           {(() => {
             const s = sortedStops.find((x) => x.id === selectedId);
             if (!s) return null;
