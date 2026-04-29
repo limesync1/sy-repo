@@ -202,3 +202,40 @@ export const ShellSkeleton = () => (
 );
 
 export { Skeleton };
+
+/* ─────────── Route view skeleton ─────────── */
+/**
+ * Bruges på /medarbejder/rute/:routeId mens kort + stop-data hentes.
+ * Viser den karakteristiske top-bar + map-placeholder + stop-liste,
+ * så medarbejderen ikke ser en nøgen spinner på en tom skærm.
+ */
+export const RouteViewSkeleton = () => (
+  <div className="flex min-h-screen flex-col bg-background">
+    {/* Top bar */}
+    <div className="flex h-14 items-center gap-3 border-b border-border bg-card px-4">
+      <Skeleton className="h-9 w-9 rounded-lg" />
+      <div className="flex-1 space-y-2">
+        <Skeleton className="h-4 w-40" />
+        <Skeleton className="h-3 w-24" />
+      </div>
+      <Skeleton className="h-9 w-24 rounded-lg" />
+    </div>
+    {/* Map */}
+    <Skeleton className="h-[42vh] w-full rounded-none" />
+    {/* Stops */}
+    <div className="flex-1 space-y-2 p-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Card key={i} className="rounded-xl border-border/80 p-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-9 w-9 rounded-lg" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-3 w-56" />
+            </div>
+            <Skeleton className="h-7 w-16 rounded-md" />
+          </div>
+        </Card>
+      ))}
+    </div>
+  </div>
+);
