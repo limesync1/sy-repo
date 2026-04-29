@@ -42,6 +42,16 @@ Deno.serve(async (req) => {
 
     if (!business_id) return json({ error: "business_id required" }, 400);
 
+    // Hård feature-gate: hvis virksomheden ikke har aktiveret
+    // regnskabs-integrationen i sine indstillinger, så kør slet ikke. Det
+    // sikrer at vi heller ikke skriver i sync-loggen.
+    const { data: biz } = await admin.from("businesses")
+      .select("settings").eq("id", business_id).maybeSingle();
+    const accountingEnabled = !!(biz?.settings as any)?.accounting_integration_enabled;
+    if (!accountingEnabled) {
+      return json({ ok: true, skipped: "accounting_integration_disabled" });
+    }
+
     const integration = await loadIntegration(admin, business_id);
     if (!integration) return json({ error: "No active integration" }, 404);
     const adapter = makeAdapter(integration.provider, integration, integration.settings ?? {});
@@ -190,6 +200,12 @@ async function logSync(admin: SupabaseClient, opts: {
   entity_id?: string|null; external_id?: string|null;
   status: "success"|"error"|"skipped"; message?: string|null; payload?: any;
 }) {
+  // Reducér log-spam: vi skriver KUN errors og pull-/connection-summaries.
+  // Successful per-entity-pushes (customer/product/order) genererer ellers
+  // hundredevis af log-rækker pr. synk og er sjældent nyttigt at læse.
+  if (opts.status === "success" && opts.entity_type !== "connection") {
+    return;
+  }
   await admin.from("accounting_sync_log").insert(opts);
 }
 
