@@ -6,8 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { CheckCircle2, Clock, AlertCircle, ExternalLink, Globe, Copy, Loader2 } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, ExternalLink, Globe, Copy, Loader2, Rocket } from "lucide-react";
 import { PageHeader, EmptyState } from "@/components/admin/shared/AdminUI";
+
+// Lovable-projektet hvor custom-domæner skal tilføjes. Når admin klikker
+// "Tilføj til Lovable" kopierer vi domænet og åbner Lovable's
+// domæne-indstillinger i en ny fane, så det kun er ét klik + ét paste.
+const LOVABLE_PROJECT_DOMAINS_URL =
+  "https://lovable.dev/projects/3396f095-cb5d-439d-8707-af0033c7fb66/settings/domains";
 
 type DomainRow = {
   id: string;
@@ -195,9 +201,22 @@ const PlatformDomainsTab = () => {
                         Deaktiver
                       </Button>
                     ) : row.status === "pending_activation" ? (
-                      <Button size="sm" onClick={() => setActive.mutate({ row, active: true })} disabled={setActive.isPending}>
-                        <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Markér som aktivt
-                      </Button>
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={async () => {
+                            try { await navigator.clipboard.writeText(row.domain); } catch {}
+                            toast.success("Domænet er kopieret — indsæt det i Lovable og klik 'Connect Domain'");
+                            window.open(LOVABLE_PROJECT_DOMAINS_URL, "_blank", "noopener,noreferrer");
+                          }}
+                        >
+                          <Rocket className="mr-1 h-3.5 w-3.5" /> Tilføj til Lovable
+                        </Button>
+                        <Button size="sm" onClick={() => setActive.mutate({ row, active: true })} disabled={setActive.isPending}>
+                          <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Markér som aktivt
+                        </Button>
+                      </>
                     ) : null}
                     <a
                       href={`https://${row.domain}`}
