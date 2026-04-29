@@ -1986,19 +1986,9 @@ const HoursEditor = ({
               {isOpen && (
                 <>
                   <div className="flex items-center gap-2">
-                    <Input
-                      type="time"
-                      value={open}
-                      onChange={(e) => setDay(day, e.target.value || "08:00", close)}
-                      className="h-9 w-[110px] bg-background rounded-lg text-sm tabular-nums"
-                    />
+                    <TimePicker value={open} onChange={(v) => setDay(day, v || "08:00", close)} label={`Åbner ${day}`} />
                     <span className="text-xs text-muted-foreground">til</span>
-                    <Input
-                      type="time"
-                      value={close}
-                      onChange={(e) => setDay(day, open, e.target.value || "16:00")}
-                      className="h-9 w-[110px] bg-background rounded-lg text-sm tabular-nums"
-                    />
+                    <TimePicker value={close} onChange={(v) => setDay(day, open, v || "16:00")} label={`Lukker ${day}`} />
                   </div>
                   <button
                     type="button"
