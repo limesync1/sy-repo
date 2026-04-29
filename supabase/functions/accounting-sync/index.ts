@@ -209,6 +209,105 @@ async function logSync(admin: SupabaseClient, opts: {
   await admin.from("accounting_sync_log").insert(opts);
 }
 
+// ─── Field-diff helpers ─────────────────────────────────────────────────
+// Vi gemmer den senest synkroniserede værdi pr. (entitet, felt) i
+// accounting_field_state. Det giver os to ting:
+//   1) PUSH: vi sender kun felter hvor vores nuværende værdi adskiller
+//      sig fra den senest synkede værdi → ingen overskrivning af felter
+//      brugeren har rettet i Billy/Dinero/e-conomic siden.
+//   2) PULL: vi opdaterer kun lokale felter hvor remote-værdien rent
+//      faktisk har ændret sig siden sidste pull → ingen ekko-loops.
+
+type EntityType = "customer" | "product" | "order";
+
+async function getFieldState(
+  admin: SupabaseClient,
+  business_id: string,
+  provider: string,
+  entity_type: EntityType,
+  entity_id: string,
+): Promise<Record<string, { field_value: any; remote_value: any }>> {
+  const { data } = await admin
+    .from("accounting_field_state")
+    .select("field_name, field_value, remote_value")
+    .eq("business_id", business_id)
+    .eq("provider", provider)
+    .eq("entity_type", entity_type)
+    .eq("entity_id", entity_id);
+  const out: Record<string, { field_value: any; remote_value: any }> = {};
+  for (const r of data ?? []) {
+    out[r.field_name as string] = {
+      field_value: r.field_value,
+      remote_value: r.remote_value,
+    };
+  }
+  return out;
+}
+
+function eq(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (a == null && b == null) return true;
+  if (a == null || b == null) return false;
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+/**
+ * Returnér kun de felter der er ændret siden sidste push, så vi ikke
+ * sender uændrede (og potentielt forældede) værdier.
+ */
+function diffForPush<T extends Record<string, any>>(
+  current: T,
+  state: Record<string, { field_value: any }>,
+): Partial<T> {
+  const out: Partial<T> = {};
+  for (const [k, v] of Object.entries(current)) {
+    if (v === undefined) continue;
+    const last = state[k]?.field_value;
+    if (!eq(v, last)) (out as any)[k] = v;
+  }
+  return out;
+}
+
+async function recordPushedFields(
+  admin: SupabaseClient,
+  business_id: string,
+  provider: string,
+  entity_type: EntityType,
+  entity_id: string,
+  fields: Record<string, any>,
+) {
+  const rows = Object.entries(fields).map(([field_name, field_value]) => ({
+    business_id, provider, entity_type, entity_id,
+    field_name, field_value,
+    last_pushed_at: new Date().toISOString(),
+  }));
+  if (rows.length === 0) return;
+  await admin.from("accounting_field_state").upsert(rows, {
+    onConflict: "business_id,provider,entity_type,entity_id,field_name",
+  });
+}
+
+async function recordPulledFields(
+  admin: SupabaseClient,
+  business_id: string,
+  provider: string,
+  entity_type: EntityType,
+  entity_id: string,
+  fields: Record<string, any>,
+) {
+  const rows = Object.entries(fields).map(([field_name, remote_value]) => ({
+    business_id, provider, entity_type, entity_id,
+    field_name,
+    field_value: remote_value, // sidste kendte fælles værdi
+    remote_value,
+    last_pulled_at: new Date().toISOString(),
+  }));
+  if (rows.length === 0) return;
+  await admin.from("accounting_field_state").upsert(rows, {
+    onConflict: "business_id,provider,entity_type,entity_id,field_name",
+  });
+}
+
 async function setIntegrationError(admin: SupabaseClient, business_id: string, error: string | null) {
   await admin.from("accounting_integrations").update({
     last_error: error,
