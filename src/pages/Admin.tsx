@@ -412,6 +412,13 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      // Hård feature-gate: vis kun regnskabs-info hvis virksomheden har
+      // aktiveret integrationen i sine indstillinger.
+      const accountingEnabled = !!(business?.settings as any)?.accounting_integration_enabled;
+      if (!accountingEnabled) {
+        if (!cancelled) setAccountingMeta(m => ({ ...m, provider: null, productLinks: {}, productGroups: {}, incomeAccounts: {} }));
+        return;
+      }
       const { data: integ } = await supabase
         .from("accounting_integrations" as any)
         .select("provider, is_active")
@@ -426,7 +433,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
       const labels = i.provider === "economic"
         ? { productLabel: "Varenr", groupLabel: "Varegruppe", accountLabel: "Salgskonto" }
         : i.provider === "billy"
-          ? { productLabel: "Produktnr", groupLabel: "Produktgruppe", accountLabel: "Indtægtskonto" }
+          ? { productLabel: "Produktnr", groupLabel: "", accountLabel: "Indtægtskonto" }
           : { productLabel: "Varenr", groupLabel: "Konto", accountLabel: "Konto" };
 
       const { data: links } = await supabase
@@ -463,7 +470,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
       }
     })();
     return () => { cancelled = true; };
-  }, [businessId]);
+  }, [businessId, business?.settings]);
 
   const isFocusMode = showForm || editingId !== null;
 
