@@ -904,10 +904,31 @@ const ServiceForm = ({
     .split(/\s+/)
     .filter((w) => w.length >= 3);
 
-  const scoreTemplate = (t: { label: string; steps: { label: string }[] }) => {
-    if (haystack.length === 0) return 0;
+  // Score: subcategory direct match (+5), keyword overlap (+2 hver), label/step overlap (+1 hver),
+  // beskrivelse overlap (+1 hver). Højere score = bedre match.
+  const descTokens = (description || "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 4)
+    .slice(0, 30);
+  const scoreTemplate = (t: { label: string; steps: { label: string }[]; keywords?: string[]; subcategories?: string[] }) => {
+    let score = 0;
+    // Direkte underkategori-match: stærkest signal
+    if (subcategory && t.subcategories?.some((s) => s.toLowerCase() === subcategory.toLowerCase())) {
+      score += 5;
+    }
     const text = `${t.label} ${t.steps.map((s) => s.label).join(" ")}`.toLowerCase();
-    return haystack.reduce((acc, w) => acc + (text.includes(w) ? 1 : 0), 0);
+    const kwText = (t.keywords || []).join(" ").toLowerCase();
+    haystack.forEach((w) => {
+      if (kwText.includes(w)) score += 2;
+      else if (text.includes(w)) score += 1;
+    });
+    descTokens.forEach((w) => {
+      if (kwText.includes(w)) score += 1;
+      else if (text.includes(w)) score += 0.5;
+    });
+    return score;
   };
 
   // Generiske fallback-templates — altid relevante, men nedtonede når
