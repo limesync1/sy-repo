@@ -76,8 +76,6 @@ export type EmployeeStats = {
       sharers: number;
       /** Note fra medarbejderen ifm. udførelsen (hvis udfyldt). */
       note: string | null;
-      /** Ordrenummer/-id (sidste 6 tegn af id'et — bruges som reference). */
-      orderRef: string | null;
     }[];
   }[];
 };
@@ -302,7 +300,6 @@ export const useMyEmployeeStats = (
           serviceName: (s as any).service_summary ?? null,
           sharers,
           note: (s as any).notes ?? null,
-          orderRef: s.order_id ? String(s.order_id).slice(0, 8).toUpperCase() : null,
         });
         perDayMap.set(d, row);
       });

@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
 import {
   Calendar as CalendarIcon, Play, Printer, MapPin, Clock, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
-  Users, User as UserIcon,
+  Users, User as UserIcon, Info,
 } from "lucide-react";
 import { format, addDays, parseISO, isToday, formatDistanceStrict } from "date-fns";
 import { da } from "date-fns/locale";
@@ -115,6 +117,7 @@ const EmployeeApp = () => {
   const { user, loading } = useAuth();
   const [date, setDate] = useState(todayStr());
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [detailsStop, setDetailsStop] = useState<{ stop: RouteStop; index: number; routeName: string | null; routeColor: string | null; routeDate: string | null } | null>(null);
   const { data: routes = [], isLoading: routesLoading } = useMyDayRoutes(date);
   const { data: stops = [], isLoading: stopsLoading } = useMyDayStops(date);
   const { data: workday } = useMyWorkday(date);
@@ -436,11 +439,14 @@ const EmployeeApp = () => {
                           : null;
                         const pay = paymentMeta(s.order_status);
                         return (
-                          <div
+                          <button
                             key={s.id}
+                            type="button"
+                            onClick={() => setDetailsStop({ stop: s, index: i, routeName: r.name, routeColor: r.color, routeDate: r.route_date })}
                             className={`flex items-center gap-3 px-3 py-2.5 ${
                               isNext ? "bg-secondary/60" : ""
-                            }`}
+                            } w-full text-left transition-colors hover:bg-secondary/80`}
+                            aria-label={`Vis detaljer for ${s.customer_name || "stop"}`}
                           >
                             <span
                               className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
@@ -484,7 +490,8 @@ const EmployeeApp = () => {
                                 {arrivalLabel}
                               </span>
                             )}
-                          </div>
+                            <Info className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                          </button>
                         );
                       })}
                       {myStops.length > 4 && (
@@ -534,6 +541,22 @@ const EmployeeApp = () => {
         })}
         </div>
       </PageTransition>
+
+      {/* Detaljer-modal — viser fulde oplysninger for den valgte aftale
+          (kunde, fuld adresse med postnr+by, opgaver, beløb, kontakt). */}
+      <Sheet open={!!detailsStop} onOpenChange={(o) => !o && setDetailsStop(null)}>
+        <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto p-0">
+          {detailsStop && (
+            <StopDetailsContent
+              stop={detailsStop.stop}
+              index={detailsStop.index}
+              themeColor={detailsStop.routeColor || "hsl(var(--foreground))"}
+              route={{ name: detailsStop.routeName, color: detailsStop.routeColor, date: detailsStop.routeDate }}
+              readOnly
+            />
+          )}
+        </SheetContent>
+      </Sheet>
     </EmployeeShell>
   );
 };
