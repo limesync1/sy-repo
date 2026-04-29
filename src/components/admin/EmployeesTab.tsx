@@ -379,6 +379,8 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                     businessId={businessId}
                     onUpdate={update}
                     onRemove={remove}
+                    earning={earningsMap?.get(emp.id) ?? null}
+                    rangeLabel={RANGE_LABELS[earnRange]}
                   />
                 ))}
               </div>
@@ -407,6 +409,8 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                     businessId={businessId}
                     onUpdate={update}
                     onRemove={remove}
+                    earning={earningsMap?.get(emp.id) ?? null}
+                    rangeLabel={RANGE_LABELS[earnRange]}
                   />
                 ))}
               </div>
@@ -419,12 +423,14 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 };
 
 const EmployeeRow = ({
-  employee, businessId, onUpdate, onRemove,
+  employee, businessId, onUpdate, onRemove, earning, rangeLabel,
 }: {
   employee: any;
   businessId: string;
   onUpdate: ReturnType<typeof useUpdateEmployee>;
   onRemove: ReturnType<typeof useDeleteEmployee>;
+  earning: { earnings: number; stopsCompleted: number; revenue: number } | null;
+  rangeLabel: string;
 }) => {
   const linked = !!employee.user_id;
   const [uploading, setUploading] = useState(false);
