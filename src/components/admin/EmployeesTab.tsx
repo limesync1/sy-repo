@@ -358,19 +358,19 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
         <div className="space-y-3">
           {filteredActive.length > 0 && (
             <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
+              <div className="grid items-center gap-3 border-b border-border px-4 py-3 sm:px-5 sm:grid-cols-[minmax(0,1fr)_6rem_8rem_136px]">
                 <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-foreground">Aktive medarbejdere</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {filteredActive.length} {filteredActive.length === 1 ? "medarbejder" : "medarbejdere"}
                   </p>
                 </div>
-                {/* Kolonne-titler — matcher bredder i hver række */}
-                <div className="hidden sm:flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  <span className="w-24 text-right">Status</span>
-                  <span className="w-32 text-right">Indtjening</span>
-                  <span className="w-[136px] text-right pr-2">Handlinger</span>
-                </div>
+                {/* Kolonne-titler — bruger samme grid-template som rækken
+                    (1fr · 6rem · 8rem · 136px) så overskrifter står lodret
+                    over de faktiske kolonner i hver række. */}
+                <span className="hidden sm:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Status</span>
+                <span className="hidden sm:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Indtjening</span>
+                <span className="hidden sm:block text-right pr-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Handlinger</span>
               </div>
               <div className="divide-y divide-border">
                 {filteredActive.map((emp) => (
@@ -390,18 +390,16 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 
           {filteredInactive.length > 0 && (
             <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
+              <div className="grid items-center gap-3 border-b border-border px-4 py-3 sm:px-5 sm:grid-cols-[minmax(0,1fr)_6rem_8rem_136px]">
                 <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-foreground">Deaktiverede</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {filteredInactive.length} {filteredInactive.length === 1 ? "medarbejder" : "medarbejdere"}
                   </p>
                 </div>
-                <div className="hidden sm:flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  <span className="w-24 text-right">Status</span>
-                  <span className="w-32 text-right">Indtjening</span>
-                  <span className="w-[136px] text-right pr-2">Handlinger</span>
-                </div>
+                <span className="hidden sm:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Status</span>
+                <span className="hidden sm:block text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Indtjening</span>
+                <span className="hidden sm:block text-right pr-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Handlinger</span>
               </div>
               <div className="divide-y divide-border">
                 {filteredInactive.map((emp) => (
