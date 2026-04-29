@@ -1900,17 +1900,43 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       </div>
 
       {/* ─── Stop detail sheet ─── */}
-      <Sheet open={!!selectedId} onOpenChange={(o) => !o && setSelectedId(null)}>
+      <Sheet
+        open={!!selectedId}
+        onOpenChange={(o) => {
+          if (!o) {
+            setSelectedId(null);
+            setSheetExpanded(false);
+          }
+        }}
+      >
         {/*
-          Kompakt bottom-sheet: dækker maks ~65 % af skærmen så kortet stadig
-          er synligt bag.  Brugeren skal kunne se hvor han kører selv mens
-          aftale-detaljer er åbne.  Sheet'en kan scrolles internt for resten
-          af indholdet (opgaver, noter, kontakt).
+          To-trins bottom-sheet: kompakt (~45 vh, default) eller fuld (~85 vh).
+          Drag-bar'en øverst er klikbar — ét tryk skifter mellem størrelserne.
+          Sådan kan medarbejderen altid hurtigt gøre detaljer mindre uden at
+          lukke dem helt.
         */}
         <SheetContent
           side="bottom"
-          className="max-h-[65vh] overflow-y-auto p-0 rounded-t-2xl"
+          hideClose
+          className={`p-0 rounded-t-2xl flex flex-col transition-[max-height,height] duration-300 ease-out ${
+            sheetExpanded ? "max-h-[85vh] h-[85vh]" : "max-h-[45vh] h-[45vh]"
+          }`}
         >
+          {/* Drag-handle bar — tap for at skifte højde, tryk-og-træk på mobile
+              er allerede dækket af bottom-sheet's swipe-luk gesture. */}
+          <button
+            type="button"
+            onClick={() => setSheetExpanded((v) => !v)}
+            className="w-full pt-2 pb-1 flex flex-col items-center gap-0.5 shrink-0 hover:bg-secondary/40 active:bg-secondary/60 transition-colors rounded-t-2xl"
+            aria-label={sheetExpanded ? "Gør detaljer mindre" : "Gør detaljer større"}
+            aria-expanded={sheetExpanded}
+          >
+            <span className="h-1 w-10 rounded-full bg-muted-foreground/40" aria-hidden />
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium">
+              {sheetExpanded ? "Tryk for at gøre mindre" : "Tryk for at udvide"}
+            </span>
+          </button>
+          <div className="flex-1 overflow-y-auto">
           {(() => {
             const s = sortedStops.find((x) => x.id === selectedId);
             if (!s) return null;
