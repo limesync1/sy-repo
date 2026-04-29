@@ -325,21 +325,50 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
     const customers = await adapter.listCustomers(since);
     for (const ec of customers) {
       const matched = await matchCustomer(admin, integ.business_id, ec);
+      // Byg incoming-felt-payload én gang så vi kan diff'e mod shadow
+      const incoming: Record<string, any> = {
+        email: ec.email ?? null,
+        phone: ec.phone ?? null,
+        address: ec.address ?? null,
+        zip_code: ec.zip_code ?? null,
+        city: ec.city ?? null,
+        payment_terms_days: ec.payment_terms_days ?? null,
+        currency: "DKK",
+        cvr: ec.cvr ?? null,
+        ean: ec.ean ?? null,
+        name: ec.name,
+      };
       if (matched) {
-        // Update existing match
-        await admin.from(matched.table).update({
-          email: ec.email ?? undefined,
-          phone: ec.phone ?? undefined,
-          address: ec.address ?? undefined,
-          zip_code: ec.zip_code ?? undefined,
-          city: ec.city ?? undefined,
-          payment_terms_days: ec.payment_terms_days ?? undefined,
-          // Standard-valuta i Serviceydere er altid DKK.
-          currency: "DKK",
-          ...(matched.table === "business_customers"
-            ? { cvr: ec.cvr ?? undefined, ean_number: ec.ean ?? undefined, company_name: ec.name }
-            : { name: ec.name }),
-        }).eq("id", matched.id);
+        // Felt-diff: opdatér kun de felter hvor remote-værdien faktisk er
+        // ny ift. sidste pull. Det undgår både ekko-loops (push→pull→push)
+        // og at overskrive felter brugeren har rettet lokalt siden.
+        const state = await getFieldState(admin, integ.business_id, integ.provider, "customer", matched.id);
+        const diff: Record<string, any> = {};
+        for (const [k, v] of Object.entries(incoming)) {
+          const lastRemote = state[k]?.remote_value;
+          if (!eq(v, lastRemote)) diff[k] = v;
+        }
+        if (Object.keys(diff).length > 0) {
+          const dbUpdate: Record<string, any> = {};
+          if ("email" in diff)              dbUpdate.email = diff.email;
+          if ("phone" in diff)              dbUpdate.phone = diff.phone;
+          if ("address" in diff)            dbUpdate.address = diff.address;
+          if ("zip_code" in diff)           dbUpdate.zip_code = diff.zip_code;
+          if ("city" in diff)               dbUpdate.city = diff.city;
+          if ("payment_terms_days" in diff) dbUpdate.payment_terms_days = diff.payment_terms_days;
+          if ("currency" in diff)           dbUpdate.currency = "DKK";
+          if (matched.table === "business_customers") {
+            if ("cvr" in diff)  dbUpdate.cvr = diff.cvr;
+            if ("ean" in diff)  dbUpdate.ean_number = diff.ean;
+            if ("name" in diff) dbUpdate.company_name = diff.name;
+          } else {
+            if ("name" in diff) dbUpdate.name = diff.name;
+          }
+          if (Object.keys(dbUpdate).length > 0) {
+            await admin.from(matched.table).update(dbUpdate).eq("id", matched.id);
+          }
+        }
+        await recordPulledFields(admin, integ.business_id, integ.provider, "customer", matched.id, incoming);
         // Sørg for at link findes så fremtidige opdateringer matcher
         await upsertCustomerLink(
           admin, integ, ec, matched.id,
@@ -349,6 +378,8 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
       } else {
         // Create new customer in Serviceydere
         const isCompany = !!ec.cvr;
+        let createdId: string | null = null;
+        let createdTable: "business_customers" | "private_customers" = "private_customers";
         if (isCompany) {
           const { data: created } = await admin.from("business_customers").insert({
             business_id: integ.business_id,
@@ -358,7 +389,7 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
             address: ec.address, zip_code: ec.zip_code, city: ec.city,
             payment_terms_days: ec.payment_terms_days, currency: "DKK",
           }).select("id").single();
-          if (created) await upsertCustomerLink(admin, integ, ec, created.id, "business_customer", "pull");
+          if (created) { createdId = created.id; createdTable = "business_customers"; }
         } else {
           const { data: created } = await admin.from("private_customers").insert({
             business_id: integ.business_id, name: ec.name,
@@ -366,7 +397,17 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
             phone: ec.phone, address: ec.address, zip_code: ec.zip_code, city: ec.city,
             payment_terms_days: ec.payment_terms_days, currency: "DKK",
           }).select("id").single();
-          if (created) await upsertCustomerLink(admin, integ, ec, created.id, "private_customer", "pull");
+          if (created) { createdId = created.id; createdTable = "private_customers"; }
+        }
+        if (createdId) {
+          await upsertCustomerLink(
+            admin, integ, ec, createdId,
+            createdTable === "business_customers" ? "business_customer" : "private_customer",
+            "pull",
+          );
+          await recordPulledFields(
+            admin, integ.business_id, integ.provider, "customer", createdId, incoming,
+          );
         }
       }
       customersPulled++;
@@ -385,14 +426,26 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
           last_synced_at: new Date().toISOString(),
           external_data: ep.raw ?? {},
         }).eq("id", existing.id);
-        // Pull pris/navn ind på den koblede service
+        // Pull pris/navn ind på den koblede service — men kun hvis remote
+        // har ændret sig siden sidste pull (felt-diff).
         if (existing.service_id) {
+          const incomingP: Record<string, any> = {
+            name: ep.name,
+            unit_price: Number.isFinite(ep.unit_price) ? ep.unit_price : null,
+          };
+          const state = await getFieldState(admin, integ.business_id, integ.provider, "product", existing.service_id);
           const update: Record<string, unknown> = {};
-          if (ep.name) update.name = ep.name;
-          if (Number.isFinite(ep.unit_price) && ep.unit_price > 0) update.base_price = ep.unit_price;
+          if (incomingP.name && !eq(incomingP.name, state.name?.remote_value)) {
+            update.name = incomingP.name;
+          }
+          if (incomingP.unit_price && incomingP.unit_price > 0
+              && !eq(incomingP.unit_price, state.unit_price?.remote_value)) {
+            update.base_price = incomingP.unit_price;
+          }
           if (Object.keys(update).length > 0) {
             await admin.from("services").update(update).eq("id", existing.service_id);
           }
+          await recordPulledFields(admin, integ.business_id, integ.provider, "product", existing.service_id, incomingP);
         }
       }
       productsPulled++;
