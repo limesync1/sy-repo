@@ -100,6 +100,7 @@ const App = () => (
 
               {/* ── New Danish routes ── */}
               <Route path="/log-ind" element={<Auth />} />
+             <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/admin" element={<PlatformAdmin />} />
               <Route path="/virksomhed" element={<Admin />} />
               <Route path="/virksomhed/ruter" element={<RoutePlanner />} />
