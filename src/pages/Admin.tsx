@@ -397,6 +397,74 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   const [filterCategory, setFilterCategory] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  // Hent regnskabsintegration + vare-links én gang, så hver række kan vise
+  // vare-nr og kundegruppe/indtægtskonto uden N+1 kald.
+  const [accountingMeta, setAccountingMeta] = useState<{
+    provider: string | null;
+    productLabel: string;        // fx "Vare-nr"
+    groupLabel: string;          // fx "Varegruppe"
+    accountLabel: string;        // fx "Indtægtskonto"
+    productLinks: Record<string, string>;        // service_id -> external_product_number eller external_id
+    productGroups: Record<string, string>;       // id -> name
+    incomeAccounts: Record<string, string>;      // id -> name
+  }>({ provider: null, productLabel: "Vare-nr", groupLabel: "Varegruppe", accountLabel: "Indtægtskonto", productLinks: {}, productGroups: {}, incomeAccounts: {} });
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: integ } = await supabase
+        .from("accounting_integrations" as any)
+        .select("provider, is_active")
+        .eq("business_id", businessId)
+        .maybeSingle();
+      const i = integ as any;
+      if (!i?.is_active) {
+        if (!cancelled) setAccountingMeta(m => ({ ...m, provider: null, productLinks: {}, productGroups: {}, incomeAccounts: {} }));
+        return;
+      }
+      // Provider-specifikke labels så de matcher det integrerede program.
+      const labels = i.provider === "economic"
+        ? { productLabel: "Varenr", groupLabel: "Varegruppe", accountLabel: "Salgskonto" }
+        : i.provider === "billy"
+          ? { productLabel: "Produktnr", groupLabel: "Produktgruppe", accountLabel: "Indtægtskonto" }
+          : { productLabel: "Varenr", groupLabel: "Konto", accountLabel: "Konto" };
+
+      const { data: links } = await supabase
+        .from("accounting_product_links" as any)
+        .select("service_id, external_product_number, external_id")
+        .eq("business_id", businessId)
+        .eq("provider", i.provider);
+      const productLinks: Record<string, string> = {};
+      for (const l of (links as any[]) ?? []) {
+        if (l.service_id) productLinks[l.service_id] = l.external_product_number ?? l.external_id ?? "";
+      }
+
+      // Hent navngivne grupper/konti fra adapteren — fail-soft så fanen ikke
+      // bliver blokeret hvis regnskabs-API'et er nede.
+      let productGroups: Record<string, string> = {};
+      let incomeAccounts: Record<string, string> = {};
+      try {
+        const { data } = await supabase.functions.invoke("accounting-list-groups", {
+          body: { business_id: businessId },
+        });
+        const d = data as any;
+        for (const g of d?.product_groups ?? []) productGroups[g.id] = g.name;
+        for (const a of d?.income_accounts ?? []) incomeAccounts[a.id] = a.name;
+      } catch { /* ignore */ }
+
+      if (!cancelled) {
+        setAccountingMeta({
+          provider: i.provider,
+          ...labels,
+          productLinks,
+          productGroups,
+          incomeAccounts,
+        });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [businessId]);
+
   const isFocusMode = showForm || editingId !== null;
 
   // Brancher virksomheden har valgt i Indstillinger — styrer hvad der kan oprettes
@@ -561,6 +629,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
             key={s.id}
             service={s}
             orderCount={orderCountByService[s.id] || 0}
+            accountingMeta={accountingMeta}
             onEdit={() => setEditingId(s.id)}
             onDelete={() => deleteService.mutate(s.id)}
           />
