@@ -818,6 +818,96 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </div>
         </SectionCard>
 
+        {/* Standard kategorier hentet fra regnskabsprogrammet */}
+        <SectionCard
+          title="Standard kategorier"
+          icon={<FolderTree />}
+          description="Hentet direkte fra dit regnskabsprogram. Bruges som standard for nye kunder og services — du kan altid overstyre per service."
+          action={
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadGroups}
+              disabled={groupsLoading}
+              className="h-9 rounded-lg text-xs font-medium"
+            >
+              <RotateCw className={`mr-2 h-3.5 w-3.5 ${groupsLoading ? "animate-spin" : ""}`} />
+              Opdater liste
+            </Button>
+          }
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            {groups.customer_groups.length > 0 && (
+              <div>
+                <FieldLabel>Kundegruppe (nye kunder)</FieldLabel>
+                <Select
+                  value={settings.default_customer_group ?? ""}
+                  onValueChange={v => setSettings({ ...settings, default_customer_group: v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Vælg kundegruppe…" /></SelectTrigger>
+                  <SelectContent>
+                    {groups.customer_groups.map(g => (
+                      <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {groups.product_groups.length > 0 && (
+              <div>
+                <FieldLabel>Produktgruppe (nye services)</FieldLabel>
+                <Select
+                  value={settings.default_product_group ?? ""}
+                  onValueChange={v => setSettings({ ...settings, default_product_group: v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Vælg produktgruppe…" /></SelectTrigger>
+                  <SelectContent>
+                    {groups.product_groups.map(g => (
+                      <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {groups.income_accounts.length > 0 && (
+              <div className="sm:col-span-2">
+                <FieldLabel>Indtægtskonto</FieldLabel>
+                <Select
+                  value={settings.default_income_account ?? ""}
+                  onValueChange={v => setSettings({ ...settings, default_income_account: v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Vælg indtægtskonto…" /></SelectTrigger>
+                  <SelectContent>
+                    {groups.income_accounts.map(g => (
+                      <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {groups.customer_groups.length === 0 &&
+             groups.product_groups.length === 0 &&
+             groups.income_accounts.length === 0 && (
+              <p className="text-sm text-muted-foreground sm:col-span-2">
+                {groupsLoading
+                  ? "Henter kategorier fra regnskabsprogrammet…"
+                  : "Ingen kategorier fundet. Opret dem i dit regnskabsprogram og tryk Opdater liste."}
+              </p>
+            )}
+          </div>
+          <div className="mt-4 flex justify-end">
+            <Button
+              variant="outline"
+              onClick={handleSaveSettingsOnly}
+              disabled={saving}
+              className="h-9 rounded-lg text-xs font-medium"
+            >
+              {saving && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+              Gem standard
+            </Button>
+          </div>
+        </SectionCard>
+
         {/* Log */}
         {logs.length > 0 ? (
           <SectionCard
