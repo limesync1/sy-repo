@@ -58,6 +58,22 @@ export const calcTotalPayout = (
   }, 0);
 };
 
-/** Pænt formateret kr-tal (heltal, dansk locale). */
-export const formatKr = (n: number): string =>
+/**
+ * Pænt formateret kr-tal med ører (dansk locale).
+ *
+ * Vi viser ALTID øre — også selvom beløbet er rundt — så medarbejderen
+ * kan stole på, at provisionsberegningen er præcis (fx "32,24 kr" i
+ * stedet for "32 kr"). Brug `formatKrCompact` for steder hvor der ikke
+ * er plads til ører.
+ */
+export const formatKr = (n: number): string => {
+  const value = Number(n) || 0;
+  return `${value.toLocaleString("da-DK", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} kr`;
+};
+
+/** Kompakt udgave uden ører — KUN til steder hvor præcision er ligegyldig. */
+export const formatKrCompact = (n: number): string =>
   `${Math.round(Number(n) || 0).toLocaleString("da-DK")} kr`;
