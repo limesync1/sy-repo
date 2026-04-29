@@ -15,6 +15,7 @@ import { useEffect, useState, lazy, Suspense } from "react";
 import {
   Plus, Trash2,
   Sparkles, Calculator, Wrench, Wand2, Loader2, Check,
+  ArrowUp, ArrowDown, Copy,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { supabase } from "@/integrations/supabase/client";
@@ -1003,8 +1004,38 @@ const ServiceForm = ({
     { num: 4, label: "Interval", color: "bg-cyan-500" },
   ];
 
+  const blankStep = (sortOrder: number) => ({
+    label: "",
+    unit: "stk",
+    price_per_unit: 0,
+    min_value: 1,
+    max_value: 10,
+    default_value: 1,
+    sort_order: sortOrder,
+  });
   const addStep = () => {
-    setSteps([...steps, { label: "", unit: "stk", price_per_unit: 0, min_value: 0, max_value: 100, default_value: 0, sort_order: steps.length }]);
+    setSteps((prev) => [...prev, blankStep(prev.length)]);
+  };
+  const duplicateStep = (i: number) => {
+    setSteps((prev) => {
+      const copy = { ...prev[i], label: `${prev[i].label || `Trin ${i + 1}`} (kopi)` };
+      const next = [...prev];
+      next.splice(i + 1, 0, copy);
+      return next.map((s, idx) => ({ ...s, sort_order: idx }));
+    });
+  };
+  const moveStep = (i: number, dir: -1 | 1) => {
+    setSteps((prev) => {
+      const j = i + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next.map((s, idx) => ({ ...s, sort_order: idx }));
+    });
+  };
+  const startFromScratch = () => {
+    setSteps([blankStep(0)]);
+    setAutoSuggestionApplied(true);
   };
   const updateStep = (i: number, field: string, value: any) => {
     const updated = [...steps];
@@ -1460,11 +1491,7 @@ const ServiceForm = ({
                   </div>
                   <button
                     type="button"
-                    onClick={() => {
-                      setSteps([]);
-                      setAutoSuggestionApplied(true);
-                      addStep();
-                    }}
+                    onClick={startFromScratch}
                     className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card/50 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-foreground/40 hover:bg-card hover:text-foreground"
                   >
                     <Plus className="h-4 w-4" />
@@ -1474,70 +1501,122 @@ const ServiceForm = ({
               )}
 
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-foreground">{steps.length} beregnertrin</span>
-              <Button variant="outline" size="sm" onClick={addStep} className="gap-1.5 rounded-lg">
-                <Plus className="h-3.5 w-3.5" /> Tilføj trin
-              </Button>
-            </div>
-
-            {steps.map((step, i) => (
-              <Card key={i} className="rounded-xl shadow-sm border-border overflow-hidden">
-                <div className="flex items-center justify-between bg-secondary/40 px-4 py-2.5 border-b border-border">
-                  <div className="flex items-center gap-2.5">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-md bg-foreground text-[11px] font-bold text-background">{i + 1}</span>
-                    <span className="text-sm font-semibold text-foreground">{step.label || `Trin ${i + 1}`}</span>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => removeStep(i)} className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+            {steps.length > 0 && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-foreground">
+                    {steps.length} {steps.length === 1 ? "trin" : "trin"}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    · Standardpris{" "}
+                    <span className="font-medium text-foreground tabular-nums">
+                      {steps.reduce(
+                        (sum, s) => sum + (Number(s.price_per_unit) || 0) * (Number(s.default_value) || 0),
+                        0,
+                      ).toLocaleString("da-DK")} kr
+                    </span>
+                  </span>
                 </div>
-                <CardContent className="p-4 space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Navn</label>
-                      <Input placeholder="Fx Støvsugning" value={step.label} onChange={(e) => updateStep(i, "label", e.target.value)} className="bg-card" />
+                <Button variant="outline" size="sm" onClick={addStep} className="gap-1.5 rounded-lg">
+                  <Plus className="h-3.5 w-3.5" /> Tilføj trin
+                </Button>
+              </div>
+            )}
+
+            {steps.map((step, i) => {
+              const rowTotal = (Number(step.price_per_unit) || 0) * (Number(step.default_value) || 0);
+              return (
+                <Card key={i} className="rounded-xl shadow-sm border-border overflow-hidden">
+                  <div className="flex items-center justify-between gap-2 bg-secondary/40 px-3 py-2 border-b border-border">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-foreground text-[11px] font-bold text-background">
+                        {i + 1}
+                      </span>
+                      <span className="truncate text-sm font-semibold text-foreground">
+                        {step.label || `Trin ${i + 1}`}
+                      </span>
+                      {rowTotal > 0 && (
+                        <span className="ml-1 shrink-0 rounded-md bg-card px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground tabular-nums">
+                          {rowTotal.toLocaleString("da-DK")} kr
+                        </span>
+                      )}
                     </div>
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Enhed</label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {["stk", "m²", "m", "timer", "rum", "km", "kg", "kr"].map((u) => (
-                          <button key={u} type="button" onClick={() => updateStep(i, "unit", u)}
-                            className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${
-                              step.unit === u
-                                ? "border-foreground bg-foreground text-background"
-                                : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground"
-                            }`}>{u}</button>
-                        ))}
-                      </div>
+                    <div className="flex shrink-0 items-center gap-0.5">
+                      <Button variant="ghost" size="sm" onClick={() => moveStep(i, -1)} disabled={i === 0}
+                        className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-30">
+                        <ArrowUp className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => moveStep(i, 1)} disabled={i === steps.length - 1}
+                        className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-30">
+                        <ArrowDown className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => duplicateStep(i)}
+                        className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-foreground">
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => removeStep(i)}
+                        className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-4 gap-2.5">
-                    {[
-                      { label: `Pris / ${step.unit || "enhed"}`, field: "price_per_unit", value: step.price_per_unit },
-                      { label: "Min", field: "min_value", value: step.min_value },
-                      { label: "Max", field: "max_value", value: step.max_value },
-                      { label: "Standard", field: "default_value", value: step.default_value },
-                    ].map((f) => (
-                      <div key={f.field}>
-                        <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">{f.label}</label>
-                        <Input type="number" placeholder="0" value={f.value} onChange={(e) => updateStep(i, f.field, e.target.value)} className="bg-card text-sm" />
+                  <CardContent className="p-4 space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Navn</label>
+                        <Input placeholder="Fx Boligens størrelse" value={step.label}
+                          onChange={(e) => updateStep(i, "label", e.target.value)} className="bg-card" />
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Enhed</label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {["stk", "m²", "m", "timer", "rum", "km", "kg", "kr"].map((u) => (
+                            <button key={u} type="button" onClick={() => updateStep(i, "unit", u)}
+                              className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${
+                                step.unit === u
+                                  ? "border-foreground bg-foreground text-background"
+                                  : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                              }`}>{u}</button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      {[
+                        { label: `Pris / ${step.unit || "enhed"}`, hint: "kr", field: "price_per_unit", value: step.price_per_unit },
+                        { label: "Minimum", hint: step.unit, field: "min_value", value: step.min_value },
+                        { label: "Maksimum", hint: step.unit, field: "max_value", value: step.max_value },
+                        { label: "Standard", hint: step.unit, field: "default_value", value: step.default_value },
+                      ].map((f) => (
+                        <div key={f.field}>
+                          <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                            {f.label}
+                          </label>
+                          <div className="relative">
+                            <Input type="number" inputMode="numeric" placeholder="0" value={f.value}
+                              onChange={(e) => updateStep(i, f.field, e.target.value)}
+                              className="bg-card text-sm pr-9 tabular-nums" />
+                            <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground">
+                              {f.hint}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
 
             {steps.length === 0 && (
-              <div className="py-10 text-center rounded-xl border border-dashed border-border bg-card">
-                <Calculator className="mx-auto h-8 w-8 text-muted-foreground/30" />
-                <p className="mt-3 text-sm text-muted-foreground">
-                  {rankedTemplates.length > 0
-                    ? "Vælg en skabelon ovenfor — eller tryk \"Tilføj trin\" for at bygge selv."
-                    : "Tryk \"Tilføj trin\" for at oprette dit første beregnertrin."}
+              <button type="button" onClick={startFromScratch}
+                className="flex w-full flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-10 text-center transition-colors hover:border-foreground/40 hover:bg-secondary/40">
+                <Calculator className="h-8 w-8 text-muted-foreground/40" />
+                <p className="mt-3 text-sm font-medium text-foreground">Opret dit første trin</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {rankedTemplates.length > 0 ? "Eller vælg en skabelon ovenfor" : "Tilføj fx areal, antal rum eller timer"}
                 </p>
-              </div>
+              </button>
             )}
           </div>
 
