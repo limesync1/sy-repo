@@ -1,371 +1,469 @@
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTour } from "./TourContext";
-import { TOURS } from "./tours";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
-  Check, ChevronRight, Sparkles, X, Clock, ArrowRight, PartyPopper,
+  Check, ChevronRight, ChevronLeft, Sparkles, X, ArrowRight,
+  PartyPopper, Building2, Wrench, Users, Route as RouteIcon,
+  Image as ImageIcon, Rocket, type LucideIcon,
 } from "lucide-react";
 import {
   useOnboardingProgress, useUpdateOnboardingProgress, useCompleteOnboardingStep,
 } from "@/hooks/useOnboarding";
-import { ONBOARDING_STEPS, visibleSteps, type OnboardingStep, type StepCtx } from "./onboarding-steps";
 import { useServices } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
-import { useBusinessPlan } from "@/hooks/useBusinessPlan";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-
-/** Letvægts-tjek: har virksomheden mindst én rute? */
-const useHasAnyRoute = (businessId: string | undefined) =>
-  useQuery({
-    queryKey: ["onboarding-routes-count", businessId],
-    enabled: !!businessId,
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from("routes")
-        .select("id", { count: "exact", head: true })
-        .eq("business_id", businessId!);
-      if (error) throw error;
-      return count || 0;
-    },
-    staleTime: 30_000,
-  });
 
 /**
- * OnboardingHub — den centrale "guide mig i gang" oplevelse.
+ * OnboardingHub — én sammenhængende onboarding-oplevelse:
  *
- * Tre dele i ét:
- *  1. **Auto-wizard**: åbnes automatisk første gang virksomheden ikke har
- *     dismissed wizarden og ikke har gennemført alle relevante trin.
- *  2. **Floating launcher** (cirkel nederst til højre): viser fremgang og
- *     genåbner wizarden — altid tilgængelig.
- *  3. **Checklist-modus**: når wizarden åbnes igen efter dismiss, vises den
- *     som en oversigt over alle trin man kan klikke direkte ind i.
+ *  1. **Velkomst-wizard** (fuldskærms-dialog): vises kun ved allerførste login,
+ *     og kun indtil brugeren enten gennemfører den eller eksplicit lukker den.
+ *     Den introducerer platformen kort og guider direkte til de kritiske trin.
  *
- * Trin markeres automatisk som færdige når deres `isDone(ctx)` er sand
- * (fx services-trinnet bliver grønt så snart virksomheden har én service).
- * Brugeren kan også manuelt markere et trin som "Færdig" eller "Spring over".
+ *  2. **Inline-checklist** (kort i toppen af panelet): vises altid så længe
+ *     der er ufærdige kerne-trin. Hvert trin har et tydeligt CTA der åbner
+ *     den rigtige fane. Når alt er gjort skjules kortet helt — og dukker
+ *     ikke op igen.
+ *
+ * Trin opdateres automatisk når deres betingelse er sand (fx services-trinnet
+ * markeres som fuldført så snart virksomheden har én service oprettet).
  */
 
-type OnboardingHubProps = {
-  business: any;
+type Step = {
+  id: string;
+  title: string;
+  description: string;
+  cta: string;
+  href: string;
+  icon: LucideIcon;
+  /** Returnerer true hvis dette step bør tælle som færdigt baseret på data. */
+  isDone: (ctx: Ctx) => boolean;
+  /** Optional: skjul trin hvis ikke relevant for denne virksomhed. */
+  isRelevant?: (ctx: Ctx) => boolean;
 };
 
-export const OnboardingHub = ({ business }: OnboardingHubProps) => {
+type Ctx = {
+  business: any;
+  servicesCount: number;
+  employeesCount: number;
+};
+
+const buildSteps = (ctx: Ctx): Step[] => {
+  const settingsHref = "/virksomhed?tab=settings";
+  const all: Step[] = [
+    {
+      id: "company-info",
+      title: "Udfyld virksomhedsoplysninger",
+      description: "Beskrivelse, telefon og adresse — så kunderne ved hvem I er, og leads kan finde jer.",
+      cta: "Åbn indstillinger",
+      href: settingsHref,
+      icon: Building2,
+      isDone: ({ business }) =>
+        !!business?.description?.trim() && !!business?.phone?.trim() && !!business?.address?.trim(),
+    },
+    {
+      id: "branding",
+      title: "Tilføj logo og forsidebillede",
+      description: "Et professionelt udtryk gør stor forskel for kundernes tillid.",
+      cta: "Tilføj billeder",
+      href: settingsHref,
+      icon: ImageIcon,
+      isDone: ({ business }) => !!business?.logo_url,
+    },
+    {
+      id: "services",
+      title: "Opret jeres første service",
+      description: "Uden services kan kunder ikke booke. Vælg fast pris, timepris eller en prisberegner.",
+      cta: "Opret service",
+      href: "/virksomhed?tab=services",
+      icon: Wrench,
+      isDone: ({ servicesCount }) => servicesCount > 0,
+    },
+    {
+      id: "employees",
+      title: "Inviter jeres medarbejdere",
+      description: "Giv teamet adgang til medarbejder-appen, så I kan tildele opgaver.",
+      cta: "Tilføj medarbejder",
+      href: "/virksomhed?tab=employees",
+      icon: Users,
+      isDone: ({ employeesCount }) => employeesCount > 0,
+      isRelevant: ({ business }) => !!(business?.settings as any)?.route_planning_enabled,
+    },
+    {
+      id: "route-planning",
+      title: "Planlæg jeres første rute",
+      description: "Træk dagens aftaler ind i kalenderen og tildel dem til jeres team.",
+      cta: "Åbn ruteplanlægger",
+      href: "/virksomhed/ruter",
+      icon: RouteIcon,
+      // Kan kun markeres færdig manuelt eller via "Spring over".
+      isDone: () => false,
+      isRelevant: ({ business }) => !!(business?.settings as any)?.route_planning_enabled,
+    },
+  ];
+  return all.filter((s) => (s.isRelevant ? s.isRelevant(ctx) : true));
+};
+
+export const OnboardingHub = ({ business }: { business: any }) => {
   const navigate = useNavigate();
-  const tour = useTour();
-  const { data: plan } = useBusinessPlan(business?.id);
   const { data: services } = useServices(business?.id);
   const { data: employees } = useEmployees(business?.id);
-  const { data: routesCount } = useHasAnyRoute(business?.id);
   const { data: progress, isLoading } = useOnboardingProgress(business?.id);
   const updateProgress = useUpdateOnboardingProgress(business?.id);
   const completeStep = useCompleteOnboardingStep(business?.id);
 
-  const ctx: StepCtx = useMemo(() => ({
+  const ctx: Ctx = useMemo(() => ({
     business,
-    plan,
     servicesCount: services?.length || 0,
     employeesCount: employees?.length || 0,
-    routesCount: routesCount || 0,
-  }), [business, plan, services, employees, routesCount]);
+  }), [business, services, employees]);
 
-  const steps = useMemo(() => visibleSteps(ctx), [ctx]);
+  const steps = useMemo(() => buildSteps(ctx), [ctx]);
 
-  // Et trin er færdigt hvis det enten er manuelt markeret ELLER opfylder isDone-betingelsen.
-  const isStepDone = (step: OnboardingStep) => {
-    if (progress?.completed_steps?.includes(step.id)) return true;
-    return step.isDone(ctx);
-  };
-  const isStepSkipped = (step: OnboardingStep) =>
-    !!progress?.skipped_steps?.includes(step.id);
+  const isDone = (s: Step) =>
+    s.isDone(ctx) ||
+    !!progress?.completed_steps?.includes(s.id) ||
+    !!progress?.skipped_steps?.includes(s.id);
 
-  const doneCount = steps.filter((s) => isStepDone(s) || isStepSkipped(s)).length;
-  const totalCount = steps.length;
-  const allDone = totalCount > 0 && doneCount === totalCount;
-  const pct = totalCount === 0 ? 100 : Math.round((doneCount / totalCount) * 100);
+  const doneCount = steps.filter(isDone).length;
+  const total = steps.length;
+  const allDone = total > 0 && doneCount === total;
+  const pct = total === 0 ? 100 : Math.round((doneCount / total) * 100);
 
-  // Auto-markér færdige trin i DB så fremgang er korrekt på tværs af enheder.
+  // Auto-sync færdige trin til DB så vi kan vise den rigtige status overalt.
   useEffect(() => {
     if (!progress || isLoading) return;
-    const newlyDone = steps
+    const auto = steps
       .filter((s) => s.isDone(ctx))
       .map((s) => s.id)
       .filter((id) => !progress.completed_steps.includes(id));
-    if (newlyDone.length > 0) {
-      const merged = Array.from(new Set([...progress.completed_steps, ...newlyDone]));
-      updateProgress.mutate({ completed_steps: merged });
+    if (auto.length > 0) {
+      updateProgress.mutate({
+        completed_steps: Array.from(new Set([...progress.completed_steps, ...auto])),
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [services?.length, employees?.length, routesCount, business?.logo_url, business?.description, plan?.payment_last4]);
+  }, [services?.length, employees?.length, business?.logo_url, business?.description, business?.phone, business?.address]);
 
-  // Markér hele onboardingen som "færdig" når alle trin er overstået.
+  // Markér onboarding som færdig når alle trin er overstået.
   useEffect(() => {
     if (!progress || !allDone || progress.fully_completed_at) return;
     updateProgress.mutate({ fully_completed_at: new Date().toISOString() });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allDone, progress?.fully_completed_at]);
 
-  // Wizard-dialog state
-  const [open, setOpen] = useState(false);
-  const [stepIndex, setStepIndex] = useState(0);
+  /* ───────── Velkomst-wizard ───────── */
+  // Vises ved allerførste login (ingen progress-række endnu) — eller indtil
+  // brugeren har dismissed den. Lukker man, kommer den ikke igen.
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [wizardStep, setWizardStep] = useState(0);
 
-  // Åbn automatisk første gang (kun hvis intet er færdigt og brugeren ikke har dismissed).
   useEffect(() => {
     if (isLoading) return;
-    // Hvis hele onboardingen allerede er markeret færdig → ÅBN ALDRIG automatisk.
-    // Brugeren kan stadig genåbne via floating launcher hvis de vil.
-    if (progress?.fully_completed_at) return;
-    const isFirstTime = !progress;
-    const notDismissedAndNotDone =
-      progress && !progress.wizard_dismissed && !progress.fully_completed_at && doneCount < totalCount;
-    if (isFirstTime || notDismissedAndNotDone) {
-      // Hop direkte til første ufærdige trin
-      const firstUnfinished = Math.max(
-        0,
-        steps.findIndex((s) => !isStepDone(s) && !isStepSkipped(s)),
-      );
-      setStepIndex(firstUnfinished === -1 ? 0 : firstUnfinished);
-      setOpen(true);
+    if (!progress && !wizardOpen) {
+      // Helt ny virksomhed — åbn velkomst-wizard
+      setWizardStep(0);
+      setWizardOpen(true);
     }
-    // Kør kun ved mount / når progress hentes første gang
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading]);
+  }, [isLoading, progress?.id]);
 
-  if (isLoading || !business) return null;
-  if (totalCount === 0) return null;
+  const wizardSlides = [
+    {
+      icon: Rocket,
+      title: `Velkommen, ${business?.name || "ny virksomhed"}!`,
+      body: "Vi guider jer hurtigt i gang med Serviceydere. Det tager omkring 10 minutter at få det vigtigste på plads — og I kan altid vende tilbage til guiden senere.",
+    },
+    {
+      icon: Building2,
+      title: "Først: jeres profil",
+      body: "Beskrivelse, kontaktoplysninger, brancher og åbningstider. Det er fundamentet for at kunder og leads kan finde jer.",
+    },
+    {
+      icon: Wrench,
+      title: "Derefter: jeres services",
+      body: "Opret de ydelser I tilbyder med priser. Brug fast pris, timepris eller prisberegner med kvadratmeter, antal eller timer.",
+    },
+    {
+      icon: Sparkles,
+      title: "Klar til at gå i gang?",
+      body: "Vi har sat en checkliste op i toppen af panelet. Klik dig igennem trinene i det tempo der passer jer — kortet forsvinder når alt er gjort.",
+    },
+  ];
 
-  const currentStep = steps[stepIndex];
-
-  const handleStepCta = (step: OnboardingStep) => {
-    setOpen(false);
-    // Hvis der findes en interaktiv tour for dette step → start den.
-    // Tour-overlayet håndterer selv navigation til den rigtige side.
-    const t = TOURS[step.id];
-    if (t) {
-      tour.start(t);
-    } else {
-      navigate(step.href);
+  const closeWizard = (markStarted = true) => {
+    setWizardOpen(false);
+    if (markStarted && !progress) {
+      // Opret tom progress-række så wizarden ikke åbner igen næste gang
+      updateProgress.mutate({ wizard_dismissed: true, current_step: steps[0]?.id ?? null });
     }
   };
 
-  const handleMarkDone = (step: OnboardingStep) => {
-    completeStep.mutate(step.id);
+  const goToFirstStep = () => {
+    closeWizard(true);
+    if (steps[0]) navigate(steps[0].href);
   };
 
-  const handleSkip = (step: OnboardingStep) => {
+  /* ───────── Inline checklist ───────── */
+  // Find aktivt anbefalet trin = første ufærdige
+  const activeStep = steps.find((s) => !isDone(s));
+  const showChecklist = !isLoading && !!business && !allDone && !wizardOpen && !!progress;
+
+  const handleSkip = (s: Step) => {
     const skipped = new Set(progress?.skipped_steps || []);
-    skipped.add(step.id);
+    skipped.add(s.id);
     updateProgress.mutate({ skipped_steps: Array.from(skipped) });
   };
 
-  const handleDismiss = () => {
-    setOpen(false);
-    updateProgress.mutate({ wizard_dismissed: true });
-  };
-
-  const handleReopen = () => {
-    const firstUnfinished = steps.findIndex((s) => !isStepDone(s) && !isStepSkipped(s));
-    setStepIndex(firstUnfinished === -1 ? 0 : firstUnfinished);
-    updateProgress.mutate({ wizard_dismissed: false });
-    setOpen(true);
+  const handleMarkDone = (s: Step) => {
+    completeStep.mutate(s.id);
   };
 
   return (
     <>
-      {/* Floating launcher — vises altid (medmindre alt er færdigt og dialog er lukket).
-          Klik åbner checklist/wizard. */}
-      {(!progress?.fully_completed_at || open) && (
-        <button
-          onClick={handleReopen}
-          className={cn(
-            "fixed bottom-6 right-6 z-30 flex items-center gap-3 rounded-full border border-border bg-card px-4 py-3 shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5",
-            "max-w-[calc(100vw-2rem)]",
-          )}
-          aria-label="Åbn onboarding-guide"
-        >
-          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
-            <Sparkles className="h-4 w-4" />
-            <svg className="absolute inset-0 h-9 w-9 -rotate-90" viewBox="0 0 36 36">
-              <circle cx="18" cy="18" r="16" fill="none" stroke="hsl(var(--border))" strokeWidth="2" />
-              <circle
-                cx="18" cy="18" r="16" fill="none"
-                stroke="hsl(var(--accent))" strokeWidth="2"
-                strokeDasharray={`${(pct / 100) * 100.53} 100.53`}
-                strokeLinecap="round"
-                className="transition-all duration-500"
+      {/* ───── Velkomst-wizard (kun første gang) ───── */}
+      <Dialog open={wizardOpen} onOpenChange={(v) => { if (!v) closeWizard(true); }}>
+        <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden border-0 shadow-2xl">
+          <div className="relative bg-gradient-to-br from-foreground to-foreground/90 px-8 py-12 text-background text-center">
+            <button
+              onClick={() => closeWizard(true)}
+              className="absolute right-3 top-3 rounded-md p-1.5 text-background/60 hover:bg-background/10 hover:text-background transition-colors"
+              aria-label="Luk"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-background/10 backdrop-blur-sm">
+              {(() => {
+                const Icon = wizardSlides[wizardStep].icon;
+                return <Icon className="h-7 w-7" />;
+              })()}
+            </div>
+            <h2 className="text-xl font-semibold leading-tight">
+              {wizardSlides[wizardStep].title}
+            </h2>
+            <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-background/70">
+              {wizardSlides[wizardStep].body}
+            </p>
+          </div>
+
+          {/* Progress dots */}
+          <div className="flex items-center justify-center gap-1.5 bg-card pt-5">
+            {wizardSlides.map((_, i) => (
+              <span
+                key={i}
+                className={cn(
+                  "h-1.5 rounded-full transition-all",
+                  i === wizardStep ? "w-6 bg-foreground" : "w-1.5 bg-border",
+                )}
               />
-            </svg>
+            ))}
           </div>
-          <div className="hidden sm:block text-left">
-            <p className="text-xs font-semibold text-foreground">
-              {allDone ? "Du er klar! 🎉" : "Kom godt i gang"}
-            </p>
-            <p className="text-[11px] text-muted-foreground">
-              {doneCount} af {totalCount} trin færdige
-            </p>
-          </div>
-        </button>
-      )}
 
-      <Dialog open={open} onOpenChange={(v) => { if (!v) setOpen(false); }}>
-        <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden">
-          {/* Header med samlet fremgang — vises på ALLE skærme */}
-          <div className="border-b border-border bg-secondary/40 px-6 py-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Velkommen til Serviceydere
-                </p>
-                <h2 className="mt-0.5 text-lg font-semibold text-foreground truncate">
-                  Lad os få {business.name} klar
-                </h2>
-              </div>
-              <button
-                onClick={handleDismiss}
-                className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                aria-label="Luk"
+          {/* Footer */}
+          <div className="flex items-center justify-between gap-2 bg-card px-5 py-4">
+            <Button
+              variant="ghost" size="sm"
+              onClick={() => setWizardStep((i) => Math.max(0, i - 1))}
+              disabled={wizardStep === 0}
+              className="gap-1"
+            >
+              <ChevronLeft className="h-4 w-4" /> Tilbage
+            </Button>
+            {wizardStep < wizardSlides.length - 1 ? (
+              <Button
+                size="sm"
+                onClick={() => setWizardStep((i) => i + 1)}
+                className="gap-1"
               >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="mt-3 flex items-center gap-3">
-              <Progress value={pct} className="h-1.5 flex-1" />
-              <span className="shrink-0 text-xs font-medium text-muted-foreground tabular-nums">
-                {doneCount}/{totalCount}
-              </span>
-            </div>
+                Næste <ChevronRight className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button size="sm" onClick={goToFirstStep} className="gap-1">
+                Lad os gå i gang <ArrowRight className="h-4 w-4" />
+              </Button>
+            )}
           </div>
-
-          {/* Indhold: hvis alt er færdigt → fejringsskærm. Ellers → trin-detaljer + checklist. */}
-          {allDone ? (
-            <div className="px-6 py-10 text-center">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-accent/15 text-accent">
-                <PartyPopper className="h-7 w-7" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground">Alt er klar!</h3>
-              <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-                Du har gennemført alle trin. Du kan altid genåbne guiden fra knappen
-                nederst i hjørnet.
-              </p>
-              <Button onClick={() => setOpen(false)} className="mt-5">Færdig</Button>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-[260px_1fr]">
-              {/* Sidebar med checklist */}
-              <ol className="border-b md:border-b-0 md:border-r border-border bg-background py-2 max-h-[60vh] overflow-y-auto">
-                {steps.map((s, i) => {
-                  const done = isStepDone(s);
-                  const skipped = isStepSkipped(s);
-                  const active = i === stepIndex;
-                  return (
-                    <li key={s.id}>
-                      <button
-                        onClick={() => setStepIndex(i)}
-                        className={cn(
-                          "flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors",
-                          active
-                            ? "bg-secondary text-foreground"
-                            : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
-                        )}
-                      >
-                        <span className={cn(
-                          "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold",
-                          done
-                            ? "border-accent bg-accent text-accent-foreground"
-                            : skipped
-                              ? "border-muted-foreground/40 bg-muted text-muted-foreground"
-                              : active
-                                ? "border-foreground bg-foreground text-background"
-                                : "border-border bg-background",
-                        )}>
-                          {done ? <Check className="h-3.5 w-3.5" /> : i + 1}
-                        </span>
-                        <span className={cn("truncate", done && "line-through opacity-70")}>
-                          {s.title}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ol>
-
-              {/* Detalje-pane for valgt trin */}
-              {currentStep && (
-                <div className="flex flex-col">
-                  <div className="flex-1 px-6 py-5">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Clock className="h-3.5 w-3.5" />
-                      <span>Ca. {currentStep.estMinutes} min</span>
-                      {isStepDone(currentStep) && (
-                        <Badge variant="secondary" className="ml-1 gap-1 text-accent">
-                          <Check className="h-3 w-3" /> Færdig
-                        </Badge>
-                      )}
-                      {isStepSkipped(currentStep) && (
-                        <Badge variant="secondary" className="ml-1">Sprunget over</Badge>
-                      )}
-                    </div>
-                    <div className="mt-3 flex items-start gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
-                        <currentStep.icon className="h-5 w-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="text-base font-semibold text-foreground">{currentStep.title}</h3>
-                        <p className="mt-1 text-sm text-muted-foreground">{currentStep.description}</p>
-                      </div>
-                    </div>
-
-                    <div className="mt-5 flex flex-wrap gap-2">
-                      <Button onClick={() => handleStepCta(currentStep)} className="gap-1.5">
-                        {currentStep.cta} <ArrowRight className="h-4 w-4" />
-                      </Button>
-                      {!isStepDone(currentStep) && (
-                        <Button variant="outline" onClick={() => handleMarkDone(currentStep)}>
-                          Markér som færdig
-                        </Button>
-                      )}
-                      {!isStepDone(currentStep) && !isStepSkipped(currentStep) && (
-                        <Button variant="ghost" onClick={() => handleSkip(currentStep)}>
-                          Spring over
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Footer med næste/forrige */}
-                  <div className="flex items-center justify-between border-t border-border bg-secondary/30 px-6 py-3">
-                    <Button
-                      variant="ghost" size="sm"
-                      disabled={stepIndex === 0}
-                      onClick={() => setStepIndex((i) => Math.max(0, i - 1))}
-                    >
-                      Forrige
-                    </Button>
-                    <span className="text-xs text-muted-foreground">
-                      Trin {stepIndex + 1} af {totalCount}
-                    </span>
-                    <Button
-                      size="sm"
-                      disabled={stepIndex === totalCount - 1}
-                      onClick={() => setStepIndex((i) => Math.min(totalCount - 1, i + 1))}
-                      className="gap-1"
-                    >
-                      Næste <ChevronRight className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
         </DialogContent>
       </Dialog>
+
+      {/* ───── Inline checklist-kort i toppen af panelet ───── */}
+      {showChecklist && activeStep && (
+        <ChecklistCard
+          steps={steps}
+          activeStep={activeStep}
+          isDone={isDone}
+          doneCount={doneCount}
+          total={total}
+          pct={pct}
+          onCta={() => navigate(activeStep.href)}
+          onSkip={() => handleSkip(activeStep)}
+          onMarkDone={() => handleMarkDone(activeStep)}
+          onJumpToStep={(s) => navigate(s.href)}
+        />
+      )}
+
+      {/* ───── Færdig-modal — vises ÉN gang når sidste trin tikker af ───── */}
+      <CompletionToast
+        show={allDone && !!progress && !progress.fully_completed_at}
+      />
     </>
+  );
+};
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+type ChecklistCardProps = {
+  steps: Step[];
+  activeStep: Step;
+  isDone: (s: Step) => boolean;
+  doneCount: number;
+  total: number;
+  pct: number;
+  onCta: () => void;
+  onSkip: () => void;
+  onMarkDone: () => void;
+  onJumpToStep: (s: Step) => void;
+};
+
+const ChecklistCard = ({
+  steps, activeStep, isDone, doneCount, total, pct, onCta, onSkip, onMarkDone, onJumpToStep,
+}: ChecklistCardProps) => {
+  const [expanded, setExpanded] = useState(false);
+  const ActiveIcon = activeStep.icon;
+
+  return (
+    <div className="mb-4 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      {/* Top: anbefalet næste trin */}
+      <div className="flex items-start gap-4 p-4 sm:p-5">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-foreground text-background">
+          <ActiveIcon className="h-5 w-5" />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-5 items-center rounded-full bg-accent/10 px-2 text-[10px] font-semibold uppercase tracking-wide text-accent">
+              Næste trin
+            </span>
+            <span className="text-xs font-medium text-muted-foreground tabular-nums">
+              {doneCount} af {total} færdige
+            </span>
+          </div>
+          <h3 className="mt-1 text-sm font-semibold text-foreground sm:text-base">
+            {activeStep.title}
+          </h3>
+          <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
+            {activeStep.description}
+          </p>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button size="sm" onClick={onCta} className="h-8 gap-1.5 text-xs">
+              {activeStep.cta} <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={onMarkDone} className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground">
+              Markér som færdig
+            </Button>
+            <Button size="sm" variant="ghost" onClick={onSkip} className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground">
+              Spring over
+            </Button>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="hidden shrink-0 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors sm:inline-flex sm:items-center sm:gap-1"
+          aria-expanded={expanded}
+        >
+          {expanded ? "Skjul liste" : "Se alle trin"}
+          <ChevronRight className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-90")} />
+        </button>
+      </div>
+
+      {/* Progress-bar */}
+      <div className="px-4 pb-3 sm:px-5">
+        <Progress value={pct} className="h-1" />
+      </div>
+
+      {/* Mobile toggle */}
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="flex w-full items-center justify-center gap-1 border-t border-border py-2 text-xs font-medium text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors sm:hidden"
+      >
+        {expanded ? "Skjul liste" : "Se alle trin"}
+        <ChevronRight className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-90")} />
+      </button>
+
+      {/* Hele checklisten — kollapset som default */}
+      {expanded && (
+        <ol className="border-t border-border bg-secondary/30 py-1">
+          {steps.map((s, i) => {
+            const done = isDone(s);
+            const active = s.id === activeStep.id;
+            const StepIcon = s.icon;
+            return (
+              <li key={s.id}>
+                <button
+                  onClick={() => onJumpToStep(s)}
+                  className={cn(
+                    "flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors sm:px-5",
+                    "hover:bg-background",
+                  )}
+                >
+                  <span className={cn(
+                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold transition-colors",
+                    done
+                      ? "border-accent bg-accent text-accent-foreground"
+                      : active
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border bg-background text-muted-foreground",
+                  )}>
+                    {done ? <Check className="h-3.5 w-3.5" /> : i + 1}
+                  </span>
+                  <StepIcon className={cn("h-4 w-4 shrink-0", done ? "text-muted-foreground" : "text-foreground")} />
+                  <span className={cn(
+                    "flex-1 truncate text-sm",
+                    done ? "text-muted-foreground line-through" : "text-foreground font-medium",
+                  )}>
+                    {s.title}
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </div>
+  );
+};
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * CompletionToast — vises som en lille fejringsdialog ÉN GANG når sidste trin
+ * tikker af. Vi opdaterer fully_completed_at i baggrunden så den ikke kommer igen.
+ */
+const CompletionToast = ({ show }: { show: boolean }) => {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (show) setOpen(true);
+  }, [show]);
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="max-w-md p-0 gap-0 overflow-hidden border-0">
+        <div className="bg-gradient-to-br from-accent/15 to-accent/5 px-6 py-10 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg">
+            <PartyPopper className="h-7 w-7" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground">I er klar! 🎉</h3>
+          <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+            I har gennemført alle de vigtigste trin. Jeres profil er klar til at modtage kunder.
+          </p>
+          <Button onClick={() => setOpen(false)} className="mt-6">Luk</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

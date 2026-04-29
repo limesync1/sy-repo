@@ -29,7 +29,6 @@ const LeadsTab = lazy(() => import("@/components/admin/LeadsTab"));
 const BusinessLiveChatTab = lazy(() => import("@/components/admin/BusinessLiveChatTab"));
 import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 import OnboardingHub from "@/components/admin/onboarding/OnboardingHub";
-import NextStepRecommendation from "@/components/admin/onboarding/NextStepRecommendation";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
 import TrialBanner from "@/components/admin/TrialBanner";
@@ -251,8 +250,9 @@ const AdminDashboard = () => {
           <TrialBanner plan={plan} hideAction={activeTab === "settings"} />
         </div>
       )}
-      {/* Smart anbefaling af næste skridt — vises lige under prøveperiode-banneret. */}
-      <NextStepRecommendation business={business} />
+      {/* Onboarding-hub: velkomst-wizard ved første login + persistent
+          checkliste i toppen indtil alle kerne-trin er gjort. */}
+      <OnboardingHub business={business} />
       <Suspense fallback={<div className="py-10 text-center text-sm text-muted-foreground">Indlæser…</div>}>
         {/* Én enkelt, blød fade-in pr. fane-skift. key sikrer at animationen
             kun kører når faner faktisk skifter — ikke når interne state-
@@ -267,10 +267,6 @@ const AdminDashboard = () => {
       {plan?.status === "expired" && (
         <ReactivateDialog open businessId={business.id} businessName={business.name} />
       )}
-      {/* Velkomst-tutorial: wizard + checklist + altid-tilgængelig launcher.
-          Komponenten styrer selv om den åbner automatisk eller forbliver
-          som flydende knap. */}
-      <OnboardingHub business={business} />
     </AdminShell>
   );
 };
