@@ -980,11 +980,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   }, [maneuver?.stepIndex, maneuver?.distanceToManeuverM, audioEnabled, routeStarted]);
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
-        <Loader2 className="h-5 w-5 animate-spin mr-2" /> Indlæser rute...
-      </div>
-    );
+    return <RouteViewSkeleton />;
   }
   if (!data || !route) {
     return (
