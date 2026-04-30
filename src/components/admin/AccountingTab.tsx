@@ -640,11 +640,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         <PageHeader
           title="Regnskab"
           description={`Forbundet med ${activeDef.label}. Aftaler, kunder og varer synkroniseres automatisk.`}
-          action={
-            <PrimaryButton onClick={handleSyncNow} disabled={syncing} icon={syncing ? <Loader2 className="animate-spin" /> : <RefreshCw />}>
-              {syncing ? "Synkroniserer…" : "Synk nu"}
-            </PrimaryButton>
-          }
         />
 
         {/* Synk-status — fuld oversigt over hvad der er sket og hvad der venter.
