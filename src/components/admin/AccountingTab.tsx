@@ -19,7 +19,7 @@ import {
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, HelpCircle, PartyPopper } from "lucide-react";
+import { ChevronDown, HelpCircle, PartyPopper, SlidersHorizontal } from "lucide-react";
 import {
   PageHeader, PrimaryButton, SectionCard, EmptyState, FieldLabel,
 } from "@/components/admin/shared/AdminUI";
@@ -320,7 +320,7 @@ function BillyConnectCard({
       {/* Stor primær handling: åbn Billy direkte på adgangsnøgle-siden */}
       <Button asChild size="lg" className="w-full h-14 text-base">
         <a
-          href="https://www.billy.dk/app/#/settings/integrations/access-tokens"
+          href="https://mit.billy.dk/#/settings/organization/access_tokens"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -1122,8 +1122,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
         <EmptyState
           icon={<Calculator />}
-          title="Du er ikke forbundet med et regnskabsprogram endnu"
-          description="Vælg dit regnskabsprogram nedenfor. Vi guider dig trin for trin — det tager typisk under 2 minutter, og du behøver ingen teknisk viden."
+          title="Vælg dit regnskabsprogram"
+          description="Tryk på programmet du bruger. Det tager under 2 minutter — vi klarer resten."
         />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -1169,7 +1169,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       <div className="space-y-6">
         <PageHeader
           title="Regnskab"
-          description={`Du er forbundet med ${activeDef.label}. Vi sørger for at alt — aftaler, kunder og services — automatisk er ens begge steder. Du skal ikke gøre noget.`}
+          description={`Du er forbundet med ${activeDef.label}. Det hele kører af sig selv.`}
         />
 
         {/* Stor, rolig statusbanner i toppen — én tydelig besked til brugeren
@@ -1187,44 +1187,43 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             >
               <div className="flex items-start gap-4">
                 <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${
                     isHealthy ? "bg-emerald-500/15 text-emerald-700" : "bg-amber-500/20 text-amber-700"
                   }`}
                 >
-                  {isHealthy ? <Check className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+                  {isHealthy ? <Check className="h-6 w-6" /> : <AlertTriangle className="h-6 w-6" />}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-base font-semibold text-foreground">
-                    {isHealthy
-                      ? "Alt kører som det skal"
-                      : failedCount > 0
-                        ? `${failedCount} ting kunne ikke sendes til ${activeDef.label}`
-                        : `Vi kunne ikke nå ${activeDef.label}`}
-                  </h3>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-lg font-semibold text-foreground">
+                      {isHealthy
+                        ? `${activeDef.label} er forbundet`
+                        : failedCount > 0
+                          ? `${failedCount} ting kunne ikke sendes`
+                          : `Vi kunne ikke nå ${activeDef.label}`}
+                    </h3>
+                    <img src={activeDef.logo} alt={activeDef.label} className="h-5 w-auto object-contain opacity-80" />
+                  </div>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {isHealthy
-                      ? `Vi opdaterer automatisk hver time. Næste gang er kl. ${nextRunTxt}.`
+                      ? `Alt kører automatisk. Næste opdatering kl. ${nextRunTxt} (${formatCountdown(nextRun)}).`
                       : "Se herunder — det er som regel en lille rettelse, så er det løst."}
                   </p>
                   <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                     <span className="inline-flex items-center gap-1.5">
                       <Upload className="h-3.5 w-3.5" />
-                      <span><strong className="font-semibold text-foreground tabular-nums">{pushedLast24h}</strong> sendt det sidste døgn</span>
+                      <strong className="font-semibold text-foreground tabular-nums">{pushedLast24h}</strong> sendt i dag
                     </span>
                     <span className="inline-flex items-center gap-1.5">
                       <Download className="h-3.5 w-3.5" />
-                      <span><strong className="font-semibold text-foreground tabular-nums">{pulledLast24h}</strong> hentet det sidste døgn</span>
+                      <strong className="font-semibold text-foreground tabular-nums">{pulledLast24h}</strong> hentet i dag
                     </span>
                     {pendingCount > 0 && (
                       <span className="inline-flex items-center gap-1.5">
                         <ListChecks className="h-3.5 w-3.5" />
-                        <span><strong className="font-semibold text-foreground tabular-nums">{pendingCount}</strong> venter på næste opdatering</span>
+                        <strong className="font-semibold text-foreground tabular-nums">{pendingCount}</strong> venter
                       </span>
                     )}
-                    <span className="inline-flex items-center gap-1.5">
-                      <Clock className="h-3.5 w-3.5" />
-                      <span>Næste opdatering {formatCountdown(nextRun)} (kl. {nextRunTxt})</span>
-                    </span>
                   </div>
                 </div>
               </div>
@@ -1232,96 +1231,21 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           );
         })()}
 
-        {/* Kort, venlig forklaring så ejere uden teknisk baggrund forstår
-            hvad integrationen rent faktisk gør for dem. */}
-        <SectionCard title="Sådan virker det" icon={<Sparkles />}>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-xl border border-border bg-card p-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <Upload className="h-4 w-4 text-muted-foreground" /> Vi sender til {activeDef.label}
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Når du opretter en kunde, en service eller en aftale her, sendes det automatisk over — typisk med det samme.
-              </p>
-            </div>
-            <div className="rounded-xl border border-border bg-card p-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <Download className="h-4 w-4 text-muted-foreground" /> Vi henter fra {activeDef.label}
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Hver time tjekker vi om noget er ændret hos dig — fx betalte fakturaer eller nye kunder — og opdaterer det her.
-              </p>
-            </div>
-            <div className="rounded-xl border border-border bg-card p-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <ShieldCheck className="h-4 w-4 text-muted-foreground" /> Du behøver ikke gøre noget
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Hvis noget driller, fortæller vi dig præcis hvad — i et almindeligt sprog. Du kan altid tage en pause eller skifte program.
-              </p>
+        {/* Forbindelsesfejl — kun hvis noget er galt på selve forbindelsen */}
+        {hasError && (
+          <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="font-medium">Vi kunne ikke nå dit regnskabsprogram</div>
+              <div className="text-destructive/90 break-words">{integration.last_error}</div>
+              {integration.last_error_at && (
+                <div className="mt-1 text-xs opacity-80">
+                  Sidste forsøg: {new Date(integration.last_error_at).toLocaleString("da-DK")}
+                </div>
+              )}
             </div>
           </div>
-        </SectionCard>
-
-        {/* Forbindelses-kort */}
-        <SectionCard
-          title="Forbundet regnskabsprogram"
-          icon={<Plug />}
-          action={
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setConfirmSwitch(true)}
-                className="h-9 rounded-lg text-xs font-medium"
-              >
-                Skift program
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setConfirmDisable(true)}
-                className="h-9 rounded-lg border-border text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/40"
-              >
-                <X className="mr-1.5 h-4 w-4" /> Frakobl
-              </Button>
-            </div>
-          }
-        >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <div className="flex h-16 w-28 items-center justify-center rounded-lg border border-border bg-secondary/40 p-2">
-              <img src={activeDef.logo} alt={activeDef.label} className="h-10 w-auto object-contain" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="font-semibold text-foreground">{activeDef.label}</div>
-                {hasError ? (
-                  <Badge variant="destructive" className="gap-1">
-                    <AlertCircle className="h-3 w-3" /> Problem
-                  </Badge>
-                ) : (
-                  <Badge className="gap-1 bg-emerald-500/15 text-emerald-700 border-0 hover:bg-emerald-500/15 dark:text-emerald-400">
-                    <Check className="h-3 w-3" /> Forbundet
-                  </Badge>
-                )}
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">{activeDef.description}</p>
-            </div>
-          </div>
-
-          {hasError && (
-            <div className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              <div className="min-w-0">
-                <div className="font-medium">Vi kunne ikke nå dit regnskabsprogram</div>
-                <div className="text-destructive/90 break-words">{integration.last_error}</div>
-                {integration.last_error_at && (
-                  <div className="mt-1 text-xs opacity-80">
-                    Sidste forsøg: {new Date(integration.last_error_at).toLocaleString("da-DK")}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </SectionCard>
+        )}
 
         {/* Fejlende jobs — kun synlig hvis der faktisk er noget at handle på.
             Hvert job viser entity-type, det interne id (kopierbart), den præcise
@@ -1464,11 +1388,30 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </SectionCard>
         )}
 
-        {/* Synk-indstillinger */}
+        {/* Avancerede indstillinger — gemt bag toggle så normal-brugeren
+            kun ser status + log. Tre underafsnit: synk-regler, placering,
+            og forbindelsesvalg (skift/frakobl). */}
+        <Collapsible>
+          <div className="rounded-2xl border border-border bg-card">
+            <CollapsibleTrigger className="group flex w-full items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-secondary/30">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-foreground">
+                  <SlidersHorizontal className="h-4 w-4" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-foreground">Avancerede indstillinger</div>
+                  <div className="text-xs text-muted-foreground">Synk-regler, kontoplacering og frakobling — kun hvis du vil ændre noget.</div>
+                </div>
+              </div>
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="space-y-6 border-t border-border p-4 sm:p-5">
+
         <SectionCard
-          title="Indstillinger for hvordan vi sender"
+          title="Hvordan sender vi dine aftaler?"
           icon={<Settings2 />}
-          description="Tilpas hvordan dine aftaler bliver oprettet i regnskabsprogrammet. Ændringer gemmes automatisk — du behøver ikke trykke gem."
+          description="Ændringer gemmes automatisk."
           action={<AutoSaveBadge state={autoSaveState} />}
         >
           <div className="divide-y divide-border">
@@ -1596,6 +1539,31 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             )}
           </div>
         </SectionCard>
+
+        {/* Skift program / Frakobl — hører hjemme under "avanceret" */}
+        <SectionCard title="Forbindelse" icon={<Plug />}>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmSwitch(true)}
+              className="h-9 rounded-lg text-xs font-medium"
+            >
+              <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Skift regnskabsprogram
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setConfirmDisable(true)}
+              className="h-9 rounded-lg border-border text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/40"
+            >
+              <X className="mr-1.5 h-4 w-4" /> Frakobl {activeDef.label}
+            </Button>
+          </div>
+        </SectionCard>
+
+              </div>
+            </CollapsibleContent>
+          </div>
+        </Collapsible>
 
         {/* Log */}
         {logs.length > 0 ? (
