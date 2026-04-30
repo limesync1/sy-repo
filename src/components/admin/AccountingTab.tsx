@@ -1862,7 +1862,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 <button
                   key={p.value}
                   type="button"
-                  onClick={() => { setProvider(p.value); setCreds({}); setTestResult(null); }}
+                  onClick={() => chooseProvider(p.value)}
                   className={`group flex flex-col rounded-xl border p-4 text-left transition-colors ${
                     selected
                       ? "border-foreground bg-secondary/40 ring-2 ring-foreground/10"
@@ -2121,16 +2121,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           onClick={() => {
             if (step === 1) setMode("overview");
             else {
-              // Når brugeren går tilbage fra step 2 til programvalg skal vi
-              // nulstille al provider-specifik state så de kan vælge frit
-              // og klikke på et andet kort uden at det "bugger".
+              // Når brugeren går tilbage fra opsætningen til programvalg, skal alt
+              // midlertidigt ryddes så næste program kan vælges med ét klik.
               setStep(1);
-              setCreds({});
-              setTestResult(null);
-              setBillyStatus("idle");
-              setBillyError(null);
-              setEconomicConnecting(false);
-              setEconomicWaiting(false);
+              resetWizardState(true);
             }
           }}
         >
