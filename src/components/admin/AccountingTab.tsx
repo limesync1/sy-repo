@@ -964,38 +964,40 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
         {/* Synk-indstillinger */}
         <SectionCard
-          title="Synk-indstillinger"
+          title="Indstillinger"
           icon={<Settings2 />}
-          description="Bestem hvordan og hvornår dine data sendes til regnskabsprogrammet."
+          description="Vælg hvordan dine aftaler skal sendes til regnskabsprogrammet. Ændringer gemmes automatisk."
           action={<AutoSaveBadge state={autoSaveState} />}
         >
           <div className="divide-y divide-border">
             <div className="flex items-start justify-between gap-4 py-3 first:pt-0">
               <div className="min-w-0">
-                <div className="text-sm font-medium text-foreground">Send afventende aftaler</div>
-                <p className="mt-0.5 text-xs text-muted-foreground">Hvis fra: kun bekræftede og færdige aftaler sendes.</p>
+                <div className="text-sm font-medium text-foreground">Send aftaler der venter på svar</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">Slå til, hvis du også vil sende aftaler du endnu ikke har bekræftet. Slå fra, hvis du kun vil sende dem du allerede har sagt ja til.</p>
               </div>
               <Switch checked={settings.push_pending !== false}
                 onCheckedChange={v => setSettings({ ...settings, push_pending: v })} />
             </div>
             <div className="flex items-start justify-between gap-4 py-3">
               <div className="min-w-0">
-                <div className="text-sm font-medium text-foreground">Auto-opret varer</div>
-                <p className="mt-0.5 text-xs text-muted-foreground">Opret automatisk vare-nr i regnskabsprogrammet for hver service.</p>
+                <div className="text-sm font-medium text-foreground">Opret nye services automatisk i regnskabsprogrammet</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">Når du opretter en ny service her, oprettes den også som en vare i dit regnskabsprogram. Anbefales — så slipper du for at oprette den to steder.</p>
               </div>
               <Switch checked={settings.auto_create_products !== false}
                 onCheckedChange={v => setSettings({ ...settings, auto_create_products: v })} />
             </div>
             <div className="grid gap-4 py-3 sm:grid-cols-2 sm:gap-3 last:pb-0">
               <div>
-                <FieldLabel>Standard betalingsfrist (dage)</FieldLabel>
+                <FieldLabel>Hvor mange dage må kunden om at betale?</FieldLabel>
                 <Input type="number" min={0} value={settings.default_payment_terms_days ?? 14}
                   onChange={e => setSettings({ ...settings, default_payment_terms_days: Number(e.target.value) || 0 })} />
+                <p className="mt-1.5 text-xs text-muted-foreground">Bruges på nye fakturaer. 14 dage er standard i Danmark.</p>
               </div>
               <div>
-                <FieldLabel>Standard moms-sats (%)</FieldLabel>
+                <FieldLabel>Moms-sats i procent</FieldLabel>
                 <Input type="number" min={0} max={100} value={settings.default_vat_rate ?? 25}
                   onChange={e => setSettings({ ...settings, default_vat_rate: Number(e.target.value) || 0 })} />
+                <p className="mt-1.5 text-xs text-muted-foreground">25 % er almindelig moms i Danmark.</p>
               </div>
             </div>
           </div>
@@ -1003,23 +1005,23 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
         {/* Standard kundegruppe/indtægtskonto hentet fra regnskabsprogrammet */}
         <SectionCard
-          title="Standard kundegruppe/indtægtskonto"
+          title="Hvor skal nye kunder og services placeres?"
           icon={<FolderTree />}
-          description="Hentet direkte fra dit regnskabsprogram. Bruges som standard for nye kunder og services — du kan altid overstyre per service."
+          description="Når vi opretter en ny kunde eller service i dit regnskabsprogram, bruger vi disse valg. Listen er hentet direkte fra dit regnskabsprogram — opret nye grupper dér, så dukker de automatisk op her."
           action={<AutoSaveBadge state={autoSaveState} loadingGroups={groupsLoading} />}
         >
           <div className="grid gap-4 sm:grid-cols-2">
             {groups.customer_groups.length > 0 && (
               <div>
                 <FieldLabel>
-                  {groups.labels?.customer_groups ?? "Kundegruppe"} (nye kunder)
+                  Hvor skal nye kunder placeres?
                 </FieldLabel>
                 <Select
                   value={settings.default_customer_group ?? ""}
                   onValueChange={v => setSettings({ ...settings, default_customer_group: v })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={`Vælg ${(groups.labels?.customer_groups ?? "kundegruppe").toLowerCase()}…`} />
+                    <SelectValue placeholder="Vælg en gruppe…" />
                   </SelectTrigger>
                   <SelectContent>
                     {groups.customer_groups.map(g => (
@@ -1027,22 +1029,23 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     ))}
                   </SelectContent>
                 </Select>
-                {groups.labels?.customer_groups_help && (
-                  <p className="mt-1.5 text-xs text-muted-foreground">{groups.labels.customer_groups_help}</p>
-                )}
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  {groups.labels?.customer_groups_help
+                    ?? `Hedder "${groups.labels?.customer_groups ?? "Kundegruppe"}" i dit regnskabsprogram.`}
+                </p>
               </div>
             )}
             {groups.product_groups.length > 0 && (
               <div>
                 <FieldLabel>
-                  {groups.labels?.product_groups ?? "Produktgruppe"} (nye services)
+                  Hvor skal nye services placeres?
                 </FieldLabel>
                 <Select
                   value={settings.default_product_group ?? ""}
                   onValueChange={v => setSettings({ ...settings, default_product_group: v })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={`Vælg ${(groups.labels?.product_groups ?? "produktgruppe").toLowerCase()}…`} />
+                    <SelectValue placeholder="Vælg en gruppe…" />
                   </SelectTrigger>
                   <SelectContent>
                     {groups.product_groups.map(g => (
@@ -1050,22 +1053,23 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     ))}
                   </SelectContent>
                 </Select>
-                {groups.labels?.product_groups_help && (
-                  <p className="mt-1.5 text-xs text-muted-foreground">{groups.labels.product_groups_help}</p>
-                )}
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  {groups.labels?.product_groups_help
+                    ?? `Hedder "${groups.labels?.product_groups ?? "Produktgruppe"}" i dit regnskabsprogram.`}
+                </p>
               </div>
             )}
             {groups.income_accounts.length > 0 && (
               <div className="sm:col-span-2">
                 <FieldLabel>
-                  {groups.labels?.income_accounts ?? "Indtægtskonto"}
+                  Hvilken konto skal indtægterne bogføres på?
                 </FieldLabel>
                 <Select
                   value={settings.default_income_account ?? ""}
                   onValueChange={v => setSettings({ ...settings, default_income_account: v })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={`Vælg ${(groups.labels?.income_accounts ?? "konto").toLowerCase()}…`} />
+                    <SelectValue placeholder="Vælg en konto…" />
                   </SelectTrigger>
                   <SelectContent>
                     {groups.income_accounts.map(g => (
@@ -1073,9 +1077,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     ))}
                   </SelectContent>
                 </Select>
-                {groups.labels?.income_accounts_help && (
-                  <p className="mt-1.5 text-xs text-muted-foreground">{groups.labels.income_accounts_help}</p>
-                )}
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  {groups.labels?.income_accounts_help
+                    ?? "Det er som regel en konto i 1000-serien (omsætning). Spørg din revisor hvis du er i tvivl."}
+                </p>
               </div>
             )}
             {groups.customer_groups.length === 0 &&
@@ -1083,8 +1088,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
              groups.income_accounts.length === 0 && (
               <p className="text-sm text-muted-foreground sm:col-span-2">
                 {groupsLoading
-                  ? "Henter kategorier fra regnskabsprogrammet…"
-                  : "Ingen kategorier fundet. Opret dem i dit regnskabsprogram — listen opdateres automatisk."}
+                  ? "Henter grupper fra dit regnskabsprogram…"
+                  : "Vi fandt ingen grupper i dit regnskabsprogram. Opret dem dér — så dukker de automatisk op her."}
               </p>
             )}
           </div>
@@ -1093,9 +1098,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         {/* Log */}
         {logs.length > 0 ? (
           <SectionCard
-            title="Seneste synkronisering"
+            title="Aktivitet"
             icon={<RefreshCw />}
-            description="De sidste 15 hændelser. Bruges hvis noget driller."
+            description="De sidste 15 ting der er sendt eller hentet. Brugbart hvis noget driller."
           >
             <div className="divide-y divide-border text-sm">
               {logs.map(l => (
@@ -1104,12 +1109,16 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     variant={l.status === "success" ? "secondary" : l.status === "error" ? "destructive" : "outline"}
                     className="shrink-0 capitalize"
                   >
-                    {l.status === "success" ? "Ok" : l.status === "error" ? "Fejl" : l.status}
+                    {l.status === "success" ? "Ok" : l.status === "error" ? "Fejlede" : l.status}
                   </Badge>
                   <span className="text-xs text-muted-foreground tabular-nums">
                     {new Date(l.created_at).toLocaleString("da-DK")}
                   </span>
-                  <span className="text-foreground capitalize">{l.direction} · {l.entity_type}</span>
+                  <span className="text-foreground">
+                    {ENTITY_LABEL[l.entity_type] ?? l.entity_type}
+                    {" "}
+                    {l.direction === "push" ? "sendt til regnskabsprogrammet" : l.direction === "pull" ? "hentet fra regnskabsprogrammet" : l.direction}
+                  </span>
                   {l.message && (
                     <span className="min-w-0 flex-1 truncate text-muted-foreground" title={l.message}>
                       {l.message}
@@ -1121,11 +1130,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </SectionCard>
         ) : (
           <SectionCard
-            title="Seneste synkronisering"
+            title="Aktivitet"
             icon={<RefreshCw />}
           >
             <p className="text-sm text-muted-foreground">
-              Ingen synkroniseringer endnu. Synkronisering starter automatisk så snart du opretter eller ændrer en kunde, vare eller ordre.
+              Endnu ingen aktivitet. Det starter automatisk så snart du opretter eller ændrer en kunde, en service eller en aftale.
             </p>
           </SectionCard>
         )}
