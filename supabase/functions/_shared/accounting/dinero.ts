@@ -161,6 +161,8 @@ export function makeDineroAdapter(
         city: c.City ?? null,
         payment_terms_days: c.DefaultPaymentDays ?? null,
         currency: "DKK",
+        // Dinero sætter IsPerson=true for privatkunder, ellers virksomhed.
+        type: c.IsPerson === true ? "person" : "company",
         raw: c,
       }));
     },

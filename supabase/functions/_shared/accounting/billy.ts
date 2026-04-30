@@ -263,6 +263,7 @@ export function makeBillyAdapter(
             city: c.cityText ?? null,
             payment_terms_days: c.paymentTermsDays ?? null,
             currency: c.defaultCurrencyId ?? "DKK",
+            type: c.type === "company" ? "company" : "person",
             raw: c,
           } satisfies ExternalCustomer;
         }));

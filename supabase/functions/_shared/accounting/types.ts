@@ -36,6 +36,9 @@ export interface ExternalCustomer {
   city?: string | null;
   payment_terms_days?: number | null;
   currency?: string | null;
+  // "company" eller "person" hvis udbyderen oplyser det. Bruges som fallback
+  // når CVR mangler så virksomhedskunder ikke fejlagtigt ender som privatkunder.
+  type?: "company" | "person" | null;
   raw?: unknown;
 }
 
