@@ -211,6 +211,47 @@ const ENTITY_LABEL: Record<string, string> = {
   connection: "Forbindelse",
 };
 
+/** Lille statusbadge der diskret viser om indstillingerne er gemt. */
+function AutoSaveBadge({
+  state,
+  loadingGroups = false,
+}: {
+  state: "idle" | "saving" | "saved" | "error";
+  loadingGroups?: boolean;
+}) {
+  if (loadingGroups) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Loader2 className="h-3 w-3 animate-spin" /> Henter…
+      </span>
+    );
+  }
+  if (state === "saving") {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Loader2 className="h-3 w-3 animate-spin" /> Gemmer…
+      </span>
+    );
+  }
+  if (state === "saved") {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Check className="h-3 w-3 text-emerald-600" /> Gemt
+      </span>
+    );
+  }
+  if (state === "error") {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-destructive">
+        <AlertCircle className="h-3 w-3" /> Kunne ikke gemme
+      </span>
+    );
+  }
+  return (
+    <span className="text-xs text-muted-foreground">Gemmes automatisk</span>
+  );
+}
+
 export default function AccountingTab({ businessId }: { businessId: string; businessName: string }) {
   const [integration, setIntegration] = useState<Integration | null>(null);
   const [mode, setMode] = useState<Mode>("overview");
