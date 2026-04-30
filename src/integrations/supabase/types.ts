@@ -1233,6 +1233,7 @@ export type Database = {
           customer_phone: string | null
           customer_response: string | null
           cvr: string | null
+          due_date: string | null
           estimated_duration_minutes: number | null
           external_order_number: string | null
           id: string
@@ -1240,11 +1241,18 @@ export type Database = {
           longitude: number | null
           next_service_date: string | null
           notes: string | null
+          paid_amount: number | null
+          paid_at: string | null
           parent_order_id: string | null
+          payment_status:
+            | Database["public"]["Enums"]["order_payment_status"]
+            | null
+          payment_status_synced_at: string | null
           payment_terms_days: number | null
           preferred_date: string | null
           preferred_time_end: string | null
           preferred_time_start: string | null
+          recurrence_cycle: number | null
           requires_customer_approval: boolean
           status: Database["public"]["Enums"]["order_status"]
           total_amount: number
@@ -1272,6 +1280,7 @@ export type Database = {
           customer_phone?: string | null
           customer_response?: string | null
           cvr?: string | null
+          due_date?: string | null
           estimated_duration_minutes?: number | null
           external_order_number?: string | null
           id?: string
@@ -1279,11 +1288,18 @@ export type Database = {
           longitude?: number | null
           next_service_date?: string | null
           notes?: string | null
+          paid_amount?: number | null
+          paid_at?: string | null
           parent_order_id?: string | null
+          payment_status?:
+            | Database["public"]["Enums"]["order_payment_status"]
+            | null
+          payment_status_synced_at?: string | null
           payment_terms_days?: number | null
           preferred_date?: string | null
           preferred_time_end?: string | null
           preferred_time_start?: string | null
+          recurrence_cycle?: number | null
           requires_customer_approval?: boolean
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
@@ -1311,6 +1327,7 @@ export type Database = {
           customer_phone?: string | null
           customer_response?: string | null
           cvr?: string | null
+          due_date?: string | null
           estimated_duration_minutes?: number | null
           external_order_number?: string | null
           id?: string
@@ -1318,11 +1335,18 @@ export type Database = {
           longitude?: number | null
           next_service_date?: string | null
           notes?: string | null
+          paid_amount?: number | null
+          paid_at?: string | null
           parent_order_id?: string | null
+          payment_status?:
+            | Database["public"]["Enums"]["order_payment_status"]
+            | null
+          payment_status_synced_at?: string | null
           payment_terms_days?: number | null
           preferred_date?: string | null
           preferred_time_end?: string | null
           preferred_time_start?: string | null
+          recurrence_cycle?: number | null
           requires_customer_approval?: boolean
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
@@ -2408,6 +2432,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      auto_recur_due_orders: {
+        Args: never
+        Returns: {
+          created_order_id: string
+          source_order_id: string
+        }[]
+      }
       business_has_active_plan: {
         Args: { _business_id: string }
         Returns: boolean
@@ -2484,6 +2515,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "business_owner" | "user" | "employee"
+      order_payment_status:
+        | "unpaid"
+        | "partially_paid"
+        | "paid"
+        | "credited"
+        | "overdue"
       order_status:
         | "pending"
         | "confirmed"
@@ -2619,6 +2656,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "business_owner", "user", "employee"],
+      order_payment_status: [
+        "unpaid",
+        "partially_paid",
+        "paid",
+        "credited",
+        "overdue",
+      ],
       order_status: [
         "pending",
         "confirmed",

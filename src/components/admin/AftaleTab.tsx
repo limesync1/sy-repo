@@ -1352,6 +1352,28 @@ const AftaleTab = ({
                               <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
                               {cfg.label}
                             </span>
+                            {(() => {
+                              const ps = (order as any).payment_status as string | null | undefined;
+                              if (!ps) return null;
+                              const PAY: Record<string, { label: string; cls: string; dot: string }> = {
+                                paid:           { label: "Betalt",           cls: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
+                                partially_paid: { label: "Delvist betalt",   cls: "bg-amber-50 text-amber-800 border-amber-200",       dot: "bg-amber-500" },
+                                overdue:        { label: "Forfalden",        cls: "bg-destructive/10 text-destructive border-destructive/30", dot: "bg-destructive" },
+                                credited:       { label: "Krediteret",       cls: "bg-secondary text-muted-foreground border-border",  dot: "bg-muted-foreground" },
+                                unpaid:         { label: "Ubetalt",          cls: "bg-secondary text-foreground border-border",        dot: "bg-muted-foreground" },
+                              };
+                              const p = PAY[ps];
+                              if (!p) return null;
+                              return (
+                                <span
+                                  className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${p.cls}`}
+                                  title="Betalingsstatus hentes automatisk fra dit regnskabsprogram"
+                                >
+                                  <span className={`h-1.5 w-1.5 rounded-full ${p.dot}`} />
+                                  {p.label}
+                                </span>
+                              );
+                            })()}
                             {hasRecurring && (
                               <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                                 <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}

@@ -7,6 +7,7 @@ import type {
   AccountingSettings,
   ExternalCustomer,
   ExternalGroups,
+  ExternalInvoiceState,
   ExternalProduct,
   UpsertCustomerInput,
   UpsertOrderInput,
@@ -301,6 +302,37 @@ export function makeDineroAdapter(
 
     async deleteOrder(externalId: string) {
       await dineroRequest(creds, orgId, `/invoices/${externalId}`, { method: "DELETE" });
+    },
+
+    async getInvoiceStates(externalIds: string[]): Promise<ExternalInvoiceState[]> {
+      const out: ExternalInvoiceState[] = [];
+      for (const id of externalIds) {
+        try {
+          const inv = await dineroRequest(creds, orgId, `/invoices/${id}`);
+          // Dinero: PaymentStatus = "Draft"|"Booked"|"Paid"|"OverPaid"|"Overdue"|"Draft"
+          const ps = String(inv?.PaymentStatus ?? inv?.Status ?? "").toLowerCase();
+          const total = Number(inv?.TotalInclVat ?? inv?.TotalAmountInclVat ?? 0);
+          const remainder = Number(inv?.Remainder ?? inv?.RemainderInclVat ?? total);
+          const paid = total - remainder;
+          let status: ExternalInvoiceState["status"];
+          if (ps.includes("credit")) status = "credited";
+          else if (ps === "paid" || ps === "overpaid" || (total > 0 && remainder === 0)) status = "paid";
+          else if (paid > 0 && remainder > 0) status = "partially_paid";
+          else if (ps === "overdue") status = "overdue";
+          else status = "unpaid";
+          out.push({
+            external_id: String(inv?.Guid ?? id),
+            external_number: inv?.Number ? String(inv.Number) : null,
+            status,
+            paid_amount: paid,
+            total_amount: total,
+            paid_at: status === "paid" ? (inv?.PaymentDate ?? inv?.UpdatedAt ?? null) : null,
+            due_date: inv?.PaymentDate ?? null,
+            raw: inv,
+          });
+        } catch { /* ignore */ }
+      }
+      return out;
     },
   };
 }

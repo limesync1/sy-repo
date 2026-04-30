@@ -7,6 +7,7 @@ import type {
   AccountingSettings,
   ExternalCustomer,
   ExternalGroups,
+  ExternalInvoiceState,
   ExternalProduct,
   UpsertCustomerInput,
   UpsertOrderInput,
@@ -295,6 +296,48 @@ export function makeEconomicAdapter(
       const sendAs = settings.send_order_as ?? "order";
       const path = sendAs === "order" ? "/sales-orders" : "/invoices/drafts";
       await ecRequest(creds, `${path}/${externalId}`, { method: "DELETE" });
+    },
+
+    async getInvoiceStates(externalIds: string[]): Promise<ExternalInvoiceState[]> {
+      const out: ExternalInvoiceState[] = [];
+      // E-conomic: try /invoices/booked/{n} first (paid/booked), then /invoices/drafts/{n}
+      for (const id of externalIds) {
+        try {
+          let inv: any = null;
+          let booked = true;
+          try {
+            inv = await ecRequest(creds, `/invoices/booked/${id}`);
+          } catch {
+            try {
+              inv = await ecRequest(creds, `/invoices/drafts/${id}`);
+              booked = false;
+            } catch { /* not found */ }
+          }
+          if (!inv) continue;
+          const total = Number(inv.grossAmount ?? inv.netAmount ?? 0);
+          const remainder = Number(inv.remainder ?? total);
+          const paid = total - remainder;
+          const dueDate: string | null = inv.dueDate ?? null;
+          const overdue = booked && remainder > 0 && dueDate && new Date(dueDate) < new Date();
+          let status: ExternalInvoiceState["status"];
+          if (!booked) status = "unpaid";
+          else if (remainder === 0 && total > 0) status = "paid";
+          else if (paid > 0 && remainder > 0) status = "partially_paid";
+          else if (overdue) status = "overdue";
+          else status = "unpaid";
+          out.push({
+            external_id: String(inv.bookedInvoiceNumber ?? inv.draftInvoiceNumber ?? id),
+            external_number: String(inv.bookedInvoiceNumber ?? inv.draftInvoiceNumber ?? id),
+            status,
+            paid_amount: paid,
+            total_amount: total,
+            paid_at: status === "paid" ? (inv.paymentDate ?? null) : null,
+            due_date: dueDate,
+            raw: inv,
+          });
+        } catch { /* ignore */ }
+      }
+      return out;
     },
   };
 }

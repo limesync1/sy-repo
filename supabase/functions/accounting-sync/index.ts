@@ -470,6 +470,37 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
       productsPulled++;
     }
 
+    // Sync payment status from provider for orders we've pushed.
+    // Payment status is ALWAYS sourced from the accounting program — never
+    // set manually inside Serviceydere.
+    let invoicesPulled = 0;
+    if (typeof adapter.getInvoiceStates === "function") {
+      const { data: links } = await admin
+        .from("accounting_order_links")
+        .select("order_id, external_id")
+        .eq("business_id", integ.business_id)
+        .eq("provider", integ.provider)
+        .order("last_pushed_at", { ascending: false })
+        .limit(200);
+      const ids = (links ?? []).map((l) => l.external_id).filter(Boolean);
+      if (ids.length > 0) {
+        const states = await adapter.getInvoiceStates(ids);
+        const byExt = new Map(states.map((s) => [String(s.external_id), s]));
+        for (const l of links!) {
+          const s = byExt.get(String(l.external_id));
+          if (!s) continue;
+          await admin.from("orders").update({
+            payment_status: s.status,
+            paid_at: s.paid_at,
+            paid_amount: s.paid_amount ?? null,
+            payment_status_synced_at: new Date().toISOString(),
+            due_date: s.due_date ?? null,
+          }).eq("id", l.order_id);
+          invoicesPulled++;
+        }
+      }
+    }
+
     await admin.from("accounting_integrations").update({
       last_pull_at: new Date().toISOString(),
     }).eq("business_id", integ.business_id);
@@ -478,9 +509,9 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
     await logSync(admin, {
       business_id: integ.business_id, provider: integ.provider,
       direction: "pull", entity_type: "connection", status: "success",
-      message: `Pulled ${customersPulled} customers, ${productsPulled} products`,
+      message: `Pulled ${customersPulled} customers, ${productsPulled} products, ${invoicesPulled} invoice statuses`,
     });
-    return { customers: customersPulled, products: productsPulled };
+    return { customers: customersPulled, products: productsPulled, invoices: invoicesPulled };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     await setIntegrationError(admin, integ.business_id, msg);
