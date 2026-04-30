@@ -567,6 +567,20 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; message?: string } | null>(null);
+  const [dryRunning, setDryRunning] = useState(false);
+  const [dryRunResult, setDryRunResult] = useState<{
+    ok: boolean;
+    steps?: Array<{
+      key: string;
+      label: string;
+      ok: boolean;
+      message?: string;
+      external_number?: string | null;
+      duration_ms?: number;
+    }>;
+    note?: string;
+    error?: string;
+  } | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [queueCount, setQueueCount] = useState(0);
