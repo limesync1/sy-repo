@@ -17,7 +17,7 @@ import {
   Copy, FolderTree,
 } from "lucide-react";
 import {
-  PageHeader, PrimaryButton, SectionCard, StatCard, EmptyState, FieldLabel,
+  PageHeader, PrimaryButton, SectionCard, EmptyState, FieldLabel,
 } from "@/components/admin/shared/AdminUI";
 import economicLogo from "@/assets/accounting/economic.png";
 import billyLogo from "@/assets/accounting/billy.png";
