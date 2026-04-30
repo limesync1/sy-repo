@@ -870,9 +870,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             fejltekst fra adapteren og hvornår det sidst fejlede. */}
         {failedJobs.length > 0 && (
           <SectionCard
-            title="Disse blev ikke sendt"
+            title={`Disse kunne ikke sendes til ${activeDef.label}`}
             icon={<AlertTriangle />}
-            description="Vi forsøgte at sende disse til dit regnskabsprogram, men det lykkedes ikke. Læs fejlen og prøv igen — som regel er det en stavefejl i kunden eller en mangel i regnskabsprogrammet."
+            description="Vi prøvede automatisk, men noget gik galt. Læs hvad der er sket, ret det evt. og tryk 'Prøv igen'. De fleste fejl skyldes en stavefejl (fx en ugyldig email eller manglende CVR), eller at noget endnu ikke er sat op i dit regnskabsprogram."
             action={
               <Button
                 variant="outline"
@@ -944,9 +944,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             ejeren får en handlingsklar liste over hvad der kræver manuel opmærksomhed. */}
         {dlqJobs.length > 0 && (
           <SectionCard
-            title="Kræver din opmærksomhed"
+            title="Skal håndteres manuelt"
             icon={<AlertTriangle />}
-            description="Disse er flyttet hertil fordi vi ikke kunne sende dem efter flere forsøg. Tjek fejlen, ret den hvis det er nødvendigt, og prøv igen — eller marker som håndteret hvis du har ordnet det manuelt i regnskabsprogrammet."
+            description="Vi har prøvet at sende disse fem gange uden held, så vi har stoppet automatikken for dem. Læs fejlen og vælg om vi skal prøve igen, eller tryk 'Jeg har ordnet det' hvis du selv har klaret det inde i dit regnskabsprogram."
           >
             <div className="divide-y divide-border">
               {dlqJobs.map(job => (
@@ -1008,9 +1008,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
         {/* Synk-indstillinger */}
         <SectionCard
-          title="Indstillinger"
+          title="Indstillinger for hvordan vi sender"
           icon={<Settings2 />}
-          description="Vælg hvordan dine aftaler skal sendes til regnskabsprogrammet. Ændringer gemmes automatisk."
+          description="Tilpas hvordan dine aftaler bliver oprettet i regnskabsprogrammet. Ændringer gemmes automatisk — du behøver ikke trykke gem."
           action={<AutoSaveBadge state={autoSaveState} />}
         >
           <div className="divide-y divide-border">
@@ -1142,9 +1142,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         {/* Log */}
         {logs.length > 0 ? (
           <SectionCard
-            title="Aktivitet"
+            title="Hvad er der sket på det seneste?"
             icon={<RefreshCw />}
-            description="De sidste 15 ting der er sendt eller hentet. Brugbart hvis noget driller."
+            description="Her ser du de seneste 15 gange vi har sendt eller hentet noget. Det er en god hjælp hvis du vil tjekke om noget bestemt er kommet med."
           >
             <div className="divide-y divide-border text-sm">
               {logs.map(l => (
@@ -1153,7 +1153,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     variant={l.status === "success" ? "secondary" : l.status === "error" ? "destructive" : "outline"}
                     className="shrink-0 capitalize"
                   >
-                    {l.status === "success" ? "Ok" : l.status === "error" ? "Fejlede" : l.status}
+                    {l.status === "success" ? "Lykkedes" : l.status === "error" ? "Mislykkedes" : l.status}
                   </Badge>
                   <span className="text-xs text-muted-foreground tabular-nums">
                     {new Date(l.created_at).toLocaleString("da-DK")}
@@ -1161,7 +1161,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   <span className="text-foreground">
                     {ENTITY_LABEL[l.entity_type] ?? l.entity_type}
                     {" "}
-                    {l.direction === "push" ? "sendt til regnskabsprogrammet" : l.direction === "pull" ? "hentet fra regnskabsprogrammet" : l.direction}
+                    {l.direction === "push" ? `sendt til ${activeDef.label}` : l.direction === "pull" ? `hentet fra ${activeDef.label}` : l.direction}
                   </span>
                   {l.message && (
                     <span className="min-w-0 flex-1 truncate text-muted-foreground" title={l.message}>
@@ -1174,11 +1174,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </SectionCard>
         ) : (
           <SectionCard
-            title="Aktivitet"
+            title="Hvad er der sket på det seneste?"
             icon={<RefreshCw />}
           >
             <p className="text-sm text-muted-foreground">
-              Endnu ingen aktivitet. Det starter automatisk så snart du opretter eller ændrer en kunde, en service eller en aftale.
+              Der er ikke sket noget endnu. Så snart du opretter eller ændrer en kunde, en service eller en aftale, går det i gang helt af sig selv — du behøver ikke trykke på noget.
             </p>
           </SectionCard>
         )}
