@@ -2116,7 +2116,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           }}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {step === 1 ? "Tilbage til oversigt" : "Forrige"}
+          {step === 1 ? "Tilbage til oversigt" : "Vælg et andet program"}
         </Button>
 
        {step < 3 ? (
