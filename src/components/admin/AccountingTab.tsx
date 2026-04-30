@@ -913,12 +913,40 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   };
 
   // Opfang ?economicToken=… (eller ?token=…) når brugeren kommer tilbage fra
-  // e-conomic. Vi sender tokenet til edge function der gemmer integrationen.
+  // e-conomic. Hvis vi er i popup-vinduet (window.opener findes), sender vi
+  // tokenet videre til hovedvinduet via postMessage og lukker os selv. Hvis
+  // vi ER hovedvinduet (popup'en blev blokeret og vi faldt tilbage til
+  // same-tab redirect), håndterer vi det selv.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("economicToken") || params.get("token");
+    if (!token) return;
+
+    // Hvis vi er i popup'en — send token til opener og luk vinduet.
+    // window.opener er null hvis brugeren har lukket hovedvinduet, eller
+    // hvis vi blev åbnet med noopener. I så fald håndterer hovedvinduet
+    // det selv ved næste mount.
+    if (window.opener && !window.opener.closed && window.opener !== window) {
+      try {
+        window.opener.postMessage(
+          { type: "economic_token", token, businessId },
+          window.location.origin,
+        );
+        // Ryd URL'en før vi lukker, så hvis lukning fejler, ser brugeren
+        // ikke et token i adresselinjen.
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete("economicToken");
+        cleanUrl.searchParams.delete("token");
+        window.history.replaceState({}, "", cleanUrl.toString());
+        window.close();
+        return;
+      } catch (e) {
+        console.error("[economic] kunne ikke sende token til opener:", e);
+      }
+    }
+
     const pendingBiz = sessionStorage.getItem("economic_pending_business_id");
-    if (!token || !pendingBiz) return;
+    if (!pendingBiz) return;
     if (pendingBiz !== businessId) return;
 
     sessionStorage.removeItem("economic_pending_business_id");
@@ -957,6 +985,51 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         setEconomicConnecting(false);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessId]);
+
+  // Lyt efter postMessage fra popup-vinduet (e-conomic-redirect lander dér,
+  // og popup'en sender tokenet videre hertil før den lukker).
+  useEffect(() => {
+    const onMessage = async (ev: MessageEvent) => {
+      if (ev.origin !== window.location.origin) return;
+      const data = ev.data;
+      if (!data || data.type !== "economic_token" || !data.token) return;
+      if (data.businessId && data.businessId !== businessId) return;
+      sessionStorage.removeItem("economic_pending_business_id");
+      setProvider("economic");
+      setMode("wizard");
+      setStep(2);
+      setEconomicConnecting(true);
+      try {
+        const { data: resp, error } = await supabase.functions.invoke(
+          "accounting-economic-callback",
+          { body: { business_id: businessId, agreement_grant_token: data.token } },
+        );
+        if (error) throw error;
+        if ((resp as any)?.error) throw new Error((resp as any).error);
+        const companyName = (resp as any)?.company_name;
+        setTestResult({
+          ok: true,
+          message: companyName ? `Forbundet til ${companyName}` : "E-conomic er forbundet og klar.",
+        });
+        toast.success("E-conomic er nu forbundet!");
+        // Sørg for at URL'en peger på regnskabs-fanen
+        const url = new URL(window.location.href);
+        url.searchParams.set("tab", "accounting");
+        window.history.replaceState({}, "", url.toString());
+        await load();
+        setStep(3);
+      } catch (e: any) {
+        const msg = e?.message ?? "Kunne ikke gemme e-conomic-forbindelsen";
+        setTestResult({ ok: false, message: msg });
+        toast.error(msg);
+      } finally {
+        setEconomicConnecting(false);
+      }
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [businessId]);
 
