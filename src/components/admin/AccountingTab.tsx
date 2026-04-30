@@ -349,6 +349,27 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [businessId]);
 
+  // Auto-pull: når regnskabsfanen åbnes (eller skifter business) henter vi
+  // de seneste ændringer fra regnskabsprogrammet i baggrunden, så brugeren
+  // altid ser opdaterede data uden at trykke på en knap. Push-retningen
+  // sker allerede automatisk via DB-triggers ved hver insert/update/delete.
+  useEffect(() => {
+    if (!integration?.is_active) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        await supabase.functions.invoke("accounting-sync", {
+          body: { business_id: businessId, mode: "pull" },
+        });
+        if (!cancelled) await load();
+      } catch {
+        // Stille fejl — næste cron-kørsel forsøger igen
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [integration?.is_active, businessId]);
+
   const loadGroups = async () => {
     if (!integration) return;
     setGroupsLoading(true);
