@@ -1724,7 +1724,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         }
       />
 
-      {/* Stepper */}
+      {/* Stepper — kun for Dinero (manuel flerfelt-flow) */}
+      {provider === "dinero" && (
       <SectionCard className="bg-secondary/30">
         <div className="flex items-center gap-2">
           {stepsMeta.map((s, idx) => {
@@ -1751,6 +1752,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           })}
         </div>
       </SectionCard>
+      )}
 
       {/* TRIN 1 */}
       {step === 1 && (
