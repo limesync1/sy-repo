@@ -787,23 +787,15 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                         )}
                         <span className="text-sm font-medium text-foreground truncate">{displayName}</span>
                         {typeLabel && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0">
+                          <span
+                            title={c.type === "business" ? "Erhvervskunde (firma med CVR)" : "Privatkunde"}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0"
+                          >
                             <span className={`h-1.5 w-1.5 rounded-full ${typeDot}`} />
                             {typeLabel}
                           </span>
                         )}
-                        {c.active_subs > 0 && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            {c.active_subs} abo.
-                          </span>
-                        )}
-                        {c.paused_subs > 0 && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0">
-                            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                            {c.paused_subs} pauseret
-                          </span>
-                        )}
+                        <CustomerStatusPill c={c} />
                       </div>
                       <div className="mt-0.5 text-xs text-muted-foreground truncate">
                         {metaParts.join(" · ") || "Ingen bestillinger endnu"}
