@@ -483,6 +483,153 @@ const EconomicConnectCard = React.forwardRef<
 });
 EconomicConnectCard.displayName = "EconomicConnectCard";
 
+/**
+ * DineroConnectCard — guidet "udfyld og forbind"-flow for Dinero.
+ *
+ * Dinero kræver tre felter (Client ID, Client Secret, Organisations-ID),
+ * men UX'en følger samme idé som Billy: brugeren udfylder felterne, trykker
+ * én stor knap "Forbind Dinero", og vi kører automatisk:
+ *   1) test forbindelse
+ *   2) dry-run (synk-test)
+ *   3) auto-vælg indtægtskonto
+ *   4) gem og gå til oversigt
+ * Ingen "Test forbindelse" + "Næste" + "Forbind nu" — bare ét klik.
+ */
+function DineroConnectCard({
+  values,
+  onChange,
+  onAutoConnect,
+  status,
+  errorMessage,
+}: {
+  values: { api_token: string; api_secret: string; organization_id: string };
+  onChange: (key: "api_token" | "api_secret" | "organization_id", value: string) => void;
+  onAutoConnect: () => void;
+  status: "idle" | "checking" | "testing" | "saving" | "done" | "error";
+  errorMessage: string | null;
+}) {
+  const [showSecret, setShowSecret] = useState(false);
+  const isWorking = status === "checking" || status === "testing" || status === "saving";
+  const ready =
+    values.api_token.trim().length > 0 &&
+    values.api_secret.trim().length > 0 &&
+    values.organization_id.trim().length > 0;
+
+  const statusLabel =
+    status === "checking" ? "Tjekker forbindelsen…" :
+    status === "testing"  ? "Sender testdata til Dinero…" :
+    status === "saving"   ? "Sætter alt op for dig…" :
+    null;
+
+  if (status === "done") {
+    return (
+      <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 text-center">
+        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700">
+          <PartyPopper className="h-7 w-7" />
+        </div>
+        <h3 className="text-lg font-semibold text-foreground">Du er forbundet med Dinero!</h3>
+        <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+          Vi har testet at synk virkelig virker, og sat alt op for dig. Dine kunder, services og aftaler synkroniseres nu automatisk.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Stor primær handling: åbn Dinero developer-portalen */}
+      <Button asChild size="lg" variant="outline" className="w-full h-12 text-sm">
+        <a href="https://developer.dinero.dk/" target="_blank" rel="noopener noreferrer">
+          <ExternalLink className="mr-2 h-4 w-4" />
+          Åbn Dinero Developer Portal
+        </a>
+      </Button>
+
+      <div className="space-y-3">
+        <div>
+          <FieldLabel>Client ID</FieldLabel>
+          <Input
+            value={values.api_token}
+            onChange={(e) => onChange("api_token", e.target.value)}
+            placeholder="Indsæt Client ID fra Dinero"
+            disabled={isWorking}
+            autoComplete="off"
+          />
+        </div>
+        <div>
+          <FieldLabel>Client Secret</FieldLabel>
+          <div className="relative">
+            <Input
+              type={showSecret ? "text" : "password"}
+              value={values.api_secret}
+              onChange={(e) => onChange("api_secret", e.target.value)}
+              placeholder="Indsæt Client Secret fra Dinero"
+              disabled={isWorking}
+              autoComplete="off"
+              className="pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowSecret(s => !s)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              aria-label={showSecret ? "Skjul" : "Vis"}
+            >
+              {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+          <p className="mt-1.5 text-xs text-muted-foreground">Vises kun én gang i Dinero — hav den klar inden du forlader siden.</p>
+        </div>
+        <div>
+          <FieldLabel>Organisations-ID</FieldLabel>
+          <Input
+            value={values.organization_id}
+            onChange={(e) => onChange("organization_id", e.target.value)}
+            placeholder="fx 198765"
+            disabled={isWorking}
+            inputMode="numeric"
+            autoComplete="off"
+          />
+          <p className="mt-1.5 text-xs text-muted-foreground">Det 6-cifrede tal i adresselinjen i Dinero, fx app.dinero.dk/<strong>198765</strong>/…</p>
+        </div>
+      </div>
+
+      <Button
+        onClick={onAutoConnect}
+        disabled={!ready || isWorking}
+        size="lg"
+        className="w-full h-14 text-base"
+      >
+        {isWorking
+          ? <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          : <Plug className="mr-2 h-5 w-5" />}
+        {isWorking ? "Forbinder…" : "Forbind Dinero"}
+      </Button>
+
+      {/* Live-status mens vi arbejder */}
+      {isWorking && statusLabel && (
+        <div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-secondary/30 py-3 text-sm font-medium text-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          {statusLabel}
+        </div>
+      )}
+
+      {/* Fejl: forklar i hverdagssprog + lad brugeren prøve igen */}
+      {status === "error" && errorMessage && (
+        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div className="min-w-0">
+            <div className="font-medium">Det virkede desværre ikke</div>
+            <div className="mt-0.5 break-words opacity-90">{errorMessage}</div>
+            <div className="mt-1.5 text-xs opacity-80">
+              Tjek at alle tre felter er korrekte, og at du har Dinero Pro. Du kan altid lave en ny integration på developer.dinero.dk.
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AccountingTab({ businessId }: { businessId: string; businessName: string }) {
   const navigate = useNavigate();
   const [integration, setIntegration] = useState<Integration | null>(null);
