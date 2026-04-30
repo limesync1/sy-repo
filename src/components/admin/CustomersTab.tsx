@@ -609,7 +609,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     <div className="space-y-4">
       <PageHeader
         title="Kunder"
-        description="Alle dine kunder, deres bestillinger, abonnementer og rutehistorik."
+        description="Her kan du se alle dine kunder samlet ét sted — privat og erhverv, deres bestillinger, abonnementer, betalinger og rutehistorik. Klik på en kunde for at se alt om dem."
         action={
           <PrimaryButton onClick={openCreateDialog} icon={<UserPlus />}>
             Tilføj kunde
@@ -624,18 +624,21 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
             <CardContent className="p-4">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kunder i alt</p>
               <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{stats.total}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">{stats.privateCount} privat · {stats.businessCount} erhverv</p>
             </CardContent>
           </Card>
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
             <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Med abonnement</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Faste kunder</p>
               <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{stats.recurring}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">Med mindst ét aktivt abonnement</p>
             </CardContent>
           </Card>
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
             <CardContent className="p-4">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Samlet omsætning</p>
               <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{fmtKr(stats.totalRev)}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">På tværs af alle bestillinger</p>
             </CardContent>
           </Card>
         </div>
