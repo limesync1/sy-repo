@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -557,7 +557,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     return () => clearInterval(t);
   }, []);
   const [confirmDisable, setConfirmDisable] = useState(false);
-  const [confirmSwitch, setConfirmSwitch] = useState(false);
+  const setupRunRef = useRef(0);
   const [retryingJobId, setRetryingJobId] = useState<string | null>(null);
   // Auto-save status: vises diskret i sektion-headeren så brugeren altid
   // kan se om hans ændring er nået sikkert frem.
@@ -569,6 +569,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   );
 
   const resetWizardState = (clearCredentials = true) => {
+    setupRunRef.current += 1;
     if (clearCredentials) setCreds({});
     setShowSecret({});
     setTestResult(null);
@@ -578,12 +579,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     setEconomicConnecting(false);
     setEconomicWaiting(false);
     setTesting(false);
+    setDryRunning(false);
     try { sessionStorage.removeItem("economic_pending_business_id"); } catch {}
   };
 
   const chooseProvider = (nextProvider: Provider) => {
-    setProvider(nextProvider);
     resetWizardState(true);
+    setProvider(nextProvider);
     setStep(2);
     setMode("wizard");
   };
@@ -1145,11 +1147,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     await load();
   };
 
-  const handleSwitchProvider = () => {
+  const openProviderPicker = () => {
     resetWizardState(true);
-    setProvider("economic");
+    setProvider(integration?.provider ?? "economic");
     setStep(1);
-    startWizard();
+    setMode("wizard");
   };
 
   // Marker job som pending igen og kør synk med det samme. Bruges fra
