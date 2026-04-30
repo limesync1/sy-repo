@@ -694,6 +694,36 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, firma, CVR eller by..." />
       </div>
 
+      {/* Status-guide — hjælper nye brugere med at forstå pillerne ved hver kunde */}
+      <details className="group rounded-xl border border-border bg-card/60 px-4 py-2.5 text-xs text-muted-foreground">
+        <summary className="flex cursor-pointer items-center justify-between gap-2 list-none">
+          <span className="font-medium text-foreground">Sådan læser du kundestatus</span>
+          <ChevronRight className="h-3.5 w-3.5 transition-transform group-open:rotate-90" />
+        </summary>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <div className="flex items-start gap-2">
+            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+            <p><span className="font-medium text-foreground">Fast kunde</span> — har mindst ét aktivt abonnement der kører automatisk.</p>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+            <p><span className="font-medium text-foreground">Aktiv kunde</span> — har handlet hos jer inden for de sidste 90 dage, men uden fast abonnement.</p>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" />
+            <p><span className="font-medium text-foreground">Pause</span> — alle abonnementer er sat på pause og indgår ikke i ruteplanlægning.</p>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
+            <p><span className="font-medium text-foreground">Engangs- / tidligere kunde</span> — har haft én eller flere aftaler, men intet aktivt nu og ingen handel i 90+ dage.</p>
+          </div>
+          <div className="flex items-start gap-2 sm:col-span-2">
+            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-muted-foreground/40 shrink-0" />
+            <p><span className="font-medium text-foreground">Ny i kartotek</span> — gemt manuelt, men har endnu ikke nogen aftaler.</p>
+          </div>
+        </div>
+      </details>
+
       {/* Bulk actions bar */}
       {selectedCustomers.length > 0 && (
         <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
