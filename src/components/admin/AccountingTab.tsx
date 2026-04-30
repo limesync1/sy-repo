@@ -1122,8 +1122,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
         <EmptyState
           icon={<Calculator />}
-          title="Du er ikke forbundet med et regnskabsprogram endnu"
-          description="Vælg dit regnskabsprogram nedenfor. Vi guider dig trin for trin — det tager typisk under 2 minutter, og du behøver ingen teknisk viden."
+          title="Vælg dit regnskabsprogram"
+          description="Tryk på programmet du bruger. Det tager under 2 minutter — vi klarer resten."
         />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
