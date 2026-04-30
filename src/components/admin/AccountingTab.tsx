@@ -2046,12 +2046,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   /* ============================================================
    * WIZARD
    * ============================================================ */
-  const stepsMeta = [
-    { n: 1, label: "Vælg program", icon: Plug },
-    { n: 2, label: "Log på", icon: ShieldCheck },
-    { n: 3, label: "Indstillinger", icon: Settings2 },
-  ] as const;
-
   return (
     <div className="space-y-6">
       <PageHeader
