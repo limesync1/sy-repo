@@ -211,6 +211,47 @@ const ENTITY_LABEL: Record<string, string> = {
   connection: "Forbindelse",
 };
 
+/** Lille statusbadge der diskret viser om indstillingerne er gemt. */
+function AutoSaveBadge({
+  state,
+  loadingGroups = false,
+}: {
+  state: "idle" | "saving" | "saved" | "error";
+  loadingGroups?: boolean;
+}) {
+  if (loadingGroups) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Loader2 className="h-3 w-3 animate-spin" /> Henter…
+      </span>
+    );
+  }
+  if (state === "saving") {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Loader2 className="h-3 w-3 animate-spin" /> Gemmer…
+      </span>
+    );
+  }
+  if (state === "saved") {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Check className="h-3 w-3 text-emerald-600" /> Gemt
+      </span>
+    );
+  }
+  if (state === "error") {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-destructive">
+        <AlertCircle className="h-3 w-3" /> Kunne ikke gemme
+      </span>
+    );
+  }
+  return (
+    <span className="text-xs text-muted-foreground">Gemmes automatisk</span>
+  );
+}
+
 export default function AccountingTab({ businessId }: { businessId: string; businessName: string }) {
   const [integration, setIntegration] = useState<Integration | null>(null);
   const [mode, setMode] = useState<Mode>("overview");
@@ -263,6 +304,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const [confirmDisable, setConfirmDisable] = useState(false);
   const [confirmSwitch, setConfirmSwitch] = useState(false);
   const [retryingJobId, setRetryingJobId] = useState<string | null>(null);
+
+  // Auto-save status: vises diskret i sektion-headeren så brugeren altid
+  // kan se om hans ændring er nået sikkert frem.
+  const [autoSaveState, setAutoSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   const currentProvider = useMemo(
     () => PROVIDERS.find(p => p.value === provider)!,
@@ -451,20 +496,49 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     } finally { setSaving(false); }
   };
 
-  const handleSaveSettingsOnly = async () => {
-    if (!integration) return;
-    setSaving(true);
-    try {
-      const { error } = await supabase.from("accounting_integrations" as any)
-        .update({ settings: settings as any })
-        .eq("business_id", businessId);
-      if (error) throw error;
-      toast.success("Indstillinger gemt");
-      await load();
-    } catch (e: any) {
-      toast.error(e.message ?? "Kunne ikke gemme");
-    } finally { setSaving(false); }
-  };
+  // Auto-save: hver gang `settings` ændres efter integrationen er indlæst,
+  // gemmer vi stille i baggrunden 600ms efter sidste ændring. Ingen knap,
+  // ingen toast — kun en lille "Gemt"-indikator i sektion-headeren, så
+  // siden føles ligeså let som "Indstillinger"-fanen.
+  // Sammenlign mod sidst gemte snapshot for ikke at gemme uændret tilstand
+  // (fx ved første load) eller når brugeren bare åbner siden.
+  const lastSavedSettingsRef = (globalThis as any).__acct_last_saved ??
+    ((globalThis as any).__acct_last_saved = { current: "" });
+  useEffect(() => {
+    if (!integration?.is_active || loading) return;
+    const snap = JSON.stringify(settings ?? {});
+    if (snap === lastSavedSettingsRef.current) return;
+    // Første snapshot efter load skal ikke trigge save
+    if (lastSavedSettingsRef.current === "") {
+      lastSavedSettingsRef.current = snap;
+      return;
+    }
+    setAutoSaveState("saving");
+    const t = setTimeout(async () => {
+      try {
+        const { error } = await supabase.from("accounting_integrations" as any)
+          .update({ settings: settings as any })
+          .eq("business_id", businessId);
+        if (error) throw error;
+        lastSavedSettingsRef.current = snap;
+        setAutoSaveState("saved");
+        // Skjul "Gemt"-mærket efter et par sekunder
+        setTimeout(() => setAutoSaveState(s => s === "saved" ? "idle" : s), 2000);
+      } catch (e: any) {
+        setAutoSaveState("error");
+        toast.error(e?.message ?? "Kunne ikke gemme");
+      }
+    }, 600);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings, integration?.is_active, businessId, loading]);
+
+  // Nulstil snapshot når vi skifter business eller indlæser igen
+  useEffect(() => {
+    lastSavedSettingsRef.current = "";
+    setAutoSaveState("idle");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessId]);
 
   const handleDisable = async () => {
     if (!integration) return;
@@ -872,17 +946,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           title="Synk-indstillinger"
           icon={<Settings2 />}
           description="Bestem hvordan og hvornår dine data sendes til regnskabsprogrammet."
-          action={
-            <Button
-              variant="outline"
-              onClick={handleSaveSettingsOnly}
-              disabled={saving}
-              className="h-9 rounded-lg text-xs font-medium"
-            >
-              {saving && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
-              Gem
-            </Button>
-          }
+          action={<AutoSaveBadge state={autoSaveState} />}
         >
           <div className="divide-y divide-border">
             <div className="flex items-start justify-between gap-4 py-3 first:pt-0">
@@ -921,18 +985,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           title="Standard kundegruppe/indtægtskonto"
           icon={<FolderTree />}
           description="Hentet direkte fra dit regnskabsprogram. Bruges som standard for nye kunder og services — du kan altid overstyre per service."
-          action={
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={loadGroups}
-              disabled={groupsLoading}
-              className="h-9 rounded-lg text-xs font-medium"
-            >
-              <RotateCw className={`mr-2 h-3.5 w-3.5 ${groupsLoading ? "animate-spin" : ""}`} />
-              Opdater liste
-            </Button>
-          }
+          action={<AutoSaveBadge state={autoSaveState} loadingGroups={groupsLoading} />}
         >
           <div className="grid gap-4 sm:grid-cols-2">
             {groups.customer_groups.length > 0 && (
@@ -1010,20 +1063,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               <p className="text-sm text-muted-foreground sm:col-span-2">
                 {groupsLoading
                   ? "Henter kategorier fra regnskabsprogrammet…"
-                  : "Ingen kategorier fundet. Opret dem i dit regnskabsprogram og tryk Opdater liste."}
+                  : "Ingen kategorier fundet. Opret dem i dit regnskabsprogram — listen opdateres automatisk."}
               </p>
             )}
-          </div>
-          <div className="mt-4 flex justify-end">
-            <Button
-              variant="outline"
-              onClick={handleSaveSettingsOnly}
-              disabled={saving}
-              className="h-9 rounded-lg text-xs font-medium"
-            >
-              {saving && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
-              Gem standard
-            </Button>
           </div>
         </SectionCard>
 
