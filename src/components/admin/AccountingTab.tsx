@@ -484,6 +484,7 @@ const EconomicConnectCard = React.forwardRef<
 EconomicConnectCard.displayName = "EconomicConnectCard";
 
 export default function AccountingTab({ businessId }: { businessId: string; businessName: string }) {
+  const navigate = useNavigate();
   const [integration, setIntegration] = useState<Integration | null>(null);
   const [mode, setMode] = useState<Mode>("overview");
   const [step, setStep] = useState<1 | 2 | 3>(1);
