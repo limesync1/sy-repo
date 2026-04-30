@@ -860,6 +860,23 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const handleEconomicConnect = async () => {
     setEconomicConnecting(true);
     setTestResult(null);
+    // VIGTIGT: Vi åbner popup'en synkront her — direkte i klik-handleren —
+    // så browseren ser det som en bruger-gesture og ikke blokerer den.
+    // Bagefter henter vi install-URL'en og navigerer popup'en derhen.
+    // Hvis vi i stedet awaitede først og åbnede popup'en bagefter, ville
+    // Chrome/Safari blokere vinduet (popup blocker).
+    const popup = window.open("about:blank", "economic_connect");
+    if (popup) {
+      try {
+        popup.document.write(
+          `<!doctype html><html lang="da"><head><meta charset="utf-8"><title>Forbinder til e-conomic…</title>` +
+          `<style>body{font-family:-apple-system,system-ui,Segoe UI,Roboto,sans-serif;background:#0f172a;color:#e2e8f0;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}` +
+          `.box{text-align:center}.spinner{width:32px;height:32px;border:3px solid #334155;border-top-color:#22d3ee;border-radius:50%;animation:s 1s linear infinite;margin:0 auto 16px}` +
+          `@keyframes s{to{transform:rotate(360deg)}}</style></head>` +
+          `<body><div class="box"><div class="spinner"></div><div>Sender dig til e-conomic…</div></div></body></html>`
+        );
+      } catch { /* cross-origin write kan fejle, ignorér */ }
+    }
     try {
       // Husk hvilken business der skal bindes når brugeren kommer tilbage
       sessionStorage.setItem("economic_pending_business_id", businessId);
@@ -870,21 +887,23 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       if (error) throw error;
       const url = (data as any)?.install_url;
       if (!url) throw new Error("Kunne ikke hente e-conomic install-URL");
-      // Åbn i nyt vindue — Lovable-preview er en iframe der ikke må navigere
-      // top-level til en anden origin. E-conomic redirecter brugeren tilbage
-      // til /virksomhed?token=... i samme nye vindue. Vi opfanger tokenet via
-      // BroadcastChannel så det også virker når brugeren oprindeligt sad i
-      // preview-iframen.
-      const popup = window.open(url, "_blank", "noopener,noreferrer");
-      if (!popup) {
-        throw new Error("Browseren blokerede pop-up vinduet. Tillad pop-ups for serviceydere.dk og prøv igen.");
+      // Naviger den allerede-åbnede popup til e-conomic.
+      if (popup && !popup.closed) {
+        popup.location.href = url;
+      } else {
+        // Popup blev blokeret eller lukket — fald tilbage til samme-tab redirect.
+        // Det er sidste udvej; brugeren kommer naturligt tilbage via redirectUrl.
+        window.location.href = url;
+        return;
       }
       setEconomicConnecting(false);
+      // Vi viser en venlig info-besked — ikke som "fejl", men neutralt.
       setTestResult({
-        ok: false,
-        message: "Et nyt vindue er åbnet med e-conomic. Når du har godkendt app'en, kommer du tilbage hertil automatisk.",
+        ok: true,
+        message: "Et nyt vindue er åbnet med e-conomic. Godkend app'en — så kommer du tilbage hertil automatisk.",
       });
     } catch (e: any) {
+      if (popup && !popup.closed) popup.close();
       sessionStorage.removeItem("economic_pending_business_id");
       const msg = e?.message ?? "Kunne ikke åbne e-conomic";
       setTestResult({ ok: false, message: msg });
