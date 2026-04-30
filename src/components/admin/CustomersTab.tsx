@@ -955,7 +955,12 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                   )}
                   <div className="min-w-0 flex-1">
                     <h3 className="text-lg font-bold text-foreground truncate">{customer.name}</h3>
-                    <p className="text-xs text-muted-foreground font-normal">Kunde siden {fmtDate(customer.first_order_at)}</p>
+                    <p className="text-xs text-muted-foreground font-normal">
+                      {customer.first_order_at
+                        ? <>Kunde siden {fmtDate(customer.first_order_at)}</>
+                        : "Endnu ingen bestillinger"}
+                    </p>
+                    <div className="mt-2"><CustomerStatusPill c={customer} /></div>
                   </div>
                 </div>
               </SheetTitle>
