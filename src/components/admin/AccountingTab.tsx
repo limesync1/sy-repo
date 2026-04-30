@@ -320,7 +320,7 @@ function BillyConnectCard({
       {/* Stor primær handling: åbn Billy direkte på adgangsnøgle-siden */}
       <Button asChild size="lg" className="w-full h-14 text-base">
         <a
-          href="https://mit.billy.dk/#/settings/organization/access_tokens"
+          href="https://mit.billy.dk/settings#/organization/access_tokens"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -913,12 +913,40 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   };
 
   // Opfang ?economicToken=… (eller ?token=…) når brugeren kommer tilbage fra
-  // e-conomic. Vi sender tokenet til edge function der gemmer integrationen.
+  // e-conomic. Hvis vi er i popup-vinduet (window.opener findes), sender vi
+  // tokenet videre til hovedvinduet via postMessage og lukker os selv. Hvis
+  // vi ER hovedvinduet (popup'en blev blokeret og vi faldt tilbage til
+  // same-tab redirect), håndterer vi det selv.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("economicToken") || params.get("token");
+    if (!token) return;
+
+    // Hvis vi er i popup'en — send token til opener og luk vinduet.
+    // window.opener er null hvis brugeren har lukket hovedvinduet, eller
+    // hvis vi blev åbnet med noopener. I så fald håndterer hovedvinduet
+    // det selv ved næste mount.
+    if (window.opener && !window.opener.closed && window.opener !== window) {
+      try {
+        window.opener.postMessage(
+          { type: "economic_token", token, businessId },
+          window.location.origin,
+        );
+        // Ryd URL'en før vi lukker, så hvis lukning fejler, ser brugeren
+        // ikke et token i adresselinjen.
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete("economicToken");
+        cleanUrl.searchParams.delete("token");
+        window.history.replaceState({}, "", cleanUrl.toString());
+        window.close();
+        return;
+      } catch (e) {
+        console.error("[economic] kunne ikke sende token til opener:", e);
+      }
+    }
+
     const pendingBiz = sessionStorage.getItem("economic_pending_business_id");
-    if (!token || !pendingBiz) return;
+    if (!pendingBiz) return;
     if (pendingBiz !== businessId) return;
 
     sessionStorage.removeItem("economic_pending_business_id");
@@ -957,6 +985,51 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         setEconomicConnecting(false);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessId]);
+
+  // Lyt efter postMessage fra popup-vinduet (e-conomic-redirect lander dér,
+  // og popup'en sender tokenet videre hertil før den lukker).
+  useEffect(() => {
+    const onMessage = async (ev: MessageEvent) => {
+      if (ev.origin !== window.location.origin) return;
+      const data = ev.data;
+      if (!data || data.type !== "economic_token" || !data.token) return;
+      if (data.businessId && data.businessId !== businessId) return;
+      sessionStorage.removeItem("economic_pending_business_id");
+      setProvider("economic");
+      setMode("wizard");
+      setStep(2);
+      setEconomicConnecting(true);
+      try {
+        const { data: resp, error } = await supabase.functions.invoke(
+          "accounting-economic-callback",
+          { body: { business_id: businessId, agreement_grant_token: data.token } },
+        );
+        if (error) throw error;
+        if ((resp as any)?.error) throw new Error((resp as any).error);
+        const companyName = (resp as any)?.company_name;
+        setTestResult({
+          ok: true,
+          message: companyName ? `Forbundet til ${companyName}` : "E-conomic er forbundet og klar.",
+        });
+        toast.success("E-conomic er nu forbundet!");
+        // Sørg for at URL'en peger på regnskabs-fanen
+        const url = new URL(window.location.href);
+        url.searchParams.set("tab", "accounting");
+        window.history.replaceState({}, "", url.toString());
+        await load();
+        setStep(3);
+      } catch (e: any) {
+        const msg = e?.message ?? "Kunne ikke gemme e-conomic-forbindelsen";
+        setTestResult({ ok: false, message: msg });
+        toast.error(msg);
+      } finally {
+        setEconomicConnecting(false);
+      }
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [businessId]);
 
@@ -1784,7 +1857,51 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
       {/* TRIN 2 */}
       {step === 2 && (
-        <div className={provider === "dinero" ? "grid gap-4 lg:grid-cols-[1fr,1.4fr]" : "mx-auto max-w-xl"}>
+        <div className={
+          provider === "billy" || provider === "economic"
+            ? "grid gap-4 lg:grid-cols-[1fr,1.2fr] xl:grid-cols-[1fr,1.1fr]"
+            : provider === "dinero"
+              ? "grid gap-4 lg:grid-cols-[1fr,1.4fr]"
+              : "mx-auto max-w-2xl"
+        }>
+          {/* Venstre kolonne: hjælp & forklaring (kun på desktop, ellers
+              ovenfor connect-kortet på mobil) */}
+          {(provider === "billy" || provider === "economic") && (
+            <SectionCard
+              title="Sådan fungerer det"
+              icon={<img src={currentProvider.logo} alt="" className="h-4 w-auto" />}
+              description={`Dette tager typisk under et minut.`}
+              className="bg-secondary/30 lg:sticky lg:top-4 lg:self-start"
+            >
+              <ol className="space-y-3 text-sm">
+                {(provider === "billy"
+                  ? [
+                      "Vi åbner Billy i et nyt vindue, direkte på siden med adgangsnøgler.",
+                      "Du opretter en ny adgangsnøgle — det tager 5 sekunder i Billy.",
+                      "Kopier nøglen, og indsæt den her i feltet — så går vi i gang automatisk.",
+                      "Vi tester forbindelsen, opretter dine ydelser som varer, og er færdige.",
+                    ]
+                  : [
+                      "Vi åbner e-conomic i et nyt vindue.",
+                      "Du logger ind og vælger den aftale du vil forbinde Serviceydere med.",
+                      "Du trykker 'Tildel adgang' i e-conomic.",
+                      "Du sendes automatisk tilbage hertil, og vi gør resten.",
+                    ]
+                ).map((s, i) => (
+                  <li key={i} className="flex gap-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">{i + 1}</span>
+                    <span className="pt-0.5 text-muted-foreground">{s}</span>
+                  </li>
+                ))}
+              </ol>
+              <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs leading-relaxed text-foreground/80">
+                <div className="mb-1 flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-400">
+                  <ShieldCheck className="h-3.5 w-3.5" /> Sikkert og krypteret
+                </div>
+                Vi gemmer kun det vi har brug for, og du kan altid tilbagekalde adgangen direkte i {currentProvider.label}.
+              </div>
+            </SectionCard>
+          )}
           {provider === "dinero" && (
           <SectionCard
             title="Sådan finder du dine login-oplysninger"
