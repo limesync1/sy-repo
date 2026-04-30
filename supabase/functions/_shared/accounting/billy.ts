@@ -67,109 +67,46 @@ async function getOrgId(creds: AccountingCredentials): Promise<string> {
   return res?.organization?.id ?? res?.organizations?.[0]?.id;
 }
 
-// Find eller opret en Billy-produktgruppe der peger på den ønskede konto.
-// Brugeren ser kun "Indtægtskonto" i Serviceydere, men Billy kræver en
-// produktgruppe på alle varer. Vi cacher pr. konto pr. organisation.
-const productGroupCache = new Map<string, string>();
-async function ensureBillyProductGroup(
+// Billy kræver en indtægtskonto på alle varer. Hvis brugeren ikke har valgt
+// en konto endnu, vælger vi automatisk en gyldig salgskonto fra Billy.
+const incomeAccountCache = new Map<string, string>();
+async function ensureBillyIncomeAccount(
   creds: AccountingCredentials,
   orgId: string,
   accountId: string | null,
-  productName: string,
 ): Promise<string | null> {
   const cacheKey = `${orgId}::${accountId ?? "default"}`;
-  const cached = productGroupCache.get(cacheKey);
+  const cached = incomeAccountCache.get(cacheKey);
   if (cached) return cached;
-
-  // Hjælpefunktion: hent en gyldig income-account hvis vi ikke har en.
-  // Billy KRÆVER accountId på en productGroup, så uden konto kan vi ikke
-  // oprette en ny gruppe — så finder vi første tilgængelige indtægtskonto.
-  async function pickIncomeAccountId(): Promise<string | null> {
-    try {
-      const accts = await billyRequest(creds, `/accounts?pageSize=1000`);
-      const list: any[] = accts?.accounts ?? [];
-      const income = list.find(a => {
-        if (a.isArchived === true || a.isBankAccount === true) return false;
-        const nature = String(a.natureId ?? a.nature ?? "").toLowerCase();
-        if (nature === "revenue" || nature === "income" || nature === "sales") return true;
-        if (nature) return false;
-        const no = Number(a.accountNo ?? 0);
-        return no >= 1000 && no <= 3999;
-      });
-      return income?.id ?? null;
-    } catch {
-      return null;
-    }
+  if (accountId) {
+    incomeAccountCache.set(cacheKey, accountId);
+    return accountId;
   }
 
   try {
-    // Billy v2: filteret skal være `?organizationId=...` men nogle konti
-    // afviser det med 404. Prøv uden filter — token er alligevel scoped
-    // til en organisation, så vi får kun gruppene fra den.
-    let list: any;
-    try {
-      list = await billyRequest(creds, `/productGroups`);
-    } catch {
-      // Fald tilbage til org-filteret hvis det første kald fejler.
-      list = await billyRequest(creds, `/productGroups?organizationId=${orgId}`)
-        .catch(() => ({ productGroups: [] }));
-    }
-    const groups: any[] = list?.productGroups ?? [];
-
-    // Hvis ingen konto er valgt, brug bare første eksisterende gruppe
-    if (!accountId) {
-      const first = groups[0];
-      if (first?.id) {
-        productGroupCache.set(cacheKey, first.id);
-        return first.id;
-      }
-      // Ingen grupper findes — opret én. Det kræver en accountId i Billy,
-      // så vi finder en fornuftig indtægtskonto først.
-      const fallbackAccountId = await pickIncomeAccountId();
-      if (!fallbackAccountId) return null;
-      try {
-        const created = await billyRequest(creds, `/productGroups`, {
-          method: "POST",
-          body: JSON.stringify({
-            productGroup: {
-              organizationId: orgId,
-              name: "Serviceydere",
-              accountId: fallbackAccountId,
-            },
-          }),
-        });
-        const newId = created?.productGroups?.[0]?.id ?? created?.productGroup?.id ?? null;
-        if (newId) productGroupCache.set(cacheKey, newId);
-        return newId;
-      } catch (e) {
-        console.warn("ensureBillyProductGroup auto-create (no account) failed:", e instanceof Error ? e.message : e);
-        return null;
-      }
+    const org = await billyRequest(creds, "/organization").catch(() => null);
+    const defaultAccountId = org?.organization?.defaultSalesAccountId
+      ?? org?.organization?.defaultSalesAccount?.id
+      ?? null;
+    if (defaultAccountId) {
+      incomeAccountCache.set(cacheKey, defaultAccountId);
+      return defaultAccountId;
     }
 
-    // Find gruppe der allerede peger på samme konto
-    const match = groups.find(g => g.accountId === accountId);
-    if (match?.id) {
-      productGroupCache.set(cacheKey, match.id);
-      return match.id;
-    }
-
-    // Opret en ny "Serviceydere" gruppe der peger på kontoen
-    const created = await billyRequest(creds, `/productGroups`, {
-      method: "POST",
-      body: JSON.stringify({
-        productGroup: {
-          organizationId: orgId,
-          name: `Serviceydere – konto ${accountId.slice(0, 6)}`,
-          accountId,
-        },
-      }),
+    const accts = await billyRequest(creds, `/accounts?pageSize=1000`).catch(() => ({ accounts: [] }));
+    const list: any[] = accts?.accounts ?? [];
+    const income = list.find(a => {
+      if (a.isArchived === true || a.isBankAccount === true) return false;
+      const nature = String(a.natureId ?? a.nature ?? "").toLowerCase();
+      if (nature === "revenue" || nature === "income" || nature === "sales") return true;
+      if (nature) return false;
+      const no = Number(a.accountNo ?? 0);
+      return no >= 1000 && no <= 3999;
     });
-    const newId = created?.productGroups?.[0]?.id ?? created?.productGroup?.id ?? null;
-    if (newId) productGroupCache.set(cacheKey, newId);
-    return newId;
+    if (income?.id) incomeAccountCache.set(cacheKey, income.id);
+    return income?.id ?? null;
   } catch (e) {
-    console.warn("ensureBillyProductGroup failed:", e instanceof Error ? e.message : e);
+    console.warn("ensureBillyIncomeAccount failed:", e instanceof Error ? e.message : e);
     return null;
   }
 }
@@ -383,18 +320,14 @@ export function makeBillyAdapter(
 
     async upsertProduct(input: UpsertProductInput) {
       const orgId = await getOrgId(creds);
-      // Billy kræver en productGroupId. Hvis brugeren har valgt en
-      // indtægtskonto bruger vi den til at finde/oprette en matchende
-      // produktgruppe så varen lander på den ønskede konto.
+      // Billy kræver en indtægtskonto direkte på varen.
       const accountId = input.account_number
         ?? settings.default_income_account
         ?? null;
-      const productGroupId = await ensureBillyProductGroup(
-        creds, orgId, accountId, input.name,
-      );
-      if (!productGroupId) {
+      const resolvedAccountId = await ensureBillyIncomeAccount(creds, orgId, accountId);
+      if (!resolvedAccountId) {
         throw new Error(
-          "Billy mangler en produktgruppe at lægge varen i. Gå til Billy → Indstillinger → Produktgrupper og opret mindst én produktgruppe (fx 'Serviceydere'), og prøv igen.",
+          "Billy mangler en indtægtskonto til varen. Vælg en indtægtskonto i opsætningen, eller tjek kontoplanen i Billy.",
         );
       }
       const product: Record<string, unknown> = {
@@ -403,7 +336,7 @@ export function makeBillyAdapter(
         description: input.description ?? undefined,
         // Sæt kun productNo ved oprettelse — bevar Billys egen nummerering ved opdatering.
         productNo: input.external_id ? undefined : `SY-${input.internal_id.slice(0, 8)}`,
-        productGroupId,
+        accountId: resolvedAccountId,
         prices: [{ unitPrice: input.unit_price, currencyId: "DKK" }],
       };
       if (input.external_id) {
