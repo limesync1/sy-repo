@@ -1606,7 +1606,46 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             description="Dine oplysninger gemmes sikkert og krypteret. De bruges kun til at sende og hente data fra dit regnskabsprogram."
           >
             <div className="space-y-4">
-              {currentProvider.fields.map(f => {
+              {provider === "billy" && !billyManualMode ? (
+                <BillyConnectCard
+                  businessId={businessId}
+                  alreadyConnected={!!creds.api_token && !!testResult?.ok}
+                  onFallbackToManual={() => setBillyManualMode(true)}
+                  onConnected={async ({ api_token, organization_id }) => {
+                    // Gem tokenet i creds — så bruger Save/Test præcis det samme
+                    // flow som hvis det var indsat manuelt.
+                    const nextCreds = {
+                      ...creds,
+                      api_token,
+                      organization_id,
+                    };
+                    setCreds(nextCreds);
+                    setTestResult(null);
+                    // Test forbindelsen automatisk så brugeren med det samme
+                    // kan trykke Næste.
+                    setTesting(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke(
+                        "accounting-test-connection",
+                        {
+                          body: {
+                            business_id: businessId,
+                            provider: "billy",
+                            ...nextCreds,
+                            settings,
+                          },
+                        },
+                      );
+                      if (error) throw error;
+                      setTestResult(data as any);
+                    } catch (e: any) {
+                      setTestResult({ ok: false, message: e?.message ?? "Kunne ikke teste forbindelse" });
+                    } finally {
+                      setTesting(false);
+                    }
+                  }}
+                />
+              ) : currentProvider.fields.map(f => {
                 const isPwd = f.type === "password";
                 const reveal = !!showSecret[f.key];
                 return (
@@ -1637,6 +1676,17 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 );
               })}
 
+              {/* Hvis brugeren er i manuel Billy-tilstand kan han altid skifte tilbage */}
+              {provider === "billy" && billyManualMode && (
+                <button
+                  type="button"
+                  onClick={() => { setBillyManualMode(false); setCreds({}); setTestResult(null); }}
+                  className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+                >
+                  ← Forbind med email + adgangskode i stedet
+                </button>
+              )}
+
               {testResult && (
                 <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
                   testResult.ok
@@ -1651,21 +1701,25 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 </div>
               )}
 
-              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-xs text-muted-foreground">
-                  {credsValid ? "Tryk 'Test forbindelse' for at tjekke at det virker." : "Udfyld alle felter for at fortsætte."}
-                </p>
-                <Button
-                  variant={testResult?.ok ? "outline" : "default"}
-                  onClick={handleTest}
-                  disabled={testing || !credsValid}
-                >
-                  {testing
-                    ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    : testResult?.ok ? <RefreshCw className="mr-2 h-4 w-4" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
-                  {testResult?.ok ? "Test igen" : "Test forbindelse"}
-                </Button>
-              </div>
+              {/* Vis kun "Test forbindelse"-knappen i manuelle flows.
+                  Billy-én-klik tester automatisk efter forbindelsen. */}
+              {!(provider === "billy" && !billyManualMode) && (
+                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    {credsValid ? "Tryk 'Test forbindelse' for at tjekke at det virker." : "Udfyld alle felter for at fortsætte."}
+                  </p>
+                  <Button
+                    variant={testResult?.ok ? "outline" : "default"}
+                    onClick={handleTest}
+                    disabled={testing || !credsValid}
+                  >
+                    {testing
+                      ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      : testResult?.ok ? <RefreshCw className="mr-2 h-4 w-4" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
+                    {testResult?.ok ? "Test igen" : "Test forbindelse"}
+                  </Button>
+                </div>
+              )}
             </div>
           </SectionCard>
         </div>
