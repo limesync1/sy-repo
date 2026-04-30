@@ -192,18 +192,16 @@ export const SearchInput = ({
 
 /* ───────── EmptyState ─────────
    Standard tom-state kort med ikon + tekst + valgfri handling. */
-export const EmptyState = ({
-  icon,
-  title,
-  description,
-  action,
-}: {
-  icon: React.ReactNode;
-  title: React.ReactNode;
-  description?: React.ReactNode;
-  action?: React.ReactNode;
-}) => (
-  <Card className="rounded-xl border-dashed border-border">
+export const EmptyState = React.forwardRef<
+  HTMLDivElement,
+  {
+    icon: React.ReactNode;
+    title: React.ReactNode;
+    description?: React.ReactNode;
+    action?: React.ReactNode;
+  }
+>(({ icon, title, description, action }, ref) => (
+  <Card ref={ref} className="rounded-xl border-dashed border-border">
     <CardContent className="flex flex-col items-center justify-center py-12 text-center">
       <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-secondary [&_svg]:h-6 [&_svg]:w-6 [&_svg]:text-muted-foreground/40">
         {icon}
@@ -215,4 +213,5 @@ export const EmptyState = ({
       {action && <div className="mt-4">{action}</div>}
     </CardContent>
   </Card>
-);
+));
+EmptyState.displayName = "EmptyState";
