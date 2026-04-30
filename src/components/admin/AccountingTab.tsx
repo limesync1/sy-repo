@@ -670,6 +670,91 @@ function DineroConnectCard({
   );
 }
 
+/**
+ * ZenegyConnectCard — ét-klik OAuth 2.0-flow.
+ *
+ * Spejler EconomicConnectCard. Knappen er disabled indtil
+ * `accounting-zenegy-callback` returnerer enabled:true (dvs. når
+ * server-secrets ZENEGY_CLIENT_ID/SECRET/REDIRECT_URL er sat).
+ */
+function ZenegyConnectCard({
+  onConnect,
+  connecting,
+  waiting,
+  oauthEnabled,
+  connectResult,
+}: {
+  onConnect: () => void;
+  connecting: boolean;
+  waiting: boolean;
+  oauthEnabled: boolean;
+  connectResult: { ok: boolean; message?: string } | null;
+}) {
+  return (
+    <ConnectCardShell logo={zenegyLogo} name="Zenegy" tagline="Ét-klik OAuth — tager under 30 sekunder">
+      <div className="space-y-5">
+        <ol className="space-y-2.5">
+          <GuideStep n={1}>Tryk <strong>Forbind Zenegy</strong> nedenfor — et nyt vindue åbner.</GuideStep>
+          <GuideStep n={2}>Log ind og vælg den virksomhed, du vil forbinde med Serviceydere.</GuideStep>
+          <GuideStep n={3}>Tryk <strong>Tildel adgang</strong> — så sendes du automatisk tilbage hertil.</GuideStep>
+        </ol>
+
+        <Button
+          onClick={onConnect}
+          disabled={connecting || !oauthEnabled}
+          size="lg"
+          className="w-full"
+        >
+          {connecting
+            ? <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            : <ExternalLink className="mr-2 h-5 w-5" />}
+          {connecting ? "Forbinder…" : "Forbind Zenegy"}
+        </Button>
+
+        {!oauthEnabled && (
+          <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-900 dark:text-amber-200">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="min-w-0">
+              <div className="font-medium">Afventer godkendelse fra Zenegy</div>
+              <div className="opacity-90 text-xs mt-0.5">
+                Serviceydere venter på endelige OAuth-credentials fra Zenegy. Knappen aktiveres automatisk så snart godkendelsen er på plads — du behøver ikke gøre noget.
+              </div>
+            </div>
+          </div>
+        )}
+
+        {waiting && oauthEnabled && !connectResult?.ok && (
+          <div className="flex items-start gap-2 rounded-lg border border-border bg-secondary/40 p-3 text-sm text-foreground">
+            <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
+            <div className="min-w-0">
+              <div className="font-medium">Venter på godkendelse i Zenegy…</div>
+              <div className="opacity-80 text-xs mt-0.5">Et nyt vindue er åbnet. Log ind, vælg din virksomhed og tryk "Tildel adgang".</div>
+            </div>
+          </div>
+        )}
+
+        {connectResult && (
+          <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
+            connectResult.ok
+              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
+              : "border-destructive/30 bg-destructive/10 text-destructive"
+          }`}>
+            {connectResult.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
+            <div className="min-w-0">
+              <div className="font-medium">{connectResult.ok ? "Zenegy er forbundet!" : "Forbindelsen kunne ikke gennemføres"}</div>
+              {connectResult.message && <div className="break-words opacity-90">{connectResult.message}</div>}
+            </div>
+          </div>
+        )}
+
+        <p className="text-center text-xs text-muted-foreground">
+          🔒 Du kan altid tilbagekalde adgangen i Zenegy under <strong>Indstillinger → Integrationer</strong>.
+        </p>
+      </div>
+    </ConnectCardShell>
+  );
+}
+
 export default function AccountingTab({ businessId }: { businessId: string; businessName: string }) {
   const navigate = useNavigate();
   const [integration, setIntegration] = useState<Integration | null>(null);
