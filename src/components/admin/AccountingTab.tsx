@@ -14,7 +14,7 @@ import {
   Loader2, RefreshCw, Check, AlertCircle, ExternalLink, Eye, EyeOff,
   ArrowLeft, ArrowRight, Plug, Settings2, ShieldCheck, Calculator,
   Clock, ListChecks, Sparkles, X, Upload, Download, RotateCw, AlertTriangle,
-  Copy, FolderTree,
+  Copy, FolderTree, Mail, Lock, Zap,
 } from "lucide-react";
 import {
   PageHeader, PrimaryButton, SectionCard, EmptyState, FieldLabel,
@@ -92,25 +92,23 @@ const PROVIDERS: ProviderDef[] = [
     label: "Billy",
     logo: billyLogo,
     tagline: "Enkelt og hurtigt",
-    description: "Synkroniser kunder, varer og fakturakladder med Billy.",
-    helpUrl: "https://www.billy.dk/app/#/settings/access-tokens",
-    helpUrlLabel: "Åbn Billy → Access Tokens",
+    description: "Forbind med ét klik — log bare ind med din Billy-konto.",
+    helpUrl: "https://www.billy.dk/",
+    helpUrlLabel: "Åbn Billy",
     fields: [
       { key: "api_token", label: "API Access Token", type: "password",
         help: "Et token genereres på din Billy-konto under Indstillinger → Access Tokens.", placeholder: "fx 8f3a9b1c2d4e…" },
     ],
     setupSteps: [
-      "Log ind på Billy med din admin-bruger.",
-      "Klik på dit navn nederst til venstre → 'Indstillinger'.",
-      "Vælg menupunktet 'Access tokens' (eller åbn direkte via linket nedenfor).",
-      "Tryk 'Opret nyt access token' → giv det navnet 'Serviceydere' og tryk 'Opret'.",
-      "Kopiér det viste token (det vises kun én gang!) og indsæt det i feltet herunder.",
-      "Tryk 'Test forbindelse' for at bekræfte at alt virker.",
+      "Indtast din almindelige Billy email og adgangskode i felterne til højre.",
+      "Tryk 'Forbind Billy' — vi logger ind hos Billy og opretter en sikker forbindelse for dig.",
+      "Hvis du har flere virksomheder i Billy, vælger du den der hører til Serviceydere.",
+      "Det er det! Du kan til enhver tid se eller fjerne forbindelsen i Billy under Indstillinger → Access tokens.",
     ],
     note: {
       tone: "info",
-      title: "100% gratis og uden ekstra opsætning",
-      body: "Billy giver alle kunder fri adgang til API'et. Du behøver ikke et bestemt abonnement — det virker også på Mikro/Basis-pakkerne.",
+      title: "Vi gemmer aldrig din adgangskode",
+      body: "Adgangskoden bruges kun én gang til at oprette en forbindelse hos Billy. Bagefter er det kun en sikker, navngiven nøgle der gemmes — du kan slette den når som helst inde i Billy.",
     },
   },
   {
@@ -263,6 +261,230 @@ function AutoSaveBadge({
   );
 }
 
+/**
+ * BillyConnectCard — én-knap-flow til Billy.
+ *
+ * Brugeren indtaster sin almindelige Billy email + adgangskode. Vi sender
+ * dem ÉN gang til vores edge function `accounting-billy-connect`, som
+ * opretter et navngivet access token i Billy og returnerer det. Vi gemmer
+ * tokenet i `creds.api_token` præcis som hvis brugeren havde indsat det
+ * manuelt — så resten af gem-/test-flowet er uændret.
+ *
+ * Hvis brugeren har flere virksomheder i Billy bliver vi spurgt om hvilken
+ * der skal forbindes; ellers er det helt uden mellemskridt.
+ *
+ * Adgangskoden gemmes ALDRIG — den findes kun i hukommelsen så længe
+ * dialogen er åben, og forsvinder så snart vi har fået tokenet retur.
+ */
+function BillyConnectCard({
+  businessId,
+  onConnected,
+  onFallbackToManual,
+  alreadyConnected,
+}: {
+  businessId: string;
+  onConnected: (info: { api_token: string; organization_id: string; organization_name: string }) => void;
+  onFallbackToManual: () => void;
+  alreadyConnected: boolean;
+}) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [orgChoice, setOrgChoice] = useState<{ id: string; name: string }[] | null>(null);
+  const [chosenOrgId, setChosenOrgId] = useState<string | null>(null);
+
+  const canSubmit = email.trim().length > 3 && password.length > 0 && !submitting;
+
+  const submit = async (organizationIdOverride?: string) => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      const { data, error: invokeError } = await supabase.functions.invoke(
+        "accounting-billy-connect",
+        {
+          body: {
+            business_id: businessId,
+            email: email.trim(),
+            password,
+            organization_id: organizationIdOverride ?? chosenOrgId ?? undefined,
+          },
+        },
+      );
+      if (invokeError) throw invokeError;
+      const r = data as any;
+      if (r?.error) throw new Error(r.error);
+
+      // Hvis der er flere virksomheder: vis valg
+      if (r?.needs_organization && Array.isArray(r.organizations)) {
+        setOrgChoice(r.organizations);
+        setSubmitting(false);
+        return;
+      }
+
+      if (r?.ok && r.api_token) {
+        // Smid passwordet væk så snart vi har tokenet
+        setPassword("");
+        onConnected({
+          api_token: r.api_token,
+          organization_id: r.organization_id,
+          organization_name: r.organization_name,
+        });
+        toast.success(`Forbundet til ${r.organization_name}`);
+      } else {
+        throw new Error("Vi fik et tomt svar fra Billy. Prøv igen.");
+      }
+    } catch (e: any) {
+      setError(e?.message ?? "Noget gik galt — prøv igen.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (alreadyConnected) {
+    return (
+      <div className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300">
+        <Check className="mt-0.5 h-4 w-4 shrink-0" />
+        <div>
+          <div className="font-medium">Billy er forbundet</div>
+          <div className="opacity-90">Du kan trykke Næste for at gennemføre opsætningen.</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Vælg virksomhed hvis der er flere
+  if (orgChoice && orgChoice.length > 1) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <FieldLabel>Hvilken Billy-virksomhed vil du forbinde?</FieldLabel>
+          <p className="mb-3 text-xs text-muted-foreground">
+            Du har adgang til flere virksomheder i Billy. Vælg den der hører til Serviceydere.
+          </p>
+          <div className="space-y-2">
+            {orgChoice.map((o) => (
+              <button
+                key={o.id}
+                type="button"
+                onClick={() => { setChosenOrgId(o.id); submit(o.id); }}
+                disabled={submitting}
+                className="flex w-full items-center justify-between gap-3 rounded-lg border border-border bg-card p-3 text-left text-sm transition-colors hover:border-foreground/40 hover:bg-secondary/30 disabled:opacity-50"
+              >
+                <span className="font-medium text-foreground">{o.name}</span>
+                {submitting && chosenOrgId === o.id
+                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  : <ArrowRight className="h-4 w-4 text-muted-foreground" />}
+              </button>
+            ))}
+          </div>
+        </div>
+        {error && (
+          <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="min-w-0">{error}</div>
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={() => { setOrgChoice(null); setChosenOrgId(null); }}
+          className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+        >
+          ← Brug en anden konto
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border bg-secondary/20 p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground text-background">
+            <Zap className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="font-semibold text-foreground">Forbind med din Billy-konto</div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Log ind med din Billy email og adgangskode, så klarer vi resten — du behøver ikke kopiere noget.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <FieldLabel>Billy email</FieldLabel>
+        <div className="relative">
+          <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); setError(null); }}
+            placeholder="dig@firma.dk"
+            autoComplete="email"
+            className="pl-9"
+          />
+        </div>
+      </div>
+
+      <div>
+        <FieldLabel>Adgangskode</FieldLabel>
+        <div className="relative">
+          <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type={showPwd ? "text" : "password"}
+            value={password}
+            onChange={(e) => { setPassword(e.target.value); setError(null); }}
+            placeholder="Din Billy adgangskode"
+            autoComplete="current-password"
+            className="pl-9 pr-10"
+            onKeyDown={(e) => { if (e.key === "Enter" && canSubmit) submit(); }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPwd((v) => !v)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            aria-label={showPwd ? "Skjul" : "Vis"}
+          >
+            {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          Vi gemmer aldrig dit password. Det bruges kun én gang til at oprette en sikker forbindelse, som du kan slå fra når som helst inde i Billy under <span className="font-medium">Indstillinger → Access tokens</span>.
+        </p>
+      </div>
+
+      {error && (
+        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div className="min-w-0">
+            <div>{error}</div>
+            <button
+              type="button"
+              onClick={onFallbackToManual}
+              className="mt-1 text-xs underline-offset-4 hover:underline"
+            >
+              Indsæt API-nøgle manuelt i stedet →
+            </button>
+          </div>
+        </div>
+      )}
+
+      <Button
+        onClick={() => submit()}
+        disabled={!canSubmit}
+        className="w-full"
+      >
+        {submitting
+          ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          : <Zap className="mr-2 h-4 w-4" />}
+        {submitting ? "Forbinder…" : "Forbind Billy"}
+      </Button>
+    </div>
+  );
+}
+
 export default function AccountingTab({ businessId }: { businessId: string; businessName: string }) {
   const [integration, setIntegration] = useState<Integration | null>(null);
   const [mode, setMode] = useState<Mode>("overview");
@@ -315,6 +537,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const [confirmDisable, setConfirmDisable] = useState(false);
   const [confirmSwitch, setConfirmSwitch] = useState(false);
   const [retryingJobId, setRetryingJobId] = useState<string | null>(null);
+  // Billy: hvis ét-klik-flowet fejler kan brugeren falde tilbage til at
+  // indsætte token manuelt. Når sand → vis de gamle token-felter.
+  const [billyManualMode, setBillyManualMode] = useState(false);
 
   // Auto-save status: vises diskret i sektion-headeren så brugeren altid
   // kan se om hans ændring er nået sikkert frem.
@@ -459,6 +684,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     if (preselect) setProvider(preselect);
     setStep(1);
     setTestResult(null);
+    setBillyManualMode(false);
     setMode("wizard");
   };
 
@@ -1308,7 +1534,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 <button
                   key={p.value}
                   type="button"
-                  onClick={() => { setProvider(p.value); setCreds({}); setTestResult(null); }}
+                  onClick={() => { setProvider(p.value); setCreds({}); setTestResult(null); setBillyManualMode(false); }}
                   className={`group flex flex-col rounded-xl border p-4 text-left transition-colors ${
                     selected
                       ? "border-foreground bg-secondary/40 ring-2 ring-foreground/10"
@@ -1379,7 +1605,46 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             description="Dine oplysninger gemmes sikkert og krypteret. De bruges kun til at sende og hente data fra dit regnskabsprogram."
           >
             <div className="space-y-4">
-              {currentProvider.fields.map(f => {
+              {provider === "billy" && !billyManualMode ? (
+                <BillyConnectCard
+                  businessId={businessId}
+                  alreadyConnected={!!creds.api_token && !!testResult?.ok}
+                  onFallbackToManual={() => setBillyManualMode(true)}
+                  onConnected={async ({ api_token, organization_id }) => {
+                    // Gem tokenet i creds — så bruger Save/Test præcis det samme
+                    // flow som hvis det var indsat manuelt.
+                    const nextCreds = {
+                      ...creds,
+                      api_token,
+                      organization_id,
+                    };
+                    setCreds(nextCreds);
+                    setTestResult(null);
+                    // Test forbindelsen automatisk så brugeren med det samme
+                    // kan trykke Næste.
+                    setTesting(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke(
+                        "accounting-test-connection",
+                        {
+                          body: {
+                            business_id: businessId,
+                            provider: "billy",
+                            ...nextCreds,
+                            settings,
+                          },
+                        },
+                      );
+                      if (error) throw error;
+                      setTestResult(data as any);
+                    } catch (e: any) {
+                      setTestResult({ ok: false, message: e?.message ?? "Kunne ikke teste forbindelse" });
+                    } finally {
+                      setTesting(false);
+                    }
+                  }}
+                />
+              ) : currentProvider.fields.map(f => {
                 const isPwd = f.type === "password";
                 const reveal = !!showSecret[f.key];
                 return (
@@ -1410,6 +1675,17 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 );
               })}
 
+              {/* Hvis brugeren er i manuel Billy-tilstand kan han altid skifte tilbage */}
+              {provider === "billy" && billyManualMode && (
+                <button
+                  type="button"
+                  onClick={() => { setBillyManualMode(false); setCreds({}); setTestResult(null); }}
+                  className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+                >
+                  ← Forbind med email + adgangskode i stedet
+                </button>
+              )}
+
               {testResult && (
                 <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
                   testResult.ok
@@ -1424,21 +1700,25 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 </div>
               )}
 
-              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-xs text-muted-foreground">
-                  {credsValid ? "Tryk 'Test forbindelse' for at tjekke at det virker." : "Udfyld alle felter for at fortsætte."}
-                </p>
-                <Button
-                  variant={testResult?.ok ? "outline" : "default"}
-                  onClick={handleTest}
-                  disabled={testing || !credsValid}
-                >
-                  {testing
-                    ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    : testResult?.ok ? <RefreshCw className="mr-2 h-4 w-4" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
-                  {testResult?.ok ? "Test igen" : "Test forbindelse"}
-                </Button>
-              </div>
+              {/* Vis kun "Test forbindelse"-knappen i manuelle flows.
+                  Billy-én-klik tester automatisk efter forbindelsen. */}
+              {!(provider === "billy" && !billyManualMode) && (
+                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    {credsValid ? "Tryk 'Test forbindelse' for at tjekke at det virker." : "Udfyld alle felter for at fortsætte."}
+                  </p>
+                  <Button
+                    variant={testResult?.ok ? "outline" : "default"}
+                    onClick={handleTest}
+                    disabled={testing || !credsValid}
+                  >
+                    {testing
+                      ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      : testResult?.ok ? <RefreshCw className="mr-2 h-4 w-4" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
+                    {testResult?.ok ? "Test igen" : "Test forbindelse"}
+                  </Button>
+                </div>
+              )}
             </div>
           </SectionCard>
         </div>

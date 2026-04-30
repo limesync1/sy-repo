@@ -1,89 +1,74 @@
 
-Mål: rydde op på forsiden, forbedre lokationsdetektering på forsiden og `/virksomheder`, og gøre bestillingsflowet på virksomhedssider enklere, tydeligere og mere fejltolerant.
+# Forbind Billy med én knap
 
-1. Rydde forsiden for unødvendige elementer
-- Gennemgå `HeroSection.tsx` og de første landingssektioner for små UI-elementer, badges og ekstra tekstblokke som fylder uden at hjælpe brugeren.
-- Stramme heroen ind, så fokus bliver:
-  - tydelig overskrift
-  - søgefelt
-  - én enkel lokationslinje
-  - få, klare handlinger
-- Fjerne eller nedtone “quick signals”, overflødige chips og sekundære forklaringer, hvis de kun skaber visuel støj.
-- Gennemgå især:
-  - `src/components/landing/HeroSection.tsx`
-  - `src/components/landing/Categories.tsx`
-  - `src/components/landing/HowItWorks.tsx`
-  - `src/components/landing/RecentBusinesses.tsx`
+## Det vigtigste først (lidt dårligt nyt)
 
-2. Forbedre lokationsdetektering på forsiden og `/virksomheder`
-- Erstatte eller omprioritere den nuværende IP-baserede strategi i `LocationContext.tsx`, så systemet finder den mest præcise by/postnummer muligt i stedet for brede kommune-/regionsnavne.
-- Indføre en bedre kæde for detektering:
-  - først automatisk browser-geolocation ved første besøg, hvis muligt
-  - derefter reverse geocoding mod en mere præcis adresse/lokalitetskilde
-  - fallback til IP-baseret lokation hvis brugeren afviser eller browseren ikke kan levere koordinater
-- Sikre at resultatet foretrækker et præcist format som `7540 Haderup` frem for kommune/navne på større administrative områder.
-- Opdatere `LocationChip.tsx`, så “Fang min lokation” ikke længere er nødvendig som primær handling, men kun er en fallback/redigeringsmulighed.
-- Opdatere søgefeltets mikrocopy i både hero og søgeside, så det tydeligt viser den fundne by/postnummer.
+Billys API understøtter **ikke** rigtigt OAuth endnu (de skriver selv: *"We plan to support a 3-legged OAuth solution eventually"*). Det betyder vi **ikke** kan lave en knap af typen "Log ind med Billy" som åbner et Billy-popup-vindue og kommer tilbage med en token, sådan som man kender det fra fx Google eller Stripe.
 
-3. Sikre at søgning bruger den forbedrede lokation begge steder
-- Koble den nye lokationslogik tydeligt til:
-  - `src/components/landing/SearchSuggest.tsx`
-  - `src/pages/Search.tsx`
-- Beholde automatisk lokal søgning, men sikre at “nær” og afstands-/relevanslogikken bruger den korrekte by/postkode.
-- Forbedre fallback-adfærd, så søgningen stadig virker pænt hvis lokation ikke kan findes.
+Men vi kan komme **meget tæt på en 1-klik-oplevelse** ved at bruge Billys anden indlogningsmetode: brugerens almindelige Billy-email og -password. Vi sender det én gang til Billy, opretter en access-token automatisk på deres konto, gemmer kun token'en, og smider passwordet væk med det samme.
 
-4. Gøre bestillingsprocessen enklere ved at fjerne “Planlægning”
-- Fjerne hele planlægningssektionen i `CartSheet.tsx` fra kundens bestillingsflow.
-- Fjerne “anslået varighed” og “ønsket tidsrum” som synlige trin i checkout, så flowet bliver lettere og hurtigere.
-- Rydde op i tilhørende state og UI-afhængigheder, så der ikke ligger overflødig logik tilbage.
-- Beholde kun det, der er nødvendigt for at gennemføre en bestilling.
+## Hvordan det kommer til at se ud for brugeren
 
-5. Forbedre adressefeltet i bestillingsflowet
-- Gøre adresseoplevelsen mere komplet, så brugeren ikke kun ser vej/husnummer men også by/postnummer som en tydelig del af inputoplevelsen.
-- Opdatere `AddressAutocomplete.tsx` og brugen i `CartSheet.tsx`, så:
-  - valg fra autocomplete udfylder adresse, postnummer og by automatisk
-  - by vises tydeligt i UI’et og ikke kun gemmes i state
-  - der gives klar feedback på, at adressen er fuldt udfyldt og verificeret
-- Forbedre visning af den valgte adresse, så den føles mere komplet og tryg for brugeren.
+Når man vælger Billy som regnskabssystem, ser man **ikke længere** felter til "API Access Token" eller links til Billys indstillinger. Man ser i stedet:
 
-6. Gøre fejlmeddelelserne mere specifikke og hjælpsomme
-- Erstatte generiske fejlbeskeder i bestillingsflowet med felt-specifik feedback.
-- Validere trinvis, fx:
-  - mangler navn
-  - ugyldig e-mail
-  - mangler telefon
-  - adressen er ikke valgt fra forslag / kunne ikke verificeres
-  - by/postnummer mangler
-- Vise fejl tættere på de relevante felter og ikke kun som generiske toasts.
-- Sørge for at fejlteksterne er korte, konkrete og skrevet på klart dansk.
+```text
+┌─────────────────────────────────────────────┐
+│  [Billy-logo]                               │
+│                                             │
+│  Forbind din Billy-konto                    │
+│  Log ind med din Billy-konto, så klarer    │
+│  vi resten — du behøver ikke kopiere noget. │
+│                                             │
+│  Email     [____________________]           │
+│  Password  [____________________]           │
+│                                             │
+│  [ Forbind Billy ]                          │
+│                                             │
+│  Vi gemmer aldrig dit password. Vi bruger  │
+│  det kun én gang til at oprette en sikker  │
+│  forbindelse, som du kan slå fra når som   │
+│  helst inde i Billy.                        │
+└─────────────────────────────────────────────┘
+```
 
-7. Generel UX-opstramning af checkout på virksomhedssider
-- Forenkle layoutet i `CartSheet.tsx`, så formularen får bedre hierarki og mindre støj.
-- Gøre opsummering, kontaktoplysninger og service-adresse mere overskuelige.
-- Justere spacing, sektionstitler og hjælpetekster, så flowet føles hurtigere og mere intuitivt.
-- Sikre at brugerens vej fra “Tilføj til bestilling” til “Send bestilling” bliver mere enkel og mindre tung.
+Når man klikker **Forbind Billy**:
+1. Knappen viser "Forbinder..."
+2. Hvis brugeren har flere virksomheder i Billy, kommer der en lille dialog: *"Hvilken virksomhed vil du forbinde?"* med en liste.
+3. Token'en gemmes automatisk, forbindelsen testes, og man ser: *"Forbundet til [virksomhedsnavn] ✓"*
 
-Tekniske detaljer
-- Primære filer:
-  - `src/contexts/LocationContext.tsx`
-  - `src/components/LocationChip.tsx`
-  - `src/components/landing/HeroSection.tsx`
-  - `src/components/landing/SearchSuggest.tsx`
-  - `src/pages/Search.tsx`
-  - `src/components/business/CartSheet.tsx`
-  - `src/components/shared/AddressAutocomplete.tsx`
-  - eventuelt mindre oprydning i relevante landingssektioner
-- Hovedændringer:
-  - mere præcis og automatisk lokationsdetektering
-  - enklere hero og landingssektioner
-  - checkout uden planlægningssektion
-  - tydeligere adresse- og valideringsflow
+Hele oplevelsen er ét felt-par + ét klik. Ingen Billy-faner åbnes. Ingen kopiering.
 
-Acceptkriterier
-- Forsiden føles lettere og mindre rodet, med færre småting der fylder unødigt.
-- Lokation findes automatisk uden at brugeren skal trykke “Fang min lokation”.
-- Lokationen vises mere præcist som rigtig by/postnummer i stedet for kommune-agtige navne.
-- Søgning på både forside og `/virksomheder` bruger den forbedrede lokation.
-- “Planlægning”-sektionen er fjernet fra bestillingsflowet på virksomhedssider.
-- Adressefeltet udfylder og viser adresse, postnummer og by tydeligt.
-- Bestillingsflowet har mere konkrete fejlmeddelelser og er generelt lettere at bruge.
+## Hvad ændres i koden
+
+### Ny edge function: `accounting-billy-connect`
+- Modtager `{ business_id, email, password, organization_id? }`.
+- Kalder `GET https://api.billysbilling.com/v2/organizations` med Basic Auth → får liste af virksomheder brugeren har adgang til.
+- Hvis flere → returnerer listen til UI så brugeren vælger.
+- Hvis én (eller valgt) → kalder `POST /v2/accessTokens` med Basic Auth for at oprette en navngiven token (`"Serviceydere"`).
+- Gemmer token + organization_id i `accounting_integrations`-tabellen via service-role.
+- Returnerer kun `{ ok, organization_name }` — aldrig token eller password.
+- Password holdes kun i RAM under requesten; logges aldrig.
+
+### `src/components/admin/AccountingTab.tsx`
+- Billy-providerens `fields`-array fjernes (ingen flere `api_token`-inputs).
+- I stedet rendres en ny komponent `<BillyConnectCard />` når `provider === "billy"` og der ikke allerede er en aktiv integration.
+- Når der **er** en aktiv Billy-integration vises bare *"Forbundet til X · Afbryd forbindelsen"* (afbryd = sletter rækken; brugeren kan også selv slette token i Billy).
+- E-conomic og Dinero rører vi ikke i denne omgang.
+
+### Ingen DB-ændringer
+- Vi bruger eksisterende `accounting_integrations`-felter (`api_token`, `organization_id`, `is_active`).
+
+## Sikkerhed
+
+- Passwordet sendes over HTTPS direkte til vores edge function og videresendes kun til Billys API i samme request — det skrives aldrig til database, log eller fil.
+- Edge function tjekker `verify_jwt = true` så kun den indloggede virksomhedsejer kan bruge den, og verificerer `business.owner_id === user.id` før noget gemmes.
+- Brugeren kan til enhver tid se og slette token'en inde i Billy under **Indstillinger → Access tokens** (vi navngiver den `"Serviceydere"` så den er nem at finde).
+
+## Hvad skiftet *ikke* løser
+
+- Hvis brugeren har slået 2-faktor-login til på Billy, virker Basic Auth ikke. Vi viser i så fald en pæn fejlbesked og falder tilbage til en "Indsæt token manuelt"-knap som genskaber det nuværende felt — så ingen bliver låst ude.
+- Den dag Billy frigiver rigtig OAuth, kan vi udskifte selve edge-funktionens indre uden at ændre noget i UI'et.
+
+## Næste skridt efter dette
+
+Når Billy er på plads og virker, gør vi præcis det samme for Dinero (de **har** ægte OAuth, så det bliver endnu pænere) og bagefter e-conomic (kræver vores developer-app som vi allerede er ved at sætte op).
