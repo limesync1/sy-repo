@@ -711,59 +711,103 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       <div className="space-y-6">
         <PageHeader
           title="Regnskab"
-          description={`Du er forbundet med ${activeDef.label}. Aftaler, kunder og services holder sig automatisk opdateret begge steder — du behøver ikke gøre noget.`}
+          description={`Du er forbundet med ${activeDef.label}. Vi sørger for at alt — aftaler, kunder og services — automatisk er ens begge steder. Du skal ikke gøre noget.`}
         />
 
-        {/* Synk-status — fuld oversigt over hvad der er sket og hvad der venter.
-            Følger samme 2-3 kolonne stat-grid rytme som Overblik/Leads. */}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          <StatCard
-            label="Status"
-            value={failedCount > 0 ? "Brug for hjælp" : hasError ? "Brug for hjælp" : "Alt kører"}
-            hint={failedCount > 0 ? `${failedCount} ting kunne ikke sendes` : hasError ? "Forbindelsen svigtede" : "Kører helt automatisk"}
-            icon={(failedCount > 0 || hasError) ? <AlertCircle /> : <Check />}
-            tone={(failedCount > 0 || hasError) ? "amber" : "emerald"}
-          />
-          <StatCard
-            label="Sendt sidste døgn"
-            value={pushedLast24h}
-            hint={lastSuccessPush ? `Sidste afsendelse ${formatRelativeDanish(lastSuccessPush)}` : "Endnu intet sendt"}
-            icon={<Upload />}
-            tone="blue"
-          />
-          <StatCard
-            label="Hentet sidste døgn"
-            value={pulledLast24h}
-            hint={lastSuccessPull ? `Sidste hentning ${formatRelativeDanish(lastSuccessPull)}` : "Endnu intet hentet"}
-            icon={<Download />}
-            tone="violet"
-          />
-          <StatCard
-            label="Venter på at blive sendt"
-            value={pendingCount}
-            hint={pendingCount === 0 ? "Alt er allerede sendt" : "Sendes ved næste opdatering"}
-            icon={<ListChecks />}
-            tone="neutral"
-          />
-          <StatCard
-            label="Skal du kigge på"
-            value={failedCount}
-            hint={failedCount === 0 ? "Ingen problemer" : "Se nedenfor"}
-            icon={<AlertTriangle />}
-            tone={failedCount > 0 ? "amber" : "emerald"}
-          />
-          <StatCard
-            label="Næste opdatering"
-            value={formatCountdown(nextRun)}
-            hint={`Kører kl. ${nextRun.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}`}
-            icon={<Clock />}
-            tone="accent"
-          />
-        </div>
+        {/* Stor, rolig statusbanner i toppen — én tydelig besked til brugeren
+            i stedet for 6 forskellige tal og labels. */}
+        {(() => {
+          const isHealthy = failedCount === 0 && !hasError;
+          const nextRunTxt = nextRun.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+          return (
+            <div
+              className={`rounded-2xl border p-5 sm:p-6 ${
+                isHealthy
+                  ? "border-emerald-500/30 bg-emerald-500/5"
+                  : "border-amber-500/40 bg-amber-500/10"
+              }`}
+            >
+              <div className="flex items-start gap-4">
+                <div
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                    isHealthy ? "bg-emerald-500/15 text-emerald-700" : "bg-amber-500/20 text-amber-700"
+                  }`}
+                >
+                  {isHealthy ? <Check className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base font-semibold text-foreground">
+                    {isHealthy
+                      ? "Alt kører som det skal"
+                      : failedCount > 0
+                        ? `${failedCount} ting kunne ikke sendes til ${activeDef.label}`
+                        : `Vi kunne ikke nå ${activeDef.label}`}
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {isHealthy
+                      ? `Vi opdaterer automatisk hver time. Næste gang er kl. ${nextRunTxt}.`
+                      : "Se herunder — det er som regel en lille rettelse, så er det løst."}
+                  </p>
+                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Upload className="h-3.5 w-3.5" />
+                      <span><strong className="font-semibold text-foreground tabular-nums">{pushedLast24h}</strong> sendt det sidste døgn</span>
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Download className="h-3.5 w-3.5" />
+                      <span><strong className="font-semibold text-foreground tabular-nums">{pulledLast24h}</strong> hentet det sidste døgn</span>
+                    </span>
+                    {pendingCount > 0 && (
+                      <span className="inline-flex items-center gap-1.5">
+                        <ListChecks className="h-3.5 w-3.5" />
+                        <span><strong className="font-semibold text-foreground tabular-nums">{pendingCount}</strong> venter på næste opdatering</span>
+                      </span>
+                    )}
+                    <span className="inline-flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5" />
+                      <span>Næste opdatering {formatCountdown(nextRun)} (kl. {nextRunTxt})</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Kort, venlig forklaring så ejere uden teknisk baggrund forstår
+            hvad integrationen rent faktisk gør for dem. */}
+        <SectionCard title="Sådan virker det" icon={<Sparkles />}>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-border bg-card p-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Upload className="h-4 w-4 text-muted-foreground" /> Vi sender til {activeDef.label}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Når du opretter en kunde, en service eller en aftale her, sendes det automatisk over — typisk med det samme.
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-card p-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Download className="h-4 w-4 text-muted-foreground" /> Vi henter fra {activeDef.label}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Hver time tjekker vi om noget er ændret hos dig — fx betalte fakturaer eller nye kunder — og opdaterer det her.
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-card p-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <ShieldCheck className="h-4 w-4 text-muted-foreground" /> Du behøver ikke gøre noget
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Hvis noget driller, fortæller vi dig præcis hvad — i et almindeligt sprog. Du kan altid tage en pause eller skifte program.
+              </p>
+            </div>
+          </div>
+        </SectionCard>
 
         {/* Forbindelses-kort */}
         <SectionCard
-          title="Forbundet program"
+          title="Forbundet regnskabsprogram"
           icon={<Plug />}
           action={
             <div className="flex flex-wrap gap-2">
