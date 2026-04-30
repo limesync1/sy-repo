@@ -2,6 +2,7 @@ import type { AccountingAdapter, AccountingCredentials, AccountingProvider, Acco
 import { makeEconomicAdapter } from "./economic.ts";
 import { makeBillyAdapter } from "./billy.ts";
 import { makeDineroAdapter } from "./dinero.ts";
+import { makeZenegyAdapter } from "./zenegy.ts";
 
 export function makeAdapter(
   provider: AccountingProvider,
@@ -12,6 +13,7 @@ export function makeAdapter(
     case "economic": return makeEconomicAdapter(creds, settings);
     case "billy":    return makeBillyAdapter(creds, settings);
     case "dinero":   return makeDineroAdapter(creds, settings);
+    case "zenegy":   return makeZenegyAdapter(creds, settings);
     default: throw new Error(`Ukendt regnskabsudbyder: ${provider}`);
   }
 }
