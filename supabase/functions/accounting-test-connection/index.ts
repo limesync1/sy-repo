@@ -6,6 +6,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function normalizeToken(value: unknown): string | null {
+  const cleaned = String(value ?? "")
+    .trim()
+    .replace(/^x-access-token\s*:\s*/i, "")
+    .replace(/^bearer\s+/i, "")
+    .replace(/[\u200B-\u200D\uFEFF\s]/g, "");
+  return cleaned || null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -31,7 +40,10 @@ Deno.serve(async (req) => {
     if (!biz || biz.owner_id !== user.id) return json({ error: "Forbidden" }, 403);
 
     const adapter = makeAdapter(provider, {
-      api_token, api_secret, agreement_number, organization_id,
+      api_token: provider === "billy" ? normalizeToken(api_token) : api_token,
+      api_secret,
+      agreement_number,
+      organization_id,
     }, settings ?? {});
     const result = await adapter.testConnection();
     return json(result, result.ok ? 200 : 400);

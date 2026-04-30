@@ -195,6 +195,12 @@ interface Integration {
 
 type Mode = "overview" | "wizard";
 
+const normalizeBillyToken = (value: string): string => value
+  .trim()
+  .replace(/^x-access-token\s*:\s*/i, "")
+  .replace(/^bearer\s+/i, "")
+  .replace(/[\u200B-\u200D\uFEFF\s]/g, "");
+
 const formatRelativeDanish = (iso: string | null): string => {
   if (!iso) return "Aldrig";
   const ts = new Date(iso).getTime();
@@ -249,16 +255,17 @@ function operationDanish(op: string): string {
  * GuideStep — pænt nummereret trin brugt i alle tre forbind-kort.
  * Centraliserer styling så vi ikke duplikerer markup.
  */
-function GuideStep({ n, children }: { n: number; children: React.ReactNode }) {
+const GuideStep = React.forwardRef<HTMLLIElement, { n: number; children: React.ReactNode }>(({ n, children }, ref) => {
   return (
-    <li className="flex gap-3">
+    <li ref={ref} className="flex gap-3">
       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
         {n}
       </span>
       <span className="pt-0.5 text-sm leading-relaxed text-foreground/80">{children}</span>
     </li>
   );
-}
+});
+GuideStep.displayName = "GuideStep";
 
 /**
  * ConnectCardShell — fælles ramme for alle tre forbind-kort, så designet
@@ -383,7 +390,7 @@ function BillyConnectCard({
 
   // Paste handler: når nøglen indsættes, start auto-flow med det samme.
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    const pasted = e.clipboardData.getData("text").trim();
+    const pasted = normalizeBillyToken(e.clipboardData.getData("text"));
     if (!pasted) return;
     e.preventDefault();
     onTokenChange(pasted);
@@ -1074,8 +1081,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
    */
   const handleBillyAutoConnect = async (rawToken: string) => {
     const runId = ++setupRunRef.current;
-    const token = rawToken.trim();
+    const token = normalizeBillyToken(rawToken);
     if (!token) return;
+    setCreds(prev => ({ ...prev, api_token: token }));
     setBillyError(null);
 
     // 1) Test forbindelse

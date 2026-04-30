@@ -16,6 +16,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function normalizeToken(value: unknown): string {
+  return String(value ?? "")
+    .trim()
+    .replace(/^x-access-token\s*:\s*/i, "")
+    .replace(/^bearer\s+/i, "")
+    .replace(/[\u200B-\u200D\uFEFF\s]/g, "");
+}
+
 interface Step {
   key: "connect" | "customer" | "product" | "invoice" | "cleanup";
   label: string;
@@ -43,13 +51,13 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const provider = body?.provider as AccountingProvider | undefined;
-    const api_token = body?.api_token as string | undefined;
+    const api_token = provider === "billy" ? normalizeToken(body?.api_token) : String(body?.api_token ?? "").trim();
     const business_id = body?.business_id as string | undefined;
 
     if (!provider || !business_id) {
       return json({ error: "Missing provider/business_id" }, 400);
     }
-    if (!api_token || !api_token.trim()) {
+    if (!api_token) {
       return json({ error: "Missing api_token" }, 400);
     }
 
@@ -58,7 +66,7 @@ Deno.serve(async (req) => {
       .from("businesses").select("id, owner_id, name").eq("id", business_id).maybeSingle();
     if (!biz || biz.owner_id !== user.id) return json({ error: "Forbidden" }, 403);
 
-    const adapter = makeAdapter(provider, { api_token: api_token.trim() }, {
+    const adapter = makeAdapter(provider, { api_token }, {
       default_payment_terms_days: 14,
     });
 

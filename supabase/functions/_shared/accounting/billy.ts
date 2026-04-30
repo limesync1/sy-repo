@@ -16,9 +16,18 @@ import type {
 
 const BASE = "https://api.billysbilling.com/v2";
 
+function cleanBillyToken(token: unknown): string {
+  return String(token ?? "")
+    .trim()
+    .replace(/^x-access-token\s*:\s*/i, "")
+    .replace(/^bearer\s+/i, "")
+    .replace(/[\u200B-\u200D\uFEFF\s]/g, "");
+}
+
 function makeHeaders(creds: AccountingCredentials): HeadersInit {
+  const token = cleanBillyToken(creds.api_token);
   return {
-    "X-Access-Token": creds.api_token ?? "",
+    "X-Access-Token": token,
     "Content-Type": "application/json",
     Accept: "application/json",
   };
@@ -46,12 +55,13 @@ async function billyRequest(
   path: string,
   init: RequestInit = {},
 ): Promise<any> {
-  if (!creds.api_token) {
+  const token = cleanBillyToken(creds.api_token);
+  if (!token) {
     throw new Error("Mangler API Access Token.");
   }
   const res = await fetch(`${BASE}${path}`, {
     ...init,
-    headers: { ...makeHeaders(creds), ...(init.headers ?? {}) },
+    headers: { ...makeHeaders({ ...creds, api_token: token }), ...(init.headers ?? {}) },
   });
   if (!res.ok) {
     const text = await res.text();
