@@ -733,83 +733,167 @@ const EmployeeRow = ({
         </div>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary text-foreground">
-                <Pencil className="h-3.5 w-3.5" />
-              </span>
-              Rediger medarbejder
-            </DialogTitle>
-            <DialogDescription>
-              Opdater oplysninger for {employee.name}.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-            <div className="sm:col-span-2">
-              <FieldLabel required>Navn</FieldLabel>
-              <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-10" />
-            </div>
-            <div className="sm:col-span-2">
-              <FieldLabel required>Email</FieldLabel>
-              <Input
-                type="email"
-                value={editEmail}
-                onChange={(e) => setEditEmail(e.target.value)}
-                className="h-10"
+        <DialogContent className="sm:max-w-xl p-0 gap-0 overflow-hidden">
+          {/* Header med avatar — skaber visuel kontekst, så man med det samme
+              ved hvilken medarbejder man redigerer. */}
+          <div className="flex items-center gap-3 border-b border-border bg-secondary/40 px-5 py-4">
+            {employee.avatar_url ? (
+              <img
+                src={employee.avatar_url}
+                alt=""
+                className="h-11 w-11 rounded-full object-cover border border-border shrink-0"
+                loading="lazy"
+                decoding="async"
               />
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Email opdateres på medarbejder-profilen, men ændrer ikke login-emailen.
-              </p>
-            </div>
-            <div>
-              <FieldLabel>Telefon</FieldLabel>
-              <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-10" />
-            </div>
-            <div>
-              <FieldLabel>Titel</FieldLabel>
-              <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="h-10" />
-            </div>
-            <div className="sm:col-span-2">
-              <FieldLabel>Provision (%)</FieldLabel>
-              <div className="relative">
-                <Input
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  max={100}
-                  step="0.5"
-                  value={editCommission}
-                  onChange={(e) => setEditCommission(e.target.value)}
-                  className="h-10 pr-9"
-                />
-                <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+            ) : (
+              <div
+                className="h-11 w-11 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0"
+                style={{ backgroundColor: fallbackColor }}
+              >
+                {(employee.name || "?").charAt(0).toUpperCase()}
               </div>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Andel af omsætningen for udførte opgaver. Mellem 0 og 100.
-              </p>
+            )}
+            <div className="min-w-0 flex-1">
+              <DialogHeader className="space-y-0.5 text-left">
+                <DialogTitle className="text-base font-semibold text-foreground truncate">
+                  Rediger {employee.name || "medarbejder"}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Opdater kontaktoplysninger, rolle, provision og adgange.
+                </DialogDescription>
+              </DialogHeader>
             </div>
-            <div className="sm:col-span-2">
-              <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-secondary/40 p-3 transition-colors hover:bg-secondary">
+            <span
+              className={cn(
+                "shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                linked
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                  : "border-border bg-background text-muted-foreground",
+              )}
+              title={linked ? "Medarbejderen har en aktiv login-konto" : "Medarbejderen er ikke koblet til en login-konto"}
+            >
+              <span className={cn("h-1.5 w-1.5 rounded-full", linked ? "bg-emerald-500" : "bg-muted-foreground/40")} />
+              {linked ? "Login aktiv" : "Uden login"}
+            </span>
+          </div>
+
+          {/* Sektioner — grupperet for at gøre det nemt at scanne */}
+          <div className="max-h-[70vh] overflow-y-auto px-5 py-5 space-y-5">
+            {/* Kontakt */}
+            <section>
+              <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Kontaktoplysninger
+              </h4>
+              <div className="rounded-xl border border-border bg-card p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="sm:col-span-2">
+                  <FieldLabel required>Navn</FieldLabel>
+                  <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-10" />
+                </div>
+                <div className="sm:col-span-2">
+                  <FieldLabel required>Email</FieldLabel>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                    <Input
+                      type="email"
+                      value={editEmail}
+                      onChange={(e) => setEditEmail(e.target.value)}
+                      className="h-10 pl-9"
+                      placeholder="navn@eksempel.dk"
+                    />
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Bruges til kommunikation. Login-emailen ændres ikke automatisk.
+                  </p>
+                </div>
+                <div>
+                  <FieldLabel>Telefon</FieldLabel>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                    <Input
+                      value={editPhone}
+                      onChange={(e) => setEditPhone(e.target.value)}
+                      className="h-10 pl-9"
+                      placeholder="+45 12 34 56 78"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <FieldLabel>Titel</FieldLabel>
+                  <div className="relative">
+                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                    <Input
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className="h-10 pl-9"
+                      placeholder="F.eks. Rengøringsassistent"
+                    />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Provision */}
+            <section>
+              <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Aflønning
+              </h4>
+              <div className="rounded-xl border border-border bg-card p-4">
+                <FieldLabel>Provision af udførte opgaver</FieldLabel>
+                <div className="flex items-center gap-3">
+                  <div className="relative flex-1">
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      max={100}
+                      step="0.5"
+                      value={editCommission}
+                      onChange={(e) => setEditCommission(e.target.value)}
+                      className="h-10 pr-9"
+                    />
+                    <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">af omsætningen</span>
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  Sæt til <strong className="font-semibold text-foreground">0</strong> hvis medarbejderen er på fast løn. Eksempel: 15 betyder at medarbejderen optjener 15 % af omsætningen for de opgaver de udfører.
+                </p>
+              </div>
+            </section>
+
+            {/* Adgang */}
+            <section>
+              <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Adgange
+              </h4>
+              <label
+                className={cn(
+                  "flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors",
+                  editLivechat
+                    ? "border-accent/40 bg-accent/5"
+                    : "border-border bg-card hover:bg-secondary/40",
+                )}
+              >
                 <input
                   type="checkbox"
                   checked={editLivechat}
                   onChange={(e) => setEditLivechat(e.target.checked)}
                   className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-accent"
                 />
-                <span className="flex-1">
+                <span className="flex-1 min-w-0">
                   <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
                     <MessageCircle className="h-3.5 w-3.5 text-accent" />
                     Adgang til livechat
                   </span>
-                  <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                  <span className="mt-1 block text-[11px] text-muted-foreground leading-relaxed">
                     Når aktiveret kan medarbejderen besvare livechat-henvendelser fra kunder i deres eget medarbejderpanel.
                   </span>
                 </span>
               </label>
-            </div>
+            </section>
           </div>
-          <DialogFooter className="gap-2">
+
+          <DialogFooter className="gap-2 border-t border-border bg-secondary/30 px-5 py-3">
             <Button variant="ghost" onClick={() => setEditOpen(false)} className="h-9">Annuller</Button>
             <PrimaryButton
               onClick={() => {
