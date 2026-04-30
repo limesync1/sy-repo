@@ -1145,23 +1145,23 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-destructive" />
-                Afbryd integration?
+                Frakobl {activeDef.label}?
               </AlertDialogTitle>
               <AlertDialogDescription className="leading-relaxed">
-                Vi stopper med at sende dine aftaler, kunder og varer til {activeDef.label}.
-                Allerede synkroniserede data forbliver i {activeDef.label} — intet slettes.
-                Du kan altid forbinde igen senere.
+                Vi stopper med at sende dine aftaler, kunder og services til {activeDef.label}.
+                Det du allerede har sendt, bliver liggende i {activeDef.label} — der bliver ikke slettet noget.
+                Du kan forbinde igen når som helst.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel className="h-9 rounded-lg text-sm font-medium">
-                Behold integration
+                Behold forbindelsen
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDisable}
                 className="h-9 rounded-lg text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive"
               >
-                Ja, afbryd
+                Ja, frakobl
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -1175,9 +1175,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 Skift regnskabsprogram?
               </AlertDialogTitle>
               <AlertDialogDescription className="leading-relaxed">
-                Du kan kun have ét regnskabsprogram forbundet ad gangen. Når du
-                vælger et nyt, stopper synkronisering med {activeDef.label} —
-                men dine data i begge systemer bevares.
+                Du kan kun være forbundet med ét regnskabsprogram ad gangen. Når
+                du vælger et nyt, stopper vi med at sende til {activeDef.label} —
+                men intet slettes nogen af stederne.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -1202,7 +1202,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
    * ============================================================ */
   const stepsMeta = [
     { n: 1, label: "Vælg program", icon: Plug },
-    { n: 2, label: "Forbind", icon: ShieldCheck },
+    { n: 2, label: "Log på", icon: ShieldCheck },
     { n: 3, label: "Indstillinger", icon: Settings2 },
   ] as const;
 
@@ -1210,7 +1210,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     <div className="space-y-6">
       <PageHeader
         title={integration?.is_active ? "Skift regnskabsprogram" : "Forbind regnskabsprogram"}
-        description="Vi guider dig igennem på 3 trin — det tager typisk under 2 minutter."
+        description="Det tager under 2 minutter, og vi guider dig hele vejen — du behøver ingen teknisk viden."
         action={
           <Button
             variant="outline"
@@ -1253,9 +1253,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       {/* TRIN 1 */}
       {step === 1 && (
         <SectionCard
-          title="Vælg dit regnskabsprogram"
+          title="Hvilket regnskabsprogram bruger du?"
           icon={<Sparkles />}
-          description="Du kan altid skifte program senere — alt forbliver gemt i Serviceydere."
+          description="Du kan altid skifte program senere. Alt du har lavet i Serviceydere bliver liggende uanset hvad."
         >
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {PROVIDERS.map(p => {
@@ -1295,9 +1295,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       {step === 2 && (
         <div className="grid gap-4 lg:grid-cols-[1fr,1.4fr]">
           <SectionCard
-            title="Sådan finder du dine nøgler"
+            title="Sådan finder du dine login-oplysninger"
             icon={<img src={currentProvider.logo} alt="" className="h-4 w-auto" />}
-            description={`Trin-for-trin guide til ${currentProvider.label}.`}
+            description={`Følg disse trin inde i ${currentProvider.label} — så er du klar.`}
           >
             <ol className="space-y-3 text-sm">
               {currentProvider.setupSteps.map((s, i) => (
@@ -1330,9 +1330,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </SectionCard>
 
           <SectionCard
-            title="API-oplysninger"
+            title="Indtast dine login-oplysninger"
             icon={<ShieldCheck />}
-            description="Dine nøgler gemmes krypteret og bruges kun til synkronisering."
+            description="Dine oplysninger gemmes sikkert og krypteret. De bruges kun til at sende og hente data fra dit regnskabsprogram."
           >
             <div className="space-y-4">
               {currentProvider.fields.map(f => {
@@ -1382,7 +1382,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
               <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-xs text-muted-foreground">
-                  {credsValid ? "Klik 'Test forbindelse' for at tjekke at alt virker." : "Udfyld alle felter for at fortsætte."}
+                  {credsValid ? "Tryk 'Test forbindelse' for at tjekke at det virker." : "Udfyld alle felter for at fortsætte."}
                 </p>
                 <Button
                   variant={testResult?.ok ? "outline" : "default"}
@@ -1403,37 +1403,39 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       {/* TRIN 3 */}
       {step === 3 && (
         <SectionCard
-          title="Synk-indstillinger"
+          title="Sidste trin — vælg dine indstillinger"
           icon={<Settings2 />}
-          description="Standardværdier der bruges når vi sender aftaler. Du kan altid ændre dem senere."
+          description="Du kan altid ændre dem bagefter — de bruges som udgangspunkt når vi sender aftaler til dit regnskabsprogram."
         >
           <div className="divide-y divide-border">
             <div className="flex items-start justify-between gap-4 py-3 first:pt-0">
               <div className="min-w-0">
-                <div className="text-sm font-medium text-foreground">Send afventende aftaler</div>
-                <p className="mt-0.5 text-xs text-muted-foreground">Hvis fra: kun bekræftede og færdige aftaler sendes.</p>
+                <div className="text-sm font-medium text-foreground">Send aftaler der venter på svar</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">Slå til for at sende aftaler du endnu ikke har bekræftet. Slå fra for kun at sende dem du allerede har sagt ja til.</p>
               </div>
               <Switch checked={settings.push_pending !== false}
                 onCheckedChange={v => setSettings({ ...settings, push_pending: v })} />
             </div>
             <div className="flex items-start justify-between gap-4 py-3">
               <div className="min-w-0">
-                <div className="text-sm font-medium text-foreground">Auto-opret varer</div>
-                <p className="mt-0.5 text-xs text-muted-foreground">Opret automatisk vare-nr i regnskabsprogrammet for hver service.</p>
+                <div className="text-sm font-medium text-foreground">Opret nye services automatisk i regnskabsprogrammet</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">Anbefales — så slipper du for at oprette dem to steder.</p>
               </div>
               <Switch checked={settings.auto_create_products !== false}
                 onCheckedChange={v => setSettings({ ...settings, auto_create_products: v })} />
             </div>
             <div className="grid gap-4 py-3 sm:grid-cols-2 sm:gap-3 last:pb-0">
               <div>
-                <FieldLabel>Standard betalingsfrist (dage)</FieldLabel>
+                <FieldLabel>Hvor mange dage må kunden om at betale?</FieldLabel>
                 <Input type="number" min={0} value={settings.default_payment_terms_days ?? 14}
                   onChange={e => setSettings({ ...settings, default_payment_terms_days: Number(e.target.value) || 0 })} />
+                <p className="mt-1.5 text-xs text-muted-foreground">14 dage er almindeligt i Danmark.</p>
               </div>
               <div>
-                <FieldLabel>Standard moms-sats (%)</FieldLabel>
+                <FieldLabel>Moms-sats i procent</FieldLabel>
                 <Input type="number" min={0} max={100} value={settings.default_vat_rate ?? 25}
                   onChange={e => setSettings({ ...settings, default_vat_rate: Number(e.target.value) || 0 })} />
+                <p className="mt-1.5 text-xs text-muted-foreground">25 % er almindelig moms i Danmark.</p>
               </div>
             </div>
           </div>
@@ -1464,7 +1466,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </PrimaryButton>
         ) : (
           <PrimaryButton onClick={handleSave} disabled={saving} icon={saving ? <Loader2 className="animate-spin" /> : <Check />}>
-            {saving ? "Aktiverer…" : "Aktiver integration"}
+            {saving ? "Forbinder…" : "Forbind nu"}
           </PrimaryButton>
         )}
       </div>
