@@ -318,15 +318,15 @@ function BillyConnectCard({
 
   return (
     <div className="space-y-4">
-      {/* Stor primær handling: åbn Billy direkte på adgangsnøgle-siden */}
+      {/* Stor primær handling: åbn Billy uden redirect, da Billy kræver virksomhedens egen URL-slug */}
       <Button asChild size="lg" className="w-full h-14 text-base">
         <a
-          href="https://www.billy.dk/login/?next=/settings%23/organization/access_tokens"
+          href="https://mit.billy.dk/"
           target="_blank"
           rel="noopener noreferrer"
         >
           <ExternalLink className="mr-2 h-5 w-5" />
-          Åbn Billy og opret adgangsnøgle
+          Åbn Billy
         </a>
       </Button>
 
@@ -378,11 +378,11 @@ function BillyConnectCard({
           <div className="grid gap-2 rounded-lg border border-border bg-card p-3 text-sm">
             <div className="flex gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">1</span>
-              <span className="pt-0.5 text-muted-foreground">Tryk 'Åbn Billy' — du lander direkte på siden med adgangsnøgler.</span>
+              <span className="pt-0.5 text-muted-foreground">Tryk 'Åbn Billy' og vælg den virksomhed du vil forbinde.</span>
             </div>
             <div className="flex gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">2</span>
-              <span className="pt-0.5 text-muted-foreground">Tryk 'Opret adgangsnøgle', kald den 'Serviceydere' og opret.</span>
+              <span className="pt-0.5 text-muted-foreground">Gå til Indstillinger → Adgangsnøgler og tryk 'Opret adgangsnøgle'.</span>
             </div>
             <div className="flex gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">3</span>
