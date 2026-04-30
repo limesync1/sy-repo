@@ -801,6 +801,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       const r = data as { ok: boolean; message?: string };
       if (!r.ok) throw new Error(r.message ?? "Nøglen kunne ikke bruges");
     } catch (e: any) {
+      if (runId !== setupRunRef.current) return;
       setBillyError(e?.message ?? "Kunne ikke forbinde til Billy");
       setBillyStatus("error");
       return;
@@ -820,6 +821,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         throw new Error(failed?.message ?? "Synk-testen kunne ikke gennemføres");
       }
     } catch (e: any) {
+      if (runId !== setupRunRef.current) return;
       setBillyError(e?.message ?? "Synk-testen fejlede");
       setBillyStatus("error");
       return;
@@ -877,6 +879,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           setMode("overview");
         }, 1400);
       } catch (e: any) {
+        if (runId !== setupRunRef.current) return;
         setBillyError(e?.message ?? "Kunne ikke gemme indstillinger");
         setBillyStatus("error");
       }
