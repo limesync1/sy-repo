@@ -1652,9 +1652,17 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </SectionCard>
 
           <SectionCard
-            title={provider === "billy" ? "Forbind Billy" : "Indtast dine login-oplysninger"}
+            title={
+              provider === "billy" ? "Forbind Billy"
+              : provider === "economic" ? "Forbind e-conomic"
+              : "Indtast dine login-oplysninger"
+            }
             icon={<ShieldCheck />}
-            description={provider === "billy" ? "Brug en adgangsnøgle fra Billy — ikke din adgangskode." : "Dine oplysninger gemmes sikkert og krypteret. De bruges kun til at sende og hente data fra dit regnskabsprogram."}
+            description={
+              provider === "billy" ? "Brug en adgangsnøgle fra Billy — ikke din adgangskode."
+              : provider === "economic" ? "Du sendes til e-conomic, godkender app'en, og kommer tilbage hertil. Ingen tokens at kopiere."
+              : "Dine oplysninger gemmes sikkert og krypteret. De bruges kun til at sende og hente data fra dit regnskabsprogram."
+            }
           >
             <div className="space-y-4">
               {provider === "billy" ? (
@@ -1666,6 +1674,12 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   onTest={handleTest}
                   testing={testing}
                   testResult={testResult}
+                />
+              ) : provider === "economic" ? (
+                <EconomicConnectCard
+                  onConnect={handleEconomicConnect}
+                  connecting={economicConnecting}
+                  connectResult={testResult}
                 />
               ) : (
                 <>
