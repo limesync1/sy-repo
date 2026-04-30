@@ -702,8 +702,20 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       if (error) throw error;
       const url = (data as any)?.install_url;
       if (!url) throw new Error("Kunne ikke hente e-conomic install-URL");
-      // Naviger i samme vindue så redirect-tilbage virker uanset browser-policy
-      window.location.href = url;
+      // Åbn i nyt vindue — Lovable-preview er en iframe der ikke må navigere
+      // top-level til en anden origin. E-conomic redirecter brugeren tilbage
+      // til /virksomhed?token=... i samme nye vindue. Vi opfanger tokenet via
+      // BroadcastChannel så det også virker når brugeren oprindeligt sad i
+      // preview-iframen.
+      const popup = window.open(url, "_blank", "noopener,noreferrer");
+      if (!popup) {
+        throw new Error("Browseren blokerede pop-up vinduet. Tillad pop-ups for serviceydere.dk og prøv igen.");
+      }
+      setEconomicConnecting(false);
+      setTestResult({
+        ok: false,
+        message: "Et nyt vindue er åbnet med e-conomic. Når du har godkendt app'en, kommer du tilbage hertil automatisk.",
+      });
     } catch (e: any) {
       sessionStorage.removeItem("economic_pending_business_id");
       const msg = e?.message ?? "Kunne ikke åbne e-conomic";
