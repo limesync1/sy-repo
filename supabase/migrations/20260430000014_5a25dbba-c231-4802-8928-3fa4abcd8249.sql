@@ -1,0 +1,1 @@
+UPDATE public.accounting_sync_queue SET status = 'failed', scheduled_for = now() + interval '2 hours', last_error = COALESCE(last_error, 'Auto-paused: provider error loop') WHERE status IN ('pending', 'processing', 'failed'); DELETE FROM public.accounting_sync_log WHERE created_at > now() - interval '1 hour' AND status = 'error';
