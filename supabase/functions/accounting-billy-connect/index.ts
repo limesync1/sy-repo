@@ -29,7 +29,7 @@ function basicAuth(email: string, password: string): string {
 function friendlyBillyAuthError(status: number, body: string): string {
   const lower = body.toLowerCase();
   if (status === 401 || status === 403 || lower.includes("unauthorized") || lower.includes("invalid")) {
-    return "Forkert email eller adgangskode. Hvis du har slået to-faktor-login til på Billy, skal du i stedet bruge en manuel API-nøgle.";
+    return "Billy afviste login. Det sker oftest hvis adgangskoden er forkert, eller hvis du har slået to-faktor-login til på din Billy-konto. Brug i stedet en API-nøgle (det tager 30 sekunder — se knappen nedenfor).";
   }
   if (status === 429) return "For mange forsøg lige nu — vent et øjeblik og prøv igen.";
   if (status >= 500) return "Billys servere svarer ikke lige nu. Prøv igen om et par minutter.";
@@ -58,6 +58,7 @@ async function billyAuth(
   });
   if (!res.ok) {
     const text = await res.text();
+    console.log(`[billy-connect] ${init.method ?? "GET"} ${path} -> ${res.status}: ${text.slice(0, 300)}`);
     throw new Error(friendlyBillyAuthError(res.status, text));
   }
   if (res.status === 204) return null;
