@@ -944,18 +944,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           title="Standard kundegruppe/indtægtskonto"
           icon={<FolderTree />}
           description="Hentet direkte fra dit regnskabsprogram. Bruges som standard for nye kunder og services — du kan altid overstyre per service."
-          action={
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={loadGroups}
-              disabled={groupsLoading}
-              className="h-9 rounded-lg text-xs font-medium"
-            >
-              <RotateCw className={`mr-2 h-3.5 w-3.5 ${groupsLoading ? "animate-spin" : ""}`} />
-              Opdater liste
-            </Button>
-          }
+          action={<AutoSaveBadge state={autoSaveState} loadingGroups={groupsLoading} />}
         >
           <div className="grid gap-4 sm:grid-cols-2">
             {groups.customer_groups.length > 0 && (
@@ -1033,20 +1022,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               <p className="text-sm text-muted-foreground sm:col-span-2">
                 {groupsLoading
                   ? "Henter kategorier fra regnskabsprogrammet…"
-                  : "Ingen kategorier fundet. Opret dem i dit regnskabsprogram og tryk Opdater liste."}
+                  : "Ingen kategorier fundet. Opret dem i dit regnskabsprogram — listen opdateres automatisk."}
               </p>
             )}
-          </div>
-          <div className="mt-4 flex justify-end">
-            <Button
-              variant="outline"
-              onClick={handleSaveSettingsOnly}
-              disabled={saving}
-              className="h-9 rounded-lg text-xs font-medium"
-            >
-              {saving && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
-              Gem standard
-            </Button>
           </div>
         </SectionCard>
 
