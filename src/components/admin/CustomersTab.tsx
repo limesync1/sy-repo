@@ -1048,17 +1048,33 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
 
               {/* Quick stats */}
               <div className="grid grid-cols-3 gap-2">
-                <div className="rounded-xl border border-border bg-card p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Omsætning</p>
+                <div
+                  className="rounded-xl border border-border bg-card p-3 text-center"
+                  title="Samlet beløb kunden har handlet for hos jer på tværs af alle aftaler."
+                >
+                  <p className="text-xs text-muted-foreground">Samlet omsætning</p>
                   <p className="text-base font-bold text-foreground">{fmtKr(customer.total_revenue)}</p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Aftaler</p>
+                <div
+                  className="rounded-xl border border-border bg-card p-3 text-center"
+                  title="Antal aftaler kunden har haft hos jer i alt — både engangskøb og ydelser fra abonnementer."
+                >
+                  <p className="text-xs text-muted-foreground">Aftaler i alt</p>
                   <p className="text-base font-bold text-foreground">{customer.orders_count}</p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-3 text-center">
+                <div
+                  className="rounded-xl border border-border bg-card p-3 text-center"
+                  title="Aktive abonnementer kører automatisk efter aftalt interval. Pausede er midlertidigt sat på pause."
+                >
                   <p className="text-xs text-muted-foreground">Abonnementer</p>
-                  <p className="text-base font-bold text-foreground">{customer.active_subs}</p>
+                  <p className="text-base font-bold text-foreground">
+                    {customer.active_subs}
+                    {customer.paused_subs > 0 && (
+                      <span className="ml-1 text-xs font-normal text-amber-600">
+                        +{customer.paused_subs} pause
+                      </span>
+                    )}
+                  </p>
                 </div>
               </div>
 
