@@ -673,6 +673,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     "idle" | "checking" | "testing" | "saving" | "done" | "error"
   >("idle");
   const [billyError, setBillyError] = useState<string | null>(null);
+  // Dinero paste-and-go: én samlet status fra "udfyldt" til "færdig opsat".
+  const [dineroStatus, setDineroStatus] = useState<
+    "idle" | "checking" | "testing" | "saving" | "done" | "error"
+  >("idle");
+  const [dineroError, setDineroError] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [queueCount, setQueueCount] = useState(0);
