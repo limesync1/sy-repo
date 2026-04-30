@@ -1017,6 +1017,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       setMode("wizard");
       setStep(2);
       setEconomicConnecting(true);
+      setEconomicWaiting(false);
       try {
         const { data: resp, error } = await supabase.functions.invoke(
           "accounting-economic-callback",
@@ -1030,12 +1031,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           message: companyName ? `Forbundet til ${companyName}` : "E-conomic er forbundet og klar.",
         });
         toast.success("E-conomic er nu forbundet!");
-        // Sørg for at URL'en peger på regnskabs-fanen
-        const url = new URL(window.location.href);
-        url.searchParams.set("tab", "accounting");
-        window.history.replaceState({}, "", url.toString());
+        // Naviger med react-router så Admin.tsx faktisk viser regnskabs-fanen.
+        navigate("/virksomhed?tab=accounting", { replace: true });
         await load();
-        setStep(3);
+        setMode("overview");
       } catch (e: any) {
         const msg = e?.message ?? "Kunne ikke gemme e-conomic-forbindelsen";
         setTestResult({ ok: false, message: msg });
