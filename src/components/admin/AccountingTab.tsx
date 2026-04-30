@@ -104,11 +104,9 @@ const PROVIDERS: ProviderDef[] = [
         help: "Kopiér adgangsnøglen fra Billy under Indstillinger → Adgangsnøgler.", placeholder: "Indsæt adgangsnøglen fra Billy" },
     ],
     setupSteps: [
-      "Tryk på knappen 'Åbn Billy og opret nøgle' til højre.",
-      "Log ind i Billy som du plejer, og vælg Indstillinger (tandhjulet) i venstremenuen.",
-      "Vælg Adgangsnøgler → Opret adgangsnøgle.",
-      "Skriv 'Serviceydere' som navn, tryk Opret, og kopiér adgangsnøglen.",
-      "Indsæt adgangsnøglen her og tryk 'Test nøgle'.",
+      "Tryk 'Åbn Billy' — vi sender dig direkte til siden med adgangsnøgler.",
+      "Tryk 'Opret adgangsnøgle', kald den 'Serviceydere' og tryk Opret.",
+      "Kopiér nøglen og kom tilbage hertil — vi tager os af resten automatisk.",
     ],
     note: {
       tone: "info",
