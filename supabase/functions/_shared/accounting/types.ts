@@ -1,7 +1,7 @@
 // Shared types for accounting integrations
 // Each provider implements the AccountingAdapter interface below.
 
-export type AccountingProvider = "economic" | "billy" | "dinero";
+export type AccountingProvider = "economic" | "billy" | "dinero" | "zenegy";
 
 export interface AccountingCredentials {
   api_token?: string | null;
