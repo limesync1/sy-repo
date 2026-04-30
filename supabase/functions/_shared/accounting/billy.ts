@@ -392,13 +392,18 @@ export function makeBillyAdapter(
       const productGroupId = await ensureBillyProductGroup(
         creds, orgId, accountId, input.name,
       );
+      if (!productGroupId) {
+        throw new Error(
+          "Billy mangler en produktgruppe at lægge varen i. Gå til Billy → Indstillinger → Produktgrupper og opret mindst én produktgruppe (fx 'Serviceydere'), og prøv igen.",
+        );
+      }
       const product: Record<string, unknown> = {
         organizationId: orgId,
         name: input.name,
         description: input.description ?? undefined,
         // Sæt kun productNo ved oprettelse — bevar Billys egen nummerering ved opdatering.
         productNo: input.external_id ? undefined : `SY-${input.internal_id.slice(0, 8)}`,
-        productGroupId: productGroupId ?? undefined,
+        productGroupId,
         prices: [{ unitPrice: input.unit_price, currencyId: "DKK" }],
       };
       if (input.external_id) {
