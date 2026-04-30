@@ -234,6 +234,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const [logs, setLogs] = useState<any[]>([]);
   const [queueCount, setQueueCount] = useState(0);
   const [failedJobs, setFailedJobs] = useState<any[]>([]);
+  const [dlqJobs, setDlqJobs] = useState<any[]>([]);
+  const [dlqActionId, setDlqActionId] = useState<string | null>(null);
   const [pushedLast24h, setPushedLast24h] = useState(0);
   const [pulledLast24h, setPulledLast24h] = useState(0);
   const [lastSuccessPush, setLastSuccessPush] = useState<string | null>(null);
@@ -303,6 +305,15 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       .order("updated_at", { ascending: false })
       .limit(20);
     setFailedJobs((failed as any) ?? []);
+
+    // DLQ: jobs der har givet op efter 5 forsøg
+    const { data: dlq } = await supabase.from("accounting_sync_dlq" as any)
+      .select("*")
+      .eq("business_id", businessId)
+      .eq("resolved", false)
+      .order("moved_to_dlq_at", { ascending: false })
+      .limit(50);
+    setDlqJobs((dlq as any) ?? []);
 
     // Tællere for sidste 24 timer (push/pull) — viser i status-grid
     const since24 = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
