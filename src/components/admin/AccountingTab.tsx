@@ -1417,16 +1417,16 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           <div className="divide-y divide-border">
             <div className="flex items-start justify-between gap-4 py-3 first:pt-0">
               <div className="min-w-0">
-                <div className="text-sm font-medium text-foreground">Send aftaler der venter på svar</div>
-                <p className="mt-0.5 text-xs text-muted-foreground">Slå til, hvis du også vil sende aftaler du endnu ikke har bekræftet. Slå fra, hvis du kun vil sende dem du allerede har sagt ja til.</p>
+                <div className="text-sm font-medium text-foreground">Send tilbud du endnu ikke har sagt ja til</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">Når en kunde har sendt en forespørgsel — men du ikke har bekræftet endnu — sendes den også over som et udkast. Slå fra hvis du kun vil sende bekræftede aftaler.</p>
               </div>
               <Switch checked={settings.push_pending !== false}
                 onCheckedChange={v => setSettings({ ...settings, push_pending: v })} />
             </div>
             <div className="flex items-start justify-between gap-4 py-3">
               <div className="min-w-0">
-                <div className="text-sm font-medium text-foreground">Opret nye services automatisk i regnskabsprogrammet</div>
-                <p className="mt-0.5 text-xs text-muted-foreground">Når du opretter en ny service her, oprettes den også som en vare i dit regnskabsprogram. Anbefales — så slipper du for at oprette den to steder.</p>
+                <div className="text-sm font-medium text-foreground">Opret dine ydelser automatisk som varer</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">Når du opretter en ny ydelse her, opretter vi den også som vare i dit regnskabsprogram. Så slipper du for at indtaste det samme to steder.</p>
               </div>
               <Switch checked={settings.auto_create_products !== false}
                 onCheckedChange={v => setSettings({ ...settings, auto_create_products: v })} />
