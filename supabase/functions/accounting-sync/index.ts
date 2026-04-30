@@ -603,6 +603,20 @@ async function drainQueue(admin: SupabaseClient, integ: Integration, adapter: Ac
         last_error: msg,
         scheduled_for: new Date(Date.now() + backoffMs).toISOString(),
       }).eq("id", job.id);
+      // Flyt til DLQ når jobbet er endeligt fejlet
+      if (failedFinal) {
+        await admin.from("accounting_sync_dlq").insert({
+          business_id: integ.business_id,
+          provider: integ.provider,
+          entity_type: job.entity_type,
+          entity_id: job.entity_id,
+          operation: job.operation,
+          attempts: job.attempts + 1,
+          last_error: msg,
+          original_queue_id: job.id,
+          original_created_at: job.created_at,
+        });
+      }
       // Log kun én fejl pr. (entity, message) pr. dag for at undgå spam
       const { count: existingCount } = await admin.from("accounting_sync_log")
         .select("*", { count: "exact", head: true })
