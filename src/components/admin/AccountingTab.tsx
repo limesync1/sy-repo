@@ -1534,7 +1534,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 <button
                   key={p.value}
                   type="button"
-                  onClick={() => { setProvider(p.value); setCreds({}); setTestResult(null); }}
+                  onClick={() => { setProvider(p.value); setCreds({}); setTestResult(null); setBillyManualMode(false); }}
                   className={`group flex flex-col rounded-xl border p-4 text-left transition-colors ${
                     selected
                       ? "border-foreground bg-secondary/40 ring-2 ring-foreground/10"
