@@ -734,6 +734,114 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   };
 
   /**
+   * Billy paste-and-go: når brugeren har indsat sin nøgle, kører vi automatisk
+   *  1) testConnection
+   *  2) dry-run (opret + slet testfaktura)
+   *  3) hent grupper og auto-vælg første indtægtskonto
+   *  4) gem integrationen og start første synk i baggrunden
+   * Hvis vi ikke kan auto-vælge en konto, falder vi tilbage til wizard step 3.
+   */
+  const handleBillyAutoConnect = async (rawToken: string) => {
+    const token = rawToken.trim();
+    if (!token) return;
+    setBillyError(null);
+
+    // 1) Test forbindelse
+    setBillyStatus("checking");
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-test-connection", {
+        body: { business_id: businessId, provider: "billy", api_token: token, settings },
+      });
+      if (error) throw error;
+      const r = data as { ok: boolean; message?: string };
+      if (!r.ok) throw new Error(r.message ?? "Nøglen kunne ikke bruges");
+    } catch (e: any) {
+      setBillyError(e?.message ?? "Kunne ikke forbinde til Billy");
+      setBillyStatus("error");
+      return;
+    }
+
+    // 2) Dry-run: send rigtige testdata til Billy så vi ved synk virker
+    setBillyStatus("testing");
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-dry-run", {
+        body: { business_id: businessId, provider: "billy", api_token: token },
+      });
+      if (error) throw error;
+      const r = data as { ok: boolean; steps?: { ok: boolean; label: string; message?: string }[] };
+      if (!r.ok) {
+        const failed = r.steps?.find(s => !s.ok);
+        throw new Error(failed?.message ?? "Synk-testen kunne ikke gennemføres");
+      }
+    } catch (e: any) {
+      setBillyError(e?.message ?? "Synk-testen fejlede");
+      setBillyStatus("error");
+      return;
+    }
+
+    // 3) Hent grupper og find en fornuftig indtægtskonto
+    setBillyStatus("saving");
+    let autoIncomeAccount: string | null = null;
+    let foundGroups = false;
+    try {
+      // Gem først (uden konto) så accounting-list-groups kan finde integrationen
+      const initialPayload = {
+        business_id: businessId, provider: "billy", is_active: true,
+        api_token: token, api_secret: null,
+        agreement_number: null, organization_id: null,
+        settings: { ...defaultSettings } as any,
+        last_error: null, last_error_at: null,
+      };
+      const { error: saveErr } = await supabase.from("accounting_integrations" as any)
+        .upsert(initialPayload, { onConflict: "business_id" });
+      if (saveErr) throw saveErr;
+
+      const { data: g } = await supabase.functions.invoke("accounting-list-groups", {
+        body: { business_id: businessId },
+      });
+      const incomeAccounts = ((g as any)?.income_accounts ?? []) as { id: string }[];
+      foundGroups = incomeAccounts.length > 0;
+      if (foundGroups) autoIncomeAccount = incomeAccounts[0].id;
+    } catch {
+      // Ikke kritisk — falder tilbage til manuelt valg nedenfor
+    }
+
+    // 4) Hvis vi fandt en konto: gem den og afslut. Ellers: fald tilbage til step 3.
+    if (autoIncomeAccount) {
+      const finalSettings = { ...defaultSettings, default_income_account: autoIncomeAccount };
+      try {
+        await supabase.from("accounting_integrations" as any)
+          .update({ settings: finalSettings as any })
+          .eq("business_id", businessId);
+        setSettings(finalSettings);
+        setProvider("billy");
+        setCreds({ api_token: token });
+        setBillyStatus("done");
+        toast.success("Billy er forbundet og klar!");
+        // Stille første synk i baggrunden
+        runFullSync(businessId).catch(() => { /* ignoreres */ });
+        // Vent 1.2s så brugeren ser succes-skærmen, så ryk til oversigten
+        setTimeout(async () => {
+          await load();
+          setMode("overview");
+        }, 1400);
+      } catch (e: any) {
+        setBillyError(e?.message ?? "Kunne ikke gemme indstillinger");
+        setBillyStatus("error");
+      }
+    } else {
+      // Ingen konti i Billy endnu — bed brugeren vælge i step 3 (B-fallback)
+      setProvider("billy");
+      setCreds({ api_token: token });
+      setSettings({ ...defaultSettings });
+      setBillyStatus("idle");
+      setStep(3);
+      await load();
+      toast.info("Næsten klar — vælg lige en indtægtskonto");
+    }
+  };
+
+  /**
    * E-conomic-flow:
    *  1) Brugeren trykker "Forbind e-conomic" — vi henter Installations URL'en
    *     fra serveren og åbner den i et nyt vindue.
