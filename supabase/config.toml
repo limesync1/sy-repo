@@ -43,5 +43,3 @@ project_id = "gkectsellkpltrxvusot"
     verify_jwt = false
   [functions.accounting-cron]
     verify_jwt = false
-  [functions.accounting-billy-connect]
-    verify_jwt = true
