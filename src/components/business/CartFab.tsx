@@ -1,6 +1,7 @@
 import { Package } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
+import { forwardRef } from "react";
 
 /**
  * Lille flydende handle nederst til højre der lader brugeren genåbne
@@ -11,7 +12,7 @@ import { useCart } from "@/contexts/CartContext";
  * (/tilbud) hvor brugeren netop har indhentet tilbud. På resten af platformen
  * (forside, søgning, admin osv.) skal knappen ikke distrahere.
  */
-const CartFab = () => {
+const CartFab = forwardRef<HTMLButtonElement>((_props, ref) => {
   const { count, sheetOpen, openSheet } = useCart();
   const { pathname } = useLocation();
   if (count === 0 || sheetOpen) return null;
@@ -29,6 +30,7 @@ const CartFab = () => {
   // ovenover bestilling, så vi bliver i hjørnet.
   return (
     <button
+      ref={ref}
       type="button"
       onClick={openSheet}
       aria-label={`Åbn bestilling med ${count} ${count === 1 ? "service" : "services"}`}
@@ -43,6 +45,8 @@ const CartFab = () => {
       <span>Bestilling</span>
     </button>
   );
-};
+});
+
+CartFab.displayName = "CartFab";
 
 export default CartFab;

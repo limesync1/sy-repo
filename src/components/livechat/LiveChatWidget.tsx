@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
@@ -162,7 +162,7 @@ const formatTime = (iso: string) => {
   return d.toLocaleDateString("da-DK", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 };
 
-const LiveChatWidget = () => {
+const LiveChatWidget = forwardRef<HTMLDivElement>((_props, _ref) => {
   const { pathname } = useLocation();
   const { user } = useAuth();
   const { count: cartCount, sheetOpen: cartSheetOpen } = useCart();
@@ -984,6 +984,8 @@ const LiveChatWidget = () => {
       )}
     </>
   );
-};
+});
+
+LiveChatWidget.displayName = "LiveChatWidget";
 
 export default LiveChatWidget;

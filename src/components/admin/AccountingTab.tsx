@@ -321,7 +321,7 @@ function BillyConnectCard({
       {/* Stor primær handling: åbn Billy direkte på adgangsnøgle-siden */}
       <Button asChild size="lg" className="w-full h-14 text-base">
         <a
-          href="https://mit.billy.dk/#/organization/access_tokens"
+          href="https://mit.billy.dk/settings#/organization/access_tokens"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -568,6 +568,26 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     [provider],
   );
 
+  const resetWizardState = (clearCredentials = true) => {
+    if (clearCredentials) setCreds({});
+    setShowSecret({});
+    setTestResult(null);
+    setDryRunResult(null);
+    setBillyStatus("idle");
+    setBillyError(null);
+    setEconomicConnecting(false);
+    setEconomicWaiting(false);
+    setTesting(false);
+    try { sessionStorage.removeItem("economic_pending_business_id"); } catch {}
+  };
+
+  const chooseProvider = (nextProvider: Provider) => {
+    setProvider(nextProvider);
+    resetWizardState(true);
+    setStep(2);
+    setMode("wizard");
+  };
+
   const load = async () => {
     setLoading(true);
     const { data } = await supabase
@@ -701,14 +721,12 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const startWizard = (preselect?: Provider) => {
     if (preselect) {
       setProvider(preselect);
-      // Billy og e-conomic har auto-flows — spring 'vælg program'-skærmen over
-      setStep(preselect === "dinero" ? 1 : 2);
+      // Klik på et program skal åbne opsætningen med det samme — ingen ekstra "Næste".
+      setStep(2);
     } else {
       setStep(1);
     }
-    setTestResult(null);
-    setBillyStatus("idle");
-    setBillyError(null);
+    resetWizardState(true);
     setMode("wizard");
   };
 
@@ -1128,8 +1146,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   };
 
   const handleSwitchProvider = () => {
-    setCreds({});
-    setTestResult(null);
+    resetWizardState(true);
+    setProvider("economic");
+    setStep(1);
     startWizard();
   };
 
@@ -1843,7 +1862,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 <button
                   key={p.value}
                   type="button"
-                  onClick={() => { setProvider(p.value); setCreds({}); setTestResult(null); }}
+                  onClick={() => chooseProvider(p.value)}
                   className={`group flex flex-col rounded-xl border p-4 text-left transition-colors ${
                     selected
                       ? "border-foreground bg-secondary/40 ring-2 ring-foreground/10"
@@ -2102,16 +2121,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           onClick={() => {
             if (step === 1) setMode("overview");
             else {
-              // Når brugeren går tilbage fra step 2 til programvalg skal vi
-              // nulstille al provider-specifik state så de kan vælge frit
-              // og klikke på et andet kort uden at det "bugger".
+              // Når brugeren går tilbage fra opsætningen til programvalg, skal alt
+              // midlertidigt ryddes så næste program kan vælges med ét klik.
               setStep(1);
-              setCreds({});
-              setTestResult(null);
-              setBillyStatus("idle");
-              setBillyError(null);
-              setEconomicConnecting(false);
-              setEconomicWaiting(false);
+              resetWizardState(true);
             }
           }}
         >
