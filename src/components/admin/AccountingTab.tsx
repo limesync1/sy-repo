@@ -1075,7 +1075,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             icon={<RefreshCw />}
           >
             <p className="text-sm text-muted-foreground">
-              Ingen synkroniseringer endnu. Tryk på "Synk nu" øverst for at starte den første kørsel.
+              Ingen synkroniseringer endnu. Synkronisering starter automatisk så snart du opretter eller ændrer en kunde, vare eller ordre.
             </p>
           </SectionCard>
         )}
