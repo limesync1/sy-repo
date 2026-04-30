@@ -14,7 +14,7 @@ import {
   Loader2, RefreshCw, Check, AlertCircle, ExternalLink, Eye, EyeOff,
   ArrowLeft, ArrowRight, Plug, Settings2, ShieldCheck, Calculator,
   Clock, ListChecks, Sparkles, X, Upload, Download, RotateCw, AlertTriangle,
-  Copy, FolderTree, KeyRound,
+  Copy, FolderTree, KeyRound, FlaskConical,
 } from "lucide-react";
 import {
   PageHeader, PrimaryButton, SectionCard, EmptyState, FieldLabel,
@@ -277,6 +277,9 @@ function BillyConnectCard({
   onTest,
   testing,
   testResult,
+  onDryRun,
+  dryRunning,
+  dryRunResult,
 }: {
   token: string;
   onTokenChange: (value: string) => void;
@@ -285,8 +288,24 @@ function BillyConnectCard({
   onTest: () => void;
   testing: boolean;
   testResult: { ok: boolean; message?: string } | null;
+  onDryRun: () => void;
+  dryRunning: boolean;
+  dryRunResult: {
+    ok: boolean;
+    steps?: Array<{
+      key: string;
+      label: string;
+      ok: boolean;
+      message?: string;
+      external_number?: string | null;
+      duration_ms?: number;
+    }>;
+    note?: string;
+    error?: string;
+  } | null;
 }) {
   const canTest = token.trim().length > 0 && !testing;
+  const canDryRun = token.trim().length > 0 && !dryRunning && !testing;
 
   return (
     <div className="space-y-4">
@@ -379,6 +398,74 @@ function BillyConnectCard({
           : testResult?.ok ? <RefreshCw className="mr-2 h-4 w-4" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
         {testing ? "Tester…" : testResult?.ok ? "Test igen" : "Test nøgle"}
       </Button>
+
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
+            <FlaskConical className="h-4 w-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="font-semibold text-foreground">Kør fuld synk-test</div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Vi opretter en testkunde, en testvare og en kladde-faktura i Billy — og sletter kladden igen bagefter. Sådan ved du at synk virkelig virker, ikke kun login.
+            </p>
+
+            <Button
+              onClick={onDryRun}
+              disabled={!canDryRun}
+              variant="secondary"
+              className="mt-3 w-full"
+            >
+              {dryRunning
+                ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                : <FlaskConical className="mr-2 h-4 w-4" />}
+              {dryRunning ? "Sender testdata til Billy…" : "Kør fuld synk-test"}
+            </Button>
+
+            {dryRunResult && (
+              <div className="mt-3 space-y-2">
+                {dryRunResult.error && (
+                  <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                    {dryRunResult.error}
+                  </div>
+                )}
+                {dryRunResult.steps?.map((s) => (
+                  <div
+                    key={s.key}
+                    className={`flex items-start gap-2 rounded-lg border p-2.5 text-sm ${
+                      s.ok
+                        ? "border-emerald-500/30 bg-emerald-500/5"
+                        : "border-destructive/30 bg-destructive/10"
+                    }`}
+                  >
+                    {s.ok
+                      ? <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                      : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <div className="font-medium text-foreground">{s.label}</div>
+                        {typeof s.duration_ms === "number" && (
+                          <div className="shrink-0 text-[11px] text-muted-foreground">{s.duration_ms} ms</div>
+                        )}
+                      </div>
+                      {s.message && (
+                        <div className={`mt-0.5 break-words text-xs ${s.ok ? "text-muted-foreground" : "text-destructive"}`}>
+                          {s.message}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {dryRunResult.ok && dryRunResult.note && (
+                  <div className="rounded-lg border border-border bg-secondary/30 p-2.5 text-xs text-muted-foreground">
+                    {dryRunResult.note}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -480,6 +567,20 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; message?: string } | null>(null);
+  const [dryRunning, setDryRunning] = useState(false);
+  const [dryRunResult, setDryRunResult] = useState<{
+    ok: boolean;
+    steps?: Array<{
+      key: string;
+      label: string;
+      ok: boolean;
+      message?: string;
+      external_number?: string | null;
+      duration_ms?: number;
+    }>;
+    note?: string;
+    error?: string;
+  } | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [queueCount, setQueueCount] = useState(0);
@@ -678,6 +779,29 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       setTestResult({ ok: false, message: msg });
       toast.error(msg);
     } finally { setTesting(false); }
+  };
+
+  // Dry-run: opret testkunde + testvare + kladdefaktura i regnskabsprogrammet,
+  // ryd op bagefter. Kører helt uden at gemme noget i Serviceydere.
+  const handleDryRun = async () => {
+    setDryRunning(true);
+    setDryRunResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-dry-run", {
+        body: { business_id: businessId, provider, api_token: creds.api_token },
+      });
+      if (error) throw error;
+      const r = data as typeof dryRunResult;
+      setDryRunResult(r);
+      if (r?.ok) toast.success("Synk-test gennemført — alt virker!");
+      else toast.error("Synk-testen stoppede — se trinene for detaljer.");
+    } catch (e: any) {
+      const msg = e?.message ?? "Kunne ikke køre synk-test";
+      setDryRunResult({ ok: false, error: msg });
+      toast.error(msg);
+    } finally {
+      setDryRunning(false);
+    }
   };
 
   /**
@@ -1686,6 +1810,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   onTest={handleTest}
                   testing={testing}
                   testResult={testResult}
+                  onDryRun={handleDryRun}
+                  dryRunning={dryRunning}
+                  dryRunResult={dryRunResult}
                 />
               ) : provider === "economic" ? (
                 <EconomicConnectCard
