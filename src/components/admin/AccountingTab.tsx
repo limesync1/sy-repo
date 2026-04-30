@@ -806,6 +806,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   // Dinero OAuth (kun aktiv når Dinero har godkendt Serviceydere som partner-app)
   const [dineroOAuthEnabled, setDineroOAuthEnabled] = useState(false);
   const [dineroOAuthConnecting, setDineroOAuthConnecting] = useState(false);
+  // Zenegy OAuth state — spejler Dinero/e-conomic.
+  const [zenegyOAuthEnabled, setZenegyOAuthEnabled] = useState(false);
+  const [zenegyOAuthConnecting, setZenegyOAuthConnecting] = useState(false);
+  const [zenegyWaiting, setZenegyWaiting] = useState(false);
+  const [zenegyResult, setZenegyResult] = useState<{ ok: boolean; message?: string } | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [queueCount, setQueueCount] = useState(0);
