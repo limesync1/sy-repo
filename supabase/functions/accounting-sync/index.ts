@@ -54,6 +54,25 @@ Deno.serve(async (req) => {
 
     const integration = await loadIntegration(admin, business_id);
     if (!integration) return json({ error: "No active integration" }, 404);
+
+    // Health-tjek: respekter midlertidig pause sat af DB-trigger
+    // (auto_pause_failing_integration). Hvis udbyderen har spammet fejl,
+    // venter vi ud paused_until før vi rører den igen.
+    const { data: health } = await admin
+      .from("accounting_integrations")
+      .select("paused_until, consecutive_failures")
+      .eq("business_id", business_id)
+      .maybeSingle();
+    const pausedUntil = health?.paused_until ? new Date(health.paused_until) : null;
+    if (pausedUntil && pausedUntil > new Date()) {
+      return json({
+        ok: true,
+        skipped: "paused",
+        paused_until: pausedUntil.toISOString(),
+        consecutive_failures: health?.consecutive_failures ?? 0,
+      });
+    }
+
     const adapter = makeAdapter(integration.provider, integration, integration.settings ?? {});
 
     if (mode === "pull") {
