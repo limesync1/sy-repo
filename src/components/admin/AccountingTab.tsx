@@ -2065,16 +2065,16 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           <div className="divide-y divide-border">
             <div className="flex items-start justify-between gap-4 py-3 first:pt-0">
               <div className="min-w-0">
-                <div className="text-sm font-medium text-foreground">Send aftaler der venter på svar</div>
-                <p className="mt-0.5 text-xs text-muted-foreground">Slå til for at sende aftaler du endnu ikke har bekræftet. Slå fra for kun at sende dem du allerede har sagt ja til.</p>
+                <div className="text-sm font-medium text-foreground">Send nye kundeforespørgsler som kladder</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">Slå til hvis forespørgsler skal oprettes som kladder. Slå fra hvis kun bekræftede aftaler skal sendes.</p>
               </div>
               <Switch checked={settings.push_pending !== false}
                 onCheckedChange={v => setSettings({ ...settings, push_pending: v })} />
             </div>
             <div className="flex items-start justify-between gap-4 py-3">
               <div className="min-w-0">
-                <div className="text-sm font-medium text-foreground">Opret nye services automatisk i regnskabsprogrammet</div>
-                <p className="mt-0.5 text-xs text-muted-foreground">Anbefales — så slipper du for at oprette dem to steder.</p>
+                <div className="text-sm font-medium text-foreground">Hold dine services opdateret som varer</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">Vi opretter dine services som varer i regnskabsprogrammet, så du ikke skal gøre det manuelt.</p>
               </div>
               <Switch checked={settings.auto_create_products !== false}
                 onCheckedChange={v => setSettings({ ...settings, auto_create_products: v })} />
