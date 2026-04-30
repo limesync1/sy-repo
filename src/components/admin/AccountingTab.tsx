@@ -1893,7 +1893,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               <ol className="space-y-3 text-sm">
                 {(provider === "billy"
                   ? [
-                      "Vi åbner Billy i et nyt vindue, direkte på siden med adgangsnøgler.",
+                      "Vi åbner Billy i et nyt vindue, så du kan vælge din egen virksomhed.",
                       "Du opretter en ny adgangsnøgle — det tager 5 sekunder i Billy.",
                       "Kopier nøglen, og indsæt den her i feltet — så går vi i gang automatisk.",
                       "Vi tester forbindelsen, opretter dine ydelser som varer, og er færdige.",
