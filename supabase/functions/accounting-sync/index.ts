@@ -751,13 +751,21 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
         .eq("service_id", it.service_id).maybeSingle();
       if (pl) { extProductId = pl.external_id; extProductNumber = pl.external_product_number; }
       else if (integ.settings?.auto_create_products !== false) {
-        await pushProduct(admin, integ, adapter, it.service_id);
-        const { data: pl2 } = await admin.from("accounting_product_links")
-          .select("external_id, external_product_number")
-          .eq("business_id", integ.business_id).eq("provider", integ.provider)
-          .eq("service_id", it.service_id).maybeSingle();
-        extProductId = pl2?.external_id ?? null;
-        extProductNumber = pl2?.external_product_number ?? null;
+        // Push product, men hvis det fejler (fx provider er nede) lader vi
+        // bare order-line være uden ekstern produkt-reference frem for at
+        // boble fejlen op og fejle hele orderen — orderen retries senere.
+        try {
+          await pushProduct(admin, integ, adapter, it.service_id);
+          const { data: pl2 } = await admin.from("accounting_product_links")
+            .select("external_id, external_product_number")
+            .eq("business_id", integ.business_id).eq("provider", integ.provider)
+            .eq("service_id", it.service_id).maybeSingle();
+          extProductId = pl2?.external_id ?? null;
+          extProductNumber = pl2?.external_product_number ?? null;
+        } catch (_) {
+          // Provider-fejl — boble op så drainQueue ser den én gang
+          throw _;
+        }
       }
     }
     return {
