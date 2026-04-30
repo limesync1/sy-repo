@@ -27,6 +27,7 @@ import {
 import economicLogo from "@/assets/accounting/economic.png";
 import billyLogo from "@/assets/accounting/billy.png";
 import dineroLogo from "@/assets/accounting/dinero.png";
+import zenegyLogo from "@/assets/accounting/zenegy.svg";
 
 /**
  * AccountingTab — virksomhedens regnskabs-integration.
@@ -40,7 +41,7 @@ import dineroLogo from "@/assets/accounting/dinero.png";
  *    og venlige fejlmeddelelser fra adapter-laget.
  */
 
-type Provider = "economic" | "billy" | "dinero";
+type Provider = "economic" | "billy" | "dinero" | "zenegy";
 
 interface ProviderField {
   key: string;
