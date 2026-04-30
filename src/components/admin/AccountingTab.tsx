@@ -905,6 +905,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
    *     edge function, og gemmer integrationen.
    */
   const handleEconomicConnect = async () => {
+    const runId = ++setupRunRef.current;
     setEconomicConnecting(true);
     setTestResult(null);
     setEconomicWaiting(false);
@@ -932,6 +933,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         "accounting-economic-callback",
         { body: { action: "install_url" } },
       );
+      if (runId !== setupRunRef.current) return;
       if (error) throw error;
       const url = (data as any)?.install_url;
       if (!url) throw new Error("Kunne ikke hente e-conomic install-URL");
@@ -949,6 +951,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       // faktisk er valideret af edge function viser vi "forbundet".
       setEconomicWaiting(true);
     } catch (e: any) {
+      if (runId !== setupRunRef.current) return;
       if (popup && !popup.closed) popup.close();
       sessionStorage.removeItem("economic_pending_business_id");
       const msg = e?.message ?? "Kunne ikke åbne e-conomic";
@@ -1043,6 +1046,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       const data = ev.data;
       if (!data || data.type !== "economic_token" || !data.token) return;
       if (data.businessId && data.businessId !== businessId) return;
+      const pendingBiz = sessionStorage.getItem("economic_pending_business_id");
+      if (pendingBiz !== businessId) return;
       sessionStorage.removeItem("economic_pending_business_id");
       setProvider("economic");
       setMode("wizard");
