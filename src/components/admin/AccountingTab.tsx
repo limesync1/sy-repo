@@ -264,6 +264,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const [confirmSwitch, setConfirmSwitch] = useState(false);
   const [retryingJobId, setRetryingJobId] = useState<string | null>(null);
 
+  // Auto-save status: vises diskret i sektion-headeren så brugeren altid
+  // kan se om hans ændring er nået sikkert frem.
+  const [autoSaveState, setAutoSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+
   const currentProvider = useMemo(
     () => PROVIDERS.find(p => p.value === provider)!,
     [provider],
