@@ -511,6 +511,31 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     } finally { setSyncing(false); }
   };
 
+  // DLQ-handlers: retry sender jobbet tilbage i køen, dismiss arkiverer det
+  const handleDlqRetry = async (dlqId: string) => {
+    setDlqActionId(dlqId);
+    try {
+      const { error } = await supabase.rpc("retry_dlq_job" as any, { _dlq_id: dlqId });
+      if (error) throw error;
+      toast.success("Job sendt tilbage i køen");
+      await load();
+    } catch (e: any) {
+      toast.error(e.message ?? "Kunne ikke prøve igen");
+    } finally { setDlqActionId(null); }
+  };
+
+  const handleDlqDismiss = async (dlqId: string) => {
+    setDlqActionId(dlqId);
+    try {
+      const { error } = await supabase.rpc("dismiss_dlq_job" as any, { _dlq_id: dlqId, _note: "Markeret som håndteret" });
+      if (error) throw error;
+      toast.success("Markeret som håndteret");
+      await load();
+    } catch (e: any) {
+      toast.error(e.message ?? "Kunne ikke opdatere");
+    } finally { setDlqActionId(null); }
+  };
+
   async function runFullSync(bizId: string) {
     // Kør push (queue-drain) først så pull ikke overskriver lokale ændringer
     const r1 = await supabase.functions.invoke("accounting-sync", { body: { business_id: bizId, mode: "queue" } });
