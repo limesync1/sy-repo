@@ -590,7 +590,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     setMode("wizard");
   };
 
-  const load = async () => {
+  const load = async (options?: { preserveMode?: boolean }) => {
     setLoading(true);
     const { data } = await supabase
       .from("accounting_integrations" as any)
@@ -604,10 +604,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         agreement_number: d.agreement_number ?? "", organization_id: d.organization_id ?? "",
       });
       setSettings({ ...defaultSettings, ...(d.settings ?? {}) });
-      setMode("overview");
+      if (!options?.preserveMode) setMode("overview");
     } else {
       setIntegration(null);
-      setMode("overview");
+      if (!options?.preserveMode) setMode("overview");
     }
     const { data: log } = await supabase.from("accounting_sync_log" as any)
       .select("*").eq("business_id", businessId)
@@ -682,7 +682,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         await supabase.functions.invoke("accounting-sync", {
           body: { business_id: businessId, mode: "pull" },
         });
-        if (!cancelled) await load();
+        if (!cancelled) await load({ preserveMode: true });
       } catch {
         // Stille fejl — næste cron-kørsel forsøger igen
       }
@@ -890,7 +890,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       setSettings({ ...defaultSettings });
       setBillyStatus("idle");
       setStep(3);
-      await load();
+      await load({ preserveMode: true });
       toast.info("Næsten klar — vælg lige en indtægtskonto");
     }
   };
