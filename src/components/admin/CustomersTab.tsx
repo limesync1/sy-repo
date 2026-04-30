@@ -1122,6 +1122,9 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                       <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                         <Package className="h-3.5 w-3.5" /> Bestillinger ({data.orders.length})
                       </h4>
+                      <p className="text-[11px] text-muted-foreground">
+                        Hver bestilling viser udførelsesstatus og betalingsstatus. Betalingsstatus hentes automatisk fra dit regnskabsprogram.
+                      </p>
                       <div className="space-y-2">
                         {data.orders.map(o => (
                           <div key={o.id} className="rounded-xl border border-border bg-card p-3 space-y-1.5">
