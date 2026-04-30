@@ -2112,15 +2112,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       {/* TRIN 2 */}
       {step === 2 && (
         <div className={
-          provider === "billy" || provider === "economic"
+          provider === "billy" || provider === "economic" || provider === "dinero"
             ? "grid gap-4 lg:grid-cols-[1fr,1.2fr] xl:grid-cols-[1fr,1.1fr]"
-            : provider === "dinero"
-              ? "grid gap-4 lg:grid-cols-[1fr,1.4fr]"
-              : "mx-auto max-w-2xl"
+            : "mx-auto max-w-2xl"
         }>
           {/* Venstre kolonne: hjælp & forklaring (kun på desktop, ellers
               ovenfor connect-kortet på mobil) */}
-          {(provider === "billy" || provider === "economic") && (
+          {(provider === "billy" || provider === "economic" || provider === "dinero") && (
             <SectionCard
               title="Sådan fungerer det"
               icon={<img src={currentProvider.logo} alt="" className="h-4 w-auto" />}
@@ -2135,6 +2133,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       "Kopier nøglen, og indsæt den her i feltet — så går vi i gang automatisk.",
                       "Vi tester forbindelsen, opretter dine ydelser som varer, og er færdige.",
                     ]
+                  : provider === "dinero"
+                  ? [
+                      "Vi åbner Dinero Developer Portal — log ind med din Dinero-bruger (kræver Pro).",
+                      "Opret en ny API integration med adgang til Contacts, Products og Vouchers.",
+                      "Kopiér Client ID og Client Secret ind i felterne her — secret vises kun én gang!",
+                      "Indsæt dit organisations-ID (det 6-cifrede tal i adresselinjen) og tryk 'Forbind Dinero'.",
+                    ]
                   : [
                       "Vi åbner e-conomic i et nyt vindue.",
                       "Du logger ind og vælger den aftale du vil forbinde Serviceydere med.",
@@ -2148,6 +2153,12 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   </li>
                 ))}
               </ol>
+              {provider === "dinero" && currentProvider.note && (
+                <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200">
+                  <div className="font-semibold mb-1">{currentProvider.note.title}</div>
+                  <div className="opacity-90 leading-relaxed">{currentProvider.note.body}</div>
+                </div>
+              )}
               <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs leading-relaxed text-foreground/80">
                 <div className="mb-1 flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-400">
                   <ShieldCheck className="h-3.5 w-3.5" /> Sikkert og krypteret
@@ -2156,53 +2167,19 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               </div>
             </SectionCard>
           )}
-          {provider === "dinero" && (
-          <SectionCard
-            title="Sådan finder du dine login-oplysninger"
-            icon={<img src={currentProvider.logo} alt="" className="h-4 w-auto" />}
-            description={`Følg disse trin inde i ${currentProvider.label} — så er du klar.`}
-          >
-            <ol className="space-y-3 text-sm">
-              {currentProvider.setupSteps.map((s, i) => (
-                <li key={i} className="flex gap-3">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">{i + 1}</span>
-                  <span className="text-muted-foreground pt-0.5">{s}</span>
-                </li>
-              ))}
-            </ol>
-            <a
-              href={currentProvider.helpUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-foreground underline-offset-4 hover:underline"
-            >
-              {currentProvider.helpUrlLabel} <ExternalLink className="h-3.5 w-3.5" />
-            </a>
-            {currentProvider.note && (
-              <div
-                className={`mt-4 rounded-lg border p-3 text-xs ${
-                  currentProvider.note.tone === "warning"
-                    ? "border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200"
-                    : "border-blue-500/20 bg-blue-500/5 text-foreground"
-                }`}
-              >
-                <div className="font-semibold mb-1">{currentProvider.note.title}</div>
-                <div className="opacity-90 leading-relaxed">{currentProvider.note.body}</div>
-              </div>
-            )}
-          </SectionCard>
-          )}
 
           <SectionCard
             title={
               provider === "billy" ? "Forbind Billy"
               : provider === "economic" ? "Forbind e-conomic"
+              : provider === "dinero" ? "Forbind Dinero"
               : "Indtast dine login-oplysninger"
             }
             icon={<ShieldCheck />}
             description={
               provider === "billy" ? "Brug en adgangsnøgle fra Billy — ikke din adgangskode."
               : provider === "economic" ? "Du sendes til e-conomic, godkender app'en, og kommer tilbage hertil. Ingen tokens at kopiere."
+              : provider === "dinero" ? "Indsæt dine tre login-oplysninger fra Dinero — så klarer vi resten automatisk."
               : "Dine oplysninger gemmes sikkert og krypteret. De bruges kun til at sende og hente data fra dit regnskabsprogram."
             }
           >
@@ -2224,6 +2201,21 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   connecting={economicConnecting}
                   waiting={economicWaiting}
                   connectResult={testResult}
+                />
+              ) : provider === "dinero" ? (
+                <DineroConnectCard
+                  values={{
+                    api_token: creds.api_token ?? "",
+                    api_secret: creds.api_secret ?? "",
+                    organization_id: creds.organization_id ?? "",
+                  }}
+                  onChange={(key, value) => {
+                    setCreds({ ...creds, [key]: value });
+                    if (dineroStatus === "error") { setDineroStatus("idle"); setDineroError(null); }
+                  }}
+                  onAutoConnect={handleDineroAutoConnect}
+                  status={dineroStatus}
+                  errorMessage={dineroError}
                 />
               ) : (
                 <>
