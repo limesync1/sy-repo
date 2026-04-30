@@ -480,6 +480,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const [creds, setCreds] = useState<Record<string, string>>({});
   const [showSecret, setShowSecret] = useState<Record<string, boolean>>({});
   const [economicConnecting, setEconomicConnecting] = useState(false);
+  // Neutral info-besked mens popup'en er åben — vi viser den IKKE som "forbundet"
+  // men som ventestatus, så brugeren ikke tror integrationen allerede virker.
+  const [economicWaiting, setEconomicWaiting] = useState(false);
   const defaultSettings = {
     push_pending: true,
     default_payment_terms_days: 14,
