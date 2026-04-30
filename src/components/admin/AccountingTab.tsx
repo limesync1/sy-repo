@@ -69,7 +69,7 @@ const PROVIDERS: ProviderDef[] = [
     value: "economic",
     label: "e-conomic",
     logo: economicLogo,
-    tagline: "Markedsledende i Danmark",
+    tagline: "",
     description: "Send aftaler som salgsordrer direkte i e-conomic. Kunder og varer holdes synkroniseret begge veje.",
     helpUrl: "https://www.e-conomic.com/developer",
     helpUrlLabel: "Åbn e-conomic Developer Portal",
@@ -97,7 +97,7 @@ const PROVIDERS: ProviderDef[] = [
     value: "billy",
     label: "Billy",
     logo: billyLogo,
-    tagline: "Enkelt og hurtigt",
+    tagline: "",
     description: "Forbind med en adgangsnøgle fra Billy — ingen adgangskoder gemmes.",
     helpUrl: "https://mit.billy.dk/",
     helpUrlLabel: "Åbn Billy",
@@ -120,7 +120,7 @@ const PROVIDERS: ProviderDef[] = [
     value: "dinero",
     label: "Dinero",
     logo: dineroLogo,
-    tagline: "Kræver Dinero Pro",
+    tagline: "",
     description: "Synkroniser kunder, varer og fakturakladder med Dinero.",
     helpUrl: "https://developer.dinero.dk/",
     helpUrlLabel: "Åbn Dinero Developer Portal",
@@ -150,7 +150,7 @@ const PROVIDERS: ProviderDef[] = [
     value: "zenegy",
     label: "Zenegy",
     logo: zenegyLogo,
-    tagline: "Ét-klik OAuth 2.0",
+    tagline: "",
     description: "Forbind Zenegy med ét klik via sikker OAuth-godkendelse. Ingen API-nøgler at kopiere.",
     helpUrl: "https://zenegy.com/",
     helpUrlLabel: "Læs mere om Zenegy",
@@ -281,18 +281,12 @@ function ConnectCardShell({
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
       <div className="flex items-center gap-4 border-b border-border bg-secondary/40 px-5 py-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-background ring-1 ring-border">
-          <img src={logo} alt={name} className="h-7 w-auto object-contain" />
+        <div className="flex h-12 w-16 shrink-0 items-center justify-center rounded-xl bg-background ring-1 ring-border p-2">
+          <img src={logo} alt={name} className="max-h-7 max-w-full object-contain" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-base font-semibold text-foreground">Forbind {name}</div>
-          <div className="text-xs text-muted-foreground">{tagline}</div>
         </div>
-        {requiresBadge && (
-          <span className="hidden shrink-0 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300 sm:inline-flex">
-            {requiresBadge}
-          </span>
-        )}
       </div>
       <div className="p-5">{children}</div>
     </div>
@@ -557,7 +551,7 @@ function DineroConnectCard({
   if (status === "done") return <SuccessCard name="Dinero" />;
 
   return (
-    <ConnectCardShell logo={dineroLogo} name="Dinero" tagline="Opret en API-nøgle i Dinero — under 1 minut" requiresBadge="Kræver Pro">
+    <ConnectCardShell logo={dineroLogo} name="Dinero" tagline="">
       <div className="space-y-5">
         <div className="rounded-xl border border-border bg-secondary/30 p-4">
           <div className="mb-2 text-sm font-semibold text-foreground">
@@ -701,14 +695,16 @@ function ZenegyConnectCard({
 
         <Button
           onClick={onConnect}
-          disabled={connecting || !oauthEnabled}
+          disabled={connecting || !oauthEnabled || connectResult?.ok === true}
           size="lg"
           className="w-full"
         >
-          {connecting
-            ? <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            : <ExternalLink className="mr-2 h-5 w-5" />}
-          {connecting ? "Forbinder…" : "Forbind Zenegy"}
+          {connectResult?.ok
+            ? <Check className="mr-2 h-5 w-5" />
+            : connecting
+              ? <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              : <ExternalLink className="mr-2 h-5 w-5" />}
+          {connectResult?.ok ? "Forbundet" : connecting ? "Forbinder…" : "Forbind Zenegy"}
         </Button>
 
         {!oauthEnabled && (
@@ -1909,11 +1905,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               className="group flex flex-col rounded-xl border border-border bg-card p-5 text-left shadow-sm transition-colors duration-150 hover:border-foreground/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <div className="flex h-20 items-center justify-center rounded-lg bg-secondary/40 px-4">
-                <img src={p.logo} alt={p.label} className="h-10 w-auto object-contain" />
+                <img src={p.logo} alt={p.label} className="max-h-10 max-w-[140px] object-contain" />
               </div>
-              <div className="mt-4 flex items-baseline justify-between gap-2">
+              <div className="mt-4">
                 <div className="font-semibold text-foreground">{p.label}</div>
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{p.tagline}</div>
               </div>
               <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{p.description}</p>
               <div className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-foreground transition-opacity opacity-70 group-hover:opacity-100">
@@ -2447,7 +2442,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   }`}
                 >
                   <div className="flex h-16 items-center justify-center rounded-lg bg-background px-4">
-                    <img src={p.logo} alt={p.label} className="h-9 w-auto object-contain" />
+                    <img src={p.logo} alt={p.label} className="max-h-9 max-w-[130px] object-contain" />
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-2">
                     <div className="font-semibold text-foreground">{p.label}</div>
@@ -2457,7 +2452,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       </span>
                     )}
                   </div>
-                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{p.tagline}</div>
                   <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{p.description}</p>
                 </button>
               );
