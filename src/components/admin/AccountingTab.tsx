@@ -1903,11 +1903,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               className="group flex flex-col rounded-xl border border-border bg-card p-5 text-left shadow-sm transition-colors duration-150 hover:border-foreground/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <div className="flex h-20 items-center justify-center rounded-lg bg-secondary/40 px-4">
-                <img src={p.logo} alt={p.label} className="h-10 w-auto object-contain" />
+                <img src={p.logo} alt={p.label} className="max-h-10 max-w-[140px] object-contain" />
               </div>
-              <div className="mt-4 flex items-baseline justify-between gap-2">
+              <div className="mt-4">
                 <div className="font-semibold text-foreground">{p.label}</div>
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{p.tagline}</div>
               </div>
               <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{p.description}</p>
               <div className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-foreground transition-opacity opacity-70 group-hover:opacity-100">
