@@ -111,24 +111,20 @@ export const StatCard = ({
 /* ───────── SectionCard ─────────
    Standard kort med titel + valgfrit ikon + valgfri handling i højre side.
    Brug til at gruppere sektioner i Indstillinger, formularer mv. */
-export const SectionCard = ({
-  title,
-  icon,
-  description,
-  action,
-  children,
-  className,
-}: {
-  title?: React.ReactNode;
-  icon?: React.ReactNode;
-  description?: React.ReactNode;
-  action?: React.ReactNode;
-  children: React.ReactNode;
-  className?: string;
-}) => (
+export const SectionCard = React.forwardRef<
+  HTMLDivElement,
+  {
+    title?: React.ReactNode;
+    icon?: React.ReactNode;
+    description?: React.ReactNode;
+    action?: React.ReactNode;
+    children: React.ReactNode;
+    className?: string;
+  }
+>(({ title, icon, description, action, children, className }, ref) => (
   // Blød fade-in (ingen translate). Sektion-kort forklarer ikke handlinger,
   // så de skal ikke "flyve ind" — bare ankomme stille.
-  <Card className={cn("rounded-xl border-border shadow-sm", className)}>
+  <Card ref={ref} className={cn("rounded-xl border-border shadow-sm", className)}>
     <CardContent className="p-5 space-y-4">
       {(title || action) && (
         <div className="flex items-start justify-between gap-3">
@@ -149,7 +145,8 @@ export const SectionCard = ({
       {children}
     </CardContent>
   </Card>
-);
+));
+SectionCard.displayName = "SectionCard";
 
 /* ───────── FieldLabel ─────────
    Standard label til input-felter i admin-formularer.
