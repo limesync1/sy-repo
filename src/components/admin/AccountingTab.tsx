@@ -876,6 +876,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const handleEconomicConnect = async () => {
     setEconomicConnecting(true);
     setTestResult(null);
+    setEconomicWaiting(false);
     // VIGTIGT: Vi åbner popup'en synkront her — direkte i klik-handleren —
     // så browseren ser det som en bruger-gesture og ikke blokerer den.
     // Bagefter henter vi install-URL'en og navigerer popup'en derhen.
@@ -913,11 +914,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         return;
       }
       setEconomicConnecting(false);
-      // Vi viser en venlig info-besked — ikke som "fejl", men neutralt.
-      setTestResult({
-        ok: true,
-        message: "Et nyt vindue er åbnet med e-conomic. Godkend app'en — så kommer du tilbage hertil automatisk.",
-      });
+      // Neutral ventestatus — IKKE en succes-besked. Først når token rent
+      // faktisk er valideret af edge function viser vi "forbundet".
+      setEconomicWaiting(true);
     } catch (e: any) {
       if (popup && !popup.closed) popup.close();
       sessionStorage.removeItem("economic_pending_business_id");
@@ -925,6 +924,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       setTestResult({ ok: false, message: msg });
       toast.error(msg);
       setEconomicConnecting(false);
+      setEconomicWaiting(false);
     }
   };
 
