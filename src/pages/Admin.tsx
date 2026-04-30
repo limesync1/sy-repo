@@ -172,7 +172,7 @@ const AdminDashboard = () => {
   const initialTab = ((): AdminTabKey => {
     if (typeof window === "undefined") return "dashboard";
     const t = new URLSearchParams(window.location.search).get("tab") as AdminTabKey | null;
-    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","settings"];
+    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
     return t && allowed.includes(t) ? t : "dashboard";
   })();
   const [activeTab, setActiveTab] = useState<AdminTabKey>(initialTab);
@@ -183,7 +183,7 @@ const AdminDashboard = () => {
     if (typeof window === "undefined") return;
     const onPop = () => {
       const t = new URLSearchParams(window.location.search).get("tab") as AdminTabKey | null;
-      const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","settings"];
+      const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
       setActiveTab(t && allowed.includes(t) ? t : "dashboard");
     };
     window.addEventListener("popstate", onPop);
@@ -195,7 +195,7 @@ const AdminDashboard = () => {
   // bliver fanen ikke skiftet, fordi React Router ikke fyrer popstate.
   useEffect(() => {
     const t = new URLSearchParams(location.search).get("tab") as AdminTabKey | null;
-    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","settings"];
+    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
     const next = t && allowed.includes(t) ? t : "dashboard";
     setActiveTab((curr) => (curr === next ? curr : next));
   }, [location.search]);
