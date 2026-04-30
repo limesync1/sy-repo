@@ -7,6 +7,7 @@ import type {
   AccountingSettings,
   ExternalCustomer,
   ExternalGroups,
+  ExternalInvoiceState,
   ExternalProduct,
   UpsertCustomerInput,
   UpsertOrderInput,
@@ -425,6 +426,41 @@ export function makeBillyAdapter(
 
     async deleteOrder(externalId: string) {
       await billyRequest(creds, `/invoices/${externalId}`, { method: "DELETE" });
+    },
+
+    async getInvoiceStates(externalIds: string[]): Promise<ExternalInvoiceState[]> {
+      const out: ExternalInvoiceState[] = [];
+      for (const id of externalIds) {
+        try {
+          const res = await billyRequest(creds, `/invoices/${id}`);
+          const inv = res?.invoice ?? res?.invoices?.[0];
+          if (!inv) continue;
+          // Billy: isPaid / balance / state ("draft"|"approved"|"paid"|"voided")
+          const balance = Number(inv.balance ?? 0);
+          const grossAmount = Number(inv.grossAmount ?? inv.amount ?? 0);
+          const isPaid = inv.isPaid === true || inv.state === "paid" || balance === 0 && grossAmount > 0 && (inv.state === "approved" || inv.state === "paid");
+          const isCredit = inv.state === "voided" || inv.type === "creditNote" || grossAmount < 0;
+          const dueDate: string | null = inv.dueDate ?? null;
+          const overdue = !isPaid && dueDate && new Date(dueDate) < new Date();
+          let status: ExternalInvoiceState["status"];
+          if (isCredit) status = "credited";
+          else if (isPaid) status = "paid";
+          else if (balance > 0 && balance < grossAmount) status = "partially_paid";
+          else if (overdue) status = "overdue";
+          else status = "unpaid";
+          out.push({
+            external_id: String(inv.id),
+            external_number: inv.invoiceNo ?? null,
+            status,
+            paid_amount: grossAmount - balance,
+            total_amount: grossAmount,
+            paid_at: isPaid ? (inv.paidDate ?? inv.updatedTime ?? null) : null,
+            due_date: dueDate,
+            raw: inv,
+          });
+        } catch { /* ignore single invoice fetch errors */ }
+      }
+      return out;
     },
   };
 }
