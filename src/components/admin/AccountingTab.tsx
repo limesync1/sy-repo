@@ -1784,7 +1784,51 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
       {/* TRIN 2 */}
       {step === 2 && (
-        <div className={provider === "dinero" ? "grid gap-4 lg:grid-cols-[1fr,1.4fr]" : "mx-auto max-w-xl"}>
+        <div className={
+          provider === "billy" || provider === "economic"
+            ? "grid gap-4 lg:grid-cols-[1fr,1.2fr] xl:grid-cols-[1fr,1.1fr]"
+            : provider === "dinero"
+              ? "grid gap-4 lg:grid-cols-[1fr,1.4fr]"
+              : "mx-auto max-w-2xl"
+        }>
+          {/* Venstre kolonne: hjælp & forklaring (kun på desktop, ellers
+              ovenfor connect-kortet på mobil) */}
+          {(provider === "billy" || provider === "economic") && (
+            <SectionCard
+              title="Sådan fungerer det"
+              icon={<img src={currentProvider.logo} alt="" className="h-4 w-auto" />}
+              description={`Dette tager typisk under et minut.`}
+              className="bg-secondary/30 lg:sticky lg:top-4 lg:self-start"
+            >
+              <ol className="space-y-3 text-sm">
+                {(provider === "billy"
+                  ? [
+                      "Vi åbner Billy i et nyt vindue, direkte på siden med adgangsnøgler.",
+                      "Du opretter en ny adgangsnøgle — det tager 5 sekunder i Billy.",
+                      "Kopier nøglen, og indsæt den her i feltet — så går vi i gang automatisk.",
+                      "Vi tester forbindelsen, opretter dine ydelser som varer, og er færdige.",
+                    ]
+                  : [
+                      "Vi åbner e-conomic i et nyt vindue.",
+                      "Du logger ind og vælger den aftale du vil forbinde Serviceydere med.",
+                      "Du trykker 'Tildel adgang' i e-conomic.",
+                      "Du sendes automatisk tilbage hertil, og vi gør resten.",
+                    ]
+                ).map((s, i) => (
+                  <li key={i} className="flex gap-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">{i + 1}</span>
+                    <span className="pt-0.5 text-muted-foreground">{s}</span>
+                  </li>
+                ))}
+              </ol>
+              <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs leading-relaxed text-foreground/80">
+                <div className="mb-1 flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-400">
+                  <ShieldCheck className="h-3.5 w-3.5" /> Sikkert og krypteret
+                </div>
+                Vi gemmer kun det vi har brug for, og du kan altid tilbagekalde adgangen direkte i {currentProvider.label}.
+              </div>
+            </SectionCard>
+          )}
           {provider === "dinero" && (
           <SectionCard
             title="Sådan finder du dine login-oplysninger"
