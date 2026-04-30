@@ -466,19 +466,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     } finally { setSaving(false); }
   };
 
-  const handleSyncNow = async () => {
-    setSyncing(true);
-    try {
-      // Stille manuel synk — ingen success-toast. Realtime-trigger holder
-      // tingene synkroniseret automatisk; "Synk nu" er nu mest til at
-      // hente nye data ned fra regnskabsprogrammet.
-      await runFullSync(businessId);
-      await load();
-    } catch (e: any) {
-      toast.error(e.message ?? "Synk fejlede");
-    } finally { setSyncing(false); }
-  };
-
   const handleDisable = async () => {
     if (!integration) return;
     await supabase.from("accounting_integrations" as any)
