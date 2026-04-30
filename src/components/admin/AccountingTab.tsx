@@ -483,6 +483,153 @@ const EconomicConnectCard = React.forwardRef<
 });
 EconomicConnectCard.displayName = "EconomicConnectCard";
 
+/**
+ * DineroConnectCard — guidet "udfyld og forbind"-flow for Dinero.
+ *
+ * Dinero kræver tre felter (Client ID, Client Secret, Organisations-ID),
+ * men UX'en følger samme idé som Billy: brugeren udfylder felterne, trykker
+ * én stor knap "Forbind Dinero", og vi kører automatisk:
+ *   1) test forbindelse
+ *   2) dry-run (synk-test)
+ *   3) auto-vælg indtægtskonto
+ *   4) gem og gå til oversigt
+ * Ingen "Test forbindelse" + "Næste" + "Forbind nu" — bare ét klik.
+ */
+function DineroConnectCard({
+  values,
+  onChange,
+  onAutoConnect,
+  status,
+  errorMessage,
+}: {
+  values: { api_token: string; api_secret: string; organization_id: string };
+  onChange: (key: "api_token" | "api_secret" | "organization_id", value: string) => void;
+  onAutoConnect: () => void;
+  status: "idle" | "checking" | "testing" | "saving" | "done" | "error";
+  errorMessage: string | null;
+}) {
+  const [showSecret, setShowSecret] = useState(false);
+  const isWorking = status === "checking" || status === "testing" || status === "saving";
+  const ready =
+    values.api_token.trim().length > 0 &&
+    values.api_secret.trim().length > 0 &&
+    values.organization_id.trim().length > 0;
+
+  const statusLabel =
+    status === "checking" ? "Tjekker forbindelsen…" :
+    status === "testing"  ? "Sender testdata til Dinero…" :
+    status === "saving"   ? "Sætter alt op for dig…" :
+    null;
+
+  if (status === "done") {
+    return (
+      <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 text-center">
+        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700">
+          <PartyPopper className="h-7 w-7" />
+        </div>
+        <h3 className="text-lg font-semibold text-foreground">Du er forbundet med Dinero!</h3>
+        <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+          Vi har testet at synk virkelig virker, og sat alt op for dig. Dine kunder, services og aftaler synkroniseres nu automatisk.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Stor primær handling: åbn Dinero developer-portalen */}
+      <Button asChild size="lg" variant="outline" className="w-full h-12 text-sm">
+        <a href="https://developer.dinero.dk/" target="_blank" rel="noopener noreferrer">
+          <ExternalLink className="mr-2 h-4 w-4" />
+          Åbn Dinero Developer Portal
+        </a>
+      </Button>
+
+      <div className="space-y-3">
+        <div>
+          <FieldLabel>Client ID</FieldLabel>
+          <Input
+            value={values.api_token}
+            onChange={(e) => onChange("api_token", e.target.value)}
+            placeholder="Indsæt Client ID fra Dinero"
+            disabled={isWorking}
+            autoComplete="off"
+          />
+        </div>
+        <div>
+          <FieldLabel>Client Secret</FieldLabel>
+          <div className="relative">
+            <Input
+              type={showSecret ? "text" : "password"}
+              value={values.api_secret}
+              onChange={(e) => onChange("api_secret", e.target.value)}
+              placeholder="Indsæt Client Secret fra Dinero"
+              disabled={isWorking}
+              autoComplete="off"
+              className="pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowSecret(s => !s)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              aria-label={showSecret ? "Skjul" : "Vis"}
+            >
+              {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+          <p className="mt-1.5 text-xs text-muted-foreground">Vises kun én gang i Dinero — hav den klar inden du forlader siden.</p>
+        </div>
+        <div>
+          <FieldLabel>Organisations-ID</FieldLabel>
+          <Input
+            value={values.organization_id}
+            onChange={(e) => onChange("organization_id", e.target.value)}
+            placeholder="fx 198765"
+            disabled={isWorking}
+            inputMode="numeric"
+            autoComplete="off"
+          />
+          <p className="mt-1.5 text-xs text-muted-foreground">Det 6-cifrede tal i adresselinjen i Dinero, fx app.dinero.dk/<strong>198765</strong>/…</p>
+        </div>
+      </div>
+
+      <Button
+        onClick={onAutoConnect}
+        disabled={!ready || isWorking}
+        size="lg"
+        className="w-full h-14 text-base"
+      >
+        {isWorking
+          ? <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          : <Plug className="mr-2 h-5 w-5" />}
+        {isWorking ? "Forbinder…" : "Forbind Dinero"}
+      </Button>
+
+      {/* Live-status mens vi arbejder */}
+      {isWorking && statusLabel && (
+        <div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-secondary/30 py-3 text-sm font-medium text-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          {statusLabel}
+        </div>
+      )}
+
+      {/* Fejl: forklar i hverdagssprog + lad brugeren prøve igen */}
+      {status === "error" && errorMessage && (
+        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div className="min-w-0">
+            <div className="font-medium">Det virkede desværre ikke</div>
+            <div className="mt-0.5 break-words opacity-90">{errorMessage}</div>
+            <div className="mt-1.5 text-xs opacity-80">
+              Tjek at alle tre felter er korrekte, og at du har Dinero Pro. Du kan altid lave en ny integration på developer.dinero.dk.
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AccountingTab({ businessId }: { businessId: string; businessName: string }) {
   const navigate = useNavigate();
   const [integration, setIntegration] = useState<Integration | null>(null);
@@ -526,6 +673,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     "idle" | "checking" | "testing" | "saving" | "done" | "error"
   >("idle");
   const [billyError, setBillyError] = useState<string | null>(null);
+  // Dinero paste-and-go: én samlet status fra "udfyldt" til "færdig opsat".
+  const [dineroStatus, setDineroStatus] = useState<
+    "idle" | "checking" | "testing" | "saving" | "done" | "error"
+  >("idle");
+  const [dineroError, setDineroError] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [queueCount, setQueueCount] = useState(0);
@@ -576,6 +728,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     setDryRunResult(null);
     setBillyStatus("idle");
     setBillyError(null);
+    setDineroStatus("idle");
+    setDineroError(null);
     setEconomicConnecting(false);
     setEconomicWaiting(false);
     setTesting(false);
@@ -889,6 +1043,119 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       setCreds({ api_token: token });
       setSettings({ ...defaultSettings });
       setBillyStatus("idle");
+      setStep(3);
+      await load({ preserveMode: true });
+      toast.info("Næsten klar — vælg lige en indtægtskonto");
+    }
+  };
+
+  /**
+   * Dinero "udfyld og forbind"-flow: spejler Billy auto-connect.
+   *  1) testConnection
+   *  2) dry-run (rigtige testdata frem og tilbage)
+   *  3) gem + hent grupper og auto-vælg første indtægtskonto
+   *  4) afslut til oversigt; ellers fald til step 3 hvis ingen konto fundet
+   */
+  const handleDineroAutoConnect = async () => {
+    const runId = ++setupRunRef.current;
+    const api_token = (creds.api_token ?? "").trim();
+    const api_secret = (creds.api_secret ?? "").trim();
+    const organization_id = (creds.organization_id ?? "").trim();
+    if (!api_token || !api_secret || !organization_id) return;
+    setDineroError(null);
+
+    // 1) Test forbindelse
+    setDineroStatus("checking");
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-test-connection", {
+        body: { business_id: businessId, provider: "dinero", api_token, api_secret, organization_id, settings },
+      });
+      if (runId !== setupRunRef.current) return;
+      if (error) throw error;
+      const r = data as { ok: boolean; message?: string };
+      if (!r.ok) throw new Error(r.message ?? "Login-oplysningerne kunne ikke bruges");
+    } catch (e: any) {
+      if (runId !== setupRunRef.current) return;
+      setDineroError(e?.message ?? "Kunne ikke forbinde til Dinero");
+      setDineroStatus("error");
+      return;
+    }
+
+    // 2) Dry-run: send rigtige testdata til Dinero
+    setDineroStatus("testing");
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-dry-run", {
+        body: { business_id: businessId, provider: "dinero", api_token, api_secret, organization_id },
+      });
+      if (runId !== setupRunRef.current) return;
+      if (error) throw error;
+      const r = data as { ok: boolean; steps?: { ok: boolean; label: string; message?: string }[] };
+      if (!r.ok) {
+        const failed = r.steps?.find(s => !s.ok);
+        throw new Error(failed?.message ?? "Synk-testen kunne ikke gennemføres");
+      }
+    } catch (e: any) {
+      if (runId !== setupRunRef.current) return;
+      setDineroError(e?.message ?? "Synk-testen fejlede");
+      setDineroStatus("error");
+      return;
+    }
+
+    // 3) Gem og hent grupper
+    setDineroStatus("saving");
+    let autoIncomeAccount: string | null = null;
+    try {
+      const initialPayload = {
+        business_id: businessId, provider: "dinero", is_active: true,
+        api_token, api_secret,
+        agreement_number: null, organization_id,
+        settings: { ...defaultSettings } as any,
+        last_error: null, last_error_at: null,
+      };
+      const { error: saveErr } = await supabase.from("accounting_integrations" as any)
+        .upsert(initialPayload, { onConflict: "business_id" });
+      if (runId !== setupRunRef.current) return;
+      if (saveErr) throw saveErr;
+
+      const { data: g } = await supabase.functions.invoke("accounting-list-groups", {
+        body: { business_id: businessId },
+      });
+      if (runId !== setupRunRef.current) return;
+      const incomeAccounts = ((g as any)?.income_accounts ?? []) as { id: string }[];
+      if (incomeAccounts.length > 0) autoIncomeAccount = incomeAccounts[0].id;
+    } catch {
+      // Ikke kritisk — fald tilbage til manuelt valg nedenfor
+    }
+
+    // 4) Afslut
+    if (autoIncomeAccount) {
+      const finalSettings = { ...defaultSettings, default_income_account: autoIncomeAccount };
+      try {
+        await supabase.from("accounting_integrations" as any)
+          .update({ settings: finalSettings as any })
+          .eq("business_id", businessId);
+        if (runId !== setupRunRef.current) return;
+        setSettings(finalSettings);
+        setProvider("dinero");
+        setDineroStatus("done");
+        toast.success("Dinero er forbundet og klar!");
+        runFullSync(businessId).catch(() => { /* ignoreres */ });
+        setTimeout(async () => {
+          if (runId !== setupRunRef.current) return;
+          await load();
+          if (runId !== setupRunRef.current) return;
+          setMode("overview");
+        }, 1400);
+      } catch (e: any) {
+        if (runId !== setupRunRef.current) return;
+        setDineroError(e?.message ?? "Kunne ikke gemme indstillinger");
+        setDineroStatus("error");
+      }
+    } else {
+      // Ingen konti fundet — bed brugeren vælge i step 3
+      setProvider("dinero");
+      setSettings({ ...defaultSettings });
+      setDineroStatus("idle");
       setStep(3);
       await load({ preserveMode: true });
       toast.info("Næsten klar — vælg lige en indtægtskonto");
@@ -1779,12 +2046,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   /* ============================================================
    * WIZARD
    * ============================================================ */
-  const stepsMeta = [
-    { n: 1, label: "Vælg program", icon: Plug },
-    { n: 2, label: "Log på", icon: ShieldCheck },
-    { n: 3, label: "Indstillinger", icon: Settings2 },
-  ] as const;
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -1800,36 +2061,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </Button>
         }
       />
-
-      {/* Stepper — kun for Dinero (manuel flerfelt-flow) */}
-      {provider === "dinero" && (
-      <SectionCard className="bg-secondary/30">
-        <div className="flex items-center gap-2">
-          {stepsMeta.map((s, idx) => {
-            const active = step === s.n;
-            const done = step > s.n;
-            const Icon = s.icon;
-            return (
-              <div key={s.n} className="flex flex-1 items-center gap-2">
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors ${
-                  done ? "bg-foreground text-background border-foreground"
-                  : active ? "border-foreground bg-background text-foreground"
-                  : "border-border bg-background text-muted-foreground"
-                }`}>
-                  {done ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-                </div>
-                <div className={`hidden text-sm sm:block ${active ? "font-medium text-foreground" : "text-muted-foreground"}`}>
-                  Trin {s.n} · {s.label}
-                </div>
-                {idx < stepsMeta.length - 1 && (
-                  <div className={`mx-1 h-px flex-1 ${done ? "bg-foreground" : "bg-border"}`} />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </SectionCard>
-      )}
 
       {/* TRIN 1 */}
       {step === 1 && (
@@ -1875,15 +2106,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       {/* TRIN 2 */}
       {step === 2 && (
         <div className={
-          provider === "billy" || provider === "economic"
+          provider === "billy" || provider === "economic" || provider === "dinero"
             ? "grid gap-4 lg:grid-cols-[1fr,1.2fr] xl:grid-cols-[1fr,1.1fr]"
-            : provider === "dinero"
-              ? "grid gap-4 lg:grid-cols-[1fr,1.4fr]"
-              : "mx-auto max-w-2xl"
+            : "mx-auto max-w-2xl"
         }>
           {/* Venstre kolonne: hjælp & forklaring (kun på desktop, ellers
               ovenfor connect-kortet på mobil) */}
-          {(provider === "billy" || provider === "economic") && (
+          {(provider === "billy" || provider === "economic" || provider === "dinero") && (
             <SectionCard
               title="Sådan fungerer det"
               icon={<img src={currentProvider.logo} alt="" className="h-4 w-auto" />}
@@ -1898,6 +2127,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       "Kopier nøglen, og indsæt den her i feltet — så går vi i gang automatisk.",
                       "Vi tester forbindelsen, opretter dine ydelser som varer, og er færdige.",
                     ]
+                  : provider === "dinero"
+                  ? [
+                      "Vi åbner Dinero Developer Portal — log ind med din Dinero-bruger (kræver Pro).",
+                      "Opret en ny API integration med adgang til Contacts, Products og Vouchers.",
+                      "Kopiér Client ID og Client Secret ind i felterne her — secret vises kun én gang!",
+                      "Indsæt dit organisations-ID (det 6-cifrede tal i adresselinjen) og tryk 'Forbind Dinero'.",
+                    ]
                   : [
                       "Vi åbner e-conomic i et nyt vindue.",
                       "Du logger ind og vælger den aftale du vil forbinde Serviceydere med.",
@@ -1911,6 +2147,12 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   </li>
                 ))}
               </ol>
+              {provider === "dinero" && currentProvider.note && (
+                <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200">
+                  <div className="font-semibold mb-1">{currentProvider.note.title}</div>
+                  <div className="opacity-90 leading-relaxed">{currentProvider.note.body}</div>
+                </div>
+              )}
               <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs leading-relaxed text-foreground/80">
                 <div className="mb-1 flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-400">
                   <ShieldCheck className="h-3.5 w-3.5" /> Sikkert og krypteret
@@ -1919,53 +2161,19 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               </div>
             </SectionCard>
           )}
-          {provider === "dinero" && (
-          <SectionCard
-            title="Sådan finder du dine login-oplysninger"
-            icon={<img src={currentProvider.logo} alt="" className="h-4 w-auto" />}
-            description={`Følg disse trin inde i ${currentProvider.label} — så er du klar.`}
-          >
-            <ol className="space-y-3 text-sm">
-              {currentProvider.setupSteps.map((s, i) => (
-                <li key={i} className="flex gap-3">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">{i + 1}</span>
-                  <span className="text-muted-foreground pt-0.5">{s}</span>
-                </li>
-              ))}
-            </ol>
-            <a
-              href={currentProvider.helpUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-foreground underline-offset-4 hover:underline"
-            >
-              {currentProvider.helpUrlLabel} <ExternalLink className="h-3.5 w-3.5" />
-            </a>
-            {currentProvider.note && (
-              <div
-                className={`mt-4 rounded-lg border p-3 text-xs ${
-                  currentProvider.note.tone === "warning"
-                    ? "border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200"
-                    : "border-blue-500/20 bg-blue-500/5 text-foreground"
-                }`}
-              >
-                <div className="font-semibold mb-1">{currentProvider.note.title}</div>
-                <div className="opacity-90 leading-relaxed">{currentProvider.note.body}</div>
-              </div>
-            )}
-          </SectionCard>
-          )}
 
           <SectionCard
             title={
               provider === "billy" ? "Forbind Billy"
               : provider === "economic" ? "Forbind e-conomic"
+              : provider === "dinero" ? "Forbind Dinero"
               : "Indtast dine login-oplysninger"
             }
             icon={<ShieldCheck />}
             description={
               provider === "billy" ? "Brug en adgangsnøgle fra Billy — ikke din adgangskode."
               : provider === "economic" ? "Du sendes til e-conomic, godkender app'en, og kommer tilbage hertil. Ingen tokens at kopiere."
+              : provider === "dinero" ? "Indsæt dine tre login-oplysninger fra Dinero — så klarer vi resten automatisk."
               : "Dine oplysninger gemmes sikkert og krypteret. De bruges kun til at sende og hente data fra dit regnskabsprogram."
             }
           >
@@ -1987,6 +2195,21 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   connecting={economicConnecting}
                   waiting={economicWaiting}
                   connectResult={testResult}
+                />
+              ) : provider === "dinero" ? (
+                <DineroConnectCard
+                  values={{
+                    api_token: creds.api_token ?? "",
+                    api_secret: creds.api_secret ?? "",
+                    organization_id: creds.organization_id ?? "",
+                  }}
+                  onChange={(key, value) => {
+                    setCreds({ ...creds, [key]: value });
+                    if (dineroStatus === "error") { setDineroStatus("idle"); setDineroError(null); }
+                  }}
+                  onAutoConnect={handleDineroAutoConnect}
+                  status={dineroStatus}
+                  errorMessage={dineroError}
                 />
               ) : (
                 <>
@@ -2116,7 +2339,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         </Button>
 
        {step < 3 ? (
-         provider === "billy" || provider === "economic" ? null :
+         provider === "billy" || provider === "economic" || provider === "dinero" ? null :
           <PrimaryButton
             onClick={() => setStep((step + 1) as 1 | 2 | 3)}
             disabled={step === 2 && !testResult?.ok}
