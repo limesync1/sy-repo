@@ -648,13 +648,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       <div className="space-y-6">
         <PageHeader
           title="Regnskab"
-          description="Forbind ét regnskabsprogram. Kunder, services og aftaler synkroniseres automatisk begge veje."
+          description="Forbind dit regnskabsprogram, så dine kunder, services og aftaler automatisk holder sig opdateret begge steder. Du behøver ikke gøre noget — det sker af sig selv."
         />
 
         <EmptyState
           icon={<Calculator />}
-          title="Ingen regnskabsintegration endnu"
-          description="Vælg dit regnskabsprogram nedenfor — vi guider dig igennem på under 2 minutter."
+          title="Du er ikke forbundet med et regnskabsprogram endnu"
+          description="Vælg dit regnskabsprogram nedenfor. Vi guider dig trin for trin — det tager typisk under 2 minutter, og du behøver ingen teknisk viden."
         />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -700,7 +700,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       <div className="space-y-6">
         <PageHeader
           title="Regnskab"
-          description={`Forbundet med ${activeDef.label}. Aftaler, kunder og varer synkroniseres automatisk.`}
+          description={`Du er forbundet med ${activeDef.label}. Aftaler, kunder og services holder sig automatisk opdateret begge steder — du behøver ikke gøre noget.`}
         />
 
         {/* Synk-status — fuld oversigt over hvad der er sket og hvad der venter.
@@ -708,43 +708,43 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <StatCard
             label="Status"
-            value={failedCount > 0 ? "Fejl" : hasError ? "Fejl" : "Aktiv"}
-            hint={failedCount > 0 ? `${failedCount} jobs fejlede` : hasError ? "Forbindelses-fejl" : "Kører automatisk"}
+            value={failedCount > 0 ? "Brug for hjælp" : hasError ? "Brug for hjælp" : "Alt kører"}
+            hint={failedCount > 0 ? `${failedCount} ting kunne ikke sendes` : hasError ? "Forbindelsen svigtede" : "Kører helt automatisk"}
             icon={(failedCount > 0 || hasError) ? <AlertCircle /> : <Check />}
             tone={(failedCount > 0 || hasError) ? "amber" : "emerald"}
           />
           <StatCard
-            label="Sendt (24t)"
+            label="Sendt sidste døgn"
             value={pushedLast24h}
-            hint={lastSuccessPush ? `Sidst ${formatRelativeDanish(lastSuccessPush)}` : "Endnu intet sendt"}
+            hint={lastSuccessPush ? `Sidste afsendelse ${formatRelativeDanish(lastSuccessPush)}` : "Endnu intet sendt"}
             icon={<Upload />}
             tone="blue"
           />
           <StatCard
-            label="Hentet (24t)"
+            label="Hentet sidste døgn"
             value={pulledLast24h}
-            hint={lastSuccessPull ? `Sidst ${formatRelativeDanish(lastSuccessPull)}` : "Endnu intet hentet"}
+            hint={lastSuccessPull ? `Sidste hentning ${formatRelativeDanish(lastSuccessPull)}` : "Endnu intet hentet"}
             icon={<Download />}
             tone="violet"
           />
           <StatCard
-            label="I kø"
+            label="Venter på at blive sendt"
             value={pendingCount}
-            hint={pendingCount === 0 ? "Alt er sendt" : "Venter på næste kørsel"}
+            hint={pendingCount === 0 ? "Alt er allerede sendt" : "Sendes ved næste opdatering"}
             icon={<ListChecks />}
             tone="neutral"
           />
           <StatCard
-            label="Fejlede jobs"
+            label="Skal du kigge på"
             value={failedCount}
-            hint={failedCount === 0 ? "Ingen fejl" : "Se detaljer nedenfor"}
+            hint={failedCount === 0 ? "Ingen problemer" : "Se nedenfor"}
             icon={<AlertTriangle />}
             tone={failedCount > 0 ? "amber" : "emerald"}
           />
           <StatCard
-            label="Næste kørsel"
+            label="Næste opdatering"
             value={formatCountdown(nextRun)}
-            hint={`Kl. ${nextRun.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}`}
+            hint={`Kører kl. ${nextRun.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}`}
             icon={<Clock />}
             tone="accent"
           />
