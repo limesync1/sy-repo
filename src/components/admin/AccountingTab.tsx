@@ -276,7 +276,6 @@ function BillyConnectCard({
   onToggleReveal,
   onTest,
   testing,
-  alreadyConnected,
   testResult,
 }: {
   token: string;
@@ -285,7 +284,6 @@ function BillyConnectCard({
   onToggleReveal: () => void;
   onTest: () => void;
   testing: boolean;
-  alreadyConnected: boolean;
   testResult: { ok: boolean; message?: string } | null;
 }) {
   const canTest = token.trim().length > 0 && !testing;
@@ -1508,7 +1506,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   onToggleReveal={() => setShowSecret(s => ({ ...s, api_token: !s.api_token }))}
                   onTest={handleTest}
                   testing={testing}
-                  alreadyConnected={!!creds.api_token && !!testResult?.ok}
                   testResult={testResult}
                 />
               ) : (
