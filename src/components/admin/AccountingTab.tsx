@@ -321,7 +321,7 @@ function BillyConnectCard({
       {/* Stor primær handling: åbn Billy direkte på adgangsnøgle-siden */}
       <Button asChild size="lg" className="w-full h-14 text-base">
         <a
-          href="https://mit.billy.dk/settings#/organization/access_tokens"
+          href="https://www.billy.dk/login/?next=/settings%23/organization/access_tokens"
           target="_blank"
           rel="noopener noreferrer"
         >
