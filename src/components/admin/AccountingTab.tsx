@@ -2440,7 +2440,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   }`}
                 >
                   <div className="flex h-16 items-center justify-center rounded-lg bg-background px-4">
-                    <img src={p.logo} alt={p.label} className="h-9 w-auto object-contain" />
+                    <img src={p.logo} alt={p.label} className="max-h-9 max-w-[130px] object-contain" />
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-2">
                     <div className="font-semibold text-foreground">{p.label}</div>
@@ -2450,7 +2450,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       </span>
                     )}
                   </div>
-                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{p.tagline}</div>
                   <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{p.description}</p>
                 </button>
               );
