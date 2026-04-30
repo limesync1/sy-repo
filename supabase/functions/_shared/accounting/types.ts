@@ -123,6 +123,19 @@ export interface ExternalGroups {
   };
 }
 
+export type ExternalInvoiceStatus = "unpaid" | "partially_paid" | "paid" | "credited" | "overdue";
+
+export interface ExternalInvoiceState {
+  external_id: string;
+  external_number?: string | null;
+  status: ExternalInvoiceStatus;
+  paid_amount?: number | null;
+  total_amount?: number | null;
+  paid_at?: string | null; // ISO
+  due_date?: string | null; // ISO date
+  raw?: unknown;
+}
+
 export interface AccountingAdapter {
   provider: AccountingProvider;
 
@@ -146,6 +159,14 @@ export interface AccountingAdapter {
     external_type: "order" | "invoice_draft" | "quote";
   }>;
   deleteOrder?(externalId: string): Promise<void>;
+
+  /**
+   * Fetch latest payment / status info for a batch of invoices.
+   * Implementations may ignore unknown ids. Used to keep
+   * orders.payment_status in sync — payment status is ALWAYS sourced
+   * from the accounting provider, never set manually inside Serviceydere.
+   */
+  getInvoiceStates?(externalIds: string[]): Promise<ExternalInvoiceState[]>;
 }
 
 export type AdapterFactory = (
