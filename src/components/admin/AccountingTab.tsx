@@ -455,20 +455,49 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     } finally { setSaving(false); }
   };
 
-  const handleSaveSettingsOnly = async () => {
-    if (!integration) return;
-    setSaving(true);
-    try {
-      const { error } = await supabase.from("accounting_integrations" as any)
-        .update({ settings: settings as any })
-        .eq("business_id", businessId);
-      if (error) throw error;
-      toast.success("Indstillinger gemt");
-      await load();
-    } catch (e: any) {
-      toast.error(e.message ?? "Kunne ikke gemme");
-    } finally { setSaving(false); }
-  };
+  // Auto-save: hver gang `settings` ændres efter integrationen er indlæst,
+  // gemmer vi stille i baggrunden 600ms efter sidste ændring. Ingen knap,
+  // ingen toast — kun en lille "Gemt"-indikator i sektion-headeren, så
+  // siden føles ligeså let som "Indstillinger"-fanen.
+  // Sammenlign mod sidst gemte snapshot for ikke at gemme uændret tilstand
+  // (fx ved første load) eller når brugeren bare åbner siden.
+  const lastSavedSettingsRef = (globalThis as any).__acct_last_saved ??
+    ((globalThis as any).__acct_last_saved = { current: "" });
+  useEffect(() => {
+    if (!integration?.is_active || loading) return;
+    const snap = JSON.stringify(settings ?? {});
+    if (snap === lastSavedSettingsRef.current) return;
+    // Første snapshot efter load skal ikke trigge save
+    if (lastSavedSettingsRef.current === "") {
+      lastSavedSettingsRef.current = snap;
+      return;
+    }
+    setAutoSaveState("saving");
+    const t = setTimeout(async () => {
+      try {
+        const { error } = await supabase.from("accounting_integrations" as any)
+          .update({ settings: settings as any })
+          .eq("business_id", businessId);
+        if (error) throw error;
+        lastSavedSettingsRef.current = snap;
+        setAutoSaveState("saved");
+        // Skjul "Gemt"-mærket efter et par sekunder
+        setTimeout(() => setAutoSaveState(s => s === "saved" ? "idle" : s), 2000);
+      } catch (e: any) {
+        setAutoSaveState("error");
+        toast.error(e?.message ?? "Kunne ikke gemme");
+      }
+    }, 600);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings, integration?.is_active, businessId, loading]);
+
+  // Nulstil snapshot når vi skifter business eller indlæser igen
+  useEffect(() => {
+    lastSavedSettingsRef.current = "";
+    setAutoSaveState("idle");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessId]);
 
   const handleDisable = async () => {
     if (!integration) return;
