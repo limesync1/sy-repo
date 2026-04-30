@@ -1357,6 +1357,72 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   };
 
   /**
+   * Dinero OAuth — spejler e-conomic-flowet. Aktiveres automatisk når
+   * `accounting-dinero-callback` returnerer `enabled: true` (dvs. når
+   * server-secrets DINERO_CLIENT_ID/SECRET/REDIRECT_URL er sat).
+   * Indtil da forbliver knappen skjult og brugeren ser Smart Paste-flowet.
+   */
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase.functions.invoke(
+          "accounting-dinero-callback",
+          { body: { action: "install_url", business_id: businessId } },
+        );
+        if (!cancelled && (data as any)?.enabled === true) {
+          setDineroOAuthEnabled(true);
+        }
+      } catch { /* OAuth er bare ikke aktiveret endnu */ }
+    })();
+    return () => { cancelled = true; };
+  }, [businessId]);
+
+  const handleDineroOAuthConnect = async () => {
+    const runId = ++setupRunRef.current;
+    setDineroOAuthConnecting(true);
+    setDineroError(null);
+    const popup = window.open("about:blank", "dinero_connect");
+    if (popup) {
+      try {
+        popup.document.write(
+          `<!doctype html><html lang="da"><head><meta charset="utf-8"><title>Forbinder til Dinero…</title>` +
+          `<style>body{font-family:-apple-system,system-ui,Segoe UI,Roboto,sans-serif;background:#0f172a;color:#e2e8f0;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}` +
+          `.box{text-align:center}.spinner{width:32px;height:32px;border:3px solid #334155;border-top-color:#22d3ee;border-radius:50%;animation:s 1s linear infinite;margin:0 auto 16px}` +
+          `@keyframes s{to{transform:rotate(360deg)}}</style></head>` +
+          `<body><div class="box"><div class="spinner"></div><div>Sender dig til Dinero…</div></div></body></html>`
+        );
+      } catch { /* ignore */ }
+    }
+    try {
+      sessionStorage.setItem("dinero_pending_business_id", businessId);
+      const { data, error } = await supabase.functions.invoke(
+        "accounting-dinero-callback",
+        { body: { action: "install_url", business_id: businessId } },
+      );
+      if (runId !== setupRunRef.current) return;
+      if (error) throw error;
+      const url = (data as any)?.install_url;
+      if (!url) throw new Error("Dinero OAuth er ikke klar endnu — brug Smart Paste i stedet.");
+      if (popup && !popup.closed) {
+        popup.location.href = url;
+      } else {
+        window.location.href = url;
+        return;
+      }
+      setDineroOAuthConnecting(false);
+    } catch (e: any) {
+      if (runId !== setupRunRef.current) return;
+      if (popup && !popup.closed) popup.close();
+      sessionStorage.removeItem("dinero_pending_business_id");
+      const msg = e?.message ?? "Kunne ikke åbne Dinero";
+      setDineroError(msg);
+      toast.error(msg);
+      setDineroOAuthConnecting(false);
+    }
+  };
+
+  /**
    * E-conomic-flow:
    *  1) Brugeren trykker "Forbind e-conomic" — vi henter Installations URL'en
    *     fra serveren og åbner den i et nyt vindue.
@@ -2404,6 +2470,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   onAutoConnect={handleDineroAutoConnect}
                   status={dineroStatus}
                   errorMessage={dineroError}
+                  oauthEnabled={dineroOAuthEnabled}
+                  oauthConnecting={dineroOAuthConnecting}
+                  onOAuthConnect={handleDineroOAuthConnect}
                 />
               ) : (
                 <>
