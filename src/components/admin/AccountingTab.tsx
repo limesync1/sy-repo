@@ -781,6 +781,29 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     } finally { setTesting(false); }
   };
 
+  // Dry-run: opret testkunde + testvare + kladdefaktura i regnskabsprogrammet,
+  // ryd op bagefter. Kører helt uden at gemme noget i Serviceydere.
+  const handleDryRun = async () => {
+    setDryRunning(true);
+    setDryRunResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-dry-run", {
+        body: { business_id: businessId, provider, api_token: creds.api_token },
+      });
+      if (error) throw error;
+      const r = data as typeof dryRunResult;
+      setDryRunResult(r);
+      if (r?.ok) toast.success("Synk-test gennemført — alt virker!");
+      else toast.error("Synk-testen stoppede — se trinene for detaljer.");
+    } catch (e: any) {
+      const msg = e?.message ?? "Kunne ikke køre synk-test";
+      setDryRunResult({ ok: false, error: msg });
+      toast.error(msg);
+    } finally {
+      setDryRunning(false);
+    }
+  };
+
   /**
    * E-conomic-flow:
    *  1) Brugeren trykker "Forbind e-conomic" — vi henter Installations URL'en
