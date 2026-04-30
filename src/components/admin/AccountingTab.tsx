@@ -1841,15 +1841,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               {provider === "billy" ? (
                 <BillyConnectCard
                   token={creds.api_token ?? ""}
-                  onTokenChange={(value) => { setCreds({ ...creds, api_token: value }); setTestResult(null); }}
-                  reveal={!!showSecret.api_token}
-                  onToggleReveal={() => setShowSecret(s => ({ ...s, api_token: !s.api_token }))}
-                  onTest={handleTest}
-                  testing={testing}
-                  testResult={testResult}
-                  onDryRun={handleDryRun}
-                  dryRunning={dryRunning}
-                  dryRunResult={dryRunResult}
+                  onTokenChange={(value) => {
+                    setCreds({ ...creds, api_token: value });
+                    if (billyStatus === "error") { setBillyStatus("idle"); setBillyError(null); }
+                  }}
+                  onAutoConnect={handleBillyAutoConnect}
+                  status={billyStatus}
+                  errorMessage={billyError}
                 />
               ) : provider === "economic" ? (
                 <EconomicConnectCard
