@@ -683,9 +683,16 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   }, [integration?.is_active, integration?.provider]);
 
   const startWizard = (preselect?: Provider) => {
-    if (preselect) setProvider(preselect);
-    setStep(1);
+    if (preselect) {
+      setProvider(preselect);
+      // Billy og e-conomic har auto-flows — spring 'vælg program'-skærmen over
+      setStep(preselect === "dinero" ? 1 : 2);
+    } else {
+      setStep(1);
+    }
     setTestResult(null);
+    setBillyStatus("idle");
+    setBillyError(null);
     setMode("wizard");
   };
 
