@@ -395,27 +395,46 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
           "pull",
         );
       } else {
-        // Create new customer in Serviceydere
-        const isCompany = !!ec.cvr;
+        // Create new customer in Serviceydere.
+        // Vi anser kunden som virksomhed hvis EN AF følgende er sandt:
+        //   1) der er et CVR-nummer
+        //   2) der er et EAN-nummer (kun firmaer har EAN)
+        //   3) udbyderen oplyser eksplicit type="company"
+        // Tidligere brugte vi kun CVR — det betød at virksomhedskunder uden
+        // CVR (f.eks. nyoprettede i Billy uden udfyldt CVR-felt) endte i
+        // private_customers OG kunne fejle hvis insertet stred mod en
+        // constraint, så de helt forsvandt fra Serviceydere.
+        const isCompany = !!ec.cvr || !!ec.ean || ec.type === "company";
         let createdId: string | null = null;
         let createdTable: "business_customers" | "private_customers" = "private_customers";
+        const fallbackEmail = `unknown+${ec.external_id}@example.com`;
         if (isCompany) {
-          const { data: created } = await admin.from("business_customers").insert({
+          const { data: created, error: createErr } = await admin.from("business_customers").insert({
             business_id: integ.business_id,
             company_name: ec.name,
-            email: ec.email ?? `unknown+${ec.external_id}@example.com`,
+            email: ec.email ?? fallbackEmail,
             phone: ec.phone, cvr: ec.cvr, ean_number: ec.ean,
             address: ec.address, zip_code: ec.zip_code, city: ec.city,
             payment_terms_days: ec.payment_terms_days, currency: "DKK",
           }).select("id").single();
+          if (createErr) {
+            console.error("[pull] business_customers insert failed", {
+              external_id: ec.external_id, name: ec.name, error: createErr.message,
+            });
+          }
           if (created) { createdId = created.id; createdTable = "business_customers"; }
         } else {
-          const { data: created } = await admin.from("private_customers").insert({
+          const { data: created, error: createErr } = await admin.from("private_customers").insert({
             business_id: integ.business_id, name: ec.name,
-            email: ec.email ?? `unknown+${ec.external_id}@example.com`,
+            email: ec.email ?? fallbackEmail,
             phone: ec.phone, address: ec.address, zip_code: ec.zip_code, city: ec.city,
             payment_terms_days: ec.payment_terms_days, currency: "DKK",
           }).select("id").single();
+          if (createErr) {
+            console.error("[pull] private_customers insert failed", {
+              external_id: ec.external_id, name: ec.name, error: createErr.message,
+            });
+          }
           if (created) { createdId = created.id; createdTable = "private_customers"; }
         }
         if (createdId) {
