@@ -64,6 +64,9 @@ type OrderRow = {
   zip_code: string | null;
   city: string | null;
   is_paused?: boolean;
+  payment_status?: string | null;
+  paid_at?: string | null;
+  payment_status_synced_at?: string | null;
   order_items: Array<{ service_name: string; quantity: number; total_price: number; details: any }>;
 };
 
