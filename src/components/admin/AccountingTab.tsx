@@ -390,6 +390,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const [provider, setProvider] = useState<Provider>("economic");
   const [creds, setCreds] = useState<Record<string, string>>({});
   const [showSecret, setShowSecret] = useState<Record<string, boolean>>({});
+  const [economicConnecting, setEconomicConnecting] = useState(false);
   const defaultSettings = {
     push_pending: true,
     default_payment_terms_days: 14,
