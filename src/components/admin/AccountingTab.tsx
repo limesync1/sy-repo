@@ -1388,11 +1388,30 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </SectionCard>
         )}
 
-        {/* Synk-indstillinger */}
+        {/* Avancerede indstillinger — gemt bag toggle så normal-brugeren
+            kun ser status + log. Tre underafsnit: synk-regler, placering,
+            og forbindelsesvalg (skift/frakobl). */}
+        <Collapsible>
+          <div className="rounded-2xl border border-border bg-card">
+            <CollapsibleTrigger className="group flex w-full items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-secondary/30">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-foreground">
+                  <SlidersHorizontal className="h-4 w-4" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-foreground">Avancerede indstillinger</div>
+                  <div className="text-xs text-muted-foreground">Synk-regler, kontoplacering og frakobling — kun hvis du vil ændre noget.</div>
+                </div>
+              </div>
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="space-y-6 border-t border-border p-4 sm:p-5">
+
         <SectionCard
-          title="Indstillinger for hvordan vi sender"
+          title="Hvordan sender vi dine aftaler?"
           icon={<Settings2 />}
-          description="Tilpas hvordan dine aftaler bliver oprettet i regnskabsprogrammet. Ændringer gemmes automatisk — du behøver ikke trykke gem."
+          description="Ændringer gemmes automatisk."
           action={<AutoSaveBadge state={autoSaveState} />}
         >
           <div className="divide-y divide-border">
@@ -1520,6 +1539,31 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             )}
           </div>
         </SectionCard>
+
+        {/* Skift program / Frakobl — hører hjemme under "avanceret" */}
+        <SectionCard title="Forbindelse" icon={<Plug />}>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmSwitch(true)}
+              className="h-9 rounded-lg text-xs font-medium"
+            >
+              <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Skift regnskabsprogram
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setConfirmDisable(true)}
+              className="h-9 rounded-lg border-border text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/40"
+            >
+              <X className="mr-1.5 h-4 w-4" /> Frakobl {activeDef.label}
+            </Button>
+          </div>
+        </SectionCard>
+
+              </div>
+            </CollapsibleContent>
+          </div>
+        </Collapsible>
 
         {/* Log */}
         {logs.length > 0 ? (
