@@ -2545,7 +2545,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   waiting={economicWaiting}
                   connectResult={testResult}
                 />
-              ) : (
+              ) : provider === "dinero" ? (
                 <DineroConnectCard
                   apiToken={creds.api_token ?? ""}
                   apiSecret={creds.api_secret ?? ""}
@@ -2559,6 +2559,14 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   onConnect={handleDineroAutoConnect}
                   status={dineroStatus}
                   errorMessage={dineroError}
+                />
+              ) : (
+                <ZenegyConnectCard
+                  onConnect={handleZenegyOAuthConnect}
+                  connecting={zenegyOAuthConnecting}
+                  waiting={zenegyWaiting}
+                  oauthEnabled={zenegyOAuthEnabled}
+                  connectResult={zenegyResult}
                 />
               )}
             </div>
