@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -557,7 +557,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     return () => clearInterval(t);
   }, []);
   const [confirmDisable, setConfirmDisable] = useState(false);
-  const [confirmSwitch, setConfirmSwitch] = useState(false);
+  const setupRunRef = useRef(0);
   const [retryingJobId, setRetryingJobId] = useState<string | null>(null);
   // Auto-save status: vises diskret i sektion-headeren så brugeren altid
   // kan se om hans ændring er nået sikkert frem.
@@ -569,6 +569,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   );
 
   const resetWizardState = (clearCredentials = true) => {
+    setupRunRef.current += 1;
     if (clearCredentials) setCreds({});
     setShowSecret({});
     setTestResult(null);
@@ -578,17 +579,18 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     setEconomicConnecting(false);
     setEconomicWaiting(false);
     setTesting(false);
+    setDryRunning(false);
     try { sessionStorage.removeItem("economic_pending_business_id"); } catch {}
   };
 
   const chooseProvider = (nextProvider: Provider) => {
-    setProvider(nextProvider);
     resetWizardState(true);
+    setProvider(nextProvider);
     setStep(2);
     setMode("wizard");
   };
 
-  const load = async () => {
+  const load = async (options?: { preserveMode?: boolean }) => {
     setLoading(true);
     const { data } = await supabase
       .from("accounting_integrations" as any)
@@ -602,10 +604,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         agreement_number: d.agreement_number ?? "", organization_id: d.organization_id ?? "",
       });
       setSettings({ ...defaultSettings, ...(d.settings ?? {}) });
-      setMode("overview");
+      if (!options?.preserveMode) setMode("overview");
     } else {
       setIntegration(null);
-      setMode("overview");
+      if (!options?.preserveMode) setMode("overview");
     }
     const { data: log } = await supabase.from("accounting_sync_log" as any)
       .select("*").eq("business_id", businessId)
@@ -680,7 +682,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         await supabase.functions.invoke("accounting-sync", {
           body: { business_id: businessId, mode: "pull" },
         });
-        if (!cancelled) await load();
+        if (!cancelled) await load({ preserveMode: true });
       } catch {
         // Stille fejl — næste cron-kørsel forsøger igen
       }
@@ -783,6 +785,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
    * Hvis vi ikke kan auto-vælge en konto, falder vi tilbage til wizard step 3.
    */
   const handleBillyAutoConnect = async (rawToken: string) => {
+    const runId = ++setupRunRef.current;
     const token = rawToken.trim();
     if (!token) return;
     setBillyError(null);
@@ -793,10 +796,12 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       const { data, error } = await supabase.functions.invoke("accounting-test-connection", {
         body: { business_id: businessId, provider: "billy", api_token: token, settings },
       });
+      if (runId !== setupRunRef.current) return;
       if (error) throw error;
       const r = data as { ok: boolean; message?: string };
       if (!r.ok) throw new Error(r.message ?? "Nøglen kunne ikke bruges");
     } catch (e: any) {
+      if (runId !== setupRunRef.current) return;
       setBillyError(e?.message ?? "Kunne ikke forbinde til Billy");
       setBillyStatus("error");
       return;
@@ -808,6 +813,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       const { data, error } = await supabase.functions.invoke("accounting-dry-run", {
         body: { business_id: businessId, provider: "billy", api_token: token },
       });
+      if (runId !== setupRunRef.current) return;
       if (error) throw error;
       const r = data as { ok: boolean; steps?: { ok: boolean; label: string; message?: string }[] };
       if (!r.ok) {
@@ -815,6 +821,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         throw new Error(failed?.message ?? "Synk-testen kunne ikke gennemføres");
       }
     } catch (e: any) {
+      if (runId !== setupRunRef.current) return;
       setBillyError(e?.message ?? "Synk-testen fejlede");
       setBillyStatus("error");
       return;
@@ -835,11 +842,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       };
       const { error: saveErr } = await supabase.from("accounting_integrations" as any)
         .upsert(initialPayload, { onConflict: "business_id" });
+      if (runId !== setupRunRef.current) return;
       if (saveErr) throw saveErr;
 
       const { data: g } = await supabase.functions.invoke("accounting-list-groups", {
         body: { business_id: businessId },
       });
+      if (runId !== setupRunRef.current) return;
       const incomeAccounts = ((g as any)?.income_accounts ?? []) as { id: string }[];
       foundGroups = incomeAccounts.length > 0;
       if (foundGroups) autoIncomeAccount = incomeAccounts[0].id;
@@ -854,6 +863,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         await supabase.from("accounting_integrations" as any)
           .update({ settings: finalSettings as any })
           .eq("business_id", businessId);
+        if (runId !== setupRunRef.current) return;
         setSettings(finalSettings);
         setProvider("billy");
         setCreds({ api_token: token });
@@ -863,10 +873,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         runFullSync(businessId).catch(() => { /* ignoreres */ });
         // Vent 1.2s så brugeren ser succes-skærmen, så ryk til oversigten
         setTimeout(async () => {
+          if (runId !== setupRunRef.current) return;
           await load();
+          if (runId !== setupRunRef.current) return;
           setMode("overview");
         }, 1400);
       } catch (e: any) {
+        if (runId !== setupRunRef.current) return;
         setBillyError(e?.message ?? "Kunne ikke gemme indstillinger");
         setBillyStatus("error");
       }
@@ -877,7 +890,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       setSettings({ ...defaultSettings });
       setBillyStatus("idle");
       setStep(3);
-      await load();
+      await load({ preserveMode: true });
       toast.info("Næsten klar — vælg lige en indtægtskonto");
     }
   };
@@ -892,6 +905,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
    *     edge function, og gemmer integrationen.
    */
   const handleEconomicConnect = async () => {
+    const runId = ++setupRunRef.current;
     setEconomicConnecting(true);
     setTestResult(null);
     setEconomicWaiting(false);
@@ -919,6 +933,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         "accounting-economic-callback",
         { body: { action: "install_url" } },
       );
+      if (runId !== setupRunRef.current) return;
       if (error) throw error;
       const url = (data as any)?.install_url;
       if (!url) throw new Error("Kunne ikke hente e-conomic install-URL");
@@ -936,6 +951,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       // faktisk er valideret af edge function viser vi "forbundet".
       setEconomicWaiting(true);
     } catch (e: any) {
+      if (runId !== setupRunRef.current) return;
       if (popup && !popup.closed) popup.close();
       sessionStorage.removeItem("economic_pending_business_id");
       const msg = e?.message ?? "Kunne ikke åbne e-conomic";
@@ -1030,6 +1046,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       const data = ev.data;
       if (!data || data.type !== "economic_token" || !data.token) return;
       if (data.businessId && data.businessId !== businessId) return;
+      const pendingBiz = sessionStorage.getItem("economic_pending_business_id");
+      if (pendingBiz !== businessId) return;
       sessionStorage.removeItem("economic_pending_business_id");
       setProvider("economic");
       setMode("wizard");
@@ -1145,11 +1163,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     await load();
   };
 
-  const handleSwitchProvider = () => {
+  const openProviderPicker = () => {
     resetWizardState(true);
-    setProvider("economic");
+    setProvider(integration?.provider ?? "economic");
     setStep(1);
-    startWizard();
+    setMode("wizard");
   };
 
   // Marker job som pending igen og kør synk med det samme. Bruges fra
@@ -1514,28 +1532,23 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </SectionCard>
         )}
 
-        {/* Avancerede indstillinger — åbne som standard så brugeren kan se
-            sine valg uden at skulle klikke. Kan klappes sammen hvis siden
-            føles for lang. Tre underafsnit: synk-regler, placering, forbindelse. */}
-        <Collapsible defaultOpen>
-          <div className="rounded-2xl border border-border bg-card">
-            <CollapsibleTrigger className="group flex w-full items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-secondary/30">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-foreground">
-                  <SlidersHorizontal className="h-4 w-4" />
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-foreground">Avancerede indstillinger</div>
-                  <div className="text-xs text-muted-foreground">Synk-regler, kontoplacering og frakobling — kun hvis du vil ændre noget.</div>
-                </div>
-              </div>
-              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="space-y-6 border-t border-border p-4 sm:p-5">
+        {/* Synlige standardvalg — ikke gemt bag “avanceret”, fordi det er her
+            brugeren forstår hvad automatikken gør og kan ændre de vigtigste valg. */}
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
+              <SlidersHorizontal className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-base font-semibold text-foreground">Automatik og standardvalg</h3>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                Her styrer du hvad der sendes, og hvilke standarder vi bruger i {activeDef.label}.
+              </p>
+            </div>
+          </div>
 
         <SectionCard
-          title="Hvordan sender vi dine aftaler?"
+          title="Hvad skal sendes automatisk?"
           icon={<Settings2 />}
           description="Ændringer gemmes automatisk."
           action={<AutoSaveBadge state={autoSaveState} />}
@@ -1543,16 +1556,16 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           <div className="divide-y divide-border">
             <div className="flex items-start justify-between gap-4 py-3 first:pt-0">
               <div className="min-w-0">
-                <div className="text-sm font-medium text-foreground">Send tilbud du endnu ikke har sagt ja til</div>
-                <p className="mt-0.5 text-xs text-muted-foreground">Når en kunde har sendt en forespørgsel — men du ikke har bekræftet endnu — sendes den også over som et udkast. Slå fra hvis du kun vil sende bekræftede aftaler.</p>
+                <div className="text-sm font-medium text-foreground">Send nye kundeforespørgsler som kladder</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">Når en kunde sender en forespørgsel, kan vi oprette den som kladde i {activeDef.label}. Slå fra hvis kun bekræftede aftaler skal med.</p>
               </div>
               <Switch checked={settings.push_pending !== false}
                 onCheckedChange={v => setSettings({ ...settings, push_pending: v })} />
             </div>
             <div className="flex items-start justify-between gap-4 py-3">
               <div className="min-w-0">
-                <div className="text-sm font-medium text-foreground">Opret dine ydelser automatisk som varer</div>
-                <p className="mt-0.5 text-xs text-muted-foreground">Når du opretter en ny ydelse her, opretter vi den også som vare i dit regnskabsprogram. Så slipper du for at indtaste det samme to steder.</p>
+                <div className="text-sm font-medium text-foreground">Hold dine services opdateret som varer</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">Når du opretter eller ændrer en service her, sørger vi for at den også findes som vare i {activeDef.label}.</p>
               </div>
               <Switch checked={settings.auto_create_products !== false}
                 onCheckedChange={v => setSettings({ ...settings, auto_create_products: v })} />
@@ -1666,15 +1679,15 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </div>
         </SectionCard>
 
-        {/* Skift program / Frakobl — hører hjemme under "avanceret" */}
+        {/* Skift program / Frakobl */}
         <SectionCard title="Forbindelse" icon={<Plug />}>
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
-              onClick={() => setConfirmSwitch(true)}
+              onClick={openProviderPicker}
               className="h-9 rounded-lg text-xs font-medium"
             >
-              <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Skift regnskabsprogram
+              <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Vælg et andet program
             </Button>
             <Button
               variant="outline"
@@ -1686,10 +1699,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </div>
         </SectionCard>
 
-              </div>
-            </CollapsibleContent>
-          </div>
-        </Collapsible>
+        </div>
 
         {/* Log */}
         {logs.length > 0 ? (
@@ -1758,33 +1768,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 className="h-9 rounded-lg text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive"
               >
                 Ja, frakobl
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <AlertDialog open={confirmSwitch} onOpenChange={setConfirmSwitch}>
-          <AlertDialogContent className="rounded-xl">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2">
-                <RefreshCw className="h-5 w-5 text-foreground" />
-                Skift regnskabsprogram?
-              </AlertDialogTitle>
-              <AlertDialogDescription className="leading-relaxed">
-                Du kan kun være forbundet med ét regnskabsprogram ad gangen. Når
-                du vælger et nyt, stopper vi med at sende til {activeDef.label} —
-                men intet slettes nogen af stederne.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="h-9 rounded-lg text-sm font-medium">
-                Behold {activeDef.label}
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => { setConfirmSwitch(false); handleSwitchProvider(); }}
-                className="h-9 rounded-lg text-sm font-medium bg-foreground text-background hover:bg-foreground/90"
-              >
-                Vælg nyt program
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -2082,16 +2065,16 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           <div className="divide-y divide-border">
             <div className="flex items-start justify-between gap-4 py-3 first:pt-0">
               <div className="min-w-0">
-                <div className="text-sm font-medium text-foreground">Send aftaler der venter på svar</div>
-                <p className="mt-0.5 text-xs text-muted-foreground">Slå til for at sende aftaler du endnu ikke har bekræftet. Slå fra for kun at sende dem du allerede har sagt ja til.</p>
+                <div className="text-sm font-medium text-foreground">Send nye kundeforespørgsler som kladder</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">Slå til hvis forespørgsler skal oprettes som kladder. Slå fra hvis kun bekræftede aftaler skal sendes.</p>
               </div>
               <Switch checked={settings.push_pending !== false}
                 onCheckedChange={v => setSettings({ ...settings, push_pending: v })} />
             </div>
             <div className="flex items-start justify-between gap-4 py-3">
               <div className="min-w-0">
-                <div className="text-sm font-medium text-foreground">Opret nye services automatisk i regnskabsprogrammet</div>
-                <p className="mt-0.5 text-xs text-muted-foreground">Anbefales — så slipper du for at oprette dem to steder.</p>
+                <div className="text-sm font-medium text-foreground">Hold dine services opdateret som varer</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">Vi opretter dine services som varer i regnskabsprogrammet, så du ikke skal gøre det manuelt.</p>
               </div>
               <Switch checked={settings.auto_create_products !== false}
                 onCheckedChange={v => setSettings({ ...settings, auto_create_products: v })} />
