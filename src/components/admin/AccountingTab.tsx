@@ -19,7 +19,7 @@ import {
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, HelpCircle, PartyPopper } from "lucide-react";
+import { ChevronDown, HelpCircle, PartyPopper, SlidersHorizontal } from "lucide-react";
 import {
   PageHeader, PrimaryButton, SectionCard, EmptyState, FieldLabel,
 } from "@/components/admin/shared/AdminUI";
