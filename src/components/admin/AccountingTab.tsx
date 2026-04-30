@@ -1050,6 +1050,119 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   };
 
   /**
+   * Dinero "udfyld og forbind"-flow: spejler Billy auto-connect.
+   *  1) testConnection
+   *  2) dry-run (rigtige testdata frem og tilbage)
+   *  3) gem + hent grupper og auto-vælg første indtægtskonto
+   *  4) afslut til oversigt; ellers fald til step 3 hvis ingen konto fundet
+   */
+  const handleDineroAutoConnect = async () => {
+    const runId = ++setupRunRef.current;
+    const api_token = (creds.api_token ?? "").trim();
+    const api_secret = (creds.api_secret ?? "").trim();
+    const organization_id = (creds.organization_id ?? "").trim();
+    if (!api_token || !api_secret || !organization_id) return;
+    setDineroError(null);
+
+    // 1) Test forbindelse
+    setDineroStatus("checking");
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-test-connection", {
+        body: { business_id: businessId, provider: "dinero", api_token, api_secret, organization_id, settings },
+      });
+      if (runId !== setupRunRef.current) return;
+      if (error) throw error;
+      const r = data as { ok: boolean; message?: string };
+      if (!r.ok) throw new Error(r.message ?? "Login-oplysningerne kunne ikke bruges");
+    } catch (e: any) {
+      if (runId !== setupRunRef.current) return;
+      setDineroError(e?.message ?? "Kunne ikke forbinde til Dinero");
+      setDineroStatus("error");
+      return;
+    }
+
+    // 2) Dry-run: send rigtige testdata til Dinero
+    setDineroStatus("testing");
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-dry-run", {
+        body: { business_id: businessId, provider: "dinero", api_token, api_secret, organization_id },
+      });
+      if (runId !== setupRunRef.current) return;
+      if (error) throw error;
+      const r = data as { ok: boolean; steps?: { ok: boolean; label: string; message?: string }[] };
+      if (!r.ok) {
+        const failed = r.steps?.find(s => !s.ok);
+        throw new Error(failed?.message ?? "Synk-testen kunne ikke gennemføres");
+      }
+    } catch (e: any) {
+      if (runId !== setupRunRef.current) return;
+      setDineroError(e?.message ?? "Synk-testen fejlede");
+      setDineroStatus("error");
+      return;
+    }
+
+    // 3) Gem og hent grupper
+    setDineroStatus("saving");
+    let autoIncomeAccount: string | null = null;
+    try {
+      const initialPayload = {
+        business_id: businessId, provider: "dinero", is_active: true,
+        api_token, api_secret,
+        agreement_number: null, organization_id,
+        settings: { ...defaultSettings } as any,
+        last_error: null, last_error_at: null,
+      };
+      const { error: saveErr } = await supabase.from("accounting_integrations" as any)
+        .upsert(initialPayload, { onConflict: "business_id" });
+      if (runId !== setupRunRef.current) return;
+      if (saveErr) throw saveErr;
+
+      const { data: g } = await supabase.functions.invoke("accounting-list-groups", {
+        body: { business_id: businessId },
+      });
+      if (runId !== setupRunRef.current) return;
+      const incomeAccounts = ((g as any)?.income_accounts ?? []) as { id: string }[];
+      if (incomeAccounts.length > 0) autoIncomeAccount = incomeAccounts[0].id;
+    } catch {
+      // Ikke kritisk — fald tilbage til manuelt valg nedenfor
+    }
+
+    // 4) Afslut
+    if (autoIncomeAccount) {
+      const finalSettings = { ...defaultSettings, default_income_account: autoIncomeAccount };
+      try {
+        await supabase.from("accounting_integrations" as any)
+          .update({ settings: finalSettings as any })
+          .eq("business_id", businessId);
+        if (runId !== setupRunRef.current) return;
+        setSettings(finalSettings);
+        setProvider("dinero");
+        setDineroStatus("done");
+        toast.success("Dinero er forbundet og klar!");
+        runFullSync(businessId).catch(() => { /* ignoreres */ });
+        setTimeout(async () => {
+          if (runId !== setupRunRef.current) return;
+          await load();
+          if (runId !== setupRunRef.current) return;
+          setMode("overview");
+        }, 1400);
+      } catch (e: any) {
+        if (runId !== setupRunRef.current) return;
+        setDineroError(e?.message ?? "Kunne ikke gemme indstillinger");
+        setDineroStatus("error");
+      }
+    } else {
+      // Ingen konti fundet — bed brugeren vælge i step 3
+      setProvider("dinero");
+      setSettings({ ...defaultSettings });
+      setDineroStatus("idle");
+      setStep(3);
+      await load({ preserveMode: true });
+      toast.info("Næsten klar — vælg lige en indtægtskonto");
+    }
+  };
+
+  /**
    * E-conomic-flow:
    *  1) Brugeren trykker "Forbind e-conomic" — vi henter Installations URL'en
    *     fra serveren og åbner den i et nyt vindue.
