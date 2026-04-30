@@ -2286,16 +2286,18 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 />
               ) : provider === "dinero" ? (
                 <DineroConnectCard
-                  onConnect={handleDineroOAuthConnect}
-                  connecting={dineroOAuthConnecting}
-                  waiting={dineroOAuthConnecting}
-                  connectResult={
-                    dineroError
-                      ? { ok: false, message: dineroError }
-                      : dineroStatus === "done"
-                        ? { ok: true, message: "Vi har testet at synk virker, og sat alt op for dig." }
-                        : null
-                  }
+                  apiToken={creds.api_token ?? ""}
+                  apiSecret={creds.api_secret ?? ""}
+                  organizationId={creds.organization_id ?? ""}
+                  showSecret={!!showSecret.api_secret}
+                  onToggleSecret={() => setShowSecret(s => ({ ...s, api_secret: !s.api_secret }))}
+                  onChange={(field, value) => {
+                    setCreds({ ...creds, [field]: value });
+                    if (dineroStatus === "error") { setDineroStatus("idle"); setDineroError(null); }
+                  }}
+                  onConnect={handleDineroAutoConnect}
+                  status={dineroStatus}
+                  errorMessage={dineroError}
                 />
               ) : (
                 <>
