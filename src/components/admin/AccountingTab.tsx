@@ -905,17 +905,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           title="Synk-indstillinger"
           icon={<Settings2 />}
           description="Bestem hvordan og hvornår dine data sendes til regnskabsprogrammet."
-          action={
-            <Button
-              variant="outline"
-              onClick={handleSaveSettingsOnly}
-              disabled={saving}
-              className="h-9 rounded-lg text-xs font-medium"
-            >
-              {saving && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
-              Gem
-            </Button>
-          }
+          action={<AutoSaveBadge state={autoSaveState} />}
         >
           <div className="divide-y divide-border">
             <div className="flex items-start justify-between gap-4 py-3 first:pt-0">
