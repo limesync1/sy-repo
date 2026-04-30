@@ -399,7 +399,7 @@ const PaymentBadge = ({ status, syncedAt }: { status?: string | null; syncedAt?:
 
 /** Samlet kundestatus i ét pille-element — fortæller hurtigt hvad slags kunde det er. */
 const CustomerStatusPill = ({ c }: { c: Customer }) => {
-  // Prioritet: aktive abonnementer > pausede > engangs-bestillinger > kun i kartotek
+  // Prioritet: aktive abonnementer > pausede > engangs-aftaler > kun i kartotek
   let label: string;
   let dot: string;
   let icon: React.ReactNode;
@@ -416,17 +416,17 @@ const CustomerStatusPill = ({ c }: { c: Customer }) => {
     icon = <Pause className="h-3 w-3" />;
     help = "Kundens abonnementer er sat på pause og indgår ikke i ruteplanlægning.";
   } else if (c.orders_count > 0) {
-    label = c.orders_count === 1 ? "Engangskunde" : `Tidligere kunde · ${c.orders_count} bestillinger`;
+    label = c.orders_count === 1 ? "Engangskunde" : `Tidligere kunde · ${c.orders_count} aftaler`;
     dot = "bg-blue-500";
     icon = <Package className="h-3 w-3" />;
     help = c.orders_count === 1
-      ? "Kunden har bestilt én gang."
-      : "Kunden har bestilt flere gange, men har ikke et fast abonnement.";
+      ? "Kunden har én aftale hos jer."
+      : "Kunden har flere aftaler hos jer, men har ikke et fast abonnement. En bestilling kan indeholde flere aftaler.";
   } else {
     label = "Kun i kartotek";
     dot = "bg-muted-foreground/40";
     icon = <ContactIcon className="h-3 w-3" />;
-    help = "Du har gemt kunden i dit kartotek, men der er endnu ikke bestilt noget.";
+    help = "Du har gemt kunden i dit kartotek, men der er endnu ingen aftaler.";
   }
 
   return (
