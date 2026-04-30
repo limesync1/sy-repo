@@ -37,7 +37,19 @@ Deno.serve(async (req) => {
     const user = userData?.user;
     if (!user) return json({ error: "Unauthorized" }, 401);
 
-    const { business_id, agreement_grant_token } = await req.json();
+    const body = await req.json();
+    const action = body?.action ?? "exchange";
+
+    // Action: "install_url" — returnér Installations URL så frontend kan åbne
+    // den i et nyt vindue. URL'en indeholder kun det offentlige appPublicToken
+    // og en redirectUrl, så det er ikke følsomt.
+    if (action === "install_url") {
+      const installUrl = Deno.env.get("ECONOMIC_INSTALL_URL");
+      if (!installUrl) return json({ error: "ECONOMIC_INSTALL_URL er ikke konfigureret." }, 500);
+      return json({ install_url: installUrl });
+    }
+
+    const { business_id, agreement_grant_token } = body;
     if (!business_id || !agreement_grant_token) {
       return json({ error: "Missing business_id or agreement_grant_token" }, 400);
     }
