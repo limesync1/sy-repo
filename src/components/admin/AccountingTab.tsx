@@ -551,7 +551,7 @@ function DineroConnectCard({
   if (status === "done") return <SuccessCard name="Dinero" />;
 
   return (
-    <ConnectCardShell logo={dineroLogo} name="Dinero" tagline="Opret en API-nøgle i Dinero — under 1 minut" requiresBadge="Kræver Pro">
+    <ConnectCardShell logo={dineroLogo} name="Dinero" tagline="">
       <div className="space-y-5">
         <div className="rounded-xl border border-border bg-secondary/30 p-4">
           <div className="mb-2 text-sm font-semibold text-foreground">
