@@ -1756,33 +1756,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-
-        <AlertDialog open={confirmSwitch} onOpenChange={setConfirmSwitch}>
-          <AlertDialogContent className="rounded-xl">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2">
-                <RefreshCw className="h-5 w-5 text-foreground" />
-                Skift regnskabsprogram?
-              </AlertDialogTitle>
-              <AlertDialogDescription className="leading-relaxed">
-                Du kan kun være forbundet med ét regnskabsprogram ad gangen. Når
-                du vælger et nyt, stopper vi med at sende til {activeDef.label} —
-                men intet slettes nogen af stederne.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="h-9 rounded-lg text-sm font-medium">
-                Behold {activeDef.label}
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => { setConfirmSwitch(false); handleSwitchProvider(); }}
-                className="h-9 rounded-lg text-sm font-medium bg-foreground text-background hover:bg-foreground/90"
-              >
-                Vælg nyt program
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     );
   }
