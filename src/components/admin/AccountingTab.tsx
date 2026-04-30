@@ -349,6 +349,27 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [businessId]);
 
+  // Auto-pull: når regnskabsfanen åbnes (eller skifter business) henter vi
+  // de seneste ændringer fra regnskabsprogrammet i baggrunden, så brugeren
+  // altid ser opdaterede data uden at trykke på en knap. Push-retningen
+  // sker allerede automatisk via DB-triggers ved hver insert/update/delete.
+  useEffect(() => {
+    if (!integration?.is_active) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        await supabase.functions.invoke("accounting-sync", {
+          body: { business_id: businessId, mode: "pull" },
+        });
+        if (!cancelled) await load();
+      } catch {
+        // Stille fejl — næste cron-kørsel forsøger igen
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [integration?.is_active, businessId]);
+
   const loadGroups = async () => {
     if (!integration) return;
     setGroupsLoading(true);
@@ -443,19 +464,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     } catch (e: any) {
       toast.error(e.message ?? "Kunne ikke gemme");
     } finally { setSaving(false); }
-  };
-
-  const handleSyncNow = async () => {
-    setSyncing(true);
-    try {
-      // Stille manuel synk — ingen success-toast. Realtime-trigger holder
-      // tingene synkroniseret automatisk; "Synk nu" er nu mest til at
-      // hente nye data ned fra regnskabsprogrammet.
-      await runFullSync(businessId);
-      await load();
-    } catch (e: any) {
-      toast.error(e.message ?? "Synk fejlede");
-    } finally { setSyncing(false); }
   };
 
   const handleDisable = async () => {
@@ -619,11 +627,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         <PageHeader
           title="Regnskab"
           description={`Forbundet med ${activeDef.label}. Aftaler, kunder og varer synkroniseres automatisk.`}
-          action={
-            <PrimaryButton onClick={handleSyncNow} disabled={syncing} icon={syncing ? <Loader2 className="animate-spin" /> : <RefreshCw />}>
-              {syncing ? "Synkroniserer…" : "Synk nu"}
-            </PrimaryButton>
-          }
         />
 
         {/* Synk-status — fuld oversigt over hvad der er sket og hvad der venter.
@@ -1059,7 +1062,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             icon={<RefreshCw />}
           >
             <p className="text-sm text-muted-foreground">
-              Ingen synkroniseringer endnu. Tryk på "Synk nu" øverst for at starte den første kørsel.
+              Ingen synkroniseringer endnu. Synkronisering starter automatisk så snart du opretter eller ændrer en kunde, vare eller ordre.
             </p>
           </SectionCard>
         )}
