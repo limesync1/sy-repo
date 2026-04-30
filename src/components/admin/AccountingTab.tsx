@@ -320,11 +320,28 @@ function AutoSaveBadge({
 }
 
 /**
+ * SuccessCard — fælles "du er forbundet!"-tilstand, så alle tre udbydere
+ * føles identisk på succes-trinnet.
+ */
+function SuccessCard({ name }: { name: string }) {
+  return (
+    <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 text-center">
+      <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700">
+        <PartyPopper className="h-7 w-7" />
+      </div>
+      <h3 className="text-lg font-semibold text-foreground">Du er forbundet med {name}!</h3>
+      <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+        Vi har testet at synk virkelig virker, og sat alt op for dig. Dine kunder, services og aftaler synkroniseres nu automatisk.
+      </p>
+    </div>
+  );
+}
+
+/**
  * BillyConnectCard — guidet adgangsnøgle-flow.
  *
  * "Paste-and-go": brugeren paster sin adgangsnøgle, og vi kører automatisk
  * forbind → testdata → auto-opsætning → gem i ét. Ingen knapper at trykke.
- * Hvis noget fejler, viser vi hvad og hvordan i hverdagssprog.
  */
 function BillyConnectCard({
   token,
@@ -352,111 +369,69 @@ function BillyConnectCard({
     if (!pasted) return;
     e.preventDefault();
     onTokenChange(pasted);
-    // Lille delay så input visuelt opdateres før vi går i gang.
     setTimeout(() => onAutoConnect(pasted), 50);
   };
 
-  if (status === "done") {
-    return (
-      <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 text-center">
-        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700">
-          <PartyPopper className="h-7 w-7" />
-        </div>
-        <h3 className="text-lg font-semibold text-foreground">Du er forbundet med Billy!</h3>
-        <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-          Vi har testet at synk virkelig virker, og sat alt op for dig. Dine kunder, services og aftaler synkroniseres nu automatisk.
-        </p>
-      </div>
-    );
-  }
+  if (status === "done") return <SuccessCard name="Billy" />;
 
   return (
-    <div className="space-y-4">
-      {/* Stor primær handling: åbn Billy uden redirect, da Billy kræver virksomhedens egen URL-slug */}
-      <Button asChild size="lg" className="w-full h-14 text-base">
-        <a
-          href="https://mit.billy.dk/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <ExternalLink className="mr-2 h-5 w-5" />
-          Åbn Billy
-        </a>
-      </Button>
+    <ConnectCardShell logo={billyLogo} name="Billy" tagline="Adgangsnøgle — tager under 1 minut">
+      <div className="space-y-5">
+        <ol className="space-y-2.5">
+          <GuideStep n={1}>Åbn Billy og vælg den virksomhed, du vil forbinde.</GuideStep>
+          <GuideStep n={2}>Gå til <strong>Indstillinger → Adgangsnøgler</strong> og tryk <strong>Opret adgangsnøgle</strong>. Kald den fx "Serviceydere".</GuideStep>
+          <GuideStep n={3}>Kopiér nøglen og indsæt den i feltet nedenfor — så går vi automatisk i gang.</GuideStep>
+        </ol>
 
-      {/* Paste-area — fokus selv på siden */}
-      <div>
-        <Input
-          autoFocus
-          type="text"
-          value={token}
-          onChange={(e) => onTokenChange(e.target.value)}
-          onPaste={handlePaste}
-          placeholder="Indsæt adgangsnøglen her — så går vi i gang"
-          autoComplete="off"
-          disabled={isWorking}
-          className="h-14 text-center text-base"
-        />
+        <Button asChild variant="outline" size="lg" className="w-full">
+          <a href="https://mit.billy.dk/" target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Åbn Billy i nyt vindue
+          </a>
+        </Button>
+
+        <div className="space-y-1.5">
+          <FieldLabel>Adgangsnøgle fra Billy</FieldLabel>
+          <Input
+            type="text"
+            value={token}
+            onChange={(e) => onTokenChange(e.target.value)}
+            onPaste={handlePaste}
+            placeholder="Indsæt nøglen her — vi går i gang automatisk"
+            autoComplete="off"
+            disabled={isWorking}
+            className="h-12 text-base"
+          />
+        </div>
+
+        {isWorking && statusLabel && (
+          <div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-secondary/40 py-3 text-sm font-medium text-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {statusLabel}
+          </div>
+        )}
+
+        {status === "error" && errorMessage && (
+          <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="min-w-0">
+              <div className="font-medium">Det virkede desværre ikke</div>
+              <div className="mt-0.5 break-words opacity-90">{errorMessage}</div>
+              <div className="mt-1.5 text-xs opacity-80">Tjek at hele nøglen blev kopieret med — eller opret en ny i Billy.</div>
+            </div>
+          </div>
+        )}
+
+        <p className="text-center text-xs text-muted-foreground">
+          🔒 Nøglen gemmes krypteret. Du kan altid slette den igen i Billy.
+        </p>
       </div>
-
-      {/* Live-status mens vi arbejder */}
-      {isWorking && statusLabel && (
-        <div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-secondary/30 py-3 text-sm font-medium text-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          {statusLabel}
-        </div>
-      )}
-
-      {/* Fejl: forklar i hverdagssprog + lad brugeren prøve igen */}
-      {status === "error" && errorMessage && (
-        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <div className="min-w-0">
-            <div className="font-medium">Det virkede desværre ikke</div>
-            <div className="mt-0.5 break-words opacity-90">{errorMessage}</div>
-            <div className="mt-1.5 text-xs opacity-80">
-              Tjek at du har kopieret hele nøglen. Du kan opret en ny i Billy hvis du er i tvivl.
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Hjælp — gemt bag toggle så det ikke roder skærmen */}
-      <Collapsible>
-        <CollapsibleTrigger className="group inline-flex w-full items-center justify-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
-          <HelpCircle className="h-3.5 w-3.5" />
-          Brug for hjælp til at finde adgangsnøglen?
-          <ChevronDown className="h-3.5 w-3.5 transition-transform group-data-[state=open]:rotate-180" />
-        </CollapsibleTrigger>
-        <CollapsibleContent className="mt-3">
-          <div className="grid gap-2 rounded-lg border border-border bg-card p-3 text-sm">
-            <div className="flex gap-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">1</span>
-              <span className="pt-0.5 text-muted-foreground">Tryk 'Åbn Billy' og vælg den virksomhed du vil forbinde.</span>
-            </div>
-            <div className="flex gap-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">2</span>
-              <span className="pt-0.5 text-muted-foreground">Gå til Indstillinger → Adgangsnøgler og tryk 'Opret adgangsnøgle'.</span>
-            </div>
-            <div className="flex gap-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">3</span>
-              <span className="pt-0.5 text-muted-foreground">Kopiér nøglen og indsæt herover. Vi tager os af resten.</span>
-            </div>
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-    </div>
+    </ConnectCardShell>
   );
 }
 
 /**
  * EconomicConnectCard — guidet OAuth-lignende flow for e-conomic.
- *
- * E-conomic kræver at brugeren godkender "Serviceydere"-app'en på sin
- * aftale via deres egen secure-portal. Når brugeren har godkendt,
- * sender e-conomic dem tilbage til /virksomhed?economicToken=XXX, hvor
- * vi opfanger tokenet og gemmer det krypteret. Brugeren ser aldrig
- * App Secret eller Agreement Grant Token.
  */
 const EconomicConnectCard = React.forwardRef<
   HTMLDivElement,
@@ -468,159 +443,209 @@ const EconomicConnectCard = React.forwardRef<
   }
 >(({ onConnect, connecting, waiting, connectResult }, ref) => {
   return (
-    <div ref={ref} className="space-y-4">
-      <div className="rounded-xl border border-border bg-secondary/20 p-4">
-        <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground text-background">
-            <Plug className="h-5 w-5" />
-          </div>
-          <div className="min-w-0">
-            <div className="font-semibold text-foreground">Forbind e-conomic på 30 sekunder</div>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Du sendes til e-conomic, godkender Serviceydere-app'en på din aftale, og kommer tilbage hertil. Ingen tokens at kopiere — vi klarer det hele.
-            </p>
-          </div>
-        </div>
-      </div>
+    <div ref={ref}>
+      <ConnectCardShell logo={economicLogo} name="e-conomic" tagline="Ét-klik OAuth — tager under 30 sekunder">
+        <div className="space-y-5">
+          <ol className="space-y-2.5">
+            <GuideStep n={1}>Tryk <strong>Forbind e-conomic</strong> nedenfor — et nyt vindue åbner.</GuideStep>
+            <GuideStep n={2}>Log ind og vælg den aftale, du vil forbinde med Serviceydere.</GuideStep>
+            <GuideStep n={3}>Tryk <strong>Tildel adgang</strong> — så sendes du automatisk tilbage hertil.</GuideStep>
+          </ol>
 
-      <div className="grid gap-2 rounded-lg border border-border bg-card p-3 text-sm">
-        <div className="flex gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">1</span>
-          <span className="pt-0.5 text-muted-foreground">Tryk på den blå knap forneden — der åbner et nyt vindue med e-conomic.</span>
-        </div>
-        <div className="flex gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">2</span>
-          <span className="pt-0.5 text-muted-foreground">Log ind i e-conomic og vælg den aftale, du vil forbinde Serviceydere med.</span>
-        </div>
-        <div className="flex gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">3</span>
-          <span className="pt-0.5 text-muted-foreground">Tryk "Tildel adgang" — så sendes du tilbage hertil og er klar.</span>
-        </div>
-      </div>
+          <Button onClick={onConnect} disabled={connecting} size="lg" className="w-full">
+            {connecting
+              ? <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              : <ExternalLink className="mr-2 h-5 w-5" />}
+            {connecting ? "Forbinder…" : "Forbind e-conomic"}
+          </Button>
 
-      <Button onClick={onConnect} disabled={connecting} className="w-full">
-        {connecting
-          ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          : <ExternalLink className="mr-2 h-4 w-4" />}
-        {connecting ? "Forbinder…" : "Forbind e-conomic"}
-      </Button>
+          {waiting && !connectResult?.ok && (
+            <div className="flex items-start gap-2 rounded-lg border border-border bg-secondary/40 p-3 text-sm text-foreground">
+              <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
+              <div className="min-w-0">
+                <div className="font-medium">Venter på godkendelse i e-conomic…</div>
+                <div className="opacity-80 text-xs mt-0.5">Et nyt vindue er åbnet. Log ind, vælg din aftale og tryk "Tildel adgang".</div>
+              </div>
+            </div>
+          )}
 
-      {waiting && !connectResult?.ok && (
-        <div className="flex items-start gap-2 rounded-lg border border-border bg-secondary/40 p-3 text-sm text-foreground">
-          <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
-          <div className="min-w-0">
-            <div className="font-medium">Venter på godkendelse i e-conomic…</div>
-            <div className="opacity-80 text-xs mt-0.5">Et nyt vindue er åbnet. Log ind, vælg din aftale og tryk "Tildel adgang" — så kommer du tilbage hertil automatisk.</div>
-          </div>
+          {connectResult && (
+            <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
+              connectResult.ok
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
+                : "border-destructive/30 bg-destructive/10 text-destructive"
+            }`}>
+              {connectResult.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
+              <div className="min-w-0">
+                <div className="font-medium">{connectResult.ok ? "E-conomic er forbundet!" : "Forbindelsen kunne ikke gennemføres"}</div>
+                {connectResult.message && <div className="break-words opacity-90">{connectResult.message}</div>}
+              </div>
+            </div>
+          )}
+
+          <p className="text-center text-xs text-muted-foreground">
+            🔒 Du kan altid tilbagekalde adgangen i e-conomic under <strong>Indstillinger → Integrationer → Apps</strong>.
+          </p>
         </div>
-      )}
-
-      {connectResult && (
-        <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
-          connectResult.ok
-            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
-            : "border-destructive/30 bg-destructive/10 text-destructive"
-        }`}>
-          {connectResult.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
-          <div className="min-w-0">
-            <div className="font-medium">{connectResult.ok ? "E-conomic er forbundet!" : "Forbindelsen kunne ikke gennemføres"}</div>
-            {connectResult.message && <div className="break-words opacity-90">{connectResult.message}</div>}
-          </div>
-        </div>
-      )}
-
-      <p className="text-center text-xs text-muted-foreground">
-        Du kan altid tilbagekalde adgangen i e-conomic under Indstillinger → Integrationer → Apps.
-      </p>
+      </ConnectCardShell>
     </div>
   );
 });
 EconomicConnectCard.displayName = "EconomicConnectCard";
 
 /**
- * DineroConnectCard — ét-klik OAuth-flow, helt magen til e-conomic.
+ * DineroConnectCard — guidet API-nøgle-flow.
  *
- * Brugeren trykker "Forbind Dinero", sendes til Dinero's autorisationsside,
- * godkender Serviceydere på sin aftale, og kommer tilbage hertil. Ingen
- * koder eller felter at udfylde.
+ * Dinero har ikke offentlig OAuth, så vi bruger deres "API-nøgle" som
+ * Pro-kunder selv kan oprette i Dinero. Vi viser den eksakte step-by-step
+ * guide, og brugeren paster så Client ID + Secret + organisations-ID.
  */
 function DineroConnectCard({
+  apiToken,
+  apiSecret,
+  organizationId,
+  showSecret,
+  onToggleSecret,
+  onChange,
   onConnect,
-  connecting,
-  waiting,
-  connectResult,
+  status,
+  errorMessage,
 }: {
+  apiToken: string;
+  apiSecret: string;
+  organizationId: string;
+  showSecret: boolean;
+  onToggleSecret: () => void;
+  onChange: (field: "api_token" | "api_secret" | "organization_id", value: string) => void;
   onConnect: () => void;
-  connecting: boolean;
-  waiting: boolean;
-  connectResult: { ok: boolean; message?: string } | null;
+  status: "idle" | "checking" | "testing" | "saving" | "done" | "error";
+  errorMessage: string | null;
 }) {
+  const isWorking = status === "checking" || status === "testing" || status === "saving";
+  const statusLabel =
+    status === "checking" ? "Tjekker forbindelsen til Dinero…" :
+    status === "testing"  ? "Sender testdata til Dinero…" :
+    status === "saving"   ? "Sætter alt op for dig…" :
+    null;
+
+  const credsValid =
+    apiToken.trim().length > 0 &&
+    apiSecret.trim().length > 0 &&
+    organizationId.trim().length > 0;
+
+  if (status === "done") return <SuccessCard name="Dinero" />;
+
   return (
-    <div className="space-y-4">
-      <div className="rounded-xl border border-border bg-secondary/20 p-4">
-        <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground text-background">
-            <Plug className="h-5 w-5" />
+    <ConnectCardShell logo={dineroLogo} name="Dinero" tagline="Opret en API-nøgle i Dinero — under 1 minut" requiresBadge="Kræver Pro">
+      <div className="space-y-5">
+        <div className="rounded-xl border border-border bg-secondary/30 p-4">
+          <div className="mb-2 text-sm font-semibold text-foreground">
+            Sådan opretter du en API-nøgle til integrationer
           </div>
-          <div className="min-w-0">
-            <div className="font-semibold text-foreground">Forbind Dinero på 30 sekunder</div>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Du sendes til Dinero, godkender Serviceydere på din aftale, og kommer tilbage hertil. Ingen koder eller felter at udfylde.
+          <ol className="space-y-2">
+            <GuideStep n={1}>Log ind i <strong>Dinero</strong>.</GuideStep>
+            <GuideStep n={2}>Klik på <strong>Integrationer</strong> i menuen til venstre.</GuideStep>
+            <GuideStep n={3}>Klik på <strong>Se og opret API-nøgler</strong> i øverste venstre hjørne.</GuideStep>
+            <GuideStep n={4}>Klik på <strong>Opret ny API-nøgle</strong>.</GuideStep>
+            <GuideStep n={5}>Giv API-nøglen et navn (fx "Serviceydere"), så du kan genkende den.</GuideStep>
+            <GuideStep n={6}>Kopiér <strong>API-nøglen</strong> når den er genereret — den skal bruges nedenfor.</GuideStep>
+          </ol>
+          <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-900 dark:text-amber-200">
+            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span><strong>OBS:</strong> API-nøgler er kun tilgængelige for <strong>Dinero Pro</strong>-brugere.</span>
+          </div>
+        </div>
+
+        <Button asChild variant="outline" size="lg" className="w-full">
+          <a href="https://app.dinero.dk/" target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Åbn Dinero i nyt vindue
+          </a>
+        </Button>
+
+        <div className="space-y-3">
+          <div>
+            <FieldLabel>Client ID (API-nøgle)</FieldLabel>
+            <Input
+              type="text"
+              value={apiToken}
+              onChange={(e) => onChange("api_token", e.target.value)}
+              placeholder="Indsæt Client ID fra Dinero"
+              autoComplete="off"
+              disabled={isWorking}
+              className="h-11"
+            />
+          </div>
+          <div>
+            <FieldLabel>Client Secret</FieldLabel>
+            <div className="relative">
+              <Input
+                type={showSecret ? "text" : "password"}
+                value={apiSecret}
+                onChange={(e) => onChange("api_secret", e.target.value)}
+                placeholder="Indsæt Client Secret"
+                autoComplete="off"
+                disabled={isWorking}
+                className="h-11 pr-10"
+              />
+              <button
+                type="button"
+                onClick={onToggleSecret}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                aria-label={showSecret ? "Skjul" : "Vis"}
+              >
+                {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">Secret vises kun én gang ved oprettelse i Dinero — kopiér den med det samme.</p>
+          </div>
+          <div>
+            <FieldLabel>Organisations-ID</FieldLabel>
+            <Input
+              type="text"
+              value={organizationId}
+              onChange={(e) => onChange("organization_id", e.target.value)}
+              placeholder="fx 198765"
+              autoComplete="off"
+              disabled={isWorking}
+              className="h-11"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Det 6-cifrede tal i adresselinjen efter <code>app.dinero.dk/</code>.
             </p>
           </div>
         </div>
-      </div>
 
-      <div className="grid gap-2 rounded-lg border border-border bg-card p-3 text-sm">
-        <div className="flex gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">1</span>
-          <span className="pt-0.5 text-muted-foreground">Tryk på den blå knap forneden — der åbner et nyt vindue med Dinero.</span>
-        </div>
-        <div className="flex gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">2</span>
-          <span className="pt-0.5 text-muted-foreground">Log ind i Dinero og vælg den virksomhed, du vil forbinde Serviceydere med.</span>
-        </div>
-        <div className="flex gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">3</span>
-          <span className="pt-0.5 text-muted-foreground">Tryk "Tildel adgang" — så sendes du tilbage hertil og er klar.</span>
-        </div>
-      </div>
+        <Button onClick={onConnect} disabled={!credsValid || isWorking} size="lg" className="w-full">
+          {isWorking
+            ? <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            : <Plug className="mr-2 h-5 w-5" />}
+          {isWorking ? "Forbinder…" : "Forbind Dinero"}
+        </Button>
 
-      <Button onClick={onConnect} disabled={connecting} className="w-full">
-        {connecting
-          ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          : <ExternalLink className="mr-2 h-4 w-4" />}
-        {connecting ? "Forbinder…" : "Forbind Dinero"}
-      </Button>
-
-      {waiting && !connectResult?.ok && (
-        <div className="flex items-start gap-2 rounded-lg border border-border bg-secondary/40 p-3 text-sm text-foreground">
-          <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
-          <div className="min-w-0">
-            <div className="font-medium">Venter på godkendelse i Dinero…</div>
-            <div className="opacity-80 text-xs mt-0.5">Et nyt vindue er åbnet. Log ind, vælg din virksomhed og tryk "Tildel adgang" — så kommer du tilbage hertil automatisk.</div>
+        {isWorking && statusLabel && (
+          <div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-secondary/40 py-3 text-sm font-medium text-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {statusLabel}
           </div>
-        </div>
-      )}
+        )}
 
-      {connectResult && (
-        <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
-          connectResult.ok
-            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
-            : "border-destructive/30 bg-destructive/10 text-destructive"
-        }`}>
-          {connectResult.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
-          <div className="min-w-0">
-            <div className="font-medium">{connectResult.ok ? "Dinero er forbundet!" : "Forbindelsen kunne ikke gennemføres"}</div>
-            {connectResult.message && <div className="break-words opacity-90">{connectResult.message}</div>}
+        {status === "error" && errorMessage && (
+          <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="min-w-0">
+              <div className="font-medium">Det virkede desværre ikke</div>
+              <div className="mt-0.5 break-words opacity-90">{errorMessage}</div>
+              <div className="mt-1.5 text-xs opacity-80">Tjek at alle tre felter er udfyldt korrekt — eller opret en ny API-nøgle i Dinero.</div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <p className="text-center text-xs text-muted-foreground">
-        Du kan altid tilbagekalde adgangen i Dinero under Indstillinger → Integrationer.
-      </p>
-    </div>
+        <p className="text-center text-xs text-muted-foreground">
+          🔒 Vi gemmer kun det vi har brug for, og du kan altid slette nøglen igen i Dinero.
+        </p>
+      </div>
+    </ConnectCardShell>
   );
 }
 
