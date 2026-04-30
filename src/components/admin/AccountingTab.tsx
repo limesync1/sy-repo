@@ -2101,7 +2101,18 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           variant="ghost"
           onClick={() => {
             if (step === 1) setMode("overview");
-            else setStep((step - 1) as 1 | 2 | 3);
+            else {
+              // Når brugeren går tilbage fra step 2 til programvalg skal vi
+              // nulstille al provider-specifik state så de kan vælge frit
+              // og klikke på et andet kort uden at det "bugger".
+              setStep(1);
+              setCreds({});
+              setTestResult(null);
+              setBillyStatus("idle");
+              setBillyError(null);
+              setEconomicConnecting(false);
+              setEconomicWaiting(false);
+            }
           }}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
