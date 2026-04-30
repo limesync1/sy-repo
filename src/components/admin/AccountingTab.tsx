@@ -383,6 +383,83 @@ function BillyConnectCard({
   );
 }
 
+/**
+ * EconomicConnectCard — guidet OAuth-lignende flow for e-conomic.
+ *
+ * E-conomic kræver at brugeren godkender "Serviceydere"-app'en på sin
+ * aftale via deres egen secure-portal. Når brugeren har godkendt,
+ * sender e-conomic dem tilbage til /virksomhed?economicToken=XXX, hvor
+ * vi opfanger tokenet og gemmer det krypteret. Brugeren ser aldrig
+ * App Secret eller Agreement Grant Token.
+ */
+function EconomicConnectCard({
+  onConnect,
+  connecting,
+  connectResult,
+}: {
+  onConnect: () => void;
+  connecting: boolean;
+  connectResult: { ok: boolean; message?: string } | null;
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border bg-secondary/20 p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground text-background">
+            <Plug className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="font-semibold text-foreground">Forbind e-conomic på 30 sekunder</div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Du sendes til e-conomic, godkender Serviceydere-app'en på din aftale, og kommer tilbage hertil. Ingen tokens at kopiere — vi klarer det hele.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-2 rounded-lg border border-border bg-card p-3 text-sm">
+        <div className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">1</span>
+          <span className="pt-0.5 text-muted-foreground">Tryk på den blå knap forneden — der åbner et nyt vindue med e-conomic.</span>
+        </div>
+        <div className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">2</span>
+          <span className="pt-0.5 text-muted-foreground">Log ind i e-conomic og vælg den aftale, du vil forbinde Serviceydere med.</span>
+        </div>
+        <div className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">3</span>
+          <span className="pt-0.5 text-muted-foreground">Tryk "Tildel adgang" — så sendes du tilbage hertil og er klar.</span>
+        </div>
+      </div>
+
+      <Button onClick={onConnect} disabled={connecting} className="w-full">
+        {connecting
+          ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          : <ExternalLink className="mr-2 h-4 w-4" />}
+        {connecting ? "Forbinder…" : "Forbind e-conomic"}
+      </Button>
+
+      {connectResult && (
+        <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
+          connectResult.ok
+            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
+            : "border-destructive/30 bg-destructive/10 text-destructive"
+        }`}>
+          {connectResult.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
+          <div className="min-w-0">
+            <div className="font-medium">{connectResult.ok ? "E-conomic er forbundet!" : "Forbindelsen kunne ikke gennemføres"}</div>
+            {connectResult.message && <div className="break-words opacity-90">{connectResult.message}</div>}
+          </div>
+        </div>
+      )}
+
+      <p className="text-center text-xs text-muted-foreground">
+        Du kan altid tilbagekalde adgangen i e-conomic under Indstillinger → Integrationer → Apps.
+      </p>
+    </div>
+  );
+}
+
 export default function AccountingTab({ businessId }: { businessId: string; businessName: string }) {
   const [integration, setIntegration] = useState<Integration | null>(null);
   const [mode, setMode] = useState<Mode>("overview");
