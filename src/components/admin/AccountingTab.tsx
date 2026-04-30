@@ -409,9 +409,10 @@ const EconomicConnectCard = React.forwardRef<
   {
     onConnect: () => void;
     connecting: boolean;
+    waiting: boolean;
     connectResult: { ok: boolean; message?: string } | null;
   }
->(({ onConnect, connecting, connectResult }, ref) => {
+>(({ onConnect, connecting, waiting, connectResult }, ref) => {
   return (
     <div ref={ref} className="space-y-4">
       <div className="rounded-xl border border-border bg-secondary/20 p-4">
@@ -449,6 +450,16 @@ const EconomicConnectCard = React.forwardRef<
           : <ExternalLink className="mr-2 h-4 w-4" />}
         {connecting ? "Forbinder…" : "Forbind e-conomic"}
       </Button>
+
+      {waiting && !connectResult?.ok && (
+        <div className="flex items-start gap-2 rounded-lg border border-border bg-secondary/40 p-3 text-sm text-foreground">
+          <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
+          <div className="min-w-0">
+            <div className="font-medium">Venter på godkendelse i e-conomic…</div>
+            <div className="opacity-80 text-xs mt-0.5">Et nyt vindue er åbnet. Log ind, vælg din aftale og tryk "Tildel adgang" — så kommer du tilbage hertil automatisk.</div>
+          </div>
+        </div>
+      )}
 
       {connectResult && (
         <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
