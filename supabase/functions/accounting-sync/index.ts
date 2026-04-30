@@ -535,7 +535,31 @@ async function drainQueue(admin: SupabaseClient, integ: Integration, adapter: Ac
   if (!jobs || jobs.length === 0) return 0;
 
   let processed = 0;
+  // Cirkuit-bryder: hvis udbyderen (Billy/Dinero/e-conomic) er nede,
+  // stopper vi resten af kørslen i stedet for at hamre løs på 50 jobs
+  // og logge 50 identiske fejl. Re-prøves automatisk ved næste kick.
+  let providerDown = false;
+  // Lokal cache i denne kørsel: hvis et bestemt customer/product allerede
+  // er fejlet, springer vi det over for resten af kørslen så vi ikke
+  // kalder Billy 10 gange for samme kunde/produkt.
+  const failedThisRun = new Set<string>();
   for (const job of jobs) {
+    if (providerDown) {
+      // Re-skemalér resten uden at kalde provideren igen
+      await admin.from("accounting_sync_queue").update({
+        status: "pending",
+        scheduled_for: new Date(Date.now() + 5 * 60_000).toISOString(),
+      }).eq("id", job.id);
+      continue;
+    }
+    const dedupeKey = `${job.entity_type}:${job.entity_id}`;
+    if (failedThisRun.has(dedupeKey)) {
+      await admin.from("accounting_sync_queue").update({
+        status: "pending",
+        scheduled_for: new Date(Date.now() + 5 * 60_000).toISOString(),
+      }).eq("id", job.id);
+      continue;
+    }
     await admin.from("accounting_sync_queue").update({ status: "processing", attempts: job.attempts + 1 }).eq("id", job.id);
     try {
       if (job.entity_type === "customer") await pushCustomer(admin, integ, adapter, job.entity_id);
@@ -547,17 +571,35 @@ async function drainQueue(admin: SupabaseClient, integ: Integration, adapter: Ac
       processed++;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
+      const isProviderDown = /svarer ikke|503|502|504|timeout|ECONNRESET|rate.?limit|429/i.test(msg);
+      if (isProviderDown) providerDown = true;
+      failedThisRun.add(dedupeKey);
       const failedFinal = job.attempts + 1 >= 5;
+      // Backoff: provider-fejl venter længere så vi ikke spammer
+      const backoffMs = isProviderDown
+        ? Math.min(15 * 60_000, 5 * 60_000 * (job.attempts + 1)) // 5,10,15,15,15 min
+        : Math.min(60_000 * (job.attempts + 1), 600_000);
       await admin.from("accounting_sync_queue").update({
         status: failedFinal ? "failed" : "pending",
         last_error: msg,
-        scheduled_for: new Date(Date.now() + Math.min(60_000 * (job.attempts + 1), 600_000)).toISOString(),
+        scheduled_for: new Date(Date.now() + backoffMs).toISOString(),
       }).eq("id", job.id);
-      await logSync(admin, {
-        business_id: integ.business_id, provider: integ.provider,
-        direction: "push", entity_type: job.entity_type, entity_id: job.entity_id,
-        status: "error", message: msg,
-      });
+      // Log kun én fejl pr. (entity, message) pr. dag for at undgå spam
+      const { count: existingCount } = await admin.from("accounting_sync_log")
+        .select("*", { count: "exact", head: true })
+        .eq("business_id", integ.business_id)
+        .eq("entity_type", job.entity_type)
+        .eq("entity_id", job.entity_id)
+        .eq("status", "error")
+        .eq("message", msg)
+        .gte("created_at", new Date(Date.now() - 24 * 60 * 60_000).toISOString());
+      if (!existingCount || existingCount === 0) {
+        await logSync(admin, {
+          business_id: integ.business_id, provider: integ.provider,
+          direction: "push", entity_type: job.entity_type, entity_id: job.entity_id,
+          status: "error", message: msg,
+        });
+      }
     }
   }
   if (processed > 0) {
