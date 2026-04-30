@@ -449,10 +449,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const [confirmDisable, setConfirmDisable] = useState(false);
   const [confirmSwitch, setConfirmSwitch] = useState(false);
   const [retryingJobId, setRetryingJobId] = useState<string | null>(null);
-  // Billy: hvis ét-klik-flowet fejler kan brugeren falde tilbage til at
-  // indsætte token manuelt. Når sand → vis de gamle token-felter.
-  const [billyManualMode, setBillyManualMode] = useState(false);
-
   // Auto-save status: vises diskret i sektion-headeren så brugeren altid
   // kan se om hans ændring er nået sikkert frem.
   const [autoSaveState, setAutoSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -596,7 +592,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     if (preselect) setProvider(preselect);
     setStep(1);
     setTestResult(null);
-    setBillyManualMode(false);
     setMode("wizard");
   };
 
