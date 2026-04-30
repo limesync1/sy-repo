@@ -1441,7 +1441,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 <button
                   key={p.value}
                   type="button"
-                  onClick={() => { setProvider(p.value); setCreds({}); setTestResult(null); setBillyManualMode(false); }}
+                  onClick={() => { setProvider(p.value); setCreds({}); setTestResult(null); }}
                   className={`group flex flex-col rounded-xl border p-4 text-left transition-colors ${
                     selected
                       ? "border-foreground bg-secondary/40 ring-2 ring-foreground/10"
@@ -1507,109 +1507,67 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </SectionCard>
 
           <SectionCard
-            title="Indtast dine login-oplysninger"
+            title={provider === "billy" ? "Forbind Billy" : "Indtast dine login-oplysninger"}
             icon={<ShieldCheck />}
-            description="Dine oplysninger gemmes sikkert og krypteret. De bruges kun til at sende og hente data fra dit regnskabsprogram."
+            description={provider === "billy" ? "Brug en adgangsnøgle fra Billy — ikke din adgangskode." : "Dine oplysninger gemmes sikkert og krypteret. De bruges kun til at sende og hente data fra dit regnskabsprogram."}
           >
             <div className="space-y-4">
-              {provider === "billy" && !billyManualMode ? (
+              {provider === "billy" ? (
                 <BillyConnectCard
-                  businessId={businessId}
+                  token={creds.api_token ?? ""}
+                  onTokenChange={(value) => { setCreds({ ...creds, api_token: value }); setTestResult(null); }}
+                  reveal={!!showSecret.api_token}
+                  onToggleReveal={() => setShowSecret(s => ({ ...s, api_token: !s.api_token }))}
+                  onTest={handleTest}
+                  testing={testing}
                   alreadyConnected={!!creds.api_token && !!testResult?.ok}
-                  onFallbackToManual={() => setBillyManualMode(true)}
-                  onConnected={async ({ api_token, organization_id }) => {
-                    // Gem tokenet i creds — så bruger Save/Test præcis det samme
-                    // flow som hvis det var indsat manuelt.
-                    const nextCreds = {
-                      ...creds,
-                      api_token,
-                      organization_id,
-                    };
-                    setCreds(nextCreds);
-                    setTestResult(null);
-                    // Test forbindelsen automatisk så brugeren med det samme
-                    // kan trykke Næste.
-                    setTesting(true);
-                    try {
-                      const { data, error } = await supabase.functions.invoke(
-                        "accounting-test-connection",
-                        {
-                          body: {
-                            business_id: businessId,
-                            provider: "billy",
-                            ...nextCreds,
-                            settings,
-                          },
-                        },
-                      );
-                      if (error) throw error;
-                      setTestResult(data as any);
-                    } catch (e: any) {
-                      setTestResult({ ok: false, message: e?.message ?? "Kunne ikke teste forbindelse" });
-                    } finally {
-                      setTesting(false);
-                    }
-                  }}
+                  testResult={testResult}
                 />
-              ) : currentProvider.fields.map(f => {
-                const isPwd = f.type === "password";
-                const reveal = !!showSecret[f.key];
-                return (
-                  <div key={f.key}>
-                    <FieldLabel>{f.label}</FieldLabel>
-                    <div className="relative">
-                      <Input
-                        type={isPwd && !reveal ? "password" : "text"}
-                        value={creds[f.key] ?? ""}
-                        onChange={e => { setCreds({ ...creds, [f.key]: e.target.value }); setTestResult(null); }}
-                        placeholder={f.placeholder}
-                        autoComplete="off"
-                        className={isPwd ? "pr-10" : undefined}
-                      />
-                      {isPwd && (
-                        <button
-                          type="button"
-                          onClick={() => setShowSecret(s => ({ ...s, [f.key]: !s[f.key] }))}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                          aria-label={reveal ? "Skjul" : "Vis"}
-                        >
-                          {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      )}
+              ) : (
+                <>
+                  {currentProvider.fields.map(f => {
+                    const isPwd = f.type === "password";
+                    const reveal = !!showSecret[f.key];
+                    return (
+                      <div key={f.key}>
+                        <FieldLabel>{f.label}</FieldLabel>
+                        <div className="relative">
+                          <Input
+                            type={isPwd && !reveal ? "password" : "text"}
+                            value={creds[f.key] ?? ""}
+                            onChange={e => { setCreds({ ...creds, [f.key]: e.target.value }); setTestResult(null); }}
+                            placeholder={f.placeholder}
+                            autoComplete="off"
+                            className={isPwd ? "pr-10" : undefined}
+                          />
+                          {isPwd && (
+                            <button
+                              type="button"
+                              onClick={() => setShowSecret(s => ({ ...s, [f.key]: !s[f.key] }))}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                              aria-label={reveal ? "Skjul" : "Vis"}
+                            >
+                              {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                          )}
+                        </div>
+                        {f.help && <p className="mt-1.5 text-xs text-muted-foreground">{f.help}</p>}
+                      </div>
+                    );
+                  })}
+                  {testResult && (
+                    <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
+                      testResult.ok
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
+                        : "border-destructive/30 bg-destructive/10 text-destructive"
+                    }`}>
+                      {testResult.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
+                      <div className="min-w-0">
+                        <div className="font-medium">{testResult.ok ? "Forbindelsen virker — du er klar!" : "Forbindelsen fejlede"}</div>
+                        {testResult.message && <div className="opacity-90 break-words">{testResult.message}</div>}
+                      </div>
                     </div>
-                    {f.help && <p className="mt-1.5 text-xs text-muted-foreground">{f.help}</p>}
-                  </div>
-                );
-              })}
-
-              {/* Hvis brugeren er i manuel Billy-tilstand kan han altid skifte tilbage */}
-              {provider === "billy" && billyManualMode && (
-                <button
-                  type="button"
-                  onClick={() => { setBillyManualMode(false); setCreds({}); setTestResult(null); }}
-                  className="text-xs text-muted-foreground underline-offset-4 hover:underline"
-                >
-                  ← Forbind med email + adgangskode i stedet
-                </button>
-              )}
-
-              {testResult && (
-                <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
-                  testResult.ok
-                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
-                    : "border-destructive/30 bg-destructive/10 text-destructive"
-                }`}>
-                  {testResult.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
-                  <div className="min-w-0">
-                    <div className="font-medium">{testResult.ok ? "Forbindelsen virker — du er klar!" : "Forbindelsen fejlede"}</div>
-                    {testResult.message && <div className="opacity-90 break-words">{testResult.message}</div>}
-                  </div>
-                </div>
-              )}
-
-              {/* Vis kun "Test forbindelse"-knappen i manuelle flows.
-                  Billy-én-klik tester automatisk efter forbindelsen. */}
-              {!(provider === "billy" && !billyManualMode) && (
+                  )}
                 <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-xs text-muted-foreground">
                     {credsValid ? "Tryk 'Test forbindelse' for at tjekke at det virker." : "Udfyld alle felter for at fortsætte."}
@@ -1625,6 +1583,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     {testResult?.ok ? "Test igen" : "Test forbindelse"}
                   </Button>
                 </div>
+                </>
               )}
             </div>
           </SectionCard>
