@@ -1148,6 +1148,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                                 {o.is_paused
                                   ? <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-amber-300 text-amber-700 bg-amber-50">På pause</Badge>
                                   : <StatusBadge status={o.status} />}
+                                <PaymentBadge status={o.payment_status} syncedAt={o.payment_status_synced_at} />
                                 <span className="text-sm font-bold text-foreground tabular-nums">{fmtKr(o.total_amount)}</span>
                               </div>
                             </div>
