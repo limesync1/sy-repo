@@ -633,7 +633,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     <div className="space-y-4">
       <PageHeader
         title="Kunder"
-        description="Her kan du se alle dine kunder samlet ét sted — privat og erhverv, deres aftaler, abonnementer, betalinger og rutehistorik. Klik på en kunde for at se alt om dem."
+        description="Her er alle jeres kunder samlet ét sted — både privat og erhverv. Klik på en kunde for at se aftaler, abonnementer, betalinger og rutehistorik."
         action={
           <PrimaryButton onClick={openCreateDialog} icon={<UserPlus />}>
             Tilføj kunde
