@@ -505,6 +505,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     note?: string;
     error?: string;
   } | null>(null);
+  // Billy paste-and-go: én samlet status fra "indsat" til "færdig opsat".
+  const [billyStatus, setBillyStatus] = useState<
+    "idle" | "checking" | "testing" | "saving" | "done" | "error"
+  >("idle");
+  const [billyError, setBillyError] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [queueCount, setQueueCount] = useState(0);
