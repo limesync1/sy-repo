@@ -967,16 +967,15 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
     sessionStorage.removeItem("economic_pending_business_id");
     // Ryd tokenet ud af URL'en så det ikke ligger og lurer
-    const cleanUrl = new URL(window.location.href);
-    cleanUrl.searchParams.delete("economicToken");
-    cleanUrl.searchParams.delete("token");
-    cleanUrl.searchParams.set("tab", "accounting");
-    window.history.replaceState({}, "", cleanUrl.toString());
+    // Brug react-router-navigate så Admin.tsx faktisk skifter til accounting-fanen
+    // (replaceState alene opdaterer ikke React Router's location).
+    navigate("/virksomhed?tab=accounting", { replace: true });
 
     setProvider("economic");
     setMode("wizard");
     setStep(2);
     setEconomicConnecting(true);
+    setEconomicWaiting(false);
     (async () => {
       try {
         const { data, error } = await supabase.functions.invoke(
@@ -992,7 +991,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         });
         toast.success("E-conomic er nu forbundet!");
         await load();
-        setStep(3);
+        // Spring direkte til oversigten med aktiv integration — ingen unødigt step 3.
+        setMode("overview");
       } catch (e: any) {
         const msg = e?.message ?? "Kunne ikke gemme e-conomic-forbindelsen";
         setTestResult({ ok: false, message: msg });
