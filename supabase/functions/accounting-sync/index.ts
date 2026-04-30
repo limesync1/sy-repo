@@ -827,6 +827,8 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
 async function ensureCustomerLink(admin: SupabaseClient, integ: Integration, adapter: AccountingAdapter, order: any): Promise<string | null> {
   // Look for existing customer in Serviceydere by email
   if (!order.customer_email) return null;
+  const email = String(order.customer_email).trim().toLowerCase();
+  if (!email) return null;
 
   // Find existing internal customer
   const isCompany = !!order.cvr;
@@ -835,31 +837,43 @@ async function ensureCustomerLink(admin: SupabaseClient, integ: Integration, ada
 
   if (isCompany) {
     const { data } = await admin.from("business_customers").select("id")
-      .eq("business_id", integ.business_id).or(`cvr.eq.${order.cvr},email.eq.${order.customer_email}`).maybeSingle();
+      .eq("business_id", integ.business_id).or(`cvr.eq.${order.cvr},email.eq.${email}`).limit(1).maybeSingle();
     internalId = data?.id ?? null;
   } else {
     const { data } = await admin.from("private_customers").select("id")
-      .eq("business_id", integ.business_id).eq("email", order.customer_email).maybeSingle();
+      .eq("business_id", integ.business_id).eq("email", email).limit(1).maybeSingle();
     internalId = data?.id ?? null;
   }
 
-  // Create internal record if missing (so future updates flow correctly)
+  // Create internal record if missing — men gør det idempotent: tjek én gang
+  // mere lige før insert for at undgå race med samtidige order-pushes.
   if (!internalId) {
     if (isCompany) {
+      const { data: dup } = await admin.from("business_customers").select("id")
+        .eq("business_id", integ.business_id)
+        .or(`cvr.eq.${order.cvr},email.eq.${email}`).limit(1).maybeSingle();
+      if (dup) { internalId = dup.id; }
+      else {
       const { data } = await admin.from("business_customers").insert({
         business_id: integ.business_id,
         company_name: order.company_name ?? order.customer_name,
-        email: order.customer_email, phone: order.customer_phone, cvr: order.cvr,
+        email, phone: order.customer_phone, cvr: order.cvr,
         address: order.address, zip_code: order.zip_code, city: order.city,
       }).select("id").single();
       internalId = data?.id ?? null;
+      }
     } else {
+      const { data: dup } = await admin.from("private_customers").select("id")
+        .eq("business_id", integ.business_id).eq("email", email).limit(1).maybeSingle();
+      if (dup) { internalId = dup.id; }
+      else {
       const { data } = await admin.from("private_customers").insert({
         business_id: integ.business_id, name: order.customer_name,
-        email: order.customer_email, phone: order.customer_phone,
+        email, phone: order.customer_phone,
         address: order.address, zip_code: order.zip_code, city: order.city,
       }).select("id").single();
       internalId = data?.id ?? null;
+      }
     }
   }
   if (!internalId) return null;
