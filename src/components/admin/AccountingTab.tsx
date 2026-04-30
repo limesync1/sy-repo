@@ -1983,6 +1983,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 <EconomicConnectCard
                   onConnect={handleEconomicConnect}
                   connecting={economicConnecting}
+                  waiting={economicWaiting}
                   connectResult={testResult}
                 />
               ) : (
