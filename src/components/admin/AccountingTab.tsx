@@ -234,6 +234,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const [logs, setLogs] = useState<any[]>([]);
   const [queueCount, setQueueCount] = useState(0);
   const [failedJobs, setFailedJobs] = useState<any[]>([]);
+  const [dlqJobs, setDlqJobs] = useState<any[]>([]);
+  const [dlqActionId, setDlqActionId] = useState<string | null>(null);
   const [pushedLast24h, setPushedLast24h] = useState(0);
   const [pulledLast24h, setPulledLast24h] = useState(0);
   const [lastSuccessPush, setLastSuccessPush] = useState<string | null>(null);
@@ -303,6 +305,15 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       .order("updated_at", { ascending: false })
       .limit(20);
     setFailedJobs((failed as any) ?? []);
+
+    // DLQ: jobs der har givet op efter 5 forsøg
+    const { data: dlq } = await supabase.from("accounting_sync_dlq" as any)
+      .select("*")
+      .eq("business_id", businessId)
+      .eq("resolved", false)
+      .order("moved_to_dlq_at", { ascending: false })
+      .limit(50);
+    setDlqJobs((dlq as any) ?? []);
 
     // Tællere for sidste 24 timer (push/pull) — viser i status-grid
     const since24 = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -498,6 +509,31 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     } catch (e: any) {
       toast.error(e.message ?? "Kunne ikke prøve igen");
     } finally { setSyncing(false); }
+  };
+
+  // DLQ-handlers: retry sender jobbet tilbage i køen, dismiss arkiverer det
+  const handleDlqRetry = async (dlqId: string) => {
+    setDlqActionId(dlqId);
+    try {
+      const { error } = await supabase.rpc("retry_dlq_job" as any, { _dlq_id: dlqId });
+      if (error) throw error;
+      toast.success("Job sendt tilbage i køen");
+      await load();
+    } catch (e: any) {
+      toast.error(e.message ?? "Kunne ikke prøve igen");
+    } finally { setDlqActionId(null); }
+  };
+
+  const handleDlqDismiss = async (dlqId: string) => {
+    setDlqActionId(dlqId);
+    try {
+      const { error } = await supabase.rpc("dismiss_dlq_job" as any, { _dlq_id: dlqId, _note: "Markeret som håndteret" });
+      if (error) throw error;
+      toast.success("Markeret som håndteret");
+      await load();
+    } catch (e: any) {
+      toast.error(e.message ?? "Kunne ikke opdatere");
+    } finally { setDlqActionId(null); }
   };
 
   async function runFullSync(bizId: string) {
@@ -760,6 +796,68 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       : <RotateCw className="mr-1.5 h-3.5 w-3.5" />}
                     Prøv igen
                   </Button>
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+        )}
+
+        {/* Fejl-indbakke (DLQ) — jobs der gav op efter 5 forsøg.
+            Forhindrer at køen bliver "forurenet" af håbløse jobs samtidig med at
+            ejeren får en handlingsklar liste over hvad der kræver manuel opmærksomhed. */}
+        {dlqJobs.length > 0 && (
+          <SectionCard
+            title="Fejl-indbakke"
+            icon={<AlertTriangle />}
+            description="Disse jobs blev parkeret efter 5 mislykkede forsøg. Ret problemet i regnskabsprogrammet og prøv igen — eller marker som håndteret hvis du har bogført det manuelt."
+          >
+            <div className="divide-y divide-border">
+              {dlqJobs.map(job => (
+                <div key={job.id} className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-start">
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline" className="gap-1 shrink-0 border-destructive/30 text-destructive">
+                        <AlertCircle className="h-3 w-3" />
+                        {ENTITY_LABEL[job.entity_type] ?? job.entity_type}
+                      </Badge>
+                      <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                        {job.operation} · parkeret {formatRelativeDanish(job.moved_to_dlq_at)}
+                      </span>
+                    </div>
+                    <div className="break-words rounded-md border border-destructive/20 bg-destructive/5 px-2.5 py-1.5 text-xs text-destructive">
+                      {job.last_error || "Ukendt fejl"}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { navigator.clipboard.writeText(job.entity_id); toast.success("ID kopieret"); }}
+                      className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+                      title="Klik for at kopiere"
+                    >
+                      <Copy className="h-3 w-3" />
+                      {job.entity_id}
+                    </button>
+                  </div>
+                  <div className="flex gap-2 sm:flex-col">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleDlqRetry(job.id)}
+                      disabled={dlqActionId === job.id}
+                      className="h-9 rounded-lg text-xs font-medium"
+                    >
+                      {dlqActionId === job.id
+                        ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                        : <RotateCw className="mr-1.5 h-3.5 w-3.5" />}
+                      Prøv igen
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleDlqDismiss(job.id)}
+                      disabled={dlqActionId === job.id}
+                      className="h-9 rounded-lg text-xs font-medium text-muted-foreground"
+                    >
+                      Håndteret
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
