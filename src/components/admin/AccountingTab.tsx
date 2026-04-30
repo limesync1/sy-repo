@@ -2068,36 +2068,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         }
       />
 
-      {/* Stepper — kun for Dinero (manuel flerfelt-flow) */}
-      {provider === "dinero" && (
-      <SectionCard className="bg-secondary/30">
-        <div className="flex items-center gap-2">
-          {stepsMeta.map((s, idx) => {
-            const active = step === s.n;
-            const done = step > s.n;
-            const Icon = s.icon;
-            return (
-              <div key={s.n} className="flex flex-1 items-center gap-2">
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors ${
-                  done ? "bg-foreground text-background border-foreground"
-                  : active ? "border-foreground bg-background text-foreground"
-                  : "border-border bg-background text-muted-foreground"
-                }`}>
-                  {done ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-                </div>
-                <div className={`hidden text-sm sm:block ${active ? "font-medium text-foreground" : "text-muted-foreground"}`}>
-                  Trin {s.n} · {s.label}
-                </div>
-                {idx < stepsMeta.length - 1 && (
-                  <div className={`mx-1 h-px flex-1 ${done ? "bg-foreground" : "bg-border"}`} />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </SectionCard>
-      )}
-
       {/* TRIN 1 */}
       {step === 1 && (
         <SectionCard
