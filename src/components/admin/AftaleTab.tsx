@@ -1443,7 +1443,9 @@ const AftaleTab = ({
                                 : daysUntilNext <= 3
                                 ? "border-amber-300/50 bg-amber-50 text-amber-700"
                                 : "border-border bg-secondary/60 text-foreground"
-                            }`}>
+                            }`}
+                            title="Når dagen er nået oprettes ordren automatisk kl. 06:00 og sendes til dit regnskabsprogram."
+                            >
                               <CalendarClock className="h-3.5 w-3.5" />
                               <span className="opacity-80">Næste udførelse:</span>
                               <span className="font-semibold">
