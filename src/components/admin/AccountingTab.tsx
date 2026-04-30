@@ -377,6 +377,9 @@ function BillyConnectCard({
     status === "testing"  ? "Sender testdata til Billy…" :
     status === "saving"   ? "Sætter alt op for dig…" :
     null;
+  const shouldShowKeyHint = errorMessage
+    ? /nøgle|token|access|unauthorized|afviste/i.test(errorMessage)
+    : false;
 
   // Paste handler: når nøglen indsættes, start auto-flow med det samme.
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -432,7 +435,9 @@ function BillyConnectCard({
             <div className="min-w-0">
               <div className="font-medium">Det virkede desværre ikke</div>
               <div className="mt-0.5 break-words opacity-90">{errorMessage}</div>
-              <div className="mt-1.5 text-xs opacity-80">Tjek at hele nøglen blev kopieret med — eller opret en ny i Billy.</div>
+              {shouldShowKeyHint && (
+                <div className="mt-1.5 text-xs opacity-80">Tjek at hele nøglen blev kopieret med — eller opret en ny i Billy.</div>
+              )}
             </div>
           </div>
         )}
