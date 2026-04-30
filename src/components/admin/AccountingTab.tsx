@@ -1146,8 +1146,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   };
 
   const handleSwitchProvider = () => {
-    setCreds({});
-    setTestResult(null);
+    resetWizardState(true);
+    setProvider("economic");
+    setStep(1);
     startWizard();
   };
 
