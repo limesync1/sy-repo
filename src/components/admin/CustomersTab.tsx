@@ -16,6 +16,7 @@ import {
   User, Mail, Phone, MapPin, Package, Repeat, Calendar,
   Route as RouteIcon, Star, Clock, ChevronRight, ExternalLink, Pause,
   UserPlus, Building2, Pencil, Trash2, ShoppingBag, MoreHorizontal,
+  CreditCard, Contact as ContactIcon,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -63,6 +64,9 @@ type OrderRow = {
   zip_code: string | null;
   city: string | null;
   is_paused?: boolean;
+  payment_status?: string | null;
+  paid_at?: string | null;
+  payment_status_synced_at?: string | null;
   order_items: Array<{ service_name: string; quantity: number; total_price: number; details: any }>;
 };
 
@@ -264,7 +268,7 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
       const [ordersRes, subsRes] = await Promise.all([
         supabase
           .from("orders")
-          .select("id, status, total_amount, preferred_date, created_at, notes, address, zip_code, city, order_items(service_name, quantity, total_price, details)")
+          .select("id, status, total_amount, preferred_date, created_at, notes, address, zip_code, city, payment_status, paid_at, payment_status_synced_at, order_items(service_name, quantity, total_price, details)")
           .eq("business_id", businessId)
           .ilike("customer_email", email!)
           .order("created_at", { ascending: false }),
@@ -349,13 +353,13 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
 
 const StatusBadge = ({ status }: { status: string }) => {
   const map: Record<string, { label: string; dot: string }> = {
-    pending:     { label: "Afventer",   dot: "bg-amber-500" },
-    confirmed:   { label: "Bekræftet",  dot: "bg-blue-500" },
-    in_progress: { label: "I gang",     dot: "bg-violet-500" },
-    completed:   { label: "Udført",     dot: "bg-emerald-500" },
-    cancelled:   { label: "Annulleret", dot: "bg-destructive" },
-    active:      { label: "Aktiv",      dot: "bg-emerald-500" },
-    paused:      { label: "Pauset",     dot: "bg-amber-500" },
+    pending:     { label: "Afventer planlægning", dot: "bg-amber-500" },
+    confirmed:   { label: "Planlagt",             dot: "bg-blue-500" },
+    in_progress: { label: "Under udførelse",      dot: "bg-violet-500" },
+    completed:   { label: "Udført",               dot: "bg-emerald-500" },
+    cancelled:   { label: "Annulleret",           dot: "bg-destructive" },
+    active:      { label: "Aktiv",                dot: "bg-emerald-500" },
+    paused:      { label: "På pause",             dot: "bg-amber-500" },
   };
   const m = map[status] || { label: status, dot: "bg-muted-foreground/40" };
   return (
@@ -366,6 +370,76 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
+/** Betalingsstatus — hentes altid fra regnskabsprogrammet. */
+const PaymentBadge = ({ status, syncedAt }: { status?: string | null; syncedAt?: string | null }) => {
+  if (!status) return null;
+  const map: Record<string, { label: string; dot: string; help: string }> = {
+    unpaid:          { label: "Ikke betalt",     dot: "bg-muted-foreground/50", help: "Faktura er sendt, men endnu ikke betalt." },
+    sent:            { label: "Faktura sendt",   dot: "bg-blue-500",            help: "Faktura er sendt til kunden via dit regnskabsprogram." },
+    partially_paid:  { label: "Delvist betalt",  dot: "bg-amber-500",           help: "Kunden har betalt en del af fakturaen." },
+    paid:            { label: "Betalt",          dot: "bg-emerald-500",         help: "Fakturaen er fuldt betalt." },
+    overdue:         { label: "Forfalden",       dot: "bg-destructive",         help: "Betalingsfristen er overskredet." },
+    refunded:        { label: "Refunderet",      dot: "bg-muted-foreground/50", help: "Beløbet er ført tilbage til kunden." },
+    cancelled:       { label: "Annulleret",      dot: "bg-muted-foreground/50", help: "Fakturaen er annulleret." },
+  };
+  const m = map[status];
+  if (!m) return null;
+  const synced = syncedAt ? format(parseISO(syncedAt), "d. MMM yyyy HH:mm", { locale: da }) : null;
+  return (
+    <Badge
+      variant="outline"
+      className="text-[10px] h-5 px-1.5 gap-1 border-border bg-secondary text-foreground"
+      title={`${m.help}\nHentes automatisk fra dit regnskabsprogram hvert 15. minut.${synced ? `\nSidst opdateret: ${synced}.` : ""}`}
+    >
+      <CreditCard className="h-2.5 w-2.5" />
+      {m.label}
+    </Badge>
+  );
+};
+
+/** Samlet kundestatus i ét pille-element — fortæller hurtigt hvad slags kunde det er. */
+const CustomerStatusPill = ({ c }: { c: Customer }) => {
+  // Prioritet: aktive abonnementer > pausede > engangs-bestillinger > kun i kartotek
+  let label: string;
+  let dot: string;
+  let icon: React.ReactNode;
+  let help: string;
+
+  if (c.active_subs > 0) {
+    label = `Fast kunde · ${c.active_subs} aktiv${c.active_subs === 1 ? "" : "e"}`;
+    dot = "bg-emerald-500";
+    icon = <Repeat className="h-3 w-3" />;
+    help = "Kunden har én eller flere aktive abonnementer der kører automatisk.";
+  } else if (c.paused_subs > 0) {
+    label = `På pause · ${c.paused_subs} abonnement${c.paused_subs === 1 ? "" : "er"}`;
+    dot = "bg-amber-500";
+    icon = <Pause className="h-3 w-3" />;
+    help = "Kundens abonnementer er sat på pause og indgår ikke i ruteplanlægning.";
+  } else if (c.orders_count > 0) {
+    label = c.orders_count === 1 ? "Engangskunde" : `Tidligere kunde · ${c.orders_count} bestillinger`;
+    dot = "bg-blue-500";
+    icon = <Package className="h-3 w-3" />;
+    help = c.orders_count === 1
+      ? "Kunden har bestilt én gang."
+      : "Kunden har bestilt flere gange, men har ikke et fast abonnement.";
+  } else {
+    label = "Kun i kartotek";
+    dot = "bg-muted-foreground/40";
+    icon = <ContactIcon className="h-3 w-3" />;
+    help = "Du har gemt kunden i dit kartotek, men der er endnu ikke bestilt noget.";
+  }
+
+  return (
+    <span
+      title={help}
+      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0"
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+      {icon}
+      {label}
+    </span>
+  );
+};
 interface Props { businessId: string; businessName?: string }
 
 const CustomersTab = ({ businessId, businessName }: Props) => {
@@ -535,7 +609,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     <div className="space-y-4">
       <PageHeader
         title="Kunder"
-        description="Alle dine kunder, deres bestillinger, abonnementer og rutehistorik."
+        description="Her kan du se alle dine kunder samlet ét sted — privat og erhverv, deres bestillinger, abonnementer, betalinger og rutehistorik. Klik på en kunde for at se alt om dem."
         action={
           <PrimaryButton onClick={openCreateDialog} icon={<UserPlus />}>
             Tilføj kunde
@@ -550,18 +624,21 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
             <CardContent className="p-4">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kunder i alt</p>
               <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{stats.total}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">{stats.privateCount} privat · {stats.businessCount} erhverv</p>
             </CardContent>
           </Card>
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
             <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Med abonnement</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Faste kunder</p>
               <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{stats.recurring}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">Med mindst ét aktivt abonnement</p>
             </CardContent>
           </Card>
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
             <CardContent className="p-4">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Samlet omsætning</p>
               <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{fmtKr(stats.totalRev)}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">På tværs af alle bestillinger</p>
             </CardContent>
           </Card>
         </div>
@@ -710,23 +787,15 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                         )}
                         <span className="text-sm font-medium text-foreground truncate">{displayName}</span>
                         {typeLabel && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0">
+                          <span
+                            title={c.type === "business" ? "Erhvervskunde (firma med CVR)" : "Privatkunde"}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0"
+                          >
                             <span className={`h-1.5 w-1.5 rounded-full ${typeDot}`} />
                             {typeLabel}
                           </span>
                         )}
-                        {c.active_subs > 0 && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            {c.active_subs} abo.
-                          </span>
-                        )}
-                        {c.paused_subs > 0 && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0">
-                            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                            {c.paused_subs} pauseret
-                          </span>
-                        )}
+                        <CustomerStatusPill c={c} />
                       </div>
                       <div className="mt-0.5 text-xs text-muted-foreground truncate">
                         {metaParts.join(" · ") || "Ingen bestillinger endnu"}
@@ -886,7 +955,12 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                   )}
                   <div className="min-w-0 flex-1">
                     <h3 className="text-lg font-bold text-foreground truncate">{customer.name}</h3>
-                    <p className="text-xs text-muted-foreground font-normal">Kunde siden {fmtDate(customer.first_order_at)}</p>
+                    <p className="text-xs text-muted-foreground font-normal">
+                      {customer.first_order_at
+                        ? <>Kunde siden {fmtDate(customer.first_order_at)}</>
+                        : "Endnu ingen bestillinger"}
+                    </p>
+                    <div className="mt-2"><CustomerStatusPill c={customer} /></div>
                   </div>
                 </div>
               </SheetTitle>
@@ -1048,6 +1122,9 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                       <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                         <Package className="h-3.5 w-3.5" /> Bestillinger ({data.orders.length})
                       </h4>
+                      <p className="text-[11px] text-muted-foreground">
+                        Hver bestilling viser udførelsesstatus og betalingsstatus. Betalingsstatus hentes automatisk fra dit regnskabsprogram.
+                      </p>
                       <div className="space-y-2">
                         {data.orders.map(o => (
                           <div key={o.id} className="rounded-xl border border-border bg-card p-3 space-y-1.5">
@@ -1074,6 +1151,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                                 {o.is_paused
                                   ? <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-amber-300 text-amber-700 bg-amber-50">På pause</Badge>
                                   : <StatusBadge status={o.status} />}
+                                <PaymentBadge status={o.payment_status} syncedAt={o.payment_status_synced_at} />
                                 <span className="text-sm font-bold text-foreground tabular-nums">{fmtKr(o.total_amount)}</span>
                               </div>
                             </div>
