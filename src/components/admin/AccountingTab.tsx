@@ -680,6 +680,87 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     } finally { setTesting(false); }
   };
 
+  /**
+   * E-conomic-flow:
+   *  1) Brugeren trykker "Forbind e-conomic" — vi henter Installations URL'en
+   *     fra serveren og åbner den i et nyt vindue.
+   *  2) E-conomic redirecter brugeren tilbage til /virksomhed?economicToken=XXX
+   *     i samme vindue eller forældervinduet.
+   *  3) En separat useEffect (se nedenfor) opfanger query-parametret, kalder
+   *     edge function, og gemmer integrationen.
+   */
+  const handleEconomicConnect = async () => {
+    setEconomicConnecting(true);
+    setTestResult(null);
+    try {
+      // Husk hvilken business der skal bindes når brugeren kommer tilbage
+      sessionStorage.setItem("economic_pending_business_id", businessId);
+      const { data, error } = await supabase.functions.invoke(
+        "accounting-economic-callback",
+        { body: { action: "install_url" } },
+      );
+      if (error) throw error;
+      const url = (data as any)?.install_url;
+      if (!url) throw new Error("Kunne ikke hente e-conomic install-URL");
+      // Naviger i samme vindue så redirect-tilbage virker uanset browser-policy
+      window.location.href = url;
+    } catch (e: any) {
+      sessionStorage.removeItem("economic_pending_business_id");
+      const msg = e?.message ?? "Kunne ikke åbne e-conomic";
+      setTestResult({ ok: false, message: msg });
+      toast.error(msg);
+      setEconomicConnecting(false);
+    }
+  };
+
+  // Opfang ?economicToken=… (eller ?token=…) når brugeren kommer tilbage fra
+  // e-conomic. Vi sender tokenet til edge function der gemmer integrationen.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("economicToken") || params.get("token");
+    const pendingBiz = sessionStorage.getItem("economic_pending_business_id");
+    if (!token || !pendingBiz) return;
+    if (pendingBiz !== businessId) return;
+
+    sessionStorage.removeItem("economic_pending_business_id");
+    // Ryd tokenet ud af URL'en så det ikke ligger og lurer
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete("economicToken");
+    cleanUrl.searchParams.delete("token");
+    cleanUrl.searchParams.set("tab", "accounting");
+    window.history.replaceState({}, "", cleanUrl.toString());
+
+    setProvider("economic");
+    setMode("wizard");
+    setStep(2);
+    setEconomicConnecting(true);
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke(
+          "accounting-economic-callback",
+          { body: { business_id: businessId, agreement_grant_token: token } },
+        );
+        if (error) throw error;
+        if ((data as any)?.error) throw new Error((data as any).error);
+        const companyName = (data as any)?.company_name;
+        setTestResult({
+          ok: true,
+          message: companyName ? `Forbundet til ${companyName}` : "E-conomic er forbundet og klar.",
+        });
+        toast.success("E-conomic er nu forbundet!");
+        await load();
+        setStep(3);
+      } catch (e: any) {
+        const msg = e?.message ?? "Kunne ikke gemme e-conomic-forbindelsen";
+        setTestResult({ ok: false, message: msg });
+        toast.error(msg);
+      } finally {
+        setEconomicConnecting(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessId]);
+
   const handleSave = async () => {
     setSaving(true);
     try {
