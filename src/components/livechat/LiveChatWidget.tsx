@@ -984,8 +984,6 @@ const LiveChatWidget = () => {
       )}
     </>
   );
-});
-
-LiveChatWidget.displayName = "LiveChatWidget";
+};
 
 export default LiveChatWidget;
