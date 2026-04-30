@@ -695,14 +695,16 @@ function ZenegyConnectCard({
 
         <Button
           onClick={onConnect}
-          disabled={connecting || !oauthEnabled}
+          disabled={connecting || !oauthEnabled || connectResult?.ok === true}
           size="lg"
           className="w-full"
         >
-          {connecting
-            ? <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            : <ExternalLink className="mr-2 h-5 w-5" />}
-          {connecting ? "Forbinder…" : "Forbind Zenegy"}
+          {connectResult?.ok
+            ? <Check className="mr-2 h-5 w-5" />
+            : connecting
+              ? <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              : <ExternalLink className="mr-2 h-5 w-5" />}
+          {connectResult?.ok ? "Forbundet" : connecting ? "Forbinder…" : "Forbind Zenegy"}
         </Button>
 
         {!oauthEnabled && (
