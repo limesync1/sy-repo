@@ -1810,6 +1810,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   onTest={handleTest}
                   testing={testing}
                   testResult={testResult}
+                  onDryRun={handleDryRun}
+                  dryRunning={dryRunning}
+                  dryRunResult={dryRunResult}
                 />
               ) : provider === "economic" ? (
                 <EconomicConnectCard
