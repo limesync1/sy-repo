@@ -1797,7 +1797,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
       {/* TRIN 2 */}
       {step === 2 && (
-        <div className="grid gap-4 lg:grid-cols-[1fr,1.4fr]">
+        <div className={provider === "dinero" ? "grid gap-4 lg:grid-cols-[1fr,1.4fr]" : "mx-auto max-w-xl"}>
+          {provider === "dinero" && (
           <SectionCard
             title="Sådan finder du dine login-oplysninger"
             icon={<img src={currentProvider.logo} alt="" className="h-4 w-auto" />}
@@ -1832,6 +1833,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               </div>
             )}
           </SectionCard>
+          )}
 
           <SectionCard
             title={
@@ -1986,7 +1988,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           {step === 1 ? "Tilbage til oversigt" : "Forrige"}
         </Button>
 
-        {step < 3 ? (
+       {step < 3 ? (
+         provider === "billy" || provider === "economic" ? null :
           <PrimaryButton
             onClick={() => setStep((step + 1) as 1 | 2 | 3)}
             disabled={step === 2 && !testResult?.ok}
