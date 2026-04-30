@@ -535,7 +535,31 @@ async function drainQueue(admin: SupabaseClient, integ: Integration, adapter: Ac
   if (!jobs || jobs.length === 0) return 0;
 
   let processed = 0;
+  // Cirkuit-bryder: hvis udbyderen (Billy/Dinero/e-conomic) er nede,
+  // stopper vi resten af kørslen i stedet for at hamre løs på 50 jobs
+  // og logge 50 identiske fejl. Re-prøves automatisk ved næste kick.
+  let providerDown = false;
+  // Lokal cache i denne kørsel: hvis et bestemt customer/product allerede
+  // er fejlet, springer vi det over for resten af kørslen så vi ikke
+  // kalder Billy 10 gange for samme kunde/produkt.
+  const failedThisRun = new Set<string>();
   for (const job of jobs) {
+    if (providerDown) {
+      // Re-skemalér resten uden at kalde provideren igen
+      await admin.from("accounting_sync_queue").update({
+        status: "pending",
+        scheduled_for: new Date(Date.now() + 5 * 60_000).toISOString(),
+      }).eq("id", job.id);
+      continue;
+    }
+    const dedupeKey = `${job.entity_type}:${job.entity_id}`;
+    if (failedThisRun.has(dedupeKey)) {
+      await admin.from("accounting_sync_queue").update({
+        status: "pending",
+        scheduled_for: new Date(Date.now() + 5 * 60_000).toISOString(),
+      }).eq("id", job.id);
+      continue;
+    }
     await admin.from("accounting_sync_queue").update({ status: "processing", attempts: job.attempts + 1 }).eq("id", job.id);
     try {
       if (job.entity_type === "customer") await pushCustomer(admin, integ, adapter, job.entity_id);
@@ -547,17 +571,35 @@ async function drainQueue(admin: SupabaseClient, integ: Integration, adapter: Ac
       processed++;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
+      const isProviderDown = /svarer ikke|503|502|504|timeout|ECONNRESET|rate.?limit|429/i.test(msg);
+      if (isProviderDown) providerDown = true;
+      failedThisRun.add(dedupeKey);
       const failedFinal = job.attempts + 1 >= 5;
+      // Backoff: provider-fejl venter længere så vi ikke spammer
+      const backoffMs = isProviderDown
+        ? Math.min(15 * 60_000, 5 * 60_000 * (job.attempts + 1)) // 5,10,15,15,15 min
+        : Math.min(60_000 * (job.attempts + 1), 600_000);
       await admin.from("accounting_sync_queue").update({
         status: failedFinal ? "failed" : "pending",
         last_error: msg,
-        scheduled_for: new Date(Date.now() + Math.min(60_000 * (job.attempts + 1), 600_000)).toISOString(),
+        scheduled_for: new Date(Date.now() + backoffMs).toISOString(),
       }).eq("id", job.id);
-      await logSync(admin, {
-        business_id: integ.business_id, provider: integ.provider,
-        direction: "push", entity_type: job.entity_type, entity_id: job.entity_id,
-        status: "error", message: msg,
-      });
+      // Log kun én fejl pr. (entity, message) pr. dag for at undgå spam
+      const { count: existingCount } = await admin.from("accounting_sync_log")
+        .select("*", { count: "exact", head: true })
+        .eq("business_id", integ.business_id)
+        .eq("entity_type", job.entity_type)
+        .eq("entity_id", job.entity_id)
+        .eq("status", "error")
+        .eq("message", msg)
+        .gte("created_at", new Date(Date.now() - 24 * 60 * 60_000).toISOString());
+      if (!existingCount || existingCount === 0) {
+        await logSync(admin, {
+          business_id: integ.business_id, provider: integ.provider,
+          direction: "push", entity_type: job.entity_type, entity_id: job.entity_id,
+          status: "error", message: msg,
+        });
+      }
     }
   }
   if (processed > 0) {
@@ -709,13 +751,21 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
         .eq("service_id", it.service_id).maybeSingle();
       if (pl) { extProductId = pl.external_id; extProductNumber = pl.external_product_number; }
       else if (integ.settings?.auto_create_products !== false) {
-        await pushProduct(admin, integ, adapter, it.service_id);
-        const { data: pl2 } = await admin.from("accounting_product_links")
-          .select("external_id, external_product_number")
-          .eq("business_id", integ.business_id).eq("provider", integ.provider)
-          .eq("service_id", it.service_id).maybeSingle();
-        extProductId = pl2?.external_id ?? null;
-        extProductNumber = pl2?.external_product_number ?? null;
+        // Push product, men hvis det fejler (fx provider er nede) lader vi
+        // bare order-line være uden ekstern produkt-reference frem for at
+        // boble fejlen op og fejle hele orderen — orderen retries senere.
+        try {
+          await pushProduct(admin, integ, adapter, it.service_id);
+          const { data: pl2 } = await admin.from("accounting_product_links")
+            .select("external_id, external_product_number")
+            .eq("business_id", integ.business_id).eq("provider", integ.provider)
+            .eq("service_id", it.service_id).maybeSingle();
+          extProductId = pl2?.external_id ?? null;
+          extProductNumber = pl2?.external_product_number ?? null;
+        } catch (_) {
+          // Provider-fejl — boble op så drainQueue ser den én gang
+          throw _;
+        }
       }
     }
     return {
@@ -777,6 +827,8 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
 async function ensureCustomerLink(admin: SupabaseClient, integ: Integration, adapter: AccountingAdapter, order: any): Promise<string | null> {
   // Look for existing customer in Serviceydere by email
   if (!order.customer_email) return null;
+  const email = String(order.customer_email).trim().toLowerCase();
+  if (!email) return null;
 
   // Find existing internal customer
   const isCompany = !!order.cvr;
@@ -785,31 +837,43 @@ async function ensureCustomerLink(admin: SupabaseClient, integ: Integration, ada
 
   if (isCompany) {
     const { data } = await admin.from("business_customers").select("id")
-      .eq("business_id", integ.business_id).or(`cvr.eq.${order.cvr},email.eq.${order.customer_email}`).maybeSingle();
+      .eq("business_id", integ.business_id).or(`cvr.eq.${order.cvr},email.eq.${email}`).limit(1).maybeSingle();
     internalId = data?.id ?? null;
   } else {
     const { data } = await admin.from("private_customers").select("id")
-      .eq("business_id", integ.business_id).eq("email", order.customer_email).maybeSingle();
+      .eq("business_id", integ.business_id).eq("email", email).limit(1).maybeSingle();
     internalId = data?.id ?? null;
   }
 
-  // Create internal record if missing (so future updates flow correctly)
+  // Create internal record if missing — men gør det idempotent: tjek én gang
+  // mere lige før insert for at undgå race med samtidige order-pushes.
   if (!internalId) {
     if (isCompany) {
+      const { data: dup } = await admin.from("business_customers").select("id")
+        .eq("business_id", integ.business_id)
+        .or(`cvr.eq.${order.cvr},email.eq.${email}`).limit(1).maybeSingle();
+      if (dup) { internalId = dup.id; }
+      else {
       const { data } = await admin.from("business_customers").insert({
         business_id: integ.business_id,
         company_name: order.company_name ?? order.customer_name,
-        email: order.customer_email, phone: order.customer_phone, cvr: order.cvr,
+        email, phone: order.customer_phone, cvr: order.cvr,
         address: order.address, zip_code: order.zip_code, city: order.city,
       }).select("id").single();
       internalId = data?.id ?? null;
+      }
     } else {
+      const { data: dup } = await admin.from("private_customers").select("id")
+        .eq("business_id", integ.business_id).eq("email", email).limit(1).maybeSingle();
+      if (dup) { internalId = dup.id; }
+      else {
       const { data } = await admin.from("private_customers").insert({
         business_id: integ.business_id, name: order.customer_name,
-        email: order.customer_email, phone: order.customer_phone,
+        email, phone: order.customer_phone,
         address: order.address, zip_code: order.zip_code, city: order.city,
       }).select("id").single();
       internalId = data?.id ?? null;
+      }
     }
   }
   if (!internalId) return null;
