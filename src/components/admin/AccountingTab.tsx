@@ -263,85 +263,32 @@ function AutoSaveBadge({
 }
 
 /**
- * BillyConnectCard — én-knap-flow til Billy.
+ * BillyConnectCard — guidet adgangsnøgle-flow.
  *
- * Brugeren indtaster sin almindelige Billy email + adgangskode. Vi sender
- * dem ÉN gang til vores edge function `accounting-billy-connect`, som
- * opretter et navngivet access token i Billy og returnerer det. Vi gemmer
- * tokenet i `creds.api_token` præcis som hvis brugeren havde indsat det
- * manuelt — så resten af gem-/test-flowet er uændret.
- *
- * Hvis brugeren har flere virksomheder i Billy bliver vi spurgt om hvilken
- * der skal forbindes; ellers er det helt uden mellemskridt.
- *
- * Adgangskoden gemmes ALDRIG — den findes kun i hukommelsen så længe
- * dialogen er åben, og forsvinder så snart vi har fået tokenet retur.
+ * Billy afviser almindelig email/adgangskode på flere API-endpoints, også når
+ * adgangskoden er korrekt. Den mest stabile løsning for ikke-tekniske brugere
+ * er derfor: åbn Billy, opret én adgangsnøgle, indsæt den her, test.
  */
 function BillyConnectCard({
-  businessId,
-  onConnected,
-  onFallbackToManual,
+  token,
+  onTokenChange,
+  reveal,
+  onToggleReveal,
+  onTest,
+  testing,
   alreadyConnected,
+  testResult,
 }: {
-  businessId: string;
-  onConnected: (info: { api_token: string; organization_id: string; organization_name: string }) => void;
-  onFallbackToManual: () => void;
+  token: string;
+  onTokenChange: (value: string) => void;
+  reveal: boolean;
+  onToggleReveal: () => void;
+  onTest: () => void;
+  testing: boolean;
   alreadyConnected: boolean;
+  testResult: { ok: boolean; message?: string } | null;
 }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPwd, setShowPwd] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [orgChoice, setOrgChoice] = useState<{ id: string; name: string }[] | null>(null);
-  const [chosenOrgId, setChosenOrgId] = useState<string | null>(null);
-
-  const canSubmit = email.trim().length > 3 && password.length > 0 && !submitting;
-
-  const submit = async (organizationIdOverride?: string) => {
-    setSubmitting(true);
-    setError(null);
-    try {
-      const { data, error: invokeError } = await supabase.functions.invoke(
-        "accounting-billy-connect",
-        {
-          body: {
-            business_id: businessId,
-            email: email.trim(),
-            password,
-            organization_id: organizationIdOverride ?? chosenOrgId ?? undefined,
-          },
-        },
-      );
-      if (invokeError) throw invokeError;
-      const r = data as any;
-      if (r?.error) throw new Error(r.error);
-
-      // Hvis der er flere virksomheder: vis valg
-      if (r?.needs_organization && Array.isArray(r.organizations)) {
-        setOrgChoice(r.organizations);
-        setSubmitting(false);
-        return;
-      }
-
-      if (r?.ok && r.api_token) {
-        // Smid passwordet væk så snart vi har tokenet
-        setPassword("");
-        onConnected({
-          api_token: r.api_token,
-          organization_id: r.organization_id,
-          organization_name: r.organization_name,
-        });
-        toast.success(`Forbundet til ${r.organization_name}`);
-      } else {
-        throw new Error("Vi fik et tomt svar fra Billy. Prøv igen.");
-      }
-    } catch (e: any) {
-      setError(e?.message ?? "Noget gik galt — prøv igen.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const canTest = token.trim().length > 0 && !testing;
 
   if (alreadyConnected) {
     return (
@@ -355,132 +302,96 @@ function BillyConnectCard({
     );
   }
 
-  // Vælg virksomhed hvis der er flere
-  if (orgChoice && orgChoice.length > 1) {
-    return (
-      <div className="space-y-4">
-        <div>
-          <FieldLabel>Hvilken Billy-virksomhed vil du forbinde?</FieldLabel>
-          <p className="mb-3 text-xs text-muted-foreground">
-            Du har adgang til flere virksomheder i Billy. Vælg den der hører til Serviceydere.
-          </p>
-          <div className="space-y-2">
-            {orgChoice.map((o) => (
-              <button
-                key={o.id}
-                type="button"
-                onClick={() => { setChosenOrgId(o.id); submit(o.id); }}
-                disabled={submitting}
-                className="flex w-full items-center justify-between gap-3 rounded-lg border border-border bg-card p-3 text-left text-sm transition-colors hover:border-foreground/40 hover:bg-secondary/30 disabled:opacity-50"
-              >
-                <span className="font-medium text-foreground">{o.name}</span>
-                {submitting && chosenOrgId === o.id
-                  ? <Loader2 className="h-4 w-4 animate-spin" />
-                  : <ArrowRight className="h-4 w-4 text-muted-foreground" />}
-              </button>
-            ))}
-          </div>
-        </div>
-        {error && (
-          <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-            <div className="min-w-0">{error}</div>
-          </div>
-        )}
-        <button
-          type="button"
-          onClick={() => { setOrgChoice(null); setChosenOrgId(null); }}
-          className="text-xs text-muted-foreground underline-offset-4 hover:underline"
-        >
-          ← Brug en anden konto
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-border bg-secondary/20 p-4">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground text-background">
-            <Zap className="h-5 w-5" />
+            <KeyRound className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <div className="font-semibold text-foreground">Forbind med din Billy-konto</div>
+            <div className="font-semibold text-foreground">Forbind Billy uden password</div>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Log ind med din Billy email og adgangskode, så klarer vi resten — du behøver ikke kopiere noget.
+              Opret en adgangsnøgle i Billy, kopiér den herind, og så tester vi forbindelsen med det samme.
             </p>
           </div>
         </div>
       </div>
 
-      <div>
-        <FieldLabel>Billy email</FieldLabel>
-        <div className="relative">
-          <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="email"
-            value={email}
-            onChange={(e) => { setEmail(e.target.value); setError(null); }}
-            placeholder="dig@firma.dk"
-            autoComplete="email"
-            className="pl-9"
-          />
+      <div className="grid gap-2 rounded-lg border border-border bg-card p-3 text-sm">
+        <div className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">1</span>
+          <span className="pt-0.5 text-muted-foreground">Åbn Billy og log ind som du plejer.</span>
+        </div>
+        <div className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">2</span>
+          <span className="pt-0.5 text-muted-foreground">Gå til Indstillinger → Adgangsnøgler → Opret adgangsnøgle.</span>
+        </div>
+        <div className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">3</span>
+          <span className="pt-0.5 text-muted-foreground">Kald den “Serviceydere”, kopiér nøglen og indsæt den herunder.</span>
         </div>
       </div>
 
       <div>
-        <FieldLabel>Adgangskode</FieldLabel>
+        <Button asChild className="w-full">
+          <a href="https://app.billy.dk/" target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Åbn Billy og opret nøgle
+          </a>
+        </Button>
+      </div>
+
+      <div>
+        <FieldLabel>Indsæt adgangsnøglen fra Billy</FieldLabel>
         <div className="relative">
-          <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            type={showPwd ? "text" : "password"}
-            value={password}
-            onChange={(e) => { setPassword(e.target.value); setError(null); }}
-            placeholder="Din Billy adgangskode"
-            autoComplete="current-password"
-            className="pl-9 pr-10"
-            onKeyDown={(e) => { if (e.key === "Enter" && canSubmit) submit(); }}
+            type={reveal ? "text" : "password"}
+            value={token}
+            onChange={(e) => onTokenChange(e.target.value)}
+            placeholder="Indsæt adgangsnøglen her"
+            autoComplete="off"
+            className="pr-10"
+            onKeyDown={(e) => { if (e.key === "Enter" && canTest) onTest(); }}
           />
           <button
             type="button"
-            onClick={() => setShowPwd((v) => !v)}
+            onClick={onToggleReveal}
             className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-            aria-label={showPwd ? "Skjul" : "Vis"}
+            aria-label={reveal ? "Skjul" : "Vis"}
           >
-            {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
         <p className="mt-1.5 text-xs text-muted-foreground">
-          Vi gemmer aldrig dit password. Det bruges kun én gang til at oprette en sikker forbindelse, som du kan slå fra når som helst inde i Billy under <span className="font-medium">Indstillinger → Access tokens</span>.
+          Vi gemmer aldrig dit Billy-password. Adgangsnøglen kan slettes igen i Billy under Indstillinger → Adgangsnøgler.
         </p>
       </div>
 
-      {error && (
-        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+      {testResult && (
+        <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
+          testResult.ok
+            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
+            : "border-destructive/30 bg-destructive/10 text-destructive"
+        }`}>
+          {testResult.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
           <div className="min-w-0">
-            <div>{error}</div>
-            <button
-              type="button"
-              onClick={onFallbackToManual}
-              className="mt-1 text-xs underline-offset-4 hover:underline"
-            >
-              Indsæt API-nøgle manuelt i stedet →
-            </button>
+            <div className="font-medium">{testResult.ok ? "Forbindelsen virker — du er klar!" : "Nøglen kunne ikke bruges"}</div>
+            {testResult.message && <div className="break-words opacity-90">{testResult.message}</div>}
           </div>
         </div>
       )}
 
       <Button
-        onClick={() => submit()}
-        disabled={!canSubmit}
+        onClick={onTest}
+        disabled={!canTest}
+        variant={testResult?.ok ? "outline" : "default"}
         className="w-full"
       >
-        {submitting
+        {testing
           ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          : <Zap className="mr-2 h-4 w-4" />}
-        {submitting ? "Forbinder…" : "Forbind Billy"}
+          : testResult?.ok ? <RefreshCw className="mr-2 h-4 w-4" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
+        {testing ? "Tester…" : testResult?.ok ? "Test igen" : "Test nøgle"}
       </Button>
     </div>
   );
