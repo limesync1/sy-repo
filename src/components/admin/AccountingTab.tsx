@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -320,7 +321,7 @@ function BillyConnectCard({
       {/* Stor primær handling: åbn Billy direkte på adgangsnøgle-siden */}
       <Button asChild size="lg" className="w-full h-14 text-base">
         <a
-          href="https://mit.billy.dk/settings#/organization/access_tokens"
+          href="https://mit.billy.dk/#/organization/access_tokens"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -408,9 +409,10 @@ const EconomicConnectCard = React.forwardRef<
   {
     onConnect: () => void;
     connecting: boolean;
+    waiting: boolean;
     connectResult: { ok: boolean; message?: string } | null;
   }
->(({ onConnect, connecting, connectResult }, ref) => {
+>(({ onConnect, connecting, waiting, connectResult }, ref) => {
   return (
     <div ref={ref} className="space-y-4">
       <div className="rounded-xl border border-border bg-secondary/20 p-4">
@@ -449,6 +451,16 @@ const EconomicConnectCard = React.forwardRef<
         {connecting ? "Forbinder…" : "Forbind e-conomic"}
       </Button>
 
+      {waiting && !connectResult?.ok && (
+        <div className="flex items-start gap-2 rounded-lg border border-border bg-secondary/40 p-3 text-sm text-foreground">
+          <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
+          <div className="min-w-0">
+            <div className="font-medium">Venter på godkendelse i e-conomic…</div>
+            <div className="opacity-80 text-xs mt-0.5">Et nyt vindue er åbnet. Log ind, vælg din aftale og tryk "Tildel adgang" — så kommer du tilbage hertil automatisk.</div>
+          </div>
+        </div>
+      )}
+
       {connectResult && (
         <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
           connectResult.ok
@@ -472,6 +484,7 @@ const EconomicConnectCard = React.forwardRef<
 EconomicConnectCard.displayName = "EconomicConnectCard";
 
 export default function AccountingTab({ businessId }: { businessId: string; businessName: string }) {
+  const navigate = useNavigate();
   const [integration, setIntegration] = useState<Integration | null>(null);
   const [mode, setMode] = useState<Mode>("overview");
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -479,6 +492,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const [creds, setCreds] = useState<Record<string, string>>({});
   const [showSecret, setShowSecret] = useState<Record<string, boolean>>({});
   const [economicConnecting, setEconomicConnecting] = useState(false);
+  // Neutral info-besked mens popup'en er åben — vi viser den IKKE som "forbundet"
+  // men som ventestatus, så brugeren ikke tror integrationen allerede virker.
+  const [economicWaiting, setEconomicWaiting] = useState(false);
   const defaultSettings = {
     push_pending: true,
     default_payment_terms_days: 14,
@@ -860,6 +876,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const handleEconomicConnect = async () => {
     setEconomicConnecting(true);
     setTestResult(null);
+    setEconomicWaiting(false);
     // VIGTIGT: Vi åbner popup'en synkront her — direkte i klik-handleren —
     // så browseren ser det som en bruger-gesture og ikke blokerer den.
     // Bagefter henter vi install-URL'en og navigerer popup'en derhen.
@@ -897,11 +914,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         return;
       }
       setEconomicConnecting(false);
-      // Vi viser en venlig info-besked — ikke som "fejl", men neutralt.
-      setTestResult({
-        ok: true,
-        message: "Et nyt vindue er åbnet med e-conomic. Godkend app'en — så kommer du tilbage hertil automatisk.",
-      });
+      // Neutral ventestatus — IKKE en succes-besked. Først når token rent
+      // faktisk er valideret af edge function viser vi "forbundet".
+      setEconomicWaiting(true);
     } catch (e: any) {
       if (popup && !popup.closed) popup.close();
       sessionStorage.removeItem("economic_pending_business_id");
@@ -909,6 +924,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       setTestResult({ ok: false, message: msg });
       toast.error(msg);
       setEconomicConnecting(false);
+      setEconomicWaiting(false);
     }
   };
 
@@ -951,16 +967,15 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
     sessionStorage.removeItem("economic_pending_business_id");
     // Ryd tokenet ud af URL'en så det ikke ligger og lurer
-    const cleanUrl = new URL(window.location.href);
-    cleanUrl.searchParams.delete("economicToken");
-    cleanUrl.searchParams.delete("token");
-    cleanUrl.searchParams.set("tab", "accounting");
-    window.history.replaceState({}, "", cleanUrl.toString());
+    // Brug react-router-navigate så Admin.tsx faktisk skifter til accounting-fanen
+    // (replaceState alene opdaterer ikke React Router's location).
+    navigate("/virksomhed?tab=accounting", { replace: true });
 
     setProvider("economic");
     setMode("wizard");
     setStep(2);
     setEconomicConnecting(true);
+    setEconomicWaiting(false);
     (async () => {
       try {
         const { data, error } = await supabase.functions.invoke(
@@ -976,7 +991,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         });
         toast.success("E-conomic er nu forbundet!");
         await load();
-        setStep(3);
+        // Spring direkte til oversigten med aktiv integration — ingen unødigt step 3.
+        setMode("overview");
       } catch (e: any) {
         const msg = e?.message ?? "Kunne ikke gemme e-conomic-forbindelsen";
         setTestResult({ ok: false, message: msg });
@@ -1001,6 +1017,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       setMode("wizard");
       setStep(2);
       setEconomicConnecting(true);
+      setEconomicWaiting(false);
       try {
         const { data: resp, error } = await supabase.functions.invoke(
           "accounting-economic-callback",
@@ -1014,12 +1031,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           message: companyName ? `Forbundet til ${companyName}` : "E-conomic er forbundet og klar.",
         });
         toast.success("E-conomic er nu forbundet!");
-        // Sørg for at URL'en peger på regnskabs-fanen
-        const url = new URL(window.location.href);
-        url.searchParams.set("tab", "accounting");
-        window.history.replaceState({}, "", url.toString());
+        // Naviger med react-router så Admin.tsx faktisk viser regnskabs-fanen.
+        navigate("/virksomhed?tab=accounting", { replace: true });
         await load();
-        setStep(3);
+        setMode("overview");
       } catch (e: any) {
         const msg = e?.message ?? "Kunne ikke gemme e-conomic-forbindelsen";
         setTestResult({ ok: false, message: msg });
@@ -1968,6 +1983,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 <EconomicConnectCard
                   onConnect={handleEconomicConnect}
                   connecting={economicConnecting}
+                  waiting={economicWaiting}
                   connectResult={testResult}
                 />
               ) : (
@@ -2085,11 +2101,22 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           variant="ghost"
           onClick={() => {
             if (step === 1) setMode("overview");
-            else setStep((step - 1) as 1 | 2 | 3);
+            else {
+              // Når brugeren går tilbage fra step 2 til programvalg skal vi
+              // nulstille al provider-specifik state så de kan vælge frit
+              // og klikke på et andet kort uden at det "bugger".
+              setStep(1);
+              setCreds({});
+              setTestResult(null);
+              setBillyStatus("idle");
+              setBillyError(null);
+              setEconomicConnecting(false);
+              setEconomicWaiting(false);
+            }
           }}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {step === 1 ? "Tilbage til oversigt" : "Forrige"}
+          {step === 1 ? "Tilbage til oversigt" : "Vælg et andet program"}
         </Button>
 
        {step < 3 ? (
