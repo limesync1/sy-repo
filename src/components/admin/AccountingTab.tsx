@@ -768,7 +768,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 onClick={() => setConfirmDisable(true)}
                 className="h-9 rounded-lg border-border text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/40"
               >
-                <X className="mr-1.5 h-4 w-4" /> Afbryd
+                <X className="mr-1.5 h-4 w-4" /> Frakobl
               </Button>
             </div>
           }
@@ -782,11 +782,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 <div className="font-semibold text-foreground">{activeDef.label}</div>
                 {hasError ? (
                   <Badge variant="destructive" className="gap-1">
-                    <AlertCircle className="h-3 w-3" /> Fejl
+                    <AlertCircle className="h-3 w-3" /> Problem
                   </Badge>
                 ) : (
                   <Badge className="gap-1 bg-emerald-500/15 text-emerald-700 border-0 hover:bg-emerald-500/15 dark:text-emerald-400">
-                    <Check className="h-3 w-3" /> Aktiv
+                    <Check className="h-3 w-3" /> Forbundet
                   </Badge>
                 )}
               </div>
@@ -798,11 +798,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             <div className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <div className="min-w-0">
-                <div className="font-medium">Forbindelses-fejl</div>
+                <div className="font-medium">Vi kunne ikke nå dit regnskabsprogram</div>
                 <div className="text-destructive/90 break-words">{integration.last_error}</div>
                 {integration.last_error_at && (
                   <div className="mt-1 text-xs opacity-80">
-                    {new Date(integration.last_error_at).toLocaleString("da-DK")}
+                    Sidste forsøg: {new Date(integration.last_error_at).toLocaleString("da-DK")}
                   </div>
                 )}
               </div>
