@@ -2217,10 +2217,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     ]
                   : provider === "dinero"
                   ? [
-                      "Vi åbner Dinero Developer Portal — log ind med din Dinero-bruger (kræver Pro).",
-                      "Opret en ny API integration med adgang til Contacts, Products og Vouchers.",
-                      "Kopiér Client ID og Client Secret ind i felterne her — secret vises kun én gang!",
-                      "Indsæt dit organisations-ID (det 6-cifrede tal i adresselinjen) og tryk 'Forbind Dinero'.",
+                      "Log ind i Dinero og gå til 'Integrationer' i menuen til venstre.",
+                      "Klik 'Se og opret API-nøgler' og opret en ny API-nøgle (kald den fx 'Serviceydere').",
+                      "Kopiér Client ID og Client Secret — secret vises kun én gang!",
+                      "Indsæt dem her sammen med dit organisations-ID, og tryk 'Forbind Dinero'.",
                     ]
                   : [
                       "Vi åbner e-conomic i et nyt vindue.",
