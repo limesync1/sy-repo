@@ -255,16 +255,17 @@ function operationDanish(op: string): string {
  * GuideStep — pænt nummereret trin brugt i alle tre forbind-kort.
  * Centraliserer styling så vi ikke duplikerer markup.
  */
-function GuideStep({ n, children }: { n: number; children: React.ReactNode }) {
+const GuideStep = React.forwardRef<HTMLLIElement, { n: number; children: React.ReactNode }>(({ n, children }, ref) => {
   return (
-    <li className="flex gap-3">
+    <li ref={ref} className="flex gap-3">
       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
         {n}
       </span>
       <span className="pt-0.5 text-sm leading-relaxed text-foreground/80">{children}</span>
     </li>
   );
-}
+});
+GuideStep.displayName = "GuideStep";
 
 /**
  * ConnectCardShell — fælles ramme for alle tre forbind-kort, så designet
