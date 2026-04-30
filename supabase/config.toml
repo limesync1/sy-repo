@@ -45,5 +45,7 @@ project_id = "gkectsellkpltrxvusot"
     verify_jwt = false
   [functions.accounting-economic-callback]
     verify_jwt = true
+  [functions.accounting-dinero-callback]
+    verify_jwt = true
   [functions.accounting-dry-run]
     verify_jwt = true
