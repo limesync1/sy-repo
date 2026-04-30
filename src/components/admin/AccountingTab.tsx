@@ -508,7 +508,12 @@ function DineroConnectCard({
   status: "idle" | "checking" | "testing" | "saving" | "done" | "error";
   errorMessage: string | null;
 }) {
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
+  // "Smart paste"-felt: brugeren paster alt fra Dinero på én gang.
+  // Vi parser Client ID + Secret + Org-ID ud i tre felter automatisk.
+  const [bulkText, setBulkText] = useState("");
+  const [parseHint, setParseHint] = useState<{ tone: "ok" | "warn"; msg: string } | null>(null);
   const isWorking = status === "checking" || status === "testing" || status === "saving";
   const ready =
     values.api_token.trim().length > 0 &&
@@ -520,6 +525,114 @@ function DineroConnectCard({
     status === "testing"  ? "Sender testdata til Dinero…" :
     status === "saving"   ? "Sætter alt op for dig…" :
     null;
+
+  /**
+   * parseDineroBulk — udled de tre Dinero-værdier fra hvad brugeren end paster.
+   *
+   * Vi accepterer en bred vifte af formater:
+   *   • "key: value"-linjer (Client ID: xxx, Client Secret: yyy, Org ID: 198765)
+   *   • Tre linjer med bare værdier
+   *   • Komma- eller semikolon-separeret
+   *   • Kolonneform "id:secret:org"
+   *   • Hele URL'er (vi finder org-id i app.dinero.dk/<id>/…)
+   *
+   * Heuristik:
+   *   • Org-ID = det første rene 4-8 cifrede tal (typisk 6 cifre).
+   *   • Client ID + Secret = de resterende to alfanumeriske strenge ≥ 16 tegn,
+   *     hvor secret normalt er den længste.
+   */
+  const parseDineroBulk = (raw: string) => {
+    const text = raw.trim();
+    if (!text) return null;
+
+    let id: string | null = null;
+    let secret: string | null = null;
+    let org: string | null = null;
+
+    // 1) Prøv først linje for linje med "key: value"
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const remaining: string[] = [];
+    for (const line of lines) {
+      const m = line.match(/^([^:=]+)[:=]\s*(.+)$/);
+      if (m) {
+        const key = m[1].toLowerCase().replace(/[^a-z0-9]/g, "");
+        const val = m[2].trim().replace(/^["']|["']$/g, "");
+        if (!val) continue;
+        if (!id && (key.includes("clientid") || key === "id" || key === "apikey")) { id = val; continue; }
+        if (!secret && (key.includes("clientsecret") || key.includes("secret"))) { secret = val; continue; }
+        if (!org && (key.includes("org") || key.includes("organisation") || key.includes("organization") || key.includes("tenant"))) {
+          const num = val.match(/\d{4,8}/);
+          if (num) { org = num[0]; continue; }
+        }
+        remaining.push(val);
+      } else {
+        remaining.push(line);
+      }
+    }
+
+    // 2) Hvis vi mangler org-id, scan hele teksten efter app.dinero.dk/<id>/
+    if (!org) {
+      const urlMatch = text.match(/dinero\.dk\/(\d{4,8})\b/);
+      if (urlMatch) org = urlMatch[1];
+    }
+
+    // 3) Tag tilbageværende tokens (split på komma/semikolon/whitespace/kolon)
+    const tokens = remaining
+      .flatMap(s => s.split(/[\s,;|]+/))
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    // Hvis kun én linje med "id:secret:org" — split på kolon
+    if (!id && !secret && tokens.length === 1 && tokens[0].includes(":")) {
+      const parts = tokens[0].split(":").map(p => p.trim()).filter(Boolean);
+      if (parts.length >= 2) {
+        const numIdx = parts.findIndex(p => /^\d{4,8}$/.test(p));
+        if (numIdx !== -1 && !org) org = parts[numIdx];
+        const rest = parts.filter((_, i) => i !== numIdx);
+        if (rest.length >= 1 && !id) id = rest[0];
+        if (rest.length >= 2 && !secret) secret = rest[1];
+      }
+    } else {
+      // 4) Fyld hullerne ud fra tokens
+      for (const t of tokens) {
+        if (!org && /^\d{4,8}$/.test(t)) { org = t; continue; }
+        if (t.length < 12) continue; // for kort til at være id/secret
+        if (!id) { id = t; continue; }
+        if (!secret) { secret = t; continue; }
+      }
+      // Hvis vi har to lange og secret er kortere end id — byt om (secret er typisk længst)
+      if (id && secret && secret.length < id.length && /[A-Za-z]/.test(id)) {
+        // ingen byt — id er ofte kortere; lad logikken stå
+      }
+    }
+
+    if (id || secret || org) return { id, secret, org };
+    return null;
+  };
+
+  const handleBulkChange = (raw: string) => {
+    setBulkText(raw);
+    const parsed = parseDineroBulk(raw);
+    if (!parsed) {
+      setParseHint(null);
+      return;
+    }
+    if (parsed.id) onChange("api_token", parsed.id);
+    if (parsed.secret) onChange("api_secret", parsed.secret);
+    if (parsed.org) onChange("organization_id", parsed.org);
+
+    const found: string[] = [];
+    const missing: string[] = [];
+    parsed.id ? found.push("Client ID") : missing.push("Client ID");
+    parsed.secret ? found.push("Client Secret") : missing.push("Client Secret");
+    parsed.org ? found.push("Organisations-ID") : missing.push("Organisations-ID");
+
+    if (missing.length === 0) {
+      setParseHint({ tone: "ok", msg: "Alt fundet — du kan trykke Forbind Dinero." });
+    } else {
+      setParseHint({ tone: "warn", msg: `Fandt ${found.join(", ")}. Mangler ${missing.join(" og ")} — udfyld nedenfor eller indsæt mere.` });
+    }
+  };
 
   if (status === "done") {
     return (
@@ -545,53 +658,96 @@ function DineroConnectCard({
         </a>
       </Button>
 
-      <div className="space-y-3">
-        <div>
-          <FieldLabel>Client ID</FieldLabel>
-          <Input
-            value={values.api_token}
-            onChange={(e) => onChange("api_token", e.target.value)}
-            placeholder="Indsæt Client ID fra Dinero"
-            disabled={isWorking}
-            autoComplete="off"
-          />
-        </div>
-        <div>
-          <FieldLabel>Client Secret</FieldLabel>
-          <div className="relative">
-            <Input
-              type={showSecret ? "text" : "password"}
-              value={values.api_secret}
-              onChange={(e) => onChange("api_secret", e.target.value)}
-              placeholder="Indsæt Client Secret fra Dinero"
-              disabled={isWorking}
-              autoComplete="off"
-              className="pr-10"
-            />
-            <button
-              type="button"
-              onClick={() => setShowSecret(s => !s)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-              aria-label={showSecret ? "Skjul" : "Vis"}
-            >
-              {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
+      {/* Smart paste — alt-i-én */}
+      <div>
+        <FieldLabel>Indsæt fra Dinero</FieldLabel>
+        <textarea
+          value={bulkText}
+          onChange={(e) => handleBulkChange(e.target.value)}
+          placeholder={
+            "Kopiér hele blokken fra Dinero — vi finder selv Client ID, Secret og Org-ID.\n" +
+            "Fx:\n" +
+            "Client ID: 5f3a-1b2c-…\n" +
+            "Client Secret: 9c2d-…\n" +
+            "Org ID: 198765"
+          }
+          rows={5}
+          disabled={isWorking}
+          autoFocus
+          className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+        {parseHint && (
+          <div className={`mt-1.5 flex items-start gap-1.5 text-xs ${
+            parseHint.tone === "ok" ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"
+          }`}>
+            {parseHint.tone === "ok"
+              ? <Check className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              : <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />}
+            <span>{parseHint.msg}</span>
           </div>
-          <p className="mt-1.5 text-xs text-muted-foreground">Vises kun én gang i Dinero — hav den klar inden du forlader siden.</p>
-        </div>
-        <div>
-          <FieldLabel>Organisations-ID</FieldLabel>
-          <Input
-            value={values.organization_id}
-            onChange={(e) => onChange("organization_id", e.target.value)}
-            placeholder="fx 198765"
-            disabled={isWorking}
-            inputMode="numeric"
-            autoComplete="off"
-          />
-          <p className="mt-1.5 text-xs text-muted-foreground">Det 6-cifrede tal i adresselinjen i Dinero, fx app.dinero.dk/<strong>198765</strong>/…</p>
-        </div>
+        )}
+        {!parseHint && (
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Du kan paste på enhver form — separate linjer, kommasepareret, eller en hel URL.
+          </p>
+        )}
       </div>
+
+      {/* Avanceret: vis felterne separat hvis brugeren vil rette manuelt */}
+      <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+        <CollapsibleTrigger className="group inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
+          <SlidersHorizontal className="h-3.5 w-3.5" />
+          {showAdvanced ? "Skjul felterne" : "Indtast felterne enkeltvis i stedet"}
+          <ChevronDown className="h-3.5 w-3.5 transition-transform group-data-[state=open]:rotate-180" />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-3">
+          <div className="space-y-3 rounded-lg border border-border bg-secondary/20 p-3">
+            <div>
+              <FieldLabel>Client ID</FieldLabel>
+              <Input
+                value={values.api_token}
+                onChange={(e) => onChange("api_token", e.target.value)}
+                placeholder="Client ID fra Dinero"
+                disabled={isWorking}
+                autoComplete="off"
+              />
+            </div>
+            <div>
+              <FieldLabel>Client Secret</FieldLabel>
+              <div className="relative">
+                <Input
+                  type={showSecret ? "text" : "password"}
+                  value={values.api_secret}
+                  onChange={(e) => onChange("api_secret", e.target.value)}
+                  placeholder="Client Secret fra Dinero"
+                  disabled={isWorking}
+                  autoComplete="off"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSecret(s => !s)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  aria-label={showSecret ? "Skjul" : "Vis"}
+                >
+                  {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <FieldLabel>Organisations-ID</FieldLabel>
+              <Input
+                value={values.organization_id}
+                onChange={(e) => onChange("organization_id", e.target.value)}
+                placeholder="fx 198765"
+                disabled={isWorking}
+                inputMode="numeric"
+                autoComplete="off"
+              />
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       <Button
         onClick={onAutoConnect}
