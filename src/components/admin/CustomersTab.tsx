@@ -399,34 +399,58 @@ const PaymentBadge = ({ status, syncedAt }: { status?: string | null; syncedAt?:
 
 /** Samlet kundestatus i ét pille-element — fortæller hurtigt hvad slags kunde det er. */
 const CustomerStatusPill = ({ c }: { c: Customer }) => {
-  // Prioritet: aktive abonnementer > pausede > engangs-aftaler > kun i kartotek
+  // Vi bestemmer status ud fra hvad der er mest sigende for kunden lige nu:
+  //   1) Aktive abonnementer  → "Fast kunde"
+  //   2) Kun pausede abos    → "På pause"
+  //   3) Aftale inden for 90 dage → "Aktiv kunde"
+  //   4) Aftaler men ingen aktivitet i 90+ dage → "Tidligere kunde"
+  //   5) Én aftale i alt     → "Engangskunde"
+  //   6) Kun i kartotek      → "Ny i kartotek"
   let label: string;
   let dot: string;
   let icon: React.ReactNode;
   let help: string;
 
+  const daysSinceLast = c.last_order_at
+    ? Math.floor((Date.now() - new Date(c.last_order_at).getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+  const isRecent = daysSinceLast !== null && daysSinceLast <= 90;
+
   if (c.active_subs > 0) {
-    label = `Fast kunde · ${c.active_subs} aktiv${c.active_subs === 1 ? "" : "e"}`;
+    const extra = c.paused_subs > 0 ? ` (+${c.paused_subs} på pause)` : "";
+    label = `Fast kunde · ${c.active_subs} aktiv${c.active_subs === 1 ? "" : "e"}${extra}`;
     dot = "bg-emerald-500";
     icon = <Repeat className="h-3 w-3" />;
-    help = "Kunden har én eller flere aktive abonnementer der kører automatisk.";
+    help =
+      c.paused_subs > 0
+        ? `Kunden har ${c.active_subs} aktivt/aktive abonnement(er) der kører automatisk, og ${c.paused_subs} der er sat på pause.`
+        : "Kunden har et eller flere aktive abonnementer der kører automatisk efter aftalt interval.";
   } else if (c.paused_subs > 0) {
-    label = `På pause · ${c.paused_subs} abonnement${c.paused_subs === 1 ? "" : "er"}`;
+    label = `Pause · ${c.paused_subs} abonnement${c.paused_subs === 1 ? "" : "er"}`;
     dot = "bg-amber-500";
     icon = <Pause className="h-3 w-3" />;
-    help = "Kundens abonnementer er sat på pause og indgår ikke i ruteplanlægning.";
+    help = "Alle kundens abonnementer er sat på pause. De indgår ikke i ruteplanlægningen, men kan genoptages når som helst.";
+  } else if (c.orders_count > 0 && isRecent) {
+    label = c.orders_count === 1
+      ? "Aktiv kunde · 1 aftale"
+      : `Aktiv kunde · ${c.orders_count} aftaler`;
+    dot = "bg-emerald-500";
+    icon = <Package className="h-3 w-3" />;
+    help = `Kunden har ${c.orders_count === 1 ? "én aftale" : `${c.orders_count} aftaler`} og har handlet hos jer inden for de sidste 90 dage. Kunden har ikke et fast abonnement endnu.`;
   } else if (c.orders_count > 0) {
-    label = c.orders_count === 1 ? "Engangskunde" : `Tidligere kunde · ${c.orders_count} aftaler`;
+    label = c.orders_count === 1
+      ? "Engangskunde"
+      : `Tidligere kunde · ${c.orders_count} aftaler`;
     dot = "bg-blue-500";
     icon = <Package className="h-3 w-3" />;
     help = c.orders_count === 1
-      ? "Kunden har én aftale hos jer."
-      : "Kunden har flere aftaler hos jer, men har ikke et fast abonnement. En bestilling kan indeholde flere aftaler.";
+      ? "Kunden har haft én aftale hos jer, og der er gået mere end 90 dage siden sidst."
+      : `Kunden har haft ${c.orders_count} aftaler hos jer, men har ikke et fast abonnement og har ikke handlet i mere end 90 dage.`;
   } else {
-    label = "Kun i kartotek";
+    label = "Ny i kartotek";
     dot = "bg-muted-foreground/40";
     icon = <ContactIcon className="h-3 w-3" />;
-    help = "Du har gemt kunden i dit kartotek, men der er endnu ingen aftaler.";
+    help = "Kunden er gemt i jeres kartotek, men har endnu ikke nogen aftaler eller abonnementer.";
   }
 
   return (
@@ -609,7 +633,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     <div className="space-y-4">
       <PageHeader
         title="Kunder"
-        description="Her kan du se alle dine kunder samlet ét sted — privat og erhverv, deres aftaler, abonnementer, betalinger og rutehistorik. Klik på en kunde for at se alt om dem."
+        description="Her er alle jeres kunder samlet ét sted — både privat og erhverv. Klik på en kunde for at se aftaler, abonnementer, betalinger og rutehistorik."
         action={
           <PrimaryButton onClick={openCreateDialog} icon={<UserPlus />}>
             Tilføj kunde
@@ -669,6 +693,36 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
       <div className="flex items-center gap-2 flex-wrap">
         <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, firma, CVR eller by..." />
       </div>
+
+      {/* Status-guide — hjælper nye brugere med at forstå pillerne ved hver kunde */}
+      <details className="group rounded-xl border border-border bg-card/60 px-4 py-2.5 text-xs text-muted-foreground">
+        <summary className="flex cursor-pointer items-center justify-between gap-2 list-none">
+          <span className="font-medium text-foreground">Sådan læser du kundestatus</span>
+          <ChevronRight className="h-3.5 w-3.5 transition-transform group-open:rotate-90" />
+        </summary>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <div className="flex items-start gap-2">
+            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+            <p><span className="font-medium text-foreground">Fast kunde</span> — har mindst ét aktivt abonnement der kører automatisk.</p>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+            <p><span className="font-medium text-foreground">Aktiv kunde</span> — har handlet hos jer inden for de sidste 90 dage, men uden fast abonnement.</p>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" />
+            <p><span className="font-medium text-foreground">Pause</span> — alle abonnementer er sat på pause og indgår ikke i ruteplanlægning.</p>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
+            <p><span className="font-medium text-foreground">Engangs- / tidligere kunde</span> — har haft én eller flere aftaler, men intet aktivt nu og ingen handel i 90+ dage.</p>
+          </div>
+          <div className="flex items-start gap-2 sm:col-span-2">
+            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-muted-foreground/40 shrink-0" />
+            <p><span className="font-medium text-foreground">Ny i kartotek</span> — gemt manuelt, men har endnu ikke nogen aftaler.</p>
+          </div>
+        </div>
+      </details>
 
       {/* Bulk actions bar */}
       {selectedCustomers.length > 0 && (
@@ -994,17 +1048,33 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
 
               {/* Quick stats */}
               <div className="grid grid-cols-3 gap-2">
-                <div className="rounded-xl border border-border bg-card p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Omsætning</p>
+                <div
+                  className="rounded-xl border border-border bg-card p-3 text-center"
+                  title="Samlet beløb kunden har handlet for hos jer på tværs af alle aftaler."
+                >
+                  <p className="text-xs text-muted-foreground">Samlet omsætning</p>
                   <p className="text-base font-bold text-foreground">{fmtKr(customer.total_revenue)}</p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Aftaler</p>
+                <div
+                  className="rounded-xl border border-border bg-card p-3 text-center"
+                  title="Antal aftaler kunden har haft hos jer i alt — både engangskøb og ydelser fra abonnementer."
+                >
+                  <p className="text-xs text-muted-foreground">Aftaler i alt</p>
                   <p className="text-base font-bold text-foreground">{customer.orders_count}</p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-3 text-center">
+                <div
+                  className="rounded-xl border border-border bg-card p-3 text-center"
+                  title="Aktive abonnementer kører automatisk efter aftalt interval. Pausede er midlertidigt sat på pause."
+                >
                   <p className="text-xs text-muted-foreground">Abonnementer</p>
-                  <p className="text-base font-bold text-foreground">{customer.active_subs}</p>
+                  <p className="text-base font-bold text-foreground">
+                    {customer.active_subs}
+                    {customer.paused_subs > 0 && (
+                      <span className="ml-1 text-xs font-normal text-amber-600">
+                        +{customer.paused_subs} pause
+                      </span>
+                    )}
+                  </p>
                 </div>
               </div>
 
