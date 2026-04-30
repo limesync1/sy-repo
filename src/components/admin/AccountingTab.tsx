@@ -224,6 +224,60 @@ function operationDanish(op: string): string {
   return OPERATION_LABEL[op] ?? op;
 }
 
+/**
+ * GuideStep — pænt nummereret trin brugt i alle tre forbind-kort.
+ * Centraliserer styling så vi ikke duplikerer markup.
+ */
+function GuideStep({ n, children }: { n: number; children: React.ReactNode }) {
+  return (
+    <li className="flex gap-3">
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
+        {n}
+      </span>
+      <span className="pt-0.5 text-sm leading-relaxed text-foreground/80">{children}</span>
+    </li>
+  );
+}
+
+/**
+ * ConnectCardShell — fælles ramme for alle tre forbind-kort, så designet
+ * føles konsistent. Header med logo + program-navn, valgfri "kræver"-badge,
+ * og en pæn body-area.
+ */
+function ConnectCardShell({
+  logo,
+  name,
+  tagline,
+  requiresBadge,
+  children,
+}: {
+  logo: string;
+  name: string;
+  tagline: string;
+  requiresBadge?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <div className="flex items-center gap-4 border-b border-border bg-secondary/40 px-5 py-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-background ring-1 ring-border">
+          <img src={logo} alt={name} className="h-7 w-auto object-contain" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-base font-semibold text-foreground">Forbind {name}</div>
+          <div className="text-xs text-muted-foreground">{tagline}</div>
+        </div>
+        {requiresBadge && (
+          <span className="hidden shrink-0 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300 sm:inline-flex">
+            {requiresBadge}
+          </span>
+        )}
+      </div>
+      <div className="p-5">{children}</div>
+    </div>
+  );
+}
+
 /** Lille statusbadge der diskret viser om indstillingerne er gemt. */
 function AutoSaveBadge({
   state,
