@@ -2250,22 +2250,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             </SectionCard>
           )}
 
-          <SectionCard
-            title={
-              provider === "billy" ? "Forbind Billy"
-              : provider === "economic" ? "Forbind e-conomic"
-              : provider === "dinero" ? "Forbind Dinero"
-              : "Indtast dine login-oplysninger"
-            }
-            icon={<ShieldCheck />}
-            description={
-              provider === "billy" ? "Brug en adgangsnøgle fra Billy — ikke din adgangskode."
-              : provider === "economic" ? "Du sendes til e-conomic, godkender app'en, og kommer tilbage hertil. Ingen tokens at kopiere."
-              : provider === "dinero" ? "Indsæt dine tre login-oplysninger fra Dinero — så klarer vi resten automatisk."
-              : "Dine oplysninger gemmes sikkert og krypteret. De bruges kun til at sende og hente data fra dit regnskabsprogram."
-            }
-          >
-            <div className="space-y-4">
+          {provider === "billy" || provider === "economic" || provider === "dinero" ? (
+            <div>
               {provider === "billy" ? (
                 <BillyConnectCard
                   token={creds.api_token ?? ""}
@@ -2284,7 +2270,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   waiting={economicWaiting}
                   connectResult={testResult}
                 />
-              ) : provider === "dinero" ? (
+              ) : (
                 <DineroConnectCard
                   apiToken={creds.api_token ?? ""}
                   apiSecret={creds.api_secret ?? ""}
@@ -2299,7 +2285,15 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   status={dineroStatus}
                   errorMessage={dineroError}
                 />
-              ) : (
+              )}
+            </div>
+          ) : (
+            <SectionCard
+              title="Indtast dine login-oplysninger"
+              icon={<ShieldCheck />}
+              description="Dine oplysninger gemmes sikkert og krypteret. De bruges kun til at sende og hente data fra dit regnskabsprogram."
+            >
+              <div className="space-y-4">
                 <>
                   {currentProvider.fields.map(f => {
                     const isPwd = f.type === "password";
@@ -2360,9 +2354,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   </Button>
                 </div>
                 </>
-              )}
-            </div>
-          </SectionCard>
+              </div>
+            </SectionCard>
+          )}
         </div>
       )}
 
