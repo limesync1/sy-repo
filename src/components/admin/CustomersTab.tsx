@@ -353,13 +353,13 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
 
 const StatusBadge = ({ status }: { status: string }) => {
   const map: Record<string, { label: string; dot: string }> = {
-    pending:     { label: "Afventer",   dot: "bg-amber-500" },
-    confirmed:   { label: "Bekræftet",  dot: "bg-blue-500" },
-    in_progress: { label: "I gang",     dot: "bg-violet-500" },
-    completed:   { label: "Udført",     dot: "bg-emerald-500" },
-    cancelled:   { label: "Annulleret", dot: "bg-destructive" },
-    active:      { label: "Aktiv",      dot: "bg-emerald-500" },
-    paused:      { label: "Pauset",     dot: "bg-amber-500" },
+    pending:     { label: "Afventer planlægning", dot: "bg-amber-500" },
+    confirmed:   { label: "Planlagt",             dot: "bg-blue-500" },
+    in_progress: { label: "Under udførelse",      dot: "bg-violet-500" },
+    completed:   { label: "Udført",               dot: "bg-emerald-500" },
+    cancelled:   { label: "Annulleret",           dot: "bg-destructive" },
+    active:      { label: "Aktiv",                dot: "bg-emerald-500" },
+    paused:      { label: "På pause",             dot: "bg-amber-500" },
   };
   const m = map[status] || { label: status, dot: "bg-muted-foreground/40" };
   return (
@@ -370,6 +370,76 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
+/** Betalingsstatus — hentes altid fra regnskabsprogrammet. */
+const PaymentBadge = ({ status, syncedAt }: { status?: string | null; syncedAt?: string | null }) => {
+  if (!status) return null;
+  const map: Record<string, { label: string; dot: string; help: string }> = {
+    unpaid:          { label: "Ikke betalt",     dot: "bg-muted-foreground/50", help: "Faktura er sendt, men endnu ikke betalt." },
+    sent:            { label: "Faktura sendt",   dot: "bg-blue-500",            help: "Faktura er sendt til kunden via dit regnskabsprogram." },
+    partially_paid:  { label: "Delvist betalt",  dot: "bg-amber-500",           help: "Kunden har betalt en del af fakturaen." },
+    paid:            { label: "Betalt",          dot: "bg-emerald-500",         help: "Fakturaen er fuldt betalt." },
+    overdue:         { label: "Forfalden",       dot: "bg-destructive",         help: "Betalingsfristen er overskredet." },
+    refunded:        { label: "Refunderet",      dot: "bg-muted-foreground/50", help: "Beløbet er ført tilbage til kunden." },
+    cancelled:       { label: "Annulleret",      dot: "bg-muted-foreground/50", help: "Fakturaen er annulleret." },
+  };
+  const m = map[status];
+  if (!m) return null;
+  const synced = syncedAt ? format(parseISO(syncedAt), "d. MMM yyyy HH:mm", { locale: da }) : null;
+  return (
+    <Badge
+      variant="outline"
+      className="text-[10px] h-5 px-1.5 gap-1 border-border bg-secondary text-foreground"
+      title={`${m.help}\nHentes automatisk fra dit regnskabsprogram hvert 15. minut.${synced ? `\nSidst opdateret: ${synced}.` : ""}`}
+    >
+      <CreditCard className="h-2.5 w-2.5" />
+      {m.label}
+    </Badge>
+  );
+};
+
+/** Samlet kundestatus i ét pille-element — fortæller hurtigt hvad slags kunde det er. */
+const CustomerStatusPill = ({ c }: { c: Customer }) => {
+  // Prioritet: aktive abonnementer > pausede > engangs-bestillinger > kun i kartotek
+  let label: string;
+  let dot: string;
+  let icon: React.ReactNode;
+  let help: string;
+
+  if (c.active_subs > 0) {
+    label = `Fast kunde · ${c.active_subs} aktiv${c.active_subs === 1 ? "" : "e"}`;
+    dot = "bg-emerald-500";
+    icon = <Repeat className="h-3 w-3" />;
+    help = "Kunden har én eller flere aktive abonnementer der kører automatisk.";
+  } else if (c.paused_subs > 0) {
+    label = `På pause · ${c.paused_subs} abonnement${c.paused_subs === 1 ? "" : "er"}`;
+    dot = "bg-amber-500";
+    icon = <Pause className="h-3 w-3" />;
+    help = "Kundens abonnementer er sat på pause og indgår ikke i ruteplanlægning.";
+  } else if (c.orders_count > 0) {
+    label = c.orders_count === 1 ? "Engangskunde" : `Tidligere kunde · ${c.orders_count} bestillinger`;
+    dot = "bg-blue-500";
+    icon = <Package className="h-3 w-3" />;
+    help = c.orders_count === 1
+      ? "Kunden har bestilt én gang."
+      : "Kunden har bestilt flere gange, men har ikke et fast abonnement.";
+  } else {
+    label = "Kun i kartotek";
+    dot = "bg-muted-foreground/40";
+    icon = <ContactIcon className="h-3 w-3" />;
+    help = "Du har gemt kunden i dit kartotek, men der er endnu ikke bestilt noget.";
+  }
+
+  return (
+    <span
+      title={help}
+      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground shrink-0"
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+      {icon}
+      {label}
+    </span>
+  );
+};
 interface Props { businessId: string; businessName?: string }
 
 const CustomersTab = ({ businessId, businessName }: Props) => {
