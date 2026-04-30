@@ -17,6 +17,10 @@ import {
   Copy, FolderTree, KeyRound, FlaskConical,
 } from "lucide-react";
 import {
+  Collapsible, CollapsibleContent, CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ChevronDown, HelpCircle, PartyPopper } from "lucide-react";
+import {
   PageHeader, PrimaryButton, SectionCard, EmptyState, FieldLabel,
 } from "@/components/admin/shared/AdminUI";
 import economicLogo from "@/assets/accounting/economic.png";
@@ -100,11 +104,9 @@ const PROVIDERS: ProviderDef[] = [
         help: "Kopiér adgangsnøglen fra Billy under Indstillinger → Adgangsnøgler.", placeholder: "Indsæt adgangsnøglen fra Billy" },
     ],
     setupSteps: [
-      "Tryk på knappen 'Åbn Billy og opret nøgle' til højre.",
-      "Log ind i Billy som du plejer, og vælg Indstillinger (tandhjulet) i venstremenuen.",
-      "Vælg Adgangsnøgler → Opret adgangsnøgle.",
-      "Skriv 'Serviceydere' som navn, tryk Opret, og kopiér adgangsnøglen.",
-      "Indsæt adgangsnøglen her og tryk 'Test nøgle'.",
+      "Tryk 'Åbn Billy' — vi sender dig direkte til siden med adgangsnøgler.",
+      "Tryk 'Opret adgangsnøgle', kald den 'Serviceydere' og tryk Opret.",
+      "Kopiér nøglen og kom tilbage hertil — vi tager os af resten automatisk.",
     ],
     note: {
       tone: "info",
@@ -265,207 +267,129 @@ function AutoSaveBadge({
 /**
  * BillyConnectCard — guidet adgangsnøgle-flow.
  *
- * Billy afviser almindelig email/adgangskode på flere API-endpoints, også når
- * adgangskoden er korrekt. Den mest stabile løsning for ikke-tekniske brugere
- * er derfor: åbn Billy, opret én adgangsnøgle, indsæt den her, test.
+ * "Paste-and-go": brugeren paster sin adgangsnøgle, og vi kører automatisk
+ * forbind → testdata → auto-opsætning → gem i ét. Ingen knapper at trykke.
+ * Hvis noget fejler, viser vi hvad og hvordan i hverdagssprog.
  */
 function BillyConnectCard({
   token,
   onTokenChange,
-  reveal,
-  onToggleReveal,
-  onTest,
-  testing,
-  testResult,
-  onDryRun,
-  dryRunning,
-  dryRunResult,
+  onAutoConnect,
+  status,
+  errorMessage,
 }: {
   token: string;
   onTokenChange: (value: string) => void;
-  reveal: boolean;
-  onToggleReveal: () => void;
-  onTest: () => void;
-  testing: boolean;
-  testResult: { ok: boolean; message?: string } | null;
-  onDryRun: () => void;
-  dryRunning: boolean;
-  dryRunResult: {
-    ok: boolean;
-    steps?: Array<{
-      key: string;
-      label: string;
-      ok: boolean;
-      message?: string;
-      external_number?: string | null;
-      duration_ms?: number;
-    }>;
-    note?: string;
-    error?: string;
-  } | null;
+  onAutoConnect: (token: string) => void;
+  status: "idle" | "checking" | "testing" | "saving" | "done" | "error";
+  errorMessage: string | null;
 }) {
-  const canTest = token.trim().length > 0 && !testing;
-  const canDryRun = token.trim().length > 0 && !dryRunning && !testing;
+  const isWorking = status === "checking" || status === "testing" || status === "saving";
+  const statusLabel =
+    status === "checking" ? "Tjekker forbindelsen…" :
+    status === "testing"  ? "Sender testdata til Billy…" :
+    status === "saving"   ? "Sætter alt op for dig…" :
+    null;
+
+  // Paste handler: når nøglen indsættes, start auto-flow med det samme.
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pasted = e.clipboardData.getData("text").trim();
+    if (!pasted) return;
+    e.preventDefault();
+    onTokenChange(pasted);
+    // Lille delay så input visuelt opdateres før vi går i gang.
+    setTimeout(() => onAutoConnect(pasted), 50);
+  };
+
+  if (status === "done") {
+    return (
+      <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 text-center">
+        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700">
+          <PartyPopper className="h-7 w-7" />
+        </div>
+        <h3 className="text-lg font-semibold text-foreground">Du er forbundet med Billy!</h3>
+        <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+          Vi har testet at synk virkelig virker, og sat alt op for dig. Dine kunder, services og aftaler synkroniseres nu automatisk.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-border bg-secondary/20 p-4">
-        <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground text-background">
-            <KeyRound className="h-5 w-5" />
-          </div>
-          <div className="min-w-0">
-            <div className="font-semibold text-foreground">Forbind Billy uden password</div>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Opret en adgangsnøgle i Billy, kopiér den herind, og så tester vi forbindelsen med det samme.
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Stor primær handling: åbn Billy direkte på adgangsnøgle-siden */}
+      <Button asChild size="lg" className="w-full h-14 text-base">
+        <a
+          href="https://www.billy.dk/app/#/settings/integrations/access-tokens"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <ExternalLink className="mr-2 h-5 w-5" />
+          Åbn Billy og opret adgangsnøgle
+        </a>
+      </Button>
 
-      <div className="grid gap-2 rounded-lg border border-border bg-card p-3 text-sm">
-        <div className="flex gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">1</span>
-          <span className="pt-0.5 text-muted-foreground">Åbn Billy og log ind som du plejer.</span>
-        </div>
-        <div className="flex gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">2</span>
-          <span className="pt-0.5 text-muted-foreground">Gå til Indstillinger → Adgangsnøgler → Opret adgangsnøgle.</span>
-        </div>
-        <div className="flex gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">3</span>
-          <span className="pt-0.5 text-muted-foreground">Kald den “Serviceydere”, kopiér nøglen og indsæt den herunder.</span>
-        </div>
-      </div>
-
+      {/* Paste-area — fokus selv på siden */}
       <div>
-        <Button asChild className="w-full">
-          <a href="https://app.billy.dk/" target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="mr-2 h-4 w-4" />
-            Åbn Billy og opret nøgle
-          </a>
-        </Button>
+        <Input
+          autoFocus
+          type="text"
+          value={token}
+          onChange={(e) => onTokenChange(e.target.value)}
+          onPaste={handlePaste}
+          placeholder="Indsæt adgangsnøglen her — så går vi i gang"
+          autoComplete="off"
+          disabled={isWorking}
+          className="h-14 text-center text-base"
+        />
       </div>
 
-      <div>
-        <FieldLabel>Indsæt adgangsnøglen fra Billy</FieldLabel>
-        <div className="relative">
-          <Input
-            type={reveal ? "text" : "password"}
-            value={token}
-            onChange={(e) => onTokenChange(e.target.value)}
-            placeholder="Indsæt adgangsnøglen her"
-            autoComplete="off"
-            className="pr-10"
-            onKeyDown={(e) => { if (e.key === "Enter" && canTest) onTest(); }}
-          />
-          <button
-            type="button"
-            onClick={onToggleReveal}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-            aria-label={reveal ? "Skjul" : "Vis"}
-          >
-            {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </button>
+      {/* Live-status mens vi arbejder */}
+      {isWorking && statusLabel && (
+        <div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-secondary/30 py-3 text-sm font-medium text-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          {statusLabel}
         </div>
-        <p className="mt-1.5 text-xs text-muted-foreground">
-          Vi gemmer aldrig dit Billy-password. Adgangsnøglen kan slettes igen i Billy under Indstillinger → Adgangsnøgler.
-        </p>
-      </div>
+      )}
 
-      {testResult && (
-        <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
-          testResult.ok
-            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
-            : "border-destructive/30 bg-destructive/10 text-destructive"
-        }`}>
-          {testResult.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
+      {/* Fejl: forklar i hverdagssprog + lad brugeren prøve igen */}
+      {status === "error" && errorMessage && (
+        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <div className="min-w-0">
-            <div className="font-medium">{testResult.ok ? "Forbindelsen virker — du er klar!" : "Nøglen kunne ikke bruges"}</div>
-            {testResult.message && <div className="break-words opacity-90">{testResult.message}</div>}
+            <div className="font-medium">Det virkede desværre ikke</div>
+            <div className="mt-0.5 break-words opacity-90">{errorMessage}</div>
+            <div className="mt-1.5 text-xs opacity-80">
+              Tjek at du har kopieret hele nøglen. Du kan opret en ny i Billy hvis du er i tvivl.
+            </div>
           </div>
         </div>
       )}
 
-      <Button
-        onClick={onTest}
-        disabled={!canTest}
-        variant={testResult?.ok ? "outline" : "default"}
-        className="w-full"
-      >
-        {testing
-          ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          : testResult?.ok ? <RefreshCw className="mr-2 h-4 w-4" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
-        {testing ? "Tester…" : testResult?.ok ? "Test igen" : "Test nøgle"}
-      </Button>
-
-      <div className="rounded-xl border border-border bg-card p-4">
-        <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
-            <FlaskConical className="h-4 w-4" />
+      {/* Hjælp — gemt bag toggle så det ikke roder skærmen */}
+      <Collapsible>
+        <CollapsibleTrigger className="group inline-flex w-full items-center justify-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
+          <HelpCircle className="h-3.5 w-3.5" />
+          Brug for hjælp til at finde adgangsnøglen?
+          <ChevronDown className="h-3.5 w-3.5 transition-transform group-data-[state=open]:rotate-180" />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-3">
+          <div className="grid gap-2 rounded-lg border border-border bg-card p-3 text-sm">
+            <div className="flex gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">1</span>
+              <span className="pt-0.5 text-muted-foreground">Tryk 'Åbn Billy' — du lander direkte på siden med adgangsnøgler.</span>
+            </div>
+            <div className="flex gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">2</span>
+              <span className="pt-0.5 text-muted-foreground">Tryk 'Opret adgangsnøgle', kald den 'Serviceydere' og opret.</span>
+            </div>
+            <div className="flex gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">3</span>
+              <span className="pt-0.5 text-muted-foreground">Kopiér nøglen og indsæt herover. Vi tager os af resten.</span>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="font-semibold text-foreground">Kør fuld synk-test</div>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Vi opretter en testkunde, en testvare og en kladde-faktura i Billy — og sletter kladden igen bagefter. Sådan ved du at synk virkelig virker, ikke kun login.
-            </p>
-
-            <Button
-              onClick={onDryRun}
-              disabled={!canDryRun}
-              variant="secondary"
-              className="mt-3 w-full"
-            >
-              {dryRunning
-                ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                : <FlaskConical className="mr-2 h-4 w-4" />}
-              {dryRunning ? "Sender testdata til Billy…" : "Kør fuld synk-test"}
-            </Button>
-
-            {dryRunResult && (
-              <div className="mt-3 space-y-2">
-                {dryRunResult.error && (
-                  <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-                    {dryRunResult.error}
-                  </div>
-                )}
-                {dryRunResult.steps?.map((s) => (
-                  <div
-                    key={s.key}
-                    className={`flex items-start gap-2 rounded-lg border p-2.5 text-sm ${
-                      s.ok
-                        ? "border-emerald-500/30 bg-emerald-500/5"
-                        : "border-destructive/30 bg-destructive/10"
-                    }`}
-                  >
-                    {s.ok
-                      ? <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-                      : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-baseline justify-between gap-2">
-                        <div className="font-medium text-foreground">{s.label}</div>
-                        {typeof s.duration_ms === "number" && (
-                          <div className="shrink-0 text-[11px] text-muted-foreground">{s.duration_ms} ms</div>
-                        )}
-                      </div>
-                      {s.message && (
-                        <div className={`mt-0.5 break-words text-xs ${s.ok ? "text-muted-foreground" : "text-destructive"}`}>
-                          {s.message}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                {dryRunResult.ok && dryRunResult.note && (
-                  <div className="rounded-lg border border-border bg-secondary/30 p-2.5 text-xs text-muted-foreground">
-                    {dryRunResult.note}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }
@@ -581,6 +505,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     note?: string;
     error?: string;
   } | null>(null);
+  // Billy paste-and-go: én samlet status fra "indsat" til "færdig opsat".
+  const [billyStatus, setBillyStatus] = useState<
+    "idle" | "checking" | "testing" | "saving" | "done" | "error"
+  >("idle");
+  const [billyError, setBillyError] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [queueCount, setQueueCount] = useState(0);
@@ -754,9 +683,16 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   }, [integration?.is_active, integration?.provider]);
 
   const startWizard = (preselect?: Provider) => {
-    if (preselect) setProvider(preselect);
-    setStep(1);
+    if (preselect) {
+      setProvider(preselect);
+      // Billy og e-conomic har auto-flows — spring 'vælg program'-skærmen over
+      setStep(preselect === "dinero" ? 1 : 2);
+    } else {
+      setStep(1);
+    }
     setTestResult(null);
+    setBillyStatus("idle");
+    setBillyError(null);
     setMode("wizard");
   };
 
@@ -801,6 +737,114 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       toast.error(msg);
     } finally {
       setDryRunning(false);
+    }
+  };
+
+  /**
+   * Billy paste-and-go: når brugeren har indsat sin nøgle, kører vi automatisk
+   *  1) testConnection
+   *  2) dry-run (opret + slet testfaktura)
+   *  3) hent grupper og auto-vælg første indtægtskonto
+   *  4) gem integrationen og start første synk i baggrunden
+   * Hvis vi ikke kan auto-vælge en konto, falder vi tilbage til wizard step 3.
+   */
+  const handleBillyAutoConnect = async (rawToken: string) => {
+    const token = rawToken.trim();
+    if (!token) return;
+    setBillyError(null);
+
+    // 1) Test forbindelse
+    setBillyStatus("checking");
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-test-connection", {
+        body: { business_id: businessId, provider: "billy", api_token: token, settings },
+      });
+      if (error) throw error;
+      const r = data as { ok: boolean; message?: string };
+      if (!r.ok) throw new Error(r.message ?? "Nøglen kunne ikke bruges");
+    } catch (e: any) {
+      setBillyError(e?.message ?? "Kunne ikke forbinde til Billy");
+      setBillyStatus("error");
+      return;
+    }
+
+    // 2) Dry-run: send rigtige testdata til Billy så vi ved synk virker
+    setBillyStatus("testing");
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-dry-run", {
+        body: { business_id: businessId, provider: "billy", api_token: token },
+      });
+      if (error) throw error;
+      const r = data as { ok: boolean; steps?: { ok: boolean; label: string; message?: string }[] };
+      if (!r.ok) {
+        const failed = r.steps?.find(s => !s.ok);
+        throw new Error(failed?.message ?? "Synk-testen kunne ikke gennemføres");
+      }
+    } catch (e: any) {
+      setBillyError(e?.message ?? "Synk-testen fejlede");
+      setBillyStatus("error");
+      return;
+    }
+
+    // 3) Hent grupper og find en fornuftig indtægtskonto
+    setBillyStatus("saving");
+    let autoIncomeAccount: string | null = null;
+    let foundGroups = false;
+    try {
+      // Gem først (uden konto) så accounting-list-groups kan finde integrationen
+      const initialPayload = {
+        business_id: businessId, provider: "billy", is_active: true,
+        api_token: token, api_secret: null,
+        agreement_number: null, organization_id: null,
+        settings: { ...defaultSettings } as any,
+        last_error: null, last_error_at: null,
+      };
+      const { error: saveErr } = await supabase.from("accounting_integrations" as any)
+        .upsert(initialPayload, { onConflict: "business_id" });
+      if (saveErr) throw saveErr;
+
+      const { data: g } = await supabase.functions.invoke("accounting-list-groups", {
+        body: { business_id: businessId },
+      });
+      const incomeAccounts = ((g as any)?.income_accounts ?? []) as { id: string }[];
+      foundGroups = incomeAccounts.length > 0;
+      if (foundGroups) autoIncomeAccount = incomeAccounts[0].id;
+    } catch {
+      // Ikke kritisk — falder tilbage til manuelt valg nedenfor
+    }
+
+    // 4) Hvis vi fandt en konto: gem den og afslut. Ellers: fald tilbage til step 3.
+    if (autoIncomeAccount) {
+      const finalSettings = { ...defaultSettings, default_income_account: autoIncomeAccount };
+      try {
+        await supabase.from("accounting_integrations" as any)
+          .update({ settings: finalSettings as any })
+          .eq("business_id", businessId);
+        setSettings(finalSettings);
+        setProvider("billy");
+        setCreds({ api_token: token });
+        setBillyStatus("done");
+        toast.success("Billy er forbundet og klar!");
+        // Stille første synk i baggrunden
+        runFullSync(businessId).catch(() => { /* ignoreres */ });
+        // Vent 1.2s så brugeren ser succes-skærmen, så ryk til oversigten
+        setTimeout(async () => {
+          await load();
+          setMode("overview");
+        }, 1400);
+      } catch (e: any) {
+        setBillyError(e?.message ?? "Kunne ikke gemme indstillinger");
+        setBillyStatus("error");
+      }
+    } else {
+      // Ingen konti i Billy endnu — bed brugeren vælge i step 3 (B-fallback)
+      setProvider("billy");
+      setCreds({ api_token: token });
+      setSettings({ ...defaultSettings });
+      setBillyStatus("idle");
+      setStep(3);
+      await load();
+      toast.info("Næsten klar — vælg lige en indtægtskonto");
     }
   };
 
@@ -1680,7 +1724,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         }
       />
 
-      {/* Stepper */}
+      {/* Stepper — kun for Dinero (manuel flerfelt-flow) */}
+      {provider === "dinero" && (
       <SectionCard className="bg-secondary/30">
         <div className="flex items-center gap-2">
           {stepsMeta.map((s, idx) => {
@@ -1707,6 +1752,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           })}
         </div>
       </SectionCard>
+      )}
 
       {/* TRIN 1 */}
       {step === 1 && (
@@ -1751,7 +1797,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
       {/* TRIN 2 */}
       {step === 2 && (
-        <div className="grid gap-4 lg:grid-cols-[1fr,1.4fr]">
+        <div className={provider === "dinero" ? "grid gap-4 lg:grid-cols-[1fr,1.4fr]" : "mx-auto max-w-xl"}>
+          {provider === "dinero" && (
           <SectionCard
             title="Sådan finder du dine login-oplysninger"
             icon={<img src={currentProvider.logo} alt="" className="h-4 w-auto" />}
@@ -1786,6 +1833,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               </div>
             )}
           </SectionCard>
+          )}
 
           <SectionCard
             title={
@@ -1804,15 +1852,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               {provider === "billy" ? (
                 <BillyConnectCard
                   token={creds.api_token ?? ""}
-                  onTokenChange={(value) => { setCreds({ ...creds, api_token: value }); setTestResult(null); }}
-                  reveal={!!showSecret.api_token}
-                  onToggleReveal={() => setShowSecret(s => ({ ...s, api_token: !s.api_token }))}
-                  onTest={handleTest}
-                  testing={testing}
-                  testResult={testResult}
-                  onDryRun={handleDryRun}
-                  dryRunning={dryRunning}
-                  dryRunResult={dryRunResult}
+                  onTokenChange={(value) => {
+                    setCreds({ ...creds, api_token: value });
+                    if (billyStatus === "error") { setBillyStatus("idle"); setBillyError(null); }
+                  }}
+                  onAutoConnect={handleBillyAutoConnect}
+                  status={billyStatus}
+                  errorMessage={billyError}
                 />
               ) : provider === "economic" ? (
                 <EconomicConnectCard
@@ -1942,7 +1988,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           {step === 1 ? "Tilbage til oversigt" : "Forrige"}
         </Button>
 
-        {step < 3 ? (
+       {step < 3 ? (
+         provider === "billy" || provider === "economic" ? null :
           <PrimaryButton
             onClick={() => setStep((step + 1) as 1 | 2 | 3)}
             disabled={step === 2 && !testResult?.ok}
