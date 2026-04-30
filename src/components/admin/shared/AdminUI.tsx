@@ -151,20 +151,16 @@ SectionCard.displayName = "SectionCard";
 /* ───────── FieldLabel ─────────
    Standard label til input-felter i admin-formularer.
    Lille uppercase-stil, samme på tværs af alle faner. */
-export const FieldLabel = ({
-  children,
-  required,
-  className,
-}: {
-  children: React.ReactNode;
-  required?: boolean;
-  className?: string;
-}) => (
-  <label className={cn("mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider", className)}>
+export const FieldLabel = React.forwardRef<
+  HTMLLabelElement,
+  { children: React.ReactNode; required?: boolean; className?: string }
+>(({ children, required, className }, ref) => (
+  <label ref={ref} className={cn("mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider", className)}>
     {children}
     {required && <span className="text-destructive ml-0.5">*</span>}
   </label>
-);
+));
+FieldLabel.displayName = "FieldLabel";
 
 /* ───────── SearchInput ─────────
    Standard søge-felt med ikon. Bruges i Kunder, Aftaler, Services. */
