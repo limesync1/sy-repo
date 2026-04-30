@@ -14,7 +14,7 @@ import {
   Loader2, RefreshCw, Check, AlertCircle, ExternalLink, Eye, EyeOff,
   ArrowLeft, ArrowRight, Plug, Settings2, ShieldCheck, Calculator,
   Clock, ListChecks, Sparkles, X, Upload, Download, RotateCw, AlertTriangle,
-  Copy, FolderTree, KeyRound,
+  Copy, FolderTree, KeyRound, FlaskConical,
 } from "lucide-react";
 import {
   PageHeader, PrimaryButton, SectionCard, EmptyState, FieldLabel,
