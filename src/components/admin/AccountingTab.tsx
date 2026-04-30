@@ -684,6 +684,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     if (preselect) setProvider(preselect);
     setStep(1);
     setTestResult(null);
+    setBillyManualMode(false);
     setMode("wizard");
   };
 
