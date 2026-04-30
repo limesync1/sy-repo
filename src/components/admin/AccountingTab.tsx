@@ -195,6 +195,12 @@ interface Integration {
 
 type Mode = "overview" | "wizard";
 
+const normalizeBillyToken = (value: string): string => value
+  .trim()
+  .replace(/^x-access-token\s*:\s*/i, "")
+  .replace(/^bearer\s+/i, "")
+  .replace(/[\u200B-\u200D\uFEFF\s]/g, "");
+
 const formatRelativeDanish = (iso: string | null): string => {
   if (!iso) return "Aldrig";
   const ts = new Date(iso).getTime();
@@ -383,7 +389,7 @@ function BillyConnectCard({
 
   // Paste handler: når nøglen indsættes, start auto-flow med det samme.
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    const pasted = e.clipboardData.getData("text").trim();
+    const pasted = normalizeBillyToken(e.clipboardData.getData("text"));
     if (!pasted) return;
     e.preventDefault();
     onTokenChange(pasted);
@@ -1074,8 +1080,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
    */
   const handleBillyAutoConnect = async (rawToken: string) => {
     const runId = ++setupRunRef.current;
-    const token = rawToken.trim();
+    const token = normalizeBillyToken(rawToken);
     if (!token) return;
+    setCreds(prev => ({ ...prev, api_token: token }));
     setBillyError(null);
 
     // 1) Test forbindelse
