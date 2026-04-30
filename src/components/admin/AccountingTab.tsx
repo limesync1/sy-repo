@@ -383,6 +383,83 @@ function BillyConnectCard({
   );
 }
 
+/**
+ * EconomicConnectCard — guidet OAuth-lignende flow for e-conomic.
+ *
+ * E-conomic kræver at brugeren godkender "Serviceydere"-app'en på sin
+ * aftale via deres egen secure-portal. Når brugeren har godkendt,
+ * sender e-conomic dem tilbage til /virksomhed?economicToken=XXX, hvor
+ * vi opfanger tokenet og gemmer det krypteret. Brugeren ser aldrig
+ * App Secret eller Agreement Grant Token.
+ */
+function EconomicConnectCard({
+  onConnect,
+  connecting,
+  connectResult,
+}: {
+  onConnect: () => void;
+  connecting: boolean;
+  connectResult: { ok: boolean; message?: string } | null;
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border bg-secondary/20 p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground text-background">
+            <Plug className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="font-semibold text-foreground">Forbind e-conomic på 30 sekunder</div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Du sendes til e-conomic, godkender Serviceydere-app'en på din aftale, og kommer tilbage hertil. Ingen tokens at kopiere — vi klarer det hele.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-2 rounded-lg border border-border bg-card p-3 text-sm">
+        <div className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">1</span>
+          <span className="pt-0.5 text-muted-foreground">Tryk på den blå knap forneden — der åbner et nyt vindue med e-conomic.</span>
+        </div>
+        <div className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">2</span>
+          <span className="pt-0.5 text-muted-foreground">Log ind i e-conomic og vælg den aftale, du vil forbinde Serviceydere med.</span>
+        </div>
+        <div className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-foreground">3</span>
+          <span className="pt-0.5 text-muted-foreground">Tryk "Tildel adgang" — så sendes du tilbage hertil og er klar.</span>
+        </div>
+      </div>
+
+      <Button onClick={onConnect} disabled={connecting} className="w-full">
+        {connecting
+          ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          : <ExternalLink className="mr-2 h-4 w-4" />}
+        {connecting ? "Forbinder…" : "Forbind e-conomic"}
+      </Button>
+
+      {connectResult && (
+        <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
+          connectResult.ok
+            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
+            : "border-destructive/30 bg-destructive/10 text-destructive"
+        }`}>
+          {connectResult.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
+          <div className="min-w-0">
+            <div className="font-medium">{connectResult.ok ? "E-conomic er forbundet!" : "Forbindelsen kunne ikke gennemføres"}</div>
+            {connectResult.message && <div className="break-words opacity-90">{connectResult.message}</div>}
+          </div>
+        </div>
+      )}
+
+      <p className="text-center text-xs text-muted-foreground">
+        Du kan altid tilbagekalde adgangen i e-conomic under Indstillinger → Integrationer → Apps.
+      </p>
+    </div>
+  );
+}
+
 export default function AccountingTab({ businessId }: { businessId: string; businessName: string }) {
   const [integration, setIntegration] = useState<Integration | null>(null);
   const [mode, setMode] = useState<Mode>("overview");
@@ -390,6 +467,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const [provider, setProvider] = useState<Provider>("economic");
   const [creds, setCreds] = useState<Record<string, string>>({});
   const [showSecret, setShowSecret] = useState<Record<string, boolean>>({});
+  const [economicConnecting, setEconomicConnecting] = useState(false);
   const defaultSettings = {
     push_pending: true,
     default_payment_terms_days: 14,
@@ -601,6 +679,87 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       toast.error(msg);
     } finally { setTesting(false); }
   };
+
+  /**
+   * E-conomic-flow:
+   *  1) Brugeren trykker "Forbind e-conomic" — vi henter Installations URL'en
+   *     fra serveren og åbner den i et nyt vindue.
+   *  2) E-conomic redirecter brugeren tilbage til /virksomhed?economicToken=XXX
+   *     i samme vindue eller forældervinduet.
+   *  3) En separat useEffect (se nedenfor) opfanger query-parametret, kalder
+   *     edge function, og gemmer integrationen.
+   */
+  const handleEconomicConnect = async () => {
+    setEconomicConnecting(true);
+    setTestResult(null);
+    try {
+      // Husk hvilken business der skal bindes når brugeren kommer tilbage
+      sessionStorage.setItem("economic_pending_business_id", businessId);
+      const { data, error } = await supabase.functions.invoke(
+        "accounting-economic-callback",
+        { body: { action: "install_url" } },
+      );
+      if (error) throw error;
+      const url = (data as any)?.install_url;
+      if (!url) throw new Error("Kunne ikke hente e-conomic install-URL");
+      // Naviger i samme vindue så redirect-tilbage virker uanset browser-policy
+      window.location.href = url;
+    } catch (e: any) {
+      sessionStorage.removeItem("economic_pending_business_id");
+      const msg = e?.message ?? "Kunne ikke åbne e-conomic";
+      setTestResult({ ok: false, message: msg });
+      toast.error(msg);
+      setEconomicConnecting(false);
+    }
+  };
+
+  // Opfang ?economicToken=… (eller ?token=…) når brugeren kommer tilbage fra
+  // e-conomic. Vi sender tokenet til edge function der gemmer integrationen.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("economicToken") || params.get("token");
+    const pendingBiz = sessionStorage.getItem("economic_pending_business_id");
+    if (!token || !pendingBiz) return;
+    if (pendingBiz !== businessId) return;
+
+    sessionStorage.removeItem("economic_pending_business_id");
+    // Ryd tokenet ud af URL'en så det ikke ligger og lurer
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete("economicToken");
+    cleanUrl.searchParams.delete("token");
+    cleanUrl.searchParams.set("tab", "accounting");
+    window.history.replaceState({}, "", cleanUrl.toString());
+
+    setProvider("economic");
+    setMode("wizard");
+    setStep(2);
+    setEconomicConnecting(true);
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke(
+          "accounting-economic-callback",
+          { body: { business_id: businessId, agreement_grant_token: token } },
+        );
+        if (error) throw error;
+        if ((data as any)?.error) throw new Error((data as any).error);
+        const companyName = (data as any)?.company_name;
+        setTestResult({
+          ok: true,
+          message: companyName ? `Forbundet til ${companyName}` : "E-conomic er forbundet og klar.",
+        });
+        toast.success("E-conomic er nu forbundet!");
+        await load();
+        setStep(3);
+      } catch (e: any) {
+        const msg = e?.message ?? "Kunne ikke gemme e-conomic-forbindelsen";
+        setTestResult({ ok: false, message: msg });
+        toast.error(msg);
+      } finally {
+        setEconomicConnecting(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessId]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -1493,9 +1652,17 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </SectionCard>
 
           <SectionCard
-            title={provider === "billy" ? "Forbind Billy" : "Indtast dine login-oplysninger"}
+            title={
+              provider === "billy" ? "Forbind Billy"
+              : provider === "economic" ? "Forbind e-conomic"
+              : "Indtast dine login-oplysninger"
+            }
             icon={<ShieldCheck />}
-            description={provider === "billy" ? "Brug en adgangsnøgle fra Billy — ikke din adgangskode." : "Dine oplysninger gemmes sikkert og krypteret. De bruges kun til at sende og hente data fra dit regnskabsprogram."}
+            description={
+              provider === "billy" ? "Brug en adgangsnøgle fra Billy — ikke din adgangskode."
+              : provider === "economic" ? "Du sendes til e-conomic, godkender app'en, og kommer tilbage hertil. Ingen tokens at kopiere."
+              : "Dine oplysninger gemmes sikkert og krypteret. De bruges kun til at sende og hente data fra dit regnskabsprogram."
+            }
           >
             <div className="space-y-4">
               {provider === "billy" ? (
@@ -1507,6 +1674,12 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   onTest={handleTest}
                   testing={testing}
                   testResult={testResult}
+                />
+              ) : provider === "economic" ? (
+                <EconomicConnectCard
+                  onConnect={handleEconomicConnect}
+                  connecting={economicConnecting}
+                  connectResult={testResult}
                 />
               ) : (
                 <>
