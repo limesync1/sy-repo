@@ -254,6 +254,66 @@ export type Database = {
         }
         Relationships: []
       }
+      accounting_sync_dlq: {
+        Row: {
+          attempts: number
+          business_id: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          last_error: string | null
+          moved_to_dlq_at: string
+          operation: string
+          original_created_at: string | null
+          original_queue_id: string | null
+          payload: Json | null
+          provider: string
+          resolution_note: string | null
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+        }
+        Insert: {
+          attempts?: number
+          business_id: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          last_error?: string | null
+          moved_to_dlq_at?: string
+          operation: string
+          original_created_at?: string | null
+          original_queue_id?: string | null
+          payload?: Json | null
+          provider: string
+          resolution_note?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Update: {
+          attempts?: number
+          business_id?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          last_error?: string | null
+          moved_to_dlq_at?: string
+          operation?: string
+          original_created_at?: string | null
+          original_queue_id?: string | null
+          payload?: Json | null
+          provider?: string
+          resolution_note?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Relationships: []
+      }
       accounting_sync_log: {
         Row: {
           business_id: string
@@ -2361,6 +2421,10 @@ export type Database = {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
+      dismiss_dlq_job: {
+        Args: { _dlq_id: string; _note?: string }
+        Returns: undefined
+      }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
@@ -2416,6 +2480,7 @@ export type Database = {
         }[]
       }
       recalc_route_totals: { Args: { _route_id: string }; Returns: undefined }
+      retry_dlq_job: { Args: { _dlq_id: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "business_owner" | "user" | "employee"
