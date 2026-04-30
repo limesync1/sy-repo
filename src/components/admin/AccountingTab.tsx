@@ -321,7 +321,7 @@ function BillyConnectCard({
       {/* Stor primær handling: åbn Billy direkte på adgangsnøgle-siden */}
       <Button asChild size="lg" className="w-full h-14 text-base">
         <a
-          href="https://mit.billy.dk/#/organization/access_tokens"
+          href="https://mit.billy.dk/settings#/organization/access_tokens"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -568,6 +568,26 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     [provider],
   );
 
+  const resetWizardState = (clearCredentials = true) => {
+    if (clearCredentials) setCreds({});
+    setShowSecret({});
+    setTestResult(null);
+    setDryRunResult(null);
+    setBillyStatus("idle");
+    setBillyError(null);
+    setEconomicConnecting(false);
+    setEconomicWaiting(false);
+    setTesting(false);
+    try { sessionStorage.removeItem("economic_pending_business_id"); } catch {}
+  };
+
+  const chooseProvider = (nextProvider: Provider) => {
+    setProvider(nextProvider);
+    resetWizardState(true);
+    setStep(2);
+    setMode("wizard");
+  };
+
   const load = async () => {
     setLoading(true);
     const { data } = await supabase
@@ -701,14 +721,12 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const startWizard = (preselect?: Provider) => {
     if (preselect) {
       setProvider(preselect);
-      // Billy og e-conomic har auto-flows — spring 'vælg program'-skærmen over
-      setStep(preselect === "dinero" ? 1 : 2);
+      // Klik på et program skal åbne opsætningen med det samme — ingen ekstra "Næste".
+      setStep(2);
     } else {
       setStep(1);
     }
-    setTestResult(null);
-    setBillyStatus("idle");
-    setBillyError(null);
+    resetWizardState(true);
     setMode("wizard");
   };
 
