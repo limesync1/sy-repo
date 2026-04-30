@@ -869,6 +869,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     "idle" | "checking" | "testing" | "saving" | "done" | "error"
   >("idle");
   const [dineroError, setDineroError] = useState<string | null>(null);
+  // Dinero OAuth (kun aktiv når Dinero har godkendt Serviceydere som partner-app)
+  const [dineroOAuthEnabled, setDineroOAuthEnabled] = useState(false);
+  const [dineroOAuthConnecting, setDineroOAuthConnecting] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [queueCount, setQueueCount] = useState(0);
