@@ -98,15 +98,15 @@ const PROVIDERS: ProviderDef[] = [
     logo: billyLogo,
     tagline: "Enkelt og hurtigt",
     description: "Forbind med en adgangsnøgle fra Billy — ingen adgangskoder gemmes.",
-    helpUrl: "https://www.billy.dk/support/article/saadan-opretter-du-en-api-noegle-adgangsnoegle/",
-    helpUrlLabel: "Se Billys guide til adgangsnøgler",
+    helpUrl: "https://mit.billy.dk/",
+    helpUrlLabel: "Åbn Billy",
     fields: [
       { key: "api_token", label: "Adgangsnøgle fra Billy", type: "password",
         help: "Kopiér adgangsnøglen fra Billy under Indstillinger → Adgangsnøgler.", placeholder: "Indsæt adgangsnøglen fra Billy" },
     ],
     setupSteps: [
-      "Tryk 'Åbn Billy' — vi sender dig direkte til siden med adgangsnøgler.",
-      "Tryk 'Opret adgangsnøgle', kald den 'Serviceydere' og tryk Opret.",
+      "Tryk 'Åbn Billy' og log ind på den virksomhed du vil forbinde.",
+      "Gå til Indstillinger → Adgangsnøgler, tryk 'Opret adgangsnøgle', kald den 'Serviceydere' og tryk Opret.",
       "Kopiér nøglen og kom tilbage hertil — vi tager os af resten automatisk.",
     ],
     note: {
