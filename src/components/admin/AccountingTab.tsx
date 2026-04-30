@@ -320,7 +320,7 @@ function BillyConnectCard({
       {/* Stor primær handling: åbn Billy direkte på adgangsnøgle-siden */}
       <Button asChild size="lg" className="w-full h-14 text-base">
         <a
-          href="https://www.billy.dk/app/#/settings/integrations/access-tokens"
+          href="https://mit.billy.dk/#/settings/organization/access_tokens"
           target="_blank"
           rel="noopener noreferrer"
         >
