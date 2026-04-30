@@ -146,6 +146,26 @@ const PROVIDERS: ProviderDef[] = [
       body: "Dinero giver kun API-adgang til kunder på Pro-pakken. Hvis du har Small eller Medium skal du opgradere først, ellers vil forbindelsen blive afvist. Opgradér via Dinero → Indstillinger → Abonnement.",
     },
   },
+  {
+    value: "zenegy",
+    label: "Zenegy",
+    logo: zenegyLogo,
+    tagline: "Ét-klik OAuth 2.0",
+    description: "Forbind Zenegy med ét klik via sikker OAuth-godkendelse. Ingen API-nøgler at kopiere.",
+    helpUrl: "https://zenegy.com/",
+    helpUrlLabel: "Læs mere om Zenegy",
+    fields: [],
+    setupSteps: [
+      "Tryk 'Forbind Zenegy' nedenfor — et nyt vindue åbner.",
+      "Log ind på Zenegy og vælg den virksomhed, du vil forbinde med Serviceydere.",
+      "Tryk 'Tildel adgang' i Zenegy — så sendes du automatisk tilbage hertil.",
+    ],
+    note: {
+      tone: "info",
+      title: "Sikker forbindelse via OAuth",
+      body: "Zenegy bruger OAuth 2.0, så du aldrig skal kopiere API-nøgler. Du kan altid tilbagekalde adgangen igen direkte i Zenegy.",
+    },
+  },
 ];
 
 interface Integration {
