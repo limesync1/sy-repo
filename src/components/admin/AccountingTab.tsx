@@ -1388,10 +1388,10 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </SectionCard>
         )}
 
-        {/* Avancerede indstillinger — gemt bag toggle så normal-brugeren
-            kun ser status + log. Tre underafsnit: synk-regler, placering,
-            og forbindelsesvalg (skift/frakobl). */}
-        <Collapsible>
+        {/* Avancerede indstillinger — åbne som standard så brugeren kan se
+            sine valg uden at skulle klikke. Kan klappes sammen hvis siden
+            føles for lang. Tre underafsnit: synk-regler, placering, forbindelse. */}
+        <Collapsible defaultOpen>
           <div className="rounded-2xl border border-border bg-card">
             <CollapsibleTrigger className="group flex w-full items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-secondary/30">
               <div className="flex items-center gap-3">
