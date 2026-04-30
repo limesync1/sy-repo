@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -468,7 +468,8 @@ const EconomicConnectCard = React.forwardRef<
       </p>
     </div>
   );
-}
+});
+EconomicConnectCard.displayName = "EconomicConnectCard";
 
 export default function AccountingTab({ businessId }: { businessId: string; businessName: string }) {
   const [integration, setIntegration] = useState<Integration | null>(null);
