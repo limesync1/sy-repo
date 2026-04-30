@@ -110,14 +110,17 @@ export type Database = {
           api_secret: string | null
           api_token: string | null
           business_id: string
+          consecutive_failures: number
           created_at: string
           id: string
           is_active: boolean
           last_error: string | null
           last_error_at: string | null
+          last_kick_at: string | null
           last_pull_at: string | null
           last_push_at: string | null
           organization_id: string | null
+          paused_until: string | null
           provider: string
           settings: Json
           updated_at: string
@@ -127,14 +130,17 @@ export type Database = {
           api_secret?: string | null
           api_token?: string | null
           business_id: string
+          consecutive_failures?: number
           created_at?: string
           id?: string
           is_active?: boolean
           last_error?: string | null
           last_error_at?: string | null
+          last_kick_at?: string | null
           last_pull_at?: string | null
           last_push_at?: string | null
           organization_id?: string | null
+          paused_until?: string | null
           provider: string
           settings?: Json
           updated_at?: string
@@ -144,14 +150,17 @@ export type Database = {
           api_secret?: string | null
           api_token?: string | null
           business_id?: string
+          consecutive_failures?: number
           created_at?: string
           id?: string
           is_active?: boolean
           last_error?: string | null
           last_error_at?: string | null
+          last_kick_at?: string | null
           last_pull_at?: string | null
           last_push_at?: string | null
           organization_id?: string | null
+          paused_until?: string | null
           provider?: string
           settings?: Json
           updated_at?: string
@@ -2347,6 +2356,7 @@ export type Database = {
         Args: { _customer_id: string }
         Returns: string
       }
+      cleanup_accounting_sync_log: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
