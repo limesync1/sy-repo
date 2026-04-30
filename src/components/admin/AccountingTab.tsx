@@ -2207,21 +2207,16 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 />
               ) : provider === "dinero" ? (
                 <DineroConnectCard
-                  values={{
-                    api_token: creds.api_token ?? "",
-                    api_secret: creds.api_secret ?? "",
-                    organization_id: creds.organization_id ?? "",
-                  }}
-                  onChange={(key, value) => {
-                    setCreds({ ...creds, [key]: value });
-                    if (dineroStatus === "error") { setDineroStatus("idle"); setDineroError(null); }
-                  }}
-                  onAutoConnect={handleDineroAutoConnect}
-                  status={dineroStatus}
-                  errorMessage={dineroError}
-                  oauthEnabled={dineroOAuthEnabled}
-                  oauthConnecting={dineroOAuthConnecting}
-                  onOAuthConnect={handleDineroOAuthConnect}
+                  onConnect={handleDineroOAuthConnect}
+                  connecting={dineroOAuthConnecting}
+                  waiting={dineroOAuthConnecting}
+                  connectResult={
+                    dineroError
+                      ? { ok: false, message: dineroError }
+                      : dineroStatus === "done"
+                        ? { ok: true, message: "Vi har testet at synk virker, og sat alt op for dig." }
+                        : null
+                  }
                 />
               ) : (
                 <>
