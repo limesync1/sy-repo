@@ -609,7 +609,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     <div className="space-y-4">
       <PageHeader
         title="Kunder"
-        description="Her kan du se alle dine kunder samlet ét sted — privat og erhverv, deres bestillinger, abonnementer, betalinger og rutehistorik. Klik på en kunde for at se alt om dem."
+        description="Her kan du se alle dine kunder samlet ét sted — privat og erhverv, deres aftaler, abonnementer, betalinger og rutehistorik. Klik på en kunde for at se alt om dem."
         action={
           <PrimaryButton onClick={openCreateDialog} icon={<UserPlus />}>
             Tilføj kunde
@@ -638,7 +638,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
             <CardContent className="p-4">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Samlet omsætning</p>
               <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{fmtKr(stats.totalRev)}</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">På tværs af alle bestillinger</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">På tværs af alle aftaler</p>
             </CardContent>
           </Card>
         </div>
@@ -732,9 +732,9 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                 </div>
               </div>
               {/* Kolonne-titler: matcher præcis bredde og rækkefølge i hver række
-                  (bestillinger w-20, omsætning w-24, handlinger ~ 4 × 32px = 128px). */}
+                  (aftaler w-20, omsætning w-24, handlinger ~ 4 × 32px = 128px). */}
               <div className="hidden sm:flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                <span className="w-20 text-right">Bestillinger</span>
+                <span className="w-20 text-right">Aftaler</span>
                 <span className="w-24 text-right">Omsætning</span>
                 <span className="w-[136px] text-right pr-2">Handlinger</span>
               </div>
@@ -746,7 +746,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                 const typeDot = c.type === "business" ? "bg-blue-500" : c.type === "private" ? "bg-emerald-500" : "bg-muted-foreground/40";
                 const displayName = c.type === "business" && c.company_name ? c.company_name : c.name;
                 const metaParts: string[] = [];
-                if (c.last_order_at) metaParts.push(`Sidste bestilling: ${fmtDate(c.last_order_at)}`);
+                if (c.last_order_at) metaParts.push(`Sidste aftale: ${fmtDate(c.last_order_at)}`);
                 if (c.city) metaParts.push(c.city);
                 else if (c.email) metaParts.push(c.email);
                 return (
@@ -798,11 +798,11 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                         <CustomerStatusPill c={c} />
                       </div>
                       <div className="mt-0.5 text-xs text-muted-foreground truncate">
-                        {metaParts.join(" · ") || "Ingen bestillinger endnu"}
+                        {metaParts.join(" · ") || "Ingen aftaler endnu"}
                       </div>
                     </button>
 
-                    {/* Bestillinger */}
+                    {/* Aftaler */}
                     <div className="hidden sm:block w-20 text-right text-sm tabular-nums text-foreground">
                       {c.orders_count > 0 ? c.orders_count : <span className="text-muted-foreground">—</span>}
                     </div>
@@ -835,12 +835,12 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                             type="button"
                             onClick={() => openCreateOrderForCustomer(c)}
                             className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                            aria-label="Opret bestilling"
+                            aria-label="Opret aftale"
                           >
                             <ShoppingBag className="h-4 w-4" />
                           </button>
                         </TooltipTrigger>
-                        <TooltipContent>Opret bestilling</TooltipContent>
+                        <TooltipContent>Opret aftale</TooltipContent>
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -867,7 +867,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                           </button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          {c.saved_id ? "Slet kunde" : "Slet kunde og alle bestillinger"}
+                          {c.saved_id ? "Slet kunde" : "Slet kunde og alle aftaler"}
                         </TooltipContent>
                       </Tooltip>
                     </div>
@@ -905,8 +905,8 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirmDelete?.targets.some(t => !t.saved_id)
-                ? "Kunder uden kartotek-post slettes sammen med alle deres bestillinger og abonnementer. Gemte kartotek-kunder fjernes fra kartoteket — deres bestillinger bevares."
-                : "Kundeoplysninger fjernes fra dit kartotek. Tidligere bestillinger og abonnementer bevares, men kunden vil ikke længere fremgå af kundelisten."}
+                ? "Kunder uden kartotek-post slettes sammen med alle deres aftaler og abonnementer. Gemte kartotek-kunder fjernes fra kartoteket — deres aftaler bevares."
+                : "Kundeoplysninger fjernes fra dit kartotek. Tidligere aftaler og abonnementer bevares, men kunden vil ikke længere fremgå af kundelisten."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -958,7 +958,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                     <p className="text-xs text-muted-foreground font-normal">
                       {customer.first_order_at
                         ? <>Kunde siden {fmtDate(customer.first_order_at)}</>
-                        : "Endnu ingen bestillinger"}
+                        : "Endnu ingen aftaler"}
                     </p>
                     <div className="mt-2"><CustomerStatusPill c={customer} /></div>
                   </div>
@@ -999,7 +999,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                   <p className="text-base font-bold text-foreground">{fmtKr(customer.total_revenue)}</p>
                 </div>
                 <div className="rounded-xl border border-border bg-card p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Ordrer</p>
+                  <p className="text-xs text-muted-foreground">Aftaler</p>
                   <p className="text-base font-bold text-foreground">{customer.orders_count}</p>
                 </div>
                 <div className="rounded-xl border border-border bg-card p-3 text-center">
@@ -1120,10 +1120,10 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                   {data && data.orders.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                        <Package className="h-3.5 w-3.5" /> Bestillinger ({data.orders.length})
+                        <Package className="h-3.5 w-3.5" /> Aftaler ({data.orders.length})
                       </h4>
                       <p className="text-[11px] text-muted-foreground">
-                        Hver bestilling viser udførelsesstatus og betalingsstatus. Betalingsstatus hentes automatisk fra dit regnskabsprogram.
+                        Hver aftale viser udførelsesstatus og betalingsstatus. Betalingsstatus hentes automatisk fra dit regnskabsprogram.
                       </p>
                       <div className="space-y-2">
                         {data.orders.map(o => (
