@@ -206,10 +206,21 @@ const formatCountdown = (d: Date): string => {
 
 const ENTITY_LABEL: Record<string, string> = {
   customer: "Kunde",
-  product: "Vare",
+  product: "Service",
   order: "Aftale",
   connection: "Forbindelse",
 };
+
+const OPERATION_LABEL: Record<string, string> = {
+  upsert: "blev sendt",
+  delete: "blev slettet",
+  push: "blev sendt",
+  pull: "blev hentet",
+};
+
+function operationDanish(op: string): string {
+  return OPERATION_LABEL[op] ?? op;
+}
 
 /** Lille statusbadge der diskret viser om indstillingerne er gemt. */
 function AutoSaveBadge({
@@ -815,9 +826,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             fejltekst fra adapteren og hvornår det sidst fejlede. */}
         {failedJobs.length > 0 && (
           <SectionCard
-            title="Synk-fejl"
+            title="Disse blev ikke sendt"
             icon={<AlertTriangle />}
-            description="Disse jobs blev forsøgt 5 gange uden held. Ret problemet og prøv igen."
+            description="Vi forsøgte at sende disse til dit regnskabsprogram, men det lykkedes ikke. Læs fejlen og prøv igen — som regel er det en stavefejl i kunden eller en mangel i regnskabsprogrammet."
             action={
               <Button
                 variant="outline"
@@ -840,7 +851,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                         {ENTITY_LABEL[job.entity_type] ?? job.entity_type}
                       </Badge>
                       <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                        {job.operation} · forsøg {job.attempts}/5
+                        {operationDanish(job.operation)} ikke
                       </span>
                       <span className="text-xs text-muted-foreground tabular-nums">
                         {formatRelativeDanish(job.updated_at)}
@@ -849,18 +860,23 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     <div className="break-words rounded-md border border-destructive/20 bg-destructive/5 px-2.5 py-1.5 text-xs text-destructive">
                       {job.last_error || "Ukendt fejl"}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(job.entity_id);
-                        toast.success("ID kopieret");
-                      }}
-                      className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-                      title="Klik for at kopiere"
-                    >
-                      <Copy className="h-3 w-3" />
-                      {job.entity_id}
-                    </button>
+                    <details className="group">
+                      <summary className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground select-none">
+                        Vis tekniske detaljer
+                      </summary>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(job.entity_id);
+                          toast.success("Reference kopieret");
+                        }}
+                        className="mt-1 inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+                        title="Klik for at kopiere — gem den hvis du kontakter support"
+                      >
+                        <Copy className="h-3 w-3" />
+                        Reference: {job.entity_id}
+                      </button>
+                    </details>
                   </div>
                   <Button
                     variant="outline"
@@ -884,9 +900,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             ejeren får en handlingsklar liste over hvad der kræver manuel opmærksomhed. */}
         {dlqJobs.length > 0 && (
           <SectionCard
-            title="Fejl-indbakke"
+            title="Kræver din opmærksomhed"
             icon={<AlertTriangle />}
-            description="Disse jobs blev parkeret efter 5 mislykkede forsøg. Ret problemet i regnskabsprogrammet og prøv igen — eller marker som håndteret hvis du har bogført det manuelt."
+            description="Disse er flyttet hertil fordi vi ikke kunne sende dem efter flere forsøg. Tjek fejlen, ret den hvis det er nødvendigt, og prøv igen — eller marker som håndteret hvis du har ordnet det manuelt i regnskabsprogrammet."
           >
             <div className="divide-y divide-border">
               {dlqJobs.map(job => (
@@ -898,21 +914,26 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                         {ENTITY_LABEL[job.entity_type] ?? job.entity_type}
                       </Badge>
                       <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                        {job.operation} · parkeret {formatRelativeDanish(job.moved_to_dlq_at)}
+                        {operationDanish(job.operation)} ikke · {formatRelativeDanish(job.moved_to_dlq_at)}
                       </span>
                     </div>
                     <div className="break-words rounded-md border border-destructive/20 bg-destructive/5 px-2.5 py-1.5 text-xs text-destructive">
                       {job.last_error || "Ukendt fejl"}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => { navigator.clipboard.writeText(job.entity_id); toast.success("ID kopieret"); }}
-                      className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-                      title="Klik for at kopiere"
-                    >
-                      <Copy className="h-3 w-3" />
-                      {job.entity_id}
-                    </button>
+                    <details className="group">
+                      <summary className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground select-none">
+                        Vis tekniske detaljer
+                      </summary>
+                      <button
+                        type="button"
+                        onClick={() => { navigator.clipboard.writeText(job.entity_id); toast.success("Reference kopieret"); }}
+                        className="mt-1 inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+                        title="Klik for at kopiere — gem den hvis du kontakter support"
+                      >
+                        <Copy className="h-3 w-3" />
+                        Reference: {job.entity_id}
+                      </button>
+                    </details>
                   </div>
                   <div className="flex gap-2 sm:flex-col">
                     <Button
@@ -932,7 +953,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       disabled={dlqActionId === job.id}
                       className="h-9 rounded-lg text-xs font-medium text-muted-foreground"
                     >
-                      Håndteret
+                      Jeg har ordnet det
                     </Button>
                   </div>
                 </div>
