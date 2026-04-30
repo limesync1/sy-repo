@@ -1364,10 +1364,16 @@ const AftaleTab = ({
                               };
                               const p = PAY[ps];
                               if (!p) return null;
+                              const syncedAt = (order as any).payment_status_synced_at
+                                ? new Date((order as any).payment_status_synced_at)
+                                : null;
+                              const syncedLabel = syncedAt
+                                ? syncedAt.toLocaleString("da-DK", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+                                : "endnu ikke";
                               return (
                                 <span
                                   className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${p.cls}`}
-                                  title="Betalingsstatus hentes automatisk fra dit regnskabsprogram"
+                                  title={`Betalingsstatus hentes automatisk fra dit regnskabsprogram hvert 15. minut.\nSidst opdateret: ${syncedLabel}.`}
                                 >
                                   <span className={`h-1.5 w-1.5 rounded-full ${p.dot}`} />
                                   {p.label}
