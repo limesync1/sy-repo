@@ -46,7 +46,22 @@ Deno.serve(async (req) => {
     if (action === "install_url") {
       const installUrl = Deno.env.get("ECONOMIC_INSTALL_URL");
       if (!installUrl) return json({ error: "ECONOMIC_INSTALL_URL er ikke konfigureret." }, 500);
-      return json({ install_url: installUrl });
+      // Sørg for at redirectUrl indeholder ?tab=accounting så brugeren lander
+      // direkte på regnskabs-fanen efter godkendelse — ikke på "Overblik".
+      try {
+        const u = new URL(installUrl);
+        const redirect = u.searchParams.get("redirectUrl");
+        if (redirect) {
+          const r = new URL(redirect);
+          if (r.searchParams.get("tab") !== "accounting") {
+            r.searchParams.set("tab", "accounting");
+            u.searchParams.set("redirectUrl", r.toString());
+          }
+        }
+        return json({ install_url: u.toString() });
+      } catch {
+        return json({ install_url: installUrl });
+      }
     }
 
     const { business_id, agreement_grant_token } = body;
