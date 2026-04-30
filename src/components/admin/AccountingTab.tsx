@@ -403,17 +403,16 @@ function BillyConnectCard({
  * vi opfanger tokenet og gemmer det krypteret. Brugeren ser aldrig
  * App Secret eller Agreement Grant Token.
  */
-function EconomicConnectCard({
-  onConnect,
-  connecting,
-  connectResult,
-}: {
-  onConnect: () => void;
-  connecting: boolean;
-  connectResult: { ok: boolean; message?: string } | null;
-}) {
+const EconomicConnectCard = React.forwardRef<
+  HTMLDivElement,
+  {
+    onConnect: () => void;
+    connecting: boolean;
+    connectResult: { ok: boolean; message?: string } | null;
+  }
+>(({ onConnect, connecting, connectResult }, ref) => {
   return (
-    <div className="space-y-4">
+    <div ref={ref} className="space-y-4">
       <div className="rounded-xl border border-border bg-secondary/20 p-4">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground text-background">
