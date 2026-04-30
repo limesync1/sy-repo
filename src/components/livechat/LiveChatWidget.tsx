@@ -626,9 +626,19 @@ const LiveChatWidget = () => {
 
       {open && (
         <div
-          className={`fixed z-50 inset-0 sm:inset-auto sm:w-[calc(100vw-3rem)] sm:max-w-[400px] md:w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-200 sm:${panelBottomClass} sm:${panelPositionClass}`}
+          className={
+            isMobile
+              ? "fixed inset-0 z-50 animate-in fade-in slide-in-from-bottom-4 duration-200"
+              : `fixed z-50 w-[calc(100vw-3rem)] max-w-[400px] md:w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`
+          }
         >
-          <div className="relative flex h-[100dvh] w-full sm:h-[min(640px,calc(100vh-3rem))] sm:w-auto flex-col overflow-hidden rounded-none sm:rounded-[20px] border-0 sm:border sm:border-border bg-card shadow-none sm:shadow-[0_30px_80px_-20px_hsl(var(--foreground)/0.35)]">
+          <div
+            className={
+              isMobile
+                ? "relative flex h-[100dvh] w-full flex-col overflow-hidden bg-card"
+                : "relative flex h-[min(640px,calc(100vh-3rem))] flex-col overflow-hidden rounded-[20px] border border-border bg-card shadow-[0_30px_80px_-20px_hsl(var(--foreground)/0.35)]"
+            }
+          >
             {/* Header */}
             <div className="relative overflow-hidden bg-foreground px-5 pb-5 pt-4 text-background">
               <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-accent/30 blur-3xl" />
