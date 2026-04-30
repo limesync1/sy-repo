@@ -2008,6 +2008,34 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     )}
                   </div>
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={syncing}
+                  onClick={async () => {
+                    if (!businessId) return;
+                    setSyncing(true);
+                    try {
+                      const r = await runFullSync(businessId);
+                      toast.success(
+                        `Synkronisering færdig — ${r.pushed} sendt, ${r.pulledCustomers} kunder & ${r.pulledProducts} varer hentet.`,
+                      );
+                      await load();
+                    } catch (e) {
+                      toast.error(e instanceof Error ? e.message : "Synkronisering fejlede");
+                    } finally {
+                      setSyncing(false);
+                    }
+                  }}
+                  className="shrink-0"
+                >
+                  {syncing ? (
+                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <RotateCw className="mr-1.5 h-3.5 w-3.5" />
+                  )}
+                  Kør synkronisering nu
+                </Button>
               </div>
             </div>
           );
