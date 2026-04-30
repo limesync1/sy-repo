@@ -290,18 +290,6 @@ function BillyConnectCard({
 }) {
   const canTest = token.trim().length > 0 && !testing;
 
-  if (alreadyConnected) {
-    return (
-      <div className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300">
-        <Check className="mt-0.5 h-4 w-4 shrink-0" />
-        <div>
-          <div className="font-medium">Billy er forbundet</div>
-          <div className="opacity-90">Du kan trykke Næste for at gennemføre opsætningen.</div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-border bg-secondary/20 p-4">
