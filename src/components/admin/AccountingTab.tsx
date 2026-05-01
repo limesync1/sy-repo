@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ChevronDown, HelpCircle, PartyPopper, SlidersHorizontal } from "lucide-react";
 import {
-  PageHeader, PrimaryButton, SectionCard, EmptyState, FieldLabel,
+  PageHeader, PrimaryButton, SectionCard, FieldLabel,
 } from "@/components/admin/shared/AdminUI";
 import economicLogo from "@/assets/accounting/economic.png";
 import billyLogo from "@/assets/accounting/billy.png";
@@ -256,21 +256,10 @@ function operationDanish(op: string): string {
   return OPERATION_LABEL[op] ?? op;
 }
 
-/**
- * GuideStep — pænt nummereret trin brugt i alle tre forbind-kort.
- * Centraliserer styling så vi ikke duplikerer markup.
- */
-const GuideStep = React.forwardRef<HTMLLIElement, { n: number; children: React.ReactNode }>(({ n, children }, ref) => {
-  return (
-    <li ref={ref} className="flex gap-3">
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
-        {n}
-      </span>
-      <span className="pt-0.5 text-sm leading-relaxed text-foreground/80">{children}</span>
-    </li>
-  );
-});
-GuideStep.displayName = "GuideStep";
+// GuideStep blev tidligere brugt i hver ConnectCard, men dupliker­ede de
+// trin der allerede står i venstre "Sådan fungerer det"-kolonne. Trinene
+// vises nu kun ét sted (sidecard'et) — selve forbindelses-kortet
+// koncentrerer sig om handlingen.
 
 /**
  * ConnectCardShell — fælles ramme for alle tre forbind-kort, så designet
@@ -396,12 +385,6 @@ const BillyConnectCard = React.forwardRef<HTMLDivElement, {
   return (
     <ConnectCardShell logo={billyLogo} name="Billy" tagline="Adgangsnøgle — tager under 1 minut">
       <div className="space-y-5">
-        <ol className="space-y-2.5">
-          <GuideStep n={1}>Åbn Billy og vælg den virksomhed, du vil forbinde.</GuideStep>
-          <GuideStep n={2}>Gå til <strong>Indstillinger → Adgangsnøgler</strong> og tryk <strong>Opret adgangsnøgle</strong>. Kald den fx "Serviceydere".</GuideStep>
-          <GuideStep n={3}>Kopiér nøglen og indsæt den i feltet nedenfor — så går vi automatisk i gang.</GuideStep>
-        </ol>
-
         <Button asChild variant="outline" size="lg" className="w-full">
           <a href="https://mit.billy.dk/" target="_blank" rel="noopener noreferrer">
             <ExternalLink className="mr-2 h-4 w-4" />
@@ -468,12 +451,6 @@ const EconomicConnectCard = React.forwardRef<
     <div ref={ref}>
       <ConnectCardShell logo={economicLogo} name="e-conomic" tagline="Ét-klik OAuth — tager under 30 sekunder">
         <div className="space-y-5">
-          <ol className="space-y-2.5">
-            <GuideStep n={1}>Tryk <strong>Forbind e-conomic</strong> nedenfor — et nyt vindue åbner.</GuideStep>
-            <GuideStep n={2}>Log ind og vælg den aftale, du vil forbinde med Serviceydere.</GuideStep>
-            <GuideStep n={3}>Tryk <strong>Tildel adgang</strong> — så sendes du automatisk tilbage hertil.</GuideStep>
-          </ol>
-
           <Button onClick={onConnect} disabled={connecting} size="lg" className="w-full">
             {connecting
               ? <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -550,24 +527,6 @@ const DineroConnectCard = React.forwardRef<HTMLDivElement, {
   return (
     <ConnectCardShell logo={dineroLogo} name="Dinero" tagline="">
       <div className="space-y-5">
-        <div className="rounded-xl border border-border bg-secondary/30 p-4">
-          <div className="mb-2 text-sm font-semibold text-foreground">
-            Sådan opretter du en API-nøgle til integrationer
-          </div>
-          <ol className="space-y-2">
-            <GuideStep n={1}>Log ind i <strong>Dinero</strong>.</GuideStep>
-            <GuideStep n={2}>Klik på <strong>Integrationer</strong> i menuen til venstre.</GuideStep>
-            <GuideStep n={3}>Klik på <strong>Se og opret API-nøgler</strong> i øverste venstre hjørne.</GuideStep>
-            <GuideStep n={4}>Klik på <strong>Opret ny API-nøgle</strong>.</GuideStep>
-            <GuideStep n={5}>Giv API-nøglen et navn (fx "Serviceydere"), så du kan genkende den.</GuideStep>
-            <GuideStep n={6}>Kopiér <strong>API-nøglen</strong> når den er genereret — den skal bruges nedenfor.</GuideStep>
-          </ol>
-          <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-900 dark:text-amber-200">
-            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            <span><strong>OBS:</strong> API-nøgler er kun tilgængelige for <strong>Dinero Pro</strong>-brugere.</span>
-          </div>
-        </div>
-
         <Button asChild variant="outline" size="lg" className="w-full">
           <a href="https://app.dinero.dk/" target="_blank" rel="noopener noreferrer">
             <ExternalLink className="mr-2 h-4 w-4" />
@@ -679,12 +638,6 @@ const ZenegyConnectCard = React.forwardRef<HTMLDivElement, {
   return (
     <ConnectCardShell logo={zenegyLogo} name="Zenegy" tagline="Ét-klik OAuth — tager under 30 sekunder">
       <div className="space-y-5">
-        <ol className="space-y-2.5">
-          <GuideStep n={1}>Tryk <strong>Forbind Zenegy</strong> nedenfor — et nyt vindue åbner.</GuideStep>
-          <GuideStep n={2}>Log ind og vælg den virksomhed, du vil forbinde med Serviceydere.</GuideStep>
-          <GuideStep n={3}>Tryk <strong>Tildel adgang</strong> — så sendes du automatisk tilbage hertil.</GuideStep>
-        </ol>
-
         <Button
           onClick={onConnect}
           disabled={connecting || !oauthEnabled || connectResult?.ok === true}
@@ -2015,14 +1968,30 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       <div className="space-y-6">
         <PageHeader
           title="Regnskab"
-          description="Forbind dit regnskabsprogram, så dine kunder, services og aftaler automatisk holder sig opdateret begge steder. Du behøver ikke gøre noget — det sker af sig selv."
+          description="Forbind dit regnskabsprogram, så kunder, services og aftaler holder sig opdateret begge steder — automatisk."
         />
 
-        <EmptyState
-          icon={<Calculator />}
-          title="Vælg dit regnskabsprogram"
-          description="Tryk på programmet du bruger. Det tager under 2 minutter — vi klarer resten."
-        />
+        {/* Forklarende top-banner i stedet for tom EmptyState + grid.
+            Et roligt hero-felt sætter forventningen, og kortene nedenfor
+            er selve handlingen. */}
+        <div className="rounded-2xl border border-border bg-gradient-to-br from-secondary/40 to-card p-6 sm:p-8">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-foreground text-background">
+              <Calculator className="h-6 w-6" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-lg font-semibold text-foreground">Vælg dit regnskabsprogram</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Det tager under 2 minutter. Vi guider dig gennem opsætningen og tester at alt virker — du behøver ingen teknisk viden.
+              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" /> Krypteret forbindelse</span>
+                <span className="inline-flex items-center gap-1.5"><RotateCw className="h-3.5 w-3.5" /> Synkroniseres automatisk</span>
+                <span className="inline-flex items-center gap-1.5"><X className="h-3.5 w-3.5" /> Frakobl når som helst</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {PROVIDERS.map(p => (
@@ -2030,17 +1999,22 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               key={p.value}
               type="button"
               onClick={() => startWizard(p.value)}
-              className="group flex flex-col rounded-xl border border-border bg-card p-5 text-left shadow-sm transition-colors duration-150 hover:border-foreground/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <div className="flex h-20 items-center justify-center rounded-lg bg-secondary/40 px-4">
-                <img src={p.logo} alt={p.label} className="max-h-10 max-w-[140px] object-contain" />
+              <div className="flex h-24 items-center justify-center border-b border-border bg-gradient-to-b from-secondary/50 to-secondary/20 px-6">
+                <img src={p.logo} alt={p.label} className="max-h-10 max-w-[150px] object-contain" />
               </div>
-              <div className="mt-4">
-                <div className="font-semibold text-foreground">{p.label}</div>
-              </div>
-              <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{p.description}</p>
-              <div className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-foreground transition-opacity opacity-70 group-hover:opacity-100">
-                Forbind <ArrowRight className="h-4 w-4" />
+              <div className="flex flex-1 flex-col p-5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-semibold text-foreground">{p.label}</div>
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-secondary text-foreground transition-all group-hover:bg-foreground group-hover:text-background">
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </span>
+                </div>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{p.description}</p>
+                <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <Sparkles className="h-3.5 w-3.5" /> Tager under 2 minutter
+                </div>
               </div>
             </button>
           ))}
@@ -2657,25 +2631,58 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </div>
         </SectionCard>
 
-        {/* Skift program / Frakobl */}
-        <SectionCard title="Forbindelse" icon={<Plug />}>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              onClick={openProviderPicker}
-              className="h-9 rounded-lg text-xs font-medium"
-            >
-              <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Vælg et andet program
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDisable(true)}
-              className="h-9 rounded-lg border-border text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/40"
-            >
-              <X className="mr-1.5 h-4 w-4" /> Frakobl {activeDef.label}
-            </Button>
+        {/* Aktiv forbindelse — viser hvilket regnskabsprogram der er
+            forbundet, en kort identitet (organisations-id / nøgle-hale)
+            og to klare handlinger: skift program eller frakobl helt.
+            Bruger den samme visuelle ramme som connect-kortene i wizarden,
+            så det føles sammenhængende. */}
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border bg-secondary/30 px-5 py-4">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="flex h-12 w-16 shrink-0 items-center justify-center rounded-xl bg-background ring-1 ring-border p-2">
+                <img src={activeDef.logo} alt={activeDef.label} className="max-h-7 max-w-full object-contain" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-base font-semibold text-foreground">{activeDef.label}</span>
+                  <Badge variant="secondary" className="gap-1 bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/20">
+                    <Check className="h-3 w-3" /> Aktiv
+                  </Badge>
+                </div>
+                <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                  {integration.organization_id
+                    ? <>Organisation <span className="font-medium text-foreground/80">{integration.organization_id}</span></>
+                    : integration.agreement_number
+                      ? <>Aftale <span className="font-medium text-foreground/80">{integration.agreement_number}</span></>
+                      : integration.api_token
+                        ? <>Adgangsnøgle <span className="font-mono text-foreground/80">••••{integration.api_token.slice(-4)}</span></>
+                        : "Forbundet"}
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={openProviderPicker}
+                className="h-9 rounded-lg text-xs font-medium"
+              >
+                <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Skift program
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmDisable(true)}
+                className="h-9 rounded-lg border-destructive/30 text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50"
+              >
+                <X className="mr-1.5 h-3.5 w-3.5" /> Frakobl
+              </Button>
+            </div>
           </div>
-        </SectionCard>
+          <div className="px-5 py-3 text-xs text-muted-foreground">
+            Hvis du skifter program nu, beholder vi alt det du allerede har sendt — der bliver ikke slettet noget i {activeDef.label}.
+          </div>
+        </div>
 
         </div>
 
