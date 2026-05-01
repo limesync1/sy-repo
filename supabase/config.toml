@@ -48,6 +48,6 @@ project_id = "gkectsellkpltrxvusot"
   [functions.accounting-dinero-callback]
     verify_jwt = true
   [functions.accounting-zenegy-callback]
-    verify_jwt = true
+    verify_jwt = false
   [functions.accounting-dry-run]
     verify_jwt = true
