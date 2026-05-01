@@ -277,21 +277,15 @@ GuideStep.displayName = "GuideStep";
  * føles konsistent. Header med logo + program-navn, valgfri "kræver"-badge,
  * og en pæn body-area.
  */
-function ConnectCardShell({
-  logo,
-  name,
-  tagline,
-  requiresBadge,
-  children,
-}: {
+const ConnectCardShell = React.forwardRef<HTMLDivElement, {
   logo: string;
   name: string;
   tagline: string;
   requiresBadge?: string;
   children: React.ReactNode;
-}) {
+}>(({ logo, name, children }, ref) => {
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+    <div ref={ref} className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
       <div className="flex items-center gap-4 border-b border-border bg-secondary/40 px-5 py-4">
         <div className="flex h-12 w-16 shrink-0 items-center justify-center rounded-xl bg-background ring-1 ring-border p-2">
           <img src={logo} alt={name} className="max-h-7 max-w-full object-contain" />
@@ -303,7 +297,8 @@ function ConnectCardShell({
       <div className="p-5">{children}</div>
     </div>
   );
-}
+});
+ConnectCardShell.displayName = "ConnectCardShell";
 
 /** Lille statusbadge der diskret viser om indstillingerne er gemt. */
 function AutoSaveBadge({
