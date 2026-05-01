@@ -39,6 +39,13 @@ function getSafeReturnTo(req: Request) {
   }
 }
 
+function getCallbackUrl(req: Request) {
+  const current = new URL(req.url);
+  current.search = "";
+  current.hash = "";
+  return current.toString();
+}
+
 /**
  * accounting-zenegy-callback
  *  • GET  ?code=...&state=...                     → browser-redirect fra Zenegy → token exchange
@@ -50,7 +57,7 @@ Deno.serve(async (req) => {
 
   const clientId = Deno.env.get("ZENEGY_CLIENT_ID");
   const clientSecret = Deno.env.get("ZENEGY_CLIENT_SECRET");
-  const redirectUrl = Deno.env.get("ZENEGY_REDIRECT_URL");
+  const redirectUrl = getCallbackUrl(req);
   const returnTo = getSafeReturnTo(req);
 
   try {
