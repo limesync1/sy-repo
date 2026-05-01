@@ -1349,7 +1349,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       sessionStorage.setItem("dinero_pending_business_id", businessId);
       const { data, error } = await supabase.functions.invoke(
         "accounting-dinero-callback",
-        { body: { action: "install_url", business_id: businessId } },
+        { body: { action: "install_url", business_id: businessId, prepare: true } },
       );
       if (runId !== setupRunRef.current) return;
       if (error) throw error;
@@ -1402,7 +1402,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     try {
       const { data, error } = await supabase.functions.invoke(
         "accounting-zenegy-callback",
-        { body: { action: "install_url", business_id: businessId } },
+        { body: { action: "install_url", business_id: businessId, prepare: true } },
       );
       if (runId !== setupRunRef.current) return;
       if (error) throw error;
