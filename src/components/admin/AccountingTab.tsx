@@ -2850,32 +2850,36 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           icon={<Sparkles />}
           description="Du kan altid skifte program senere. Alt du har lavet i Serviceydere bliver liggende uanset hvad."
         >
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {PROVIDERS.map(p => {
-              const selected = provider === p.value;
+              const isCurrent = integration?.is_active && integration.provider === p.value;
               return (
                 <button
                   key={p.value}
                   type="button"
                   onClick={() => chooseProvider(p.value)}
-                  className={`group flex flex-col rounded-xl border p-4 text-left transition-colors ${
-                    selected
-                      ? "border-foreground bg-secondary/40 ring-2 ring-foreground/10"
-                      : "border-border bg-card hover:border-foreground/30 hover:bg-secondary/20"
-                  }`}
+                  className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <div className="flex h-16 items-center justify-center rounded-lg bg-background px-4">
-                    <img src={p.logo} alt={p.label} className="max-h-9 max-w-[130px] object-contain" />
+                  {isCurrent && (
+                    <span className="absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 ring-1 ring-emerald-500/30">
+                      <Check className="h-2.5 w-2.5" /> Nuværende
+                    </span>
+                  )}
+                  <div className="flex h-24 items-center justify-center border-b border-border bg-gradient-to-b from-secondary/50 to-secondary/20 px-6">
+                    <img src={p.logo} alt={p.label} className="max-h-10 max-w-[150px] object-contain" />
                   </div>
-                  <div className="mt-3 flex items-center justify-between gap-2">
-                    <div className="font-semibold text-foreground">{p.label}</div>
-                    {selected && (
-                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-background">
-                        <Check className="h-3 w-3" />
+                  <div className="flex flex-1 flex-col p-5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="font-semibold text-foreground">{p.label}</div>
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-secondary text-foreground transition-all group-hover:bg-foreground group-hover:text-background">
+                        <ArrowRight className="h-3.5 w-3.5" />
                       </span>
-                    )}
+                    </div>
+                    <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{p.description}</p>
+                    <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                      <Sparkles className="h-3.5 w-3.5" /> Tager under 2 minutter
+                    </div>
                   </div>
-                  <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{p.description}</p>
                 </button>
               );
             })}
