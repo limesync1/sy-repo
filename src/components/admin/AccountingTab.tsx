@@ -741,7 +741,8 @@ const ZenegyConnectCard = React.forwardRef<HTMLDivElement, {
       </div>
     </ConnectCardShell>
   );
-}
+});
+ZenegyConnectCard.displayName = "ZenegyConnectCard";
 
 export default function AccountingTab({ businessId }: { businessId: string; businessName: string }) {
   const navigate = useNavigate();
