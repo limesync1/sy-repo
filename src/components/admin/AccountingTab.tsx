@@ -449,7 +449,8 @@ const BillyConnectCard = React.forwardRef<HTMLDivElement, {
       </div>
     </ConnectCardShell>
   );
-}
+});
+BillyConnectCard.displayName = "BillyConnectCard";
 
 /**
  * EconomicConnectCard — guidet OAuth-lignende flow for e-conomic.
