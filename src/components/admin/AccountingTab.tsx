@@ -256,21 +256,10 @@ function operationDanish(op: string): string {
   return OPERATION_LABEL[op] ?? op;
 }
 
-/**
- * GuideStep — pænt nummereret trin brugt i alle tre forbind-kort.
- * Centraliserer styling så vi ikke duplikerer markup.
- */
-const GuideStep = React.forwardRef<HTMLLIElement, { n: number; children: React.ReactNode }>(({ n, children }, ref) => {
-  return (
-    <li ref={ref} className="flex gap-3">
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
-        {n}
-      </span>
-      <span className="pt-0.5 text-sm leading-relaxed text-foreground/80">{children}</span>
-    </li>
-  );
-});
-GuideStep.displayName = "GuideStep";
+// GuideStep blev tidligere brugt i hver ConnectCard, men dupliker­ede de
+// trin der allerede står i venstre "Sådan fungerer det"-kolonne. Trinene
+// vises nu kun ét sted (sidecard'et) — selve forbindelses-kortet
+// koncentrerer sig om handlingen.
 
 /**
  * ConnectCardShell — fælles ramme for alle tre forbind-kort, så designet
