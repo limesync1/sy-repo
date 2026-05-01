@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
         return htmlRedirect(`${returnTo}&zenegy=error&reason=invalid_state`, "Ugyldig state — prøv igen.");
       }
 
-      const tokenRes = await fetch("https://auth.zenegy.com/connect/token", {
+      const tokenRes = await fetch("https://auth.zenegy.com/auth/token", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
@@ -183,7 +183,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      const installUrl = new URL("https://auth.zenegy.com/connect/authorize");
+      const installUrl = new URL("https://auth.zenegy.com/auth/authorize");
       installUrl.searchParams.set("response_type", "code");
       installUrl.searchParams.set("client_id", clientId);
       installUrl.searchParams.set("redirect_uri", redirectUrl);
@@ -205,7 +205,7 @@ Deno.serve(async (req) => {
       .from("businesses").select("id, owner_id").eq("id", business_id).maybeSingle();
     if (!biz || biz.owner_id !== user.id) return json({ error: "Forbidden" }, 403);
 
-    const tokenRes = await fetch("https://auth.zenegy.com/connect/token", {
+    const tokenRes = await fetch("https://auth.zenegy.com/auth/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
