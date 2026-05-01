@@ -1399,7 +1399,20 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     setZenegyOAuthConnecting(true);
     setZenegyResult(null);
     setZenegyWaiting(false);
+    const popup = window.open("about:blank", "zenegy_connect");
+    if (popup) {
+      try {
+        popup.document.write(
+          `<!doctype html><html lang="da"><head><meta charset="utf-8"><title>Forbinder til Zenegy…</title>` +
+          `<style>body{font-family:-apple-system,system-ui,Segoe UI,Roboto,sans-serif;background:#0f172a;color:#e2e8f0;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}` +
+          `.box{text-align:center}.spinner{width:32px;height:32px;border:3px solid #334155;border-top-color:#22d3ee;border-radius:50%;animation:s 1s linear infinite;margin:0 auto 16px}` +
+          `@keyframes s{to{transform:rotate(360deg)}}</style></head>` +
+          `<body><div class="box"><div class="spinner"></div><div>Sender dig til Zenegy…</div></div></body></html>`
+        );
+      } catch { /* ignore */ }
+    }
     try {
+      sessionStorage.setItem("zenegy_pending_business_id", businessId);
       const { data, error } = await supabase.functions.invoke(
         "accounting-zenegy-callback",
         { body: { action: "install_url", business_id: businessId, prepare: true } },
@@ -1408,11 +1421,17 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       if (error) throw error;
       const url = (data as any)?.install_url;
       if (!url) throw new Error("Zenegy OAuth er ikke aktiveret endnu — Serviceydere venter på godkendelse fra Zenegy.");
-      // Top-level redirect — Zenegy redirecter direkte til vores edge function,
-      // som bytter token og videresender brugeren tilbage med ?zenegy=connected.
-      window.location.href = url;
+      if (popup && !popup.closed) {
+        popup.location.href = url;
+      } else {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+      setZenegyOAuthConnecting(false);
+      setZenegyWaiting(true);
     } catch (e: any) {
       if (runId !== setupRunRef.current) return;
+      if (popup && !popup.closed) popup.close();
+      sessionStorage.removeItem("zenegy_pending_business_id");
       const msg = e?.message ?? "Kunne ikke åbne Zenegy";
       setZenegyResult({ ok: false, message: msg });
       toast.error(msg);
