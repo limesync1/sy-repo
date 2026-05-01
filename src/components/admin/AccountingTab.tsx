@@ -365,19 +365,13 @@ function SuccessCard({ name }: { name: string }) {
  * "Paste-and-go": brugeren paster sin adgangsnøgle, og vi kører automatisk
  * forbind → testdata → auto-opsætning → gem i ét. Ingen knapper at trykke.
  */
-function BillyConnectCard({
-  token,
-  onTokenChange,
-  onAutoConnect,
-  status,
-  errorMessage,
-}: {
+const BillyConnectCard = React.forwardRef<HTMLDivElement, {
   token: string;
   onTokenChange: (value: string) => void;
   onAutoConnect: (token: string) => void;
   status: "idle" | "checking" | "testing" | "saving" | "done" | "error";
   errorMessage: string | null;
-}) {
+}>(({ token, onTokenChange, onAutoConnect, status, errorMessage }, _ref) => {
   const isWorking = status === "checking" || status === "testing" || status === "saving";
   const statusLabel =
     status === "checking" ? "Tjekker forbindelsen…" :
