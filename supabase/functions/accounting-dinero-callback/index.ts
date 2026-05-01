@@ -61,6 +61,7 @@ Deno.serve(async (req) => {
       const { data: biz } = await supabase
         .from("businesses").select("id, owner_id").eq("id", business_id).maybeSingle();
       if (!biz || biz.owner_id !== user.id) return json({ error: "Forbidden" }, 403);
+      if (body?.prepare !== true) return json({ enabled: true });
       const admin = createClient(
         Deno.env.get("SUPABASE_URL")!,
         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
