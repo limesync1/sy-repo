@@ -104,6 +104,38 @@ async function getOrgId(creds: AccountingCredentials): Promise<string> {
 // Billy kræver en indtægtskonto på alle varer. Hvis brugeren ikke har valgt
 // en konto endnu, vælger vi automatisk en gyldig salgskonto fra Billy.
 const incomeAccountCache = new Map<string, string>();
+// Billy kræver en taxRateId pr. linje når kontakten/varen ikke har en standard.
+// Vi henter Billys "domestic sales VAT" (fx U25) én gang pr. organisation.
+const taxRateCache = new Map<string, string | null>();
+async function getDefaultBillySalesTaxRate(
+  creds: AccountingCredentials,
+  orgId: string,
+): Promise<string | null> {
+  if (taxRateCache.has(orgId)) return taxRateCache.get(orgId) ?? null;
+  try {
+    const res = await billyRequest(creds, `/taxRates?organizationId=${orgId}&pageSize=200`);
+    const list: any[] = res?.taxRates ?? [];
+    // Foretræk aktive sales VAT-rater (priority/scope = "sales") med den højeste rate.
+    const sales = list.filter(t =>
+      !t.isArchived &&
+      (String(t.scope ?? "").toLowerCase() === "sales" ||
+       String(t.priority ?? "").toLowerCase() === "sales" ||
+       String(t.name ?? "").toLowerCase().includes("salg") ||
+       String(t.abbreviation ?? "").toLowerCase().startsWith("u")) // U25, U-MOMS, etc
+    );
+    const pick = (sales.length ? sales : list)
+      .filter(t => !t.isArchived)
+      .sort((a, b) => Number(b.rate ?? 0) - Number(a.rate ?? 0))[0];
+    const id = pick?.id ?? null;
+    taxRateCache.set(orgId, id);
+    return id;
+  } catch (e) {
+    console.warn("getDefaultBillySalesTaxRate failed:", e instanceof Error ? e.message : e);
+    taxRateCache.set(orgId, null);
+    return null;
+  }
+}
+
 async function ensureBillyIncomeAccount(
   creds: AccountingCredentials,
   orgId: string,
