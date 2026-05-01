@@ -1638,16 +1638,18 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const handleSave = async () => {
     setSaving(true);
     try {
-      const payload = {
-        business_id: businessId, provider, is_active: true,
-        api_token: creds.api_token || null, api_secret: creds.api_secret || null,
-        agreement_number: creds.agreement_number || null,
-        organization_id: creds.organization_id || null,
-        settings: settings as any,
-        last_error: null, last_error_at: null,
-      };
-      const { error } = await supabase.from("accounting_integrations" as any)
-        .upsert(payload, { onConflict: "business_id" });
+      const { error } = await supabase.functions.invoke("accounting-integration-state", {
+        body: {
+          action: "save",
+          business_id: businessId,
+          provider,
+          api_token: creds.api_token || null,
+          api_secret: creds.api_secret || null,
+          agreement_number: creds.agreement_number || null,
+          organization_id: creds.organization_id || null,
+          settings: settings as any,
+        },
+      });
       if (error) throw error;
       toast.success(`${currentProvider.label} er nu integreret`);
       // Stille første synk i baggrunden — ingen toasts. Realtime-trigger
@@ -1705,12 +1707,21 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
   const handleDisable = async () => {
     if (!integration) return;
-    await supabase.from("accounting_integrations" as any)
-      .delete().eq("business_id", businessId);
+    const { error } = await supabase.functions.invoke("accounting-integration-state", {
+      body: { action: "disconnect", business_id: businessId },
+    });
+    if (error) {
+      toast.error(error.message ?? "Kunne ikke frakoble integrationen");
+      return;
+    }
     toast.success("Integration afbrudt");
     setIntegration(null);
     setCreds({});
     setSettings(defaultSettings);
+    setLogs([]);
+    setFailedJobs([]);
+    setDlqJobs([]);
+    setQueueCount(0);
     await load();
   };
 
