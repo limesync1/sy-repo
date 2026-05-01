@@ -876,6 +876,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     setTesting(false);
     setDryRunning(false);
     try { sessionStorage.removeItem("economic_pending_business_id"); } catch {}
+    try { sessionStorage.removeItem("dinero_pending_business_id"); } catch {}
   };
 
   const chooseProvider = (nextProvider: Provider) => {
@@ -1129,15 +1130,15 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     let foundGroups = false;
     try {
       // Gem først (uden konto) så accounting-list-groups kan finde integrationen
-      const initialPayload = {
-        business_id: businessId, provider: "billy", is_active: true,
-        api_token: token, api_secret: null,
-        agreement_number: null, organization_id: null,
-        settings: { ...defaultSettings } as any,
-        last_error: null, last_error_at: null,
-      };
-      const { error: saveErr } = await supabase.from("accounting_integrations" as any)
-        .upsert(initialPayload, { onConflict: "business_id" });
+      const { error: saveErr } = await supabase.functions.invoke("accounting-integration-state", {
+        body: {
+          action: "save",
+          business_id: businessId,
+          provider: "billy",
+          api_token: token,
+          settings: { ...defaultSettings },
+        },
+      });
       if (runId !== setupRunRef.current) return;
       if (saveErr) throw saveErr;
 
@@ -1247,15 +1248,17 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     setDineroStatus("saving");
     let autoIncomeAccount: string | null = null;
     try {
-      const initialPayload = {
-        business_id: businessId, provider: "dinero", is_active: true,
-        api_token, api_secret,
-        agreement_number: null, organization_id,
-        settings: { ...defaultSettings } as any,
-        last_error: null, last_error_at: null,
-      };
-      const { error: saveErr } = await supabase.from("accounting_integrations" as any)
-        .upsert(initialPayload, { onConflict: "business_id" });
+      const { error: saveErr } = await supabase.functions.invoke("accounting-integration-state", {
+        body: {
+          action: "save",
+          business_id: businessId,
+          provider: "dinero",
+          api_token,
+          api_secret,
+          organization_id,
+          settings: { ...defaultSettings },
+        },
+      });
       if (runId !== setupRunRef.current) return;
       if (saveErr) throw saveErr;
 
@@ -1479,7 +1482,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       sessionStorage.setItem("economic_pending_business_id", businessId);
       const { data, error } = await supabase.functions.invoke(
         "accounting-economic-callback",
-        { body: { action: "install_url" } },
+        { body: { action: "install_url", business_id: businessId } },
       );
       if (runId !== setupRunRef.current) return;
       if (error) throw error;
