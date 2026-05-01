@@ -2723,6 +2723,70 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Forny Billy-adgangsnøgle med ét klik */}
+        <Dialog open={renewBillyOpen} onOpenChange={(o) => { if (!o) { setRenewBillyOpen(false); setRenewBillyStatus("idle"); setRenewBillyError(null); } }}>
+          <DialogContent className="rounded-xl sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <KeyRound className="h-5 w-5 text-foreground" />
+                Forny Billy-adgangsnøgle
+              </DialogTitle>
+              <DialogDescription className="leading-relaxed">
+                Opret en ny adgangsnøgle i Billy under <strong>Indstillinger → Adgangsnøgler</strong>, og indsæt den nedenfor.
+                Vi tester den med det samme og udskifter automatisk den gamle.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-3">
+              <Button asChild variant="outline" className="w-full">
+                <a href="https://mit.billy.dk/" target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="mr-2 h-4 w-4" /> Åbn Billy i nyt vindue
+                </a>
+              </Button>
+
+              <div className="space-y-1.5">
+                <FieldLabel>Ny adgangsnøgle</FieldLabel>
+                <Input
+                  type="text"
+                  value={renewBillyToken}
+                  onChange={(e) => setRenewBillyToken(e.target.value)}
+                  placeholder="Indsæt den nye nøgle her"
+                  autoComplete="off"
+                  disabled={renewBillyStatus === "checking" || renewBillyStatus === "saving"}
+                  className="h-11"
+                />
+              </div>
+
+              {renewBillyStatus === "error" && renewBillyError && (
+                <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <div className="min-w-0 break-words">{renewBillyError}</div>
+                </div>
+              )}
+            </div>
+
+            <DialogFooter className="gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => setRenewBillyOpen(false)}
+                disabled={renewBillyStatus === "checking" || renewBillyStatus === "saving"}
+                className="h-9 rounded-lg text-sm font-medium"
+              >
+                Annuller
+              </Button>
+              <Button
+                onClick={handleRenewBillyToken}
+                disabled={!renewBillyToken.trim() || renewBillyStatus === "checking" || renewBillyStatus === "saving"}
+                className="h-9 rounded-lg text-sm font-medium"
+              >
+                {renewBillyStatus === "checking" && (<><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Tester nøglen…</>)}
+                {renewBillyStatus === "saving" && (<><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Gemmer…</>)}
+                {(renewBillyStatus === "idle" || renewBillyStatus === "error") && (<><Check className="mr-1.5 h-3.5 w-3.5" /> Test og gem</>)}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
