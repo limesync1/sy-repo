@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
       const state = `${business_id}::${crypto.randomUUID()}`;
       // Zenegy OAuth: standard authorization_code grant.
       // Scopes kan justeres når Zenegy oplyser endelige scope-navne.
-      const installUrl = new URL("https://login.zenegy.com/connect/authorize");
+      const installUrl = new URL("https://auth.zenegy.com/connect/authorize");
       installUrl.searchParams.set("response_type", "code");
       installUrl.searchParams.set("client_id", clientId);
       installUrl.searchParams.set("redirect_uri", redirectUrl);
@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
     if (!biz || biz.owner_id !== user.id) return json({ error: "Forbidden" }, 403);
 
     // Byt code → tokens
-    const tokenRes = await fetch("https://login.zenegy.com/connect/token", {
+    const tokenRes = await fetch("https://auth.zenegy.com/connect/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
