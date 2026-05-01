@@ -65,13 +65,18 @@ Deno.serve(async (req) => {
       try {
         const u = new URL(installUrl);
         u.searchParams.set("culture", "da-DK");
+        // Ny integrationapproval.aspx bruger ?language= i stedet for ?culture=
+        u.searchParams.set("language", "da-DK");
         return json({ install_url: u.toString() });
       } catch {
         const sep = installUrl.includes("?") ? "&" : "?";
         const withCulture = installUrl.includes("culture=")
           ? installUrl.replace(/([?&]culture=)[^&]*/i, "$1da-DK")
           : `${installUrl}${sep}culture=da-DK`;
-        return json({ install_url: withCulture });
+        const withLang = withCulture.includes("language=")
+          ? withCulture.replace(/([?&]language=)[^&]*/i, "$1da-DK")
+          : `${withCulture}&language=da-DK`;
+        return json({ install_url: withLang });
       }
     }
 
