@@ -461,7 +461,7 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
       customersPulled++;
     }
 
-    const products = await adapter.listProducts(since);
+    const products = CUSTOMERS_ONLY ? [] : await adapter.listProducts(since);
     for (const ep of products) {
       // To-vejs synk: opdatér både link OG den interne service med pris/navn
       // hvis brugeren har ændret det i regnskabsprogrammet.
@@ -503,7 +503,7 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
     // Payment status is ALWAYS sourced from the accounting program — never
     // set manually inside Serviceydere.
     let invoicesPulled = 0;
-    if (typeof adapter.getInvoiceStates === "function") {
+    if (!CUSTOMERS_ONLY && typeof adapter.getInvoiceStates === "function") {
       const { data: links } = await admin
         .from("accounting_order_links")
         .select("order_id, external_id")
