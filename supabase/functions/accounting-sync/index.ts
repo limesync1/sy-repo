@@ -14,6 +14,12 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
+// MIDLERTIDIG TESTFASE: vi synkroniserer KUN kunder mellem Serviceydere og
+// regnskabsprogrammerne, indtil alle 4 udbydere (Billy, Dinero, e-conomic,
+// Zenegy) er bekræftet stabile på kunde-synk. Når alle er grønne fjerner
+// vi denne gate, så produkter/ordrer/fakturaer også synker igen.
+const CUSTOMERS_ONLY = true;
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -134,7 +140,9 @@ async function seedQueue(admin: SupabaseClient, business_id: string): Promise<nu
   const seenEmails = new Set<string>();
   for (const r of bcs.data ?? []) rows.push({ business_id, entity_type: "customer", entity_id: r.id, operation: "update" });
   for (const r of pcs.data ?? []) rows.push({ business_id, entity_type: "customer", entity_id: r.id, operation: "update" });
-  for (const r of svcs.data ?? []) rows.push({ business_id, entity_type: "product", entity_id: r.id, operation: "update" });
+  if (!CUSTOMERS_ONLY) {
+    for (const r of svcs.data ?? []) rows.push({ business_id, entity_type: "product", entity_id: r.id, operation: "update" });
+  }
 
   // 2) Skygge-kunder fra orders (typisk efter offentlig bestilling)
   for (const o of ords.data ?? []) {
@@ -183,8 +191,10 @@ async function seedQueue(admin: SupabaseClient, business_id: string): Promise<nu
   }
 
   // 3) Ordrer
-  for (const o of ords.data ?? []) {
-    rows.push({ business_id, entity_type: "order", entity_id: o.id, operation: "update" });
+  if (!CUSTOMERS_ONLY) {
+    for (const o of ords.data ?? []) {
+      rows.push({ business_id, entity_type: "order", entity_id: o.id, operation: "update" });
+    }
   }
 
   if (rows.length === 0) return 0;
@@ -451,7 +461,7 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
       customersPulled++;
     }
 
-    const products = await adapter.listProducts(since);
+    const products = CUSTOMERS_ONLY ? [] : await adapter.listProducts(since);
     for (const ep of products) {
       // To-vejs synk: opdatér både link OG den interne service med pris/navn
       // hvis brugeren har ændret det i regnskabsprogrammet.
@@ -493,7 +503,7 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
     // Payment status is ALWAYS sourced from the accounting program — never
     // set manually inside Serviceydere.
     let invoicesPulled = 0;
-    if (typeof adapter.getInvoiceStates === "function") {
+    if (!CUSTOMERS_ONLY && typeof adapter.getInvoiceStates === "function") {
       const { data: links } = await admin
         .from("accounting_order_links")
         .select("order_id, external_id")
@@ -613,6 +623,16 @@ async function drainQueue(admin: SupabaseClient, integ: Integration, adapter: Ac
   // kalder Billy 10 gange for samme kunde/produkt.
   const failedThisRun = new Set<string>();
   for (const job of jobs) {
+    // MIDLERTIDIG TESTFASE: spring produkt-/ordre-jobs over så vi kun
+    // synker kunder. Vi markerer dem som "skipped" så køen ikke vokser.
+    if (CUSTOMERS_ONLY && job.entity_type !== "customer") {
+      await admin.from("accounting_sync_queue").update({
+        status: "done",
+        processed_at: new Date().toISOString(),
+        last_error: "Skipped: customers-only mode",
+      }).eq("id", job.id);
+      continue;
+    }
     if (providerDown) {
       // Re-skemalér resten uden at kalde provideren igen
       await admin.from("accounting_sync_queue").update({
