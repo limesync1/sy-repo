@@ -12,21 +12,125 @@ function json(data: unknown, status = 200) {
   });
 }
 
+function htmlRedirect(url: string, message: string) {
+  const safeUrl = url.replace(/"/g, "&quot;");
+  return new Response(
+    `<!doctype html><meta charset="utf-8"><title>Zenegy</title>
+<meta http-equiv="refresh" content="0;url=${safeUrl}">
+<p style="font-family:sans-serif;padding:24px">${message} <a href="${safeUrl}">Klik her hvis du ikke videresendes.</a></p>`,
+    { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } },
+  );
+}
+
 /**
  * accounting-zenegy-callback
- *
- * OAuth 2.0 flow for Zenegy. Spejler `accounting-dinero-callback`:
- *  • action = "install_url"   → bygger autorisations-URL hvis OAuth er aktiveret.
- *  • action = "exchange"      → bytter authorization code for access + refresh token.
- *
- * Indtil ZENEGY_CLIENT_ID, ZENEGY_CLIENT_SECRET og ZENEGY_REDIRECT_URL
- * er sat som secrets, returnerer install_url-action `enabled:false` så
- * frontend kan vise "Afventer godkendelse fra Zenegy".
+ *  • GET  ?code=...&state=...                     → browser-redirect fra Zenegy → token exchange
+ *  • POST { action: "install_url", business_id }  → bygger autorisations-URL og gemmer state
+ *  • POST { action: "exchange", business_id, code } → legacy POST exchange (beholdt for kompat.)
  */
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  const clientId = Deno.env.get("ZENEGY_CLIENT_ID");
+  const clientSecret = Deno.env.get("ZENEGY_CLIENT_SECRET");
+  const redirectUrl = Deno.env.get("ZENEGY_REDIRECT_URL");
+  const returnTo = "https://serviceydere.dk/virksomhed?tab=accounting";
+
   try {
+    // ============ GET: browser-redirect fra Zenegy ============
+    if (req.method === "GET") {
+      const url = new URL(req.url);
+      const code = url.searchParams.get("code");
+      const state = url.searchParams.get("state");
+      const errParam = url.searchParams.get("error");
+
+      if (errParam) {
+        return htmlRedirect(`${returnTo}&zenegy=error&reason=${encodeURIComponent(errParam)}`, "Zenegy afviste forbindelsen.");
+      }
+      if (!code || !state) {
+        return htmlRedirect(`${returnTo}&zenegy=error&reason=missing_code`, "Manglende code/state.");
+      }
+      if (!clientId || !clientSecret || !redirectUrl) {
+        return htmlRedirect(`${returnTo}&zenegy=error&reason=not_configured`, "Zenegy er ikke konfigureret.");
+      }
+
+      const admin = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      );
+
+      const { data: match } = await admin
+        .from("accounting_integrations")
+        .select("id, business_id, settings")
+        .eq("provider", "zenegy")
+        .filter("settings->>oauth_state", "eq", state)
+        .maybeSingle();
+
+      if (!match) {
+        return htmlRedirect(`${returnTo}&zenegy=error&reason=invalid_state`, "Ugyldig state — prøv igen.");
+      }
+
+      const tokenRes = await fetch("https://auth.zenegy.com/connect/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          grant_type: "authorization_code",
+          code,
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: redirectUrl,
+        }).toString(),
+      });
+      if (!tokenRes.ok) {
+        const txt = await tokenRes.text();
+        console.log(`[zenegy-callback] token exchange failed: ${tokenRes.status} ${txt.slice(0, 300)}`);
+        return htmlRedirect(`${returnTo}&zenegy=error&reason=token_exchange`, "Token exchange fejlede.");
+      }
+      const tok = await tokenRes.json();
+
+      let orgId: string | null = null;
+      try {
+        const compRes = await fetch("https://api.zenegy.com/v1/companies?pageSize=1", {
+          headers: { Authorization: `Bearer ${tok.access_token}` },
+        });
+        if (compRes.ok) {
+          const d = await compRes.json();
+          const list = Array.isArray(d) ? d : (d?.data ?? d?.items ?? d?.results ?? []);
+          if (Array.isArray(list) && list.length > 0) {
+            orgId = String(list[0].id ?? list[0].Id ?? list[0].companyId ?? "");
+          }
+        }
+      } catch { /* ikke kritisk */ }
+
+      const baseSettings = (match.settings as Record<string, unknown> | null) ?? {};
+      delete (baseSettings as Record<string, unknown>).oauth_state;
+      delete (baseSettings as Record<string, unknown>).oauth_state_at;
+      const mergedSettings = {
+        push_pending: true,
+        default_payment_terms_days: 14,
+        default_vat_rate: 25,
+        auto_create_products: true,
+        send_order_as: "order",
+        ...baseSettings,
+        oauth_refresh_token: tok.refresh_token ?? null,
+      };
+
+      await admin.from("accounting_integrations").update({
+        is_active: true,
+        api_token: clientId,
+        api_secret: clientSecret,
+        organization_id: orgId,
+        settings: mergedSettings,
+        last_error: null,
+        last_error_at: null,
+        consecutive_failures: 0,
+        paused_until: null,
+      }).eq("id", match.id);
+
+      return htmlRedirect(`${returnTo}&zenegy=connected`, "Zenegy forbundet — videresender…");
+    }
+
+    // ============ POST flows ============
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return json({ error: "Missing auth" }, 401);
 
@@ -42,11 +146,6 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const action = body?.action ?? "exchange";
 
-    const clientId = Deno.env.get("ZENEGY_CLIENT_ID");
-    const clientSecret = Deno.env.get("ZENEGY_CLIENT_SECRET");
-    const redirectUrl = Deno.env.get("ZENEGY_REDIRECT_URL");
-
-    // --- Action: install_url ---------------------------------------------
     if (action === "install_url") {
       if (!clientId || !redirectUrl) {
         return json({
@@ -56,9 +155,39 @@ Deno.serve(async (req) => {
       }
       const business_id = body?.business_id;
       if (!business_id) return json({ error: "Missing business_id" }, 400);
+
+      const { data: biz } = await supabase
+        .from("businesses").select("id, owner_id").eq("id", business_id).maybeSingle();
+      if (!biz || biz.owner_id !== user.id) return json({ error: "Forbidden" }, 403);
+
       const state = `${business_id}::${crypto.randomUUID()}`;
-      // Zenegy OAuth: standard authorization_code grant.
-      // Scopes kan justeres når Zenegy oplyser endelige scope-navne.
+
+      const admin = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      );
+      const { data: existing } = await admin
+        .from("accounting_integrations")
+        .select("id, settings")
+        .eq("business_id", business_id)
+        .maybeSingle();
+
+      const baseSettings = (existing?.settings as Record<string, unknown> | null) ?? {};
+      const settingsWithState = { ...baseSettings, oauth_state: state, oauth_state_at: new Date().toISOString() };
+
+      if (existing) {
+        await admin.from("accounting_integrations")
+          .update({ provider: "zenegy", settings: settingsWithState })
+          .eq("id", existing.id);
+      } else {
+        await admin.from("accounting_integrations").insert({
+          business_id,
+          provider: "zenegy",
+          is_active: false,
+          settings: settingsWithState,
+        });
+      }
+
       const installUrl = new URL("https://auth.zenegy.com/connect/authorize");
       installUrl.searchParams.set("response_type", "code");
       installUrl.searchParams.set("client_id", clientId);
@@ -68,7 +197,7 @@ Deno.serve(async (req) => {
       return json({ enabled: true, install_url: installUrl.toString(), state });
     }
 
-    // --- Action: exchange ------------------------------------------------
+    // --- Action: exchange (legacy) ---
     const { business_id, code } = body;
     if (!business_id || !code) {
       return json({ error: "Missing business_id or code" }, 400);
@@ -81,7 +210,6 @@ Deno.serve(async (req) => {
       .from("businesses").select("id, owner_id").eq("id", business_id).maybeSingle();
     if (!biz || biz.owner_id !== user.id) return json({ error: "Forbidden" }, 403);
 
-    // Byt code → tokens
     const tokenRes = await fetch("https://auth.zenegy.com/connect/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -96,13 +224,10 @@ Deno.serve(async (req) => {
     if (!tokenRes.ok) {
       const txt = await tokenRes.text();
       console.log(`[zenegy-callback] token exchange failed: ${tokenRes.status} ${txt.slice(0, 300)}`);
-      return json({
-        error: "Zenegy afviste din godkendelse. Prøv at forbinde igen.",
-      }, 400);
+      return json({ error: "Zenegy afviste din godkendelse. Prøv at forbinde igen." }, 400);
     }
     const tok = await tokenRes.json();
 
-    // Hent virksomhedsliste — bruges som organization_id reference.
     let orgId: string | null = null;
     try {
       const compRes = await fetch("https://api.zenegy.com/v1/companies?pageSize=1", {
