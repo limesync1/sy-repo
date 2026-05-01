@@ -2738,11 +2738,14 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 Frakobl {activeDef.label}?
               </AlertDialogTitle>
               <AlertDialogDescription className="leading-relaxed">
-                Vi stopper med at sende dine aftaler, kunder og services til {activeDef.label}.
-                Det du allerede har sendt, bliver liggende i {activeDef.label} — der bliver ikke slettet noget.
-                Du kan forbinde igen når som helst.
+                Vi stopper med at synkronisere med {activeDef.label}. Du kan altid forbinde igen.
               </AlertDialogDescription>
             </AlertDialogHeader>
+            <ul className="space-y-2 rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">
+              <li className="flex gap-2"><Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" /> Alt det du allerede har sendt bliver liggende i {activeDef.label}.</li>
+              <li className="flex gap-2"><Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" /> Dine kunder, services og aftaler i Serviceydere røres ikke.</li>
+              <li className="flex gap-2"><X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-destructive" /> Nye ændringer sendes ikke længere automatisk til {activeDef.label}.</li>
+            </ul>
             <AlertDialogFooter>
               <AlertDialogCancel className="h-9 rounded-lg text-sm font-medium">
                 Behold forbindelsen
