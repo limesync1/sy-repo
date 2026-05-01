@@ -26,6 +26,7 @@ export async function clearAccountingRuntimeState(
 ) {
   await Promise.all([
     admin.from("accounting_sync_queue").delete().eq("business_id", businessId),
+    admin.from("accounting_sync_log").delete().eq("business_id", businessId),
     admin.from("accounting_sync_dlq").update({
       resolved: true,
       resolved_at: new Date().toISOString(),
