@@ -623,6 +623,16 @@ async function drainQueue(admin: SupabaseClient, integ: Integration, adapter: Ac
   // kalder Billy 10 gange for samme kunde/produkt.
   const failedThisRun = new Set<string>();
   for (const job of jobs) {
+    // MIDLERTIDIG TESTFASE: spring produkt-/ordre-jobs over så vi kun
+    // synker kunder. Vi markerer dem som "skipped" så køen ikke vokser.
+    if (CUSTOMERS_ONLY && job.entity_type !== "customer") {
+      await admin.from("accounting_sync_queue").update({
+        status: "done",
+        processed_at: new Date().toISOString(),
+        last_error: "Skipped: customers-only mode",
+      }).eq("id", job.id);
+      continue;
+    }
     if (providerDown) {
       // Re-skemalér resten uden at kalde provideren igen
       await admin.from("accounting_sync_queue").update({
