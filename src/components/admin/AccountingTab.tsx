@@ -184,6 +184,8 @@ interface Integration {
   last_push_at: string | null;
   last_error: string | null;
   last_error_at: string | null;
+  paused_until?: string | null;
+  consecutive_failures?: number | null;
   settings: {
     push_pending?: boolean;
     default_payment_terms_days?: number;
