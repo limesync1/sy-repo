@@ -36,10 +36,23 @@ function friendlyEconomicError(status: number, body: string): string {
   // Try to surface their JSON message
   try {
     const j = JSON.parse(body);
-    if (j?.message) return `E-conomic: ${j.message}`;
-    if (j?.errors?.[0]?.errorMessage) return `E-conomic: ${j.errors[0].errorMessage}`;
+    // E-conomic returnerer ofte en samlet message + en errors-array med detaljer pr. felt.
+    // Vi samler ALT så brugeren faktisk kan se hvilket felt der fejler.
+    const parts: string[] = [];
+    if (j?.message) parts.push(String(j.message));
+    const errs = Array.isArray(j?.errors) ? j.errors : [];
+    for (const e of errs) {
+      const field = e?.propertyName ?? e?.property ?? "";
+      const msg = e?.errorMessage ?? e?.message ?? "";
+      const hint = e?.developerHint ?? "";
+      const piece = [field && `[${field}]`, msg, hint && `(${hint})`].filter(Boolean).join(" ");
+      if (piece) parts.push(piece);
+    }
+    if (parts.length) return `E-conomic: ${parts.join(" — ")}`;
   } catch { /* ignore */ }
-  return `E-conomic afviste forespørgslen (${status}).`;
+  // Hvis vi ikke kunne parse JSON, så returnér rå body (afkortet) så vi ikke taber info
+  const snippet = body.slice(0, 400);
+  return `E-conomic afviste forespørgslen (${status})${snippet ? `: ${snippet}` : ""}.`;
 }
 
 async function ecRequest(
@@ -144,15 +157,19 @@ export function makeEconomicAdapter(
     },
 
     async upsertCustomer(input: UpsertCustomerInput) {
+      // E-conomic afviser tomme strenge på flere felter — konverter til undefined
+      const clean = (v: string | null | undefined) =>
+        v && String(v).trim().length > 0 ? String(v).trim() : undefined;
+
       const body: Record<string, unknown> = {
         name: input.name,
-        email: input.email ?? undefined,
-        telephoneAndFaxNumber: input.phone ?? undefined,
-        corporateIdentificationNumber: input.cvr ?? undefined,
-        ean: input.ean ?? undefined,
-        address: input.address ?? undefined,
-        zip: input.zip_code ?? undefined,
-        city: input.city ?? undefined,
+        email: clean(input.email),
+        telephoneAndFaxNumber: clean(input.phone),
+        corporateIdentificationNumber: clean(input.cvr),
+        ean: clean(input.ean),
+        address: clean(input.address),
+        zip: clean(input.zip_code),
+        city: clean(input.city),
         country: "Danmark",
         currency: input.currency ?? "DKK",
         customerGroup: { customerGroupNumber: Number(settings.default_customer_group ?? 1) },
@@ -162,6 +179,9 @@ export function makeEconomicAdapter(
         },
         vatZone: { vatZoneNumber: 1 },
       };
+
+      // Fjern undefined nøgler så vi ikke sender dem (e-conomic er pedantisk)
+      for (const k of Object.keys(body)) if (body[k] === undefined) delete body[k];
 
       if (input.external_id) {
         await ecRequest(creds, `/customers/${input.external_id}`, {
