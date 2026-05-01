@@ -23,6 +23,22 @@ function htmlRedirect(url: string, message: string) {
   );
 }
 
+function getSafeReturnTo(req: Request) {
+  const fallback = "https://serviceydere.dk/virksomhed?tab=accounting";
+  const origin = req.headers.get("origin") ?? req.headers.get("referer")?.match(/^https?:\/\/[^/]+/)?.[0];
+  if (!origin) return fallback;
+  try {
+    const u = new URL(origin);
+    const host = u.hostname;
+    const allowed = host === "serviceydere.dk" || host === "www.serviceydere.dk" ||
+      host === "serviceydere.lovable.app" || host.endsWith(".lovable.app") || host.endsWith(".lovableproject.com");
+    if (!allowed) return fallback;
+    return `${u.origin}/virksomhed?tab=accounting`;
+  } catch {
+    return fallback;
+  }
+}
+
 /**
  * accounting-zenegy-callback
  *  • GET  ?code=...&state=...                     → browser-redirect fra Zenegy → token exchange
@@ -35,7 +51,7 @@ Deno.serve(async (req) => {
   const clientId = Deno.env.get("ZENEGY_CLIENT_ID");
   const clientSecret = Deno.env.get("ZENEGY_CLIENT_SECRET");
   const redirectUrl = Deno.env.get("ZENEGY_REDIRECT_URL");
-  const returnTo = "https://serviceydere.dk/virksomhed?tab=accounting";
+  const returnTo = getSafeReturnTo(req);
 
   try {
     // ============ GET: browser-redirect fra Zenegy ============
@@ -70,6 +86,9 @@ Deno.serve(async (req) => {
       if (!match) {
         return htmlRedirect(`${returnTo}&zenegy=error&reason=invalid_state`, "Ugyldig state — prøv igen.");
       }
+      const savedReturnTo = typeof (match.settings as Record<string, unknown> | null)?.oauth_return_to === "string"
+        ? String((match.settings as Record<string, unknown>).oauth_return_to)
+        : returnTo;
 
       const tokenRes = await fetch("https://auth.zenegy.com/auth/token", {
         method: "POST",
@@ -85,7 +104,7 @@ Deno.serve(async (req) => {
       if (!tokenRes.ok) {
         const txt = await tokenRes.text();
         console.log(`[zenegy-callback] token exchange failed: ${tokenRes.status} ${txt.slice(0, 300)}`);
-        return htmlRedirect(`${returnTo}&zenegy=error&reason=token_exchange`, "Token exchange fejlede.");
+        return htmlRedirect(`${savedReturnTo}&zenegy=error&reason=token_exchange`, "Token exchange fejlede.");
       }
       const tok = await tokenRes.json();
 
@@ -120,7 +139,7 @@ Deno.serve(async (req) => {
         paused_until: null,
       }).eq("id", match.id);
 
-      return htmlRedirect(`${returnTo}&zenegy=connected`, "Zenegy forbundet — videresender…");
+      return htmlRedirect(`${savedReturnTo}&zenegy=connected`, "Zenegy forbundet — videresender…");
     }
 
     // ============ POST flows ============
@@ -168,7 +187,7 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       const baseSettings = cleanAccountingSettings(existing?.settings as Record<string, unknown> | null);
-      const settingsWithState = { ...baseSettings, oauth_state: state, oauth_state_at: new Date().toISOString() };
+      const settingsWithState = { ...baseSettings, oauth_state: state, oauth_state_at: new Date().toISOString(), oauth_return_to: returnTo };
 
       if (existing) {
         await admin.from("accounting_integrations")
