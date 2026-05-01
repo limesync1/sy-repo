@@ -2133,7 +2133,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     try {
                       const r = await runFullSync(businessId);
                       toast.success(
-                        `Synkronisering færdig — ${r.pushed} sendt, ${r.pulledCustomers} kunder & ${r.pulledProducts} varer hentet.`,
+                        `Synkronisering færdig — ${r.pushed} kunder sendt, ${r.pulledCustomers} kunder hentet (testfase: kun kunder synkroniseres).`,
                       );
                       await load();
                     } catch (e) {
