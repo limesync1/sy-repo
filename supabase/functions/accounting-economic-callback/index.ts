@@ -50,6 +50,12 @@ Deno.serve(async (req) => {
       // direkte på regnskabs-fanen efter godkendelse — ikke på "Overblik".
       try {
         const u = new URL(installUrl);
+        // Tving dansk sprog på e-conomics installations-side.
+        // E-conomic understøtter ?culture=da-DK på AppInstall.aspx — ellers
+        // arver siden brugerens browser-/konto-sprog (som ofte er engelsk).
+        if (!u.searchParams.has("culture")) {
+          u.searchParams.set("culture", "da-DK");
+        }
         const redirect = u.searchParams.get("redirectUrl");
         if (redirect) {
           const r = new URL(redirect);
@@ -60,7 +66,12 @@ Deno.serve(async (req) => {
         }
         return json({ install_url: u.toString() });
       } catch {
-        return json({ install_url: installUrl });
+        // Fallback: tilføj culture med simpel string-konkatenering
+        const sep = installUrl.includes("?") ? "&" : "?";
+        const withCulture = installUrl.includes("culture=")
+          ? installUrl
+          : `${installUrl}${sep}culture=da-DK`;
+        return json({ install_url: withCulture });
       }
     }
 
