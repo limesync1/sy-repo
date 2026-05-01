@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ChevronDown, HelpCircle, PartyPopper, SlidersHorizontal } from "lucide-react";
 import {
-  PageHeader, PrimaryButton, SectionCard, EmptyState, FieldLabel,
+  PageHeader, PrimaryButton, SectionCard, FieldLabel,
 } from "@/components/admin/shared/AdminUI";
 import economicLogo from "@/assets/accounting/economic.png";
 import billyLogo from "@/assets/accounting/billy.png";
