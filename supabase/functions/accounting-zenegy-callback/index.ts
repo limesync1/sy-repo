@@ -224,6 +224,17 @@ Deno.serve(async (req) => {
       .from("businesses").select("id, owner_id").eq("id", business_id).maybeSingle();
     if (!biz || biz.owner_id !== user.id) return json({ error: "Forbidden" }, 403);
 
+    if (body?.state) {
+      const { data: stateMatch } = await supabase
+        .from("accounting_integrations")
+        .select("id")
+        .eq("business_id", business_id)
+        .eq("provider", "zenegy")
+        .filter("settings->>oauth_state", "eq", String(body.state))
+        .maybeSingle();
+      if (!stateMatch) return json({ error: "Ugyldig Zenegy-state — prøv at forbinde igen." }, 400);
+    }
+
     const tokenRes = await fetch("https://auth.zenegy.com/auth/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
