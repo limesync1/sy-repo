@@ -1791,7 +1791,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
   const openProviderPicker = () => {
     resetWizardState(true);
-    setProvider(integration?.provider ?? "economic");
     setStep(1);
     setMode("wizard");
   };
