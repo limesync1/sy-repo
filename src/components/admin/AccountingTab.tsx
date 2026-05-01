@@ -1457,9 +1457,67 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     }
   };
 
+  const exchangeZenegyCode = async (code: string, state: string | null) => {
+    const pendingBiz = sessionStorage.getItem("zenegy_pending_business_id");
+    const targetBusinessId = pendingBiz || businessId;
+    sessionStorage.removeItem("zenegy_pending_business_id");
+    setProvider("zenegy");
+    setMode("wizard");
+    setStep(2);
+    setZenegyOAuthConnecting(true);
+    setZenegyWaiting(false);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "accounting-zenegy-callback",
+        { body: { action: "exchange", business_id: targetBusinessId, code, state } },
+      );
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      navigate("/virksomhed?tab=accounting", { replace: true });
+      await applyZenegyOAuthResult("connected");
+    } catch (e: any) {
+      const msg = e?.message ?? "Kunne ikke gemme Zenegy-forbindelsen";
+      setZenegyResult({ ok: false, message: msg });
+      toast.error(msg);
+      setZenegyOAuthConnecting(false);
+      setZenegyWaiting(false);
+    }
+  };
+
   // Opfang ?zenegy=connected|error når brugeren returnerer fra edge function callback.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const state = params.get("state");
+    if (code) {
+      if (window.opener && !window.opener.closed && window.opener !== window) {
+        try {
+          window.opener.postMessage(
+            { type: "zenegy_oauth_code", code, state, businessId },
+            "*",
+          );
+          const cleanUrl = new URL(window.location.href);
+          cleanUrl.searchParams.delete("code");
+          cleanUrl.searchParams.delete("state");
+          cleanUrl.searchParams.delete("scope");
+          cleanUrl.searchParams.delete("session_state");
+          window.history.replaceState({}, "", cleanUrl.toString());
+          window.close();
+          return;
+        } catch (e) {
+          console.error("[zenegy] kunne ikke sende kode til opener:", e);
+        }
+      }
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete("code");
+      cleanUrl.searchParams.delete("state");
+      cleanUrl.searchParams.delete("scope");
+      cleanUrl.searchParams.delete("session_state");
+      window.history.replaceState({}, "", cleanUrl.toString());
+      void exchangeZenegyCode(code, state);
+      return;
+    }
+
     const status = params.get("zenegy");
     if (!status) return;
 
@@ -1496,9 +1554,15 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       const allowedOrigins = new Set([window.location.origin, "https://serviceydere.dk", "https://www.serviceydere.dk"]);
       if (!allowedOrigins.has(ev.origin)) return;
       const data = ev.data;
-      if (!data || data.type !== "zenegy_oauth_result" || !data.status) return;
+      if (!data || (data.type !== "zenegy_oauth_result" && data.type !== "zenegy_oauth_code")) return;
       if (data.businessId && data.businessId !== businessId) return;
-      void applyZenegyOAuthResult(String(data.status), data.reason ? String(data.reason) : null);
+      if (data.type === "zenegy_oauth_code" && data.code) {
+        void exchangeZenegyCode(String(data.code), data.state ? String(data.state) : null);
+        return;
+      }
+      if (data.type === "zenegy_oauth_result" && data.status) {
+        void applyZenegyOAuthResult(String(data.status), data.reason ? String(data.reason) : null);
+      }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
