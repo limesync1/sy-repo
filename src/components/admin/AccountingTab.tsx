@@ -2180,6 +2180,152 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           );
         })()}
 
+        {/* Auto-pause banner — synk er midlertidigt sat på pause efter mange fejl i træk */}
+        {integration.paused_until && new Date(integration.paused_until) > new Date() && (
+          <div className="flex items-start gap-3 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 sm:p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-amber-700">
+              <Clock className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold text-foreground">
+                Synk er midlertidigt sat på pause
+              </div>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                Vi stoppede automatikken efter {integration.consecutive_failures ?? "flere"} fejl i træk for at undgå at spamme {activeDef.label}.
+                Genoptages automatisk {new Date(integration.paused_until).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={resumingPause}
+              onClick={handleResumePause}
+              className="shrink-0"
+            >
+              {resumingPause ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RotateCw className="mr-1.5 h-3.5 w-3.5" />}
+              Genoptag nu
+            </Button>
+          </div>
+        )}
+
+        {/* Detaljeret push/pull-status — én række pr. retning, så brugeren med ét blik
+            kan se hvad der virker og hvad der fejler. */}
+        <SectionCard
+          title="Forbindelsesstatus"
+          icon={<ShieldCheck />}
+          description={`Sådan står det til lige nu mellem Serviceydere og ${activeDef.label}.`}
+          action={
+            integration.provider === "billy" ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => { setRenewBillyToken(""); setRenewBillyError(null); setRenewBillyStatus("idle"); setRenewBillyOpen(true); }}
+                className="h-9 rounded-lg text-xs font-medium"
+              >
+                <KeyRound className="mr-1.5 h-3.5 w-3.5" />
+                Forny adgangsnøgle
+              </Button>
+            ) : undefined
+          }
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            {/* PUSH */}
+            <div className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-foreground">
+                  <Upload className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold text-foreground">Sender til {activeDef.label}</div>
+                  <div className="text-xs text-muted-foreground">Push: kunder, services og aftaler</div>
+                </div>
+                {failedJobs.length === 0 && !!lastSuccessPush ? (
+                  <Badge variant="secondary" className="gap-1 shrink-0 bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/20">
+                    <Check className="h-3 w-3" /> Virker
+                  </Badge>
+                ) : failedJobs.length > 0 ? (
+                  <Badge variant="destructive" className="gap-1 shrink-0">
+                    <AlertCircle className="h-3 w-3" /> Fejler
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="shrink-0">Venter</Badge>
+                )}
+              </div>
+              <dl className="mt-3 space-y-1.5 text-xs">
+                <div className="flex justify-between gap-2">
+                  <dt className="text-muted-foreground">Sidst lykkedes</dt>
+                  <dd className="text-foreground tabular-nums">{formatRelativeDanish(lastSuccessPush)}</dd>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <dt className="text-muted-foreground">Sidste forsøg</dt>
+                  <dd className="text-foreground tabular-nums">{formatRelativeDanish(integration.last_push_at)}</dd>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <dt className="text-muted-foreground">Sendt seneste 24 t.</dt>
+                  <dd className="text-foreground tabular-nums">{pushedLast24h}</dd>
+                </div>
+                {failedJobs.length > 0 && (
+                  <div className="flex justify-between gap-2">
+                    <dt className="text-muted-foreground">Fejler nu</dt>
+                    <dd className="text-destructive tabular-nums font-medium">{failedJobs.length}</dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+
+            {/* PULL */}
+            <div className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-foreground">
+                  <Download className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold text-foreground">Henter fra {activeDef.label}</div>
+                  <div className="text-xs text-muted-foreground">Pull: ændringer i regnskabsprogrammet</div>
+                </div>
+                {!!lastSuccessPull && !hasError ? (
+                  <Badge variant="secondary" className="gap-1 shrink-0 bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/20">
+                    <Check className="h-3 w-3" /> Virker
+                  </Badge>
+                ) : hasError ? (
+                  <Badge variant="destructive" className="gap-1 shrink-0">
+                    <AlertCircle className="h-3 w-3" /> Fejler
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="shrink-0">Venter</Badge>
+                )}
+              </div>
+              <dl className="mt-3 space-y-1.5 text-xs">
+                <div className="flex justify-between gap-2">
+                  <dt className="text-muted-foreground">Sidst lykkedes</dt>
+                  <dd className="text-foreground tabular-nums">{formatRelativeDanish(lastSuccessPull)}</dd>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <dt className="text-muted-foreground">Sidste forsøg</dt>
+                  <dd className="text-foreground tabular-nums">{formatRelativeDanish(integration.last_pull_at)}</dd>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <dt className="text-muted-foreground">Hentet seneste 24 t.</dt>
+                  <dd className="text-foreground tabular-nums">{pulledLast24h}</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          {/* Hint hvis Billy specifikt har fejlet med "afviste API-nøglen" eller lignende */}
+          {integration.provider === "billy" && hasError && /nøgle|token|access|unauthorized|afviste|401|403/i.test(integration.last_error ?? "") && (
+            <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-foreground">
+              <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+              <div className="min-w-0">
+                <div className="font-medium">Det ser ud som om din Billy-adgangsnøgle ikke længere virker</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Opret en ny i Billy under <strong>Indstillinger → Adgangsnøgler</strong> og tryk "Forny adgangsnøgle" øverst — så er du i gang igen på 30 sekunder.
+                </p>
+              </div>
+            </div>
+          )}
+        </SectionCard>
+
         {/* Forbindelsesfejl — kun hvis noget er galt på selve forbindelsen */}
         {hasError && (
           <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
