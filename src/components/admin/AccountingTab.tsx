@@ -1968,14 +1968,30 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       <div className="space-y-6">
         <PageHeader
           title="Regnskab"
-          description="Forbind dit regnskabsprogram, så dine kunder, services og aftaler automatisk holder sig opdateret begge steder. Du behøver ikke gøre noget — det sker af sig selv."
+          description="Forbind dit regnskabsprogram, så kunder, services og aftaler holder sig opdateret begge steder — automatisk."
         />
 
-        <EmptyState
-          icon={<Calculator />}
-          title="Vælg dit regnskabsprogram"
-          description="Tryk på programmet du bruger. Det tager under 2 minutter — vi klarer resten."
-        />
+        {/* Forklarende top-banner i stedet for tom EmptyState + grid.
+            Et roligt hero-felt sætter forventningen, og kortene nedenfor
+            er selve handlingen. */}
+        <div className="rounded-2xl border border-border bg-gradient-to-br from-secondary/40 to-card p-6 sm:p-8">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-foreground text-background">
+              <Calculator className="h-6 w-6" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-lg font-semibold text-foreground">Vælg dit regnskabsprogram</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Det tager under 2 minutter. Vi guider dig gennem opsætningen og tester at alt virker — du behøver ingen teknisk viden.
+              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" /> Krypteret forbindelse</span>
+                <span className="inline-flex items-center gap-1.5"><RotateCw className="h-3.5 w-3.5" /> Synkroniseres automatisk</span>
+                <span className="inline-flex items-center gap-1.5"><X className="h-3.5 w-3.5" /> Frakobl når som helst</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {PROVIDERS.map(p => (
@@ -1983,17 +1999,22 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               key={p.value}
               type="button"
               onClick={() => startWizard(p.value)}
-              className="group flex flex-col rounded-xl border border-border bg-card p-5 text-left shadow-sm transition-colors duration-150 hover:border-foreground/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <div className="flex h-20 items-center justify-center rounded-lg bg-secondary/40 px-4">
-                <img src={p.logo} alt={p.label} className="max-h-10 max-w-[140px] object-contain" />
+              <div className="flex h-24 items-center justify-center border-b border-border bg-gradient-to-b from-secondary/50 to-secondary/20 px-6">
+                <img src={p.logo} alt={p.label} className="max-h-10 max-w-[150px] object-contain" />
               </div>
-              <div className="mt-4">
-                <div className="font-semibold text-foreground">{p.label}</div>
-              </div>
-              <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{p.description}</p>
-              <div className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-foreground transition-opacity opacity-70 group-hover:opacity-100">
-                Forbind <ArrowRight className="h-4 w-4" />
+              <div className="flex flex-1 flex-col p-5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-semibold text-foreground">{p.label}</div>
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-secondary text-foreground transition-all group-hover:bg-foreground group-hover:text-background">
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </span>
+                </div>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{p.description}</p>
+                <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <Sparkles className="h-3.5 w-3.5" /> Tager under 2 minutter
+                </div>
               </div>
             </button>
           ))}
