@@ -1,10 +1,7 @@
-// Dry-run end-to-end test mod en regnskabs-udbyder.
-// Bruger en angivet api_token til at:
-//   1) teste forbindelsen
-//   2) oprette en test-kunde
-//   3) oprette en test-vare
-//   4) oprette en kladde-faktura med kunde + vare
-//   5) slette kladden igen, så der ikke ligger spor i regnskabet
+// Dry-run kundetest mod en regnskabs-udbyder.
+// I testfasen må regnskabsprogrammerne KUN synkronisere kunder, så denne
+// funktion tester kun forbindelse + oprettelse af testkunde — ingen varer,
+// fakturaer eller cleanup-flow.
 // Returnerer trin-for-trin resultat så brugeren kan se hvor det evt. går galt.
 // Bemærk: api_token gemmes IKKE — den bruges kun i denne ene request.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -25,7 +22,7 @@ function normalizeToken(value: unknown): string {
 }
 
 interface Step {
-  key: "connect" | "customer" | "product" | "invoice" | "cleanup";
+  key: "connect" | "customer";
   label: string;
   ok: boolean;
   message?: string;
@@ -121,113 +118,10 @@ Deno.serve(async (req) => {
       return json({ ok: false, steps }, 200);
     }
 
-    // 3) Product
-    let productExternalId: string | null = null;
-    t0 = Date.now();
-    try {
-      const product = await adapter.upsertProduct({
-        internal_id: `serviceydere-test-${stamp}`,
-        name: `Serviceydere Testvare ${stamp}`,
-        description: "Oprettet automatisk af Serviceydere som test — kan slettes.",
-        unit_price: 100,
-      });
-      productExternalId = product.external_id;
-      steps.push({
-        key: "product",
-        label: "Opret testvare",
-        ok: true,
-        external_id: product.external_id,
-        external_number: product.external_number ?? null,
-        message: `Oprettet som “${product.name}”${product.external_number ? ` (#${product.external_number})` : ""}`,
-        duration_ms: Date.now() - t0,
-      });
-    } catch (e) {
-      steps.push({
-        key: "product",
-        label: "Opret testvare",
-        ok: false,
-        message: e instanceof Error ? e.message : String(e),
-        duration_ms: Date.now() - t0,
-      });
-      // Stop her — uden vare kan vi ikke lave faktura. Kunde efterlades, men det er bare én test-kontakt.
-      return json({ ok: false, steps }, 200);
-    }
-
-    // 4) Invoice draft
-    let invoiceExternalId: string | null = null;
-    t0 = Date.now();
-    try {
-      const invoice = await adapter.upsertOrder({
-        internal_id: `serviceydere-test-${stamp}`,
-        customer_external_id: customerExternalId!,
-        status: "pending",
-        notes: "TEST — oprettet af Serviceydere. Slettes automatisk.",
-        payment_terms_days: 14,
-        currency: "DKK",
-        date: new Date().toISOString(),
-        lines: [{
-          product_external_id: productExternalId,
-          description: `Serviceydere Testvare ${stamp}`,
-          quantity: 1,
-          unit_price: 100,
-        }],
-      });
-      invoiceExternalId = invoice.external_id;
-      steps.push({
-        key: "invoice",
-        label: "Opret kladde-faktura",
-        ok: true,
-        external_id: invoice.external_id,
-        external_number: invoice.external_number ?? null,
-        message: `Kladde oprettet${invoice.external_number ? ` (#${invoice.external_number})` : ""}`,
-        duration_ms: Date.now() - t0,
-      });
-    } catch (e) {
-      steps.push({
-        key: "invoice",
-        label: "Opret kladde-faktura",
-        ok: false,
-        message: e instanceof Error ? e.message : String(e),
-        duration_ms: Date.now() - t0,
-      });
-      return json({ ok: false, steps }, 200);
-    }
-
-    // 5) Cleanup — slet kladden igen så regnskabet ikke står med en testfaktura
-    t0 = Date.now();
-    try {
-      if (adapter.deleteOrder && invoiceExternalId) {
-        await adapter.deleteOrder(invoiceExternalId);
-        steps.push({
-          key: "cleanup",
-          label: "Ryd op (slet kladde)",
-          ok: true,
-          message: "Kladde-fakturaen er slettet igen.",
-          duration_ms: Date.now() - t0,
-        });
-      } else {
-        steps.push({
-          key: "cleanup",
-          label: "Ryd op (slet kladde)",
-          ok: true,
-          message: "Sletning understøttes ikke af denne udbyder — kladden ligger som draft.",
-          duration_ms: Date.now() - t0,
-        });
-      }
-    } catch (e) {
-      steps.push({
-        key: "cleanup",
-        label: "Ryd op (slet kladde)",
-        ok: false,
-        message: `Kunne ikke slette kladden automatisk — slet den manuelt i regnskabsprogrammet. (${e instanceof Error ? e.message : String(e)})`,
-        duration_ms: Date.now() - t0,
-      });
-    }
-
     return json({
       ok: steps.every(s => s.ok),
       steps,
-      note: "Testkunde og testvare ligger stadig i dit regnskab — du kan slette dem manuelt hvis du vil.",
+      note: "Kundetesten oprettede kun en testkunde — ingen varer eller fakturaer blev oprettet.",
     }, 200);
   } catch (e) {
     return json({ ok: false, error: e instanceof Error ? e.message : String(e) }, 500);
