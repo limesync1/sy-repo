@@ -649,12 +649,6 @@ const ZenegyConnectCard = React.forwardRef<HTMLDivElement, {
   return (
     <ConnectCardShell logo={zenegyLogo} name="Zenegy" tagline="Ét-klik OAuth — tager under 30 sekunder">
       <div className="space-y-5">
-        <ol className="space-y-2.5">
-          <GuideStep n={1}>Tryk <strong>Forbind Zenegy</strong> nedenfor — et nyt vindue åbner.</GuideStep>
-          <GuideStep n={2}>Log ind og vælg den virksomhed, du vil forbinde med Serviceydere.</GuideStep>
-          <GuideStep n={3}>Tryk <strong>Tildel adgang</strong> — så sendes du automatisk tilbage hertil.</GuideStep>
-        </ol>
-
         <Button
           onClick={onConnect}
           disabled={connecting || !oauthEnabled || connectResult?.ok === true}
