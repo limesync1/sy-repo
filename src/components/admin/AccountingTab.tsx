@@ -1396,20 +1396,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     setZenegyOAuthConnecting(true);
     setZenegyResult(null);
     setZenegyWaiting(false);
-    const popup = window.open("about:blank", "zenegy_connect");
-    if (popup) {
-      try {
-        popup.document.write(
-          `<!doctype html><html lang="da"><head><meta charset="utf-8"><title>Forbinder til Zenegy…</title>` +
-          `<style>body{font-family:-apple-system,system-ui,Segoe UI,Roboto,sans-serif;background:#0f172a;color:#e2e8f0;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}` +
-          `.box{text-align:center}.spinner{width:32px;height:32px;border:3px solid #334155;border-top-color:#22d3ee;border-radius:50%;animation:s 1s linear infinite;margin:0 auto 16px}` +
-          `@keyframes s{to{transform:rotate(360deg)}}</style></head>` +
-          `<body><div class="box"><div class="spinner"></div><div>Sender dig til Zenegy…</div></div></body></html>`
-        );
-      } catch { /* ignore */ }
-    }
     try {
-      sessionStorage.setItem("zenegy_pending_business_id", businessId);
       const { data, error } = await supabase.functions.invoke(
         "accounting-zenegy-callback",
         { body: { action: "install_url", business_id: businessId } },
@@ -1418,18 +1405,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       if (error) throw error;
       const url = (data as any)?.install_url;
       if (!url) throw new Error("Zenegy OAuth er ikke aktiveret endnu — Serviceydere venter på godkendelse fra Zenegy.");
-      if (popup && !popup.closed) {
-        popup.location.href = url;
-      } else {
-        window.location.href = url;
-        return;
-      }
-      setZenegyOAuthConnecting(false);
-      setZenegyWaiting(true);
+      // Top-level redirect — Zenegy redirecter direkte til vores edge function,
+      // som bytter token og videresender brugeren tilbage med ?zenegy=connected.
+      window.location.href = url;
     } catch (e: any) {
       if (runId !== setupRunRef.current) return;
-      if (popup && !popup.closed) popup.close();
-      sessionStorage.removeItem("zenegy_pending_business_id");
       const msg = e?.message ?? "Kunne ikke åbne Zenegy";
       setZenegyResult({ ok: false, message: msg });
       toast.error(msg);
@@ -1438,99 +1418,28 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     }
   };
 
-  // Opfang ?zenegyCode=… (eller ?code=… med ?state der starter med business_id)
-  // når brugeren kommer tilbage fra Zenegy. Spejler e-conomic-flowet.
+  // Opfang ?zenegy=connected|error når brugeren returnerer fra edge function callback.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const code = params.get("zenegyCode") || (params.get("code") && params.get("state")?.includes("::") ? params.get("code") : null);
-    if (!code) return;
+    const status = params.get("zenegy");
+    if (!status) return;
 
-    if (window.opener && !window.opener.closed && window.opener !== window) {
-      try {
-        window.opener.postMessage(
-          { type: "zenegy_code", code, businessId },
-          window.location.origin,
-        );
-        const cleanUrl = new URL(window.location.href);
-        cleanUrl.searchParams.delete("zenegyCode");
-        cleanUrl.searchParams.delete("code");
-        cleanUrl.searchParams.delete("state");
-        window.history.replaceState({}, "", cleanUrl.toString());
-        window.close();
-        return;
-      } catch (e) {
-        console.error("[zenegy] kunne ikke sende code til opener:", e);
-      }
-    }
+    const reason = params.get("reason");
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete("zenegy");
+    cleanUrl.searchParams.delete("reason");
+    window.history.replaceState({}, "", cleanUrl.toString());
 
-    const pendingBiz = sessionStorage.getItem("zenegy_pending_business_id");
-    if (!pendingBiz || pendingBiz !== businessId) return;
-    sessionStorage.removeItem("zenegy_pending_business_id");
-    navigate("/virksomhed?tab=accounting", { replace: true });
-    setProvider("zenegy");
-    setMode("wizard");
-    setStep(2);
-    setZenegyOAuthConnecting(true);
-    setZenegyWaiting(false);
-    (async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke(
-          "accounting-zenegy-callback",
-          { body: { business_id: businessId, code } },
-        );
-        if (error) throw error;
-        if ((data as any)?.error) throw new Error((data as any).error);
-        setZenegyResult({ ok: true, message: "Zenegy er forbundet og klar." });
-        toast.success("Zenegy er nu forbundet!");
-        await load();
-        setMode("overview");
-      } catch (e: any) {
-        const msg = e?.message ?? "Kunne ikke gemme Zenegy-forbindelsen";
-        setZenegyResult({ ok: false, message: msg });
-        toast.error(msg);
-      } finally {
-        setZenegyOAuthConnecting(false);
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [businessId]);
-
-  // Lyt efter postMessage fra Zenegy popup-vinduet.
-  useEffect(() => {
-    const onMessage = async (ev: MessageEvent) => {
-      if (ev.origin !== window.location.origin) return;
-      const data = ev.data;
-      if (!data || data.type !== "zenegy_code" || !data.code) return;
-      if (data.businessId && data.businessId !== businessId) return;
-      const pendingBiz = sessionStorage.getItem("zenegy_pending_business_id");
-      if (pendingBiz !== businessId) return;
-      sessionStorage.removeItem("zenegy_pending_business_id");
+    if (status === "connected") {
       setProvider("zenegy");
-      setMode("wizard");
-      setStep(2);
-      setZenegyOAuthConnecting(true);
-      setZenegyWaiting(false);
-      try {
-        const { data: resp, error } = await supabase.functions.invoke(
-          "accounting-zenegy-callback",
-          { body: { business_id: businessId, code: data.code } },
-        );
-        if (error) throw error;
-        if ((resp as any)?.error) throw new Error((resp as any).error);
-        setZenegyResult({ ok: true, message: "Zenegy er forbundet og klar." });
-        toast.success("Zenegy er nu forbundet!");
-        await load();
-        setMode("overview");
-      } catch (e: any) {
-        const msg = e?.message ?? "Kunne ikke gemme Zenegy-forbindelsen";
-        setZenegyResult({ ok: false, message: msg });
-        toast.error(msg);
-      } finally {
-        setZenegyOAuthConnecting(false);
-      }
-    };
-    window.addEventListener("message", onMessage);
-    return () => window.removeEventListener("message", onMessage);
+      setZenegyResult({ ok: true, message: "Zenegy er forbundet og klar." });
+      toast.success("Zenegy er nu forbundet!");
+      load().then(() => setMode("overview"));
+    } else {
+      const msg = reason ? `Zenegy fejl: ${reason}` : "Zenegy-forbindelsen blev afbrudt.";
+      setZenegyResult({ ok: false, message: msg });
+      toast.error(msg);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [businessId]);
 
