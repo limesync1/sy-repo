@@ -58,25 +58,15 @@ Deno.serve(async (req) => {
         );
         await prepareAccountingProviderSwitch(admin, business_id, "economic");
       }
-      // Sørg for at redirectUrl indeholder ?tab=accounting så brugeren lander
-      // direkte på regnskabs-fanen efter godkendelse — ikke på "Overblik".
+      // Tving dansk sprog. Vi rører IKKE redirectUrl — den er
+      // konfigureret i secret'et og skal matche præcis det der står i
+      // e-conomic Developer Portal, ellers afviser e-conomic flowet
+      // (eller går i redirect-loop på secure.e-conomic.com).
       try {
         const u = new URL(installUrl);
-        // Tving dansk sprog på e-conomics installations-side.
-        // E-conomic understøtter ?culture=da-DK på AppInstall.aspx — ellers
-        // arver siden brugerens browser-/konto-sprog (som ofte er engelsk).
         u.searchParams.set("culture", "da-DK");
-        const redirect = u.searchParams.get("redirectUrl");
-        if (redirect) {
-          const r = new URL(redirect);
-          if (r.searchParams.get("tab") !== "accounting") {
-            r.searchParams.set("tab", "accounting");
-            u.searchParams.set("redirectUrl", r.toString());
-          }
-        }
         return json({ install_url: u.toString() });
       } catch {
-        // Fallback: tilføj culture med simpel string-konkatenering
         const sep = installUrl.includes("?") ? "&" : "?";
         const withCulture = installUrl.includes("culture=")
           ? installUrl.replace(/([?&]culture=)[^&]*/i, "$1da-DK")
