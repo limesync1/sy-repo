@@ -10,6 +10,9 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   Loader2, RefreshCw, Check, AlertCircle, ExternalLink, Eye, EyeOff,
@@ -181,6 +184,8 @@ interface Integration {
   last_push_at: string | null;
   last_error: string | null;
   last_error_at: string | null;
+  paused_until?: string | null;
+  consecutive_failures?: number | null;
   settings: {
     push_pending?: boolean;
     default_payment_terms_days?: number;
@@ -806,6 +811,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     "idle" | "checking" | "testing" | "saving" | "done" | "error"
   >("idle");
   const [billyError, setBillyError] = useState<string | null>(null);
+  // Inline "forny adgangsnøgle"-flow på oversigten (kun Billy).
+  // Lader brugeren udskifte nøglen med ét klik når Billy afviser den nuværende.
+  const [renewBillyOpen, setRenewBillyOpen] = useState(false);
+  const [renewBillyToken, setRenewBillyToken] = useState("");
+  const [renewBillyStatus, setRenewBillyStatus] = useState<"idle" | "checking" | "saving" | "error">("idle");
+  const [renewBillyError, setRenewBillyError] = useState<string | null>(null);
+  const [resumingPause, setResumingPause] = useState(false);
   // Dinero paste-and-go: én samlet status fra "udfyldt" til "færdig opsat".
   const [dineroStatus, setDineroStatus] = useState<
     "idle" | "checking" | "testing" | "saving" | "done" | "error"
@@ -1930,6 +1942,87 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     };
   }
 
+  /**
+   * Forny Billy-adgangsnøgle inline fra oversigten:
+   *  1) Test den nye nøgle direkte mod Billy
+   *  2) Hvis OK: gem nøglen, nulstil paused_until + consecutive_failures + last_error
+   *  3) Kør en ny synk så fejlende jobs forsøges igen med det samme
+   */
+  const handleRenewBillyToken = async () => {
+    const token = normalizeBillyToken(renewBillyToken);
+    if (!token) {
+      setRenewBillyError("Indsæt en adgangsnøgle først");
+      setRenewBillyStatus("error");
+      return;
+    }
+    setRenewBillyError(null);
+    setRenewBillyStatus("checking");
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-test-connection", {
+        body: { business_id: businessId, provider: "billy", api_token: token, settings },
+      });
+      if (error) throw error;
+      const r = data as { ok: boolean; message?: string };
+      if (!r.ok) throw new Error(r.message ?? "Den nye nøgle blev afvist af Billy");
+    } catch (e: any) {
+      setRenewBillyError(e?.message ?? "Den nye nøgle kunne ikke bruges");
+      setRenewBillyStatus("error");
+      return;
+    }
+
+    setRenewBillyStatus("saving");
+    try {
+      const { error } = await supabase.from("accounting_integrations" as any)
+        .update({
+          api_token: token,
+          last_error: null,
+          last_error_at: null,
+          paused_until: null,
+          consecutive_failures: 0,
+        })
+        .eq("business_id", businessId);
+      if (error) throw error;
+
+      // Frigiv evt. fejlende jobs så de prøves igen med den nye nøgle
+      await supabase.from("accounting_sync_queue" as any)
+        .update({ status: "pending", scheduled_for: new Date().toISOString(), last_error: null })
+        .eq("business_id", businessId).eq("status", "failed");
+
+      // Kør synk i baggrunden — fejler stille hvis kø er tom
+      supabase.functions.invoke("accounting-sync", {
+        body: { business_id: businessId, mode: "queue" },
+      }).catch(() => { /* ignored */ });
+
+      toast.success("Ny adgangsnøgle gemt — Billy er forbundet igen");
+      setRenewBillyOpen(false);
+      setRenewBillyToken("");
+      setRenewBillyStatus("idle");
+      await load();
+    } catch (e: any) {
+      setRenewBillyError(e?.message ?? "Kunne ikke gemme den nye nøgle");
+      setRenewBillyStatus("error");
+    }
+  };
+
+  /** Genoptag synk efter auto-pause uden at vente på cron */
+  const handleResumePause = async () => {
+    setResumingPause(true);
+    try {
+      await supabase.from("accounting_integrations" as any)
+        .update({ paused_until: null, consecutive_failures: 0 })
+        .eq("business_id", businessId);
+      await supabase.functions.invoke("accounting-sync", {
+        body: { business_id: businessId, mode: "queue" },
+      });
+      toast.success("Synk er genoptaget");
+      await load();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Kunne ikke genoptage synk");
+    } finally {
+      setResumingPause(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
@@ -2086,6 +2179,152 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             </div>
           );
         })()}
+
+        {/* Auto-pause banner — synk er midlertidigt sat på pause efter mange fejl i træk */}
+        {integration.paused_until && new Date(integration.paused_until) > new Date() && (
+          <div className="flex items-start gap-3 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 sm:p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-amber-700">
+              <Clock className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold text-foreground">
+                Synk er midlertidigt sat på pause
+              </div>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                Vi stoppede automatikken efter {integration.consecutive_failures ?? "flere"} fejl i træk for at undgå at spamme {activeDef.label}.
+                Genoptages automatisk {new Date(integration.paused_until).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={resumingPause}
+              onClick={handleResumePause}
+              className="shrink-0"
+            >
+              {resumingPause ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RotateCw className="mr-1.5 h-3.5 w-3.5" />}
+              Genoptag nu
+            </Button>
+          </div>
+        )}
+
+        {/* Detaljeret push/pull-status — én række pr. retning, så brugeren med ét blik
+            kan se hvad der virker og hvad der fejler. */}
+        <SectionCard
+          title="Forbindelsesstatus"
+          icon={<ShieldCheck />}
+          description={`Sådan står det til lige nu mellem Serviceydere og ${activeDef.label}.`}
+          action={
+            integration.provider === "billy" ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => { setRenewBillyToken(""); setRenewBillyError(null); setRenewBillyStatus("idle"); setRenewBillyOpen(true); }}
+                className="h-9 rounded-lg text-xs font-medium"
+              >
+                <KeyRound className="mr-1.5 h-3.5 w-3.5" />
+                Forny adgangsnøgle
+              </Button>
+            ) : undefined
+          }
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            {/* PUSH */}
+            <div className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-foreground">
+                  <Upload className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold text-foreground">Sender til {activeDef.label}</div>
+                  <div className="text-xs text-muted-foreground">Push: kunder, services og aftaler</div>
+                </div>
+                {failedJobs.length === 0 && !!lastSuccessPush ? (
+                  <Badge variant="secondary" className="gap-1 shrink-0 bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/20">
+                    <Check className="h-3 w-3" /> Virker
+                  </Badge>
+                ) : failedJobs.length > 0 ? (
+                  <Badge variant="destructive" className="gap-1 shrink-0">
+                    <AlertCircle className="h-3 w-3" /> Fejler
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="shrink-0">Venter</Badge>
+                )}
+              </div>
+              <dl className="mt-3 space-y-1.5 text-xs">
+                <div className="flex justify-between gap-2">
+                  <dt className="text-muted-foreground">Sidst lykkedes</dt>
+                  <dd className="text-foreground tabular-nums">{formatRelativeDanish(lastSuccessPush)}</dd>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <dt className="text-muted-foreground">Sidste forsøg</dt>
+                  <dd className="text-foreground tabular-nums">{formatRelativeDanish(integration.last_push_at)}</dd>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <dt className="text-muted-foreground">Sendt seneste 24 t.</dt>
+                  <dd className="text-foreground tabular-nums">{pushedLast24h}</dd>
+                </div>
+                {failedJobs.length > 0 && (
+                  <div className="flex justify-between gap-2">
+                    <dt className="text-muted-foreground">Fejler nu</dt>
+                    <dd className="text-destructive tabular-nums font-medium">{failedJobs.length}</dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+
+            {/* PULL */}
+            <div className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-foreground">
+                  <Download className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold text-foreground">Henter fra {activeDef.label}</div>
+                  <div className="text-xs text-muted-foreground">Pull: ændringer i regnskabsprogrammet</div>
+                </div>
+                {!!lastSuccessPull && !hasError ? (
+                  <Badge variant="secondary" className="gap-1 shrink-0 bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/20">
+                    <Check className="h-3 w-3" /> Virker
+                  </Badge>
+                ) : hasError ? (
+                  <Badge variant="destructive" className="gap-1 shrink-0">
+                    <AlertCircle className="h-3 w-3" /> Fejler
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="shrink-0">Venter</Badge>
+                )}
+              </div>
+              <dl className="mt-3 space-y-1.5 text-xs">
+                <div className="flex justify-between gap-2">
+                  <dt className="text-muted-foreground">Sidst lykkedes</dt>
+                  <dd className="text-foreground tabular-nums">{formatRelativeDanish(lastSuccessPull)}</dd>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <dt className="text-muted-foreground">Sidste forsøg</dt>
+                  <dd className="text-foreground tabular-nums">{formatRelativeDanish(integration.last_pull_at)}</dd>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <dt className="text-muted-foreground">Hentet seneste 24 t.</dt>
+                  <dd className="text-foreground tabular-nums">{pulledLast24h}</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          {/* Hint hvis Billy specifikt har fejlet med "afviste API-nøglen" eller lignende */}
+          {integration.provider === "billy" && hasError && /nøgle|token|access|unauthorized|afviste|401|403/i.test(integration.last_error ?? "") && (
+            <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-foreground">
+              <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+              <div className="min-w-0">
+                <div className="font-medium">Det ser ud som om din Billy-adgangsnøgle ikke længere virker</div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Opret en ny i Billy under <strong>Indstillinger → Adgangsnøgler</strong> og tryk "Forny adgangsnøgle" øverst — så er du i gang igen på 30 sekunder.
+                </p>
+              </div>
+            </div>
+          )}
+        </SectionCard>
 
         {/* Forbindelsesfejl — kun hvis noget er galt på selve forbindelsen */}
         {hasError && (
@@ -2484,6 +2723,70 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Forny Billy-adgangsnøgle med ét klik */}
+        <Dialog open={renewBillyOpen} onOpenChange={(o) => { if (!o) { setRenewBillyOpen(false); setRenewBillyStatus("idle"); setRenewBillyError(null); } }}>
+          <DialogContent className="rounded-xl sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <KeyRound className="h-5 w-5 text-foreground" />
+                Forny Billy-adgangsnøgle
+              </DialogTitle>
+              <DialogDescription className="leading-relaxed">
+                Opret en ny adgangsnøgle i Billy under <strong>Indstillinger → Adgangsnøgler</strong>, og indsæt den nedenfor.
+                Vi tester den med det samme og udskifter automatisk den gamle.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-3">
+              <Button asChild variant="outline" className="w-full">
+                <a href="https://mit.billy.dk/" target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="mr-2 h-4 w-4" /> Åbn Billy i nyt vindue
+                </a>
+              </Button>
+
+              <div className="space-y-1.5">
+                <FieldLabel>Ny adgangsnøgle</FieldLabel>
+                <Input
+                  type="text"
+                  value={renewBillyToken}
+                  onChange={(e) => setRenewBillyToken(e.target.value)}
+                  placeholder="Indsæt den nye nøgle her"
+                  autoComplete="off"
+                  disabled={renewBillyStatus === "checking" || renewBillyStatus === "saving"}
+                  className="h-11"
+                />
+              </div>
+
+              {renewBillyStatus === "error" && renewBillyError && (
+                <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <div className="min-w-0 break-words">{renewBillyError}</div>
+                </div>
+              )}
+            </div>
+
+            <DialogFooter className="gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => setRenewBillyOpen(false)}
+                disabled={renewBillyStatus === "checking" || renewBillyStatus === "saving"}
+                className="h-9 rounded-lg text-sm font-medium"
+              >
+                Annuller
+              </Button>
+              <Button
+                onClick={handleRenewBillyToken}
+                disabled={!renewBillyToken.trim() || renewBillyStatus === "checking" || renewBillyStatus === "saving"}
+                className="h-9 rounded-lg text-sm font-medium"
+              >
+                {renewBillyStatus === "checking" && (<><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Tester nøglen…</>)}
+                {renewBillyStatus === "saving" && (<><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Gemmer…</>)}
+                {(renewBillyStatus === "idle" || renewBillyStatus === "error") && (<><Check className="mr-1.5 h-3.5 w-3.5" /> Test og gem</>)}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
