@@ -875,9 +875,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     setEconomicWaiting(false);
     setTesting(false);
     setDryRunning(false);
-    try { sessionStorage.removeItem("economic_pending_business_id"); } catch {}
-    try { sessionStorage.removeItem("dinero_pending_business_id"); } catch {}
-    try { sessionStorage.removeItem("zenegy_pending_business_id"); } catch {}
+    try { sessionStorage.removeItem("economic_pending_business_id"); } catch { /* ignore */ }
+    try { sessionStorage.removeItem("dinero_pending_business_id"); } catch { /* ignore */ }
+    try { sessionStorage.removeItem("zenegy_pending_business_id"); } catch { /* ignore */ }
   };
 
   const chooseProvider = (nextProvider: Provider) => {
