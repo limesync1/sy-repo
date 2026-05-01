@@ -181,11 +181,14 @@ const useCustomers = (businessId: string) => {
         if (existing) {
           existing.type = "private";
           existing.saved_id = p.id;
-          if (!existing.name && p.name) existing.name = p.name;
-          if (!existing.phone && p.phone) existing.phone = p.phone;
-          if (!existing.address && p.address) existing.address = p.address;
-          if (!existing.zip_code && p.zip_code) existing.zip_code = p.zip_code;
-          if (!existing.city && p.city) existing.city = p.city;
+          // Kartoteket er master — overskriv altid værdier fra ordrer så
+          // ændringer i kunde-dialogen vises straks (ordrer kan have gamle
+          // navne/adresser fra dengang ordren blev oprettet).
+          if (p.name) existing.name = p.name;
+          if (p.phone) existing.phone = p.phone;
+          if (p.address) existing.address = p.address;
+          if (p.zip_code) existing.zip_code = p.zip_code;
+          if (p.city) existing.city = p.city;
           existing.notes = p.notes;
           existing.avatar_url = p.avatar_url ?? existing.avatar_url ?? null;
         } else {
@@ -221,11 +224,12 @@ const useCustomers = (businessId: string) => {
           existing.company_name = b.company_name;
           existing.cvr = b.cvr;
           existing.contact_name = b.contact_name;
-          if (!existing.name && (b.contact_name || b.company_name)) existing.name = b.contact_name || b.company_name;
-          if (!existing.phone && b.phone) existing.phone = b.phone;
-          if (!existing.address && b.address) existing.address = b.address;
-          if (!existing.zip_code && b.zip_code) existing.zip_code = b.zip_code;
-          if (!existing.city && b.city) existing.city = b.city;
+          // Kartoteket er master — overskriv altid felter fra ordrer.
+          if (b.contact_name || b.company_name) existing.name = b.contact_name || b.company_name;
+          if (b.phone) existing.phone = b.phone;
+          if (b.address) existing.address = b.address;
+          if (b.zip_code) existing.zip_code = b.zip_code;
+          if (b.city) existing.city = b.city;
           existing.notes = b.notes;
           existing.avatar_url = b.avatar_url ?? existing.avatar_url ?? null;
         } else {
