@@ -20,7 +20,7 @@ import type {
   UpsertProductInput,
 } from "./types.ts";
 
-const TOKEN_URL = "https://login.zenegy.com/connect/token";
+const TOKEN_URL = "https://auth.zenegy.com/connect/token";
 const API_BASE = "https://api.zenegy.com";
 
 const tokenCache = new Map<string, { token: string; expires: number }>();
