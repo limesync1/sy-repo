@@ -877,6 +877,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     setDryRunning(false);
     try { sessionStorage.removeItem("economic_pending_business_id"); } catch {}
     try { sessionStorage.removeItem("dinero_pending_business_id"); } catch {}
+    try { sessionStorage.removeItem("zenegy_pending_business_id"); } catch {}
   };
 
   const chooseProvider = (nextProvider: Provider) => {
@@ -1440,6 +1441,22 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     }
   };
 
+  const applyZenegyOAuthResult = async (status: string, reason?: string | null) => {
+    sessionStorage.removeItem("zenegy_pending_business_id");
+    setZenegyOAuthConnecting(false);
+    setZenegyWaiting(false);
+    if (status === "connected") {
+      setProvider("zenegy");
+      setZenegyResult({ ok: true, message: "Zenegy er forbundet og klar." });
+      toast.success("Zenegy er nu forbundet!");
+      await load().then(() => setMode("overview"));
+    } else {
+      const msg = reason ? `Zenegy fejl: ${reason}` : "Zenegy-forbindelsen blev afbrudt.";
+      setZenegyResult({ ok: false, message: msg });
+      toast.error(msg);
+    }
+  };
+
   // Opfang ?zenegy=connected|error når brugeren returnerer fra edge function callback.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -1447,21 +1464,44 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     if (!status) return;
 
     const reason = params.get("reason");
+
+    if (window.opener && !window.opener.closed && window.opener !== window) {
+      try {
+        window.opener.postMessage(
+          { type: "zenegy_oauth_result", status, reason, businessId },
+          "*",
+        );
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete("zenegy");
+        cleanUrl.searchParams.delete("reason");
+        window.history.replaceState({}, "", cleanUrl.toString());
+        window.close();
+        return;
+      } catch (e) {
+        console.error("[zenegy] kunne ikke sende status til opener:", e);
+      }
+    }
+
     const cleanUrl = new URL(window.location.href);
     cleanUrl.searchParams.delete("zenegy");
     cleanUrl.searchParams.delete("reason");
     window.history.replaceState({}, "", cleanUrl.toString());
 
-    if (status === "connected") {
-      setProvider("zenegy");
-      setZenegyResult({ ok: true, message: "Zenegy er forbundet og klar." });
-      toast.success("Zenegy er nu forbundet!");
-      load().then(() => setMode("overview"));
-    } else {
-      const msg = reason ? `Zenegy fejl: ${reason}` : "Zenegy-forbindelsen blev afbrudt.";
-      setZenegyResult({ ok: false, message: msg });
-      toast.error(msg);
-    }
+    void applyZenegyOAuthResult(status, reason);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessId]);
+
+  useEffect(() => {
+    const onMessage = (ev: MessageEvent) => {
+      const allowedOrigins = new Set([window.location.origin, "https://serviceydere.dk", "https://www.serviceydere.dk"]);
+      if (!allowedOrigins.has(ev.origin)) return;
+      const data = ev.data;
+      if (!data || data.type !== "zenegy_oauth_result" || !data.status) return;
+      if (data.businessId && data.businessId !== businessId) return;
+      void applyZenegyOAuthResult(String(data.status), data.reason ? String(data.reason) : null);
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [businessId]);
 
