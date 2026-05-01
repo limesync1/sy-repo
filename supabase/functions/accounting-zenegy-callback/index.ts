@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { cleanAccountingSettings, prepareAccountingProviderSwitch } from "../_shared/accounting/state.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -102,18 +103,10 @@ Deno.serve(async (req) => {
         }
       } catch { /* ikke kritisk */ }
 
-      const baseSettings = (match.settings as Record<string, unknown> | null) ?? {};
-      delete (baseSettings as Record<string, unknown>).oauth_state;
-      delete (baseSettings as Record<string, unknown>).oauth_state_at;
-      const mergedSettings = {
-        push_pending: true,
-        default_payment_terms_days: 14,
-        default_vat_rate: 25,
-        auto_create_products: true,
-        send_order_as: "order",
-        ...baseSettings,
-        oauth_refresh_token: tok.refresh_token ?? null,
-      };
+      const mergedSettings = cleanAccountingSettings(
+        match.settings as Record<string, unknown> | null,
+        { oauth_refresh_token: tok.refresh_token ?? null },
+      );
 
       await admin.from("accounting_integrations").update({
         is_active: true,
@@ -166,13 +159,14 @@ Deno.serve(async (req) => {
         Deno.env.get("SUPABASE_URL")!,
         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       );
+      await prepareAccountingProviderSwitch(admin, business_id, "zenegy");
       const { data: existing } = await admin
         .from("accounting_integrations")
         .select("id, settings")
         .eq("business_id", business_id)
         .maybeSingle();
 
-      const baseSettings = (existing?.settings as Record<string, unknown> | null) ?? {};
+      const baseSettings = cleanAccountingSettings(existing?.settings as Record<string, unknown> | null);
       const settingsWithState = { ...baseSettings, oauth_state: state, oauth_state_at: new Date().toISOString() };
 
       if (existing) {
@@ -253,16 +247,10 @@ Deno.serve(async (req) => {
       .eq("business_id", business_id)
       .maybeSingle();
 
-    const baseSettings = (existing?.settings as Record<string, unknown> | null) ?? {};
-    const mergedSettings = {
-      push_pending: true,
-      default_payment_terms_days: 14,
-      default_vat_rate: 25,
-      auto_create_products: true,
-      send_order_as: "order",
-      ...baseSettings,
-      oauth_refresh_token: tok.refresh_token ?? null,
-    };
+    const mergedSettings = cleanAccountingSettings(
+      existing?.settings as Record<string, unknown> | null,
+      { oauth_refresh_token: tok.refresh_token ?? null },
+    );
 
     const payload = {
       business_id,
