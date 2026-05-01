@@ -443,6 +443,10 @@ export function makeBillyAdapter(
       // Billy has no "order" — use invoice draft.
       const orgId = await getOrgId(creds);
       const date = (input.date ?? new Date().toISOString()).slice(0, 10);
+      // Billy kræver en taxRateId på hver linje (eller på varen). Hent en gyldig
+      // dansk salgs-moms én gang og brug den som fallback — ellers fejler Billy
+      // med en intetsigende "Invalid record".
+      const fallbackTaxRateId = await getDefaultBillySalesTaxRate(creds, orgId);
       const invoice: Record<string, unknown> = {
         organizationId: orgId,
         contactId: input.customer_external_id,
@@ -457,6 +461,7 @@ export function makeBillyAdapter(
           description: l.description,
           quantity: l.quantity,
           unitPrice: l.unit_price,
+          taxRateId: fallbackTaxRateId ?? undefined,
         })),
       };
 
