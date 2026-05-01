@@ -206,7 +206,6 @@ Deno.serve(async (req) => {
       installUrl.searchParams.set("response_type", "code");
       installUrl.searchParams.set("client_id", clientId);
       installUrl.searchParams.set("redirect_uri", redirectUrl);
-      installUrl.searchParams.set("scope", "openid offline_access api");
       installUrl.searchParams.set("state", state);
       return json({ enabled: true, install_url: installUrl.toString(), state });
     }
