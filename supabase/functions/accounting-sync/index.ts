@@ -140,7 +140,9 @@ async function seedQueue(admin: SupabaseClient, business_id: string): Promise<nu
   const seenEmails = new Set<string>();
   for (const r of bcs.data ?? []) rows.push({ business_id, entity_type: "customer", entity_id: r.id, operation: "update" });
   for (const r of pcs.data ?? []) rows.push({ business_id, entity_type: "customer", entity_id: r.id, operation: "update" });
-  for (const r of svcs.data ?? []) rows.push({ business_id, entity_type: "product", entity_id: r.id, operation: "update" });
+  if (!CUSTOMERS_ONLY) {
+    for (const r of svcs.data ?? []) rows.push({ business_id, entity_type: "product", entity_id: r.id, operation: "update" });
+  }
 
   // 2) Skygge-kunder fra orders (typisk efter offentlig bestilling)
   for (const o of ords.data ?? []) {
@@ -189,8 +191,10 @@ async function seedQueue(admin: SupabaseClient, business_id: string): Promise<nu
   }
 
   // 3) Ordrer
-  for (const o of ords.data ?? []) {
-    rows.push({ business_id, entity_type: "order", entity_id: o.id, operation: "update" });
+  if (!CUSTOMERS_ONLY) {
+    for (const o of ords.data ?? []) {
+      rows.push({ business_id, entity_type: "order", entity_id: o.id, operation: "update" });
+    }
   }
 
   if (rows.length === 0) return 0;
