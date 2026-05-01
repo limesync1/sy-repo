@@ -2631,25 +2631,58 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </div>
         </SectionCard>
 
-        {/* Skift program / Frakobl */}
-        <SectionCard title="Forbindelse" icon={<Plug />}>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              onClick={openProviderPicker}
-              className="h-9 rounded-lg text-xs font-medium"
-            >
-              <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Vælg et andet program
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDisable(true)}
-              className="h-9 rounded-lg border-border text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/40"
-            >
-              <X className="mr-1.5 h-4 w-4" /> Frakobl {activeDef.label}
-            </Button>
+        {/* Aktiv forbindelse — viser hvilket regnskabsprogram der er
+            forbundet, en kort identitet (organisations-id / nøgle-hale)
+            og to klare handlinger: skift program eller frakobl helt.
+            Bruger den samme visuelle ramme som connect-kortene i wizarden,
+            så det føles sammenhængende. */}
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border bg-secondary/30 px-5 py-4">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="flex h-12 w-16 shrink-0 items-center justify-center rounded-xl bg-background ring-1 ring-border p-2">
+                <img src={activeDef.logo} alt={activeDef.label} className="max-h-7 max-w-full object-contain" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-base font-semibold text-foreground">{activeDef.label}</span>
+                  <Badge variant="secondary" className="gap-1 bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/20">
+                    <Check className="h-3 w-3" /> Aktiv
+                  </Badge>
+                </div>
+                <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                  {integration.organization_id
+                    ? <>Organisation <span className="font-medium text-foreground/80">{integration.organization_id}</span></>
+                    : integration.agreement_number
+                      ? <>Aftale <span className="font-medium text-foreground/80">{integration.agreement_number}</span></>
+                      : integration.api_token
+                        ? <>Adgangsnøgle <span className="font-mono text-foreground/80">••••{integration.api_token.slice(-4)}</span></>
+                        : "Forbundet"}
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={openProviderPicker}
+                className="h-9 rounded-lg text-xs font-medium"
+              >
+                <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Skift program
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmDisable(true)}
+                className="h-9 rounded-lg border-destructive/30 text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50"
+              >
+                <X className="mr-1.5 h-3.5 w-3.5" /> Frakobl
+              </Button>
+            </div>
           </div>
-        </SectionCard>
+          <div className="px-5 py-3 text-xs text-muted-foreground">
+            Hvis du skifter program nu, beholder vi alt det du allerede har sendt — der bliver ikke slettet noget i {activeDef.label}.
+          </div>
+        </div>
 
         </div>
 
