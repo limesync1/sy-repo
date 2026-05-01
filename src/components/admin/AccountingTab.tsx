@@ -659,7 +659,8 @@ const DineroConnectCard = React.forwardRef<HTMLDivElement, {
       </div>
     </ConnectCardShell>
   );
-}
+});
+DineroConnectCard.displayName = "DineroConnectCard";
 
 /**
  * ZenegyConnectCard — ét-klik OAuth 2.0-flow.
@@ -668,19 +669,13 @@ const DineroConnectCard = React.forwardRef<HTMLDivElement, {
  * `accounting-zenegy-callback` returnerer enabled:true (dvs. når
  * server-secrets ZENEGY_CLIENT_ID/SECRET/REDIRECT_URL er sat).
  */
-function ZenegyConnectCard({
-  onConnect,
-  connecting,
-  waiting,
-  oauthEnabled,
-  connectResult,
-}: {
+const ZenegyConnectCard = React.forwardRef<HTMLDivElement, {
   onConnect: () => void;
   connecting: boolean;
   waiting: boolean;
   oauthEnabled: boolean;
   connectResult: { ok: boolean; message?: string } | null;
-}) {
+}>(({ onConnect, connecting, waiting, oauthEnabled, connectResult }, _ref) => {
   return (
     <ConnectCardShell logo={zenegyLogo} name="Zenegy" tagline="Ét-klik OAuth — tager under 30 sekunder">
       <div className="space-y-5">
