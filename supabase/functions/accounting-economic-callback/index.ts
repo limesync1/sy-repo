@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { cleanAccountingSettings, prepareAccountingProviderSwitch } from "../_shared/accounting/state.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -46,6 +47,17 @@ Deno.serve(async (req) => {
     if (action === "install_url") {
       const installUrl = Deno.env.get("ECONOMIC_INSTALL_URL");
       if (!installUrl) return json({ error: "ECONOMIC_INSTALL_URL er ikke konfigureret." }, 500);
+      const business_id = body?.business_id;
+      if (business_id) {
+        const { data: biz } = await supabase
+          .from("businesses").select("id, owner_id").eq("id", business_id).maybeSingle();
+        if (!biz || biz.owner_id !== user.id) return json({ error: "Forbidden" }, 403);
+        const admin = createClient(
+          Deno.env.get("SUPABASE_URL")!,
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+        );
+        await prepareAccountingProviderSwitch(admin, business_id, "economic");
+      }
       // Sørg for at redirectUrl indeholder ?tab=accounting så brugeren lander
       // direkte på regnskabs-fanen efter godkendelse — ikke på "Overblik".
       try {
@@ -53,9 +65,7 @@ Deno.serve(async (req) => {
         // Tving dansk sprog på e-conomics installations-side.
         // E-conomic understøtter ?culture=da-DK på AppInstall.aspx — ellers
         // arver siden brugerens browser-/konto-sprog (som ofte er engelsk).
-        if (!u.searchParams.has("culture")) {
-          u.searchParams.set("culture", "da-DK");
-        }
+        u.searchParams.set("culture", "da-DK");
         const redirect = u.searchParams.get("redirectUrl");
         if (redirect) {
           const r = new URL(redirect);
@@ -69,7 +79,7 @@ Deno.serve(async (req) => {
         // Fallback: tilføj culture med simpel string-konkatenering
         const sep = installUrl.includes("?") ? "&" : "?";
         const withCulture = installUrl.includes("culture=")
-          ? installUrl
+          ? installUrl.replace(/([?&]culture=)[^&]*/i, "$1da-DK")
           : `${installUrl}${sep}culture=da-DK`;
         return json({ install_url: withCulture });
       }
@@ -123,15 +133,7 @@ Deno.serve(async (req) => {
       .eq("business_id", business_id)
       .maybeSingle();
 
-    const baseSettings = (existing?.settings as Record<string, unknown> | null) ?? {};
-    const mergedSettings = {
-      push_pending: true,
-      default_payment_terms_days: 14,
-      default_vat_rate: 25,
-      auto_create_products: true,
-      send_order_as: "order",
-      ...baseSettings,
-    };
+    const mergedSettings = cleanAccountingSettings(existing?.settings as Record<string, unknown> | null);
 
     const payload = {
       business_id,
