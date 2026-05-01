@@ -2123,34 +2123,85 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     )}
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={syncing}
-                  onClick={async () => {
-                    if (!businessId) return;
-                    setSyncing(true);
-                    try {
-                      const r = await runFullSync(businessId);
-                      toast.success(
-                        `Synkronisering færdig — ${r.pushed} kunder sendt, ${r.pulledCustomers} kunder hentet (testfase: kun kunder synkroniseres).`,
-                      );
-                      await load();
-                    } catch (e) {
-                      toast.error(e instanceof Error ? e.message : "Synkronisering fejlede");
-                    } finally {
-                      setSyncing(false);
-                    }
-                  }}
-                  className="shrink-0"
-                >
-                  {syncing ? (
-                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <RotateCw className="mr-1.5 h-3.5 w-3.5" />
-                  )}
-                  Kør synkronisering nu
-                </Button>
+                <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={syncing}
+                    onClick={async () => {
+                      if (!businessId) return;
+                      setSyncing(true);
+                      try {
+                        const r = await supabase.functions.invoke("accounting-sync", {
+                          body: { business_id: businessId, mode: "queue" },
+                        });
+                        if (r.error) throw r.error;
+                        const pushed = (r.data as any)?.processed ?? 0;
+                        toast.success(`Sendt til ${activeDef.label}: ${pushed} kunder push'et.`);
+                        await load();
+                      } catch (e) {
+                        toast.error(e instanceof Error ? e.message : "Push fejlede");
+                      } finally {
+                        setSyncing(false);
+                      }
+                    }}
+                  >
+                    <Upload className="mr-1.5 h-3.5 w-3.5" />
+                    Send til {activeDef.label}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={syncing}
+                    onClick={async () => {
+                      if (!businessId) return;
+                      setSyncing(true);
+                      try {
+                        const r = await supabase.functions.invoke("accounting-sync", {
+                          body: { business_id: businessId, mode: "pull" },
+                        });
+                        if (r.error) throw r.error;
+                        const pulled = (r.data as any)?.customers ?? 0;
+                        toast.success(`Hentet fra ${activeDef.label}: ${pulled} kunder opdateret lokalt.`);
+                        await load();
+                      } catch (e) {
+                        toast.error(e instanceof Error ? e.message : "Hent fejlede");
+                      } finally {
+                        setSyncing(false);
+                      }
+                    }}
+                  >
+                    <Download className="mr-1.5 h-3.5 w-3.5" />
+                    Hent fra {activeDef.label}
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    disabled={syncing}
+                    onClick={async () => {
+                      if (!businessId) return;
+                      setSyncing(true);
+                      try {
+                        const r = await runFullSync(businessId);
+                        toast.success(
+                          `Synkronisering færdig — ${r.pushed} sendt, ${r.pulledCustomers} hentet.`,
+                        );
+                        await load();
+                      } catch (e) {
+                        toast.error(e instanceof Error ? e.message : "Synkronisering fejlede");
+                      } finally {
+                        setSyncing(false);
+                      }
+                    }}
+                  >
+                    {syncing ? (
+                      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <RotateCw className="mr-1.5 h-3.5 w-3.5" />
+                    )}
+                    Kør begge veje
+                  </Button>
+                </div>
               </div>
             </div>
           );

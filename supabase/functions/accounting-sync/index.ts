@@ -368,33 +368,34 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
         name: ec.name,
       };
       if (matched) {
-        // Felt-diff: opdatér kun de felter hvor remote-værdien faktisk er
-        // ny ift. sidste pull. Det undgår både ekko-loops (push→pull→push)
-        // og at overskrive felter brugeren har rettet lokalt siden.
-        const state = await getFieldState(admin, integ.business_id, integ.provider, "customer", matched.id);
-        const diff: Record<string, any> = {};
-        for (const [k, v] of Object.entries(incoming)) {
-          const lastRemote = state[k]?.remote_value;
-          if (!eq(v, lastRemote)) diff[k] = v;
-        }
-        if (Object.keys(diff).length > 0) {
-          const dbUpdate: Record<string, any> = {};
-          if ("email" in diff)              dbUpdate.email = diff.email;
-          if ("phone" in diff)              dbUpdate.phone = diff.phone;
-          if ("address" in diff)            dbUpdate.address = diff.address;
-          if ("zip_code" in diff)           dbUpdate.zip_code = diff.zip_code;
-          if ("city" in diff)               dbUpdate.city = diff.city;
-          if ("payment_terms_days" in diff) dbUpdate.payment_terms_days = diff.payment_terms_days;
-          if ("currency" in diff)           dbUpdate.currency = "DKK";
+        // Hent nuværende lokale værdier og sammenlign DIREKTE mod remote
+        // (regnskabsprogrammet er master). Hvis de afviger overskriver vi
+        // lokal med remote — dette sikrer at brugerens ændringer i Billy/
+        // Dinero/e-conomic altid synkroniseres ned til Serviceydere.
+        const { data: localRow } = await admin
+          .from(matched.table).select("*").eq("id", matched.id).maybeSingle();
+        const dbUpdate: Record<string, any> = {};
+        if (localRow) {
+          if (!eq(incoming.email, localRow.email))                       dbUpdate.email = incoming.email;
+          if (!eq(incoming.phone, localRow.phone))                       dbUpdate.phone = incoming.phone;
+          if (!eq(incoming.address, localRow.address))                   dbUpdate.address = incoming.address;
+          if (!eq(incoming.zip_code, localRow.zip_code))                 dbUpdate.zip_code = incoming.zip_code;
+          if (!eq(incoming.city, localRow.city))                         dbUpdate.city = incoming.city;
+          if (!eq(incoming.payment_terms_days, localRow.payment_terms_days)) dbUpdate.payment_terms_days = incoming.payment_terms_days;
           if (matched.table === "business_customers") {
-            if ("cvr" in diff)  dbUpdate.cvr = diff.cvr;
-            if ("ean" in diff)  dbUpdate.ean_number = diff.ean;
-            if ("name" in diff) dbUpdate.company_name = diff.name;
+            if (!eq(incoming.cvr, localRow.cvr))                         dbUpdate.cvr = incoming.cvr;
+            if (!eq(incoming.ean, localRow.ean_number))                  dbUpdate.ean_number = incoming.ean;
+            if (incoming.name && !eq(incoming.name, localRow.company_name)) dbUpdate.company_name = incoming.name;
           } else {
-            if ("name" in diff) dbUpdate.name = diff.name;
+            if (incoming.name && !eq(incoming.name, localRow.name))      dbUpdate.name = incoming.name;
           }
-          if (Object.keys(dbUpdate).length > 0) {
-            await admin.from(matched.table).update(dbUpdate).eq("id", matched.id);
+        }
+        if (Object.keys(dbUpdate).length > 0) {
+          const { error: upErr } = await admin.from(matched.table).update(dbUpdate).eq("id", matched.id);
+          if (upErr) {
+            console.error("[pull] customer update failed", { id: matched.id, table: matched.table, error: upErr.message, dbUpdate });
+          } else {
+            console.log("[pull] customer updated", { id: matched.id, table: matched.table, fields: Object.keys(dbUpdate) });
           }
         }
         await recordPulledFields(admin, integ.business_id, integ.provider, "customer", matched.id, incoming);
