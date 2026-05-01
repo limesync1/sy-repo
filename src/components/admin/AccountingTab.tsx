@@ -522,17 +522,7 @@ EconomicConnectCard.displayName = "EconomicConnectCard";
  * Pro-kunder selv kan oprette i Dinero. Vi viser den eksakte step-by-step
  * guide, og brugeren paster så Client ID + Secret + organisations-ID.
  */
-function DineroConnectCard({
-  apiToken,
-  apiSecret,
-  organizationId,
-  showSecret,
-  onToggleSecret,
-  onChange,
-  onConnect,
-  status,
-  errorMessage,
-}: {
+const DineroConnectCard = React.forwardRef<HTMLDivElement, {
   apiToken: string;
   apiSecret: string;
   organizationId: string;
@@ -542,7 +532,7 @@ function DineroConnectCard({
   onConnect: () => void;
   status: "idle" | "checking" | "testing" | "saving" | "done" | "error";
   errorMessage: string | null;
-}) {
+}>(({ apiToken, apiSecret, organizationId, showSecret, onToggleSecret, onChange, onConnect, status, errorMessage }, _ref) => {
   const isWorking = status === "checking" || status === "testing" || status === "saving";
   const statusLabel =
     status === "checking" ? "Tjekker forbindelsen til Dinero…" :
