@@ -277,21 +277,15 @@ GuideStep.displayName = "GuideStep";
  * føles konsistent. Header med logo + program-navn, valgfri "kræver"-badge,
  * og en pæn body-area.
  */
-function ConnectCardShell({
-  logo,
-  name,
-  tagline,
-  requiresBadge,
-  children,
-}: {
+const ConnectCardShell = React.forwardRef<HTMLDivElement, {
   logo: string;
   name: string;
   tagline: string;
   requiresBadge?: string;
   children: React.ReactNode;
-}) {
+}>(({ logo, name, children }, ref) => {
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+    <div ref={ref} className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
       <div className="flex items-center gap-4 border-b border-border bg-secondary/40 px-5 py-4">
         <div className="flex h-12 w-16 shrink-0 items-center justify-center rounded-xl bg-background ring-1 ring-border p-2">
           <img src={logo} alt={name} className="max-h-7 max-w-full object-contain" />
@@ -303,7 +297,8 @@ function ConnectCardShell({
       <div className="p-5">{children}</div>
     </div>
   );
-}
+});
+ConnectCardShell.displayName = "ConnectCardShell";
 
 /** Lille statusbadge der diskret viser om indstillingerne er gemt. */
 function AutoSaveBadge({
@@ -370,19 +365,13 @@ function SuccessCard({ name }: { name: string }) {
  * "Paste-and-go": brugeren paster sin adgangsnøgle, og vi kører automatisk
  * forbind → testdata → auto-opsætning → gem i ét. Ingen knapper at trykke.
  */
-function BillyConnectCard({
-  token,
-  onTokenChange,
-  onAutoConnect,
-  status,
-  errorMessage,
-}: {
+const BillyConnectCard = React.forwardRef<HTMLDivElement, {
   token: string;
   onTokenChange: (value: string) => void;
   onAutoConnect: (token: string) => void;
   status: "idle" | "checking" | "testing" | "saving" | "done" | "error";
   errorMessage: string | null;
-}) {
+}>(({ token, onTokenChange, onAutoConnect, status, errorMessage }, _ref) => {
   const isWorking = status === "checking" || status === "testing" || status === "saving";
   const statusLabel =
     status === "checking" ? "Tjekker forbindelsen…" :
@@ -460,7 +449,8 @@ function BillyConnectCard({
       </div>
     </ConnectCardShell>
   );
-}
+});
+BillyConnectCard.displayName = "BillyConnectCard";
 
 /**
  * EconomicConnectCard — guidet OAuth-lignende flow for e-conomic.
@@ -532,17 +522,7 @@ EconomicConnectCard.displayName = "EconomicConnectCard";
  * Pro-kunder selv kan oprette i Dinero. Vi viser den eksakte step-by-step
  * guide, og brugeren paster så Client ID + Secret + organisations-ID.
  */
-function DineroConnectCard({
-  apiToken,
-  apiSecret,
-  organizationId,
-  showSecret,
-  onToggleSecret,
-  onChange,
-  onConnect,
-  status,
-  errorMessage,
-}: {
+const DineroConnectCard = React.forwardRef<HTMLDivElement, {
   apiToken: string;
   apiSecret: string;
   organizationId: string;
@@ -552,7 +532,7 @@ function DineroConnectCard({
   onConnect: () => void;
   status: "idle" | "checking" | "testing" | "saving" | "done" | "error";
   errorMessage: string | null;
-}) {
+}>(({ apiToken, apiSecret, organizationId, showSecret, onToggleSecret, onChange, onConnect, status, errorMessage }, _ref) => {
   const isWorking = status === "checking" || status === "testing" || status === "saving";
   const statusLabel =
     status === "checking" ? "Tjekker forbindelsen til Dinero…" :
@@ -679,7 +659,8 @@ function DineroConnectCard({
       </div>
     </ConnectCardShell>
   );
-}
+});
+DineroConnectCard.displayName = "DineroConnectCard";
 
 /**
  * ZenegyConnectCard — ét-klik OAuth 2.0-flow.
@@ -688,19 +669,13 @@ function DineroConnectCard({
  * `accounting-zenegy-callback` returnerer enabled:true (dvs. når
  * server-secrets ZENEGY_CLIENT_ID/SECRET/REDIRECT_URL er sat).
  */
-function ZenegyConnectCard({
-  onConnect,
-  connecting,
-  waiting,
-  oauthEnabled,
-  connectResult,
-}: {
+const ZenegyConnectCard = React.forwardRef<HTMLDivElement, {
   onConnect: () => void;
   connecting: boolean;
   waiting: boolean;
   oauthEnabled: boolean;
   connectResult: { ok: boolean; message?: string } | null;
-}) {
+}>(({ onConnect, connecting, waiting, oauthEnabled, connectResult }, _ref) => {
   return (
     <ConnectCardShell logo={zenegyLogo} name="Zenegy" tagline="Ét-klik OAuth — tager under 30 sekunder">
       <div className="space-y-5">
@@ -766,7 +741,8 @@ function ZenegyConnectCard({
       </div>
     </ConnectCardShell>
   );
-}
+});
+ZenegyConnectCard.displayName = "ZenegyConnectCard";
 
 export default function AccountingTab({ businessId }: { businessId: string; businessName: string }) {
   const navigate = useNavigate();

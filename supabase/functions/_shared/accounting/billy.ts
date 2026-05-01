@@ -43,6 +43,22 @@ function friendlyBillyError(status: number, body: string): string {
   if (status >= 500) return "Billys servere svarer ikke lige nu. Prøv igen om et par minutter.";
   try {
     const j = JSON.parse(body);
+    // Billy "Invalid record" returnerer detaljerede valideringsfejl i `validationErrors`
+    // — fold dem ud så brugeren faktisk kan se hvad der mangler.
+    const ve = j?.validationErrors ?? j?.errorDetails;
+    if (ve && typeof ve === "object") {
+      const parts: string[] = [];
+      for (const [field, msgs] of Object.entries(ve)) {
+        if (Array.isArray(msgs)) parts.push(`${field}: ${msgs.join(", ")}`);
+        else if (typeof msgs === "string") parts.push(`${field}: ${msgs}`);
+        else if (msgs && typeof msgs === "object") {
+          parts.push(`${field}: ${JSON.stringify(msgs)}`);
+        }
+      }
+      if (parts.length > 0) {
+        return `Billy: ${j?.errorMessage ?? "Validering fejlede"} — ${parts.join(" · ")}`;
+      }
+    }
     if (j?.errorMessage) return `Billy: ${j.errorMessage}`;
     if (j?.helpUrl && j?.message) return `Billy: ${j.message}`;
     if (j?.message) return `Billy: ${j.message}`;
@@ -65,6 +81,14 @@ async function billyRequest(
   });
   if (!res.ok) {
     const text = await res.text();
+    // Hjælp os selv med at debugge: log hele body + payload til function-logs.
+    try {
+      const method = (init.method ?? "GET").toUpperCase();
+      console.error(`[billy] ${method} ${path} → ${res.status}`, text.slice(0, 800));
+      if (init.body && typeof init.body === "string") {
+        console.error(`[billy] payload was:`, init.body.slice(0, 800));
+      }
+    } catch { /* ignore */ }
     throw new Error(friendlyBillyError(res.status, text));
   }
   if (res.status === 204) return null;
@@ -80,6 +104,38 @@ async function getOrgId(creds: AccountingCredentials): Promise<string> {
 // Billy kræver en indtægtskonto på alle varer. Hvis brugeren ikke har valgt
 // en konto endnu, vælger vi automatisk en gyldig salgskonto fra Billy.
 const incomeAccountCache = new Map<string, string>();
+// Billy kræver en taxRateId pr. linje når kontakten/varen ikke har en standard.
+// Vi henter Billys "domestic sales VAT" (fx U25) én gang pr. organisation.
+const taxRateCache = new Map<string, string | null>();
+async function getDefaultBillySalesTaxRate(
+  creds: AccountingCredentials,
+  orgId: string,
+): Promise<string | null> {
+  if (taxRateCache.has(orgId)) return taxRateCache.get(orgId) ?? null;
+  try {
+    const res = await billyRequest(creds, `/taxRates?organizationId=${orgId}&pageSize=200`);
+    const list: any[] = res?.taxRates ?? [];
+    // Foretræk aktive sales VAT-rater (priority/scope = "sales") med den højeste rate.
+    const sales = list.filter(t =>
+      !t.isArchived &&
+      (String(t.scope ?? "").toLowerCase() === "sales" ||
+       String(t.priority ?? "").toLowerCase() === "sales" ||
+       String(t.name ?? "").toLowerCase().includes("salg") ||
+       String(t.abbreviation ?? "").toLowerCase().startsWith("u")) // U25, U-MOMS, etc
+    );
+    const pick = (sales.length ? sales : list)
+      .filter(t => !t.isArchived)
+      .sort((a, b) => Number(b.rate ?? 0) - Number(a.rate ?? 0))[0];
+    const id = pick?.id ?? null;
+    taxRateCache.set(orgId, id);
+    return id;
+  } catch (e) {
+    console.warn("getDefaultBillySalesTaxRate failed:", e instanceof Error ? e.message : e);
+    taxRateCache.set(orgId, null);
+    return null;
+  }
+}
+
 async function ensureBillyIncomeAccount(
   creds: AccountingCredentials,
   orgId: string,
@@ -387,6 +443,10 @@ export function makeBillyAdapter(
       // Billy has no "order" — use invoice draft.
       const orgId = await getOrgId(creds);
       const date = (input.date ?? new Date().toISOString()).slice(0, 10);
+      // Billy kræver en taxRateId på hver linje (eller på varen). Hent en gyldig
+      // dansk salgs-moms én gang og brug den som fallback — ellers fejler Billy
+      // med en intetsigende "Invalid record".
+      const fallbackTaxRateId = await getDefaultBillySalesTaxRate(creds, orgId);
       const invoice: Record<string, unknown> = {
         organizationId: orgId,
         contactId: input.customer_external_id,
@@ -401,6 +461,7 @@ export function makeBillyAdapter(
           description: l.description,
           quantity: l.quantity,
           unitPrice: l.unit_price,
+          taxRateId: fallbackTaxRateId ?? undefined,
         })),
       };
 
