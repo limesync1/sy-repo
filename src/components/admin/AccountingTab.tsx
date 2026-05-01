@@ -538,24 +538,6 @@ const DineroConnectCard = React.forwardRef<HTMLDivElement, {
   return (
     <ConnectCardShell logo={dineroLogo} name="Dinero" tagline="">
       <div className="space-y-5">
-        <div className="rounded-xl border border-border bg-secondary/30 p-4">
-          <div className="mb-2 text-sm font-semibold text-foreground">
-            Sådan opretter du en API-nøgle til integrationer
-          </div>
-          <ol className="space-y-2">
-            <GuideStep n={1}>Log ind i <strong>Dinero</strong>.</GuideStep>
-            <GuideStep n={2}>Klik på <strong>Integrationer</strong> i menuen til venstre.</GuideStep>
-            <GuideStep n={3}>Klik på <strong>Se og opret API-nøgler</strong> i øverste venstre hjørne.</GuideStep>
-            <GuideStep n={4}>Klik på <strong>Opret ny API-nøgle</strong>.</GuideStep>
-            <GuideStep n={5}>Giv API-nøglen et navn (fx "Serviceydere"), så du kan genkende den.</GuideStep>
-            <GuideStep n={6}>Kopiér <strong>API-nøglen</strong> når den er genereret — den skal bruges nedenfor.</GuideStep>
-          </ol>
-          <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-900 dark:text-amber-200">
-            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            <span><strong>OBS:</strong> API-nøgler er kun tilgængelige for <strong>Dinero Pro</strong>-brugere.</span>
-          </div>
-        </div>
-
         <Button asChild variant="outline" size="lg" className="w-full">
           <a href="https://app.dinero.dk/" target="_blank" rel="noopener noreferrer">
             <ExternalLink className="mr-2 h-4 w-4" />
