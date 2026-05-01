@@ -396,12 +396,6 @@ const BillyConnectCard = React.forwardRef<HTMLDivElement, {
   return (
     <ConnectCardShell logo={billyLogo} name="Billy" tagline="Adgangsnøgle — tager under 1 minut">
       <div className="space-y-5">
-        <ol className="space-y-2.5">
-          <GuideStep n={1}>Åbn Billy og vælg den virksomhed, du vil forbinde.</GuideStep>
-          <GuideStep n={2}>Gå til <strong>Indstillinger → Adgangsnøgler</strong> og tryk <strong>Opret adgangsnøgle</strong>. Kald den fx "Serviceydere".</GuideStep>
-          <GuideStep n={3}>Kopiér nøglen og indsæt den i feltet nedenfor — så går vi automatisk i gang.</GuideStep>
-        </ol>
-
         <Button asChild variant="outline" size="lg" className="w-full">
           <a href="https://mit.billy.dk/" target="_blank" rel="noopener noreferrer">
             <ExternalLink className="mr-2 h-4 w-4" />
