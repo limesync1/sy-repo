@@ -15,6 +15,7 @@ export function cleanAccountingSettings(
   const next = { ...DEFAULT_ACCOUNTING_SETTINGS, ...(base ?? {}), ...extra };
   delete next.oauth_state;
   delete next.oauth_state_at;
+  delete next.oauth_return_to;
   if (!("oauth_refresh_token" in extra)) delete next.oauth_refresh_token;
   return next;
 }
