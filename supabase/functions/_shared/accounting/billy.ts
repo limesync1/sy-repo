@@ -287,6 +287,12 @@ export function makeBillyAdapter(
         paymentTermsDays: input.payment_terms_days ?? settings.default_payment_terms_days ?? 14,
       };
 
+      // Billy gemmer IKKE email på contact — det skal ligge på contactPersons.
+      // Hvis vi ved et uheld sender 'email' her, afviser Billy hele requesten
+      // med "Unknown attribute `email` for `contact` record". Sørg for at
+      // ingen ekstra felter snige sig med (defensivt).
+      delete (contact as any).email;
+
       if (input.external_id) {
         const updated = await billyRequest(creds, `/contacts/${input.external_id}`, {
           method: "PUT",
