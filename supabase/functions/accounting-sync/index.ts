@@ -14,6 +14,12 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
+// MIDLERTIDIG TESTFASE: vi synkroniserer KUN kunder mellem Serviceydere og
+// regnskabsprogrammerne, indtil alle 4 udbydere (Billy, Dinero, e-conomic,
+// Zenegy) er bekræftet stabile på kunde-synk. Når alle er grønne fjerner
+// vi denne gate, så produkter/ordrer/fakturaer også synker igen.
+const CUSTOMERS_ONLY = true;
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
