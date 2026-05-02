@@ -1296,7 +1296,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       if (runId !== setupRunRef.current) return;
       if (error) throw error;
       const url = (data as any)?.install_url;
-      if (!url) throw new Error("Dinero OAuth er ikke klar endnu — brug Smart Paste i stedet.");
+      if (!url) throw new Error("Ét-klik forbindelse til Dinero er ikke klar endnu — udfyld felterne manuelt i stedet.");
       if (popup && !popup.closed) {
         popup.location.href = url;
       } else {
@@ -2650,9 +2650,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 </div>
                 <div className="mt-0.5 truncate text-xs text-muted-foreground">
                   {integration.organization_id
-                    ? <>Organisation <span className="font-medium text-foreground/80">{integration.organization_id}</span></>
+                    ? <>{activeDef.value === "dinero" ? "Dinero-nummer" : "Organisation"} <span className="font-medium text-foreground/80">{integration.organization_id}</span></>
                     : integration.agreement_number
-                      ? <>Aftale <span className="font-medium text-foreground/80">{integration.agreement_number}</span></>
+                      ? <>Aftalenummer <span className="font-medium text-foreground/80">{integration.agreement_number}</span></>
                       : integration.api_token
                         ? <>Adgangsnøgle <span className="font-mono text-foreground/80">••••{integration.api_token.slice(-4)}</span></>
                         : "Forbundet"}
