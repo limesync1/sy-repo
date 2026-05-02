@@ -73,27 +73,27 @@ const PROVIDERS: ProviderDef[] = [
     label: "e-conomic",
     logo: economicLogo,
     tagline: "",
-    description: "Send aftaler som salgsordrer direkte i e-conomic. Kunder og varer holdes synkroniseret begge veje.",
+    description: "Send dine kunder direkte til e-conomic. Ændringer holdes automatisk opdateret begge veje.",
     helpUrl: "https://www.e-conomic.com/developer",
-    helpUrlLabel: "Åbn e-conomic Developer Portal",
+    helpUrlLabel: "Åbn e-conomic udviklerside",
     fields: [
-      { key: "api_secret", label: "App Secret Token", type: "password",
-        help: "Den 'App Secret Token' du får når du opretter din egen app i Developer Portal.", placeholder: "fx demo-XXXXXXXXXXXXXXXX" },
-      { key: "api_token", label: "Agreement Grant Token", type: "password",
-        help: "Genereres når du installerer din egen app på din e-conomic-aftale.", placeholder: "fx demo-XXXXXXXXXXXXXXXX" },
+      { key: "api_secret", label: "Hemmelig kode (App Secret Token)", type: "password",
+        help: "Den hemmelige kode du får i e-conomic, når du opretter din egen lille forbindelse (kaldes 'App Secret Token').", placeholder: "Indsæt koden her" },
+      { key: "api_token", label: "Adgangsnøgle til din aftale (Grant Token)", type: "password",
+        help: "Den nøgle du får, når du installerer forbindelsen på din e-conomic-aftale (kaldes 'Agreement Grant Token').", placeholder: "Indsæt nøglen her" },
     ],
     setupSteps: [
-      "Gå til e-conomic Developer Portal (linket nedenfor) og log ind med din e-conomic-bruger.",
-      "Klik 'Create new app' → giv den fx navnet 'Serviceydere' og vælg adgang til Customers, Products og Sales Orders.",
-      "Når app'en er oprettet vises et 'App Secret Token' — kopiér det ind i feltet 'App Secret Token' herunder.",
-      "Tryk på 'Install on agreement' øverst i app'en og vælg din e-conomic-aftale.",
-      "Du får nu et 'Agreement Grant Token' — kopiér det ind i feltet 'Agreement Grant Token' herunder.",
-      "Tryk 'Test forbindelse' for at bekræfte at alt virker.",
+      "Åbn e-conomics udviklerside via linket nedenfor og log ind med din almindelige e-conomic-bruger.",
+      "Klik 'Create new app' og kald den fx 'Serviceydere'. Sæt flueben ved Customers, Products og Sales Orders.",
+      "Du får nu en hemmelig kode ('App Secret Token') — kopiér den og indsæt i feltet herunder.",
+      "Tryk 'Install on agreement' øverst og vælg din e-conomic-aftale.",
+      "Du får nu en adgangsnøgle ('Agreement Grant Token') — kopiér den ind i feltet herunder.",
+      "Tryk 'Test forbindelse' — så tjekker vi at alt virker, før vi gemmer.",
     ],
     note: {
       tone: "info",
-      title: "Hvorfor opretter jeg selv en app?",
-      body: "E-conomic kræver at hver integration sker via en developer-app. Ved at oprette din egen app i din egen e-conomic-aftale undgår du månedlige app-gebyrer — det er 100% gratis og tager ca. 2 minutter.",
+      title: "Hvorfor skal jeg selv oprette forbindelsen?",
+      body: "e-conomic kræver at hver forbindelse oprettes inde i din egen aftale. Det er gratis, tager ca. 2 minutter, og du sparer e-conomics månedlige app-gebyr.",
     },
   },
   {
@@ -101,22 +101,22 @@ const PROVIDERS: ProviderDef[] = [
     label: "Billy",
     logo: billyLogo,
     tagline: "",
-    description: "Forbind med en adgangsnøgle fra Billy — ingen adgangskoder gemmes.",
+    description: "Forbind med en lille adgangsnøgle fra Billy. Vi gemmer aldrig din adgangskode.",
     helpUrl: "https://mit.billy.dk/",
     helpUrlLabel: "Åbn Billy",
     fields: [
       { key: "api_token", label: "Adgangsnøgle fra Billy", type: "password",
-        help: "Kopiér adgangsnøglen fra Billy under Indstillinger → Adgangsnøgler.", placeholder: "Indsæt adgangsnøglen fra Billy" },
+        help: "Du finder adgangsnøglen inde i Billy under Indstillinger → Adgangsnøgler.", placeholder: "Indsæt adgangsnøglen fra Billy" },
     ],
     setupSteps: [
-      "Tryk 'Åbn Billy' og log ind på den virksomhed du vil forbinde.",
+      "Tryk 'Åbn Billy' nedenfor og log ind på den virksomhed, du vil forbinde.",
       "Gå til Indstillinger → Adgangsnøgler, tryk 'Opret adgangsnøgle', kald den 'Serviceydere' og tryk Opret.",
-      "Kopiér nøglen og kom tilbage hertil — vi tager os af resten automatisk.",
+      "Kopiér nøglen og kom tilbage hertil — så ordner vi resten automatisk.",
     ],
     note: {
       tone: "info",
-      title: "Den mest stabile Billy-forbindelse",
-      body: "Billy afviser ofte almindelig email/adgangskode via API'et, selv når adgangskoden er korrekt. En adgangsnøgle virker også med to-faktor-login og kan slettes igen inde i Billy.",
+      title: "Hvorfor en adgangsnøgle og ikke mit kodeord?",
+      body: "En adgangsnøgle er sikrere — den virker selv med to-trins-login, og du kan altid slette den igen inde i Billy, hvis du vil afbryde forbindelsen.",
     },
   },
   {
@@ -124,29 +124,29 @@ const PROVIDERS: ProviderDef[] = [
     label: "Dinero",
     logo: dineroLogo,
     tagline: "",
-    description: "Synkroniser kunder, varer og fakturakladder med Dinero.",
+    description: "Hold dine kunder automatisk opdateret med Dinero.",
     helpUrl: "https://developer.dinero.dk/",
-    helpUrlLabel: "Åbn Dinero Developer Portal",
+    helpUrlLabel: "Åbn Dineros udviklerside",
     fields: [
-      { key: "api_token", label: "Client ID (API-nøgle)", type: "text",
-        help: "Oprettes via developer.dinero.dk når du har Dinero Pro.", placeholder: "fx 5f3a-1b2c-…" },
-      { key: "api_secret", label: "Client Secret", type: "password",
-        help: "Den tilhørende secret — vises kun én gang ved oprettelse.", placeholder: "fx 9c2d-…" },
-      { key: "organization_id", label: "Organisations-ID", type: "text",
-        help: "Det 6-cifrede tal som står i URL'en når du er logget ind på Dinero, fx app.dinero.dk/198765/…", placeholder: "fx 198765" },
+      { key: "api_token", label: "Bruger-ID (Client ID)", type: "text",
+        help: "Du får dette når du opretter en forbindelse på Dineros udviklerside (kræver Dinero Pro).", placeholder: "Indsæt dit Bruger-ID" },
+      { key: "api_secret", label: "Hemmelig kode (Client Secret)", type: "password",
+        help: "Den hemmelige kode du får sammen med Bruger-ID. Vises kun én gang i Dinero — kopiér den med det samme.", placeholder: "Indsæt den hemmelige kode" },
+      { key: "organization_id", label: "Dit Dinero-nummer", type: "text",
+        help: "De 6 tal du ser i adresselinjen, når du er logget ind på Dinero (fx app.dinero.dk/198765/…).", placeholder: "fx 198765" },
     ],
     setupSteps: [
-      "Tjek at din Dinero-konto er på 'Pro'-pakken (API-adgang er ikke tilgængelig på Small/Medium).",
-      "Log ind på Dinero og find dit organisations-ID i adresselinjen — det 6-cifrede tal efter 'app.dinero.dk/'.",
-      "Gå til developer.dinero.dk og log ind med din Dinero-bruger.",
-      "Opret en ny 'API integration' og giv adgang til Contacts, Products og Vouchers.",
-      "Kopiér Client ID og Client Secret ind i felterne herunder (secret vises kun én gang!).",
-      "Indsæt dit organisations-ID og tryk 'Test forbindelse'.",
+      "Tjek at din Dinero-konto er på 'Pro'-pakken — det er den eneste pakke, der tillader automatisk forbindelse.",
+      "Log ind på Dinero og find dit Dinero-nummer i adresselinjen (de 6 tal efter 'app.dinero.dk/').",
+      "Åbn Dineros udviklerside via linket nedenfor og log ind med din almindelige Dinero-bruger.",
+      "Opret en ny forbindelse ('API integration') og giv adgang til kunder, varer og bilag (Contacts, Products, Vouchers).",
+      "Kopiér Bruger-ID og den hemmelige kode ind i felterne herunder — den hemmelige kode vises kun én gang!",
+      "Skriv dit Dinero-nummer i sidste felt og tryk 'Test forbindelse'.",
     ],
     note: {
       tone: "warning",
       title: "Kræver Dinero Pro-abonnement",
-      body: "Dinero giver kun API-adgang til kunder på Pro-pakken. Hvis du har Small eller Medium skal du opgradere først, ellers vil forbindelsen blive afvist. Opgradér via Dinero → Indstillinger → Abonnement.",
+      body: "Dinero tillader kun automatisk forbindelse for kunder på Pro-pakken. Har du Small eller Medium, skal du først opgradere via Dinero → Indstillinger → Abonnement — ellers afvises forbindelsen.",
     },
   },
   {
@@ -154,19 +154,19 @@ const PROVIDERS: ProviderDef[] = [
     label: "Zenegy",
     logo: zenegyLogo,
     tagline: "",
-    description: "Forbind Zenegy med ét klik via sikker OAuth-godkendelse. Ingen API-nøgler at kopiere.",
+    description: "Forbind Zenegy med ét klik. Ingen koder at kopiere — du logger bare ind hos Zenegy.",
     helpUrl: "https://zenegy.com/",
     helpUrlLabel: "Læs mere om Zenegy",
     fields: [],
     setupSteps: [
-      "Tryk 'Forbind Zenegy' nedenfor — et nyt vindue åbner.",
+      "Tryk 'Forbind Zenegy' nedenfor — et nyt vindue åbner hos Zenegy.",
       "Log ind på Zenegy og vælg den virksomhed, du vil forbinde med Serviceydere.",
-      "Tryk 'Tildel adgang' i Zenegy — så sendes du automatisk tilbage hertil.",
+      "Tryk 'Tildel adgang' i Zenegy — så sendes du automatisk tilbage hertil, og forbindelsen er klar.",
     ],
     note: {
       tone: "info",
-      title: "Sikker forbindelse via OAuth",
-      body: "Zenegy bruger OAuth 2.0, så du aldrig skal kopiere API-nøgler. Du kan altid tilbagekalde adgangen igen direkte i Zenegy.",
+      title: "Sikker ét-klik forbindelse",
+      body: "Du logger ind direkte hos Zenegy, så vi aldrig ser dit kodeord. Du kan altid trække adgangen tilbage igen inde i Zenegy.",
     },
   },
 ];
@@ -383,7 +383,7 @@ const BillyConnectCard = React.forwardRef<HTMLDivElement, {
   if (status === "done") return <SuccessCard name="Billy" />;
 
   return (
-    <ConnectCardShell logo={billyLogo} name="Billy" tagline="Adgangsnøgle — tager under 1 minut">
+    <ConnectCardShell logo={billyLogo} name="Billy" tagline="Indsæt adgangsnøgle — tager under 1 minut">
       <div className="space-y-5">
         <Button asChild variant="outline" size="lg" className="w-full">
           <a href="https://mit.billy.dk/" target="_blank" rel="noopener noreferrer">
@@ -449,7 +449,7 @@ const EconomicConnectCard = React.forwardRef<
 >(({ onConnect, connecting, waiting, connectResult }, ref) => {
   return (
     <div ref={ref}>
-      <ConnectCardShell logo={economicLogo} name="e-conomic" tagline="Ét-klik OAuth — tager under 30 sekunder">
+      <ConnectCardShell logo={economicLogo} name="e-conomic" tagline="Ét-klik forbindelse — tager under 30 sekunder">
         <div className="space-y-5">
           <Button onClick={onConnect} disabled={connecting} size="lg" className="w-full">
             {connecting
@@ -536,25 +536,25 @@ const DineroConnectCard = React.forwardRef<HTMLDivElement, {
 
         <div className="space-y-3">
           <div>
-            <FieldLabel>Client ID (API-nøgle)</FieldLabel>
+            <FieldLabel>Bruger-ID (Client ID)</FieldLabel>
             <Input
               type="text"
               value={apiToken}
               onChange={(e) => onChange("api_token", e.target.value)}
-              placeholder="Indsæt Client ID fra Dinero"
+              placeholder="Indsæt Bruger-ID fra Dinero"
               autoComplete="off"
               disabled={isWorking}
               className="h-11"
             />
           </div>
           <div>
-            <FieldLabel>Client Secret</FieldLabel>
+            <FieldLabel>Hemmelig kode (Client Secret)</FieldLabel>
             <div className="relative">
               <Input
                 type={showSecret ? "text" : "password"}
                 value={apiSecret}
                 onChange={(e) => onChange("api_secret", e.target.value)}
-                placeholder="Indsæt Client Secret"
+                placeholder="Indsæt den hemmelige kode"
                 autoComplete="off"
                 disabled={isWorking}
                 className="h-11 pr-10"
@@ -568,10 +568,10 @@ const DineroConnectCard = React.forwardRef<HTMLDivElement, {
                 {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">Secret vises kun én gang ved oprettelse i Dinero — kopiér den med det samme.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Den hemmelige kode vises kun én gang i Dinero — husk at kopiere den med det samme.</p>
           </div>
           <div>
-            <FieldLabel>Organisations-ID</FieldLabel>
+            <FieldLabel>Dit Dinero-nummer</FieldLabel>
             <Input
               type="text"
               value={organizationId}
@@ -582,7 +582,7 @@ const DineroConnectCard = React.forwardRef<HTMLDivElement, {
               className="h-11"
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Det 6-cifrede tal i adresselinjen efter <code>app.dinero.dk/</code>.
+              De 6 tal du ser i adresselinjen efter <code>app.dinero.dk/</code>, når du er logget ind.
             </p>
           </div>
         </div>
@@ -607,7 +607,7 @@ const DineroConnectCard = React.forwardRef<HTMLDivElement, {
             <div className="min-w-0">
               <div className="font-medium">Det virkede desværre ikke</div>
               <div className="mt-0.5 break-words opacity-90">{errorMessage}</div>
-              <div className="mt-1.5 text-xs opacity-80">Tjek at alle tre felter er udfyldt korrekt — eller opret en ny API-nøgle i Dinero.</div>
+              <div className="mt-1.5 text-xs opacity-80">Tjek at alle tre felter er udfyldt korrekt — eller opret en ny forbindelse i Dinero.</div>
             </div>
           </div>
         )}
@@ -636,7 +636,7 @@ const ZenegyConnectCard = React.forwardRef<HTMLDivElement, {
   connectResult: { ok: boolean; message?: string } | null;
 }>(({ onConnect, connecting, waiting, oauthEnabled, connectResult }, _ref) => {
   return (
-    <ConnectCardShell logo={zenegyLogo} name="Zenegy" tagline="Ét-klik OAuth — tager under 30 sekunder">
+    <ConnectCardShell logo={zenegyLogo} name="Zenegy" tagline="Ét-klik forbindelse — tager under 30 sekunder">
       <div className="space-y-5">
         <Button
           onClick={onConnect}
@@ -656,9 +656,9 @@ const ZenegyConnectCard = React.forwardRef<HTMLDivElement, {
           <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-900 dark:text-amber-200">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <div className="min-w-0">
-              <div className="font-medium">Afventer godkendelse fra Zenegy</div>
+              <div className="font-medium">Vi venter på godkendelse fra Zenegy</div>
               <div className="opacity-90 text-xs mt-0.5">
-                Serviceydere venter på endelige OAuth-credentials fra Zenegy. Knappen aktiveres automatisk så snart godkendelsen er på plads — du behøver ikke gøre noget.
+                Vi mangler de sidste detaljer fra Zenegy, før forbindelsen kan tages i brug. Knappen tænder af sig selv, så snart alt er på plads — du behøver ikke gøre noget.
               </div>
             </div>
           </div>
@@ -1296,7 +1296,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       if (runId !== setupRunRef.current) return;
       if (error) throw error;
       const url = (data as any)?.install_url;
-      if (!url) throw new Error("Dinero OAuth er ikke klar endnu — brug Smart Paste i stedet.");
+      if (!url) throw new Error("Ét-klik forbindelse til Dinero er ikke klar endnu — udfyld felterne manuelt i stedet.");
       if (popup && !popup.closed) {
         popup.location.href = url;
       } else {
@@ -2650,9 +2650,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                 </div>
                 <div className="mt-0.5 truncate text-xs text-muted-foreground">
                   {integration.organization_id
-                    ? <>Organisation <span className="font-medium text-foreground/80">{integration.organization_id}</span></>
+                    ? <>{activeDef.value === "dinero" ? "Dinero-nummer" : "Organisation"} <span className="font-medium text-foreground/80">{integration.organization_id}</span></>
                     : integration.agreement_number
-                      ? <>Aftale <span className="font-medium text-foreground/80">{integration.agreement_number}</span></>
+                      ? <>Aftalenummer <span className="font-medium text-foreground/80">{integration.agreement_number}</span></>
                       : integration.api_token
                         ? <>Adgangsnøgle <span className="font-mono text-foreground/80">••••{integration.api_token.slice(-4)}</span></>
                         : "Forbundet"}
@@ -2917,9 +2917,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   : provider === "dinero"
                   ? [
                       "Log ind i Dinero og gå til 'Integrationer' i menuen til venstre.",
-                      "Klik 'Se og opret API-nøgler' og opret en ny API-nøgle (kald den fx 'Serviceydere').",
-                      "Kopiér Client ID og Client Secret — secret vises kun én gang!",
-                      "Indsæt dem her sammen med dit organisations-ID, og tryk 'Forbind Dinero'.",
+                      "Klik 'Se og opret API-nøgler' og opret en ny forbindelse (kald den fx 'Serviceydere').",
+                      "Kopiér Bruger-ID og den hemmelige kode — den vises kun én gang!",
+                      "Indsæt dem her sammen med dit Dinero-nummer, og tryk 'Forbind Dinero'.",
                     ]
                   : [
                       "Vi åbner e-conomic i et nyt vindue.",
