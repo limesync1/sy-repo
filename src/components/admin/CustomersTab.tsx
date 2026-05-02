@@ -968,9 +968,9 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
               Slet {confirmDelete?.targets.length === 1 ? "kunde" : `${confirmDelete?.targets.length} kunder`}?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {confirmDelete?.targets.some(t => !t.saved_id)
-                ? "Kunder uden kartotek-post slettes sammen med alle deres aftaler og abonnementer. Gemte kartotek-kunder fjernes fra kartoteket — deres aftaler bevares."
-                : "Kundeoplysninger fjernes fra dit kartotek. Tidligere aftaler og abonnementer bevares, men kunden vil ikke længere fremgå af kundelisten."}
+              {confirmDelete && confirmDelete.targets.length === 1
+                ? "Kunden slettes helt — både fra dit kartotek og alle deres aftaler og abonnementer hos dig. Handlingen kan ikke fortrydes."
+                : `Kunderne slettes helt — både fra dit kartotek og alle deres aftaler og abonnementer hos dig. Handlingen kan ikke fortrydes.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
