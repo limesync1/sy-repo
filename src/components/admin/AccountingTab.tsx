@@ -2917,9 +2917,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   : provider === "dinero"
                   ? [
                       "Log ind i Dinero og gå til 'Integrationer' i menuen til venstre.",
-                      "Klik 'Se og opret API-nøgler' og opret en ny API-nøgle (kald den fx 'Serviceydere').",
-                      "Kopiér Client ID og Client Secret — secret vises kun én gang!",
-                      "Indsæt dem her sammen med dit organisations-ID, og tryk 'Forbind Dinero'.",
+                      "Klik 'Se og opret API-nøgler' og opret en ny forbindelse (kald den fx 'Serviceydere').",
+                      "Kopiér Bruger-ID og den hemmelige kode — den vises kun én gang!",
+                      "Indsæt dem her sammen med dit Dinero-nummer, og tryk 'Forbind Dinero'.",
                     ]
                   : [
                       "Vi åbner e-conomic i et nyt vindue.",
