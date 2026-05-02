@@ -578,22 +578,28 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
   const handleDelete = async (targets: Customer[]) => {
     setDeleting(true);
     try {
-      // 1) Slet kartotek-poster (gemte privat-/erhvervskunder).
+      // Vi sletter kunden HELT — både kartotek-post (hvis den findes) OG alle
+      // ordrer/abonnementer hos denne virksomhed. Tidligere ryddede vi kun
+      // kartoteket for "gemte" kunder, hvorefter kunden dukkede op igen i
+      // listen som "kun kendt fra ordrer", så brugeren skulle slette to gange.
+
+      // 1) Saml kartotek-IDs (gemte privat-/erhvervskunder) til at slette i kartoteket.
       const privIds = targets.filter(c => c.type === "private" && c.saved_id).map(c => c.saved_id!);
       const bizIds = targets.filter(c => c.type === "business" && c.saved_id).map(c => c.saved_id!);
 
-      // 2) For kunder uden kartotek-post (kun kendt fra ordrer) – slet alle deres
-      //    ordrer + abonnementer for denne virksomhed, så de forsvinder fra listen.
-      const ordersOnlyEmails = targets
-        .filter(c => !c.saved_id)
-        .map(c => c.email.toLowerCase());
+      // 2) Saml ALLE emails — også for kartotek-kunder — så vi rydder ordrer
+      //    og abonnementer der ellers ville få kunden til at dukke op igen.
+      const allEmails = Array.from(
+        new Set(targets.map(c => (c.email || "").toLowerCase()).filter(Boolean))
+      );
 
       const promises: Promise<any>[] = [];
       if (privIds.length) promises.push(Promise.resolve(supabase.from("private_customers").delete().in("id", privIds)));
       if (bizIds.length) promises.push(Promise.resolve(supabase.from("business_customers").delete().in("id", bizIds)));
 
-      // Slet ordrer + abonnementer for kunder uden kartotek-post
-      for (const email of ordersOnlyEmails) {
+      // Slet ordrer + ordre-linjer + abonnementer for ALLE valgte kunder
+      // hos denne virksomhed, så de forsvinder helt fra listen i ét tryk.
+      for (const email of allEmails) {
         // Find ordrer for kunden hos denne virksomhed
         const { data: customerOrders } = await supabase
           .from("orders")
