@@ -55,7 +55,10 @@ const startSchema = z.object({
   message: z.string().trim().min(1, "Skriv en besked").max(2000),
 });
 
-const HIDDEN_PREFIXES = ["/admin", "/virksomhed/", "/medarbejder", "/godkend-bestilling", "/v/"];
+// Serviceydere-support skal kunne nås overalt på det offentlige site —
+// også på virksomhedssider (/v/:slug og /demo), hvor den vises ved siden
+// af virksomhedens egen livechat (stack-justeres længere nede i koden).
+const HIDDEN_PREFIXES = ["/admin", "/virksomhed/", "/medarbejder", "/godkend-bestilling"];
 const HIDDEN_EXACT = ["/virksomhed"];
 
 const QUICK_TOPICS = [
