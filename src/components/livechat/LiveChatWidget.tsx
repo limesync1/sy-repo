@@ -55,8 +55,13 @@ const startSchema = z.object({
   message: z.string().trim().min(1, "Skriv en besked").max(2000),
 });
 
-const HIDDEN_PREFIXES = ["/admin", "/virksomhed/", "/medarbejder", "/godkend-bestilling", "/v/"];
-const HIDDEN_EXACT = ["/virksomhed"];
+// Serviceydere-support må gerne vises i virksomhedspanelet (/virksomhed
+// og /virksomhed/...), så virksomhedsejere kan kontakte os direkte derfra.
+// Den skjules stadig på medarbejder-app, godkend-bestilling og platform-admin
+// samt på virksomhedernes egne offentlige sider (/v/:slug), hvor virksomhedens
+// egen livechat tager over.
+const HIDDEN_PREFIXES = ["/admin", "/medarbejder", "/godkend-bestilling", "/v/"];
+const HIDDEN_EXACT: string[] = [];
 
 const QUICK_TOPICS = [
   { label: "💸 Pris og pakker", subject: "Pris og pakker", suggest: "Hej, jeg vil gerne høre mere om jeres priser og hvilke pakker I tilbyder." },
