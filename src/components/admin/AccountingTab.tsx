@@ -383,7 +383,7 @@ const BillyConnectCard = React.forwardRef<HTMLDivElement, {
   if (status === "done") return <SuccessCard name="Billy" />;
 
   return (
-    <ConnectCardShell logo={billyLogo} name="Billy" tagline="Adgangsnøgle — tager under 1 minut">
+    <ConnectCardShell logo={billyLogo} name="Billy" tagline="Indsæt adgangsnøgle — tager under 1 minut">
       <div className="space-y-5">
         <Button asChild variant="outline" size="lg" className="w-full">
           <a href="https://mit.billy.dk/" target="_blank" rel="noopener noreferrer">
@@ -449,7 +449,7 @@ const EconomicConnectCard = React.forwardRef<
 >(({ onConnect, connecting, waiting, connectResult }, ref) => {
   return (
     <div ref={ref}>
-      <ConnectCardShell logo={economicLogo} name="e-conomic" tagline="Ét-klik OAuth — tager under 30 sekunder">
+      <ConnectCardShell logo={economicLogo} name="e-conomic" tagline="Ét-klik forbindelse — tager under 30 sekunder">
         <div className="space-y-5">
           <Button onClick={onConnect} disabled={connecting} size="lg" className="w-full">
             {connecting
@@ -536,25 +536,25 @@ const DineroConnectCard = React.forwardRef<HTMLDivElement, {
 
         <div className="space-y-3">
           <div>
-            <FieldLabel>Client ID (API-nøgle)</FieldLabel>
+            <FieldLabel>Bruger-ID (Client ID)</FieldLabel>
             <Input
               type="text"
               value={apiToken}
               onChange={(e) => onChange("api_token", e.target.value)}
-              placeholder="Indsæt Client ID fra Dinero"
+              placeholder="Indsæt Bruger-ID fra Dinero"
               autoComplete="off"
               disabled={isWorking}
               className="h-11"
             />
           </div>
           <div>
-            <FieldLabel>Client Secret</FieldLabel>
+            <FieldLabel>Hemmelig kode (Client Secret)</FieldLabel>
             <div className="relative">
               <Input
                 type={showSecret ? "text" : "password"}
                 value={apiSecret}
                 onChange={(e) => onChange("api_secret", e.target.value)}
-                placeholder="Indsæt Client Secret"
+                placeholder="Indsæt den hemmelige kode"
                 autoComplete="off"
                 disabled={isWorking}
                 className="h-11 pr-10"
@@ -568,10 +568,10 @@ const DineroConnectCard = React.forwardRef<HTMLDivElement, {
                 {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">Secret vises kun én gang ved oprettelse i Dinero — kopiér den med det samme.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Den hemmelige kode vises kun én gang i Dinero — husk at kopiere den med det samme.</p>
           </div>
           <div>
-            <FieldLabel>Organisations-ID</FieldLabel>
+            <FieldLabel>Dit Dinero-nummer</FieldLabel>
             <Input
               type="text"
               value={organizationId}
@@ -582,7 +582,7 @@ const DineroConnectCard = React.forwardRef<HTMLDivElement, {
               className="h-11"
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Det 6-cifrede tal i adresselinjen efter <code>app.dinero.dk/</code>.
+              De 6 tal du ser i adresselinjen efter <code>app.dinero.dk/</code>, når du er logget ind.
             </p>
           </div>
         </div>
@@ -607,7 +607,7 @@ const DineroConnectCard = React.forwardRef<HTMLDivElement, {
             <div className="min-w-0">
               <div className="font-medium">Det virkede desværre ikke</div>
               <div className="mt-0.5 break-words opacity-90">{errorMessage}</div>
-              <div className="mt-1.5 text-xs opacity-80">Tjek at alle tre felter er udfyldt korrekt — eller opret en ny API-nøgle i Dinero.</div>
+              <div className="mt-1.5 text-xs opacity-80">Tjek at alle tre felter er udfyldt korrekt — eller opret en ny forbindelse i Dinero.</div>
             </div>
           </div>
         )}
@@ -636,7 +636,7 @@ const ZenegyConnectCard = React.forwardRef<HTMLDivElement, {
   connectResult: { ok: boolean; message?: string } | null;
 }>(({ onConnect, connecting, waiting, oauthEnabled, connectResult }, _ref) => {
   return (
-    <ConnectCardShell logo={zenegyLogo} name="Zenegy" tagline="Ét-klik OAuth — tager under 30 sekunder">
+    <ConnectCardShell logo={zenegyLogo} name="Zenegy" tagline="Ét-klik forbindelse — tager under 30 sekunder">
       <div className="space-y-5">
         <Button
           onClick={onConnect}
@@ -656,9 +656,9 @@ const ZenegyConnectCard = React.forwardRef<HTMLDivElement, {
           <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-900 dark:text-amber-200">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <div className="min-w-0">
-              <div className="font-medium">Afventer godkendelse fra Zenegy</div>
+              <div className="font-medium">Vi venter på godkendelse fra Zenegy</div>
               <div className="opacity-90 text-xs mt-0.5">
-                Serviceydere venter på endelige OAuth-credentials fra Zenegy. Knappen aktiveres automatisk så snart godkendelsen er på plads — du behøver ikke gøre noget.
+                Vi mangler de sidste detaljer fra Zenegy, før forbindelsen kan tages i brug. Knappen tænder af sig selv, så snart alt er på plads — du behøver ikke gøre noget.
               </div>
             </div>
           </div>
