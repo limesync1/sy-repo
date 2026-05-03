@@ -258,7 +258,7 @@ const AdminDashboard = () => {
       {/* Onboarding-hub: velkomst-wizard ved første login + persistent
           checkliste i toppen indtil alle kerne-trin er gjort. */}
       <OnboardingHub business={business} />
-      <Suspense fallback={<div className="py-10 text-center text-sm text-muted-foreground">Indlæser…</div>}>
+      <Suspense fallback={<TabFallback tab={effectiveTab} />}>
         {/* Én enkelt, blød fade-in pr. fane-skift. key sikrer at animationen
             kun kører når faner faktisk skifter — ikke når interne state-
             opdateringer (filtre, dialoger) re-renderer indholdet. */}
