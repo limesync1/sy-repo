@@ -27,6 +27,7 @@ import { ChevronDown, HelpCircle, PartyPopper, SlidersHorizontal } from "lucide-
 import {
   PageHeader, PrimaryButton, SectionCard, FieldLabel,
 } from "@/components/admin/shared/AdminUI";
+import { Skeleton } from "@/components/ui/skeleton";
 import economicLogo from "@/assets/accounting/economic.png";
 import billyLogo from "@/assets/accounting/billy.png";
 import dineroLogo from "@/assets/accounting/dinero.png";
