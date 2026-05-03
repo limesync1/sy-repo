@@ -1947,8 +1947,60 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Indlæser…
+      <div className="space-y-6 animate-fade-in">
+        {/* PageHeader skeleton */}
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-40" />
+          <Skeleton className="h-4 w-80 max-w-full" />
+        </div>
+        {/* Hero/status banner skeleton — matcher layout for både ny + aktiv tilstand */}
+        <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+          <div className="flex items-start gap-4">
+            <Skeleton className="h-12 w-12 rounded-xl" />
+            <div className="min-w-0 flex-1 space-y-3">
+              <Skeleton className="h-5 w-56" />
+              <Skeleton className="h-4 w-full max-w-md" />
+              <div className="flex flex-wrap gap-3 pt-1">
+                <Skeleton className="h-3 w-32" />
+                <Skeleton className="h-3 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+            <div className="hidden shrink-0 gap-2 sm:flex">
+              <Skeleton className="h-8 w-28" />
+              <Skeleton className="h-8 w-28" />
+              <Skeleton className="h-8 w-28" />
+            </div>
+          </div>
+        </div>
+        {/* Provider grid / sektion skeleton */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+              <div className="flex h-24 items-center justify-center border-b border-border bg-secondary/30">
+                <Skeleton className="h-8 w-32" />
+              </div>
+              <div className="space-y-3 p-5">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-3/4" />
+                <Skeleton className="h-3 w-32 mt-2" />
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Sektion-card skeleton (settings / log) */}
+        <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+          <Skeleton className="h-5 w-48" />
+          <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between gap-4">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-8 w-40" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
