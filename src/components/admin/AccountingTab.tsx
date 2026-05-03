@@ -27,6 +27,7 @@ import { ChevronDown, HelpCircle, PartyPopper, SlidersHorizontal } from "lucide-
 import {
   PageHeader, PrimaryButton, SectionCard, FieldLabel,
 } from "@/components/admin/shared/AdminUI";
+import { Skeleton } from "@/components/ui/skeleton";
 import economicLogo from "@/assets/accounting/economic.png";
 import billyLogo from "@/assets/accounting/billy.png";
 import dineroLogo from "@/assets/accounting/dinero.png";
@@ -830,9 +831,50 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
   const load = async (options?: { preserveMode?: boolean }) => {
     setLoading(true);
-    const { data } = await supabase
-      .from("accounting_integrations" as any)
-      .select("*").eq("business_id", businessId).maybeSingle();
+    const since24 = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    // Parallel batch — alle queries er uafhængige, så vi sparer ~7 round-trips.
+    const [
+      { data },
+      { data: log },
+      { count },
+      { data: failed },
+      { data: dlq },
+      pushedCountRes,
+      pulledCountRes,
+      lastPushRes,
+      lastPullRes,
+    ] = await Promise.all([
+      supabase.from("accounting_integrations" as any)
+        .select("*").eq("business_id", businessId).maybeSingle(),
+      supabase.from("accounting_sync_log" as any)
+        .select("*").eq("business_id", businessId)
+        .order("created_at", { ascending: false }).limit(15),
+      supabase.from("accounting_sync_queue" as any)
+        .select("*", { count: "exact", head: true })
+        .eq("business_id", businessId).in("status", ["pending", "failed"]),
+      supabase.from("accounting_sync_queue" as any)
+        .select("*").eq("business_id", businessId).eq("status", "failed")
+        .order("updated_at", { ascending: false }).limit(20),
+      supabase.from("accounting_sync_dlq" as any)
+        .select("*").eq("business_id", businessId).eq("resolved", false)
+        .order("moved_to_dlq_at", { ascending: false }).limit(50),
+      supabase.from("accounting_sync_log" as any)
+        .select("*", { count: "exact", head: true })
+        .eq("business_id", businessId).eq("status", "success").eq("direction", "push")
+        .gte("created_at", since24),
+      supabase.from("accounting_sync_log" as any)
+        .select("*", { count: "exact", head: true })
+        .eq("business_id", businessId).eq("status", "success").eq("direction", "pull")
+        .gte("created_at", since24),
+      supabase.from("accounting_sync_log" as any)
+        .select("created_at").eq("business_id", businessId)
+        .eq("status", "success").eq("direction", "push")
+        .order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("accounting_sync_log" as any)
+        .select("created_at").eq("business_id", businessId)
+        .eq("status", "success").eq("direction", "pull")
+        .order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    ]);
     if (data) {
       const d = data as any as Integration;
       setIntegration(d);
@@ -847,62 +889,14 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       setIntegration(null);
       if (!options?.preserveMode) setMode("overview");
     }
-    const { data: log } = await supabase.from("accounting_sync_log" as any)
-      .select("*").eq("business_id", businessId)
-      .order("created_at", { ascending: false }).limit(15);
     setLogs((log as any) ?? []);
-    const { count } = await supabase.from("accounting_sync_queue" as any)
-      .select("*", { count: "exact", head: true })
-      .eq("business_id", businessId).in("status", ["pending", "failed"]);
     setQueueCount(count ?? 0);
-
-    // Detaljeret fejl-liste fra køen (indeholder entity-id + præcis fejltekst)
-    const { data: failed } = await supabase.from("accounting_sync_queue" as any)
-      .select("*")
-      .eq("business_id", businessId)
-      .eq("status", "failed")
-      .order("updated_at", { ascending: false })
-      .limit(20);
     setFailedJobs((failed as any) ?? []);
-
-    // DLQ: jobs der har givet op efter 5 forsøg
-    const { data: dlq } = await supabase.from("accounting_sync_dlq" as any)
-      .select("*")
-      .eq("business_id", businessId)
-      .eq("resolved", false)
-      .order("moved_to_dlq_at", { ascending: false })
-      .limit(50);
     setDlqJobs((dlq as any) ?? []);
-
-    // Tællere for sidste 24 timer (push/pull) — viser i status-grid
-    const since24 = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const [{ count: pushedC }, { count: pulledC }] = await Promise.all([
-      supabase.from("accounting_sync_log" as any)
-        .select("*", { count: "exact", head: true })
-        .eq("business_id", businessId).eq("status", "success").eq("direction", "push")
-        .gte("created_at", since24),
-      supabase.from("accounting_sync_log" as any)
-        .select("*", { count: "exact", head: true })
-        .eq("business_id", businessId).eq("status", "success").eq("direction", "pull")
-        .gte("created_at", since24),
-    ]);
-    setPushedLast24h(pushedC ?? 0);
-    setPulledLast24h(pulledC ?? 0);
-
-    // Sidste succesrige push/pull tidspunkt — vises som "hint" på stat-cards
-    const [{ data: lastPush }, { data: lastPull }] = await Promise.all([
-      supabase.from("accounting_sync_log" as any)
-        .select("created_at").eq("business_id", businessId)
-        .eq("status", "success").eq("direction", "push")
-        .order("created_at", { ascending: false }).limit(1).maybeSingle(),
-      supabase.from("accounting_sync_log" as any)
-        .select("created_at").eq("business_id", businessId)
-        .eq("status", "success").eq("direction", "pull")
-        .order("created_at", { ascending: false }).limit(1).maybeSingle(),
-    ]);
-    setLastSuccessPush((lastPush as any)?.created_at ?? null);
-    setLastSuccessPull((lastPull as any)?.created_at ?? null);
-
+    setPushedLast24h(pushedCountRes.count ?? 0);
+    setPulledLast24h(pulledCountRes.count ?? 0);
+    setLastSuccessPush((lastPushRes.data as any)?.created_at ?? null);
+    setLastSuccessPull((lastPullRes.data as any)?.created_at ?? null);
     setLoading(false);
   };
 
@@ -1953,8 +1947,60 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Indlæser…
+      <div className="space-y-6 animate-fade-in">
+        {/* PageHeader skeleton */}
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-40" />
+          <Skeleton className="h-4 w-80 max-w-full" />
+        </div>
+        {/* Hero/status banner skeleton — matcher layout for både ny + aktiv tilstand */}
+        <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+          <div className="flex items-start gap-4">
+            <Skeleton className="h-12 w-12 rounded-xl" />
+            <div className="min-w-0 flex-1 space-y-3">
+              <Skeleton className="h-5 w-56" />
+              <Skeleton className="h-4 w-full max-w-md" />
+              <div className="flex flex-wrap gap-3 pt-1">
+                <Skeleton className="h-3 w-32" />
+                <Skeleton className="h-3 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+            <div className="hidden shrink-0 gap-2 sm:flex">
+              <Skeleton className="h-8 w-28" />
+              <Skeleton className="h-8 w-28" />
+              <Skeleton className="h-8 w-28" />
+            </div>
+          </div>
+        </div>
+        {/* Provider grid / sektion skeleton */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+              <div className="flex h-24 items-center justify-center border-b border-border bg-secondary/30">
+                <Skeleton className="h-8 w-32" />
+              </div>
+              <div className="space-y-3 p-5">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-3/4" />
+                <Skeleton className="h-3 w-32 mt-2" />
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Sektion-card skeleton (settings / log) */}
+        <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+          <Skeleton className="h-5 w-48" />
+          <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between gap-4">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-8 w-40" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
