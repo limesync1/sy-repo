@@ -34,7 +34,7 @@ import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 import OnboardingHub from "@/components/admin/onboarding/OnboardingHub";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
-import { ShellSkeleton, ListCardSkeleton, StatGridSkeleton } from "@/components/admin/shared/Skeletons";
+import { ShellSkeleton, ListCardSkeleton, StatGridSkeleton, PageSkeleton, FormSkeleton, FilterBarSkeleton, PageHeaderSkeleton, ChartSkeleton } from "@/components/admin/shared/Skeletons";
 import TrialBanner from "@/components/admin/TrialBanner";
 import ReactivateDialog from "@/components/admin/ReactivateDialog";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
@@ -48,6 +48,59 @@ import {
 } from "@/lib/service-taxonomy";
 
 /* ─── Constants ─── */
+
+/**
+ * TabFallback — vis et skeleton der matcher hver fane mens chunk + data loader.
+ * Erstatter den gamle "Indlæser…" tekst, så panelet føles instant og smooth.
+ */
+const TabFallback = ({ tab }: { tab: string }) => {
+  switch (tab) {
+    case "dashboard":
+      return (
+        <div className="w-full space-y-4 sm:space-y-5 animate-fade-in">
+          <PageHeaderSkeleton />
+          <StatGridSkeleton count={4} />
+          <div className="grid gap-4 lg:grid-cols-2">
+            <ChartSkeleton height={220} />
+            <ChartSkeleton height={220} />
+          </div>
+          <ListCardSkeleton rows={5} />
+        </div>
+      );
+    case "leads":
+    case "aftale":
+    case "customers":
+      return <PageSkeleton statsCount={4} rows={6} withFilters />;
+    case "employees":
+      return <PageSkeleton statsCount={3} rows={4} />;
+    case "reviews":
+      return (
+        <div className="space-y-4 animate-fade-in">
+          <PageHeaderSkeleton withAction={false} />
+          <StatGridSkeleton count={3} cols="sm:grid-cols-3" />
+          <FilterBarSkeleton chips={1} withAction={false} />
+          <ListCardSkeleton rows={4} />
+        </div>
+      );
+    case "livechat":
+      return (
+        <div className="grid h-[calc(100vh-180px)] gap-4 lg:grid-cols-[320px_1fr] animate-fade-in">
+          <ListCardSkeleton rows={6} />
+          <ListCardSkeleton rows={8} />
+        </div>
+      );
+    case "accounting":
+    case "settings":
+      return (
+        <div className="space-y-5 animate-fade-in">
+          <PageHeaderSkeleton />
+          <FormSkeleton fields={6} />
+        </div>
+      );
+    default:
+      return <PageSkeleton />;
+  }
+};
 // Branche-katalog ligger centralt i src/lib/service-taxonomy.ts.
 // CreateBusinessForm bruger en kompakt visning af de mest brugte herfra.
 
@@ -258,7 +311,7 @@ const AdminDashboard = () => {
       {/* Onboarding-hub: velkomst-wizard ved første login + persistent
           checkliste i toppen indtil alle kerne-trin er gjort. */}
       <OnboardingHub business={business} />
-      <Suspense fallback={<div className="py-10 text-center text-sm text-muted-foreground">Indlæser…</div>}>
+      <Suspense fallback={<TabFallback tab={effectiveTab} />}>
         {/* Én enkelt, blød fade-in pr. fane-skift. key sikrer at animationen
             kun kører når faner faktisk skifter — ikke når interne state-
             opdateringer (filtre, dialoger) re-renderer indholdet. */}
