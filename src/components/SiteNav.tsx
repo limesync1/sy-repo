@@ -250,7 +250,7 @@ const SiteNav = ({ active, right }: Props) => {
                     {roles.map((r) => (
                       <button
                         key={r.to}
-                        onClick={() => handleSelectPanel(r.to)}
+                        onClick={() => { handleSelectPanel(r.to); setOpen(false); navigate(r.to); }}
                         className={`flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium ${
                           preferredRole?.to === r.to ? "bg-secondary text-foreground" : "text-foreground hover:bg-secondary"
                         }`}
