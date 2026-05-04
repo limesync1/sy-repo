@@ -89,6 +89,9 @@
 
   html {
     scroll-behavior: smooth;
+    /* Reservér plads til scrollbar altid, så headeren ikke "hopper"
+       horisontalt når man navigerer mellem korte og lange sider. */
+    scrollbar-gutter: stable;
   }
 
   body {
