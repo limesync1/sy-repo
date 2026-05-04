@@ -291,10 +291,9 @@ const BusinessOnboarding = () => {
         noIndex
       />
 
-      {/* Bruger samme topnav som forsiden, så bredde og look matcher 1:1 */}
-      <header className="bg-foreground text-background">
-        <SiteNav />
-      </header>
+      {/* Samme topnav som resten af sitet — ingen wrapper, så headeren
+          ser 100% identisk ud og ikke "hopper" når man navigerer hertil. */}
+      <SiteNav />
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         {/* Header */}
