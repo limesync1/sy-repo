@@ -27,7 +27,12 @@ const PANEL_PREFERENCE_KEY = "preferred-panel-route";
 
 const SiteNav = ({ active, right }: Props) => {
   const [open, setOpen] = useState(false);
-  const [selectedPanel, setSelectedPanel] = useState<string | null>(null);
+  // Læs præference synkront ved første render — så panel-knappen aldrig
+  // "popper" fra tom → admin når brugeren navigerer mellem sider.
+  const [selectedPanel, setSelectedPanel] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return window.localStorage.getItem(PANEL_PREFERENCE_KEY);
+  });
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
@@ -36,6 +41,12 @@ const SiteNav = ({ active, right }: Props) => {
   const { data: userRoles = [] } = useQuery({
     queryKey: ["user-roles", user?.id],
     enabled: !!user?.id,
+    // Roller skifter sjældent — hold dem cached så header ikke
+    // refetcher (og blinker) ved hver sidenavigation.
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_roles")
