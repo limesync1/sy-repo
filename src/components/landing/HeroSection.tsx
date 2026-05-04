@@ -4,7 +4,6 @@ import heroImage from "@/assets/hero-window-cleaning.webp";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
 import LocationChip from "@/components/LocationChip";
-import SiteNav from "@/components/SiteNav";
 
 const HeroSection = () => {
   return (
@@ -28,8 +27,6 @@ const HeroSection = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-foreground/75 via-foreground/55 to-foreground/15" />
         <div className="absolute inset-0 bg-foreground/15" />
       </div>
-
-      <SiteNav />
 
       {/* Indhold — venstrejusteret, matcher resten af forsidens sektioner */}
       <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-12 sm:px-6 sm:pb-24 sm:pt-16 lg:px-8 lg:pb-32 lg:pt-24">
