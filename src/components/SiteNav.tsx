@@ -50,23 +50,27 @@ const SiteNav = ({ active, right }: Props) => {
     const items: { label: string; to: string; icon: React.ComponentType<any>; current: boolean }[] = [];
     if (!user) return items;
 
-    items.push({ label: "Kundepanel", to: "/min-konto", icon: User, current: pathname.startsWith("/min-konto") });
+    // Sorteret efter "magt" — det højest privilegerede panel står først
+    // og bliver dermed standardvalg ved første login.
+    if (userRoles.includes("admin")) {
+      items.push({ label: "Platform admin", to: "/admin", icon: ShieldCheck, current: pathname === "/admin" || pathname.startsWith("/admin/") || pathname.startsWith("/platform-admin") });
+    }
     if (userRoles.includes("business_owner") || business) {
       items.push({ label: "Virksomhedspanel", to: "/virksomhed", icon: Briefcase, current: pathname.startsWith("/virksomhed") });
     }
     if (userRoles.includes("employee")) {
       items.push({ label: "Medarbejder-app", to: "/medarbejder", icon: Truck, current: pathname.startsWith("/medarbejder") });
     }
-    if (userRoles.includes("admin")) {
-      items.push({ label: "Platform admin", to: "/platform-admin", icon: ShieldCheck, current: pathname.startsWith("/platform-admin") });
-    }
+    items.push({ label: "Kundepanel", to: "/min-konto", icon: User, current: pathname.startsWith("/min-konto") });
 
     return items;
   }, [business, pathname, user, userRoles]);
 
   const showSwitcher = roles.length > 1;
-  const currentRole = roles.find((r) => r.current) || roles[0];
-  const preferredRole = roles.find((role) => role.to === selectedPanel) || currentRole || roles[0] || null;
+  // Højest-magt panel er altid det første i listen (admin > business > employee > kunde).
+  const highestRole = roles[0] || null;
+  const currentRole = roles.find((r) => r.current) || highestRole;
+  const preferredRole = roles.find((role) => role.to === selectedPanel) || highestRole || null;
 
   useEffect(() => {
     if (!user) {
@@ -80,10 +84,12 @@ const SiteNav = ({ active, right }: Props) => {
       return;
     }
 
-    if (currentRole?.to) {
-      setSelectedPanel(currentRole.to);
+    // Ingen gemt præference → vælg det højest privilegerede panel
+    // brugeren har adgang til (admin > virksomhed > medarbejder > kunde).
+    if (highestRole?.to) {
+      setSelectedPanel(highestRole.to);
     }
-  }, [currentRole?.to, roles, user]);
+  }, [highestRole?.to, roles, user]);
 
   const handleSelectPanel = (to: string) => {
     setSelectedPanel(to);
