@@ -147,34 +147,49 @@ const SiteNav = ({ active, right }: Props) => {
 
             {user ? (
               <>
-                {showSwitcher && preferredRole ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-border bg-card/90 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
-                        <preferredRole.icon className="h-4 w-4 text-muted-foreground" />
-                        <span className="max-w-[140px] truncate">{preferredRole.label}</span>
-                        <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuLabel className="text-xs text-muted-foreground">Skift visning</DropdownMenuLabel>
-                      {roles.map((r) => (
-                        <DropdownMenuItem key={r.to} onClick={() => handleSelectPanel(r.to)} className={preferredRole.to === r.to ? "bg-secondary" : ""}>
-                          <r.icon className="mr-2 h-4 w-4" />{r.label}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : null}
-
                 {preferredRole && (
-                  <Button
-                    size="sm"
-                    onClick={() => navigate(preferredRole.to)}
-                    className="hidden rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90 sm:inline-flex"
-                  >
-                    Mit panel
-                  </Button>
+                  showSwitcher ? (
+                    <div className="hidden sm:inline-flex items-stretch overflow-hidden rounded-full bg-foreground text-background shadow-sm">
+                      <button
+                        onClick={() => navigate(preferredRole.to)}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold transition-colors hover:bg-foreground/90"
+                        title={`Gå til ${preferredRole.label}`}
+                      >
+                        <preferredRole.icon className="h-4 w-4" />
+                        <span className="max-w-[160px] truncate">{preferredRole.label}</span>
+                      </button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            className="inline-flex items-center border-l border-background/20 px-2 transition-colors hover:bg-foreground/90"
+                            aria-label="Skift panel"
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuLabel className="text-xs text-muted-foreground">Skift panel</DropdownMenuLabel>
+                          {roles.map((r) => (
+                            <DropdownMenuItem
+                              key={r.to}
+                              onClick={() => { handleSelectPanel(r.to); navigate(r.to); }}
+                              className={preferredRole.to === r.to ? "bg-secondary" : ""}
+                            >
+                              <r.icon className="mr-2 h-4 w-4" />{r.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      onClick={() => navigate(preferredRole.to)}
+                      className="hidden rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90 sm:inline-flex"
+                    >
+                      <preferredRole.icon className="mr-1.5 h-4 w-4" />{preferredRole.label}
+                    </Button>
+                  )
                 )}
 
                 <Button
@@ -251,7 +266,7 @@ const SiteNav = ({ active, right }: Props) => {
                     onClick={() => { setOpen(false); navigate(preferredRole.to); }}
                     className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
                   >
-                    <preferredRole.icon className="h-4 w-4" />Mit panel
+                    <preferredRole.icon className="h-4 w-4" />Gå til {preferredRole.label}
                   </button>
                 )}
                 <button
