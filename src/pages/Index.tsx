@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import HeroSection from "@/components/landing/HeroSection";
 import SEO from "@/components/SEO";
 import Reveal from "@/components/landing/Reveal";
+import SiteNav from "@/components/SiteNav";
 
 // Hero indlæses ivrigt (above-the-fold). Resten af sektionerne code-splittes
 // så initial JS-bundle på forsiden bliver markant mindre — brugeren scroller
@@ -98,6 +99,7 @@ const Index = () => {
         keywords="serviceydere, find serviceydere, lokale serviceydere, tilbud, rengøring, håndværker, flyttehjælp, haveservice, maler, vvs, elektriker, tømrer, danmark"
         jsonLd={jsonLd}
       />
+      <SiteNav />
       <HeroSection />
       {/* Hver sektion fader blødt ind når den scrolles i syne. Det giver
           forsiden en rolig, sammenhængende rytme på alle enheder uden at
