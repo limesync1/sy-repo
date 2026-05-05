@@ -15,12 +15,19 @@ function json(data: unknown, status = 200) {
 
 function htmlRedirect(url: string, message: string) {
   const safeUrl = url.replace(/"/g, "&quot;");
-  return new Response(
-    `<!doctype html><meta charset="utf-8"><title>Zenegy</title>
+  const html = `<!doctype html><html lang="da"><head><meta charset="utf-8"><title>Zenegy</title>
 <meta http-equiv="refresh" content="0;url=${safeUrl}">
-<p style="font-family:sans-serif;padding:24px">${message} <a href="${safeUrl}">Klik her hvis du ikke videresendes.</a></p>`,
-    { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } },
-  );
+<script>window.location.replace(${JSON.stringify(safeUrl)});</script>
+</head><body><p style="font-family:sans-serif;padding:24px">${message} <a href="${safeUrl}">Klik her hvis du ikke videresendes.</a></p></body></html>`;
+  const body = new TextEncoder().encode(html);
+  return new Response(body, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 }
 
 function getSafeReturnTo(req: Request) {
