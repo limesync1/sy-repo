@@ -2967,6 +2967,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       "Kopiér Bruger-ID og den hemmelige kode — den vises kun én gang!",
                       "Indsæt dem her sammen med dit Dinero-nummer, og tryk 'Forbind Dinero'.",
                     ]
+                  : provider === "zenegy"
+                  ? [
+                      "Vi åbner Zenegy i et nyt vindue, så du kan logge ind med din egen bruger.",
+                      "Vælg den virksomhed, du vil forbinde med Serviceydere.",
+                      "Tryk 'Tildel adgang' i Zenegy.",
+                      "Du sendes automatisk tilbage hertil, og vi gør resten.",
+                    ]
                   : [
                       "Vi åbner e-conomic i et nyt vindue.",
                       "Du logger ind og vælger den aftale du vil forbinde Serviceydere med.",
