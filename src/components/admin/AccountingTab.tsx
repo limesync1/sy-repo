@@ -2101,7 +2101,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   : "border-amber-500/40 bg-amber-500/10"
               }`}
             >
-              <div className="flex items-start gap-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+               <div className="flex items-start gap-4 min-w-0 flex-1">
                 <div
                   className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${
                     isHealthy ? "bg-emerald-500/15 text-emerald-700" : "bg-amber-500/20 text-amber-700"
@@ -2142,7 +2143,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     )}
                   </div>
                 </div>
-                <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+               </div>
+                <div className="flex flex-col gap-2 sm:shrink-0 sm:flex-row [&>button]:w-full sm:[&>button]:w-auto">
                   <Button
                     variant="outline"
                     size="sm"
