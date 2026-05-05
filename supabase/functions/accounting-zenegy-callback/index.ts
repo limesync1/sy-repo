@@ -92,12 +92,30 @@ Deno.serve(async (req) => {
         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       );
 
-      const { data: match } = await admin
+      // Primært opslag: matchende oauth_state i settings
+      let { data: match } = await admin
         .from("accounting_integrations")
         .select("id, business_id, settings")
         .eq("provider", "zenegy")
         .filter("settings->>oauth_state", "eq", state)
         .maybeSingle();
+
+      // Fallback: udled business_id af state-præfikset (`${business_id}::${uuid}`).
+      // State ryddes når en integration er forbundet, så uden fallback fejler
+      // gen-godkendelser og dobbelt-callbacks med "invalid_state".
+      if (!match) {
+        const prefix = String(state).split("::")[0];
+        const looksLikeUuid = /^[0-9a-f-]{36}$/i.test(prefix);
+        if (looksLikeUuid) {
+          const { data: byBiz } = await admin
+            .from("accounting_integrations")
+            .select("id, business_id, settings")
+            .eq("provider", "zenegy")
+            .eq("business_id", prefix)
+            .maybeSingle();
+          if (byBiz) match = byBiz;
+        }
+      }
 
       if (!match) {
         return htmlRedirect(`${returnTo}&zenegy=error&reason=invalid_state`, "Ugyldig state — prøv igen.");
