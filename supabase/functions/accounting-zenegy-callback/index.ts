@@ -39,11 +39,13 @@ function getSafeReturnTo(req: Request) {
   }
 }
 
-function getCallbackUrl(req: Request) {
-  const current = new URL(req.url);
-  current.search = "";
-  current.hash = "";
-  return current.toString();
+function getCallbackUrl(_req: Request) {
+  // Zenegy kræver én fast, godkendt redirect URI. Brug altid den
+  // konfigurerede ZENEGY_REDIRECT_URL secret, så alle brugere — uanset
+  // hvor de starter flowet fra — sendes til samme callback.
+  const fixed = Deno.env.get("ZENEGY_REDIRECT_URL")?.trim();
+  if (fixed) return fixed;
+  return "https://gkectsellkpltrxvusot.supabase.co/functions/v1/accounting-zenegy-callback";
 }
 
 /**
