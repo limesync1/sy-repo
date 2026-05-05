@@ -545,15 +545,15 @@ const EmployeeRow = ({
                 <span className="text-xs text-muted-foreground">· {employee.title}</span>
               )}
             </div>
-            <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1 truncate">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5 text-xs text-muted-foreground min-w-0">
+              <span className="flex min-w-0 max-w-full items-center gap-1">
                 <Mail className="h-3 w-3 shrink-0" />
-                {employee.email}
+                <span className="truncate">{employee.email}</span>
               </span>
               {employee.phone && (
-                <span className="flex items-center gap-1 truncate">
+                <span className="flex min-w-0 items-center gap-1">
                   <Phone className="h-3 w-3 shrink-0" />
-                  {employee.phone}
+                  <span className="truncate">{employee.phone}</span>
                 </span>
               )}
               {Number(employee.commission_pct) > 0 && (
