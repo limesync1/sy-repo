@@ -741,7 +741,7 @@ export function CustomerNotificationsSettings({
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
+                <div className="flex items-center justify-between gap-2 border-t border-border pt-3 text-[11px] text-muted-foreground">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -750,10 +750,13 @@ export function CustomerNotificationsSettings({
                   >
                     <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Nulstil tekst
                   </Button>
-                  <Button size="sm" onClick={() => save(activeEvent)} disabled={!emailDirty || saving === `email-${activeEvent}`}>
-                    {saving === `email-${activeEvent}` ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
-                    {emailDirty ? "Gem ændringer" : "Gemt"}
-                  </Button>
+                  <span className="inline-flex items-center gap-1.5">
+                    {emailDirty ? (
+                      <><Loader2 className="h-3 w-3 animate-spin" /> Gemmer…</>
+                    ) : (
+                      <><CheckCircle2 className="h-3 w-3 text-emerald-600" /> Gemmes automatisk</>
+                    )}
+                  </span>
                 </div>
               </div>
 
@@ -827,7 +830,7 @@ export function CustomerNotificationsSettings({
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
+                <div className="flex items-center justify-between gap-2 border-t border-border pt-3 text-[11px] text-muted-foreground">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -836,10 +839,13 @@ export function CustomerNotificationsSettings({
                   >
                     <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Nulstil tekst
                   </Button>
-                  <Button size="sm" disabled={!smsEnabled || !smsDirty || saving === `sms-${activeEvent}`} onClick={() => saveSms(activeEvent)}>
-                    {saving === `sms-${activeEvent}` ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
-                    {smsDirty ? "Gem ændringer" : "Gemt"}
-                  </Button>
+                  <span className="inline-flex items-center gap-1.5">
+                    {smsDirty ? (
+                      <><Loader2 className="h-3 w-3 animate-spin" /> Gemmer…</>
+                    ) : (
+                      <><CheckCircle2 className="h-3 w-3 text-emerald-600" /> Gemmes automatisk</>
+                    )}
+                  </span>
                 </div>
               </div>
 
@@ -853,32 +859,8 @@ export function CustomerNotificationsSettings({
         </div>
       </div>
 
-      {/* Sticky save-bar — vises kun når der er ugemte ændringer */}
-      {anyDirty && (
-        <div className="sticky bottom-3 z-10 mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-full border border-border bg-card px-4 py-2 shadow-lg">
-          <div className="flex items-center gap-2 text-xs text-foreground">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
-            </span>
-            <span className="font-medium">Du har ugemte ændringer</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {channelTab === "email" && emailDirty && (
-              <Button size="sm" onClick={() => save(activeEvent)} disabled={saving === `email-${activeEvent}`}>
-                {saving === `email-${activeEvent}` ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
-                Gem e-mail
-              </Button>
-            )}
-            {channelTab === "sms" && smsDirty && smsEnabled && (
-              <Button size="sm" onClick={() => saveSms(activeEvent)} disabled={saving === `sms-${activeEvent}`}>
-                {saving === `sms-${activeEvent}` ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
-                Gem SMS
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Auto-gem: ingen knap eller sticky bar nødvendig — vi viser status
+          inline pr. fane (e-mail/SMS) i bunden af editoren. */}
     </div>
   );
 }
