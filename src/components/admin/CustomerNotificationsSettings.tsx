@@ -618,10 +618,10 @@ export function CustomerNotificationsSettings({
                   <MessageSquare className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="max-w-sm">
-                  <p className="text-sm font-semibold text-foreground">SMS er slået fra</p>
+                  <p className="text-sm font-semibold text-foreground">I sender ikke SMS lige nu</p>
                   <p className="mt-1 text-[12px] text-muted-foreground">
-                    Slå SMS til for at sende korte beskeder direkte til kundens telefon.
-                    Afsenderen står som "Serviceydere", og vi tilføjer automatisk jeres firmanavn og telefonnummer.
+                    Slå SMS til, hvis I også vil have beskeden landet direkte i kundens lomme — ud over e-mailen.
+                    Afsenderen står som "Serviceydere", og vi tilføjer automatisk jeres firmanavn og telefonnummer, så kunden ved hvem det er fra.
                   </p>
                 </div>
                 <Button size="sm" onClick={() => onSmsEnabledChange(true)}>
@@ -633,8 +633,8 @@ export function CustomerNotificationsSettings({
               <div className="space-y-4 p-5">
                 <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/50 transition-colors">
                   <div>
-                    <p className="text-xs font-semibold text-foreground">Send denne SMS til kunden</p>
-                    <p className="text-[11px] text-muted-foreground">Slå fra hvis I ikke vil sende SMS for denne hændelse.</p>
+                    <p className="text-xs font-semibold text-foreground">Send SMS for netop denne besked</p>
+                    <p className="text-[11px] text-muted-foreground">Slå fra, hvis I kun vil sende e-mail for denne specifikke hændelse — uden at slå SMS fra for de andre.</p>
                   </div>
                   <Switch
                     checked={smsDrafts[activeEvent].enabled}
