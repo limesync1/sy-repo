@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Mail, MessageSquare, Clock, Bell, CheckCircle2, Smartphone, RotateCcw, Phone, Plus, Power } from "lucide-react";
+import { Loader2, Mail, MessageSquare, Clock, Bell, CheckCircle2, Smartphone, RotateCcw, Phone, Plus, Power, Eye, Sparkles, AlarmClock } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -83,6 +83,124 @@ function renderPreview(tpl: string): string {
     const canonical = ALIASES[k] ?? k;
     return EXAMPLE_VARS[canonical] ?? `{{${k}}}`;
   });
+}
+
+/* ─────────────────────── LEAD TIME HELPERS ─────────────────────── */
+
+type LeadParts = { d: number; h: number; m: number };
+
+const minutesToParts = (mins: number | null | undefined): LeadParts => {
+  const total = Math.max(0, Math.floor(mins ?? 0));
+  const d = Math.floor(total / (24 * 60));
+  const h = Math.floor((total - d * 24 * 60) / 60);
+  const m = total - d * 24 * 60 - h * 60;
+  return { d, h, m };
+};
+const partsToMinutes = (p: LeadParts): number => Math.max(0, (p.d || 0) * 24 * 60 + (p.h || 0) * 60 + (p.m || 0));
+const formatLead = (mins: number): string => {
+  if (!mins || mins <= 0) return "med det samme";
+  const { d, h, m } = minutesToParts(mins);
+  const parts: string[] = [];
+  if (d) parts.push(`${d} dag${d > 1 ? "e" : ""}`);
+  if (h) parts.push(`${h} time${h > 1 ? "r" : ""}`);
+  if (m) parts.push(`${m} min`);
+  return parts.join(" og ");
+};
+
+const LEAD_PRESETS: { label: string; minutes: number }[] = [
+  { label: "30 min", minutes: 30 },
+  { label: "1 time", minutes: 60 },
+  { label: "2 timer", minutes: 120 },
+  { label: "4 timer", minutes: 240 },
+  { label: "1 dag", minutes: 24 * 60 },
+  { label: "2 dage", minutes: 48 * 60 },
+  { label: "1 uge", minutes: 7 * 24 * 60 },
+];
+
+function LeadTimePicker({
+  value, onChange, defaultMinutes, onReset, label, channel,
+}: {
+  value: number; onChange: (m: number) => void;
+  defaultMinutes: number; onReset: () => void;
+  label: string; channel: "email" | "sms";
+}) {
+  const parts = minutesToParts(value);
+  const usingDefault = value === defaultMinutes;
+  const setPart = (k: keyof LeadParts, v: number) => {
+    const max = k === "m" ? 59 : k === "h" ? 23 : 30;
+    const next: LeadParts = { ...parts, [k]: Math.max(0, Math.min(max, Number.isFinite(v) ? v : 0)) };
+    onChange(partsToMinutes(next));
+  };
+  return (
+    <div className="rounded-lg border border-border bg-muted/20 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <AlarmClock className="h-3.5 w-3.5 text-muted-foreground" />
+          <p className="text-[12px] font-semibold text-foreground">{label}</p>
+        </div>
+        <span className="rounded-md bg-background px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">
+          {channel === "email" ? "E-mail" : "SMS"}
+        </span>
+      </div>
+      <p className="mt-1 text-[11px] text-muted-foreground">
+        Sendes <span className="font-medium text-foreground">{formatLead(value)}</span> før det planlagte tidspunkt.
+      </p>
+
+      <div className="mt-2.5 flex flex-wrap gap-1.5">
+        {LEAD_PRESETS.map((p) => {
+          const active = value === p.minutes;
+          return (
+            <button
+              key={p.minutes}
+              type="button"
+              onClick={() => onChange(p.minutes)}
+              className={cn(
+                "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                active
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border bg-background text-foreground hover:border-foreground/50",
+              )}
+            >
+              {p.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        {([
+          { k: "d" as const, label: "Dage" , max: 30 },
+          { k: "h" as const, label: "Timer", max: 23 },
+          { k: "m" as const, label: "Min"  , max: 59 },
+        ]).map((f) => (
+          <label key={f.k} className="flex flex-col gap-1">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{f.label}</span>
+            <Input
+              type="number" min={0} max={f.max}
+              value={parts[f.k]}
+              className="h-9"
+              onChange={(e) => setPart(f.k, Number(e.target.value))}
+            />
+          </label>
+        ))}
+      </div>
+
+      <div className="mt-2.5 flex items-center justify-between">
+        <span className="text-[10.5px] text-muted-foreground">
+          {usingDefault ? "Bruger jeres standard" : `Standard: ${formatLead(defaultMinutes)}`}
+        </span>
+        {!usingDefault && (
+          <button
+            type="button"
+            onClick={onReset}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground"
+          >
+            <RotateCcw className="h-3 w-3" /> Brug standard
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 /* ─────────────────────── PREVIEWS ─────────────────────── */
@@ -265,14 +383,14 @@ export function CustomerNotificationsSettings({
     },
   });
 
-  const [drafts, setDrafts] = useState<Record<EventKey, { subject: string; body: string; enabled: boolean }>>(() => {
+  const [drafts, setDrafts] = useState<Record<EventKey, { subject: string; body: string; enabled: boolean; leadMinutes: number | null }>>(() => {
     const o = {} as any;
-    EVENTS.forEach((e) => { o[e.key] = { subject: e.defaults.subject, body: e.defaults.body, enabled: true }; });
+    EVENTS.forEach((e) => { o[e.key] = { subject: e.defaults.subject, body: e.defaults.body, enabled: true, leadMinutes: null }; });
     return o;
   });
-  const [smsDrafts, setSmsDrafts] = useState<Record<EventKey, { body: string; enabled: boolean }>>(() => {
+  const [smsDrafts, setSmsDrafts] = useState<Record<EventKey, { body: string; enabled: boolean; leadMinutes: number | null }>>(() => {
     const o = {} as any;
-    EVENTS.forEach((e) => { o[e.key] = { body: SMS_DEFAULTS[e.key], enabled: true }; });
+    EVENTS.forEach((e) => { o[e.key] = { body: SMS_DEFAULTS[e.key], enabled: true, leadMinutes: null }; });
     return o;
   });
   const [savedSnapshot, setSavedSnapshot] = useState<{ email: typeof drafts; sms: typeof smsDrafts } | null>(null);
@@ -287,9 +405,9 @@ export function CustomerNotificationsSettings({
     const nextSms = { ...smsDrafts };
     for (const e of EVENTS) {
       const eRow = rows.find((r: any) => r.event_type === e.key && (r.channel ?? "email") === "email");
-      if (eRow) nextEmail[e.key] = { subject: eRow.subject, body: eRow.body, enabled: eRow.enabled };
+      if (eRow) nextEmail[e.key] = { subject: eRow.subject, body: eRow.body, enabled: eRow.enabled, leadMinutes: eRow.lead_time_minutes ?? null };
       const sRow = rows.find((r: any) => r.event_type === e.key && r.channel === "sms");
-      if (sRow) nextSms[e.key] = { body: sRow.body, enabled: sRow.enabled };
+      if (sRow) nextSms[e.key] = { body: sRow.body, enabled: sRow.enabled, leadMinutes: sRow.lead_time_minutes ?? null };
     }
     setDrafts(nextEmail);
     setSmsDrafts(nextSms);
@@ -300,12 +418,12 @@ export function CustomerNotificationsSettings({
   const isEmailDirty = (k: EventKey) => {
     const a = drafts[k]; const b = savedSnapshot?.email[k];
     if (!b) return true;
-    return a.subject !== b.subject || a.body !== b.body || a.enabled !== b.enabled;
+    return a.subject !== b.subject || a.body !== b.body || a.enabled !== b.enabled || a.leadMinutes !== b.leadMinutes;
   };
   const isSmsDirty = (k: EventKey) => {
     const a = smsDrafts[k]; const b = savedSnapshot?.sms[k];
     if (!b) return true;
-    return a.body !== b.body || a.enabled !== b.enabled;
+    return a.body !== b.body || a.enabled !== b.enabled || a.leadMinutes !== b.leadMinutes;
   };
 
   const save = async (key: EventKey) => {
@@ -314,7 +432,7 @@ export function CustomerNotificationsSettings({
     const { error } = await supabase
       .from("customer_notification_templates")
       .upsert({ business_id: businessId, event_type: key, channel: "email",
-        subject: d.subject, body: d.body, enabled: d.enabled }, { onConflict: "business_id,event_type,channel" });
+        subject: d.subject, body: d.body, enabled: d.enabled, lead_time_minutes: d.leadMinutes }, { onConflict: "business_id,event_type,channel" });
     setSaving(null);
     if (error) { toast.error(error.message); return; }
     toast.success("E-mail gemt");
@@ -328,7 +446,7 @@ export function CustomerNotificationsSettings({
     const { error } = await supabase
       .from("customer_notification_templates")
       .upsert({ business_id: businessId, event_type: key, channel: "sms",
-        subject: null, body: d.body, enabled: d.enabled }, { onConflict: "business_id,event_type,channel" });
+        subject: null, body: d.body, enabled: d.enabled, lead_time_minutes: d.leadMinutes }, { onConflict: "business_id,event_type,channel" });
     setSaving(null);
     if (error) { toast.error(error.message); return; }
     toast.success("SMS gemt");
@@ -384,23 +502,26 @@ export function CustomerNotificationsSettings({
     <div className="space-y-6">
       {/* ───── Globale indstillinger ───── */}
       <div className="grid gap-3 sm:grid-cols-2">
-        {/* Tid før besøg */}
+        {/* Standard-tid før besøg */}
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-start gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/5">
               <Clock className="h-4 w-4 text-foreground" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground">Påmind kunden inden besøget</p>
-              <p className="mt-0.5 text-[12px] text-muted-foreground">Vi sender en automatisk påmindelse det antal timer før, I aftaler her.</p>
+              <p className="text-sm font-semibold text-foreground">Standard-tid før besøget</p>
+              <p className="mt-0.5 text-[12px] text-muted-foreground">
+                Bruges hvis I ikke har valgt et andet tidspunkt for en bestemt besked. I kan altid overskrive det pr. e-mail og SMS længere nede.
+              </p>
               <div className="mt-3 flex items-center gap-2">
                 <Input
                   type="number" min={1} max={168} className="h-9 w-20"
                   value={upcomingHoursBefore}
                   onChange={(e) => onUpcomingHoursChange(Math.max(1, Math.min(168, Number(e.target.value) || 24)))}
                 />
-                <span className="text-sm text-foreground">timer før besøget</span>
+                <span className="text-sm text-foreground">timer før</span>
               </div>
+              <p className="mt-2 text-[11px] text-muted-foreground">Aktuelt: <span className="font-medium text-foreground">{formatLead(upcomingHoursBefore * 60)}</span> før besøget.</p>
             </div>
           </div>
         </div>
@@ -466,6 +587,12 @@ export function CustomerNotificationsSettings({
                     )}>
                       <MessageSquare className="h-2.5 w-2.5" /> SMS {sOn ? "til" : "fra"}
                     </span>
+                    {e.key === "service_upcoming" && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground" title="Hvornår beskederne sendes før besøget">
+                        <AlarmClock className="h-2.5 w-2.5" />
+                        {formatLead(drafts[e.key].leadMinutes ?? upcomingHoursBefore * 60)}
+                      </span>
+                    )}
                   </div>
                 </div>
               </button>
@@ -564,6 +691,17 @@ export function CustomerNotificationsSettings({
                   />
                 </label>
 
+                {activeEvent === "service_upcoming" && (
+                  <LeadTimePicker
+                    label="Hvornår skal e-mailen sendes?"
+                    channel="email"
+                    value={drafts[activeEvent].leadMinutes ?? upcomingHoursBefore * 60}
+                    defaultMinutes={upcomingHoursBefore * 60}
+                    onChange={(m) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: m } }))}
+                    onReset={() => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: null } }))}
+                  />
+                )}
+
                 <div className="space-y-2">
                   <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Emnelinje</Label>
                   <Input
@@ -642,6 +780,17 @@ export function CustomerNotificationsSettings({
                     onCheckedChange={(v) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: v } }))}
                   />
                 </label>
+
+                {activeEvent === "service_upcoming" && (
+                  <LeadTimePicker
+                    label="Hvornår skal SMS'en sendes?"
+                    channel="sms"
+                    value={smsDrafts[activeEvent].leadMinutes ?? upcomingHoursBefore * 60}
+                    defaultMinutes={upcomingHoursBefore * 60}
+                    onChange={(m) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: m } }))}
+                    onReset={() => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: null } }))}
+                  />
+                )}
 
                 <div className="space-y-2">
                   <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">SMS-tekst</Label>
