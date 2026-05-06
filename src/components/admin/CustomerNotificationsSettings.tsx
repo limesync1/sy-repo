@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Mail, MessageSquare, Clock, Sparkles, Eye, Check } from "lucide-react";
+import { Loader2, Mail, MessageSquare, Clock, Bell, CheckCircle2, Smartphone, RotateCcw, Phone, Plus } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 interface Props {
   businessId: string;
@@ -25,15 +26,15 @@ const EVENTS: {
   label: string;
   shortLabel: string;
   help: string;
-  icon: string;
+  Icon: typeof Bell;
   defaults: { subject: string; body: string };
 }[] = [
   {
     key: "service_upcoming",
     label: "Påmindelse før besøg",
-    shortLabel: "Vi kommer snart",
+    shortLabel: "Inden besøget",
     help: "Sendes automatisk et stykke tid før I kommer ud til kunden.",
-    icon: "🔔",
+    Icon: Bell,
     defaults: {
       subject: "Vi kommer og udfører {{service_name}}",
       body: "Hej {{customer_name}},\n\nVi kommer forbi {{planned_arrival}} og udfører {{service_name}}.\n\nVi glæder os til at se dig.\n\nVenlig hilsen,\n{{business_name}}",
@@ -42,9 +43,9 @@ const EVENTS: {
   {
     key: "service_completed",
     label: "Kvittering efter besøg",
-    shortLabel: "Vi er færdige",
+    shortLabel: "Efter besøget",
     help: "Sendes automatisk når medarbejderen markerer opgaven som udført.",
-    icon: "✅",
+    Icon: CheckCircle2,
     defaults: {
       subject: "Vi har udført {{service_name}}",
       body: "Hej {{customer_name}},\n\nVi har i dag været forbi og udført {{service_name}}.\nDu modtager snarest faktura via vores regnskabssystem.\n\nTak fordi du valgte os.\n\nVenlig hilsen,\n{{business_name}}",
@@ -58,11 +59,11 @@ const SMS_DEFAULTS: Record<EventKey, string> = {
 };
 
 const PLACEHOLDERS: { key: string; label: string; example: string }[] = [
-  { key: "customer_name", label: "Kundens navn", example: "Mette" },
+  { key: "customer_name", label: "Kundens navn", example: "Mette Hansen" },
   { key: "business_name", label: "Jeres firmanavn", example: "Rengøring København" },
-  { key: "business_phone", label: "Jeres telefon", example: "+45 12 34 56 78" },
-  { key: "service_name", label: "Service", example: "Rengøring" },
-  { key: "planned_arrival", label: "Tidspunkt", example: "i morgen kl. 10:00" },
+  { key: "business_phone", label: "Jeres telefonnummer", example: "+45 12 34 56 78" },
+  { key: "service_name", label: "Service", example: "ugentlig rengøring" },
+  { key: "planned_arrival", label: "Tidspunkt", example: "torsdag d. 7. maj kl. 10:00" },
 ];
 
 const EXAMPLE_VARS: Record<string, string> = Object.fromEntries(PLACEHOLDERS.map((p) => [p.key, p.example]));
@@ -71,39 +72,53 @@ function renderPreview(tpl: string): string {
   return tpl.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => EXAMPLE_VARS[k] ?? `{{${k}}}`);
 }
 
-// Email preview matching supabase/functions/_shared/transactional-email-templates/_styles.ts
-function EmailPreview({ subject, body }: { subject: string; body: string }) {
-  const renderedSubject = renderPreview(subject);
-  const renderedBody = renderPreview(body);
-  const lines = renderedBody.split(/\n+/).filter((l) => l.trim().length > 0);
+/* ─────────────────────── PREVIEWS ─────────────────────── */
+
+function EmailPreview({ subject, body, businessName }: { subject: string; body: string; businessName: string }) {
+  const rSubject = renderPreview(subject);
+  const rBody = renderPreview(body);
+  const lines = rBody.split(/\n+/).filter((l) => l.trim().length > 0);
   return (
-    <div className="rounded-lg border border-border bg-[#fafafa] p-4 overflow-hidden">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-        <Eye className="h-3.5 w-3.5" />
-        <span>Sådan ser e-mailen ud hos kunden</span>
+    <div className="overflow-hidden rounded-xl border border-border bg-[#f4f4f5]">
+      {/* Mac-style window chrome */}
+      <div className="flex items-center gap-1.5 border-b border-border/60 bg-[#ececee] px-3 py-2">
+        <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+        <span className="ml-3 text-[11px] font-medium text-[#737373]">Indbakke · Mail</span>
       </div>
-      <div
-        className="mx-auto bg-white rounded-md shadow-sm overflow-hidden border border-border/50"
-        style={{ maxWidth: 480, fontFamily: 'Inter, -apple-system, sans-serif' }}
-      >
-        {/* fake email header */}
-        <div className="px-5 pt-4 pb-3 border-b border-[#ececec]">
-          <div className="text-[11px] uppercase tracking-wide text-[#737373] font-medium">Emne</div>
-          <div className="text-[14px] text-[#212121] font-medium mt-0.5 line-clamp-2">{renderedSubject || "(intet emne)"}</div>
-        </div>
-        {/* body */}
-        <div className="px-5 py-5">
-          <div className="pb-4 border-b border-[#ececec] mb-5">
-            <div className="text-[10px] font-semibold tracking-wider text-[#212121]">SERVICEYDERE</div>
+      <div className="px-4 py-4">
+        <div
+          className="mx-auto overflow-hidden rounded-lg border border-border/60 bg-white shadow-sm"
+          style={{ maxWidth: 460, fontFamily: 'Inter, -apple-system, sans-serif' }}
+        >
+          {/* From / subject header */}
+          <div className="border-b border-[#ececec] px-5 py-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#212121] text-[10px] font-semibold text-white">
+                {(businessName || "S").slice(0, 1).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <div className="truncate text-[12px] font-medium text-[#212121]">{businessName || "Serviceydere"}</div>
+                <div className="truncate text-[10px] text-[#737373]">via Serviceydere · til kunden</div>
+              </div>
+            </div>
+            <div className="mt-2.5 text-[13px] font-semibold text-[#212121] line-clamp-2">{rSubject || "(intet emne)"}</div>
           </div>
-          <h1 className="text-[22px] font-semibold text-[#212121] leading-tight mb-3" style={{ letterSpacing: '-0.015em' }}>
-            {renderedSubject}
-          </h1>
-          {lines.map((l, i) => (
-            <p key={i} className="text-[14px] text-[#525252] leading-[1.65] mb-3 whitespace-pre-wrap">{l}</p>
-          ))}
-          <div className="border-t border-[#ececec] mt-7 pt-4">
-            <p className="text-[11px] text-[#a3a3a3]">Sendt af {EXAMPLE_VARS.business_name} via Serviceydere.</p>
+          {/* Body */}
+          <div className="px-5 py-5">
+            <div className="mb-4 pb-3">
+              <div className="text-[10px] font-bold tracking-[0.18em] text-[#212121]">SERVICEYDERE</div>
+            </div>
+            <h1 className="mb-3 text-[20px] font-semibold leading-tight text-[#212121]" style={{ letterSpacing: '-0.015em' }}>
+              {rSubject}
+            </h1>
+            {lines.map((l, i) => (
+              <p key={i} className="mb-3 whitespace-pre-wrap text-[13.5px] leading-[1.65] text-[#525252]">{l}</p>
+            ))}
+            <div className="mt-6 border-t border-[#ececec] pt-3">
+              <p className="text-[10.5px] text-[#a3a3a3]">Sendt af {businessName || "din virksomhed"} via Serviceydere.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -111,35 +126,44 @@ function EmailPreview({ subject, body }: { subject: string; body: string }) {
   );
 }
 
-// SMS preview as iMessage-style chat bubble
 function SmsPreview({ body, businessName, businessPhone }: { body: string; businessName: string; businessPhone: string }) {
   const rendered = renderPreview(body);
-  const footer = `\n\nDenne SMS kan ikke besvares. Kontakt ${businessName} på ${businessPhone}.`;
+  const footer = `\n\nDenne SMS kan ikke besvares. Kontakt ${businessName || "virksomheden"} på ${businessPhone || "+45 12 34 56 78"}.`;
   const full = rendered + footer;
   const charCount = full.length;
   const smsCount = Math.max(1, Math.ceil(charCount / 160));
   return (
-    <div className="rounded-lg border border-border bg-[#fafafa] p-4">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-        <Eye className="h-3.5 w-3.5" />
-        <span>Sådan ser SMS'en ud på kundens telefon</span>
-      </div>
-      <div
-        className="mx-auto bg-white rounded-2xl border border-border/50 overflow-hidden"
-        style={{ maxWidth: 320 }}
-      >
-        {/* phone status bar */}
-        <div className="bg-[#f5f5f7] px-4 py-2.5 border-b border-border/50 text-center">
-          <div className="text-[11px] font-semibold text-[#212121]">Serviceyder</div>
-          <div className="text-[10px] text-[#737373]">Tekstbesked · nu</div>
+    <div className="overflow-hidden rounded-xl border border-border bg-[#f4f4f5]">
+      <div className="flex items-center justify-between border-b border-border/60 bg-[#ececee] px-3 py-2">
+        <div className="flex items-center gap-1.5">
+          <Smartphone className="h-3 w-3 text-[#737373]" />
+          <span className="text-[11px] font-medium text-[#737373]">Beskeder · iPhone</span>
         </div>
-        <div className="p-3 bg-white min-h-[140px]">
-          <div className="bg-[#e5e5ea] text-[#212121] rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-[13px] leading-[1.45] whitespace-pre-wrap max-w-[85%]">
-            {full}
+        <span className="text-[10px] text-[#a3a3a3]">9:41</span>
+      </div>
+      <div className="px-4 py-4">
+        <div
+          className="mx-auto overflow-hidden rounded-[28px] border-[6px] border-[#1a1a1a] bg-white"
+          style={{ maxWidth: 290 }}
+        >
+          {/* iOS contact header */}
+          <div className="flex flex-col items-center gap-1 bg-[#f5f5f7] px-4 pb-2.5 pt-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
+              S
+            </div>
+            <div className="text-[11px] font-semibold text-[#212121]">Serviceyder</div>
+            <div className="text-[9px] text-[#a3a3a3]">Tekstbesked</div>
+          </div>
+          {/* Conversation */}
+          <div className="min-h-[160px] bg-white px-3 py-3">
+            <div className="mb-1 text-center text-[9px] text-[#a3a3a3]">i dag 09:41</div>
+            <div className="max-w-[88%] whitespace-pre-wrap rounded-2xl rounded-bl-md bg-[#e9e9eb] px-3 py-2 text-[12px] leading-[1.45] text-[#212121]">
+              {full}
+            </div>
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-3 px-1">
+      <div className="flex items-center justify-between border-t border-border/60 bg-[#ececee] px-3 py-2 text-[10.5px] text-[#737373]">
         <span>{charCount} tegn</span>
         <span>{smsCount} SMS{smsCount > 1 ? "'er" : ""} (1 SMS = 160 tegn)</span>
       </div>
@@ -147,24 +171,28 @@ function SmsPreview({ body, businessName, businessPhone }: { body: string; busin
   );
 }
 
-function PlaceholderChips({ onInsert }: { onInsert: (token: string) => void }) {
+/* ─────────────────────── PLACEHOLDER PICKER ─────────────────────── */
+
+function PlaceholderRow({ onInsert, compact = false }: { onInsert: (token: string) => void; compact?: boolean }) {
   return (
-    <TooltipProvider delayDuration={200}>
-      <div className="flex flex-wrap gap-1.5">
+    <TooltipProvider delayDuration={150}>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {!compact && <span className="mr-1 text-[11px] font-medium text-muted-foreground">Indsæt:</span>}
         {PLACEHOLDERS.map((p) => (
           <Tooltip key={p.key}>
             <TooltipTrigger asChild>
               <button
                 type="button"
                 onClick={() => onInsert(`{{${p.key}}}`)}
-                className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted transition-colors"
+                className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] font-medium text-foreground transition-colors hover:border-foreground hover:bg-muted"
               >
-                <Sparkles className="h-3 w-3 text-accent" />
+                <Plus className="h-3 w-3 text-muted-foreground" />
                 {p.label}
               </button>
             </TooltipTrigger>
-            <TooltipContent side="top">
-              <p className="text-xs">Indsætter fx: <span className="font-medium">{p.example}</span></p>
+            <TooltipContent side="top" className="max-w-[220px]">
+              <p className="text-xs">Erstattes automatisk med kundens rigtige info.</p>
+              <p className="mt-1 text-xs"><span className="text-muted-foreground">Eksempel:</span> <span className="font-medium">{p.example}</span></p>
             </TooltipContent>
           </Tooltip>
         ))}
@@ -172,6 +200,34 @@ function PlaceholderChips({ onInsert }: { onInsert: (token: string) => void }) {
     </TooltipProvider>
   );
 }
+
+/* ─────────────────────── HOOKS ─────────────────────── */
+
+function useInsertAtCursor<T extends HTMLInputElement | HTMLTextAreaElement>(
+  value: string,
+  setValue: (s: string) => void,
+) {
+  const ref = useRef<T | null>(null);
+  const insert = (token: string) => {
+    const el = ref.current;
+    if (!el) {
+      setValue(value + " " + token);
+      return;
+    }
+    const start = el.selectionStart ?? value.length;
+    const end = el.selectionEnd ?? value.length;
+    const next = value.slice(0, start) + token + value.slice(end);
+    setValue(next);
+    requestAnimationFrame(() => {
+      el.focus();
+      const pos = start + token.length;
+      el.setSelectionRange(pos, pos);
+    });
+  };
+  return { ref, insert };
+}
+
+/* ─────────────────────── MAIN ─────────────────────── */
 
 export function CustomerNotificationsSettings({
   businessId, upcomingHoursBefore, onUpcomingHoursChange,
@@ -182,9 +238,7 @@ export function CustomerNotificationsSettings({
     queryKey: ["customer-notif-templates", businessId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("customer_notification_templates")
-        .select("*")
-        .eq("business_id", businessId);
+        .from("customer_notification_templates").select("*").eq("business_id", businessId);
       if (error) throw error;
       return data ?? [];
     },
@@ -199,51 +253,59 @@ export function CustomerNotificationsSettings({
   });
 
   const [drafts, setDrafts] = useState<Record<EventKey, { subject: string; body: string; enabled: boolean }>>(() => {
-    const obj = {} as any;
-    EVENTS.forEach((e) => { obj[e.key] = { subject: e.defaults.subject, body: e.defaults.body, enabled: true }; });
-    return obj;
+    const o = {} as any;
+    EVENTS.forEach((e) => { o[e.key] = { subject: e.defaults.subject, body: e.defaults.body, enabled: true }; });
+    return o;
   });
   const [smsDrafts, setSmsDrafts] = useState<Record<EventKey, { body: string; enabled: boolean }>>(() => {
-    const obj = {} as any;
-    EVENTS.forEach((e) => { obj[e.key] = { body: SMS_DEFAULTS[e.key], enabled: true }; });
-    return obj;
+    const o = {} as any;
+    EVENTS.forEach((e) => { o[e.key] = { body: SMS_DEFAULTS[e.key], enabled: true }; });
+    return o;
   });
+  const [savedSnapshot, setSavedSnapshot] = useState<{ email: typeof drafts; sms: typeof smsDrafts } | null>(null);
+
   const [activeEvent, setActiveEvent] = useState<EventKey>("service_upcoming");
   const [channelTab, setChannelTab] = useState<"email" | "sms">("email");
   const [saving, setSaving] = useState<string | null>(null);
 
   useEffect(() => {
     if (!rows) return;
-    setDrafts((prev) => {
-      const next = { ...prev };
-      for (const e of EVENTS) {
-        const existing = rows.find((r: any) => r.event_type === e.key && (r.channel ?? "email") === "email");
-        if (existing) next[e.key] = { subject: existing.subject, body: existing.body, enabled: existing.enabled };
-      }
-      return next;
-    });
-    setSmsDrafts((prev) => {
-      const next = { ...prev };
-      for (const e of EVENTS) {
-        const existing = rows.find((r: any) => r.event_type === e.key && r.channel === "sms");
-        if (existing) next[e.key] = { body: existing.body, enabled: existing.enabled };
-      }
-      return next;
-    });
+    const nextEmail = { ...drafts };
+    const nextSms = { ...smsDrafts };
+    for (const e of EVENTS) {
+      const eRow = rows.find((r: any) => r.event_type === e.key && (r.channel ?? "email") === "email");
+      if (eRow) nextEmail[e.key] = { subject: eRow.subject, body: eRow.body, enabled: eRow.enabled };
+      const sRow = rows.find((r: any) => r.event_type === e.key && r.channel === "sms");
+      if (sRow) nextSms[e.key] = { body: sRow.body, enabled: sRow.enabled };
+    }
+    setDrafts(nextEmail);
+    setSmsDrafts(nextSms);
+    setSavedSnapshot({ email: nextEmail, sms: nextSms });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows]);
+
+  const isEmailDirty = (k: EventKey) => {
+    const a = drafts[k]; const b = savedSnapshot?.email[k];
+    if (!b) return true;
+    return a.subject !== b.subject || a.body !== b.body || a.enabled !== b.enabled;
+  };
+  const isSmsDirty = (k: EventKey) => {
+    const a = smsDrafts[k]; const b = savedSnapshot?.sms[k];
+    if (!b) return true;
+    return a.body !== b.body || a.enabled !== b.enabled;
+  };
 
   const save = async (key: EventKey) => {
     setSaving(`email-${key}`);
     const d = drafts[key];
     const { error } = await supabase
       .from("customer_notification_templates")
-      .upsert({
-        business_id: businessId, event_type: key, channel: "email",
-        subject: d.subject, body: d.body, enabled: d.enabled,
-      }, { onConflict: "business_id,event_type,channel" });
+      .upsert({ business_id: businessId, event_type: key, channel: "email",
+        subject: d.subject, body: d.body, enabled: d.enabled }, { onConflict: "business_id,event_type,channel" });
     setSaving(null);
     if (error) { toast.error(error.message); return; }
-    toast.success("E-mail-skabelon gemt");
+    toast.success("E-mail gemt");
+    setSavedSnapshot((s) => ({ email: { ...(s?.email ?? drafts), [key]: d }, sms: s?.sms ?? smsDrafts }));
     qc.invalidateQueries({ queryKey: ["customer-notif-templates", businessId] });
   };
 
@@ -252,187 +314,279 @@ export function CustomerNotificationsSettings({
     const d = smsDrafts[key];
     const { error } = await supabase
       .from("customer_notification_templates")
-      .upsert({
-        business_id: businessId, event_type: key, channel: "sms",
-        subject: null, body: d.body, enabled: d.enabled,
-      }, { onConflict: "business_id,event_type,channel" });
+      .upsert({ business_id: businessId, event_type: key, channel: "sms",
+        subject: null, body: d.body, enabled: d.enabled }, { onConflict: "business_id,event_type,channel" });
     setSaving(null);
     if (error) { toast.error(error.message); return; }
-    toast.success("SMS-skabelon gemt");
+    toast.success("SMS gemt");
+    setSavedSnapshot((s) => ({ email: s?.email ?? drafts, sms: { ...(s?.sms ?? smsDrafts), [key]: d } }));
     qc.invalidateQueries({ queryKey: ["customer-notif-templates", businessId] });
   };
 
-  const insertPlaceholderEmailBody = (token: string) =>
-    setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], body: p[activeEvent].body + " " + token } }));
-  const insertPlaceholderEmailSubject = (token: string) =>
-    setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], subject: p[activeEvent].subject + " " + token } }));
-  const insertPlaceholderSms = (token: string) =>
-    setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], body: p[activeEvent].body + " " + token } }));
+  const resetEmail = (key: EventKey) => {
+    const ev = EVENTS.find((e) => e.key === key)!;
+    setDrafts((p) => ({ ...p, [key]: { subject: ev.defaults.subject, body: ev.defaults.body, enabled: p[key].enabled } }));
+  };
+  const resetSms = (key: EventKey) => {
+    setSmsDrafts((p) => ({ ...p, [key]: { body: SMS_DEFAULTS[key], enabled: p[key].enabled } }));
+  };
+
+  // Cursor-aware inserts for active editor
+  const subjectCursor = useInsertAtCursor<HTMLInputElement>(
+    drafts[activeEvent].subject,
+    (s) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], subject: s } })),
+  );
+  const bodyCursor = useInsertAtCursor<HTMLTextAreaElement>(
+    drafts[activeEvent].body,
+    (s) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], body: s } })),
+  );
+  const smsCursor = useInsertAtCursor<HTMLTextAreaElement>(
+    smsDrafts[activeEvent].body,
+    (s) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], body: s } })),
+  );
 
   if (isLoading) {
-    return <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+    return <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
   }
 
   const event = EVENTS.find((e) => e.key === activeEvent)!;
   const exampleBizName = businessInfo?.name?.trim() || EXAMPLE_VARS.business_name;
   const exampleBizPhone = businessInfo?.phone?.trim() || EXAMPLE_VARS.business_phone;
+  const emailDirty = isEmailDirty(activeEvent);
+  const smsDirty = isSmsDirty(activeEvent);
 
   return (
-    <div className="space-y-5">
-      {/* Step 1 — timing card */}
-      <div className="rounded-xl border border-border bg-card p-5">
-        <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background text-sm font-semibold">1</div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <Label className="text-sm font-semibold">Hvornår skal kunden have en påmindelse?</Label>
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Vælg hvor mange timer før I kommer ud til kunden, at påmindelsen skal sendes.
-            </p>
-            <div className="mt-3 flex items-center gap-2">
-              <Input
-                type="number" min={1} max={168} className="w-24"
-                value={upcomingHoursBefore}
-                onChange={(e) => onUpcomingHoursChange(Math.max(1, Math.min(168, Number(e.target.value) || 24)))}
-              />
-              <span className="text-sm text-muted-foreground">timer før besøget</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Step 2 — SMS toggle card */}
-      <div className="rounded-xl border border-border bg-card p-5">
-        <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background text-sm font-semibold">2</div>
-          <div className="flex-1">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                  <Label className="text-sm font-semibold">Send også SMS til kunderne</Label>
+    <div className="space-y-6">
+      {/* ───── Top: kanaler + global timing ───── */}
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        {/* E-mail status (informativt) */}
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground/5">
+                  <Mail className="h-4 w-4 text-foreground" />
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground max-w-prose">
-                  Med SMS får kunden også en besked på telefonen. Afsenderen står som <span className="font-medium text-foreground">"Serviceyder"</span>,
-                  og vi tilføjer automatisk en linje med jeres firmanavn og telefonnummer, så kunden ved hvem de skal ringe til.
-                </p>
+                <p className="text-sm font-semibold text-foreground">E-mail</p>
               </div>
-              <Switch checked={smsEnabled} onCheckedChange={onSmsEnabledChange} />
+              <p className="mt-2 text-xs text-muted-foreground">
+                Sendes altid fra jeres e-mail. Tilpas teksten nedenfor.
+              </p>
+            </div>
+            <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" /> Aktiv
+            </span>
+          </div>
+        </div>
+
+        {/* SMS toggle */}
+        <div className={cn("rounded-xl border p-4 transition-colors", smsEnabled ? "border-accent/30 bg-accent/5" : "border-border bg-card")}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg", smsEnabled ? "bg-accent/15" : "bg-foreground/5")}>
+                  <MessageSquare className={cn("h-4 w-4", smsEnabled ? "text-accent" : "text-foreground")} />
+                </div>
+                <p className="text-sm font-semibold text-foreground">SMS</p>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Afsender: <span className="font-medium text-foreground">"Serviceyder"</span>. Vi tilføjer automatisk jeres firmanavn og telefon i bunden.
+              </p>
+            </div>
+            <Switch checked={smsEnabled} onCheckedChange={onSmsEnabledChange} />
+          </div>
+        </div>
+
+        {/* Timing */}
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground/5">
+              <Clock className="h-4 w-4 text-foreground" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-foreground">Påmindelse</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Sendes inden besøget.</p>
+              <div className="mt-2 flex items-center gap-2">
+                <Input
+                  type="number" min={1} max={168} className="h-8 w-20"
+                  value={upcomingHoursBefore}
+                  onChange={(e) => onUpcomingHoursChange(Math.max(1, Math.min(168, Number(e.target.value) || 24)))}
+                />
+                <span className="text-xs text-muted-foreground">timer før</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Step 3 — templates with live preview */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="flex items-start gap-3 p-5 pb-4 border-b border-border">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background text-sm font-semibold">3</div>
-          <div>
-            <Label className="text-sm font-semibold">Tilpas beskederne til kunderne</Label>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Vælg en besked til venstre, ret teksten — og se med det samme hvordan kunden vil opleve den.
-            </p>
-          </div>
-        </div>
-
-        {/* Event picker */}
-        <div className="px-5 pt-4 pb-2 flex flex-wrap gap-2">
+      {/* ───── Two column: list + editor ───── */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr]">
+        {/* Left list */}
+        <nav className="space-y-2">
+          <p className="px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Beskeder til kunder</p>
           {EVENTS.map((e) => {
             const active = e.key === activeEvent;
+            const eOn = drafts[e.key].enabled;
+            const sOn = smsDrafts[e.key].enabled && smsEnabled;
+            const Icon = e.Icon;
             return (
               <button
                 key={e.key}
                 onClick={() => setActiveEvent(e.key)}
-                className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium border transition-colors ${
-                  active ? "bg-foreground text-background border-foreground" : "bg-background text-foreground border-border hover:bg-muted"
-                }`}
+                className={cn(
+                  "group flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-all",
+                  active ? "border-foreground bg-foreground/[0.03] shadow-sm" : "border-border bg-card hover:border-foreground/30",
+                )}
               >
-                <span>{e.icon}</span>
-                <span>{e.label}</span>
+                <div className={cn(
+                  "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+                  active ? "bg-foreground text-background" : "bg-muted text-foreground",
+                )}>
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-foreground">{e.label}</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">{e.shortLabel}</p>
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    <span className={cn(
+                      "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+                      eOn ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground",
+                    )}>
+                      <Mail className="h-2.5 w-2.5" /> {eOn ? "På" : "Fra"}
+                    </span>
+                    <span className={cn(
+                      "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+                      sOn ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground",
+                    )}>
+                      <MessageSquare className="h-2.5 w-2.5" /> {sOn ? "På" : "Fra"}
+                    </span>
+                  </div>
+                </div>
               </button>
             );
           })}
-        </div>
-        <p className="px-5 pb-4 text-xs text-muted-foreground">{event.help}</p>
 
-        {/* Channel tabs */}
-        <div className="px-5 border-t border-border pt-4 flex gap-1 bg-muted/30">
-          {(["email", "sms"] as const).map((c) => {
-            const active = channelTab === c;
-            const Icon = c === "email" ? Mail : MessageSquare;
-            const enabledForChannel = c === "email" ? drafts[activeEvent].enabled : smsDrafts[activeEvent].enabled && smsEnabled;
-            return (
-              <button
-                key={c}
-                onClick={() => setChannelTab(c)}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-md transition-colors ${
-                  active ? "bg-card text-foreground border border-border border-b-card -mb-px" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {c === "email" ? "E-mail" : "SMS"}
-                {enabledForChannel && <Check className="h-3 w-3 text-accent" />}
-                {c === "sms" && !smsEnabled && <span className="text-[10px] text-muted-foreground">(slået fra)</span>}
-              </button>
-            );
-          })}
-        </div>
+          {/* Help */}
+          <div className="mt-4 rounded-xl border border-dashed border-border bg-muted/30 p-3">
+            <p className="text-[11px] font-semibold text-foreground">💡 Sådan virker det</p>
+            <p className="mt-1 text-[11px] leading-[1.55] text-muted-foreground">
+              Når en aftale planlægges eller markeres som færdig, sender vi automatisk de beskeder I har slået til.
+              Tekst i klammer som <code className="rounded bg-background px-1 text-[10px]">{`{{kundens navn}}`}</code> bliver erstattet med rigtige oplysninger.
+            </p>
+          </div>
+        </nav>
 
-        {/* Editor + preview */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 p-5 bg-card">
+        {/* Right editor */}
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
+          {/* Header */}
+          <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/40 px-5 py-3">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">{event.label}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">{event.help}</p>
+            </div>
+          </div>
+
+          {/* Channel tabs */}
+          <div className="flex border-b border-border bg-card px-3">
+            {(["email", "sms"] as const).map((c) => {
+              const active = channelTab === c;
+              const Icon = c === "email" ? Mail : MessageSquare;
+              const enabled = c === "email" ? drafts[activeEvent].enabled : smsDrafts[activeEvent].enabled && smsEnabled;
+              const dirty = c === "email" ? emailDirty : smsDirty;
+              return (
+                <button
+                  key={c}
+                  onClick={() => setChannelTab(c)}
+                  className={cn(
+                    "relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors",
+                    active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {c === "email" ? "E-mail" : "SMS"}
+                  <span className={cn(
+                    "ml-1 inline-flex h-5 items-center rounded-full px-1.5 text-[10px] font-medium",
+                    enabled ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground",
+                  )}>
+                    {enabled ? "På" : "Fra"}
+                  </span>
+                  {dirty && <span className="ml-0.5 h-1.5 w-1.5 rounded-full bg-amber-500" title="Ikke gemt" />}
+                  {active && <span className="absolute inset-x-2 -bottom-px h-0.5 bg-foreground" />}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Content */}
           {channelTab === "email" ? (
-            <>
-              <div className="space-y-4">
-                <div className="flex items-start justify-between gap-3 pb-3 border-b border-border">
+            <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
+              {/* Editor */}
+              <div className="space-y-4 p-5">
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3">
                   <div>
-                    <p className="text-sm font-medium text-foreground">Send denne e-mail</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Slå fra hvis I ikke vil sende e-mail for denne hændelse.</p>
+                    <p className="text-xs font-semibold text-foreground">Send denne e-mail</p>
+                    <p className="text-[11px] text-muted-foreground">Slå fra for at undlade at sende.</p>
                   </div>
                   <Switch
                     checked={drafts[activeEvent].enabled}
                     onCheckedChange={(v) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: v } }))}
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">Emne (det kunden ser i sin indbakke)</Label>
+                  <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Emnelinje</Label>
                   <Input
+                    ref={subjectCursor.ref}
                     value={drafts[activeEvent].subject}
                     onChange={(ev) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], subject: ev.target.value } }))}
+                    placeholder="Det første kunden ser i indbakken"
                   />
-                  <PlaceholderChips onInsert={insertPlaceholderEmailSubject} />
+                  <PlaceholderRow onInsert={subjectCursor.insert} compact />
                 </div>
+
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">Selve beskeden</Label>
+                  <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Selve beskeden</Label>
                   <Textarea
-                    rows={9}
+                    ref={bodyCursor.ref}
+                    rows={10}
                     value={drafts[activeEvent].body}
                     onChange={(ev) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], body: ev.target.value } }))}
                   />
-                  <PlaceholderChips onInsert={insertPlaceholderEmailBody} />
-                  <p className="text-[11px] text-muted-foreground">💡 Tip: Klik på en boble for at indsætte personlige oplysninger som kundens navn eller tidspunktet.</p>
+                  <PlaceholderRow onInsert={bodyCursor.insert} />
+                  <p className="text-[11px] text-muted-foreground">
+                    💡 Klik en knap for at indsætte personlige oplysninger. De erstattes automatisk med kundens rigtige info.
+                  </p>
                 </div>
-                <div className="flex justify-end pt-2">
-                  <Button size="sm" onClick={() => save(activeEvent)} disabled={saving === `email-${activeEvent}`}>
+
+                <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
+                  <Button variant="ghost" size="sm" onClick={() => resetEmail(activeEvent)}>
+                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Nulstil tekst
+                  </Button>
+                  <Button size="sm" onClick={() => save(activeEvent)} disabled={!emailDirty || saving === `email-${activeEvent}`}>
                     {saving === `email-${activeEvent}` ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
-                    Gem ændringer
+                    {emailDirty ? "Gem ændringer" : "Gemt"}
                   </Button>
                 </div>
               </div>
-              <div>
-                <EmailPreview subject={drafts[activeEvent].subject} body={drafts[activeEvent].body} />
+
+              {/* Preview */}
+              <div className="border-t border-border bg-muted/20 p-5 lg:border-l lg:border-t-0">
+                <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Sådan ser kunden den</p>
+                <EmailPreview subject={drafts[activeEvent].subject} body={drafts[activeEvent].body} businessName={exampleBizName} />
               </div>
-            </>
+            </div>
           ) : (
-            <>
-              <div className="space-y-4">
-                <div className="flex items-start justify-between gap-3 pb-3 border-b border-border">
+            <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
+              <div className="space-y-4 p-5">
+                {!smsEnabled && (
+                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-[12px] text-foreground">
+                    SMS er slået fra øverst på siden. Slå den til for at sende SMS'er til jeres kunder.
+                  </div>
+                )}
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3">
                   <div>
-                    <p className="text-sm font-medium text-foreground">Send denne SMS</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {smsEnabled ? "Slå fra hvis I ikke vil sende SMS for denne hændelse." : "Slå SMS til øverst for at aktivere."}
-                    </p>
+                    <p className="text-xs font-semibold text-foreground">Send denne SMS</p>
+                    <p className="text-[11px] text-muted-foreground">Slå fra for at undlade at sende.</p>
                   </div>
                   <Switch
                     checked={smsDrafts[activeEvent].enabled}
@@ -440,31 +594,44 @@ export function CustomerNotificationsSettings({
                     onCheckedChange={(v) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: v } }))}
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">SMS-tekst</Label>
+                  <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">SMS-tekst</Label>
                   <Textarea
+                    ref={smsCursor.ref}
                     rows={6}
                     value={smsDrafts[activeEvent].body}
                     disabled={!smsEnabled}
                     maxLength={459}
                     onChange={(ev) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], body: ev.target.value } }))}
                   />
-                  <PlaceholderChips onInsert={insertPlaceholderSms} />
-                  <p className="text-[11px] text-muted-foreground">
-                    💡 Hold beskeden kort — under 160 tegn er 1 SMS. Vi tilføjer selv en kort linje i bunden med jeres firmanavn og telefon.
+                  <PlaceholderRow onInsert={smsCursor.insert} />
+                </div>
+
+                <div className="rounded-lg border border-border bg-muted/30 p-3">
+                  <p className="text-[11px] font-semibold text-foreground">Vi tilføjer automatisk:</p>
+                  <p className="mt-1 flex items-start gap-1.5 text-[11px] text-muted-foreground">
+                    <Phone className="mt-0.5 h-3 w-3 shrink-0" />
+                    <span>"Denne SMS kan ikke besvares. Kontakt <span className="font-medium text-foreground">{exampleBizName}</span> på <span className="font-medium text-foreground">{exampleBizPhone}</span>."</span>
                   </p>
                 </div>
-                <div className="flex justify-end pt-2">
-                  <Button size="sm" variant="outline" disabled={!smsEnabled || saving === `sms-${activeEvent}`} onClick={() => saveSms(activeEvent)}>
+
+                <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
+                  <Button variant="ghost" size="sm" onClick={() => resetSms(activeEvent)}>
+                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Nulstil tekst
+                  </Button>
+                  <Button size="sm" disabled={!smsEnabled || !smsDirty || saving === `sms-${activeEvent}`} onClick={() => saveSms(activeEvent)}>
                     {saving === `sms-${activeEvent}` ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
-                    Gem ændringer
+                    {smsDirty ? "Gem ændringer" : "Gemt"}
                   </Button>
                 </div>
               </div>
-              <div>
+
+              <div className="border-t border-border bg-muted/20 p-5 lg:border-l lg:border-t-0">
+                <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Sådan ser kunden den</p>
                 <SmsPreview body={smsDrafts[activeEvent].body} businessName={exampleBizName} businessPhone={exampleBizPhone} />
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>
