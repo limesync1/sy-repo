@@ -14,21 +14,21 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const DEFAULTS: Record<string, { subject: string; body: string }> = {
   service_upcoming: {
-    subject: "Vi kommer og udfører {{service_name}}",
-    body: "Hej {{customer_name}},\n\nVi kommer forbi {{planned_arrival}} og udfører {{service_name}}.\n\nVi glæder os til at se dig.\n\nVenlig hilsen,\n{{business_name}}",
+    subject: "Vi kommer og udfører {{service}}",
+    body: "Hej {{kundens_navn}},\n\nVi kommer forbi {{tidspunkt}} og udfører {{service}}.\n\nVi glæder os til at se dig.\n\nVenlig hilsen,\n{{firmanavn}}",
   },
   service_completed: {
-    subject: "Vi har udført {{service_name}}",
-    body: "Hej {{customer_name}},\n\nVi har i dag været forbi og udført {{service_name}}.\nDu modtager snarest faktura via vores regnskabssystem.\n\nTak fordi du valgte os.\n\nVenlig hilsen,\n{{business_name}}",
+    subject: "Vi har udført {{service}}",
+    body: "Hej {{kundens_navn}},\n\nVi har i dag været forbi og udført {{service}}.\nDu modtager snarest faktura via vores regnskabssystem.\n\nTak fordi du valgte os.\n\nVenlig hilsen,\n{{firmanavn}}",
   },
 };
 
 const SMS_DEFAULTS: Record<string, { body: string }> = {
   service_upcoming: {
-    body: "Hej {{customer_name}}, vi kommer {{planned_arrival}} og udfører {{service_name}}. Mvh {{business_name}}",
+    body: "Hej {{kundens_navn}}, vi kommer {{tidspunkt}} og udfører {{service}}. Mvh {{firmanavn}}",
   },
   service_completed: {
-    body: "Hej {{customer_name}}, vi har udført {{service_name}} i dag. Faktura sendes snarest. Mvh {{business_name}}",
+    body: "Hej {{kundens_navn}}, vi har udført {{service}} i dag. Faktura sendes snarest. Mvh {{firmanavn}}",
   },
 };
 
@@ -121,12 +121,25 @@ Deno.serve(async (req) => {
         : (DEFAULTS[job.event_type]?.body ?? "");
       const bodyTpl = tpl?.body ?? defaultBody;
 
+      // Understøt både dansk (nye) og engelsk (gamle) variabel-navne
+      const customerName = order.customer_name ?? "kunde";
+      const businessName = biz.name ?? "";
+      const businessPhone = (biz as any).phone ?? "";
+      const serviceName = stop?.service_summary ?? "din service";
+      const arrival = fmtDate(stop?.planned_arrival);
       const vars: Record<string, string> = {
-        customer_name: order.customer_name ?? "kunde",
-        business_name: biz.name ?? "",
-        business_phone: (biz as any).phone ?? "",
-        service_name: stop?.service_summary ?? "din service",
-        planned_arrival: fmtDate(stop?.planned_arrival),
+        // Danske navne
+        kundens_navn: customerName,
+        firmanavn: businessName,
+        telefon: businessPhone,
+        service: serviceName,
+        tidspunkt: arrival,
+        // Bagudkompatibilitet
+        customer_name: customerName,
+        business_name: businessName,
+        business_phone: businessPhone,
+        service_name: serviceName,
+        planned_arrival: arrival,
       };
       const subject = render(subjectTpl, vars);
       let body = render(bodyTpl, vars);

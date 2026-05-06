@@ -1406,14 +1406,14 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* Fakturering */}
         <div id="settings-billing" className="scroll-mt-32 lg:scroll-mt-24">
           <SectionCard
-            title="Priser og betaling"
+            title="Pris og betaling"
             icon={<CreditCard />}
-            description="Her ser I jeres pakke, hvad det koster om måneden, og kan skifte betalingskort. Betalingen håndteres sikkert af Stripe — vi gemmer aldrig jeres kortoplysninger."
+            description="Se hvad du betaler om måneden, vælg hvor ofte du vil faktureres, og administrér dit betalingskort. Vi gemmer aldrig dine kortoplysninger — alt håndteres sikkert af Stripe."
           >
             {/* Status-banner med dage tilbage */}
             {plan && plan.status !== "unknown" && (
               <div
-                className={`rounded-lg border p-4 ${
+                className={`rounded-xl border p-4 ${
                   plan.status === "expired"
                     ? "border-destructive/30 bg-destructive/5"
                     : plan.status === "trial_ending"
@@ -1434,13 +1434,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <div className="min-w-0 flex-1">
                     {plan.status === "active" ? (
                       <>
-                        <p className="text-sm font-semibold text-foreground">Aktivt abonnement</p>
+                        <p className="text-sm font-semibold text-foreground">Dit abonnement er aktivt</p>
                         <p className="mt-1 text-xs text-muted-foreground">
+                          Du betaler <span className="font-medium text-foreground tabular-nums">{Math.round(plan.monthly_price_dkk).toLocaleString("da-DK")} kr/md</span>
                           {plan.has_payment_method
-                            ? `${plan.payment_brand || "Kort"} •••• ${plan.payment_last4}`
-                            : "Ingen kort tilknyttet"}
-                          {" · "}
-                          {Math.round(plan.monthly_price_dkk).toLocaleString("da-DK")} kr/md
+                            ? ` med ${plan.payment_brand || "kort"} der ender på ${plan.payment_last4}.`
+                            : " — der mangler stadig et betalingskort."}
                         </p>
                       </>
                     ) : plan.status === "expired" ? (
@@ -1470,88 +1469,108 @@ const SettingsTab = ({ business }: { business: any }) => {
 
             {/* Pris-oversigt — viser hvad brugeren betaler ud fra valgte funktioner */}
             {priceBreakdown && (
-              <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card">
-                <div className="flex items-center justify-between gap-3 border-b border-border bg-secondary/30 px-4 py-3">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Din pakke</p>
-                    <p className="text-[11px] text-muted-foreground">Vælg hvordan du vil faktureres</p>
+              <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
+                {/* Hovedkort: faktureringsinterval + linje-specifikation */}
+                <div className="overflow-hidden rounded-xl border border-border bg-card">
+                  <div className="border-b border-border bg-secondary/30 px-5 py-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Vælg faktureringsinterval</p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">Spar penge ved at betale forud — du kan altid skifte igen.</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Pris pr. md</p>
-                    <p className="text-lg font-semibold text-foreground tabular-nums leading-tight">
-                      {Math.round(priceBreakdown.monthlyAfterDiscount).toLocaleString("da-DK")} kr
+                  <div className="p-4 space-y-4">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                      {([
+                        { key: "monthly", label: "Hver måned", desc: "Mest fleksibelt", hint: "" },
+                        { key: "quarterly", label: "Hvert kvartal", desc: "Lidt billigere", hint: pricing ? `Spar ${pricing.discount_quarterly_pct}%` : "" },
+                        { key: "yearly", label: "Hvert år", desc: "Bedste pris", hint: pricing ? `Spar ${pricing.discount_yearly_pct}%` : "" },
+                      ] as const).map((opt) => {
+                        const isOn = planBilling === opt.key;
+                        return (
+                          <button
+                            key={opt.key}
+                            type="button"
+                            onClick={() => handleBillingPeriodChange(opt.key)}
+                            disabled={updatePlan.isPending}
+                            className={`relative flex flex-col items-start rounded-lg border p-3 text-left transition-all ${
+                              isOn
+                                ? "border-foreground bg-foreground/[0.03] shadow-sm"
+                                : "border-border bg-card hover:border-foreground/30"
+                            }`}
+                          >
+                            <div className="flex w-full items-center justify-between gap-2">
+                              <span className="text-sm font-semibold text-foreground">{opt.label}</span>
+                              <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${isOn ? "border-foreground bg-foreground" : "border-border"}`}>
+                                {isOn && <span className="h-1.5 w-1.5 rounded-full bg-background" />}
+                              </span>
+                            </div>
+                            <p className="mt-0.5 text-[11px] text-muted-foreground">{opt.desc}</p>
+                            {opt.hint && (
+                              <span className="mt-2 inline-flex items-center rounded-full bg-accent/10 px-1.5 py-0.5 text-[10px] font-semibold text-accent">
+                                {opt.hint}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="rounded-lg border border-border bg-secondary/20 p-3">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Hvad du betaler for</p>
+                      <ul className="mt-2 space-y-1.5">
+                        {priceBreakdown.lines.map((l) => (
+                          <li key={l.key} className="flex items-baseline justify-between gap-3 text-sm">
+                            <span className="text-foreground">{l.label}</span>
+                            <span className="shrink-0 font-medium text-foreground tabular-nums">
+                              {Math.round(l.amount).toLocaleString("da-DK")} kr/md
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      {priceBreakdown.discountPct > 0 && (
+                        <div className="mt-2 border-t border-border/60 pt-2 space-y-1">
+                          <div className="flex items-baseline justify-between text-xs text-muted-foreground">
+                            <span>Subtotal</span>
+                            <span className="tabular-nums">{Math.round(priceBreakdown.subtotal).toLocaleString("da-DK")} kr/md</span>
+                          </div>
+                          <div className="flex items-baseline justify-between text-xs">
+                            <span className="inline-flex items-center gap-1 text-accent">
+                              <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold">RABAT {priceBreakdown.discountPct}%</span>
+                            </span>
+                            <span className="font-medium text-accent tabular-nums">
+                              −{Math.round(priceBreakdown.subtotal - priceBreakdown.monthlyAfterDiscount).toLocaleString("da-DK")} kr/md
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      💡 Slå tilvalg til eller fra under <span className="font-medium text-foreground">Ekstra funktioner</span> — prisen opdateres automatisk her.
                     </p>
                   </div>
                 </div>
-                <div className="p-4">
-                {/* Faktureringsinterval — samme tre valg som ved "bliv udbyder".
-                    Skifter rabatten i prisberegningen og opdateres straks i db. */}
-                <div>
-                  <div className="grid grid-cols-3 gap-1 rounded-lg border border-border bg-secondary/40 p-1">
-                    {([
-                      { key: "monthly", label: "Månedlig", hint: "" },
-                      { key: "quarterly", label: "Kvartalsvis", hint: pricing ? `−${pricing.discount_quarterly_pct}%` : "" },
-                      { key: "yearly", label: "Årlig", hint: pricing ? `−${pricing.discount_yearly_pct}%` : "" },
-                    ] as const).map((opt) => {
-                      const isOn = planBilling === opt.key;
-                      return (
-                        <button
-                          key={opt.key}
-                          type="button"
-                          onClick={() => handleBillingPeriodChange(opt.key)}
-                          disabled={updatePlan.isPending}
-                          className={`flex flex-col items-center justify-center rounded-md px-2 py-2.5 text-xs font-medium transition-colors ${
-                            isOn
-                              ? "bg-foreground text-background shadow-sm"
-                              : "text-muted-foreground hover:bg-background hover:text-foreground"
-                          }`}
-                        >
-                          <span>{opt.label}</span>
-                          {opt.hint && (
-                            <span className={`mt-0.5 text-[10px] font-semibold ${isOn ? "opacity-80" : "text-accent"}`}>
-                              {opt.hint}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                <ul className="mt-4 space-y-2 border-t border-border pt-3">
-                  {priceBreakdown.lines.map((l) => (
-                    <li key={l.key} className="flex items-baseline justify-between gap-3 text-sm">
-                      <span className="text-muted-foreground">{l.label}</span>
-                      <span className="shrink-0 font-medium text-foreground tabular-nums">
-                        {Math.round(l.amount).toLocaleString("da-DK")} kr
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                {priceBreakdown.discountPct > 0 && (
-                  <div className="mt-3 flex items-baseline justify-between border-t border-border pt-3 text-sm">
-                    <div className="flex items-baseline justify-between gap-3 text-muted-foreground w-full">
-                      <span>Subtotal</span>
-                      <span className="tabular-nums">{Math.round(priceBreakdown.subtotal).toLocaleString("da-DK")} kr/md</span>
+
+                {/* Sidekort: stor pris-fremhævning */}
+                <div className="overflow-hidden rounded-xl border border-foreground bg-foreground text-background">
+                  <div className="flex h-full flex-col justify-between p-5">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70">Du betaler</p>
+                      <p className="mt-2 flex items-baseline gap-1">
+                        <span className="text-3xl font-bold tabular-nums">
+                          {Math.round(priceBreakdown.monthlyAfterDiscount).toLocaleString("da-DK")}
+                        </span>
+                        <span className="text-sm font-medium opacity-80">kr/md</span>
+                      </p>
+                      <p className="mt-2 text-[11px] opacity-70">
+                        {planBilling === "yearly" ? "Faktureres én gang om året."
+                          : planBilling === "quarterly" ? "Faktureres hvert kvartal."
+                          : "Faktureres hver måned."}
+                      </p>
                     </div>
+                    {(plan?.status === "trialing" || plan?.status === "trial_ending") && (
+                      <p className="mt-4 rounded-md bg-background/10 px-2.5 py-1.5 text-[11px] opacity-90">
+                        Prisen opkræves først når din prøveperiode er slut.
+                      </p>
+                    )}
                   </div>
-                )}
-                {priceBreakdown.discountPct > 0 && (
-                  <div className="mt-1.5 flex items-baseline justify-between text-sm">
-                    <span className="inline-flex items-center gap-1.5 text-accent">
-                      <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold">RABAT</span>
-                      <span>{priceBreakdown.discountPct}%</span>
-                    </span>
-                    <span className="font-medium text-accent tabular-nums">
-                        −{Math.round(priceBreakdown.subtotal - priceBreakdown.monthlyAfterDiscount).toLocaleString("da-DK")} kr/md
-                      </span>
-                    </div>
-                  )}
-                <p className="mt-3 border-t border-border pt-3 text-[11px] text-muted-foreground">
-                  {plan?.status === "trialing" || plan?.status === "trial_ending"
-                    ? "Prisen opkræves først efter din prøveperiode er slut. "
-                    : ""}
-                  Slå funktioner til/fra under <span className="font-medium text-foreground">Avanceret</span> — prisen opdateres automatisk.
-                </p>
                 </div>
               </div>
             )}

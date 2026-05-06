@@ -31,45 +31,58 @@ const EVENTS: {
 }[] = [
   {
     key: "service_upcoming",
-    label: "Påmindelse før besøg",
-    shortLabel: "Inden besøget",
-    help: "Sendes automatisk et stykke tid før I kommer ud til kunden.",
+    label: "Påmindelse inden besøg",
+    shortLabel: "Sendes inden I kommer",
+    help: "En venlig påmindelse til kunden om hvornår I kommer forbi. Sendes automatisk et stykke tid før det planlagte besøg.",
     Icon: Bell,
     defaults: {
-      subject: "Vi kommer og udfører {{service_name}}",
-      body: "Hej {{customer_name}},\n\nVi kommer forbi {{planned_arrival}} og udfører {{service_name}}.\n\nVi glæder os til at se dig.\n\nVenlig hilsen,\n{{business_name}}",
+      subject: "Vi kommer og udfører {{service}}",
+      body: "Hej {{kundens_navn}},\n\nVi kommer forbi {{tidspunkt}} og udfører {{service}}.\n\nVi glæder os til at se dig.\n\nVenlig hilsen,\n{{firmanavn}}",
     },
   },
   {
     key: "service_completed",
     label: "Kvittering efter besøg",
-    shortLabel: "Efter besøget",
-    help: "Sendes automatisk når medarbejderen markerer opgaven som udført.",
+    shortLabel: "Sendes når opgaven er færdig",
+    help: "En kvittering til kunden når besøget er udført. Sendes automatisk så snart medarbejderen markerer opgaven som færdig.",
     Icon: CheckCircle2,
     defaults: {
-      subject: "Vi har udført {{service_name}}",
-      body: "Hej {{customer_name}},\n\nVi har i dag været forbi og udført {{service_name}}.\nDu modtager snarest faktura via vores regnskabssystem.\n\nTak fordi du valgte os.\n\nVenlig hilsen,\n{{business_name}}",
+      subject: "Vi har udført {{service}}",
+      body: "Hej {{kundens_navn}},\n\nVi har i dag været forbi og udført {{service}}.\nDu modtager snarest faktura via vores regnskabssystem.\n\nTak fordi du valgte os.\n\nVenlig hilsen,\n{{firmanavn}}",
     },
   },
 ];
 
 const SMS_DEFAULTS: Record<EventKey, string> = {
-  service_upcoming: "Hej {{customer_name}}, vi kommer {{planned_arrival}} og udfører {{service_name}}. Mvh {{business_name}}",
-  service_completed: "Hej {{customer_name}}, vi har udført {{service_name}} i dag. Faktura sendes snarest. Mvh {{business_name}}",
+  service_upcoming: "Hej {{kundens_navn}}, vi kommer {{tidspunkt}} og udfører {{service}}. Mvh {{firmanavn}}",
+  service_completed: "Hej {{kundens_navn}}, vi har udført {{service}} i dag. Faktura sendes snarest. Mvh {{firmanavn}}",
 };
 
+// Danske variabel-navne — vises i UI'et og virker også i skabeloner.
+// Vi understøtter også de gamle engelske navne for bagudkompatibilitet.
 const PLACEHOLDERS: { key: string; label: string; example: string }[] = [
-  { key: "customer_name", label: "Kundens navn", example: "Mette Hansen" },
-  { key: "business_name", label: "Jeres firmanavn", example: "Rengøring København" },
-  { key: "business_phone", label: "Jeres telefonnummer", example: "+45 12 34 56 78" },
-  { key: "service_name", label: "Service", example: "ugentlig rengøring" },
-  { key: "planned_arrival", label: "Tidspunkt", example: "torsdag d. 7. maj kl. 10:00" },
+  { key: "kundens_navn", label: "Kundens navn", example: "Mette Hansen" },
+  { key: "firmanavn", label: "Jeres firmanavn", example: "Rengøring København" },
+  { key: "telefon", label: "Jeres telefonnummer", example: "+45 12 34 56 78" },
+  { key: "service", label: "Service", example: "ugentlig rengøring" },
+  { key: "tidspunkt", label: "Tidspunkt", example: "torsdag d. 7. maj kl. 10:00" },
 ];
 
+// Mapping: dansk eller gammelt engelsk navn → eksempel-værdi
+const ALIASES: Record<string, string> = {
+  kundens_navn: "kundens_navn", customer_name: "kundens_navn",
+  firmanavn: "firmanavn", business_name: "firmanavn",
+  telefon: "telefon", business_phone: "telefon",
+  service: "service", service_name: "service",
+  tidspunkt: "tidspunkt", planned_arrival: "tidspunkt",
+};
 const EXAMPLE_VARS: Record<string, string> = Object.fromEntries(PLACEHOLDERS.map((p) => [p.key, p.example]));
 
 function renderPreview(tpl: string): string {
-  return tpl.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => EXAMPLE_VARS[k] ?? `{{${k}}}`);
+  return tpl.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => {
+    const canonical = ALIASES[k] ?? k;
+    return EXAMPLE_VARS[canonical] ?? `{{${k}}}`;
+  });
 }
 
 /* ─────────────────────── PREVIEWS ─────────────────────── */
@@ -151,7 +164,7 @@ function SmsPreview({ body, businessName, businessPhone }: { body: string; busin
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
               S
             </div>
-            <div className="text-[11px] font-semibold text-[#212121]">Serviceyder</div>
+            <div className="text-[11px] font-semibold text-[#212121]">Serviceydere</div>
             <div className="text-[9px] text-[#a3a3a3]">Tekstbesked</div>
           </div>
           {/* Conversation */}
@@ -400,7 +413,7 @@ export function CustomerNotificationsSettings({
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-foreground">Send også SMS</p>
-                <p className="text-[11px] text-muted-foreground">Afsender: "Serviceyder"</p>
+                <p className="text-[11px] text-muted-foreground">Afsender vises som "Serviceydere"</p>
               </div>
             </div>
             <Switch checked={smsEnabled} onCheckedChange={onSmsEnabledChange} />
@@ -441,13 +454,13 @@ export function CustomerNotificationsSettings({
                       "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium",
                       eOn ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground",
                     )}>
-                      <Mail className="h-2.5 w-2.5" /> {eOn ? "På" : "Fra"}
+                      <Mail className="h-2.5 w-2.5" /> {eOn ? "Til" : "Fra"}
                     </span>
                     <span className={cn(
                       "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium",
                       sOn ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground",
                     )}>
-                      <MessageSquare className="h-2.5 w-2.5" /> {sOn ? "På" : "Fra"}
+                      <MessageSquare className="h-2.5 w-2.5" /> {sOn ? "Til" : "Fra"}
                     </span>
                   </div>
                 </div>
@@ -483,11 +496,13 @@ export function CustomerNotificationsSettings({
                 setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
                 setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
               }}
-              title="Slår både e-mail og SMS til/fra på én gang"
+              title="Slår både e-mail og SMS til eller fra på én gang"
               className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted"
             >
               <Power className="h-3 w-3" />
-              {drafts[activeEvent].enabled || (smsEnabled && smsDrafts[activeEvent].enabled) ? "Slå alt fra" : "Slå alt til"}
+              {drafts[activeEvent].enabled || (smsEnabled && smsDrafts[activeEvent].enabled)
+                ? "Stop alle beskeder for denne hændelse"
+                : "Send alle beskeder for denne hændelse"}
             </button>
           </div>
 
@@ -513,7 +528,7 @@ export function CustomerNotificationsSettings({
                     "ml-1 inline-flex h-5 items-center rounded-full px-1.5 text-[10px] font-medium",
                     enabled ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground",
                   )}>
-                    {enabled ? "På" : "Fra"}
+                    {enabled ? "Til" : "Fra"}
                   </span>
                   {dirty && <span className="ml-0.5 h-1.5 w-1.5 rounded-full bg-amber-500" title="Ikke gemt" />}
                   {active && <span className="absolute inset-x-2 -bottom-px h-0.5 bg-foreground" />}
@@ -564,7 +579,12 @@ export function CustomerNotificationsSettings({
                 </div>
 
                 <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
-                  <Button variant="ghost" size="sm" onClick={() => resetEmail(activeEvent)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetEmail(activeEvent)}
+                    className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  >
                     <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Nulstil tekst
                   </Button>
                   <Button size="sm" onClick={() => save(activeEvent)} disabled={!emailDirty || saving === `email-${activeEvent}`}>
@@ -590,7 +610,7 @@ export function CustomerNotificationsSettings({
                   <p className="text-sm font-semibold text-foreground">SMS er slået fra</p>
                   <p className="mt-1 text-[12px] text-muted-foreground">
                     Slå SMS til for at sende korte beskeder direkte til kundens telefon.
-                    Afsenderen står som "Serviceyder", og vi tilføjer automatisk jeres firmanavn og telefonnummer.
+                    Afsenderen står som "Serviceydere", og vi tilføjer automatisk jeres firmanavn og telefonnummer.
                   </p>
                 </div>
                 <Button size="sm" onClick={() => onSmsEnabledChange(true)}>
@@ -634,7 +654,12 @@ export function CustomerNotificationsSettings({
                 </div>
 
                 <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
-                  <Button variant="ghost" size="sm" onClick={() => resetSms(activeEvent)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetSms(activeEvent)}
+                    className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  >
                     <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Nulstil tekst
                   </Button>
                   <Button size="sm" disabled={!smsEnabled || !smsDirty || saving === `sms-${activeEvent}`} onClick={() => saveSms(activeEvent)}>
