@@ -426,32 +426,22 @@ export function CustomerNotificationsSettings({
     return a.body !== b.body || a.enabled !== b.enabled || a.leadMinutes !== b.leadMinutes;
   };
 
-  const save = async (key: EventKey) => {
-    setSaving(`email-${key}`);
-    const d = drafts[key];
+  const saveEmailNow = async (key: EventKey, d: { subject: string; body: string; enabled: boolean; leadMinutes: number | null }) => {
     const { error } = await supabase
       .from("customer_notification_templates")
       .upsert({ business_id: businessId, event_type: key, channel: "email",
         subject: d.subject, body: d.body, enabled: d.enabled, lead_time_minutes: d.leadMinutes }, { onConflict: "business_id,event_type,channel" });
-    setSaving(null);
     if (error) { toast.error(error.message); return; }
-    toast.success("E-mail gemt");
     setSavedSnapshot((s) => ({ email: { ...(s?.email ?? drafts), [key]: d }, sms: s?.sms ?? smsDrafts }));
-    qc.invalidateQueries({ queryKey: ["customer-notif-templates", businessId] });
   };
 
-  const saveSms = async (key: EventKey) => {
-    setSaving(`sms-${key}`);
-    const d = smsDrafts[key];
+  const saveSmsNow = async (key: EventKey, d: { body: string; enabled: boolean; leadMinutes: number | null }) => {
     const { error } = await supabase
       .from("customer_notification_templates")
       .upsert({ business_id: businessId, event_type: key, channel: "sms",
         subject: null, body: d.body, enabled: d.enabled, lead_time_minutes: d.leadMinutes }, { onConflict: "business_id,event_type,channel" });
-    setSaving(null);
     if (error) { toast.error(error.message); return; }
-    toast.success("SMS gemt");
     setSavedSnapshot((s) => ({ email: s?.email ?? drafts, sms: { ...(s?.sms ?? smsDrafts), [key]: d } }));
-    qc.invalidateQueries({ queryKey: ["customer-notif-templates", businessId] });
   };
 
   const resetEmail = (key: EventKey) => {
