@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
 import { Building2, User, Loader2, Save, ShoppingBag, Camera, X, Upload } from "lucide-react";
@@ -36,6 +38,12 @@ export interface EditableCustomer {
   longitude?: number | null;
   notes?: string | null;
   avatar_url?: string | null;
+  customer_number?: string | null;
+  customer_group?: string | null;
+  vat_zone?: string | null;
+  is_blocked?: boolean | null;
+  payment_terms_days?: number | null;
+  ean_number?: string | null;
 }
 
 interface Props {
@@ -62,6 +70,16 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   const [longitude, setLongitude] = useState<number | null>(initial?.longitude ?? null);
   const [notes, setNotes] = useState(initial?.notes || "");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(initial?.avatar_url ?? null);
+  const [customerNumber, setCustomerNumber] = useState(initial?.customer_number || "");
+  const [customerGroup, setCustomerGroup] = useState(initial?.customer_group || "");
+  const [vatZone, setVatZone] = useState<string>(initial?.vat_zone || "domestic");
+  const [isBlocked, setIsBlocked] = useState<boolean>(!!initial?.is_blocked);
+  const [paymentTermsDays, setPaymentTermsDays] = useState<string>(
+    initial?.payment_terms_days != null ? String(initial.payment_terms_days) : ""
+  );
+  const [eanNumber, setEanNumber] = useState(initial?.ean_number || "");
+  const [customerGroups, setCustomerGroups] = useState<{ id: string; name: string }[]>([]);
+  const [groupsLabel, setGroupsLabel] = useState<string>("Kundegruppe");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedCustomer, setSavedCustomer] = useState<EditableCustomer | null>(null);
@@ -123,9 +141,31 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
     setLongitude(initial?.longitude ?? null);
     setNotes(initial?.notes || "");
     setAvatarUrl(initial?.avatar_url ?? null);
+    setCustomerNumber(initial?.customer_number || "");
+    setCustomerGroup(initial?.customer_group || "");
+    setVatZone(initial?.vat_zone || "domestic");
+    setIsBlocked(!!initial?.is_blocked);
+    setPaymentTermsDays(initial?.payment_terms_days != null ? String(initial.payment_terms_days) : "");
+    setEanNumber(initial?.ean_number || "");
     setSavedCustomer(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initial?.id]);
+
+  // Hent kundegrupper fra det forbundne regnskabsprogram (hvis nogen)
+  useEffect(() => {
+    if (!open || !businessId) return;
+    (async () => {
+      try {
+        const { data } = await supabase.functions.invoke("accounting-sync", {
+          body: { business_id: businessId, mode: "list_groups" },
+        });
+        const cg = (data as any)?.customer_groups ?? [];
+        const label = (data as any)?.labels?.customer_groups;
+        if (Array.isArray(cg)) setCustomerGroups(cg);
+        if (label) setGroupsLabel(label);
+      } catch { /* ingen integration — ignorér */ }
+    })();
+  }, [open, businessId]);
 
   const reset = () => {
     setType("private");
@@ -133,6 +173,8 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
     setEmail(""); setPhone(""); setAddress(""); setZipCode(""); setCity("");
     setLatitude(null); setLongitude(null); setNotes("");
     setAvatarUrl(null);
+    setCustomerNumber(""); setCustomerGroup(""); setVatZone("domestic");
+    setIsBlocked(false); setPaymentTermsDays(""); setEanNumber("");
     setSavedCustomer(null);
   };
 
@@ -159,10 +201,15 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
         latitude, longitude,
         notes: notes.trim() || null,
         avatar_url: avatarUrl,
+        customer_number: customerNumber.trim() || null,
+        customer_group: customerGroup.trim() || null,
+        vat_zone: vatZone || null,
+        is_blocked: isBlocked,
+        payment_terms_days: paymentTermsDays.trim() ? Number(paymentTermsDays) : null,
       };
       let savedRow: any;
       if (type === "private") {
-        const row = { ...baseShared, name: name.trim() };
+        const row = { ...baseShared, name: name.trim(), ean_number: eanNumber.trim() || null };
         const { data, error } = initial?.id
           ? await supabase.from("private_customers").update(row).eq("id", initial.id).select().single()
           : await supabase.from("private_customers").upsert(row, { onConflict: "business_id,email" }).select().single();
@@ -174,6 +221,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
           company_name: companyName.trim(),
           cvr: cvr.replace(/\D/g, "") || null,
           contact_name: contactName.trim() || null,
+          ean_number: eanNumber.trim() || null,
         };
         const { data, error } = initial?.id
           ? await supabase.from("business_customers").update(row).eq("id", initial.id).select().single()
