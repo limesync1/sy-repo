@@ -215,6 +215,65 @@ const StatusPill = ({
   );
 };
 
+/* ─── FeatureRow — ensartet rækkelayout til "Tilvalg og ekstra funktioner".
+ * Ikon, titel, prismærke, beskrivelse, status og toggle — alt på en linje
+ * der opfører sig konsistent på tværs af alle moduler. */
+const FeatureRow = ({
+  icon,
+  title,
+  priceLabel,
+  badge,
+  description,
+  active,
+  activeLabel,
+  inactiveLabel,
+  onToggle,
+  toggle,
+}: {
+  icon: ReactNode;
+  title: string;
+  priceLabel?: string;
+  badge?: ReactNode;
+  description: string;
+  active: boolean;
+  activeLabel: string;
+  inactiveLabel: string;
+  onToggle?: () => void;
+  toggle?: ReactNode;
+}) => (
+  <div
+    className={`group relative flex items-start justify-between gap-4 rounded-xl border p-4 transition-colors ${
+      active ? "border-foreground/20 bg-foreground/[0.02]" : "border-border bg-card hover:border-foreground/20"
+    }`}
+  >
+    <div className="flex min-w-0 items-start gap-3">
+      <div
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg [&_svg]:h-5 [&_svg]:w-5 ${
+          active ? "bg-foreground text-background" : "bg-muted text-foreground"
+        }`}
+      >
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <p className="text-sm font-semibold text-foreground">{title}</p>
+          {priceLabel && (
+            <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10.5px] font-semibold text-muted-foreground tabular-nums">
+              {priceLabel}
+            </span>
+          )}
+          {badge}
+        </div>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{description}</p>
+        <StatusPill active={active} activeLabel={activeLabel} inactiveLabel={inactiveLabel} />
+      </div>
+    </div>
+    <div className="shrink-0 pt-0.5">
+      {toggle ?? (onToggle ? <ToggleSwitch checked={active} onChange={onToggle} /> : null)}
+    </div>
+  </div>
+);
+
 /* ─── Reveal — collapser børn ind/ud (height + fade). Holdt minimal: ingen
  * blur, slide eller overshoot — det sender altid samme rolige signal. */
 const Reveal = ({
@@ -1158,23 +1217,35 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* Branding */}
         <div id="settings-branding" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard title="Profil og webadresse" icon={<ImageIcon />} description="Det visuelle udtryk og linket til jeres profil — logo, forsidebillede, og det kunderne ser i adresselinjen.">
-            {/* Side-om-side så cover ikke fylder hele bredden — kun en kompakt
-                preview, da fuld bannervisning ikke er nødvendig her. */}
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-              <div className="shrink-0" data-tour="field-logo">
-                <FieldLabel>Logo</FieldLabel>
-                <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
-                <p className="mt-2 text-xs text-muted-foreground">Vises lille — vælg et kvadratisk billede (fx 512×512 px).</p>
-              </div>
-              <div className="min-w-0 flex-1 sm:max-w-xs" data-tour="field-cover">
-                <FieldLabel>Coverbillede</FieldLabel>
-                <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-full max-w-[260px]" />
-                <p className="mt-2 text-xs text-muted-foreground">Vises som bredt banner øverst på jeres profil — brug et liggende billede (16:9).</p>
+            {/* ── Visuelle elementer: logo + cover side om side i én visuel ramme ── */}
+            <div>
+              <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Visuelle elementer</p>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[180px_1fr]">
+                <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-logo">
+                  <FieldLabel>Logo</FieldLabel>
+                  <div className="mt-1 flex items-start gap-3">
+                    <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
+                  </div>
+                  <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
+                    Vises lille i toppen af profilen, i søgeresultater og i e-mails. Brug et kvadratisk billede (fx 512×512 px) — gerne med transparent baggrund.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-cover">
+                  <FieldLabel>Coverbillede</FieldLabel>
+                  <div className="mt-1">
+                    <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-full max-w-[360px]" />
+                  </div>
+                  <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
+                    Vises som bredt banner øverst på jeres profilside. Brug et liggende billede (16:9, fx 1920×1080 px) som viser jeres arbejde, team eller bil.
+                  </p>
+                </div>
               </div>
             </div>
 
+            {/* ── Webadresse ── */}
+            <p className="mt-6 mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Webadresse</p>
             {/* Permalink (slug) */}
-            <div className="mt-6 rounded-xl border border-border bg-card/50 p-4">
+            <div className="rounded-xl border border-border bg-card/50 p-4">
               <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
                   <Link2 className="h-4 w-4" />
@@ -1525,11 +1596,18 @@ const SettingsTab = ({ business }: { business: any }) => {
               <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
                 {/* Hovedkort: faktureringsinterval + linje-specifikation */}
                 <div className="overflow-hidden rounded-xl border border-border bg-card">
-                  <div className="border-b border-border bg-secondary/30 px-5 py-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Vælg faktureringsinterval</p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground">Spar penge ved at betale forud — du kan altid skifte igen.</p>
+                  <div className="flex items-center justify-between gap-3 border-b border-border bg-secondary/30 px-5 py-3">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Faktureringsinterval</p>
+                      <p className="mt-0.5 text-[11.5px] text-muted-foreground">Spar penge ved at betale forud — du kan altid skifte igen.</p>
+                    </div>
+                    {pricing && (
+                      <span className="hidden sm:inline-flex rounded-full bg-accent/10 px-2.5 py-1 text-[10.5px] font-semibold text-accent">
+                        Spar op til {pricing.discount_yearly_pct}%
+                      </span>
+                    )}
                   </div>
-                  <div className="p-4 space-y-4">
+                  <div className="p-4 space-y-5">
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                       {([
                         { key: "monthly", label: "Hver måned", desc: "Mest fleksibelt", hint: "" },
@@ -1543,10 +1621,10 @@ const SettingsTab = ({ business }: { business: any }) => {
                             type="button"
                             onClick={() => handleBillingPeriodChange(opt.key)}
                             disabled={updatePlan.isPending}
-                            className={`relative flex flex-col items-start rounded-lg border p-3 text-left transition-all ${
+                            className={`relative flex flex-col items-start rounded-xl border p-3.5 text-left transition-all ${
                               isOn
-                                ? "border-foreground bg-foreground/[0.03] shadow-sm"
-                                : "border-border bg-card hover:border-foreground/30"
+                                ? "border-foreground bg-foreground/[0.04] shadow-sm ring-1 ring-foreground/10"
+                                : "border-border bg-card hover:border-foreground/30 hover:bg-muted/30"
                             }`}
                           >
                             <div className="flex w-full items-center justify-between gap-2">
@@ -1566,11 +1644,11 @@ const SettingsTab = ({ business }: { business: any }) => {
                       })}
                     </div>
 
-                    <div className="rounded-lg border border-border bg-secondary/20 p-3">
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Hvad du betaler for</p>
-                      <ul className="mt-2 space-y-1.5">
+                    <div className="rounded-xl border border-border bg-secondary/20 p-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Hvad du betaler for</p>
+                      <ul className="mt-2.5 divide-y divide-border/60">
                         {priceBreakdown.lines.map((l) => (
-                          <li key={l.key} className="flex items-baseline justify-between gap-3 text-sm">
+                          <li key={l.key} className="flex items-baseline justify-between gap-3 py-1.5 text-sm first:pt-0">
                             <span className="text-foreground">{l.label}</span>
                             <span className="shrink-0 font-medium text-foreground tabular-nums">
                               {Math.round(l.amount).toLocaleString("da-DK")} kr/md
@@ -1579,7 +1657,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                         ))}
                       </ul>
                       {priceBreakdown.discountPct > 0 && (
-                        <div className="mt-2 border-t border-border/60 pt-2 space-y-1">
+                        <div className="mt-3 border-t border-border/60 pt-2.5 space-y-1.5">
                           <div className="flex items-baseline justify-between text-xs text-muted-foreground">
                             <span>Subtotal</span>
                             <span className="tabular-nums">{Math.round(priceBreakdown.subtotal).toLocaleString("da-DK")} kr/md</span>
@@ -1595,34 +1673,43 @@ const SettingsTab = ({ business }: { business: any }) => {
                         </div>
                       )}
                     </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      💡 Slå tilvalg til eller fra under <span className="font-medium text-foreground">Ekstra funktioner</span> — prisen opdateres automatisk her.
+                    <p className="flex items-start gap-1.5 text-[11.5px] text-muted-foreground">
+                      <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <span>Slå tilvalg til eller fra under <span className="font-medium text-foreground">Tilvalg og ekstra funktioner</span> — prisen opdateres automatisk her.</span>
                     </p>
                   </div>
                 </div>
 
-                {/* Sidekort: stor pris-fremhævning */}
-                <div className="overflow-hidden rounded-xl border border-foreground bg-foreground text-background">
-                  <div className="flex h-full flex-col justify-between p-5">
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70">Du betaler</p>
-                      <p className="mt-2 flex items-baseline gap-1">
-                        <span className="text-3xl font-bold tabular-nums">
-                          {Math.round(priceBreakdown.monthlyAfterDiscount).toLocaleString("da-DK")}
-                        </span>
-                        <span className="text-sm font-medium opacity-80">kr/md</span>
-                      </p>
-                      <p className="mt-2 text-[11px] opacity-70">
-                        {planBilling === "yearly" ? "Faktureres én gang om året."
-                          : planBilling === "quarterly" ? "Faktureres hvert kvartal."
-                          : "Faktureres hver måned."}
-                      </p>
+                {/* Sidekort: stor pris-fremhævning (sticky på desktop) */}
+                <div className="lg:sticky lg:top-4 lg:self-start">
+                  <div className="overflow-hidden rounded-xl border border-foreground bg-foreground text-background shadow-md">
+                    <div className="flex h-full flex-col justify-between p-5">
+                      <div>
+                        <p className="text-[10.5px] font-semibold uppercase tracking-wider opacity-70">Du betaler</p>
+                        <p className="mt-2 flex items-baseline gap-1.5">
+                          <span className="text-4xl font-bold tabular-nums leading-none">
+                            {Math.round(priceBreakdown.monthlyAfterDiscount).toLocaleString("da-DK")}
+                          </span>
+                          <span className="text-sm font-medium opacity-80">kr/md</span>
+                        </p>
+                        <p className="mt-2 text-[11.5px] opacity-70">
+                          {planBilling === "yearly" ? "Faktureres én gang om året."
+                            : planBilling === "quarterly" ? "Faktureres hvert kvartal."
+                            : "Faktureres hver måned."}
+                        </p>
+                        {priceBreakdown.discountPct > 0 && (
+                          <p className="mt-2 text-[11px] opacity-70">
+                            <span className="line-through opacity-70">{Math.round(priceBreakdown.subtotal).toLocaleString("da-DK")} kr/md</span>
+                            <span className="ml-1.5 inline-flex items-center rounded-full bg-background/15 px-1.5 py-0.5 text-[10px] font-semibold">−{priceBreakdown.discountPct}%</span>
+                          </p>
+                        )}
+                      </div>
+                      {(plan?.status === "trialing" || plan?.status === "trial_ending") && (
+                        <p className="mt-4 rounded-md bg-background/10 px-2.5 py-1.5 text-[11px] opacity-90">
+                          Prisen opkræves først når din prøveperiode er slut.
+                        </p>
+                      )}
                     </div>
-                    {(plan?.status === "trialing" || plan?.status === "trial_ending") && (
-                      <p className="mt-4 rounded-md bg-background/10 px-2.5 py-1.5 text-[11px] opacity-90">
-                        Prisen opkræves først når din prøveperiode er slut.
-                      </p>
-                    )}
                   </div>
                 </div>
               </div>
@@ -1630,33 +1717,38 @@ const SettingsTab = ({ business }: { business: any }) => {
 
             {/* Aktivt kort — vis brand + last4, og lad brugeren fjerne det */}
             {plan?.has_payment_method && (
-              <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card">
-                <div className="flex flex-wrap items-center justify-between gap-3 p-4">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex h-11 w-16 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-foreground to-foreground/80 text-background text-[10px] font-bold uppercase tracking-wider shadow-sm">
-                      {plan.payment_brand || "Kort"}
+              <div className="mt-5">
+                <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Betalingsmetode</p>
+                <div className="overflow-hidden rounded-xl border border-border bg-card">
+                  <div className="flex flex-wrap items-center justify-between gap-3 p-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex h-11 w-16 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-foreground to-foreground/80 text-background text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                        {plan.payment_brand || "Kort"}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground tabular-nums">•••• {plan.payment_last4}</p>
+                        <p className="inline-flex items-center gap-1 text-[11px] text-success">
+                          <CheckCircle2 className="h-3 w-3" /> Aktivt — næste opkrævning sker automatisk
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-foreground tabular-nums">•••• {plan.payment_last4}</p>
-                      <p className="text-xs text-muted-foreground">Aktivt betalingskort</p>
-                    </div>
+                    <Button size="sm" variant="outline" onClick={openCustomerPortal} disabled={openingPortal}>
+                      {openingPortal ? "Åbner..." : "Administrér"}
+                    </Button>
                   </div>
-                  <Button size="sm" variant="outline" onClick={openCustomerPortal} disabled={openingPortal}>
-                    {openingPortal ? "Åbner..." : "Administrér"}
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between gap-3 border-t border-border bg-secondary/20 px-4 py-2.5">
-                  <p className="text-[11px] text-muted-foreground">
-                    Skift kort, se fakturaer eller opsig dit abonnement
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleRemoveCard}
-                    disabled={removeCard.isPending}
-                    className="text-[11px] font-medium text-muted-foreground hover:text-destructive transition-colors"
-                  >
-                    Fjern kort
-                  </button>
+                  <div className="flex items-center justify-between gap-3 border-t border-border bg-secondary/20 px-4 py-2.5">
+                    <p className="text-[11px] text-muted-foreground">
+                      Skift kort, se fakturaer eller opsig dit abonnement
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCard}
+                      disabled={removeCard.isPending}
+                      className="text-[11px] font-medium text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                      Fjern kort
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -1705,158 +1797,91 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* Avanceret */}
         <div id="settings-advanced" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard title="Tilvalg og ekstra funktioner" icon={<Settings />} description="Aktivér moduler som ruteplanlægger, livechat eller dataimport. Prisen opdateres automatisk under ”Pris og betaling” ovenfor.">
-            <div className="space-y-3">
-              <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                    <Route className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-baseline gap-2">
-                      <p className="text-sm font-semibold text-foreground">Ruteplanlægning</p>
-                      {pricing && (
-                        <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
-                          +{Math.round(pricing.price_route_planning_dkk).toLocaleString("da-DK")} kr/md
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Få adgang til medarbejder-konti og daglig ruteplanlægning. Læg stop på kort, lad AI'en optimere kørselsrækkefølgen ud fra afstand og tidsvinduer, og giv medarbejderne deres egen app med dagens rute.
-                    </p>
-                    <StatusPill
-                      active={routePlanningEnabled}
-                      activeLabel="Aktivt — ”Medarbejdere” og ”Ruter” er nu i menuen"
-                      inactiveLabel="Ikke aktivt — slå til for at få adgang til ruteplanlæggeren"
-                    />
-                  </div>
-                </div>
-                <ToggleSwitch checked={routePlanningEnabled} onChange={() => setRoutePlanningEnabled((v) => !v)} />
-              </div>
-
-              {/* Regnskabsprogram-integration — feature lanceres senere, men kan
-                  slås til/fra her, så virksomheder selv styrer adgangen. */}
-              <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                    <Calculator className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-foreground">Integration med regnskabsprogram</p>
-                      {pricing && (
-                        <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
-                          +{Math.round(pricing.price_accounting_integration_dkk).toLocaleString("da-DK")} kr/md
-                        </span>
-                      )}
+            {/* To-grupper: betalte tilvalg + gratis funktioner — luftigt og overskueligt */}
+            <div className="space-y-6">
+              <div>
+                <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Betalte tilvalg</p>
+                <div className="space-y-2.5">
+                  <FeatureRow
+                    icon={<Route />}
+                    title="Ruteplanlægning"
+                    priceLabel={pricing ? `+${Math.round(pricing.price_route_planning_dkk).toLocaleString("da-DK")} kr/md` : undefined}
+                    description="Få adgang til medarbejder-konti og daglig ruteplanlægning. Læg stop på kort, lad AI'en optimere kørselsrækkefølgen ud fra afstand og tidsvinduer, og giv medarbejderne deres egen app med dagens rute."
+                    active={routePlanningEnabled}
+                    activeLabel="Aktivt — ”Medarbejdere” og ”Ruter” er nu i menuen"
+                    inactiveLabel="Ikke aktivt — slå til for at få adgang til ruteplanlæggeren"
+                    onToggle={() => setRoutePlanningEnabled((v) => !v)}
+                  />
+                  <FeatureRow
+                    icon={<Calculator />}
+                    title="Integration med regnskabsprogram"
+                    priceLabel={pricing ? `+${Math.round(pricing.price_accounting_integration_dkk).toLocaleString("da-DK")} kr/md` : undefined}
+                    badge={
                       <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                         Kommer snart
                       </span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Send automatisk fakturaer og betalinger over i jeres regnskabsprogram (fx e-conomic, Dinero eller Billy), så I slipper for dobbelt indtastning. Funktionen er på vej — reservér jeres plads nu, så aktiverer vi den for jer, når den er klar.
-                    </p>
-                    <StatusPill
-                      active={accountingIntegrationEnabled}
-                      activeLabel="Reserveret — I får besked, så snart integrationen åbner"
-                      inactiveLabel="Ikke reserveret — slå til for at få plads i køen"
-                    />
-                  </div>
+                    }
+                    description="Send automatisk fakturaer og betalinger over i jeres regnskabsprogram (fx e-conomic, Dinero eller Billy), så I slipper for dobbelt indtastning. Funktionen er på vej — reservér jeres plads nu, så aktiverer vi den for jer, når den er klar."
+                    active={accountingIntegrationEnabled}
+                    activeLabel="Reserveret — I får besked, så snart integrationen åbner"
+                    inactiveLabel="Ikke reserveret — slå til for at få plads i køen"
+                    onToggle={() => setAccountingIntegrationEnabled((v) => !v)}
+                  />
                 </div>
-                <ToggleSwitch checked={accountingIntegrationEnabled} onChange={() => setAccountingIntegrationEnabled((v) => !v)} />
               </div>
 
-              {/* Leads — gratis valgfri funktion. Når slået til vises Leads-fanen
-                  i sidebar og virksomheden modtager match fra "Indhent 3 tilbud". */}
-              <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                    <Sparkles className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-foreground">Leads fra "Indhent 3 tilbud"</p>
-                      <span className="text-[11px] font-semibold text-muted-foreground">Gratis</span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Modtag kundeforespørgsler fra ”Indhent 3 tilbud”, der matcher jeres brancher og område. I bestemmer selv hvilke I byder på — der er ingen forpligtelse, og I betaler intet for at få dem.
-                    </p>
-                    <StatusPill
-                      active={leadsEnabled}
-                      activeLabel="Aktivt — ”Leads”-fanen er i menuen, og I modtager matches"
-                      inactiveLabel="Ikke aktivt — slå til for at begynde at modtage leads"
-                    />
-                  </div>
+              <div>
+                <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Gratis funktioner</p>
+                <div className="space-y-2.5">
+                  <FeatureRow
+                    icon={<Sparkles />}
+                    title="Leads fra ”Indhent 3 tilbud”"
+                    badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
+                    description="Modtag kundeforespørgsler fra ”Indhent 3 tilbud”, der matcher jeres brancher og område. I bestemmer selv hvilke I byder på — der er ingen forpligtelse, og I betaler intet for at få dem."
+                    active={leadsEnabled}
+                    activeLabel="Aktivt — ”Leads”-fanen er i menuen, og I modtager matches"
+                    inactiveLabel="Ikke aktivt — slå til for at begynde at modtage leads"
+                    onToggle={() => setLeadsEnabled((v) => !v)}
+                  />
+                  <FeatureRow
+                    icon={<UploadCloud />}
+                    title="Dataimport fra jeres nuværende system"
+                    badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
+                    description="Skifter I fra et andet system? Vi flytter jeres eksisterende kunder, services og abonnementer for jer — uden at I selv skal taste alt ind igen. Slå til, så ringer vores team for at aftale en flyttedato."
+                    active={!!plan?.data_import_requested}
+                    activeLabel="Anmodet — vores team kontakter jer snarest"
+                    inactiveLabel="Ikke anmodet — slå til for at få vores hjælp til flytningen"
+                    toggle={
+                      <ToggleSwitch
+                        checked={!!plan?.data_import_requested}
+                        onChange={() => {
+                          if (!plan?.id) return;
+                          const next = !plan.data_import_requested;
+                          updatePlan.mutate(
+                            { businessId: business.id, patch: { data_import_requested: next } },
+                            {
+                              onSuccess: () => {
+                                toast.success(next
+                                  ? "Dataimport anmodet — vi tager kontakt snarest."
+                                  : "Anmodning om dataimport fjernet.");
+                              },
+                            },
+                          );
+                        }}
+                      />
+                    }
+                  />
+                  <FeatureRow
+                    icon={<MessageCircle />}
+                    title="Livechat på virksomhedssiden"
+                    badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
+                    description="En lille chat-knap i hjørnet af jeres profilside, så besøgende kan stille spørgsmål uden at skulle ringe eller maile. I får besked på e-mail ved nye samtaler og svarer fra ”Livechat”-fanen."
+                    active={livechatEnabled}
+                    activeLabel="Aktivt — chat-knappen er synlig på jeres profilside"
+                    inactiveLabel="Ikke aktivt — slå til for at lade besøgende skrive til jer"
+                    onToggle={() => setLivechatEnabled((v) => !v)}
+                  />
                 </div>
-                <ToggleSwitch checked={leadsEnabled} onChange={() => setLeadsEnabled((v) => !v)} />
-              </div>
-
-              {/* Dataimport — gratis. Når slået til markerer vi
-                  business_plans.data_import_requested så vores team kan
-                  tage fat i flytning af kunder, services og abonnementer
-                  fra virksomhedens nuværende system. */}
-              <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                    <UploadCloud className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-foreground">Dataimport fra dit nuværende system</p>
-                      <span className="text-[11px] font-semibold text-muted-foreground">Gratis</span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Skifter I fra et andet system? Vi flytter jeres eksisterende kunder, services og abonnementer for jer — uden at I selv skal taste alt ind igen. Slå til, så ringer vores team for at aftale en flyttedato.
-                    </p>
-                    <StatusPill
-                      active={!!plan?.data_import_requested}
-                      activeLabel="Anmodet — vores team kontakter jer snarest"
-                      inactiveLabel="Ikke anmodet — slå til for at få vores hjælp til flytningen"
-                    />
-                  </div>
-                </div>
-                <ToggleSwitch
-                  checked={!!plan?.data_import_requested}
-                  onChange={() => {
-                    if (!plan?.id) return;
-                    const next = !plan.data_import_requested;
-                    updatePlan.mutate(
-                      { businessId: business.id, patch: { data_import_requested: next } },
-                      {
-                        onSuccess: () => {
-                          toast.success(next
-                            ? "Dataimport anmodet — vi tager kontakt snarest."
-                            : "Anmodning om dataimport fjernet.");
-                        },
-                      },
-                    );
-                  }}
-                />
-              </div>
-
-              {/* Livechat — gratis chat-widget på virksomhedssiden. Når slået
-                  til vises en chat-knap nederst i hjørnet på din offentlige
-                  side, og en "Livechat"-fane tilføjes til menuen her i panelet. */}
-              <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                    <MessageCircle className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-foreground">Livechat på virksomhedssiden</p>
-                      <span className="text-[11px] font-semibold text-muted-foreground">Gratis</span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      En lille chat-knap i hjørnet af jeres profilside, så besøgende kan stille spørgsmål uden at skulle ringe eller maile. I får besked på e-mail ved nye samtaler og svarer fra ”Livechat”-fanen.
-                    </p>
-                    <StatusPill
-                      active={livechatEnabled}
-                      activeLabel="Aktivt — chat-knappen er synlig på jeres profilside"
-                      inactiveLabel="Ikke aktivt — slå til for at lade besøgende skrive til jer"
-                    />
-                  </div>
-                </div>
-                <ToggleSwitch checked={livechatEnabled} onChange={() => setLivechatEnabled((v) => !v)} />
               </div>
             </div>
           </SectionCard>
