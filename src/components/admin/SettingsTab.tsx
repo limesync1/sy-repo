@@ -1020,12 +1020,26 @@ const SettingsTab = ({ business }: { business: any }) => {
             <div className="space-y-4">
               <div data-tour="field-company-name">
                 <FieldLabel>Virksomhedsnavn</FieldLabel>
-                <Input placeholder="Virksomhedsnavn" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-10 rounded-lg" />
+                <div className="relative">
+                  <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input placeholder="Fx Ready2Clean ApS" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-11 rounded-lg pl-9 text-[15px]" />
+                </div>
               </div>
               <div data-tour="field-company-description">
-                <FieldLabel>Beskrivelse</FieldLabel>
-                <Textarea placeholder="Skriv 2-4 sætninger om hvad I laver, hvor I gør det, og hvad der gør jer gode. Det her er det første kunderne læser." value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={500} className="bg-card rounded-lg" />
-                <p className="mt-1 text-xs text-muted-foreground">{description.length}/500 tegn</p>
+                <div className="flex items-center justify-between">
+                  <FieldLabel className="mb-0">Beskrivelse</FieldLabel>
+                  <span className={`text-[11px] tabular-nums ${description.length > 450 ? "text-amber-600" : "text-muted-foreground"}`}>
+                    {description.length}/500
+                  </span>
+                </div>
+                <Textarea
+                  placeholder="Skriv 2-4 sætninger om hvad I laver, hvor I gør det, og hvad der gør jer gode. Det her er det første kunderne læser."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={4}
+                  maxLength={500}
+                  className="mt-1.5 bg-card rounded-lg text-[14px] leading-relaxed resize-none"
+                />
               </div>
             </div>
           </SectionCard>
