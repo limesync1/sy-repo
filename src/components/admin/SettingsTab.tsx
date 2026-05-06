@@ -1088,11 +1088,19 @@ const SettingsTab = ({ business }: { business: any }) => {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div data-tour="field-phone">
                   <FieldLabel>Telefon</FieldLabel>
-                  <Input placeholder="12 34 56 78" value={phone} onChange={(e) => handlePhoneChange(e.target.value)} className="bg-card h-10 rounded-lg" type="tel" />
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <Contact className="h-4 w-4" />
+                    </span>
+                    <Input placeholder="12 34 56 78" value={phone} onChange={(e) => handlePhoneChange(e.target.value)} className="bg-card h-11 rounded-lg pl-9 text-[15px]" type="tel" />
+                  </div>
                 </div>
                 <div data-tour="field-email">
                   <FieldLabel>Email</FieldLabel>
-                  <Input placeholder="kontakt@virksomhed.dk" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-card h-10 rounded-lg" type="email" />
+                  <div className="relative">
+                    <Bell className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input placeholder="kontakt@virksomhed.dk" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-card h-11 rounded-lg pl-9 text-[15px]" type="email" />
+                  </div>
                 </div>
               </div>
               <div data-tour="field-address">
