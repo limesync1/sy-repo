@@ -1347,9 +1347,9 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* Notifikationer */}
         <div id="settings-notifications" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard
-            title="Notifikationer"
+            title="E-mail-beskeder til jer"
             icon={<Bell />}
-            description="Vælg hvad I vil have en e-mail om — fx når I får en ny ordre, en ny besked eller en ny anmeldelse."
+            description="Vælg hvilke e-mails I vil modtage — fx når der kommer en ny bestilling, en ny anmeldelse eller en ændring i et abonnement."
           >
             <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
               {([
