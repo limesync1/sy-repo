@@ -33,6 +33,8 @@ export const useCreateEmployee = () => {
       phone?: string;
       title?: string;
       commission_pct?: number;
+      employee_number?: string;
+      employee_group?: string;
     }) => {
       const { data, error } = await supabase.functions.invoke("create-employee", {
         body: {
@@ -42,6 +44,8 @@ export const useCreateEmployee = () => {
           phone: input.phone?.trim() || null,
           title: input.title?.trim() || null,
           commission_pct: typeof input.commission_pct === "number" ? input.commission_pct : 0,
+          employee_number: input.employee_number?.trim() || null,
+          employee_group: input.employee_group?.trim() || null,
         },
       });
       if (error) {

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   useEmployees, useCreateEmployee,
   useUpdateEmployee, useDeleteEmployee, useResetEmployeePassword,
@@ -12,15 +13,16 @@ import { toast } from "sonner";
 import {
   Mail, Phone, Briefcase, UserPlus, X,
   Trash2, Power, PowerOff, Pencil, KeyRound, Users, Percent, MessageCircle,
-  Wallet, TrendingUp,
+  Wallet, TrendingUp, ListChecks, MapPin, CheckCircle2, Clock, CalendarDays,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
 import { cn } from "@/lib/utils";
 import {
   startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear,
-  subMonths, format,
+  subMonths, format, parseISO,
 } from "date-fns";
+import { da } from "date-fns/locale";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
@@ -50,6 +52,8 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const [phone, setPhone] = useState("");
   const [title, setTitle] = useState("");
   const [commissionPct, setCommissionPct] = useState<string>("");
+  const [employeeNumber, setEmployeeNumber] = useState("");
+  const [employeeGroup, setEmployeeGroup] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "linked" | "pending">("all");
 
@@ -77,6 +81,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 
   const resetForm = () => {
     setName(""); setEmail(""); setPhone(""); setTitle(""); setCommissionPct("");
+    setEmployeeNumber(""); setEmployeeGroup("");
     setShowForm(false);
   };
 
@@ -91,7 +96,12 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
       return;
     }
     create.mutate(
-      { business_id: businessId, name, email, phone, title, commission_pct: pctNum },
+      {
+        business_id: businessId, name, email, phone, title,
+        commission_pct: pctNum,
+        employee_number: employeeNumber,
+        employee_group: employeeGroup,
+      },
       {
         onSuccess: ({ emailSent, accountAlreadyExisted }) => {
           const base = accountAlreadyExisted
@@ -319,6 +329,27 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   Andel af omsætningen for udførte opgaver. Lad være tom for 0 %.
                 </p>
               </div>
+              <div>
+                <FieldLabel>Medarbejder-nr.</FieldLabel>
+                <Input
+                  value={employeeNumber}
+                  onChange={(e) => setEmployeeNumber(e.target.value)}
+                  placeholder="Auto"
+                  className="h-10"
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Bruges når lønsystemet (fx Zenegy) er forbundet.
+                </p>
+              </div>
+              <div>
+                <FieldLabel>Medarbejdergruppe / afdeling</FieldLabel>
+                <Input
+                  value={employeeGroup}
+                  onChange={(e) => setEmployeeGroup(e.target.value)}
+                  placeholder="fx Service Øst"
+                  className="h-10"
+                />
+              </div>
             </div>
             <p className="text-xs text-muted-foreground">
               Der genereres automatisk en sikker adgangskode, og medarbejderen
@@ -445,6 +476,9 @@ const EmployeeRow = ({
     employee.commission_pct != null ? String(employee.commission_pct) : "0",
   );
   const [editLivechat, setEditLivechat] = useState<boolean>(!!(employee as any).livechat_enabled);
+  const [editEmployeeNumber, setEditEmployeeNumber] = useState<string>((employee as any).employee_number || "");
+  const [editEmployeeGroup, setEditEmployeeGroup] = useState<string>((employee as any).employee_group || "");
+  const [tasksOpen, setTasksOpen] = useState(false);
   const resetPw = useResetEmployeePassword();
   const fallbackColor = employee.color || "#64748b";
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -666,6 +700,12 @@ const EmployeeRow = ({
         {/* Handlinger — samme stil som kunder-rækken */}
         <div className="flex items-center justify-end gap-1 shrink-0">
           <Tooltip><TooltipTrigger asChild><button
+            onClick={() => setTasksOpen(true)}
+            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+          >
+            <ListChecks className="h-4 w-4" />
+          </button></TooltipTrigger><TooltipContent>Se opgaver</TooltipContent></Tooltip>
+          <Tooltip><TooltipTrigger asChild><button
             onClick={() => {
               setEditName(employee.name || "");
               setEditEmail(employee.email || "");
@@ -673,6 +713,8 @@ const EmployeeRow = ({
               setEditTitle(employee.title || "");
               setEditCommission(employee.commission_pct != null ? String(employee.commission_pct) : "0");
               setEditLivechat(!!(employee as any).livechat_enabled);
+              setEditEmployeeNumber((employee as any).employee_number || "");
+              setEditEmployeeGroup((employee as any).employee_group || "");
               setEditOpen(true);
             }}
             className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
@@ -829,6 +871,27 @@ const EmployeeRow = ({
                     />
                   </div>
                 </div>
+                <div>
+                  <FieldLabel>Medarbejder-nr.</FieldLabel>
+                  <Input
+                    value={editEmployeeNumber}
+                    onChange={(e) => setEditEmployeeNumber(e.target.value)}
+                    className="h-10"
+                    placeholder="Auto"
+                  />
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Bruges til synkronisering med lønsystem.
+                  </p>
+                </div>
+                <div>
+                  <FieldLabel>Medarbejdergruppe / afdeling</FieldLabel>
+                  <Input
+                    value={editEmployeeGroup}
+                    onChange={(e) => setEditEmployeeGroup(e.target.value)}
+                    className="h-10"
+                    placeholder="fx Service Øst"
+                  />
+                </div>
               </div>
             </section>
 
@@ -916,6 +979,8 @@ const EmployeeRow = ({
                     title: editTitle.trim() || null,
                     commission_pct: pctNum,
                     livechat_enabled: editLivechat,
+                    employee_number: editEmployeeNumber.trim() || null,
+                    employee_group: editEmployeeGroup.trim() || null,
                   } as any,
                   {
                     onSuccess: () => {
@@ -990,9 +1055,174 @@ const EmployeeRow = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <EmployeeTasksDialog
+        open={tasksOpen}
+        onOpenChange={setTasksOpen}
+        employeeId={employee.id}
+        employeeName={employee.name}
+      />
     </div>
     </TooltipProvider>
   );
 };
 
 export default EmployeesTab;
+
+/* ─── Opgaveoverblik pr. medarbejder ─────────────────────────────── */
+const EmployeeTasksDialog = ({
+  open, onOpenChange, employeeId, employeeName,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  employeeId: string;
+  employeeName: string;
+}) => {
+  const [tab, setTab] = useState<"upcoming" | "completed">("upcoming");
+
+  const { data: stops, isLoading } = useQuery({
+    queryKey: ["employee-tasks", employeeId],
+    enabled: open,
+    queryFn: async () => {
+      // Hent alle stops hvor medarbejderen er tildelt — enten via assigned_employee_id
+      // eller via route_stop_assignees (lead/team).
+      const [{ data: directRows }, { data: assigneeRows }] = await Promise.all([
+        supabase
+          .from("route_stops")
+          .select(`
+            id, status, planned_arrival, completed_at, address,
+            customer_name, service_summary, duration_minutes, sequence,
+            routes!inner ( id, name, scheduled_date )
+          `)
+          .eq("assigned_employee_id", employeeId)
+          .order("planned_arrival", { ascending: false })
+          .limit(200),
+        supabase
+          .from("route_stop_assignees")
+          .select(`
+            stop_id, is_lead,
+            route_stops!inner (
+              id, status, planned_arrival, completed_at, address,
+              customer_name, service_summary, duration_minutes, sequence,
+              routes!inner ( id, name, scheduled_date )
+            )
+          `)
+          .eq("employee_id", employeeId)
+          .limit(200),
+      ]);
+
+      const map = new Map<string, any>();
+      (directRows || []).forEach((r: any) => map.set(r.id, r));
+      (assigneeRows || []).forEach((row: any) => {
+        const s = row.route_stops;
+        if (s && !map.has(s.id)) map.set(s.id, s);
+      });
+      return Array.from(map.values());
+    },
+  });
+
+  const upcoming = (stops || [])
+    .filter((s) => s.status !== "completed" && s.status !== "skipped")
+    .sort((a, b) =>
+      String(a.planned_arrival || a.routes?.scheduled_date || "")
+        .localeCompare(String(b.planned_arrival || b.routes?.scheduled_date || ""))
+    );
+  const completed = (stops || [])
+    .filter((s) => s.status === "completed")
+    .sort((a, b) =>
+      String(b.completed_at || "").localeCompare(String(a.completed_at || ""))
+    );
+
+  const list = tab === "upcoming" ? upcoming : completed;
+
+  const fmtDateTime = (iso?: string | null) => {
+    if (!iso) return "—";
+    try { return format(parseISO(iso), "d. MMM yyyy 'kl.' HH:mm", { locale: da }); }
+    catch { return iso; }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden flex flex-col max-h-[85vh]">
+        <DialogHeader className="px-5 py-4 border-b">
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <ListChecks className="h-4 w-4 text-accent" />
+            Opgaver — {employeeName}
+          </DialogTitle>
+          <DialogDescription className="text-xs">
+            Overblik over hvilke stops medarbejderen er tildelt og hvilke der er udført.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="px-5 pt-3 pb-2 border-b bg-secondary/30">
+          <div className="inline-flex rounded-lg border bg-card p-0.5">
+            {([
+              { k: "upcoming",  label: `Planlagt (${upcoming.length})`,  icon: CalendarDays },
+              { k: "completed", label: `Udført (${completed.length})`,   icon: CheckCircle2 },
+            ] as const).map((t) => (
+              <button
+                key={t.k}
+                onClick={() => setTab(t.k)}
+                className={cn(
+                  "px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-colors",
+                  tab === t.k ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <t.icon className="h-3.5 w-3.5" /> {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {isLoading ? (
+            <div className="p-8 text-center text-sm text-muted-foreground">Henter opgaver…</div>
+          ) : list.length === 0 ? (
+            <div className="p-8 text-center text-sm text-muted-foreground">
+              {tab === "upcoming" ? "Ingen planlagte opgaver." : "Ingen udførte opgaver endnu."}
+            </div>
+          ) : (
+            <ul className="divide-y">
+              {list.map((s: any) => (
+                <li key={s.id} className="px-5 py-3 hover:bg-secondary/40 transition-colors">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {s.customer_name || s.service_summary || "Stop"}
+                      </p>
+                      {s.service_summary && s.customer_name && (
+                        <p className="text-xs text-muted-foreground truncate">{s.service_summary}</p>
+                      )}
+                      {s.address && (
+                        <p className="mt-0.5 text-[11px] text-muted-foreground flex items-center gap-1">
+                          <MapPin className="h-3 w-3" /> {s.address}
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-[11px] text-muted-foreground flex items-center gap-1 justify-end">
+                        <Clock className="h-3 w-3" />
+                        {tab === "completed"
+                          ? fmtDateTime(s.completed_at)
+                          : fmtDateTime(s.planned_arrival)}
+                      </p>
+                      {s.routes?.name && (
+                        <p className="text-[10px] text-muted-foreground mt-0.5 truncate max-w-[140px]">
+                          {s.routes.name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <DialogFooter className="px-5 py-3 border-t">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>Luk</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};

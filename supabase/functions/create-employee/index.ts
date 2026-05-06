@@ -46,6 +46,8 @@ Deno.serve(async (req) => {
   const email = String(body.email || '').trim().toLowerCase()
   const phone = body.phone ? String(body.phone).trim() : null
   const title = body.title ? String(body.title).trim() : null
+  const employeeNumber = body.employee_number ? String(body.employee_number).trim() : null
+  const employeeGroup = body.employee_group ? String(body.employee_group).trim() : null
   const commissionPctRaw = body.commission_pct
   let commissionPct = 0
   if (commissionPctRaw != null && commissionPctRaw !== '') {
@@ -159,6 +161,8 @@ Deno.serve(async (req) => {
       phone,
       title,
       commission_pct: commissionPct,
+      employee_number: employeeNumber,
+      employee_group: employeeGroup,
       home_address: homeAddress,
       home_latitude: homeLat,
       home_longitude: homeLng,
