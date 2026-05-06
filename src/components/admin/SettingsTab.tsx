@@ -1721,12 +1721,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                       )}
                     </div>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      Tilføjer "Medarbejdere"-fanen og giver adgang til ruteplanlæggeren — opret medarbejder-konti og planlæg daglige ruter med stop hos kunder. Kan optimeres med AI baseret på afstand, tidsvinduer og prioriteter.
+                      Få adgang til medarbejder-konti og daglig ruteplanlægning. Læg stop på kort, lad AI'en optimere kørselsrækkefølgen ud fra afstand og tidsvinduer, og giv medarbejderne deres egen app med dagens rute.
                     </p>
                     <StatusPill
                       active={routePlanningEnabled}
-                      activeLabel="Aktiveret — “Medarbejdere” og “Ruter” er tilføjet til menuen"
-                      inactiveLabel="Deaktiveret — slå til for at få adgang til ruteplanlæggeren"
+                      activeLabel="Aktivt — ”Medarbejdere” og ”Ruter” er nu i menuen"
+                      inactiveLabel="Ikke aktivt — slå til for at få adgang til ruteplanlæggeren"
                     />
                   </div>
                 </div>
@@ -1753,12 +1753,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                       </span>
                     </div>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      Forbind din konto med dit regnskabsprogram (fx e-conomic, Dinero eller Billy), så fakturaer og betalinger automatisk synkroniseres. Når funktionen er klar, aktiveres den automatisk for dig — du kan altid slå den fra igen her.
+                      Send automatisk fakturaer og betalinger over i jeres regnskabsprogram (fx e-conomic, Dinero eller Billy), så I slipper for dobbelt indtastning. Funktionen er på vej — reservér jeres plads nu, så aktiverer vi den for jer, når den er klar.
                     </p>
                     <StatusPill
                       active={accountingIntegrationEnabled}
-                      activeLabel="Aktiveret — vi giver dig besked så snart integrationen er klar"
-                      inactiveLabel="Deaktiveret — slå til for at reservere integrationen"
+                      activeLabel="Reserveret — I får besked, så snart integrationen åbner"
+                      inactiveLabel="Ikke reserveret — slå til for at få plads i køen"
                     />
                   </div>
                 </div>
@@ -1778,12 +1778,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                       <span className="text-[11px] font-semibold text-muted-foreground">Gratis</span>
                     </div>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      Når slået til vises Leads-fanen i din navigation, og du modtager automatisk relevante kundeforespørgsler fra "Indhent 3 tilbud" der matcher dine brancher og dit område. Du kan altid slå funktionen fra igen.
+                      Modtag kundeforespørgsler fra ”Indhent 3 tilbud”, der matcher jeres brancher og område. I bestemmer selv hvilke I byder på — der er ingen forpligtelse, og I betaler intet for at få dem.
                     </p>
                     <StatusPill
                       active={leadsEnabled}
-                      activeLabel="Aktiveret — “Leads” er tilføjet til menuen, og I modtager nye matches"
-                      inactiveLabel="Deaktiveret — slå til for at modtage lead-matches"
+                      activeLabel="Aktivt — ”Leads”-fanen er i menuen, og I modtager matches"
+                      inactiveLabel="Ikke aktivt — slå til for at begynde at modtage leads"
                     />
                   </div>
                 </div>
@@ -1805,12 +1805,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                       <span className="text-[11px] font-semibold text-muted-foreground">Gratis</span>
                     </div>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      Vi flytter eksisterende kunder, services og abonnementer fra dit gamle system, så du slipper for manuelt arbejde. Slå til, og vores team tager kontakt for at aftale flytningen.
+                      Skifter I fra et andet system? Vi flytter jeres eksisterende kunder, services og abonnementer for jer — uden at I selv skal taste alt ind igen. Slå til, så ringer vores team for at aftale en flyttedato.
                     </p>
                     <StatusPill
                       active={!!plan?.data_import_requested}
-                      activeLabel="Anmodet — vores team tager kontakt for at aftale flytningen"
-                      inactiveLabel="Ikke anmodet — slå til for at få hjælp til at flytte dine data"
+                      activeLabel="Anmodet — vores team kontakter jer snarest"
+                      inactiveLabel="Ikke anmodet — slå til for at få vores hjælp til flytningen"
                     />
                   </div>
                 </div>
@@ -1847,12 +1847,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                       <span className="text-[11px] font-semibold text-muted-foreground">Gratis</span>
                     </div>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      Når slået til vises en chat-knap nederst i hjørnet på din offentlige side, så besøgende kan skrive direkte til jer. Du modtager en email ved nye samtaler og svarer fra "Livechat"-fanen i menuen.
+                      En lille chat-knap i hjørnet af jeres profilside, så besøgende kan stille spørgsmål uden at skulle ringe eller maile. I får besked på e-mail ved nye samtaler og svarer fra ”Livechat”-fanen.
                     </p>
                     <StatusPill
                       active={livechatEnabled}
-                      activeLabel="Aktiveret — chat-knappen vises på din virksomhedsside"
-                      inactiveLabel="Deaktiveret — slå til for at lade besøgende skrive direkte til jer"
+                      activeLabel="Aktivt — chat-knappen er synlig på jeres profilside"
+                      inactiveLabel="Ikke aktivt — slå til for at lade besøgende skrive til jer"
                     />
                   </div>
                 </div>
