@@ -13,6 +13,10 @@ interface Props {
   businessId: string;
   upcomingHoursBefore: number;
   onUpcomingHoursChange: (hrs: number) => void;
+  smsEnabled: boolean;
+  smsSenderId: string;
+  onSmsEnabledChange: (v: boolean) => void;
+  onSmsSenderIdChange: (v: string) => void;
 }
 
 type EventKey = "service_upcoming" | "service_completed";
@@ -40,7 +44,15 @@ const EVENTS: { key: EventKey; label: string; help: string; defaults: { subject:
 
 const PLACEHOLDERS = ["customer_name", "business_name", "service_name", "planned_arrival"];
 
-export function CustomerNotificationsSettings({ businessId, upcomingHoursBefore, onUpcomingHoursChange }: Props) {
+const SMS_DEFAULTS: Record<EventKey, string> = {
+  service_upcoming: "Hej {{customer_name}}, vi kommer {{planned_arrival}} og udfører {{service_name}}. Mvh {{business_name}}",
+  service_completed: "Hej {{customer_name}}, vi har udført {{service_name}} i dag. Faktura sendes snarest. Mvh {{business_name}}",
+};
+
+export function CustomerNotificationsSettings({
+  businessId, upcomingHoursBefore, onUpcomingHoursChange,
+  smsEnabled, smsSenderId, onSmsEnabledChange, onSmsSenderIdChange,
+}: Props) {
   const qc = useQueryClient();
   const { data: rows, isLoading } = useQuery({
     queryKey: ["customer-notif-templates", businessId],
@@ -59,37 +71,70 @@ export function CustomerNotificationsSettings({ businessId, upcomingHoursBefore,
     EVENTS.forEach((e) => { obj[e.key] = { subject: e.defaults.subject, body: e.defaults.body, enabled: true }; });
     return obj;
   });
-  const [saving, setSaving] = useState<EventKey | null>(null);
+  const [smsDrafts, setSmsDrafts] = useState<Record<EventKey, { body: string; enabled: boolean }>>(() => {
+    const obj = {} as any;
+    EVENTS.forEach((e) => { obj[e.key] = { body: SMS_DEFAULTS[e.key], enabled: true }; });
+    return obj;
+  });
+  const [saving, setSaving] = useState<string | null>(null);
 
   useEffect(() => {
     if (!rows) return;
     setDrafts((prev) => {
       const next = { ...prev };
       for (const e of EVENTS) {
-        const existing = rows.find((r: any) => r.event_type === e.key);
+        const existing = rows.find((r: any) => r.event_type === e.key && (r.channel ?? "email") === "email");
         if (existing) {
           next[e.key] = { subject: existing.subject, body: existing.body, enabled: existing.enabled };
         }
       }
       return next;
     });
+    setSmsDrafts((prev) => {
+      const next = { ...prev };
+      for (const e of EVENTS) {
+        const existing = rows.find((r: any) => r.event_type === e.key && r.channel === "sms");
+        if (existing) next[e.key] = { body: existing.body, enabled: existing.enabled };
+      }
+      return next;
+    });
   }, [rows]);
 
   const save = async (key: EventKey) => {
-    setSaving(key);
+    setSaving(`email-${key}`);
     const d = drafts[key];
     const { error } = await supabase
       .from("customer_notification_templates")
       .upsert({
         business_id: businessId,
         event_type: key,
+        channel: "email",
         subject: d.subject,
         body: d.body,
         enabled: d.enabled,
-      }, { onConflict: "business_id,event_type" });
+      }, { onConflict: "business_id,event_type,channel" });
     setSaving(null);
     if (error) { toast.error(error.message); return; }
     toast.success("Skabelon gemt");
+    qc.invalidateQueries({ queryKey: ["customer-notif-templates", businessId] });
+  };
+
+  const saveSms = async (key: EventKey) => {
+    setSaving(`sms-${key}`);
+    const d = smsDrafts[key];
+    const { error } = await supabase
+      .from("customer_notification_templates")
+      .upsert({
+        business_id: businessId,
+        event_type: key,
+        channel: "sms",
+        subject: null,
+        body: d.body,
+        enabled: d.enabled,
+      }, { onConflict: "business_id,event_type,channel" });
+    setSaving(null);
+    if (error) { toast.error(error.message); return; }
+    toast.success("SMS-skabelon gemt");
     qc.invalidateQueries({ queryKey: ["customer-notif-templates", businessId] });
   };
 
@@ -112,6 +157,30 @@ export function CustomerNotificationsSettings({ businessId, upcomingHoursBefore,
         </div>
       </div>
 
+      <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <Label className="text-sm font-medium">SMS til kunder</Label>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Send SMS-påmindelser via et alfanumerisk afsendernavn (fx jeres firmanavn). Maks 11 tegn — kun bogstaver,
+              tal og mellemrum. Kunden kan ikke svare tilbage på SMS'er med afsendernavn.
+            </p>
+          </div>
+          <Switch checked={smsEnabled} onCheckedChange={onSmsEnabledChange} />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-xs">Afsendernavn (vises hos kunden)</Label>
+          <Input
+            value={smsSenderId}
+            maxLength={11}
+            placeholder="Fx Rens-A/S"
+            onChange={(e) => onSmsSenderIdChange(e.target.value.replace(/[^A-Za-z0-9 ]/g, "").slice(0, 11))}
+            disabled={!smsEnabled}
+          />
+          <p className="text-xs text-muted-foreground">{smsSenderId.length}/11 tegn</p>
+        </div>
+      </div>
+
       <div className="rounded-lg border border-dashed border-border bg-muted/30 p-3 text-xs text-muted-foreground">
         <p className="font-medium text-foreground">Tilgængelige pladsholdere</p>
         <p className="mt-1">{PLACEHOLDERS.map((p) => `{{${p}}}`).join("  ·  ")}</p>
@@ -129,6 +198,7 @@ export function CustomerNotificationsSettings({ businessId, upcomingHoursBefore,
               onCheckedChange={(v) => setDrafts((p) => ({ ...p, [e.key]: { ...p[e.key], enabled: v } }))}
             />
           </div>
+          <p className="text-xs font-medium text-foreground">E-mail</p>
           <div className="space-y-2">
             <Label className="text-xs">Emne</Label>
             <Input
@@ -145,10 +215,35 @@ export function CustomerNotificationsSettings({ businessId, upcomingHoursBefore,
             />
           </div>
           <div className="flex justify-end">
-            <Button size="sm" onClick={() => save(e.key)} disabled={saving === e.key}>
-              {saving === e.key ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
-              Gem skabelon
+            <Button size="sm" onClick={() => save(e.key)} disabled={saving === `email-${e.key}`}>
+              {saving === `email-${e.key}` ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
+              Gem e-mail
             </Button>
+          </div>
+
+          <div className="border-t border-border pt-3 mt-2 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-xs font-medium text-foreground">SMS {smsEnabled ? "" : <span className="text-muted-foreground font-normal">(slå SMS til ovenfor for at aktivere)</span>}</p>
+              <Switch
+                checked={smsDrafts[e.key].enabled}
+                disabled={!smsEnabled}
+                onCheckedChange={(v) => setSmsDrafts((p) => ({ ...p, [e.key]: { ...p[e.key], enabled: v } }))}
+              />
+            </div>
+            <Textarea
+              rows={3}
+              value={smsDrafts[e.key].body}
+              disabled={!smsEnabled}
+              maxLength={459}
+              onChange={(ev) => setSmsDrafts((p) => ({ ...p, [e.key]: { ...p[e.key], body: ev.target.value } }))}
+            />
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">{smsDrafts[e.key].body.length} tegn (1 SMS = op til 160)</p>
+              <Button size="sm" variant="outline" disabled={!smsEnabled || saving === `sms-${e.key}`} onClick={() => saveSms(e.key)}>
+                {saving === `sms-${e.key}` ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
+                Gem SMS
+              </Button>
+            </div>
           </div>
         </div>
       ))}
