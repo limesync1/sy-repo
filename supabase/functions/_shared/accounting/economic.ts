@@ -16,6 +16,23 @@ import type {
 
 const BASE = "https://restapi.e-conomic.com";
 
+/**
+ * Maps Serviceydere vat_zone values to e-conomic vatZoneNumber.
+ * E-conomic standard: 1 = indland, 2 = EU, 3 = eksport (3. land), 4 = momsfri.
+ */
+function vatZoneToEconomic(zone?: string | null): number {
+  switch ((zone ?? "").toLowerCase()) {
+    case "eu": return 2;
+    case "export":
+    case "eksport": return 3;
+    case "exempt":
+    case "momsfri": return 4;
+    case "domestic":
+    case "indland":
+    default: return 1;
+  }
+}
+
 function makeHeaders(creds: AccountingCredentials): HeadersInit {
   return {
     "X-AppSecretToken": creds.api_secret ?? "",
