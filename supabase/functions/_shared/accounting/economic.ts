@@ -16,6 +16,23 @@ import type {
 
 const BASE = "https://restapi.e-conomic.com";
 
+/**
+ * Maps Serviceydere vat_zone values to e-conomic vatZoneNumber.
+ * E-conomic standard: 1 = indland, 2 = EU, 3 = eksport (3. land), 4 = momsfri.
+ */
+function vatZoneToEconomic(zone?: string | null): number {
+  switch ((zone ?? "").toLowerCase()) {
+    case "eu": return 2;
+    case "export":
+    case "eksport": return 3;
+    case "exempt":
+    case "momsfri": return 4;
+    case "domestic":
+    case "indland":
+    default: return 1;
+  }
+}
+
 function makeHeaders(creds: AccountingCredentials): HeadersInit {
   return {
     "X-AppSecretToken": creds.api_secret ?? "",
@@ -172,13 +189,21 @@ export function makeEconomicAdapter(
         city: clean(input.city),
         country: "Danmark",
         currency: input.currency ?? "DKK",
-        customerGroup: { customerGroupNumber: Number(settings.default_customer_group ?? 1) },
+        customerGroup: {
+          customerGroupNumber: Number(input.customer_group ?? settings.default_customer_group ?? 1),
+        },
         paymentTerms: {
           paymentTermsNumber: 1,
           daysOfCredit: input.payment_terms_days ?? settings.default_payment_terms_days ?? 14,
         },
-        vatZone: { vatZoneNumber: 1 },
+        vatZone: { vatZoneNumber: vatZoneToEconomic(input.vat_zone) },
+        barred: input.is_blocked === true ? true : undefined,
       };
+
+      // Brug eksplicit kundenummer ved oprettelse hvis brugeren har angivet et
+      if (!input.external_id && input.customer_number && /^\d+$/.test(input.customer_number)) {
+        (body as any).customerNumber = Number(input.customer_number);
+      }
 
       // Fjern undefined nøgler så vi ikke sender dem (e-conomic er pedantisk)
       for (const k of Object.keys(body)) if (body[k] === undefined) delete body[k];

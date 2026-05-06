@@ -513,7 +513,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     setEditDialogOpen(true);
   };
 
-  const openEditDialog = (c: Customer) => {
+  const openEditDialog = async (c: Customer) => {
     if (!c.saved_id || !c.type || c.type === "unknown") {
       // Tillad redigering også af ikke-gemte (fra ordrer) — opret ny kartotek-entry
       setEditing({
@@ -531,6 +531,13 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         avatar_url: c.avatar_url ?? null,
       });
     } else {
+      // Hent fulde regnskabsfelter direkte fra kartoteket
+      const table = c.type === "business" ? "business_customers" : "private_customers";
+      const { data: full } = await supabase
+        .from(table as any)
+        .select("*")
+        .eq("id", c.saved_id)
+        .maybeSingle();
       setEditing({
         id: c.saved_id,
         type: c.type,
@@ -545,6 +552,12 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         city: c.city,
         notes: c.notes,
         avatar_url: c.avatar_url ?? null,
+        customer_number: (full as any)?.customer_number ?? null,
+        customer_group: (full as any)?.customer_group ?? null,
+        vat_zone: (full as any)?.vat_zone ?? null,
+        is_blocked: (full as any)?.is_blocked ?? false,
+        payment_terms_days: (full as any)?.payment_terms_days ?? null,
+        ean_number: (full as any)?.ean_number ?? null,
       });
     }
     setEditDialogOpen(true);

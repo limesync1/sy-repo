@@ -75,6 +75,10 @@ export interface UpsertCustomerInput {
   payment_terms_days?: number | null;
   currency?: string | null;
   external_id?: string | null; // existing link, if any
+  customer_number?: string | null;
+  customer_group?: string | null;
+  vat_zone?: string | null;
+  is_blocked?: boolean | null;
 }
 
 export interface UpsertProductInput {

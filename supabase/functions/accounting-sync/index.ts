@@ -735,12 +735,16 @@ async function pushCustomer(admin: SupabaseClient, integ: Integration, adapter: 
     email: row.email,
     phone: row.phone,
     cvr: table === "business_customers" ? row.cvr : null,
-    ean: table === "business_customers" ? row.ean_number : null,
+    ean: row.ean_number ?? null,
     address: row.address,
     zip_code: row.zip_code,
     city: row.city,
     payment_terms_days: row.payment_terms_days,
     currency: row.currency,
+    customer_number: row.customer_number ?? null,
+    customer_group: row.customer_group ?? null,
+    vat_zone: row.vat_zone ?? null,
+    is_blocked: row.is_blocked ?? false,
   } as const;
 
   // Felt-diff: send kun ændrede felter ved opdatering så vi ikke
@@ -771,6 +775,10 @@ async function pushCustomer(admin: SupabaseClient, integ: Integration, adapter: 
     city: (changed as any).city,
     payment_terms_days: (changed as any).payment_terms_days,
     currency: (changed as any).currency,
+    customer_number: (changed as any).customer_number ?? fullPayload.customer_number,
+    customer_group: (changed as any).customer_group ?? fullPayload.customer_group,
+    vat_zone: (changed as any).vat_zone ?? fullPayload.vat_zone,
+    is_blocked: (changed as any).is_blocked ?? fullPayload.is_blocked,
     external_id: existingLink?.external_id,
   });
   await upsertCustomerLink(
