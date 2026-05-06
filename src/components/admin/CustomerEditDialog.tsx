@@ -396,6 +396,59 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
               <Label className="text-xs">Interne noter</Label>
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value.slice(0, 1000))} rows={2} placeholder="Fx kode til hoveddør, særlige aftaler…" className="bg-background resize-none" />
             </div>
+
+            {/* Regnskabs-felter */}
+            <div className="rounded-lg border bg-card p-3 space-y-3">
+              <p className="text-xs font-medium text-foreground">Regnskab & fakturering</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Kunde-nr.</Label>
+                  <Input value={customerNumber} onChange={(e) => setCustomerNumber(e.target.value)} placeholder="Auto" className="h-9" />
+                </div>
+                <div>
+                  <Label className="text-xs">Betalingsbetingelse (dage)</Label>
+                  <Input type="number" min="0" value={paymentTermsDays} onChange={(e) => setPaymentTermsDays(e.target.value)} placeholder="14" className="h-9" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Momszone</Label>
+                  <Select value={vatZone} onValueChange={setVatZone}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="domestic">Indland</SelectItem>
+                      <SelectItem value="eu">EU</SelectItem>
+                      <SelectItem value="export">Eksport (3. land)</SelectItem>
+                      <SelectItem value="exempt">Momsfri</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">EAN-nummer</Label>
+                  <Input value={eanNumber} onChange={(e) => setEanNumber(e.target.value)} placeholder="5790000000000" className="h-9" />
+                </div>
+              </div>
+              {customerGroups.length > 0 && (
+                <div>
+                  <Label className="text-xs">{groupsLabel}</Label>
+                  <Select value={customerGroup} onValueChange={setCustomerGroup}>
+                    <SelectTrigger className="h-9"><SelectValue placeholder="Vælg gruppe" /></SelectTrigger>
+                    <SelectContent>
+                      {customerGroups.map(g => (
+                        <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <div className="flex items-center justify-between rounded-md border bg-background p-2.5">
+                <div>
+                  <p className="text-xs font-medium">Spær for fakturering</p>
+                  <p className="text-[11px] text-muted-foreground">Når aktiveret kan kunden ikke faktureres.</p>
+                </div>
+                <Switch checked={isBlocked} onCheckedChange={setIsBlocked} />
+              </div>
+            </div>
           </div>
 
           <DialogFooter className="px-5 py-3 border-t shrink-0 gap-2 sm:gap-2 flex-row sm:justify-between">
