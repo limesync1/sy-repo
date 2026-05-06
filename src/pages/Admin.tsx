@@ -683,7 +683,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
         <div className="hidden" />
       )}
 
-      <div className="space-y-3" data-tour="services-list">
+      <div className="space-y-2" data-tour="services-list">
         {filtered?.map((s: any) => (
           <ServiceRow
             key={s.id}
