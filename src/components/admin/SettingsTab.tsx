@@ -1301,6 +1301,21 @@ const SettingsTab = ({ business }: { business: any }) => {
           </SectionCard>
         </div>
 
+        {/* Kunde-notifikationer */}
+        <div id="settings-customer-notifications" className="scroll-mt-6">
+          <SectionCard
+            title="Kunde-notifikationer"
+            icon={<MessageCircle />}
+            description="Automatiske e-mails til jeres kunder — fx ‘Vi kommer i morgen’ og ‘Vi har udført aftalen’. Rediger emne og tekst, eller slå dem fra."
+          >
+            <CustomerNotificationsSettings
+              businessId={business.id}
+              upcomingHoursBefore={customerNotifUpcomingHours}
+              onUpcomingHoursChange={setCustomerNotifUpcomingHours}
+            />
+          </SectionCard>
+        </div>
+
         {/* Fakturering */}
         <div id="settings-billing" className="scroll-mt-6">
           <SectionCard
