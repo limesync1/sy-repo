@@ -880,6 +880,11 @@ const SettingsTab = ({ business }: { business: any }) => {
               <button
                 key={id}
                 type="button"
+                ref={(el) => {
+                  if (el && activeSection === id) {
+                    el.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+                  }
+                }}
                 onClick={() => scrollToSection(id)}
                 className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 ${
                   activeSection === id
