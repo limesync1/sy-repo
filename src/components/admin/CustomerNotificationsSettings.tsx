@@ -662,37 +662,16 @@ export function CustomerNotificationsSettings({
 
         {/* Right editor */}
         <div className="overflow-hidden rounded-xl border border-border bg-card">
-          {/* Header */}
-          <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/40 px-5 py-3">
+          {/* Header — ren titel + beskrivelse. Kanal-toggles findes på hver fane
+              for at undgå at samme knap forsøger at styre to ting på én gang. */}
+          <div className="flex items-start gap-3 border-b border-border bg-muted/40 px-5 py-3">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background text-foreground">
+              <event.Icon className="h-4 w-4" />
+            </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <event.Icon className="h-4 w-4 text-muted-foreground" />
-                <p className="text-sm font-semibold text-foreground">{event.label}</p>
-              </div>
+              <p className="text-sm font-semibold text-foreground">{event.label}</p>
               <p className="mt-0.5 text-[11px] text-muted-foreground">{event.help}</p>
             </div>
-            {(() => {
-              const anyOn = drafts[activeEvent].enabled || (smsEnabled && smsDrafts[activeEvent].enabled);
-              return (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
-                    setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
-                  }}
-                  title="Slår både e-mail og SMS til eller fra på én gang"
-                  className={cn(
-                    "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors",
-                    anyOn
-                      ? "border-border bg-background text-muted-foreground hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
-                      : "border-foreground bg-foreground text-background hover:bg-foreground/90",
-                  )}
-                >
-                  <Power className="h-3 w-3" />
-                  {anyOn ? "Slå alle beskeder fra" : "Slå alle beskeder til"}
-                </button>
-              );
-            })()}
           </div>
 
           {/* Channel tabs */}
