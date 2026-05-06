@@ -1010,15 +1010,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       {/* ─── Hovedindhold: 1-kolonne (sidebar håndterer navigation) ─── */}
       <div className="grid gap-5">
         {/* ── Gruppe: Profil ── */}
-        <div className="flex items-center gap-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
-            <Building2 className="h-3.5 w-3.5" />
-          </div>
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Profil</p>
-            <p className="text-[13px] text-muted-foreground">Hvordan I præsenterer jer for kunderne</p>
-          </div>
-        </div>
+        <GroupHeader icon={<Building2 />} title="Profil" hint="Hvordan I præsenterer jer for kunderne" />
 
         {/* Generelt — kun navn + beskrivelse */}
         <div id="settings-general" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
@@ -1371,15 +1363,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* ── Gruppe: Beskeder ── */}
-        <div className="mt-3 flex items-center gap-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
-            <Bell className="h-3.5 w-3.5" />
-          </div>
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Beskeder</p>
-            <p className="text-[13px] text-muted-foreground">Hvad I og jeres kunder modtager besked om</p>
-          </div>
-        </div>
+        <GroupHeader icon={<Bell />} title="Beskeder" hint="Hvad I og jeres kunder modtager besked om" />
 
         {/* Notifikationer */}
         <div id="settings-notifications" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
@@ -1446,15 +1430,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* ── Gruppe: Konto ── */}
-        <div className="mt-3 flex items-center gap-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
-            <CreditCard className="h-3.5 w-3.5" />
-          </div>
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Konto</p>
-            <p className="text-[13px] text-muted-foreground">Pris, betaling og ekstra funktioner</p>
-          </div>
-        </div>
+        <GroupHeader icon={<CreditCard />} title="Konto" hint="Pris, betaling og ekstra funktioner" />
 
         {/* Fakturering */}
         <div id="settings-billing" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
