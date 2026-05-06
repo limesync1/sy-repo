@@ -1137,7 +1137,7 @@ const EmployeeTasksDialog = ({
 
   const fmtDateTime = (iso?: string | null) => {
     if (!iso) return "—";
-    try { return fmtDate(parseISO(iso), "d. MMM yyyy 'kl.' HH:mm", { locale: da }); }
+    try { return format(parseISO(iso), "d. MMM yyyy 'kl.' HH:mm", { locale: da }); }
     catch { return iso; }
   };
 
