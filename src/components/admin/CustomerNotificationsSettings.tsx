@@ -397,7 +397,7 @@ export function CustomerNotificationsSettings({
 
   const [activeEvent, setActiveEvent] = useState<EventKey>("service_upcoming");
   const [channelTab, setChannelTab] = useState<"email" | "sms">("email");
-  const [saving, setSaving] = useState<string | null>(null);
+  // Auto-save state — vi gemmer i baggrunden uden knapper.
 
   useEffect(() => {
     if (!rows) return;
@@ -471,7 +471,7 @@ export function CustomerNotificationsSettings({
   const exampleBizPhone = businessInfo?.phone?.trim() || EXAMPLE_VARS.telefon;
   const emailDirty = isEmailDirty(activeEvent);
   const smsDirty = isSmsDirty(activeEvent);
-  const anyDirty = EVENTS.some((e) => isEmailDirty(e.key) || isSmsDirty(e.key));
+  // (status vises inline pr. kanal længere nede)
 
   // Auto-gem (debounced) når brugeren ændrer noget. Vi kører pr. event/kanal
   // hver gang den specifikke draft adskiller sig fra det gemte snapshot,
