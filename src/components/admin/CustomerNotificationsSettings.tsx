@@ -13,8 +13,8 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   businessId: string;
-  upcomingHoursBefore: number;
-  onUpcomingHoursChange: (hrs: number) => void;
+  upcomingMinutesBefore: number;
+  onUpcomingMinutesChange: (mins: number) => void;
   smsEnabled: boolean;
   onSmsEnabledChange: (v: boolean) => void;
 }
@@ -361,7 +361,7 @@ function useInsertAtCursor<T extends HTMLInputElement | HTMLTextAreaElement>(
 /* ─────────────────────── MAIN ─────────────────────── */
 
 export function CustomerNotificationsSettings({
-  businessId, upcomingHoursBefore, onUpcomingHoursChange,
+  businessId, upcomingMinutesBefore, onUpcomingMinutesChange,
   smsEnabled, onSmsEnabledChange,
 }: Props) {
   const qc = useQueryClient();
@@ -397,7 +397,7 @@ export function CustomerNotificationsSettings({
 
   const [activeEvent, setActiveEvent] = useState<EventKey>("service_upcoming");
   const [channelTab, setChannelTab] = useState<"email" | "sms">("email");
-  const [saving, setSaving] = useState<string | null>(null);
+  // Auto-save state — vi gemmer i baggrunden uden knapper.
 
   useEffect(() => {
     if (!rows) return;
@@ -426,40 +426,30 @@ export function CustomerNotificationsSettings({
     return a.body !== b.body || a.enabled !== b.enabled || a.leadMinutes !== b.leadMinutes;
   };
 
-  const save = async (key: EventKey) => {
-    setSaving(`email-${key}`);
-    const d = drafts[key];
+  const saveEmailNow = async (key: EventKey, d: { subject: string; body: string; enabled: boolean; leadMinutes: number | null }) => {
     const { error } = await supabase
       .from("customer_notification_templates")
       .upsert({ business_id: businessId, event_type: key, channel: "email",
         subject: d.subject, body: d.body, enabled: d.enabled, lead_time_minutes: d.leadMinutes }, { onConflict: "business_id,event_type,channel" });
-    setSaving(null);
     if (error) { toast.error(error.message); return; }
-    toast.success("E-mail gemt");
     setSavedSnapshot((s) => ({ email: { ...(s?.email ?? drafts), [key]: d }, sms: s?.sms ?? smsDrafts }));
-    qc.invalidateQueries({ queryKey: ["customer-notif-templates", businessId] });
   };
 
-  const saveSms = async (key: EventKey) => {
-    setSaving(`sms-${key}`);
-    const d = smsDrafts[key];
+  const saveSmsNow = async (key: EventKey, d: { body: string; enabled: boolean; leadMinutes: number | null }) => {
     const { error } = await supabase
       .from("customer_notification_templates")
       .upsert({ business_id: businessId, event_type: key, channel: "sms",
         subject: null, body: d.body, enabled: d.enabled, lead_time_minutes: d.leadMinutes }, { onConflict: "business_id,event_type,channel" });
-    setSaving(null);
     if (error) { toast.error(error.message); return; }
-    toast.success("SMS gemt");
     setSavedSnapshot((s) => ({ email: s?.email ?? drafts, sms: { ...(s?.sms ?? smsDrafts), [key]: d } }));
-    qc.invalidateQueries({ queryKey: ["customer-notif-templates", businessId] });
   };
 
   const resetEmail = (key: EventKey) => {
     const ev = EVENTS.find((e) => e.key === key)!;
-    setDrafts((p) => ({ ...p, [key]: { subject: ev.defaults.subject, body: ev.defaults.body, enabled: p[key].enabled } }));
+    setDrafts((p) => ({ ...p, [key]: { subject: ev.defaults.subject, body: ev.defaults.body, enabled: p[key].enabled, leadMinutes: p[key].leadMinutes } }));
   };
   const resetSms = (key: EventKey) => {
-    setSmsDrafts((p) => ({ ...p, [key]: { body: SMS_DEFAULTS[key], enabled: p[key].enabled } }));
+    setSmsDrafts((p) => ({ ...p, [key]: { body: SMS_DEFAULTS[key], enabled: p[key].enabled, leadMinutes: p[key].leadMinutes } }));
   };
 
   // Cursor-aware inserts for active editor
@@ -481,18 +471,22 @@ export function CustomerNotificationsSettings({
   const exampleBizPhone = businessInfo?.phone?.trim() || EXAMPLE_VARS.telefon;
   const emailDirty = isEmailDirty(activeEvent);
   const smsDirty = isSmsDirty(activeEvent);
-  const anyDirty = EVENTS.some((e) => isEmailDirty(e.key) || isSmsDirty(e.key));
+  // (status vises inline pr. kanal længere nede)
 
-  // Advar hvis brugeren forlader siden med ugemte ændringer
+  // Auto-gem (debounced) når brugeren ændrer noget. Vi kører pr. event/kanal
+  // hver gang den specifikke draft adskiller sig fra det gemte snapshot,
+  // så hver besked gemmer uafhængigt og ingen "Gem"-knap er nødvendig.
   useEffect(() => {
-    if (!anyDirty) return;
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [anyDirty]);
+    if (!savedSnapshot) return;
+    const t = setTimeout(() => {
+      EVENTS.forEach((e) => {
+        if (isEmailDirty(e.key)) saveEmailNow(e.key, drafts[e.key]);
+        if (isSmsDirty(e.key))   saveSmsNow(e.key, smsDrafts[e.key]);
+      });
+    }, 700);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drafts, smsDrafts, savedSnapshot]);
 
   if (isLoading) {
     return <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
@@ -515,25 +509,17 @@ export function CustomerNotificationsSettings({
                 Bruges som udgangspunkt for alle påmindelser. I kan altid vælge en anden tid for hver enkelt e-mail og SMS længere nede.
               </p>
               <p className="mt-2 text-[12px] text-foreground">
-                Sender påmindelser <span className="font-semibold">{formatLead(upcomingHoursBefore * 60)}</span> før det planlagte besøg.
+                Sender påmindelser <span className="font-semibold">{formatLead(upcomingMinutesBefore)}</span> før det planlagte besøg.
               </p>
-              {/* Presets (i timer) */}
+              {/* Presets */}
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {[
-                  { label: "1 time", h: 1 },
-                  { label: "2 timer", h: 2 },
-                  { label: "4 timer", h: 4 },
-                  { label: "12 timer", h: 12 },
-                  { label: "1 dag", h: 24 },
-                  { label: "2 dage", h: 48 },
-                  { label: "1 uge", h: 168 },
-                ].map((p) => {
-                  const active = upcomingHoursBefore === p.h;
+                {LEAD_PRESETS.map((p) => {
+                  const active = upcomingMinutesBefore === p.minutes;
                   return (
                     <button
-                      key={p.h}
+                      key={p.minutes}
                       type="button"
-                      onClick={() => onUpcomingHoursChange(p.h)}
+                      onClick={() => onUpcomingMinutesChange(p.minutes)}
                       className={cn(
                         "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
                         active
@@ -546,32 +532,30 @@ export function CustomerNotificationsSettings({
                   );
                 })}
               </div>
-              {/* Brugerdefineret */}
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <label className="flex flex-col gap-1">
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Dage</span>
-                  <Input
-                    type="number" min={0} max={7} className="h-9"
-                    value={Math.floor(upcomingHoursBefore / 24)}
-                    onChange={(e) => {
-                      const d = Math.max(0, Math.min(7, Number(e.target.value) || 0));
-                      const h = upcomingHoursBefore % 24;
-                      onUpcomingHoursChange(Math.max(1, Math.min(168, d * 24 + h)));
-                    }}
-                  />
-                </label>
-                <label className="flex flex-col gap-1">
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Timer</span>
-                  <Input
-                    type="number" min={0} max={23} className="h-9"
-                    value={upcomingHoursBefore % 24}
-                    onChange={(e) => {
-                      const h = Math.max(0, Math.min(23, Number(e.target.value) || 0));
-                      const d = Math.floor(upcomingHoursBefore / 24);
-                      onUpcomingHoursChange(Math.max(1, Math.min(168, d * 24 + h)));
-                    }}
-                  />
-                </label>
+              {/* Brugerdefineret: dage / timer / minutter */}
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {(() => {
+                  const parts = minutesToParts(upcomingMinutesBefore);
+                  const setPart = (k: "d" | "h" | "m", v: number) => {
+                    const max = k === "m" ? 59 : k === "h" ? 23 : 30;
+                    const next = { ...parts, [k]: Math.max(0, Math.min(max, Number.isFinite(v) ? v : 0)) };
+                    onUpcomingMinutesChange(Math.max(1, partsToMinutes(next)));
+                  };
+                  return ([
+                    { k: "d" as const, label: "Dage", max: 30 },
+                    { k: "h" as const, label: "Timer", max: 23 },
+                    { k: "m" as const, label: "Min", max: 59 },
+                  ]).map((f) => (
+                    <label key={f.k} className="flex flex-col gap-1">
+                      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{f.label}</span>
+                      <Input
+                        type="number" min={0} max={f.max} className="h-9"
+                        value={parts[f.k]}
+                        onChange={(e) => setPart(f.k, Number(e.target.value))}
+                      />
+                    </label>
+                  ));
+                })()}
               </div>
             </div>
           </div>
@@ -641,7 +625,7 @@ export function CustomerNotificationsSettings({
                     {e.key === "service_upcoming" && (
                       <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground" title="Hvornår beskederne sendes før besøget">
                         <AlarmClock className="h-2.5 w-2.5" />
-                        {formatLead(drafts[e.key].leadMinutes ?? upcomingHoursBefore * 60)}
+                        {formatLead(drafts[e.key].leadMinutes ?? upcomingMinutesBefore)}
                       </span>
                     )}
                   </div>
@@ -725,8 +709,8 @@ export function CustomerNotificationsSettings({
                   <LeadTimePicker
                     label="Hvornår skal e-mailen sendes?"
                     channel="email"
-                    value={drafts[activeEvent].leadMinutes ?? upcomingHoursBefore * 60}
-                    defaultMinutes={upcomingHoursBefore * 60}
+                    value={drafts[activeEvent].leadMinutes ?? upcomingMinutesBefore}
+                    defaultMinutes={upcomingMinutesBefore}
                     onChange={(m) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: m } }))}
                     onReset={() => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: null } }))}
                   />
@@ -757,7 +741,7 @@ export function CustomerNotificationsSettings({
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
+                <div className="flex items-center justify-between gap-2 border-t border-border pt-3 text-[11px] text-muted-foreground">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -766,10 +750,13 @@ export function CustomerNotificationsSettings({
                   >
                     <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Nulstil tekst
                   </Button>
-                  <Button size="sm" onClick={() => save(activeEvent)} disabled={!emailDirty || saving === `email-${activeEvent}`}>
-                    {saving === `email-${activeEvent}` ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
-                    {emailDirty ? "Gem ændringer" : "Gemt"}
-                  </Button>
+                  <span className="inline-flex items-center gap-1.5">
+                    {emailDirty ? (
+                      <><Loader2 className="h-3 w-3 animate-spin" /> Gemmer…</>
+                    ) : (
+                      <><CheckCircle2 className="h-3 w-3 text-emerald-600" /> Gemmes automatisk</>
+                    )}
+                  </span>
                 </div>
               </div>
 
@@ -815,8 +802,8 @@ export function CustomerNotificationsSettings({
                   <LeadTimePicker
                     label="Hvornår skal SMS'en sendes?"
                     channel="sms"
-                    value={smsDrafts[activeEvent].leadMinutes ?? upcomingHoursBefore * 60}
-                    defaultMinutes={upcomingHoursBefore * 60}
+                    value={smsDrafts[activeEvent].leadMinutes ?? upcomingMinutesBefore}
+                    defaultMinutes={upcomingMinutesBefore}
                     onChange={(m) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: m } }))}
                     onReset={() => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: null } }))}
                   />
@@ -843,7 +830,7 @@ export function CustomerNotificationsSettings({
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
+                <div className="flex items-center justify-between gap-2 border-t border-border pt-3 text-[11px] text-muted-foreground">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -852,10 +839,13 @@ export function CustomerNotificationsSettings({
                   >
                     <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Nulstil tekst
                   </Button>
-                  <Button size="sm" disabled={!smsEnabled || !smsDirty || saving === `sms-${activeEvent}`} onClick={() => saveSms(activeEvent)}>
-                    {saving === `sms-${activeEvent}` ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
-                    {smsDirty ? "Gem ændringer" : "Gemt"}
-                  </Button>
+                  <span className="inline-flex items-center gap-1.5">
+                    {smsDirty ? (
+                      <><Loader2 className="h-3 w-3 animate-spin" /> Gemmer…</>
+                    ) : (
+                      <><CheckCircle2 className="h-3 w-3 text-emerald-600" /> Gemmes automatisk</>
+                    )}
+                  </span>
                 </div>
               </div>
 
@@ -869,32 +859,8 @@ export function CustomerNotificationsSettings({
         </div>
       </div>
 
-      {/* Sticky save-bar — vises kun når der er ugemte ændringer */}
-      {anyDirty && (
-        <div className="sticky bottom-3 z-10 mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-full border border-border bg-card px-4 py-2 shadow-lg">
-          <div className="flex items-center gap-2 text-xs text-foreground">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
-            </span>
-            <span className="font-medium">Du har ugemte ændringer</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {channelTab === "email" && emailDirty && (
-              <Button size="sm" onClick={() => save(activeEvent)} disabled={saving === `email-${activeEvent}`}>
-                {saving === `email-${activeEvent}` ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
-                Gem e-mail
-              </Button>
-            )}
-            {channelTab === "sms" && smsDirty && smsEnabled && (
-              <Button size="sm" onClick={() => saveSms(activeEvent)} disabled={saving === `sms-${activeEvent}`}>
-                {saving === `sms-${activeEvent}` ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
-                Gem SMS
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Auto-gem: ingen knap eller sticky bar nødvendig — vi viser status
+          inline pr. fane (e-mail/SMS) i bunden af editoren. */}
     </div>
   );
 }
