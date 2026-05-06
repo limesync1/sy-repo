@@ -791,25 +791,50 @@ const SettingsTab = ({ business }: { business: any }) => {
 
   return (
     <div className="space-y-6 pb-24">
-      {/* ─── Kompakt header — titel + status + hurtige handlinger ─── */}
-      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border pb-4">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Indstillinger</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Hold jeres virksomhedsprofil opdateret — alt gemmes automatisk mens I redigerer.
-          </p>
+      {/* ─── Header — titel, fremskridtsring og hurtige handlinger ─── */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
+        <div className="flex items-center gap-4 min-w-0">
+          {/* Cirkulær fremskridtsindikator — viser profil-fuldstændighed */}
+          <div className="relative h-12 w-12 shrink-0">
+            <svg viewBox="0 0 36 36" className="h-12 w-12 -rotate-90">
+              <circle cx="18" cy="18" r="15.915" fill="none" className="stroke-border" strokeWidth="3" />
+              <circle
+                cx="18" cy="18" r="15.915" fill="none" strokeWidth="3" strokeLinecap="round"
+                className={completeness.pct === 100 ? "stroke-emerald-500" : "stroke-foreground"}
+                strokeDasharray={`${completeness.pct} 100`}
+                style={{ transition: "stroke-dasharray 600ms ease-out" }}
+              />
+            </svg>
+            <span className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold tabular-nums text-foreground">
+              {completeness.pct}%
+            </span>
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground leading-tight">Indstillinger</h1>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {completeness.pct === 100
+                ? "Profilen er komplet — alt gemmes automatisk."
+                : `${completeness.total - completeness.done} ting mangler · alt gemmes automatisk.`}
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+              saveStatus === "saving"
+                ? "border-amber-500/30 bg-amber-500/[0.06] text-amber-700 dark:text-amber-400"
+                : "border-border bg-card text-muted-foreground"
+            }`}
+          >
             {saveStatus === "saving" ? (
               <>
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
+                <Loader2 className="h-3 w-3 animate-spin" />
                 Gemmer…
               </>
             ) : (
               <>
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                Gemt
+                Alt er gemt
               </>
             )}
           </span>
@@ -818,7 +843,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               href={`/v/${business.slug}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-secondary"
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors hover:border-foreground/30 hover:bg-secondary"
             >
               <ExternalLink className="h-3.5 w-3.5" />
               Se din side
@@ -827,40 +852,21 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
       </div>
 
-      {/* ─── Profil-fuldstændighed — vises kun hvis noget mangler ─── */}
-      {completeness.pct < 100 && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/[0.04] p-4">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600">
-                <AlertCircle className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-[13px] font-semibold text-foreground leading-tight">
-                  {completeness.total - completeness.done} ting mangler i jeres profil
-                </p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">
-                  {completeness.done}/{completeness.total} udfyldt · {completeness.pct}%
-                </p>
-              </div>
-            </div>
-            <div className="h-1.5 flex-1 min-w-[120px] overflow-hidden rounded-full bg-background">
-              <div className="h-full rounded-full bg-amber-500 transition-all duration-500" style={{ width: `${completeness.pct}%` }} />
-            </div>
-          </div>
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            {completeness.checks.filter((c) => !c.done).map((c) => (
-              <button
-                key={c.key}
-                type="button"
-                onClick={() => scrollToSection(c.section)}
-                className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:border-amber-600 hover:bg-amber-500/20"
-              >
-                {c.label}
-                <ArrowRight className="h-2.5 w-2.5" />
-              </button>
-            ))}
-          </div>
+      {/* ─── Manglende-felter — kompakt chip-række (kun når noget mangler) ─── */}
+      {completeness.pct < 100 && completeness.checks.some((c) => !c.done) && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[11px] font-medium text-muted-foreground mr-1">Mangler:</span>
+          {completeness.checks.filter((c) => !c.done).map((c) => (
+            <button
+              key={c.key}
+              type="button"
+              onClick={() => scrollToSection(c.section)}
+              className="group inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-all hover:border-foreground/30 hover:bg-secondary hover:text-foreground"
+            >
+              {c.label}
+              <ArrowRight className="h-2.5 w-2.5 transition-transform group-hover:translate-x-0.5" />
+            </button>
+          ))}
         </div>
       )}
 
