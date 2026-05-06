@@ -343,6 +343,30 @@ export function makeEconomicAdapter(
       await ecRequest(creds, `${path}/${externalId}`, { method: "DELETE" });
     },
 
+    async bookInvoice(input) {
+      // Hvis det er sendt som sales-order, konverter først til kladde-faktura.
+      let draftNumber: string | number = input.external_id;
+      if (input.external_type === "order") {
+        try {
+          const conv = await ecRequest(
+            creds,
+            `/sales-orders/${input.external_id}/upgrade-instructions/draft-invoice`,
+            { method: "POST", body: "{}" },
+          );
+          draftNumber = conv?.draftInvoiceNumber ?? conv?.draftInvoice?.draftInvoiceNumber ?? draftNumber;
+        } catch (_) { /* fallback: prøv at booke direkte */ }
+      }
+      // Bog kladde-faktura → bookedInvoiceNumber
+      const booked = await ecRequest(creds, `/invoices/drafts/${draftNumber}/book`, {
+        method: "POST",
+        body: "{}",
+      });
+      const invNo = String(booked?.bookedInvoiceNumber ?? booked?.invoiceNumber ?? draftNumber);
+      // E-conomic sender automatisk faktura via valgte layout/distribution; vi
+      // kan ikke garantere e-mail er sendt fra her, så vi rapporterer sent=false.
+      return { invoice_external_id: invNo, invoice_external_number: invNo, sent: false };
+    },
+
     async getInvoiceStates(externalIds: string[]): Promise<ExternalInvoiceState[]> {
       const out: ExternalInvoiceState[] = [];
       // E-conomic: try /invoices/booked/{n} first (paid/booked), then /invoices/drafts/{n}
