@@ -370,5 +370,47 @@ export function makeDineroAdapter(
       }
       return out;
     },
+
+    async listInvoices(updatedSince?: Date): Promise<ExternalInvoice[]> {
+      // Dinero: GET /invoices?changesSince=...&fields=...
+      const since = updatedSince ? updatedSince.toISOString() : "";
+      const q = since
+        ? `?changesSince=${encodeURIComponent(since)}&fields=Guid,Number,ContactGuid,ContactName,Date,Currency,TotalInclVat,Remainder,PaymentStatus,PaymentDate&pageSize=100`
+        : `?fields=Guid,Number,ContactGuid,ContactName,Date,Currency,TotalInclVat,Remainder,PaymentStatus,PaymentDate&pageSize=100&page=0`;
+      const data = await dineroRequest(creds, orgId, `/invoices${q}`);
+      const items: any[] = data?.Collection ?? [];
+      const out: ExternalInvoice[] = [];
+      for (const head of items) {
+        const total = Number(head?.TotalInclVat ?? 0);
+        const remainder = Number(head?.Remainder ?? total);
+        const paid = total - remainder;
+        const ps = String(head?.PaymentStatus ?? "").toLowerCase();
+        let status: ExternalInvoiceState["status"];
+        if (ps.includes("credit")) status = "credited";
+        else if (ps === "paid" || ps === "overpaid" || (total > 0 && remainder === 0)) status = "paid";
+        else if (paid > 0 && remainder > 0) status = "partially_paid";
+        else if (ps === "overdue") status = "overdue";
+        else status = "unpaid";
+        // Dinero linjer kræver et separat kald — for skygge-ordrer er
+        // total + ContactName tilstrækkeligt (vi viser fakturaen som "Faktura
+        // fra regnskabsprogram" med totalbeløb).
+        out.push({
+          external_id: String(head?.Guid ?? ""),
+          external_number: head?.Number ? String(head.Number) : null,
+          customer_external_id: head?.ContactGuid ?? null,
+          customer_name: head?.ContactName ?? null,
+          status,
+          paid_amount: paid,
+          total_amount: total,
+          paid_at: status === "paid" ? (head?.PaymentDate ?? null) : null,
+          due_date: head?.PaymentDate ?? null,
+          date: head?.Date ?? null,
+          currency: head?.Currency ?? "DKK",
+          lines: [],
+          raw: head,
+        });
+      }
+      return out;
+    },
   };
 }
