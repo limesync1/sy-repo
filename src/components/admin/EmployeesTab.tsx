@@ -1086,7 +1086,7 @@ const EmployeeTasksDialog = ({
     queryFn: async () => {
       // Hent alle stops hvor medarbejderen er tildelt — enten via assigned_employee_id
       // eller via route_stop_assignees (lead/team).
-      const [{ data: directRows, error: dErr }, { data: assigneeRows, error: aErr }] = await Promise.all([
+      const [{ data: directRows, error: dErr }, { data: assigneeRows, error: aErr }, { data: snapRows, error: sErr }] = await Promise.all([
         supabase
           .from("route_stops")
           .select(`
@@ -1109,14 +1109,39 @@ const EmployeeTasksDialog = ({
           `)
           .eq("employee_id", employeeId)
           .limit(200),
+        supabase
+          .from("employee_completed_stops")
+          .select("id, stop_id, completed_at, customer_name, service_summary, address, duration_minutes, route_name, route_date")
+          .eq("employee_id", employeeId)
+          .order("completed_at", { ascending: false })
+          .limit(500),
       ]);
       if (dErr) console.error("employee-tasks direct error:", dErr);
       if (aErr) console.error("employee-tasks assignee error:", aErr);
+      if (sErr) console.error("employee-tasks snapshot error:", sErr);
       const map = new Map<string, any>();
       (directRows || []).forEach((r: any) => map.set(r.id, r));
       (assigneeRows || []).forEach((row: any) => {
         const s = row.route_stops;
         if (s && !map.has(s.id)) map.set(s.id, s);
+      });
+      // Tilføj snapshots for udførte opgaver (også hvis stop/rute er slettet).
+      (snapRows || []).forEach((sn: any) => {
+        const key = sn.stop_id || `snap:${sn.id}`;
+        if (map.has(key)) return;
+        map.set(key, {
+          id: key,
+          status: "completed",
+          planned_arrival: null,
+          completed_at: sn.completed_at,
+          address: sn.address,
+          customer_name: sn.customer_name,
+          service_summary: sn.service_summary,
+          duration_minutes: sn.duration_minutes,
+          routes: sn.route_name || sn.route_date
+            ? { id: null, name: sn.route_name, route_date: sn.route_date }
+            : null,
+        });
       });
       return Array.from(map.values());
     },

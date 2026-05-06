@@ -1200,6 +1200,69 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_completed_stops: {
+        Row: {
+          address: string | null
+          business_id: string
+          commission_pct: number
+          completed_at: string
+          created_at: string
+          customer_name: string | null
+          duration_minutes: number | null
+          earnings: number
+          employee_id: string
+          id: string
+          order_amount: number
+          order_id: string | null
+          route_date: string | null
+          route_id: string | null
+          route_name: string | null
+          service_summary: string | null
+          sharers: number
+          stop_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          business_id: string
+          commission_pct?: number
+          completed_at: string
+          created_at?: string
+          customer_name?: string | null
+          duration_minutes?: number | null
+          earnings?: number
+          employee_id: string
+          id?: string
+          order_amount?: number
+          order_id?: string | null
+          route_date?: string | null
+          route_id?: string | null
+          route_name?: string | null
+          service_summary?: string | null
+          sharers?: number
+          stop_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          business_id?: string
+          commission_pct?: number
+          completed_at?: string
+          created_at?: string
+          customer_name?: string | null
+          duration_minutes?: number | null
+          earnings?: number
+          employee_id?: string
+          id?: string
+          order_amount?: number
+          order_id?: string | null
+          route_date?: string | null
+          route_id?: string | null
+          route_name?: string | null
+          service_summary?: string | null
+          sharers?: number
+          stop_id?: string | null
+        }
+        Relationships: []
+      }
       employee_invitations: {
         Row: {
           accepted_at: string | null
