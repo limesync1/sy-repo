@@ -913,7 +913,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* Sticky sidebar nav (kun lg+) — top-offset matcher den sticky topbar
             (h-14 = 56px) + lille luft, så den klistrer fast lige under headeren
             mens man scroller. */}
-        <aside className="hidden lg:sticky lg:top-[72px] lg:block lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto">
+        <aside className="hidden lg:sticky lg:top-[68px] lg:block lg:max-h-[calc(100vh-80px)] lg:overflow-y-auto pr-1">
           <nav className="rounded-xl border border-border/80 bg-card p-2 shadow-sm">
             {(() => {
               const groups: { title: string; ids: string[] }[] = [
