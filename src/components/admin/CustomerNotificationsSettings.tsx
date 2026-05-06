@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Mail, MessageSquare, Clock, Bell, CheckCircle2, Smartphone, RotateCcw, Phone, Plus, Power, Eye, Sparkles, AlarmClock } from "lucide-react";
+import { Loader2, Mail, MessageSquare, Clock, Bell, CheckCircle2, RotateCcw, Phone, Plus, AlarmClock, Signal, Wifi, BatteryFull, ChevronLeft, Video } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -263,40 +263,78 @@ function SmsPreview({ body, businessName, businessPhone }: { body: string; busin
   const full = rendered + footer;
   const charCount = full.length;
   const smsCount = Math.max(1, Math.ceil(charCount / 160));
+  // Authentisk iOS-look: mørk bezel med dynamic island, status-bar med ur+ikoner,
+  // navigation-bar med tilbage-knap + kontakt-avatar, modtaget-besked som grå
+  // boble til venstre med "tail" og afsender-label/timestamp ovenover.
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-[#f4f4f5]">
-      <div className="flex items-center justify-between border-b border-border/60 bg-[#ececee] px-3 py-2">
-        <div className="flex items-center gap-1.5">
-          <Smartphone className="h-3 w-3 text-[#737373]" />
-          <span className="text-[11px] font-medium text-[#737373]">Beskeder · iPhone</span>
-        </div>
-        <span className="text-[10px] text-[#a3a3a3]">9:41</span>
-      </div>
-      <div className="px-4 py-4">
-        <div
-          className="mx-auto overflow-hidden rounded-[28px] border-[6px] border-[#1a1a1a] bg-white"
-          style={{ maxWidth: 290 }}
-        >
-          {/* iOS contact header */}
-          <div className="flex flex-col items-center gap-1 bg-[#f5f5f7] px-4 pb-2.5 pt-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
-              S
+    <div className="flex flex-col items-center">
+      <div
+        className="relative overflow-hidden rounded-[44px] bg-[#0a0a0a] p-[10px] shadow-[0_30px_60px_-20px_rgba(0,0,0,0.4)]"
+        style={{ width: 300 }}
+      >
+        {/* Phone screen */}
+        <div className="relative overflow-hidden rounded-[34px] bg-white" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif' }}>
+          {/* Status bar */}
+          <div className="relative flex items-center justify-between bg-white px-6 pb-1 pt-2 text-[12px] font-semibold text-black">
+            <span>9:41</span>
+            {/* Dynamic island */}
+            <div className="absolute left-1/2 top-1.5 h-[22px] w-[88px] -translate-x-1/2 rounded-full bg-black" />
+            <div className="flex items-center gap-1">
+              <Signal className="h-3 w-3" strokeWidth={2.5} />
+              <Wifi className="h-3 w-3" strokeWidth={2.5} />
+              <BatteryFull className="h-3.5 w-3.5" strokeWidth={2} />
             </div>
-            <div className="text-[11px] font-semibold text-[#212121]">Serviceydere</div>
-            <div className="text-[9px] text-[#a3a3a3]">Tekstbesked</div>
           </div>
+
+          {/* Navigation bar — Messages style */}
+          <div className="relative flex items-center justify-between border-b border-[#e5e5ea] bg-[#f6f6f6]/95 px-2 py-2 backdrop-blur">
+            <button type="button" className="flex items-center gap-0.5 text-[#007aff]">
+              <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
+              <span className="rounded-full bg-[#ff3b30] px-1.5 text-[10px] font-semibold text-white">3</span>
+            </button>
+            <div className="flex flex-1 flex-col items-center gap-0.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-b from-[#3a3a3c] to-[#1c1c1e] text-[11px] font-semibold text-white">
+                {(businessName || "S").slice(0, 1).toUpperCase()}
+              </div>
+              <div className="flex items-center gap-0.5 text-[9.5px] font-medium text-[#1c1c1e]">
+                Serviceydere
+                <ChevronLeft className="h-2.5 w-2.5 -rotate-90 text-[#8e8e93]" />
+              </div>
+            </div>
+            <Video className="h-5 w-5 text-[#007aff]" strokeWidth={2} />
+          </div>
+
           {/* Conversation */}
-          <div className="min-h-[160px] bg-white px-3 py-3">
-            <div className="mb-1 text-center text-[9px] text-[#a3a3a3]">i dag 09:41</div>
-            <div className="max-w-[88%] whitespace-pre-wrap rounded-2xl rounded-bl-md bg-[#e9e9eb] px-3 py-2 text-[12px] leading-[1.45] text-[#212121]">
-              {full}
+          <div className="min-h-[220px] bg-white px-3 pb-4 pt-3">
+            <div className="mb-2 text-center text-[10px] font-semibold text-[#8e8e93]">
+              <span className="font-bold text-[#3c3c43]">Tekstbesked</span>
+              <span className="ml-1.5 font-normal">i dag 9.41</span>
             </div>
+            {/* Modtaget besked — grå boble venstre med tail */}
+            <div className="relative flex max-w-[82%] items-end">
+              <div className="relative whitespace-pre-wrap rounded-[18px] bg-[#e9e9eb] px-3 py-2 text-[12.5px] leading-[1.35] text-[#000000]">
+                {full}
+                {/* Bubble tail (venstre side, lille kurve) */}
+                <span
+                  aria-hidden
+                  className="absolute -bottom-[1px] -left-[6px] h-[18px] w-[14px] bg-[#e9e9eb]"
+                  style={{ clipPath: "path('M14 18 C 6 18 0 12 0 0 L 14 0 Z')" }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Home indicator */}
+          <div className="flex justify-center bg-white pb-1.5 pt-1">
+            <div className="h-1 w-24 rounded-full bg-black/80" />
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-between border-t border-border/60 bg-[#ececee] px-3 py-2 text-[10.5px] text-[#737373]">
-        <span>{charCount} tegn</span>
-        <span>{smsCount} SMS{smsCount > 1 ? "'er" : ""} (1 SMS = 160 tegn)</span>
+
+      {/* Stats nedenunder */}
+      <div className="mt-3 flex w-full max-w-[300px] items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-[10.5px] text-muted-foreground">
+        <span><span className="font-semibold text-foreground">{charCount}</span> tegn</span>
+        <span><span className="font-semibold text-foreground">{smsCount}</span> SMS{smsCount > 1 ? "'er" : ""} <span className="text-[#a3a3a3]">(160/SMS)</span></span>
       </div>
     </div>
   );
@@ -502,26 +540,77 @@ export function CustomerNotificationsSettings({
     <div className="space-y-6">
       {/* ───── Globale indstillinger ───── */}
       <div className="grid gap-3 sm:grid-cols-2">
-        {/* Standard-tid før besøg */}
+        {/* Standard-tid før besøg — bruger samme presets som per-besked LeadTimePicker
+            men rundes til hele timer fordi parent gemmer i timer (1–168). */}
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-start gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/5">
               <Clock className="h-4 w-4 text-foreground" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground">Standard-tid før besøget</p>
+              <p className="text-sm font-semibold text-foreground">Standardtid før besøget</p>
               <p className="mt-0.5 text-[12px] text-muted-foreground">
-                Bruges hvis I ikke har valgt et andet tidspunkt for en bestemt besked. I kan altid overskrive det pr. e-mail og SMS længere nede.
+                Bruges som udgangspunkt for alle påmindelser. I kan altid vælge en anden tid for hver enkelt e-mail og SMS længere nede.
               </p>
-              <div className="mt-3 flex items-center gap-2">
-                <Input
-                  type="number" min={1} max={168} className="h-9 w-20"
-                  value={upcomingHoursBefore}
-                  onChange={(e) => onUpcomingHoursChange(Math.max(1, Math.min(168, Number(e.target.value) || 24)))}
-                />
-                <span className="text-sm text-foreground">timer før</span>
+              <p className="mt-2 text-[12px] text-foreground">
+                Sender påmindelser <span className="font-semibold">{formatLead(upcomingHoursBefore * 60)}</span> før det planlagte besøg.
+              </p>
+              {/* Presets (i timer) */}
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {[
+                  { label: "1 time", h: 1 },
+                  { label: "2 timer", h: 2 },
+                  { label: "4 timer", h: 4 },
+                  { label: "12 timer", h: 12 },
+                  { label: "1 dag", h: 24 },
+                  { label: "2 dage", h: 48 },
+                  { label: "1 uge", h: 168 },
+                ].map((p) => {
+                  const active = upcomingHoursBefore === p.h;
+                  return (
+                    <button
+                      key={p.h}
+                      type="button"
+                      onClick={() => onUpcomingHoursChange(p.h)}
+                      className={cn(
+                        "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                        active
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border bg-background text-foreground hover:border-foreground/50",
+                      )}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
               </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">Aktuelt: <span className="font-medium text-foreground">{formatLead(upcomingHoursBefore * 60)}</span> før besøget.</p>
+              {/* Brugerdefineret */}
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <label className="flex flex-col gap-1">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Dage</span>
+                  <Input
+                    type="number" min={0} max={7} className="h-9"
+                    value={Math.floor(upcomingHoursBefore / 24)}
+                    onChange={(e) => {
+                      const d = Math.max(0, Math.min(7, Number(e.target.value) || 0));
+                      const h = upcomingHoursBefore % 24;
+                      onUpcomingHoursChange(Math.max(1, Math.min(168, d * 24 + h)));
+                    }}
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Timer</span>
+                  <Input
+                    type="number" min={0} max={23} className="h-9"
+                    value={upcomingHoursBefore % 24}
+                    onChange={(e) => {
+                      const h = Math.max(0, Math.min(23, Number(e.target.value) || 0));
+                      const d = Math.floor(upcomingHoursBefore / 24);
+                      onUpcomingHoursChange(Math.max(1, Math.min(168, d * 24 + h)));
+                    }}
+                  />
+                </label>
+              </div>
             </div>
           </div>
         </div>
@@ -611,37 +700,16 @@ export function CustomerNotificationsSettings({
 
         {/* Right editor */}
         <div className="overflow-hidden rounded-xl border border-border bg-card">
-          {/* Header */}
-          <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/40 px-5 py-3">
+          {/* Header — ren titel + beskrivelse. Kanal-toggles findes på hver fane
+              for at undgå at samme knap forsøger at styre to ting på én gang. */}
+          <div className="flex items-start gap-3 border-b border-border bg-muted/40 px-5 py-3">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background text-foreground">
+              <event.Icon className="h-4 w-4" />
+            </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <event.Icon className="h-4 w-4 text-muted-foreground" />
-                <p className="text-sm font-semibold text-foreground">{event.label}</p>
-              </div>
+              <p className="text-sm font-semibold text-foreground">{event.label}</p>
               <p className="mt-0.5 text-[11px] text-muted-foreground">{event.help}</p>
             </div>
-            {(() => {
-              const anyOn = drafts[activeEvent].enabled || (smsEnabled && smsDrafts[activeEvent].enabled);
-              return (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
-                    setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
-                  }}
-                  title="Slår både e-mail og SMS til eller fra på én gang"
-                  className={cn(
-                    "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors",
-                    anyOn
-                      ? "border-border bg-background text-muted-foreground hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
-                      : "border-foreground bg-foreground text-background hover:bg-foreground/90",
-                  )}
-                >
-                  <Power className="h-3 w-3" />
-                  {anyOn ? "Slå alle beskeder fra" : "Slå alle beskeder til"}
-                </button>
-              );
-            })()}
           </div>
 
           {/* Channel tabs */}
