@@ -409,7 +409,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     if (!el) return;
     setActiveSection(id);
     isProgrammaticScroll.current = true;
-    const top = el.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
+    const top = el.getBoundingClientRect().top + window.scrollY - getScrollOffset();
     window.scrollTo({ top, behavior: "smooth" });
     // Slip observerens "lock" igen efter animationen er færdig.
     window.setTimeout(() => { isProgrammaticScroll.current = false; }, 700);
@@ -444,8 +444,8 @@ const SettingsTab = ({ business }: { business: any }) => {
       },
       {
         // Top-margin matcher header-offset så vi skifter aktivt punkt præcist
-        // når sektionen krydser under headeren.
-        rootMargin: `-${HEADER_OFFSET + 8}px 0px -60% 0px`,
+        // når sektionen krydser under headeren (inkl. mobil chip-nav).
+        rootMargin: `-${getScrollOffset() + 8}px 0px -60% 0px`,
         threshold: 0,
       },
     );
