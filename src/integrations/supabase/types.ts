@@ -2081,11 +2081,13 @@ export type Database = {
           is_active: boolean | null
           name: string
           pricing_type: Database["public"]["Enums"]["pricing_type"]
+          product_number: string | null
           service_category: string | null
           sort_order: number | null
           subcategory: string | null
           unit: string | null
           updated_at: string
+          vat_zone: string | null
         }
         Insert: {
           accounting_account_number?: string | null
@@ -2102,11 +2104,13 @@ export type Database = {
           is_active?: boolean | null
           name: string
           pricing_type?: Database["public"]["Enums"]["pricing_type"]
+          product_number?: string | null
           service_category?: string | null
           sort_order?: number | null
           subcategory?: string | null
           unit?: string | null
           updated_at?: string
+          vat_zone?: string | null
         }
         Update: {
           accounting_account_number?: string | null
@@ -2123,11 +2127,13 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           pricing_type?: Database["public"]["Enums"]["pricing_type"]
+          product_number?: string | null
           service_category?: string | null
           sort_order?: number | null
           subcategory?: string | null
           unit?: string | null
           updated_at?: string
+          vat_zone?: string | null
         }
         Relationships: [
           {
