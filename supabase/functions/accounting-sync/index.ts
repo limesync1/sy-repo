@@ -494,6 +494,40 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
           }
           await recordPulledFields(admin, integ.business_id, integ.provider, "product", existing.service_id, incomingP);
         }
+      } else {
+        // Nyt produkt i regnskabsprogrammet — opret som service i Serviceydere
+        // og link det. Sætter vi ikke en pris bruger vi 0 så brugeren selv kan
+        // rette den. Bruger pricing_type='fast_pris' som standard.
+        const unitPrice = Number.isFinite(ep.unit_price) && ep.unit_price > 0 ? ep.unit_price : 0;
+        const { data: createdSvc, error: svcErr } = await admin.from("services").insert({
+          business_id: integ.business_id,
+          name: ep.name || `Produkt ${ep.external_number ?? ep.external_id}`,
+          base_price: unitPrice,
+          pricing_type: "fast_pris",
+          product_number: ep.external_number ?? null,
+          accounting_account_number: ep.account_number ?? null,
+          default_vat_rate: ep.vat_rate ?? 25,
+          is_active: true,
+        }).select("id").single();
+        if (svcErr) {
+          console.error("[pull] service insert failed", {
+            external_id: ep.external_id, name: ep.name, error: svcErr.message,
+          });
+        } else if (createdSvc) {
+          await admin.from("accounting_product_links").insert({
+            business_id: integ.business_id,
+            provider: integ.provider,
+            service_id: createdSvc.id,
+            external_id: ep.external_id,
+            external_product_number: ep.external_number ?? null,
+            external_data: ep.raw ?? {},
+            last_synced_at: new Date().toISOString(),
+          });
+          await recordPulledFields(
+            admin, integ.business_id, integ.provider, "product", createdSvc.id,
+            { name: ep.name, unit_price: unitPrice },
+          );
+        }
       }
       productsPulled++;
     }
