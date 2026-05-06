@@ -358,13 +358,9 @@ export function CustomerNotificationsSettings({
     (s) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], body: s } })),
   );
 
-  if (isLoading) {
-    return <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
-  }
-
   const event = EVENTS.find((e) => e.key === activeEvent)!;
-  const exampleBizName = businessInfo?.name?.trim() || EXAMPLE_VARS.business_name;
-  const exampleBizPhone = businessInfo?.phone?.trim() || EXAMPLE_VARS.business_phone;
+  const exampleBizName = businessInfo?.name?.trim() || EXAMPLE_VARS.firmanavn;
+  const exampleBizPhone = businessInfo?.phone?.trim() || EXAMPLE_VARS.telefon;
   const emailDirty = isEmailDirty(activeEvent);
   const smsDirty = isSmsDirty(activeEvent);
   const anyDirty = EVENTS.some((e) => isEmailDirty(e.key) || isSmsDirty(e.key));
@@ -379,6 +375,10 @@ export function CustomerNotificationsSettings({
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
   }, [anyDirty]);
+
+  if (isLoading) {
+    return <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  }
 
   return (
     <div className="space-y-6">
