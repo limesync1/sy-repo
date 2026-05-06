@@ -1051,7 +1051,18 @@ const SettingsTab = ({ business }: { business: any }) => {
       )}
 
       {/* ─── Hovedindhold: 1-kolonne (sidebar håndterer navigation) ─── */}
-      <div className="grid gap-4">
+      <div className="grid gap-5">
+        {/* ── Gruppe: Profil ── */}
+        <div className="flex items-center gap-3">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
+            <Building2 className="h-3.5 w-3.5" />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Profil</p>
+            <p className="text-[13px] text-muted-foreground">Hvordan I præsenterer jer for kunderne</p>
+          </div>
+        </div>
+
         {/* Generelt — kun navn + beskrivelse */}
         <div id="settings-general" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard title="Om virksomheden" icon={<Building2 />} description="Det navn og den korte beskrivelse kunderne ser øverst på jeres side.">
