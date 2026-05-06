@@ -1038,7 +1038,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Generelt — kun navn + beskrivelse */}
         <div id="settings-general" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
-          <SectionCard title="Om virksomheden" icon={<Building2 />} description="Det navn og den korte beskrivelse kunderne ser øverst på jeres side.">
+          <SectionCard title="Om virksomheden" icon={<Building2 />} description="Navnet og den korte tekst, der står øverst på jeres profilside — det første kunderne ser.">
             <div className="space-y-4">
               <div data-tour="field-company-name">
                 <FieldLabel>Virksomhedsnavn</FieldLabel>
@@ -1072,13 +1072,13 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Brancher & kategorier"
             icon={<Sparkles />}
-            description="Vælg de brancher I arbejder i, og kryds de konkrete typer opgaver af, I tager. Det er det her, der bestemmer hvilke kunder der finder jer."
+            description="Vælg de brancher I arbejder med — og hak de konkrete typer opgaver af, I tager. Vi bruger dette til at vise jer for de rigtige kunder, når de søger."
           >
             <div className="space-y-5">
               <div>
-                <FieldLabel>Hvilke brancher tilhører I?</FieldLabel>
+                <FieldLabel>Hvilke brancher arbejder I med?</FieldLabel>
                 <p className="-mt-1 mb-2.5 text-xs text-muted-foreground">
-                  Vælg én eller flere. Default vælges alle underkategorier — du kan justere længere nede.
+                  Vælg én eller flere. Når I vælger en branche, slår vi automatisk alle dens kategorier til — I kan finjustere længere nede.
                 </p>
                 <IndustryPicker
                   selected={selectedCategories}
@@ -1088,9 +1088,9 @@ const SettingsTab = ({ business }: { business: any }) => {
 
               {selectedCategories.length > 0 && (
                 <div className="border-t border-border pt-4">
-                  <FieldLabel>Hvilke kategorier vil I tilbyde?</FieldLabel>
+                  <FieldLabel>Hvilke konkrete opgaver tager I?</FieldLabel>
                   <p className="-mt-1 mb-3 text-xs text-muted-foreground">
-                    Underkategorier I IKKE vælger her bliver heller ikke foreslået, når I opretter services.
+                    Hak de opgavetyper af, I rent faktisk udfører. Dem I fjerner her, vises hverken til kunder eller foreslås, når I opretter nye services.
                   </p>
                   <SubcategoryPicker
                     selectedIndustries={selectedCategories}
@@ -1105,7 +1105,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Kontakt */}
         <div id="settings-contact" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
-          <SectionCard title="Kontakt og adresse" icon={<Contact />} description="Sådan kan kunderne ringe, skrive eller finde vej til jer. Bruges også på fakturaer.">
+          <SectionCard title="Kontakt og adresse" icon={<Contact />} description="Sådan får kunderne fat i jer — og adressen vi bruger til afstandsberegning og fakturaer.">
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div data-tour="field-phone">
@@ -1157,19 +1157,19 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Branding */}
         <div id="settings-branding" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
-          <SectionCard title="Profil og webadresse" icon={<ImageIcon />} description="Logoet, det store forsidebillede og linket kunderne får, når I deler jeres profil.">
+          <SectionCard title="Profil og webadresse" icon={<ImageIcon />} description="Det visuelle udtryk og linket til jeres profil — logo, forsidebillede, og det kunderne ser i adresselinjen.">
             {/* Side-om-side så cover ikke fylder hele bredden — kun en kompakt
                 preview, da fuld bannervisning ikke er nødvendig her. */}
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
               <div className="shrink-0" data-tour="field-logo">
                 <FieldLabel>Logo</FieldLabel>
                 <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
-                <p className="mt-2 text-xs text-muted-foreground">Kvadrat (fx 512×512)</p>
+                <p className="mt-2 text-xs text-muted-foreground">Vises lille — vælg et kvadratisk billede (fx 512×512 px).</p>
               </div>
               <div className="min-w-0 flex-1 sm:max-w-xs" data-tour="field-cover">
                 <FieldLabel>Coverbillede</FieldLabel>
                 <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-full max-w-[260px]" />
-                <p className="mt-2 text-xs text-muted-foreground">Bredt 16:9 — vises som banner på din side</p>
+                <p className="mt-2 text-xs text-muted-foreground">Vises som bredt banner øverst på jeres profil — brug et liggende billede (16:9).</p>
               </div>
             </div>
 
@@ -1182,7 +1182,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-foreground">Jeres link på Serviceydere</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Det her er det link kunderne åbner, når de finder jer. Skriv jeres firmanavn med små bogstaver og bindestreger i stedet for mellemrum (fx <span className="font-mono">nord-rengoering</span>). Pas på med at ændre det, når I først har delt det — gamle links holder op med at virke.
+                    Adressen kunderne åbner, når de besøger jeres profil. Skriv firmanavnet med små bogstaver og bindestreger i stedet for mellemrum (fx <span className="font-mono">nord-rengoering</span>). <strong className="text-foreground">Vær varsom med at ændre det senere</strong> — har I delt linket, holder det gamle op med at virke.
                   </p>
                   <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                     <div className="flex h-10 items-center rounded-l-lg border border-r-0 border-border bg-muted px-3 text-xs text-muted-foreground">
@@ -1380,7 +1380,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Åbningstider"
             icon={<Clock />}
-            description="Sæt flueben ved de dage I har åbent og indtast tiderne. Klik ”Anvend på alle” for at kopiere én dags tider over på de andre åbne dage."
+            description="Hvornår kunderne kan få fat i jer på telefon eller e-mail. Slå dage til/fra og sæt tiderne — brug ”Anvend på alle” for hurtigt at kopiere samme tider til de andre dage."
           >
             <HoursEditor value={openHours} onChange={setOpenHours} />
           </SectionCard>
@@ -1394,15 +1394,15 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="E-mail-beskeder til jer"
             icon={<Bell />}
-            description="Vælg hvilke e-mails I vil modtage — fx når der kommer en ny bestilling, en ny anmeldelse eller en ændring i et abonnement."
+            description="Bestem hvilke begivenheder, I vil have besked om på e-mail. Slå fra det, der ikke er relevant — så undgår I at drukne i e-mails."
           >
             <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
               {([
-                { key: "new_order",           icon: ShoppingCart,    label: "Nye bestillinger",       desc: "Besked når en kunde opretter en ny bestilling." },
-                { key: "upcoming_service",    icon: CalendarClock,   label: "Kommende services",      desc: "Påmindelse når en abonnements-service skal udføres snart." },
-                { key: "subscription_change", icon: RefreshCcw,      label: "Abonnementsændringer",   desc: "Besked når en kunde pauser eller annullerer et abonnement." },
-                { key: "new_review",          icon: Star,            label: "Nye anmeldelser",        desc: "Besked når en kunde skriver en anmeldelse." },
-                ...(leadsEnabled ? [{ key: "lead_emails", icon: Inbox, label: "Nye leads", desc: "Besked når et nyt lead matcher jer fra ‘Indhent 3 tilbud’. Slå fra hvis I kun vil se leads i dashboardet." } as const] : []),
+                { key: "new_order",           icon: ShoppingCart,    label: "Nye bestillinger",       desc: "Få e-mail med det samme, når en kunde booker hos jer." },
+                { key: "upcoming_service",    icon: CalendarClock,   label: "Kommende services",      desc: "Påmindelse dagen før et abonnement skal udføres — så I kan planlægge dagen." },
+                { key: "subscription_change", icon: RefreshCcw,      label: "Ændringer i abonnementer", desc: "Bliv adviseret, når en kunde pauser, opsiger eller ændrer sit abonnement." },
+                { key: "new_review",          icon: Star,            label: "Nye anmeldelser",        desc: "Få besked, så snart en kunde anmelder jer — godt eller skidt." },
+                ...(leadsEnabled ? [{ key: "lead_emails", icon: Inbox, label: "Nye leads", desc: "Få e-mail, når et lead fra ‘Indhent 3 tilbud’ matcher jeres brancher og område. Slå fra, hvis I hellere vil tjekke leads inde i panelet." } as const] : []),
               ] as const).map(({ key, icon: Icon, label, desc }) => {
                 const on = !!notifSettings[key];
                 return (
@@ -1431,7 +1431,7 @@ const SettingsTab = ({ business }: { business: any }) => {
             </div>
             <p className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-              E-mails sendes til <span className="font-medium text-foreground">{email || "jeres kontakt-e-mail"}</span>
+              Alle e-mails ovenfor sendes til <span className="font-medium text-foreground">{email || "jeres kontakt-e-mail"}</span> — ret den under "Kontakt og adresse".
             </p>
           </SectionCard>
         </div>
@@ -1439,9 +1439,9 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* Kunde-notifikationer */}
         <div id="settings-customer-notifications" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard
-            title="Kunde-notifikationer"
+            title="Beskeder til jeres kunder"
             icon={<MessageCircle />}
-            description="Automatiske e-mails til jeres kunder — fx ‘Vi kommer i morgen’ og ‘Vi har udført aftalen’. Rediger emne og tekst, eller slå dem fra."
+            description="Automatiske beskeder vi sender på jeres vegne — fx ”Vi kommer i morgen” eller ”Aftalen er udført”. Tilpas teksten, slå dem fra, eller send også som SMS."
           >
             <CustomerNotificationsSettings
               businessId={business.id}
@@ -1461,7 +1461,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard
             title="Pris og betaling"
             icon={<CreditCard />}
-            description="Se hvad du betaler om måneden, vælg hvor ofte du vil faktureres, og administrér dit betalingskort. Vi gemmer aldrig dine kortoplysninger — alt håndteres sikkert af Stripe."
+            description="Overblik over jeres månedspris, faktureringsinterval og betalingskort. Kortoplysningerne håndteres sikkert af Stripe — vi ser dem aldrig selv."
           >
             {/* Status-banner med dage tilbage */}
             {plan && plan.status !== "unknown" && (
@@ -1704,7 +1704,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Avanceret */}
         <div id="settings-advanced" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
-          <SectionCard title="Ekstra funktioner" icon={<Settings />} description="Slå tilvalg til som ruteplanlægger eller livechat. Prisen opdateres automatisk under ”Pris og betaling” ovenfor.">
+          <SectionCard title="Tilvalg og ekstra funktioner" icon={<Settings />} description="Aktivér moduler som ruteplanlægger, livechat eller dataimport. Prisen opdateres automatisk under ”Pris og betaling” ovenfor.">
             <div className="space-y-3">
               <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
                 <div className="flex items-start gap-3 min-w-0">
