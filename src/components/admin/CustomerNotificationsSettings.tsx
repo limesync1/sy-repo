@@ -383,14 +383,14 @@ export function CustomerNotificationsSettings({
     },
   });
 
-  const [drafts, setDrafts] = useState<Record<EventKey, { subject: string; body: string; enabled: boolean }>>(() => {
+  const [drafts, setDrafts] = useState<Record<EventKey, { subject: string; body: string; enabled: boolean; leadMinutes: number | null }>>(() => {
     const o = {} as any;
-    EVENTS.forEach((e) => { o[e.key] = { subject: e.defaults.subject, body: e.defaults.body, enabled: true }; });
+    EVENTS.forEach((e) => { o[e.key] = { subject: e.defaults.subject, body: e.defaults.body, enabled: true, leadMinutes: null }; });
     return o;
   });
-  const [smsDrafts, setSmsDrafts] = useState<Record<EventKey, { body: string; enabled: boolean }>>(() => {
+  const [smsDrafts, setSmsDrafts] = useState<Record<EventKey, { body: string; enabled: boolean; leadMinutes: number | null }>>(() => {
     const o = {} as any;
-    EVENTS.forEach((e) => { o[e.key] = { body: SMS_DEFAULTS[e.key], enabled: true }; });
+    EVENTS.forEach((e) => { o[e.key] = { body: SMS_DEFAULTS[e.key], enabled: true, leadMinutes: null }; });
     return o;
   });
   const [savedSnapshot, setSavedSnapshot] = useState<{ email: typeof drafts; sms: typeof smsDrafts } | null>(null);
@@ -405,9 +405,9 @@ export function CustomerNotificationsSettings({
     const nextSms = { ...smsDrafts };
     for (const e of EVENTS) {
       const eRow = rows.find((r: any) => r.event_type === e.key && (r.channel ?? "email") === "email");
-      if (eRow) nextEmail[e.key] = { subject: eRow.subject, body: eRow.body, enabled: eRow.enabled };
+      if (eRow) nextEmail[e.key] = { subject: eRow.subject, body: eRow.body, enabled: eRow.enabled, leadMinutes: eRow.lead_time_minutes ?? null };
       const sRow = rows.find((r: any) => r.event_type === e.key && r.channel === "sms");
-      if (sRow) nextSms[e.key] = { body: sRow.body, enabled: sRow.enabled };
+      if (sRow) nextSms[e.key] = { body: sRow.body, enabled: sRow.enabled, leadMinutes: sRow.lead_time_minutes ?? null };
     }
     setDrafts(nextEmail);
     setSmsDrafts(nextSms);
@@ -418,12 +418,12 @@ export function CustomerNotificationsSettings({
   const isEmailDirty = (k: EventKey) => {
     const a = drafts[k]; const b = savedSnapshot?.email[k];
     if (!b) return true;
-    return a.subject !== b.subject || a.body !== b.body || a.enabled !== b.enabled;
+    return a.subject !== b.subject || a.body !== b.body || a.enabled !== b.enabled || a.leadMinutes !== b.leadMinutes;
   };
   const isSmsDirty = (k: EventKey) => {
     const a = smsDrafts[k]; const b = savedSnapshot?.sms[k];
     if (!b) return true;
-    return a.body !== b.body || a.enabled !== b.enabled;
+    return a.body !== b.body || a.enabled !== b.enabled || a.leadMinutes !== b.leadMinutes;
   };
 
   const save = async (key: EventKey) => {
@@ -432,7 +432,7 @@ export function CustomerNotificationsSettings({
     const { error } = await supabase
       .from("customer_notification_templates")
       .upsert({ business_id: businessId, event_type: key, channel: "email",
-        subject: d.subject, body: d.body, enabled: d.enabled }, { onConflict: "business_id,event_type,channel" });
+        subject: d.subject, body: d.body, enabled: d.enabled, lead_time_minutes: d.leadMinutes }, { onConflict: "business_id,event_type,channel" });
     setSaving(null);
     if (error) { toast.error(error.message); return; }
     toast.success("E-mail gemt");
@@ -446,7 +446,7 @@ export function CustomerNotificationsSettings({
     const { error } = await supabase
       .from("customer_notification_templates")
       .upsert({ business_id: businessId, event_type: key, channel: "sms",
-        subject: null, body: d.body, enabled: d.enabled }, { onConflict: "business_id,event_type,channel" });
+        subject: null, body: d.body, enabled: d.enabled, lead_time_minutes: d.leadMinutes }, { onConflict: "business_id,event_type,channel" });
     setSaving(null);
     if (error) { toast.error(error.message); return; }
     toast.success("SMS gemt");
