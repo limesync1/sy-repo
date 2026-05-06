@@ -1764,158 +1764,91 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* Avanceret */}
         <div id="settings-advanced" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard title="Tilvalg og ekstra funktioner" icon={<Settings />} description="Aktivér moduler som ruteplanlægger, livechat eller dataimport. Prisen opdateres automatisk under ”Pris og betaling” ovenfor.">
-            <div className="space-y-3">
-              <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                    <Route className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-baseline gap-2">
-                      <p className="text-sm font-semibold text-foreground">Ruteplanlægning</p>
-                      {pricing && (
-                        <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
-                          +{Math.round(pricing.price_route_planning_dkk).toLocaleString("da-DK")} kr/md
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Få adgang til medarbejder-konti og daglig ruteplanlægning. Læg stop på kort, lad AI'en optimere kørselsrækkefølgen ud fra afstand og tidsvinduer, og giv medarbejderne deres egen app med dagens rute.
-                    </p>
-                    <StatusPill
-                      active={routePlanningEnabled}
-                      activeLabel="Aktivt — ”Medarbejdere” og ”Ruter” er nu i menuen"
-                      inactiveLabel="Ikke aktivt — slå til for at få adgang til ruteplanlæggeren"
-                    />
-                  </div>
-                </div>
-                <ToggleSwitch checked={routePlanningEnabled} onChange={() => setRoutePlanningEnabled((v) => !v)} />
-              </div>
-
-              {/* Regnskabsprogram-integration — feature lanceres senere, men kan
-                  slås til/fra her, så virksomheder selv styrer adgangen. */}
-              <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                    <Calculator className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-foreground">Integration med regnskabsprogram</p>
-                      {pricing && (
-                        <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
-                          +{Math.round(pricing.price_accounting_integration_dkk).toLocaleString("da-DK")} kr/md
-                        </span>
-                      )}
+            {/* To-grupper: betalte tilvalg + gratis funktioner — luftigt og overskueligt */}
+            <div className="space-y-6">
+              <div>
+                <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Betalte tilvalg</p>
+                <div className="space-y-2.5">
+                  <FeatureRow
+                    icon={<Route />}
+                    title="Ruteplanlægning"
+                    priceLabel={pricing ? `+${Math.round(pricing.price_route_planning_dkk).toLocaleString("da-DK")} kr/md` : undefined}
+                    description="Få adgang til medarbejder-konti og daglig ruteplanlægning. Læg stop på kort, lad AI'en optimere kørselsrækkefølgen ud fra afstand og tidsvinduer, og giv medarbejderne deres egen app med dagens rute."
+                    active={routePlanningEnabled}
+                    activeLabel="Aktivt — ”Medarbejdere” og ”Ruter” er nu i menuen"
+                    inactiveLabel="Ikke aktivt — slå til for at få adgang til ruteplanlæggeren"
+                    onToggle={() => setRoutePlanningEnabled((v) => !v)}
+                  />
+                  <FeatureRow
+                    icon={<Calculator />}
+                    title="Integration med regnskabsprogram"
+                    priceLabel={pricing ? `+${Math.round(pricing.price_accounting_integration_dkk).toLocaleString("da-DK")} kr/md` : undefined}
+                    badge={
                       <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                         Kommer snart
                       </span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Send automatisk fakturaer og betalinger over i jeres regnskabsprogram (fx e-conomic, Dinero eller Billy), så I slipper for dobbelt indtastning. Funktionen er på vej — reservér jeres plads nu, så aktiverer vi den for jer, når den er klar.
-                    </p>
-                    <StatusPill
-                      active={accountingIntegrationEnabled}
-                      activeLabel="Reserveret — I får besked, så snart integrationen åbner"
-                      inactiveLabel="Ikke reserveret — slå til for at få plads i køen"
-                    />
-                  </div>
+                    }
+                    description="Send automatisk fakturaer og betalinger over i jeres regnskabsprogram (fx e-conomic, Dinero eller Billy), så I slipper for dobbelt indtastning. Funktionen er på vej — reservér jeres plads nu, så aktiverer vi den for jer, når den er klar."
+                    active={accountingIntegrationEnabled}
+                    activeLabel="Reserveret — I får besked, så snart integrationen åbner"
+                    inactiveLabel="Ikke reserveret — slå til for at få plads i køen"
+                    onToggle={() => setAccountingIntegrationEnabled((v) => !v)}
+                  />
                 </div>
-                <ToggleSwitch checked={accountingIntegrationEnabled} onChange={() => setAccountingIntegrationEnabled((v) => !v)} />
               </div>
 
-              {/* Leads — gratis valgfri funktion. Når slået til vises Leads-fanen
-                  i sidebar og virksomheden modtager match fra "Indhent 3 tilbud". */}
-              <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                    <Sparkles className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-foreground">Leads fra "Indhent 3 tilbud"</p>
-                      <span className="text-[11px] font-semibold text-muted-foreground">Gratis</span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Modtag kundeforespørgsler fra ”Indhent 3 tilbud”, der matcher jeres brancher og område. I bestemmer selv hvilke I byder på — der er ingen forpligtelse, og I betaler intet for at få dem.
-                    </p>
-                    <StatusPill
-                      active={leadsEnabled}
-                      activeLabel="Aktivt — ”Leads”-fanen er i menuen, og I modtager matches"
-                      inactiveLabel="Ikke aktivt — slå til for at begynde at modtage leads"
-                    />
-                  </div>
+              <div>
+                <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Gratis funktioner</p>
+                <div className="space-y-2.5">
+                  <FeatureRow
+                    icon={<Sparkles />}
+                    title="Leads fra ”Indhent 3 tilbud”"
+                    badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
+                    description="Modtag kundeforespørgsler fra ”Indhent 3 tilbud”, der matcher jeres brancher og område. I bestemmer selv hvilke I byder på — der er ingen forpligtelse, og I betaler intet for at få dem."
+                    active={leadsEnabled}
+                    activeLabel="Aktivt — ”Leads”-fanen er i menuen, og I modtager matches"
+                    inactiveLabel="Ikke aktivt — slå til for at begynde at modtage leads"
+                    onToggle={() => setLeadsEnabled((v) => !v)}
+                  />
+                  <FeatureRow
+                    icon={<UploadCloud />}
+                    title="Dataimport fra jeres nuværende system"
+                    badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
+                    description="Skifter I fra et andet system? Vi flytter jeres eksisterende kunder, services og abonnementer for jer — uden at I selv skal taste alt ind igen. Slå til, så ringer vores team for at aftale en flyttedato."
+                    active={!!plan?.data_import_requested}
+                    activeLabel="Anmodet — vores team kontakter jer snarest"
+                    inactiveLabel="Ikke anmodet — slå til for at få vores hjælp til flytningen"
+                    toggle={
+                      <ToggleSwitch
+                        checked={!!plan?.data_import_requested}
+                        onChange={() => {
+                          if (!plan?.id) return;
+                          const next = !plan.data_import_requested;
+                          updatePlan.mutate(
+                            { businessId: business.id, patch: { data_import_requested: next } },
+                            {
+                              onSuccess: () => {
+                                toast.success(next
+                                  ? "Dataimport anmodet — vi tager kontakt snarest."
+                                  : "Anmodning om dataimport fjernet.");
+                              },
+                            },
+                          );
+                        }}
+                      />
+                    }
+                  />
+                  <FeatureRow
+                    icon={<MessageCircle />}
+                    title="Livechat på virksomhedssiden"
+                    badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
+                    description="En lille chat-knap i hjørnet af jeres profilside, så besøgende kan stille spørgsmål uden at skulle ringe eller maile. I får besked på e-mail ved nye samtaler og svarer fra ”Livechat”-fanen."
+                    active={livechatEnabled}
+                    activeLabel="Aktivt — chat-knappen er synlig på jeres profilside"
+                    inactiveLabel="Ikke aktivt — slå til for at lade besøgende skrive til jer"
+                    onToggle={() => setLivechatEnabled((v) => !v)}
+                  />
                 </div>
-                <ToggleSwitch checked={leadsEnabled} onChange={() => setLeadsEnabled((v) => !v)} />
-              </div>
-
-              {/* Dataimport — gratis. Når slået til markerer vi
-                  business_plans.data_import_requested så vores team kan
-                  tage fat i flytning af kunder, services og abonnementer
-                  fra virksomhedens nuværende system. */}
-              <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                    <UploadCloud className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-foreground">Dataimport fra dit nuværende system</p>
-                      <span className="text-[11px] font-semibold text-muted-foreground">Gratis</span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Skifter I fra et andet system? Vi flytter jeres eksisterende kunder, services og abonnementer for jer — uden at I selv skal taste alt ind igen. Slå til, så ringer vores team for at aftale en flyttedato.
-                    </p>
-                    <StatusPill
-                      active={!!plan?.data_import_requested}
-                      activeLabel="Anmodet — vores team kontakter jer snarest"
-                      inactiveLabel="Ikke anmodet — slå til for at få vores hjælp til flytningen"
-                    />
-                  </div>
-                </div>
-                <ToggleSwitch
-                  checked={!!plan?.data_import_requested}
-                  onChange={() => {
-                    if (!plan?.id) return;
-                    const next = !plan.data_import_requested;
-                    updatePlan.mutate(
-                      { businessId: business.id, patch: { data_import_requested: next } },
-                      {
-                        onSuccess: () => {
-                          toast.success(next
-                            ? "Dataimport anmodet — vi tager kontakt snarest."
-                            : "Anmodning om dataimport fjernet.");
-                        },
-                      },
-                    );
-                  }}
-                />
-              </div>
-
-              {/* Livechat — gratis chat-widget på virksomhedssiden. Når slået
-                  til vises en chat-knap nederst i hjørnet på din offentlige
-                  side, og en "Livechat"-fane tilføjes til menuen her i panelet. */}
-              <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                    <MessageCircle className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-foreground">Livechat på virksomhedssiden</p>
-                      <span className="text-[11px] font-semibold text-muted-foreground">Gratis</span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      En lille chat-knap i hjørnet af jeres profilside, så besøgende kan stille spørgsmål uden at skulle ringe eller maile. I får besked på e-mail ved nye samtaler og svarer fra ”Livechat”-fanen.
-                    </p>
-                    <StatusPill
-                      active={livechatEnabled}
-                      activeLabel="Aktivt — chat-knappen er synlig på jeres profilside"
-                      inactiveLabel="Ikke aktivt — slå til for at lade besøgende skrive til jer"
-                    />
-                  </div>
-                </div>
-                <ToggleSwitch checked={livechatEnabled} onChange={() => setLivechatEnabled((v) => !v)} />
               </div>
             </div>
           </SectionCard>
