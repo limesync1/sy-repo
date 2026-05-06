@@ -21,6 +21,7 @@ import {
   Store, ChevronRight, ShoppingCart, Check, X,
   Clock, AlertTriangle, CheckCircle2, MessageSquare, FileText,
   Bell, Mail, Shield, KeyRound, Heart, Building2, MapPin, Trash2,
+  FileSignature, Receipt, Download,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import SEO from "@/components/SEO";
@@ -85,7 +86,7 @@ const EmptyPanel = ({
 
 const CustomerDashboard = () => {
   const { user, loading } = useAuth();
-  const [tab, setTab] = useState<"orders" | "subscriptions" | "favorites" | "profile">("orders");
+  const [tab, setTab] = useState<"orders" | "subscriptions" | "documents" | "invoices" | "favorites" | "profile">("orders");
   const { data: orders } = useMyOrders();
   const proposalCount = (orders || []).filter(
     (o: any) => o.business_response === "adjusted" && !o.customer_response,
@@ -104,6 +105,8 @@ const CustomerDashboard = () => {
   const tabs = [
     { key: "orders", label: "Bestillinger", icon: ShoppingCart, badge: proposalCount },
     { key: "subscriptions", label: "Abonnementer", icon: Package },
+    { key: "invoices", label: "Fakturaer", icon: Receipt },
+    { key: "documents", label: "Dokumenter", icon: FileSignature },
     { key: "favorites", label: "Favoritter", icon: Heart },
     { key: "profile", label: "Min profil", icon: Settings },
   ];
@@ -111,6 +114,8 @@ const CustomerDashboard = () => {
   const headers: Record<typeof tab, { title: string; description: string }> = {
     orders: { title: "Bestillinger", description: "Se og besvar dine bestillinger og forslag fra virksomheder." },
     subscriptions: { title: "Abonnementer", description: "Administrer dine tilbagevendende services." },
+    invoices: { title: "Fakturaer", description: "Se status og hent dine fakturaer." },
+    documents: { title: "Dokumenter", description: "Kontrakter, tilbud og aftaler delt af virksomheder." },
     favorites: { title: "Favoritter", description: "Hurtig adgang til de virksomheder du har gemt." },
     profile: { title: "Min profil", description: "Opdater dine kontaktoplysninger og notifikationer." },
   };
@@ -132,6 +137,8 @@ const CustomerDashboard = () => {
           <PageHeader title={headers[tab].title} description={headers[tab].description} />
           {tab === "orders" && <OrdersView />}
           {tab === "subscriptions" && <SubscriptionsView />}
+          {tab === "invoices" && <InvoicesView />}
+          {tab === "documents" && <DocumentsView />}
           {tab === "favorites" && <FavoritesView />}
           {tab === "profile" && <ProfileView />}
         </div>
