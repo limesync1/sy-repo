@@ -581,13 +581,25 @@ export function CustomerNotificationsSettings({
               </div>
             </div>
           ) : (
+            !smsEnabled ? (
+              <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                  <MessageSquare className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="max-w-sm">
+                  <p className="text-sm font-semibold text-foreground">SMS er slået fra</p>
+                  <p className="mt-1 text-[12px] text-muted-foreground">
+                    Slå SMS til for at sende korte beskeder direkte til kundens telefon.
+                    Afsenderen står som "Serviceyder", og vi tilføjer automatisk jeres firmanavn og telefonnummer.
+                  </p>
+                </div>
+                <Button size="sm" onClick={() => onSmsEnabledChange(true)}>
+                  <MessageSquare className="mr-1.5 h-3.5 w-3.5" /> Slå SMS til
+                </Button>
+              </div>
+            ) : (
             <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
               <div className="space-y-4 p-5">
-                {!smsEnabled && (
-                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-[12px] text-foreground">
-                    SMS er slået fra øverst på siden. Slå den til for at sende SMS'er til jeres kunder.
-                  </div>
-                )}
                 <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3">
                   <div>
                     <p className="text-xs font-semibold text-foreground">Send denne SMS</p>
@@ -637,9 +649,37 @@ export function CustomerNotificationsSettings({
                 <SmsPreview body={smsDrafts[activeEvent].body} businessName={exampleBizName} businessPhone={exampleBizPhone} />
               </div>
             </div>
+            )
           )}
         </div>
       </div>
+
+      {/* Sticky save-bar — vises kun når der er ugemte ændringer */}
+      {anyDirty && (
+        <div className="sticky bottom-3 z-10 mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-full border border-border bg-card px-4 py-2 shadow-lg">
+          <div className="flex items-center gap-2 text-xs text-foreground">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
+            </span>
+            <span className="font-medium">Du har ugemte ændringer</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {channelTab === "email" && emailDirty && (
+              <Button size="sm" onClick={() => save(activeEvent)} disabled={saving === `email-${activeEvent}`}>
+                {saving === `email-${activeEvent}` ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
+                Gem e-mail
+              </Button>
+            )}
+            {channelTab === "sms" && smsDirty && smsEnabled && (
+              <Button size="sm" onClick={() => saveSms(activeEvent)} disabled={saving === `sms-${activeEvent}`}>
+                {saving === `sms-${activeEvent}` ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
+                Gem SMS
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
