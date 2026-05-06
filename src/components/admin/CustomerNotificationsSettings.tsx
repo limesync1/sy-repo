@@ -31,45 +31,58 @@ const EVENTS: {
 }[] = [
   {
     key: "service_upcoming",
-    label: "Påmindelse før besøg",
-    shortLabel: "Inden besøget",
-    help: "Sendes automatisk et stykke tid før I kommer ud til kunden.",
+    label: "Påmindelse inden besøg",
+    shortLabel: "Sendes inden I kommer",
+    help: "En venlig påmindelse til kunden om hvornår I kommer forbi. Sendes automatisk et stykke tid før det planlagte besøg.",
     Icon: Bell,
     defaults: {
-      subject: "Vi kommer og udfører {{service_name}}",
-      body: "Hej {{customer_name}},\n\nVi kommer forbi {{planned_arrival}} og udfører {{service_name}}.\n\nVi glæder os til at se dig.\n\nVenlig hilsen,\n{{business_name}}",
+      subject: "Vi kommer og udfører {{service}}",
+      body: "Hej {{kundens_navn}},\n\nVi kommer forbi {{tidspunkt}} og udfører {{service}}.\n\nVi glæder os til at se dig.\n\nVenlig hilsen,\n{{firmanavn}}",
     },
   },
   {
     key: "service_completed",
     label: "Kvittering efter besøg",
-    shortLabel: "Efter besøget",
-    help: "Sendes automatisk når medarbejderen markerer opgaven som udført.",
+    shortLabel: "Sendes når opgaven er færdig",
+    help: "En kvittering til kunden når besøget er udført. Sendes automatisk så snart medarbejderen markerer opgaven som færdig.",
     Icon: CheckCircle2,
     defaults: {
-      subject: "Vi har udført {{service_name}}",
-      body: "Hej {{customer_name}},\n\nVi har i dag været forbi og udført {{service_name}}.\nDu modtager snarest faktura via vores regnskabssystem.\n\nTak fordi du valgte os.\n\nVenlig hilsen,\n{{business_name}}",
+      subject: "Vi har udført {{service}}",
+      body: "Hej {{kundens_navn}},\n\nVi har i dag været forbi og udført {{service}}.\nDu modtager snarest faktura via vores regnskabssystem.\n\nTak fordi du valgte os.\n\nVenlig hilsen,\n{{firmanavn}}",
     },
   },
 ];
 
 const SMS_DEFAULTS: Record<EventKey, string> = {
-  service_upcoming: "Hej {{customer_name}}, vi kommer {{planned_arrival}} og udfører {{service_name}}. Mvh {{business_name}}",
-  service_completed: "Hej {{customer_name}}, vi har udført {{service_name}} i dag. Faktura sendes snarest. Mvh {{business_name}}",
+  service_upcoming: "Hej {{kundens_navn}}, vi kommer {{tidspunkt}} og udfører {{service}}. Mvh {{firmanavn}}",
+  service_completed: "Hej {{kundens_navn}}, vi har udført {{service}} i dag. Faktura sendes snarest. Mvh {{firmanavn}}",
 };
 
+// Danske variabel-navne — vises i UI'et og virker også i skabeloner.
+// Vi understøtter også de gamle engelske navne for bagudkompatibilitet.
 const PLACEHOLDERS: { key: string; label: string; example: string }[] = [
-  { key: "customer_name", label: "Kundens navn", example: "Mette Hansen" },
-  { key: "business_name", label: "Jeres firmanavn", example: "Rengøring København" },
-  { key: "business_phone", label: "Jeres telefonnummer", example: "+45 12 34 56 78" },
-  { key: "service_name", label: "Service", example: "ugentlig rengøring" },
-  { key: "planned_arrival", label: "Tidspunkt", example: "torsdag d. 7. maj kl. 10:00" },
+  { key: "kundens_navn", label: "Kundens navn", example: "Mette Hansen" },
+  { key: "firmanavn", label: "Jeres firmanavn", example: "Rengøring København" },
+  { key: "telefon", label: "Jeres telefonnummer", example: "+45 12 34 56 78" },
+  { key: "service", label: "Service", example: "ugentlig rengøring" },
+  { key: "tidspunkt", label: "Tidspunkt", example: "torsdag d. 7. maj kl. 10:00" },
 ];
 
+// Mapping: dansk eller gammelt engelsk navn → eksempel-værdi
+const ALIASES: Record<string, string> = {
+  kundens_navn: "kundens_navn", customer_name: "kundens_navn",
+  firmanavn: "firmanavn", business_name: "firmanavn",
+  telefon: "telefon", business_phone: "telefon",
+  service: "service", service_name: "service",
+  tidspunkt: "tidspunkt", planned_arrival: "tidspunkt",
+};
 const EXAMPLE_VARS: Record<string, string> = Object.fromEntries(PLACEHOLDERS.map((p) => [p.key, p.example]));
 
 function renderPreview(tpl: string): string {
-  return tpl.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => EXAMPLE_VARS[k] ?? `{{${k}}}`);
+  return tpl.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => {
+    const canonical = ALIASES[k] ?? k;
+    return EXAMPLE_VARS[canonical] ?? `{{${k}}}`;
+  });
 }
 
 /* ─────────────────────── PREVIEWS ─────────────────────── */
