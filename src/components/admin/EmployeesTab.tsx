@@ -1069,10 +1069,6 @@ const EmployeeRow = ({
 export default EmployeesTab;
 
 /* ─── Opgaveoverblik pr. medarbejder ─────────────────────────────── */
-import { useQuery } from "@tanstack/react-query";
-import { format as fmtDate, parseISO } from "date-fns";
-import { da } from "date-fns/locale";
-
 const EmployeeTasksDialog = ({
   open, onOpenChange, employeeId, employeeName,
 }: {
