@@ -529,14 +529,14 @@ const SettingsTab = ({ business }: { business: any }) => {
   // Bruges i toplinje-bannret (ligesom Overblik viser pending-bestillinger).
   const completeness = useMemo(() => {
     const checks = [
-      { key: "logo",        done: !!logoUrl,                    label: "Logo" },
-      { key: "cover",       done: !!coverUrl,                   label: "Coverbillede" },
-      { key: "description", done: description.trim().length > 20, label: "Beskrivelse" },
-      { key: "phone",       done: !!phone,                      label: "Telefon" },
-      { key: "email",       done: !!email,                      label: "Email" },
-      { key: "address",     done: !!address && !!zipCode,       label: "Adresse" },
-      { key: "categories",  done: selectedCategories.length > 0, label: "Branche" },
-      { key: "hours",       done: Object.keys(openHours).length > 0, label: "Åbningstider" },
+      { key: "logo",        section: "branding", done: !!logoUrl,                       label: "Logo" },
+      { key: "cover",       section: "branding", done: !!coverUrl,                      label: "Coverbillede" },
+      { key: "description", section: "general",  done: description.trim().length > 20,  label: "Beskrivelse" },
+      { key: "phone",       section: "contact",  done: !!phone,                         label: "Telefon" },
+      { key: "email",       section: "contact",  done: !!email,                         label: "Email" },
+      { key: "address",     section: "contact",  done: !!address && !!zipCode,          label: "Adresse" },
+      { key: "categories",  section: "industries", done: selectedCategories.length > 0, label: "Branche" },
+      { key: "hours",       section: "hours",    done: Object.keys(openHours).length > 0, label: "Åbningstider" },
     ];
     const done = checks.filter((c) => c.done).length;
     return { checks, done, total: checks.length, pct: Math.round((done / checks.length) * 100) };
