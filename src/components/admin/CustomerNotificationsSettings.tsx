@@ -515,25 +515,17 @@ export function CustomerNotificationsSettings({
                 Bruges som udgangspunkt for alle påmindelser. I kan altid vælge en anden tid for hver enkelt e-mail og SMS længere nede.
               </p>
               <p className="mt-2 text-[12px] text-foreground">
-                Sender påmindelser <span className="font-semibold">{formatLead(upcomingHoursBefore * 60)}</span> før det planlagte besøg.
+                Sender påmindelser <span className="font-semibold">{formatLead(upcomingMinutesBefore)}</span> før det planlagte besøg.
               </p>
-              {/* Presets (i timer) */}
+              {/* Presets */}
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {[
-                  { label: "1 time", h: 1 },
-                  { label: "2 timer", h: 2 },
-                  { label: "4 timer", h: 4 },
-                  { label: "12 timer", h: 12 },
-                  { label: "1 dag", h: 24 },
-                  { label: "2 dage", h: 48 },
-                  { label: "1 uge", h: 168 },
-                ].map((p) => {
-                  const active = upcomingHoursBefore === p.h;
+                {LEAD_PRESETS.map((p) => {
+                  const active = upcomingMinutesBefore === p.minutes;
                   return (
                     <button
-                      key={p.h}
+                      key={p.minutes}
                       type="button"
-                      onClick={() => onUpcomingHoursChange(p.h)}
+                      onClick={() => onUpcomingMinutesChange(p.minutes)}
                       className={cn(
                         "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
                         active
@@ -546,32 +538,30 @@ export function CustomerNotificationsSettings({
                   );
                 })}
               </div>
-              {/* Brugerdefineret */}
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <label className="flex flex-col gap-1">
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Dage</span>
-                  <Input
-                    type="number" min={0} max={7} className="h-9"
-                    value={Math.floor(upcomingHoursBefore / 24)}
-                    onChange={(e) => {
-                      const d = Math.max(0, Math.min(7, Number(e.target.value) || 0));
-                      const h = upcomingHoursBefore % 24;
-                      onUpcomingHoursChange(Math.max(1, Math.min(168, d * 24 + h)));
-                    }}
-                  />
-                </label>
-                <label className="flex flex-col gap-1">
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Timer</span>
-                  <Input
-                    type="number" min={0} max={23} className="h-9"
-                    value={upcomingHoursBefore % 24}
-                    onChange={(e) => {
-                      const h = Math.max(0, Math.min(23, Number(e.target.value) || 0));
-                      const d = Math.floor(upcomingHoursBefore / 24);
-                      onUpcomingHoursChange(Math.max(1, Math.min(168, d * 24 + h)));
-                    }}
-                  />
-                </label>
+              {/* Brugerdefineret: dage / timer / minutter */}
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {(() => {
+                  const parts = minutesToParts(upcomingMinutesBefore);
+                  const setPart = (k: "d" | "h" | "m", v: number) => {
+                    const max = k === "m" ? 59 : k === "h" ? 23 : 30;
+                    const next = { ...parts, [k]: Math.max(0, Math.min(max, Number.isFinite(v) ? v : 0)) };
+                    onUpcomingMinutesChange(Math.max(1, partsToMinutes(next)));
+                  };
+                  return ([
+                    { k: "d" as const, label: "Dage", max: 30 },
+                    { k: "h" as const, label: "Timer", max: 23 },
+                    { k: "m" as const, label: "Min", max: 59 },
+                  ]).map((f) => (
+                    <label key={f.k} className="flex flex-col gap-1">
+                      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{f.label}</span>
+                      <Input
+                        type="number" min={0} max={f.max} className="h-9"
+                        value={parts[f.k]}
+                        onChange={(e) => setPart(f.k, Number(e.target.value))}
+                      />
+                    </label>
+                  ));
+                })()}
               </div>
             </div>
           </div>
