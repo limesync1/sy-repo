@@ -354,6 +354,18 @@ export function CustomerNotificationsSettings({
   const exampleBizPhone = businessInfo?.phone?.trim() || EXAMPLE_VARS.business_phone;
   const emailDirty = isEmailDirty(activeEvent);
   const smsDirty = isSmsDirty(activeEvent);
+  const anyDirty = EVENTS.some((e) => isEmailDirty(e.key) || isSmsDirty(e.key));
+
+  // Advar hvis brugeren forlader siden med ugemte ændringer
+  useEffect(() => {
+    if (!anyDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [anyDirty]);
 
   return (
     <div className="space-y-6">
