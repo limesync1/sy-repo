@@ -863,24 +863,28 @@ const SettingsTab = ({ business }: { business: any }) => {
       </div>
 
       {/* ─── Sub-nav chips (mobil/tablet) — sticky sidebar bruges på lg ─── */}
-      {/* Bliver sticky lige under topbaren (h-14) så den følger med ned. */}
-      <div className="sticky top-14 z-20 -mx-4 sm:-mx-6 lg:hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border px-4 sm:px-6 py-2">
+      <div className="sticky top-14 z-20 -mx-4 sm:-mx-6 lg:hidden border-b border-border bg-background/95 px-4 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-6">
         <div className="flex flex-nowrap gap-2 overflow-x-auto pb-0.5">
-          {SECTIONS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => scrollToSection(id)}
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 ${
-              activeSection === id
-                ? "border-border bg-secondary text-foreground"
-                : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
-            }`}
-          >
-            <Icon />
-            {label}
-          </button>
-          ))}
+          {SECTIONS.map(({ id, label, icon: Icon }) => {
+            const sectionDone = completeness.checks.filter((c) => c.section === id);
+            const allDone = sectionDone.length > 0 && sectionDone.every((c) => c.done);
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => scrollToSection(id)}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 ${
+                  activeSection === id
+                    ? "border-foreground/40 bg-secondary text-foreground"
+                    : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+                }`}
+              >
+                <Icon />
+                {label}
+                {allDone && <CheckCircle2 className="ml-0.5 h-3 w-3 text-emerald-600" />}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -889,26 +893,57 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* Sticky sidebar nav (kun lg+) — top-offset matcher den sticky topbar
             (h-14 = 56px) + lille luft, så den klistrer fast lige under headeren
             mens man scroller. */}
-        <aside className="hidden lg:block lg:sticky lg:top-[72px] lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto">
-          <nav className="flex flex-col gap-1 rounded-xl border border-border/80 bg-card p-2 shadow-sm">
-            {SECTIONS.map(({ id, label, icon: Icon, hint }) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => scrollToSection(id)}
-                className={`flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors w-full ${
-                  activeSection === id
-                    ? "bg-secondary text-foreground"
-                    : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
-                }`}
-              >
-                <Icon className="mt-0.5 h-4 w-4 shrink-0" />
-                <span className="min-w-0">
-                  <span className="block text-sm font-medium leading-tight">{label}</span>
-                  <span className="mt-0.5 block text-[11px] text-muted-foreground">{hint}</span>
-                </span>
-              </button>
-            ))}
+        <aside className="hidden lg:sticky lg:top-[72px] lg:block lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto">
+          <nav className="rounded-xl border border-border/80 bg-card p-2 shadow-sm">
+            {(() => {
+              const groups: { title: string; ids: string[] }[] = [
+                { title: "Profil",      ids: ["general", "industries", "contact", "branding", "hours"] },
+                { title: "Beskeder",    ids: ["notifications", "customer-notifications"] },
+                { title: "Konto",       ids: ["billing", "advanced"] },
+              ];
+              return groups.map((g, gi) => (
+                <div key={g.title} className={gi > 0 ? "mt-3 border-t border-border/60 pt-2" : ""}>
+                  <p className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                    {g.title}
+                  </p>
+                  <div className="flex flex-col gap-0.5">
+                    {g.ids.map((id) => {
+                      const sec = SECTIONS.find((s) => s.id === id);
+                      if (!sec) return null;
+                      const Icon = sec.icon;
+                      const sectionChecks = completeness.checks.filter((c) => c.section === id);
+                      const sectionDone = sectionChecks.length > 0 && sectionChecks.every((c) => c.done);
+                      const isActive = activeSection === id;
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => scrollToSection(id)}
+                          className={`group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors ${
+                            isActive
+                              ? "bg-foreground text-background"
+                              : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                          }`}
+                        >
+                          <Icon className={`h-4 w-4 shrink-0 ${isActive ? "" : ""}`} />
+                          <span className="min-w-0 flex-1">
+                            <span className={`block text-[13px] font-medium leading-tight ${isActive ? "text-background" : ""}`}>
+                              {sec.label}
+                            </span>
+                            <span className={`mt-0.5 block text-[11px] leading-tight ${isActive ? "text-background/70" : "text-muted-foreground/80"}`}>
+                              {sec.hint}
+                            </span>
+                          </span>
+                          {sectionDone && (
+                            <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-emerald-300" : "text-emerald-600"}`} />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ));
+            })()}
           </nav>
         </aside>
 
