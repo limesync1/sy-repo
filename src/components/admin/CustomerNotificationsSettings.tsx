@@ -391,15 +391,15 @@ export function CustomerNotificationsSettings({
               <Clock className="h-4 w-4 text-foreground" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground">Hvornår får kunden besked?</p>
-              <p className="mt-0.5 text-[12px] text-muted-foreground">Påmindelsen sendes så lang tid før besøget.</p>
+              <p className="text-sm font-semibold text-foreground">Påmind kunden inden besøget</p>
+              <p className="mt-0.5 text-[12px] text-muted-foreground">Vi sender en automatisk påmindelse det antal timer før, I aftaler her.</p>
               <div className="mt-3 flex items-center gap-2">
                 <Input
                   type="number" min={1} max={168} className="h-9 w-20"
                   value={upcomingHoursBefore}
                   onChange={(e) => onUpcomingHoursChange(Math.max(1, Math.min(168, Number(e.target.value) || 24)))}
                 />
-                <span className="text-sm text-foreground">timer før</span>
+                <span className="text-sm text-foreground">timer før besøget</span>
               </div>
             </div>
           </div>
@@ -415,11 +415,11 @@ export function CustomerNotificationsSettings({
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-semibold text-foreground">Send også SMS</p>
+              <p className="text-sm font-semibold text-foreground">Send også som SMS til kundens telefon</p>
               <Switch checked={smsEnabled} onCheckedChange={onSmsEnabledChange} />
             </div>
             <p className="mt-0.5 text-[12px] text-muted-foreground">
-              Afsender vises som <span className="font-medium text-foreground">Serviceydere</span>. Korte beskeder direkte til kundens telefon.
+              Når slået til, sender vi en kort SMS samtidig med e-mailen. Kunden ser <span className="font-medium text-foreground">Serviceydere</span> som afsender.
             </p>
           </div>
         </label>
