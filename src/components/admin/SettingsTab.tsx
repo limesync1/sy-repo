@@ -423,9 +423,12 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [livechatEnabled, setLivechatEnabled] = useState<boolean>(
     !!(business.settings as any)?.livechat_enabled
   );
-  const [customerNotifUpcomingHours, setCustomerNotifUpcomingHours] = useState<number>(
-    Number((business.settings as any)?.customer_notif_upcoming_hours ?? 24)
-  );
+  const [customerNotifUpcomingMinutes, setCustomerNotifUpcomingMinutes] = useState<number>(() => {
+    const s = (business.settings as any) || {};
+    if (typeof s.customer_notif_upcoming_minutes === "number") return Number(s.customer_notif_upcoming_minutes);
+    if (typeof s.customer_notif_upcoming_hours === "number") return Number(s.customer_notif_upcoming_hours) * 60;
+    return 24 * 60;
+  });
   const [smsEnabled, setSmsEnabled] = useState<boolean>(
     !!(business.settings as any)?.sms_enabled
   );
@@ -691,7 +694,8 @@ const SettingsTab = ({ business }: { business: any }) => {
       accounting_integration_enabled: accountingIntegrationEnabled,
       leads_enabled: leadsEnabled,
       livechat_enabled: livechatEnabled,
-      customer_notif_upcoming_hours: customerNotifUpcomingHours,
+      customer_notif_upcoming_minutes: customerNotifUpcomingMinutes,
+      customer_notif_upcoming_hours: Math.max(1, Math.round(customerNotifUpcomingMinutes / 60)),
       sms_enabled: smsEnabled,
       // Domæne gemmes normaliseret. Når brugeren ændrer domænet,
       // nulstiller vi verifikations-status så vi ikke fejlagtigt påstår
@@ -711,7 +715,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     business.id, business.name, business.settings, origCustomDomain,
     name, description, phone, email, address, city, zipCode,
     logoUrl, coverUrl, selectedCategories, selectedSubcategories,
-    openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled, livechatEnabled, customDomain, customerNotifUpcomingHours,
+    openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled, livechatEnabled, customDomain, customerNotifUpcomingMinutes,
   ]);
 
   useEffect(() => {
@@ -1516,8 +1520,8 @@ const SettingsTab = ({ business }: { business: any }) => {
           >
             <CustomerNotificationsSettings
               businessId={business.id}
-              upcomingHoursBefore={customerNotifUpcomingHours}
-              onUpcomingHoursChange={setCustomerNotifUpcomingHours}
+              upcomingMinutesBefore={customerNotifUpcomingMinutes}
+              onUpcomingMinutesChange={setCustomerNotifUpcomingMinutes}
               smsEnabled={smsEnabled}
               onSmsEnabledChange={setSmsEnabled}
             />
