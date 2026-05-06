@@ -1217,23 +1217,35 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* Branding */}
         <div id="settings-branding" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard title="Profil og webadresse" icon={<ImageIcon />} description="Det visuelle udtryk og linket til jeres profil — logo, forsidebillede, og det kunderne ser i adresselinjen.">
-            {/* Side-om-side så cover ikke fylder hele bredden — kun en kompakt
-                preview, da fuld bannervisning ikke er nødvendig her. */}
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-              <div className="shrink-0" data-tour="field-logo">
-                <FieldLabel>Logo</FieldLabel>
-                <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
-                <p className="mt-2 text-xs text-muted-foreground">Vises lille — vælg et kvadratisk billede (fx 512×512 px).</p>
-              </div>
-              <div className="min-w-0 flex-1 sm:max-w-xs" data-tour="field-cover">
-                <FieldLabel>Coverbillede</FieldLabel>
-                <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-full max-w-[260px]" />
-                <p className="mt-2 text-xs text-muted-foreground">Vises som bredt banner øverst på jeres profil — brug et liggende billede (16:9).</p>
+            {/* ── Visuelle elementer: logo + cover side om side i én visuel ramme ── */}
+            <div>
+              <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Visuelle elementer</p>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[180px_1fr]">
+                <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-logo">
+                  <FieldLabel>Logo</FieldLabel>
+                  <div className="mt-1 flex items-start gap-3">
+                    <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
+                  </div>
+                  <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
+                    Vises lille i toppen af profilen, i søgeresultater og i e-mails. Brug et kvadratisk billede (fx 512×512 px) — gerne med transparent baggrund.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-cover">
+                  <FieldLabel>Coverbillede</FieldLabel>
+                  <div className="mt-1">
+                    <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-full max-w-[360px]" />
+                  </div>
+                  <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
+                    Vises som bredt banner øverst på jeres profilside. Brug et liggende billede (16:9, fx 1920×1080 px) som viser jeres arbejde, team eller bil.
+                  </p>
+                </div>
               </div>
             </div>
 
+            {/* ── Webadresse ── */}
+            <p className="mt-6 mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Webadresse</p>
             {/* Permalink (slug) */}
-            <div className="mt-6 rounded-xl border border-border bg-card/50 p-4">
+            <div className="rounded-xl border border-border bg-card/50 p-4">
               <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
                   <Link2 className="h-4 w-4" />
