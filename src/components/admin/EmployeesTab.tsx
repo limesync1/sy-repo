@@ -474,6 +474,9 @@ const EmployeeRow = ({
     employee.commission_pct != null ? String(employee.commission_pct) : "0",
   );
   const [editLivechat, setEditLivechat] = useState<boolean>(!!(employee as any).livechat_enabled);
+  const [editEmployeeNumber, setEditEmployeeNumber] = useState<string>((employee as any).employee_number || "");
+  const [editEmployeeGroup, setEditEmployeeGroup] = useState<string>((employee as any).employee_group || "");
+  const [tasksOpen, setTasksOpen] = useState(false);
   const resetPw = useResetEmployeePassword();
   const fallbackColor = employee.color || "#64748b";
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -858,6 +861,27 @@ const EmployeeRow = ({
                     />
                   </div>
                 </div>
+                <div>
+                  <FieldLabel>Medarbejder-nr.</FieldLabel>
+                  <Input
+                    value={editEmployeeNumber}
+                    onChange={(e) => setEditEmployeeNumber(e.target.value)}
+                    className="h-10"
+                    placeholder="Auto"
+                  />
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Bruges til synkronisering med lønsystem.
+                  </p>
+                </div>
+                <div>
+                  <FieldLabel>Medarbejdergruppe / afdeling</FieldLabel>
+                  <Input
+                    value={editEmployeeGroup}
+                    onChange={(e) => setEditEmployeeGroup(e.target.value)}
+                    className="h-10"
+                    placeholder="fx Service Øst"
+                  />
+                </div>
               </div>
             </section>
 
@@ -945,6 +969,8 @@ const EmployeeRow = ({
                     title: editTitle.trim() || null,
                     commission_pct: pctNum,
                     livechat_enabled: editLivechat,
+                    employee_number: editEmployeeNumber.trim() || null,
+                    employee_group: editEmployeeGroup.trim() || null,
                   } as any,
                   {
                     onSuccess: () => {
