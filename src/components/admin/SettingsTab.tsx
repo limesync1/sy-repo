@@ -791,127 +791,78 @@ const SettingsTab = ({ business }: { business: any }) => {
 
   return (
     <div className="space-y-6 pb-24">
-      {/* ─── Hero — virksomheds-preview med cover, logo, status og hurtige handlinger ─── */}
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-        {/* Cover-baggrund */}
-        <div className="relative h-32 sm:h-40 w-full bg-gradient-to-br from-foreground via-foreground to-foreground/80">
-          {coverUrl && (
-            <img src={coverUrl} alt="" className="h-full w-full object-cover opacity-90" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
-          {/* Save-status — flyder over coveret */}
-          <div className="absolute right-4 top-4">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/40 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur-md">
-              {saveStatus === "saving" ? (
-                <>
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400" />
-                  Gemmer…
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                  Alt gemt automatisk
-                </>
-              )}
-            </div>
-          </div>
+      {/* ─── Kompakt header — titel + status + hurtige handlinger ─── */}
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border pb-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Indstillinger</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Hold jeres virksomhedsprofil opdateret — alt gemmes automatisk mens I redigerer.
+          </p>
         </div>
-
-        {/* Indhold under cover */}
-        <div className="relative px-5 pb-5 sm:px-6 sm:pb-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-            {/* Logo */}
-            <div className="-mt-12 sm:-mt-14 flex h-20 w-20 sm:h-24 sm:w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-card bg-card shadow-md">
-              {logoUrl ? (
-                <img src={logoUrl} alt={name} className="h-full w-full object-contain" />
-              ) : (
-                <Building2 className="h-8 w-8 text-muted-foreground/40" />
-              )}
-            </div>
-
-            {/* Navn + adresse */}
-            <div className="min-w-0 flex-1 sm:pb-1">
-              <h1 className="truncate text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
-                {name || "Jeres virksomhed"}
-              </h1>
-              <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-                {business.slug && (
-                  <span className="inline-flex items-center gap-1">
-                    <Globe className="h-3 w-3" />
-                    <span className="font-mono">/v/{business.slug}</span>
-                  </span>
-                )}
-                {(zipCode || city) && (
-                  <>
-                    {business.slug && <span className="text-muted-foreground/40">·</span>}
-                    <span>{[zipCode, city].filter(Boolean).join(" ")}</span>
-                  </>
-                )}
-              </p>
-            </div>
-
-            {/* CTA — Se din side */}
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
+            {saveStatus === "saving" ? (
+              <>
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
+                Gemmer…
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                Gemt
+              </>
+            )}
+          </span>
+          {business.slug && (
             <a
-              href={business.slug ? `/v/${business.slug}` : "#"}
+              href={`/v/${business.slug}`}
               target="_blank"
               rel="noopener noreferrer"
-              className={`inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-medium text-foreground transition-all hover:bg-secondary hover:shadow-sm ${
-                !business.slug ? "pointer-events-none opacity-50" : ""
-              }`}
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-secondary"
             >
-              <ExternalLink className="h-4 w-4" />
+              <ExternalLink className="h-3.5 w-3.5" />
               Se din side
             </a>
-          </div>
-
-          {/* Profil-fuldstændighed — integreret i hero */}
-          <div className="mt-5 rounded-xl border border-border bg-secondary/40 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                  completeness.pct === 100 ? "bg-emerald-500/10 text-emerald-600" : "bg-amber-500/10 text-amber-600"
-                }`}>
-                  {completeness.pct === 100 ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[13px] font-semibold text-foreground leading-tight">
-                    {completeness.pct === 100 ? "Jeres profil er klar 🎉" : `${completeness.total - completeness.done} ting mangler stadig`}
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">
-                    {completeness.done} af {completeness.total} felter udfyldt
-                  </p>
-                </div>
-              </div>
-              <p className="text-2xl font-semibold tabular-nums text-foreground tracking-tight">
-                {completeness.pct}<span className="text-sm text-muted-foreground font-medium">%</span>
-              </p>
-            </div>
-            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-background">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${
-                  completeness.pct === 100 ? "bg-emerald-500" : "bg-accent"
-                }`}
-                style={{ width: `${completeness.pct}%` }}
-              />
-            </div>
-            {completeness.pct < 100 && (
-              <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                {completeness.checks.filter((c) => !c.done).map((c) => (
-                  <button
-                    key={c.key}
-                    type="button"
-                    onClick={() => scrollToSection(c.section)}
-                    className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:border-amber-600 hover:bg-amber-500/20"
-                  >
-                    {c.label}
-                    <ArrowRight className="h-2.5 w-2.5" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
+
+      {/* ─── Profil-fuldstændighed — vises kun hvis noget mangler ─── */}
+      {completeness.pct < 100 && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/[0.04] p-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600">
+                <AlertCircle className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-[13px] font-semibold text-foreground leading-tight">
+                  {completeness.total - completeness.done} ting mangler i jeres profil
+                </p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">
+                  {completeness.done}/{completeness.total} udfyldt · {completeness.pct}%
+                </p>
+              </div>
+            </div>
+            <div className="h-1.5 flex-1 min-w-[120px] overflow-hidden rounded-full bg-background">
+              <div className="h-full rounded-full bg-amber-500 transition-all duration-500" style={{ width: `${completeness.pct}%` }} />
+            </div>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            {completeness.checks.filter((c) => !c.done).map((c) => (
+              <button
+                key={c.key}
+                type="button"
+                onClick={() => scrollToSection(c.section)}
+                className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:border-amber-600 hover:bg-amber-500/20"
+              >
+                {c.label}
+                <ArrowRight className="h-2.5 w-2.5" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ─── Sub-nav chips (mobil/tablet) — sticky sidebar bruges på lg ─── */}
       <div data-settings-chipnav className="sticky top-14 z-20 -mx-4 sm:-mx-6 lg:hidden border-b border-border bg-background/95 px-4 py-2.5 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-6">
