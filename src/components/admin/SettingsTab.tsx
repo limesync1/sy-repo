@@ -15,7 +15,7 @@ import {
   Sparkles, Settings, Bell, Route, Contact, Image as ImageIcon, Clock,
   CheckCircle2, AlertCircle, ArrowRight, Building2, Search, Calculator,
   CreditCard, XCircle, MessageCircle, Globe, ExternalLink, Link2, Loader2, Copy,
-  UploadCloud, ShoppingCart, CalendarClock, RefreshCcw, Star, Inbox,
+  UploadCloud, ShoppingCart, CalendarClock, RefreshCcw, Star, Inbox, Mail, Phone, MapPin,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
@@ -1089,16 +1089,14 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <div data-tour="field-phone">
                   <FieldLabel>Telefon</FieldLabel>
                   <div className="relative">
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      <Contact className="h-4 w-4" />
-                    </span>
+                    <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input placeholder="12 34 56 78" value={phone} onChange={(e) => handlePhoneChange(e.target.value)} className="bg-card h-11 rounded-lg pl-9 text-[15px]" type="tel" />
                   </div>
                 </div>
                 <div data-tour="field-email">
                   <FieldLabel>Email</FieldLabel>
                   <div className="relative">
-                    <Bell className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input placeholder="kontakt@virksomhed.dk" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-card h-11 rounded-lg pl-9 text-[15px]" type="email" />
                   </div>
                 </div>
