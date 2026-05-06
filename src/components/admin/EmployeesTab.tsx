@@ -1053,6 +1053,13 @@ const EmployeeRow = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <EmployeeTasksDialog
+        open={tasksOpen}
+        onOpenChange={setTasksOpen}
+        employeeId={employee.id}
+        employeeName={employee.name}
+      />
     </div>
     </TooltipProvider>
   );
