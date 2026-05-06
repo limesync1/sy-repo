@@ -7,6 +7,7 @@ import type {
   AccountingSettings,
   ExternalCustomer,
   ExternalGroups,
+  ExternalInvoice,
   ExternalInvoiceState,
   ExternalProduct,
   UpsertCustomerInput,
@@ -552,6 +553,52 @@ export function makeBillyAdapter(
         } catch { /* ignore single invoice fetch errors */ }
       }
       return out;
+    },
+
+    async listInvoices(updatedSince?: Date): Promise<ExternalInvoice[]> {
+      // Hent fakturaer der er ændret siden sidste pull. Billy understøtter
+      // ?updatedSince — ellers henter vi de seneste 100.
+      const q = updatedSince
+        ? `?updatedSince=${updatedSince.toISOString()}`
+        : `?pageSize=100&sortProperty=updatedTime&sortDirection=DESC`;
+      const data = await billyRequest(creds, `/invoices${q}`);
+      const items = (data?.invoices ?? []) as any[];
+      return items.map((inv): ExternalInvoice => {
+        const total = Number(inv.grossAmount ?? inv.amount ?? 0);
+        const balance = Number(inv.balance ?? total);
+        const paid = total - balance;
+        const isPaid = inv.isPaid === true || inv.state === "paid" || (balance === 0 && total > 0);
+        const isCredit = inv.state === "voided" || inv.type === "creditNote" || total < 0;
+        const dueDate: string | null = inv.dueDate ?? null;
+        const overdue = !isPaid && dueDate && new Date(dueDate) < new Date();
+        let status: ExternalInvoiceState["status"];
+        if (isCredit) status = "credited";
+        else if (isPaid) status = "paid";
+        else if (paid > 0 && balance > 0) status = "partially_paid";
+        else if (overdue) status = "overdue";
+        else status = "unpaid";
+        const lines: any[] = Array.isArray(inv.lines) ? inv.lines : [];
+        return {
+          external_id: String(inv.id),
+          external_number: inv.invoiceNo ?? null,
+          customer_external_id: inv.contactId ?? null,
+          customer_name: null,
+          status,
+          paid_amount: paid,
+          total_amount: total,
+          paid_at: isPaid ? (inv.paidDate ?? inv.updatedTime ?? null) : null,
+          due_date: dueDate,
+          date: inv.entryDate ?? inv.createdTime ?? null,
+          currency: inv.currencyId ?? "DKK",
+          lines: lines.map((l) => ({
+            description: l.description ?? "",
+            quantity: Number(l.quantity ?? 1),
+            unit_price: Number(l.unitPrice ?? 0),
+            product_external_id: l.productId ?? null,
+          })),
+          raw: inv,
+        };
+      });
     },
   };
 }

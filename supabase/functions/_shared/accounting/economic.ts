@@ -7,6 +7,7 @@ import type {
   AccountingSettings,
   ExternalCustomer,
   ExternalGroups,
+  ExternalInvoice,
   ExternalInvoiceState,
   ExternalProduct,
   UpsertCustomerInput,
@@ -405,6 +406,44 @@ export function makeEconomicAdapter(
             raw: inv,
           });
         } catch { /* ignore */ }
+      }
+      return out;
+    },
+
+    async listInvoices(updatedSince?: Date): Promise<ExternalInvoice[]> {
+      // E-conomic: bogførte fakturaer på /invoices/booked. Filter efter dato
+      // hvis muligt (date$gte) — ellers seneste 100.
+      const since = updatedSince ? updatedSince.toISOString().slice(0, 10) : null;
+      const filter = since ? `&filter=date$gte:${since}` : "";
+      const data = await ecRequest(creds, `/invoices/booked?pagesize=100${filter}`);
+      const items: any[] = data?.collection ?? [];
+      const out: ExternalInvoice[] = [];
+      for (const inv of items) {
+        const total = Number(inv.grossAmount ?? inv.netAmount ?? 0);
+        const remainder = Number(inv.remainder ?? total);
+        const paid = total - remainder;
+        const dueDate: string | null = inv.dueDate ?? null;
+        const overdue = remainder > 0 && dueDate && new Date(dueDate) < new Date();
+        let status: ExternalInvoiceState["status"];
+        if (remainder === 0 && total > 0) status = "paid";
+        else if (paid > 0 && remainder > 0) status = "partially_paid";
+        else if (overdue) status = "overdue";
+        else status = "unpaid";
+        out.push({
+          external_id: String(inv.bookedInvoiceNumber ?? inv.draftInvoiceNumber ?? ""),
+          external_number: String(inv.bookedInvoiceNumber ?? ""),
+          customer_external_id: inv.customer?.customerNumber ? String(inv.customer.customerNumber) : null,
+          customer_name: inv.recipient?.name ?? null,
+          status,
+          paid_amount: paid,
+          total_amount: total,
+          paid_at: status === "paid" ? (inv.paymentDate ?? null) : null,
+          due_date: dueDate,
+          date: inv.date ?? null,
+          currency: inv.currency ?? "DKK",
+          lines: [],
+          raw: inv,
+        });
       }
       return out;
     },

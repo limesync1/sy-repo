@@ -145,6 +145,26 @@ export interface ExternalInvoiceState {
   raw?: unknown;
 }
 
+export interface ExternalInvoiceLine {
+  description: string;
+  quantity: number;
+  unit_price: number;
+  product_external_id?: string | null;
+}
+
+/**
+ * Full invoice as returned by the provider — used to discover invoices that
+ * were created directly in the accounting program (i.e. outside Serviceydere)
+ * so we can mirror them as shadow orders for full two-way sync.
+ */
+export interface ExternalInvoice extends ExternalInvoiceState {
+  customer_external_id?: string | null;
+  customer_name?: string | null;
+  date?: string | null; // ISO date the invoice was issued
+  currency?: string | null;
+  lines?: ExternalInvoiceLine[];
+}
+
 export interface AccountingAdapter {
   provider: AccountingProvider;
 
@@ -176,6 +196,14 @@ export interface AccountingAdapter {
    * from the accounting provider, never set manually inside Serviceydere.
    */
   getInvoiceStates?(externalIds: string[]): Promise<ExternalInvoiceState[]>;
+
+  /**
+   * List invoices issued in the accounting program. Used to mirror invoices
+   * created directly in Billy/Dinero/e-conomic (not via Serviceydere) back
+   * into Serviceydere as shadow orders. Optional — adapters that don't
+   * support listing invoices can omit it.
+   */
+  listInvoices?(updatedSince?: Date): Promise<ExternalInvoice[]>;
 
   /**
    * Book an existing draft/order as a real invoice and (best-effort) send it
