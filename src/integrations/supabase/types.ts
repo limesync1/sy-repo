@@ -1078,6 +1078,7 @@ export type Database = {
           enabled: boolean
           event_type: string
           id: string
+          lead_time_minutes: number | null
           subject: string | null
           updated_at: string
         }
@@ -1089,6 +1090,7 @@ export type Database = {
           enabled?: boolean
           event_type: string
           id?: string
+          lead_time_minutes?: number | null
           subject?: string | null
           updated_at?: string
         }
@@ -1100,6 +1102,7 @@ export type Database = {
           enabled?: boolean
           event_type?: string
           id?: string
+          lead_time_minutes?: number | null
           subject?: string | null
           updated_at?: string
         }
