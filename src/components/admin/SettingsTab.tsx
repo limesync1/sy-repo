@@ -790,12 +790,12 @@ const SettingsTab = ({ business }: { business: any }) => {
   }, [routePlanningEnabled, accountingIntegrationEnabled, priceBreakdown?.monthlyAfterDiscount, plan?.id]);
 
   return (
-    <div className="space-y-4 pb-24">
+    <div className="space-y-6 pb-24">
       <PageHeader
         title="Indstillinger"
         description="Her sætter du jeres virksomhed op — navn, kontakt, billeder, åbningstider og hvad I tilbyder."
         action={
-          <div className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-muted-foreground">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm">
             {saveStatus === "saving" ? (
               <>
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
@@ -813,27 +813,25 @@ const SettingsTab = ({ business }: { business: any }) => {
 
       {/* ─── Status-bar: profil-completeness med klikbare mangler ─── */}
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-stretch">
-        <Card className="surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm">
-          <CardContent className="flex flex-col gap-3 p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  {completeness.pct === 100 ? (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 text-amber-600" />
-                  )}
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Profil-fuldstændighed
+        <Card className="surface-admin overflow-hidden rounded-2xl border-border/70 shadow-sm">
+          <CardContent className="flex flex-col gap-3.5 p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0 flex items-center gap-3">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                  completeness.pct === 100 ? "bg-emerald-500/10 text-emerald-600" : "bg-amber-500/10 text-amber-600"
+                }`}>
+                  {completeness.pct === 100 ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[15px] font-semibold text-foreground leading-tight">
+                    {completeness.pct === 100 ? "Jeres profil er klar" : "Jeres profil er næsten klar"}
+                  </p>
+                  <p className="mt-0.5 text-[12px] text-muted-foreground tabular-nums">
+                    {completeness.done} af {completeness.total} felter udfyldt
                   </p>
                 </div>
-                <p className="mt-1 text-base font-semibold text-foreground tabular-nums">
-                  {completeness.done} af {completeness.total} felter udfyldt
-                </p>
               </div>
-              <div className="text-right">
-                <p className="text-2xl font-semibold tabular-nums text-foreground">{completeness.pct}%</p>
-              </div>
+              <p className="text-3xl font-semibold tabular-nums text-foreground tracking-tight">{completeness.pct}<span className="text-base text-muted-foreground font-medium">%</span></p>
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
               <div
@@ -844,14 +842,14 @@ const SettingsTab = ({ business }: { business: any }) => {
               />
             </div>
             {completeness.pct < 100 && (
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-[11px] font-medium text-muted-foreground">Klik for at udfylde:</span>
+              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                <span className="text-[11px] font-medium text-muted-foreground mr-0.5">Mangler:</span>
                 {completeness.checks.filter((c) => !c.done).map((c) => (
                   <button
                     key={c.key}
                     type="button"
                     onClick={() => scrollToSection(c.section)}
-                    className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-foreground transition-colors hover:border-amber-600 hover:bg-amber-500/20"
+                    className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:border-amber-600 hover:bg-amber-500/20"
                   >
                     {c.label}
                     <ArrowRight className="h-2.5 w-2.5" />
@@ -866,18 +864,19 @@ const SettingsTab = ({ business }: { business: any }) => {
           href={business.slug ? `/v/${business.slug}` : "#"}
           target="_blank"
           rel="noopener noreferrer"
-          className={`hidden lg:flex flex-col items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-5 text-xs font-medium text-muted-foreground transition-all hover:text-foreground hover:border-foreground/30 hover:shadow-sm ${
+          className={`hidden lg:flex flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-card px-6 text-xs font-medium text-muted-foreground transition-all hover:text-foreground hover:border-foreground/30 hover:shadow-md ${
             !business.slug ? "pointer-events-none opacity-50" : ""
           }`}
         >
-          <ExternalLink className="h-4 w-4" />
-          Se din side
+          <ExternalLink className="h-5 w-5" />
+          <span className="text-[13px] font-semibold text-foreground">Se din side</span>
+          <span className="text-[11px] text-muted-foreground">Som kunderne ser den</span>
         </a>
       </div>
 
       {/* ─── Sub-nav chips (mobil/tablet) — sticky sidebar bruges på lg ─── */}
-      <div data-settings-chipnav className="sticky top-14 z-20 -mx-4 sm:-mx-6 lg:hidden border-b border-border bg-background/95 px-4 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-6">
-        <div className="flex flex-nowrap gap-2 overflow-x-auto pb-0.5">
+      <div data-settings-chipnav className="sticky top-14 z-20 -mx-4 sm:-mx-6 lg:hidden border-b border-border bg-background/95 px-4 py-2.5 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-6">
+        <div className="flex flex-nowrap gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
           {SECTIONS.map(({ id, label, icon: Icon }) => {
             const sectionDone = completeness.checks.filter((c) => c.section === id);
             const allDone = sectionDone.length > 0 && sectionDone.every((c) => c.done);
@@ -893,15 +892,15 @@ const SettingsTab = ({ business }: { business: any }) => {
                   parent.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
                 }}
                 onClick={() => scrollToSection(id)}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 ${
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 ${
                   activeSection === id
-                    ? "border-foreground/40 bg-secondary text-foreground"
+                    ? "border-foreground bg-foreground text-background"
                     : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`}
               >
                 <Icon />
                 {label}
-                {allDone && <CheckCircle2 className="ml-0.5 h-3 w-3 text-emerald-600" />}
+                {allDone && <CheckCircle2 className={`ml-0.5 h-3 w-3 ${activeSection === id ? "text-emerald-300" : "text-emerald-600"}`} />}
               </button>
             );
           })}
@@ -909,12 +908,12 @@ const SettingsTab = ({ business }: { business: any }) => {
       </div>
 
       {/* ─── To-kolonne på lg+: sticky sidebar + indhold ─── */}
-      <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-start">
+      <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
         {/* Sticky sidebar nav (kun lg+) — top-offset matcher den sticky topbar
             (h-14 = 56px) + lille luft, så den klistrer fast lige under headeren
             mens man scroller. */}
         <aside className="hidden lg:sticky lg:top-[68px] lg:block lg:max-h-[calc(100vh-80px)] lg:overflow-y-auto pr-1">
-          <nav className="rounded-xl border border-border/80 bg-card p-2 shadow-sm">
+          <nav className="rounded-2xl border border-border/60 bg-card/60 p-2.5 shadow-sm backdrop-blur-sm">
             {(() => {
               const groups: { title: string; ids: string[] }[] = [
                 { title: "Profil",      ids: ["general", "industries", "contact", "branding", "hours"] },
@@ -922,11 +921,11 @@ const SettingsTab = ({ business }: { business: any }) => {
                 { title: "Konto",       ids: ["billing", "advanced"] },
               ];
               return groups.map((g, gi) => (
-                <div key={g.title} className={gi > 0 ? "mt-3 border-t border-border/60 pt-2" : ""}>
-                  <p className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                <div key={g.title} className={gi > 0 ? "mt-4 border-t border-border/50 pt-3" : ""}>
+                  <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70">
                     {g.title}
                   </p>
-                  <div className="flex flex-col gap-0.5">
+                  <div className="flex flex-col gap-1">
                     {g.ids.map((id) => {
                       const sec = SECTIONS.find((s) => s.id === id);
                       if (!sec) return null;
@@ -939,23 +938,23 @@ const SettingsTab = ({ business }: { business: any }) => {
                           key={id}
                           type="button"
                           onClick={() => scrollToSection(id)}
-                          className={`group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors ${
+                          className={`group relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-all ${
                             isActive
-                              ? "bg-foreground text-background"
-                              : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                              ? "bg-foreground text-background shadow-sm"
+                              : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
                           }`}
                         >
-                          <Icon className={`h-4 w-4 shrink-0 ${isActive ? "" : ""}`} />
+                          <Icon className="h-4 w-4 shrink-0" />
                           <span className="min-w-0 flex-1">
                             <span className={`block text-[13px] font-medium leading-tight ${isActive ? "text-background" : ""}`}>
                               {sec.label}
                             </span>
-                            <span className={`mt-0.5 block text-[11px] leading-tight ${isActive ? "text-background/70" : "text-muted-foreground/80"}`}>
+                            <span className={`mt-0.5 block text-[11px] leading-tight ${isActive ? "text-background/65" : "text-muted-foreground/70"}`}>
                               {sec.hint}
                             </span>
                           </span>
                           {sectionDone && (
-                            <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-emerald-300" : "text-emerald-600"}`} />
+                            <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-emerald-300" : "text-emerald-500/80"}`} />
                           )}
                         </button>
                       );
@@ -967,7 +966,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           </nav>
         </aside>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
       {/* ─── CVR Lookup — vises kun når virksomheden mangler adresse/by ─── */}
       {(!business.address || !business.city || !business.zip_code) && (
       <SectionCard
