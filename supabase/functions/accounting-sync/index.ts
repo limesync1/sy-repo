@@ -102,6 +102,10 @@ Deno.serve(async (req) => {
     if (!count || count === 0) {
       seeded = await seedQueue(admin, business_id);
     }
+    // Idempotent backfill: enqueue entities that have NEVER been linked yet,
+    // even if the queue currently has unrelated jobs. Without this, services
+    // that existed before the trigger was active would never be pushed.
+    seeded += await seedMissing(admin, business_id);
     const drained = await drainQueue(admin, integration, adapter);
     return json({ ok: true, processed: drained, seeded });
   } catch (e) {
