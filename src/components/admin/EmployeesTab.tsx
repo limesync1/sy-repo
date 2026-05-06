@@ -1066,3 +1066,165 @@ const EmployeeRow = ({
 };
 
 export default EmployeesTab;
+
+/* ─── Opgaveoverblik pr. medarbejder ─────────────────────────────── */
+import { useQuery } from "@tanstack/react-query";
+import { format as fmtDate, parseISO } from "date-fns";
+import { da } from "date-fns/locale";
+
+const EmployeeTasksDialog = ({
+  open, onOpenChange, employeeId, employeeName,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  employeeId: string;
+  employeeName: string;
+}) => {
+  const [tab, setTab] = useState<"upcoming" | "completed">("upcoming");
+
+  const { data: stops, isLoading } = useQuery({
+    queryKey: ["employee-tasks", employeeId],
+    enabled: open,
+    queryFn: async () => {
+      // Hent alle stops hvor medarbejderen er tildelt — enten via assigned_employee_id
+      // eller via route_stop_assignees (lead/team).
+      const [{ data: directRows }, { data: assigneeRows }] = await Promise.all([
+        supabase
+          .from("route_stops")
+          .select(`
+            id, status, planned_arrival, completed_at, address,
+            customer_name, service_summary, duration_minutes, sequence,
+            routes!inner ( id, name, scheduled_date )
+          `)
+          .eq("assigned_employee_id", employeeId)
+          .order("planned_arrival", { ascending: false })
+          .limit(200),
+        supabase
+          .from("route_stop_assignees")
+          .select(`
+            stop_id, is_lead,
+            route_stops!inner (
+              id, status, planned_arrival, completed_at, address,
+              customer_name, service_summary, duration_minutes, sequence,
+              routes!inner ( id, name, scheduled_date )
+            )
+          `)
+          .eq("employee_id", employeeId)
+          .limit(200),
+      ]);
+
+      const map = new Map<string, any>();
+      (directRows || []).forEach((r: any) => map.set(r.id, r));
+      (assigneeRows || []).forEach((row: any) => {
+        const s = row.route_stops;
+        if (s && !map.has(s.id)) map.set(s.id, s);
+      });
+      return Array.from(map.values());
+    },
+  });
+
+  const upcoming = (stops || [])
+    .filter((s) => s.status !== "completed" && s.status !== "skipped")
+    .sort((a, b) =>
+      String(a.planned_arrival || a.routes?.scheduled_date || "")
+        .localeCompare(String(b.planned_arrival || b.routes?.scheduled_date || ""))
+    );
+  const completed = (stops || [])
+    .filter((s) => s.status === "completed")
+    .sort((a, b) =>
+      String(b.completed_at || "").localeCompare(String(a.completed_at || ""))
+    );
+
+  const list = tab === "upcoming" ? upcoming : completed;
+
+  const fmtDateTime = (iso?: string | null) => {
+    if (!iso) return "—";
+    try { return fmtDate(parseISO(iso), "d. MMM yyyy 'kl.' HH:mm", { locale: da }); }
+    catch { return iso; }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden flex flex-col max-h-[85vh]">
+        <DialogHeader className="px-5 py-4 border-b">
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <ListChecks className="h-4 w-4 text-accent" />
+            Opgaver — {employeeName}
+          </DialogTitle>
+          <DialogDescription className="text-xs">
+            Overblik over hvilke stops medarbejderen er tildelt og hvilke der er udført.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="px-5 pt-3 pb-2 border-b bg-secondary/30">
+          <div className="inline-flex rounded-lg border bg-card p-0.5">
+            {([
+              { k: "upcoming",  label: `Planlagt (${upcoming.length})`,  icon: CalendarDays },
+              { k: "completed", label: `Udført (${completed.length})`,   icon: CheckCircle2 },
+            ] as const).map((t) => (
+              <button
+                key={t.k}
+                onClick={() => setTab(t.k)}
+                className={cn(
+                  "px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-colors",
+                  tab === t.k ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <t.icon className="h-3.5 w-3.5" /> {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {isLoading ? (
+            <div className="p-8 text-center text-sm text-muted-foreground">Henter opgaver…</div>
+          ) : list.length === 0 ? (
+            <div className="p-8 text-center text-sm text-muted-foreground">
+              {tab === "upcoming" ? "Ingen planlagte opgaver." : "Ingen udførte opgaver endnu."}
+            </div>
+          ) : (
+            <ul className="divide-y">
+              {list.map((s: any) => (
+                <li key={s.id} className="px-5 py-3 hover:bg-secondary/40 transition-colors">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {s.customer_name || s.service_summary || "Stop"}
+                      </p>
+                      {s.service_summary && s.customer_name && (
+                        <p className="text-xs text-muted-foreground truncate">{s.service_summary}</p>
+                      )}
+                      {s.address && (
+                        <p className="mt-0.5 text-[11px] text-muted-foreground flex items-center gap-1">
+                          <MapPin className="h-3 w-3" /> {s.address}
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-[11px] text-muted-foreground flex items-center gap-1 justify-end">
+                        <Clock className="h-3 w-3" />
+                        {tab === "completed"
+                          ? fmtDateTime(s.completed_at)
+                          : fmtDateTime(s.planned_arrival)}
+                      </p>
+                      {s.routes?.name && (
+                        <p className="text-[10px] text-muted-foreground mt-0.5 truncate max-w-[140px]">
+                          {s.routes.name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <DialogFooter className="px-5 py-3 border-t">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>Luk</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
