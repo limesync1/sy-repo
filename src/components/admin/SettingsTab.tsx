@@ -1393,6 +1393,17 @@ const SettingsTab = ({ business }: { business: any }) => {
           </SectionCard>
         </div>
 
+        {/* ── Gruppe: Beskeder ── */}
+        <div className="mt-3 flex items-center gap-3">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
+            <Bell className="h-3.5 w-3.5" />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Beskeder</p>
+            <p className="text-[13px] text-muted-foreground">Hvad I og jeres kunder modtager besked om</p>
+          </div>
+        </div>
+
         {/* Notifikationer */}
         <div id="settings-notifications" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard
@@ -1455,6 +1466,17 @@ const SettingsTab = ({ business }: { business: any }) => {
               onSmsEnabledChange={setSmsEnabled}
             />
           </SectionCard>
+        </div>
+
+        {/* ── Gruppe: Konto ── */}
+        <div className="mt-3 flex items-center gap-3">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground/5 text-foreground">
+            <CreditCard className="h-3.5 w-3.5" />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Konto</p>
+            <p className="text-[13px] text-muted-foreground">Pris, betaling og ekstra funktioner</p>
+          </div>
         </div>
 
         {/* Fakturering */}
