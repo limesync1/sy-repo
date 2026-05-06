@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Mail, MessageSquare, Clock, Bell, CheckCircle2, Smartphone, RotateCcw, Phone, Plus } from "lucide-react";
+import { Loader2, Mail, MessageSquare, Clock, Bell, CheckCircle2, Smartphone, RotateCcw, Phone, Plus, Power } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -354,68 +354,57 @@ export function CustomerNotificationsSettings({
   const exampleBizPhone = businessInfo?.phone?.trim() || EXAMPLE_VARS.business_phone;
   const emailDirty = isEmailDirty(activeEvent);
   const smsDirty = isSmsDirty(activeEvent);
+  const anyDirty = EVENTS.some((e) => isEmailDirty(e.key) || isSmsDirty(e.key));
+
+  // Advar hvis brugeren forlader siden med ugemte ændringer
+  useEffect(() => {
+    if (!anyDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [anyDirty]);
 
   return (
     <div className="space-y-6">
-      {/* ───── Top: kanaler + global timing ───── */}
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-        {/* E-mail status (informativt) */}
-        <div className="rounded-xl border border-border bg-card p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground/5">
-                  <Mail className="h-4 w-4 text-foreground" />
-                </div>
-                <p className="text-sm font-semibold text-foreground">E-mail</p>
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Sendes altid fra jeres e-mail. Tilpas teksten nedenfor.
-              </p>
-            </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" /> Aktiv
-            </span>
-          </div>
-        </div>
-
-        {/* SMS toggle */}
-        <div className={cn("rounded-xl border p-4 transition-colors", smsEnabled ? "border-accent/30 bg-accent/5" : "border-border bg-card")}>
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg", smsEnabled ? "bg-accent/15" : "bg-foreground/5")}>
-                  <MessageSquare className={cn("h-4 w-4", smsEnabled ? "text-accent" : "text-foreground")} />
-                </div>
-                <p className="text-sm font-semibold text-foreground">SMS</p>
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Afsender: <span className="font-medium text-foreground">"Serviceyder"</span>. Vi tilføjer automatisk jeres firmanavn og telefon i bunden.
-              </p>
-            </div>
-            <Switch checked={smsEnabled} onCheckedChange={onSmsEnabledChange} />
-          </div>
-        </div>
-
-        {/* Timing */}
-        <div className="rounded-xl border border-border bg-card p-4">
-          <div className="flex items-start gap-3">
+      {/* ───── Slank topbar med globale indstillinger ───── */}
+      <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground/5">
               <Clock className="h-4 w-4 text-foreground" />
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground">Påmindelse</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">Sendes inden besøget.</p>
-              <div className="mt-2 flex items-center gap-2">
-                <Input
-                  type="number" min={1} max={168} className="h-8 w-20"
-                  value={upcomingHoursBefore}
-                  onChange={(e) => onUpcomingHoursChange(Math.max(1, Math.min(168, Number(e.target.value) || 24)))}
-                />
-                <span className="text-xs text-muted-foreground">timer før</span>
-              </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">Påmindelse inden besøg</p>
+              <p className="text-[11px] text-muted-foreground">Hvor lang tid i forvejen kunden får besked.</p>
+            </div>
+            <div className="ml-auto flex items-center gap-1.5 sm:ml-3">
+              <Input
+                type="number" min={1} max={168} className="h-8 w-16"
+                value={upcomingHoursBefore}
+                onChange={(e) => onUpcomingHoursChange(Math.max(1, Math.min(168, Number(e.target.value) || 24)))}
+              />
+              <span className="text-xs text-muted-foreground">timer før</span>
             </div>
           </div>
+          <div className="hidden h-8 w-px bg-border sm:block" />
+          <label className="flex items-center justify-between gap-3 sm:justify-end">
+            <div className="flex items-center gap-2.5">
+              <div className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-lg",
+                smsEnabled ? "bg-accent/15" : "bg-foreground/5",
+              )}>
+                <MessageSquare className={cn("h-4 w-4", smsEnabled ? "text-accent" : "text-foreground")} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground">Send også SMS</p>
+                <p className="text-[11px] text-muted-foreground">Afsender: "Serviceyder"</p>
+              </div>
+            </div>
+            <Switch checked={smsEnabled} onCheckedChange={onSmsEnabledChange} />
+          </label>
         </div>
       </div>
 
@@ -481,9 +470,25 @@ export function CustomerNotificationsSettings({
           {/* Header */}
           <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/40 px-5 py-3">
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-foreground">{event.label}</p>
+              <div className="flex items-center gap-2">
+                <event.Icon className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm font-semibold text-foreground">{event.label}</p>
+              </div>
               <p className="mt-0.5 text-[11px] text-muted-foreground">{event.help}</p>
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                const anyOn = drafts[activeEvent].enabled || (smsEnabled && smsDrafts[activeEvent].enabled);
+                setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
+                setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
+              }}
+              title="Slår både e-mail og SMS til/fra på én gang"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted"
+            >
+              <Power className="h-3 w-3" />
+              {drafts[activeEvent].enabled || (smsEnabled && smsDrafts[activeEvent].enabled) ? "Slå alt fra" : "Slå alt til"}
+            </button>
           </div>
 
           {/* Channel tabs */}
@@ -576,13 +581,25 @@ export function CustomerNotificationsSettings({
               </div>
             </div>
           ) : (
+            !smsEnabled ? (
+              <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                  <MessageSquare className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="max-w-sm">
+                  <p className="text-sm font-semibold text-foreground">SMS er slået fra</p>
+                  <p className="mt-1 text-[12px] text-muted-foreground">
+                    Slå SMS til for at sende korte beskeder direkte til kundens telefon.
+                    Afsenderen står som "Serviceyder", og vi tilføjer automatisk jeres firmanavn og telefonnummer.
+                  </p>
+                </div>
+                <Button size="sm" onClick={() => onSmsEnabledChange(true)}>
+                  <MessageSquare className="mr-1.5 h-3.5 w-3.5" /> Slå SMS til
+                </Button>
+              </div>
+            ) : (
             <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
               <div className="space-y-4 p-5">
-                {!smsEnabled && (
-                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-[12px] text-foreground">
-                    SMS er slået fra øverst på siden. Slå den til for at sende SMS'er til jeres kunder.
-                  </div>
-                )}
                 <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3">
                   <div>
                     <p className="text-xs font-semibold text-foreground">Send denne SMS</p>
@@ -632,9 +649,37 @@ export function CustomerNotificationsSettings({
                 <SmsPreview body={smsDrafts[activeEvent].body} businessName={exampleBizName} businessPhone={exampleBizPhone} />
               </div>
             </div>
+            )
           )}
         </div>
       </div>
+
+      {/* Sticky save-bar — vises kun når der er ugemte ændringer */}
+      {anyDirty && (
+        <div className="sticky bottom-3 z-10 mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-full border border-border bg-card px-4 py-2 shadow-lg">
+          <div className="flex items-center gap-2 text-xs text-foreground">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
+            </span>
+            <span className="font-medium">Du har ugemte ændringer</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {channelTab === "email" && emailDirty && (
+              <Button size="sm" onClick={() => save(activeEvent)} disabled={saving === `email-${activeEvent}`}>
+                {saving === `email-${activeEvent}` ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
+                Gem e-mail
+              </Button>
+            )}
+            {channelTab === "sms" && smsDirty && smsEnabled && (
+              <Button size="sm" onClick={() => saveSms(activeEvent)} disabled={saving === `sms-${activeEvent}`}>
+                {saving === `sms-${activeEvent}` ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
+                Gem SMS
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
