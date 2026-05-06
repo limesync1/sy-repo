@@ -831,6 +831,158 @@ const ReviewForm = ({ businessId, subscriptionId, onDone }: { businessId: string
 };
 
 /* ════════════════════════════════════════════════ */
+/*  Invoices View                                   */
+/* ════════════════════════════════════════════════ */
+const InvoicesView = () => {
+  const { data: orders, isLoading } = useMyOrders();
+
+  const invoiced = (orders || []).filter((o: any) => o.invoice_status || o.invoiced_at);
+
+  if (isLoading) return <Skeleton className="h-32 rounded-2xl" />;
+
+  if (invoiced.length === 0) {
+    return (
+      <Card className="rounded-2xl border-dashed">
+        <CardContent className="flex flex-col items-center justify-center px-6 py-12 text-center">
+          <Receipt className="h-10 w-10 text-muted-foreground/40 mb-3" />
+          <h3 className="text-base font-semibold">Ingen fakturaer endnu</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Når en virksomhed udsteder en faktura til dig, vil den dukke op her.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {invoiced.map((o: any) => {
+        const biz = o.businesses || {};
+        const status = o.invoice_status || (o.invoiced_at ? "booked" : "pending");
+        const statusLabel: Record<string, string> = {
+          pending: "Afventer",
+          booked: "Bogført",
+          sent: "Sendt",
+          paid: "Betalt",
+          overdue: "Forfalden",
+        };
+        const statusColor: Record<string, string> = {
+          pending: "bg-amber-50 text-amber-700 border-amber-200",
+          booked: "bg-blue-50 text-blue-700 border-blue-200",
+          sent: "bg-blue-50 text-blue-700 border-blue-200",
+          paid: "bg-green-50 text-green-700 border-green-200",
+          overdue: "bg-destructive/5 text-destructive border-destructive/20",
+        };
+        return (
+          <Card key={o.id} className="rounded-xl">
+            <CardContent className="flex items-center gap-3 p-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary border shrink-0">
+                <Receipt className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold truncate">
+                  {biz.name || "Virksomhed"}
+                  {o.external_order_number && <span className="ml-2 text-xs font-normal text-muted-foreground">#{o.external_order_number}</span>}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  {o.invoiced_at
+                    ? new Date(o.invoiced_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })
+                    : new Date(o.created_at).toLocaleDateString("da-DK")}
+                  {o.due_date && <> · Forfald {new Date(o.due_date).toLocaleDateString("da-DK")}</>}
+                </p>
+              </div>
+              <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${statusColor[status] || "bg-secondary text-foreground border-border"}`}>
+                {statusLabel[status] || status}
+              </span>
+              <span className="text-sm font-bold whitespace-nowrap">{Number(o.total_amount).toLocaleString("da-DK")} kr</span>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+};
+
+/* ════════════════════════════════════════════════ */
+/*  Documents View                                  */
+/* ════════════════════════════════════════════════ */
+const DocumentsView = () => {
+  const { user } = useAuth();
+  const [docs, setDocs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user?.email) return;
+    (async () => {
+      const { data } = await supabase
+        .from("customer_documents")
+        .select("*, businesses:business_id(name, slug, logo_url)")
+        .eq("is_visible_to_customer", true)
+        .order("created_at", { ascending: false });
+      setDocs(data || []);
+      setLoading(false);
+    })();
+  }, [user?.email]);
+
+  const openDoc = async (path: string) => {
+    const { data, error } = await supabase.storage
+      .from("customer-documents")
+      .createSignedUrl(path, 60);
+    if (error || !data?.signedUrl) { toast.error("Kunne ikke åbne fil"); return; }
+    window.open(data.signedUrl, "_blank");
+  };
+
+  if (loading) return <Skeleton className="h-32 rounded-2xl" />;
+
+  if (docs.length === 0) {
+    return (
+      <Card className="rounded-2xl border-dashed">
+        <CardContent className="flex flex-col items-center justify-center px-6 py-12 text-center">
+          <FileSignature className="h-10 w-10 text-muted-foreground/40 mb-3" />
+          <h3 className="text-base font-semibold">Ingen dokumenter endnu</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Når en virksomhed deler en kontrakt, et tilbud eller en aftale med dig, vises den her.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const TYPE_LABEL: Record<string, string> = {
+    contract: "Kontrakt", quote: "Tilbud", agreement: "Aftale", invoice: "Faktura", other: "Andet",
+  };
+
+  return (
+    <div className="space-y-2">
+      {docs.map((d) => {
+        const biz = d.businesses || {};
+        return (
+          <Card key={d.id} className="rounded-xl">
+            <CardContent className="flex items-center gap-3 p-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary border shrink-0">
+                <FileText className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold truncate">{d.title}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {biz.name && <>{biz.name} · </>}
+                  {TYPE_LABEL[d.document_type] || d.document_type} ·{" "}
+                  {new Date(d.created_at).toLocaleDateString("da-DK")}
+                </p>
+              </div>
+              <Button size="sm" variant="outline" className="gap-1.5 rounded-xl" onClick={() => openDoc(d.storage_path)}>
+                <Download className="h-3.5 w-3.5" />
+                Hent
+              </Button>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+};
+
+/* ════════════════════════════════════════════════ */
 /*  Profile & Settings View                         */
 /* ════════════════════════════════════════════════ */
 const ProfileView = () => {
