@@ -798,41 +798,54 @@ const SettingsTab = ({ business }: { business: any }) => {
         }
       />
 
-      {/* ─── Status-bar: profil-completeness + sub-nav chips ─── */}
-      {/* Følger samme mønster som Overblik (status-banner) + Medarbejdere (filter-chips). */}
+      {/* ─── Status-bar: profil-completeness med klikbare mangler ─── */}
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-stretch">
-        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-          <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                {completeness.pct === 100 ? (
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-amber-600" />
-                )}
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Profil-fuldstændighed
+        <Card className="surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm">
+          <CardContent className="flex flex-col gap-3 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  {completeness.pct === 100 ? (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-amber-600" />
+                  )}
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Profil-fuldstændighed
+                  </p>
+                </div>
+                <p className="mt-1 text-base font-semibold text-foreground tabular-nums">
+                  {completeness.done} af {completeness.total} felter udfyldt
                 </p>
               </div>
-              <p className="mt-1 text-base font-semibold text-foreground tabular-nums">
-                {completeness.done} af {completeness.total} felter udfyldt · {completeness.pct}%
-              </p>
-              {completeness.pct < 100 && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Mangler: {completeness.checks.filter((c) => !c.done).map((c) => c.label).join(", ")}
-                </p>
-              )}
-            </div>
-            <div className="flex w-full max-w-[260px] sm:shrink-0">
-              <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                <div
-                  className={`h-full rounded-full transition-all ${
-                    completeness.pct === 100 ? "bg-emerald-500" : "bg-accent"
-                  }`}
-                  style={{ width: `${completeness.pct}%` }}
-                />
+              <div className="text-right">
+                <p className="text-2xl font-semibold tabular-nums text-foreground">{completeness.pct}%</p>
               </div>
             </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  completeness.pct === 100 ? "bg-emerald-500" : "bg-accent"
+                }`}
+                style={{ width: `${completeness.pct}%` }}
+              />
+            </div>
+            {completeness.pct < 100 && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[11px] font-medium text-muted-foreground">Klik for at udfylde:</span>
+                {completeness.checks.filter((c) => !c.done).map((c) => (
+                  <button
+                    key={c.key}
+                    type="button"
+                    onClick={() => scrollToSection(c.section)}
+                    className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-foreground transition-colors hover:border-amber-600 hover:bg-amber-500/20"
+                  >
+                    {c.label}
+                    <ArrowRight className="h-2.5 w-2.5" />
+                  </button>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -840,11 +853,12 @@ const SettingsTab = ({ business }: { business: any }) => {
           href={business.slug ? `/v/${business.slug}` : "#"}
           target="_blank"
           rel="noopener noreferrer"
-          className={`hidden sm:flex items-center gap-1.5 rounded-xl border border-border bg-card px-4 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:border-foreground/30 ${
+          className={`hidden lg:flex flex-col items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-5 text-xs font-medium text-muted-foreground transition-all hover:text-foreground hover:border-foreground/30 hover:shadow-sm ${
             !business.slug ? "pointer-events-none opacity-50" : ""
           }`}
         >
-          Se din side <ArrowRight className="h-3 w-3" />
+          <ExternalLink className="h-4 w-4" />
+          Se din side
         </a>
       </div>
 
