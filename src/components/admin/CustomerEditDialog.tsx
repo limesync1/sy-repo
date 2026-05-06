@@ -156,8 +156,8 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
     if (!open || !businessId) return;
     (async () => {
       try {
-        const { data } = await supabase.functions.invoke("accounting-sync", {
-          body: { business_id: businessId, mode: "list_groups" },
+        const { data } = await supabase.functions.invoke("accounting-list-groups", {
+          body: { business_id: businessId },
         });
         const cg = (data as any)?.customer_groups ?? [];
         const label = (data as any)?.labels?.customer_groups;
