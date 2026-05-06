@@ -161,6 +161,30 @@ const ToggleSwitch = forwardRef<
 ));
 ToggleSwitch.displayName = "ToggleSwitch";
 
+/* ─── GroupHeader — overskrift mellem grupper af sektioner.
+ * Skiller "Profil", "Beskeder" og "Konto" visuelt med en fin linje
+ * så det er nemt at orientere sig i den lange liste. */
+const GroupHeader = ({
+  icon,
+  title,
+  hint,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  hint?: string;
+}) => (
+  <div className="mt-2 flex items-center gap-3 first:mt-0">
+    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground text-background shadow-sm [&_svg]:h-4 [&_svg]:w-4">
+      {icon}
+    </div>
+    <div className="min-w-0">
+      <p className="text-[13px] font-semibold tracking-tight text-foreground leading-tight">{title}</p>
+      {hint && <p className="mt-0.5 text-[12px] text-muted-foreground leading-tight">{hint}</p>}
+    </div>
+    <div className="ml-2 h-px flex-1 bg-gradient-to-r from-border to-transparent" />
+  </div>
+);
+
 /* ─── StatusPill — viser "Aktiveret" (grøn) eller "Deaktiveret" (rød).
  * Kort, rolig farve-overgang når toggle skifter. Ingen overshoot eller
  * roterende ikoner — det er en status, ikke en notifikation. */
