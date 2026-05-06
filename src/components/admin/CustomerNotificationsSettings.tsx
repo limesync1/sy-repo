@@ -14,9 +14,7 @@ interface Props {
   upcomingHoursBefore: number;
   onUpcomingHoursChange: (hrs: number) => void;
   smsEnabled: boolean;
-  smsSenderId: string;
   onSmsEnabledChange: (v: boolean) => void;
-  onSmsSenderIdChange: (v: string) => void;
 }
 
 type EventKey = "service_upcoming" | "service_completed";
@@ -51,7 +49,7 @@ const SMS_DEFAULTS: Record<EventKey, string> = {
 
 export function CustomerNotificationsSettings({
   businessId, upcomingHoursBefore, onUpcomingHoursChange,
-  smsEnabled, smsSenderId, onSmsEnabledChange, onSmsSenderIdChange,
+  smsEnabled, onSmsEnabledChange,
 }: Props) {
   const qc = useQueryClient();
   const { data: rows, isLoading } = useQuery({
@@ -162,28 +160,18 @@ export function CustomerNotificationsSettings({
           <div>
             <Label className="text-sm font-medium">SMS til kunder</Label>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Send SMS-påmindelser via et alfanumerisk afsendernavn (fx jeres firmanavn). Maks 11 tegn — kun bogstaver,
-              tal og mellemrum. Kunden kan ikke svare tilbage på SMS'er med afsendernavn.
+              SMS'er sendes til kunden med afsenderen <span className="font-medium text-foreground">"Serviceyder"</span>.
+              Kunden kan ikke svare på SMS'en — derfor tilføjes der automatisk en linje med jeres firmanavn og telefonnummer
+              (fra jeres profil) i bunden af hver besked, så kunden ved hvem de skal kontakte.
             </p>
           </div>
           <Switch checked={smsEnabled} onCheckedChange={onSmsEnabledChange} />
-        </div>
-        <div className="space-y-2">
-          <Label className="text-xs">Afsendernavn (vises hos kunden)</Label>
-          <Input
-            value={smsSenderId}
-            maxLength={11}
-            placeholder="Fx Rens-A/S"
-            onChange={(e) => onSmsSenderIdChange(e.target.value.replace(/[^A-Za-z0-9 ]/g, "").slice(0, 11))}
-            disabled={!smsEnabled}
-          />
-          <p className="text-xs text-muted-foreground">{smsSenderId.length}/11 tegn</p>
         </div>
       </div>
 
       <div className="rounded-lg border border-dashed border-border bg-muted/30 p-3 text-xs text-muted-foreground">
         <p className="font-medium text-foreground">Tilgængelige pladsholdere</p>
-        <p className="mt-1">{PLACEHOLDERS.map((p) => `{{${p}}}`).join("  ·  ")}</p>
+        <p className="mt-1">{[...PLACEHOLDERS, "business_phone"].map((p) => `{{${p}}}`).join("  ·  ")}</p>
       </div>
 
       {EVENTS.map((e) => (

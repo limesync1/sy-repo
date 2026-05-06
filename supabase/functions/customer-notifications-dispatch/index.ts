@@ -32,6 +32,16 @@ const SMS_DEFAULTS: Record<string, { body: string }> = {
   },
 };
 
+// Footer der automatisk tilføjes til alle SMS'er — fortæller kunden hvem
+// de skal kontakte (afsender = "Serviceyder" og kan ikke besvares).
+function buildSmsFooter(businessName: string, businessPhone: string | null): string {
+  const name = businessName?.trim() || "virksomheden";
+  if (businessPhone && businessPhone.trim()) {
+    return `\n\nDenne SMS kan ikke besvares. Kontakt ${name} på ${businessPhone.trim()}.`;
+  }
+  return `\n\nDenne SMS kan ikke besvares. Kontakt ${name} direkte.`;
+}
+
 function fmtDate(iso: string | null | undefined): string {
   if (!iso) return "";
   try {
@@ -64,7 +74,7 @@ Deno.serve(async (req) => {
     try {
       // Hent virksomhed + ordre + service-navn + medarbejder
       const [bizRes, orderRes, stopRes] = await Promise.all([
-        admin.from("businesses").select("id, name, settings, notification_settings").eq("id", job.business_id).maybeSingle(),
+        admin.from("businesses").select("id, name, phone, settings, notification_settings").eq("id", job.business_id).maybeSingle(),
         admin.from("orders").select("id, customer_name, customer_email").eq("id", job.order_id).maybeSingle(),
         job.route_stop_id
           ? admin.from("route_stops").select("planned_arrival, service_summary").eq("id", job.route_stop_id).maybeSingle()
@@ -114,11 +124,15 @@ Deno.serve(async (req) => {
       const vars: Record<string, string> = {
         customer_name: order.customer_name ?? "kunde",
         business_name: biz.name ?? "",
+        business_phone: (biz as any).phone ?? "",
         service_name: stop?.service_summary ?? "din service",
         planned_arrival: fmtDate(stop?.planned_arrival),
       };
       const subject = render(subjectTpl, vars);
-      const body = render(bodyTpl, vars);
+      let body = render(bodyTpl, vars);
+      if (channel === "sms") {
+        body = body + buildSmsFooter(biz.name ?? "", (biz as any).phone ?? null);
+      }
 
       await admin.from("customer_notification_queue").update({
         attempts: (job.attempts ?? 0) + 1,
@@ -126,11 +140,10 @@ Deno.serve(async (req) => {
 
       if (channel === "sms") {
         const settings = (biz.settings as any) || {};
-        const sender = (settings.sms_sender_id ?? "").toString().trim();
         const enabled = settings.sms_enabled === true;
-        if (!enabled || !sender) {
+        if (!enabled) {
           await admin.from("customer_notification_queue").update({
-            status: "cancelled", last_error: "SMS er ikke aktiveret eller mangler afsendernavn",
+            status: "cancelled", last_error: "SMS er ikke aktiveret for denne virksomhed",
           }).eq("id", job.id);
           continue;
         }
@@ -141,7 +154,7 @@ Deno.serve(async (req) => {
           continue;
         }
         const { data: smsRes, error: smsErr } = await admin.functions.invoke("send-sms", {
-          body: { to: job.recipient_phone, from: sender, message: body },
+          body: { to: job.recipient_phone, message: body },
         });
         if (smsErr) throw new Error(smsErr.message ?? String(smsErr));
         if (smsRes && smsRes.ok === false) throw new Error(smsRes.error ?? "Ukendt SMS-fejl");

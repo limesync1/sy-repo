@@ -1,12 +1,13 @@
 // Sender SMS via central Twilio-konto.
-// Body: { to: string (E.164 eller dansk fmt), from: string (alfanumerisk afsender, max 11 tegn), message: string }
-// Bruges af customer-notifications-dispatch — virksomhedens "from" indtastes i deres indstillinger.
+// Body: { to: string (E.164 eller dansk fmt), message: string }
+// Afsender er altid "Serviceyder" (centralt for hele platformen).
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/twilio";
+const SENDER_ID = "Serviceyder"; // alfanumerisk, 11 tegn (Twilios maksimum)
 
 function normalizeDanish(phone: string): string {
   const trimmed = phone.replace(/[\s\-()]/g, "");
@@ -15,11 +16,6 @@ function normalizeDanish(phone: string): string {
   // 8 cifre = dansk lokalt nummer
   if (/^\d{8}$/.test(trimmed)) return "+45" + trimmed;
   return trimmed;
-}
-
-function sanitizeSender(s: string): string {
-  // Twilio alfanumerisk: A-Z, a-z, 0-9, mellemrum. Max 11 tegn.
-  return s.replace(/[^A-Za-z0-9 ]/g, "").slice(0, 11);
 }
 
 Deno.serve(async (req) => {
@@ -31,19 +27,16 @@ Deno.serve(async (req) => {
     const TWILIO_API_KEY = Deno.env.get("TWILIO_API_KEY");
     if (!TWILIO_API_KEY) throw new Error("TWILIO_API_KEY mangler");
 
-    const { to, from, message } = await req.json();
+    const { to, message } = await req.json();
     if (!to || typeof to !== "string") throw new Error("'to' er påkrævet");
-    if (!from || typeof from !== "string") throw new Error("'from' er påkrævet");
     if (!message || typeof message !== "string") throw new Error("'message' er påkrævet");
 
     const toE164 = normalizeDanish(to);
-    const fromSender = sanitizeSender(from);
-    if (!fromSender) throw new Error("Ugyldigt afsendernavn");
     if (message.length > 1600) throw new Error("Beskeden er for lang");
 
     const body = new URLSearchParams({
       To: toE164,
-      From: fromSender,
+      From: SENDER_ID,
       Body: message,
     });
 
