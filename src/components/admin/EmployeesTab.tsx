@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import {
   Mail, Phone, Briefcase, UserPlus, X,
   Trash2, Power, PowerOff, Pencil, KeyRound, Users, Percent, MessageCircle,
-  Wallet, TrendingUp,
+  Wallet, TrendingUp, ListChecks, MapPin, CheckCircle2, Clock, CalendarDays,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
