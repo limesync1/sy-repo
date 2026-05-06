@@ -86,6 +86,8 @@ export interface UpsertProductInput {
   account_number?: string | null;
   product_group?: string | null;
   external_id?: string | null;
+  product_number?: string | null;
+  vat_zone?: string | null;
 }
 
 export interface UpsertOrderInput {
