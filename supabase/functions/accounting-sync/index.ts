@@ -800,6 +800,8 @@ async function pushProduct(admin: SupabaseClient, integ: Integration, adapter: A
     vat_rate: Number(svc.default_vat_rate ?? 25),
     account_number: svc.accounting_income_account ?? svc.accounting_account_number ?? null,
     product_group: svc.accounting_product_group ?? null,
+    product_number: svc.product_number ?? null,
+    vat_zone: svc.vat_zone ?? null,
   } as const;
 
   const state = existing?.external_id
@@ -819,6 +821,8 @@ async function pushProduct(admin: SupabaseClient, integ: Integration, adapter: A
     account_number: (changed as any).account_number,
     product_group: (changed as any).product_group,
     external_id: existing?.external_id,
+    product_number: (changed as any).product_number ?? fullPayload.product_number,
+    vat_zone: (changed as any).vat_zone ?? fullPayload.vat_zone,
   });
   await admin.from("accounting_product_links").upsert({
     business_id: integ.business_id, provider: integ.provider, service_id: serviceId,
