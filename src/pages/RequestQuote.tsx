@@ -220,6 +220,8 @@ const RequestQuote = () => {
     accounting_account_number: null,
     accounting_product_group: null,
     accounting_income_account: null,
+    product_number: null,
+    vat_zone: null,
     interval_options: s.interval_options || ["engangskøb"],
     calculator_steps: s.calculator_steps.map((cs) => ({
       id: cs.id,
