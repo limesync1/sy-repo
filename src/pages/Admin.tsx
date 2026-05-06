@@ -768,45 +768,42 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
   const providerLabel = provider === "economic" ? "e-conomic" : provider === "billy" ? "Billy" : provider === "dinero" ? "Dinero" : null;
 
   return (
-    <Card className={`surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden transition-colors ${!isActive ? "opacity-70" : "hover:border-foreground/20"}`}>
+    <Card className={`surface-admin rounded-lg border-border/80 shadow-sm overflow-hidden transition-colors ${!isActive ? "opacity-70" : "hover:border-foreground/20"}`}>
       <CardContent className="p-0">
         <div className="flex items-stretch">
-          {/* Venstre accent — dæmpet kategorifarve */}
-          <div className="hidden w-1 shrink-0 bg-foreground/10 sm:block" aria-hidden />
-
-          <div className="min-w-0 flex-1 p-4 sm:p-5">
+          <div className="min-w-0 flex-1 p-3 sm:p-3.5">
             {/* Header: ikon + titel + meta + handlinger */}
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex min-w-0 items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-secondary/50 text-base">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex min-w-0 items-start gap-2.5">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-secondary/50 text-sm">
                   <span className="leading-none">{categoryIcon}</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="truncate text-[15px] font-semibold text-foreground">{service.name}</h3>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <h3 className="truncate text-[13.5px] font-semibold text-foreground">{service.name}</h3>
                     {!isActive && (
-                      <Badge variant="outline" className="rounded-md border-destructive/30 px-2 py-0 text-[10px] uppercase tracking-wide text-destructive">
+                      <Badge variant="outline" className="rounded-md border-destructive/30 px-1.5 py-0 text-[9px] uppercase tracking-wide text-destructive">
                         Inaktiv
                       </Badge>
                     )}
                   </div>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-muted-foreground">
                     {service.service_category && (
-                      <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-foreground/70">
+                      <span className="rounded bg-secondary px-1 py-0 text-[9.5px] font-medium uppercase tracking-wide text-foreground/70">
                         {service.service_category}
                       </span>
                     )}
                     <span className="truncate">{service.subcategory || "Standard service"}</span>
                     <span aria-hidden>·</span>
                     <span className="inline-flex items-center gap-1">
-                      <Tag className="h-3 w-3" />
+                      <Tag className="h-2.5 w-2.5" />
                       {pricingLabels[service.pricing_type] || service.pricing_type}
                     </span>
                     {hasRecurring && (
                       <>
                         <span aria-hidden>·</span>
                         <span className="inline-flex items-center gap-1">
-                          <Repeat className="h-3 w-3" /> Abonnement
+                          <Repeat className="h-2.5 w-2.5" /> Abonnement
                         </span>
                       </>
                     )}
@@ -814,21 +811,21 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
                 </div>
               </div>
 
-              <div className="flex shrink-0 items-center gap-1.5">
-                <Button variant="outline" size="sm" onClick={onEdit} className="h-8 rounded-lg border-border px-3 text-xs">
+              <div className="flex shrink-0 items-center gap-1">
+                <Button variant="outline" size="sm" onClick={onEdit} className="h-7 rounded-md border-border px-2.5 text-[11px]">
                   Rediger
                 </Button>
-                <Button variant="ghost" size="sm" onClick={onDelete} className="h-8 w-8 rounded-lg p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
-                  <Trash2 className="h-3.5 w-3.5" />
+                <Button variant="ghost" size="sm" onClick={onDelete} className="h-7 w-7 rounded-md p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+                  <Trash2 className="h-3 w-3" />
                 </Button>
               </div>
             </div>
 
             {/* Hovedstats — pris stort, resten kompakte celler */}
-            <div className="mt-4 grid items-stretch gap-3 sm:grid-cols-[minmax(0,1.2fr)_repeat(3,minmax(0,1fr))]">
-              <div className="rounded-lg border border-border bg-card px-3.5 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Pris</p>
-                <p className="mt-1 text-lg font-semibold text-foreground tabular-nums truncate">{priceSummary}</p>
+            <div className="mt-2.5 grid items-stretch gap-1.5 sm:grid-cols-[minmax(0,1.2fr)_repeat(3,minmax(0,1fr))]">
+              <div className="rounded-md border border-border bg-card px-2.5 py-1.5">
+                <p className="text-[9.5px] font-semibold uppercase tracking-wide text-muted-foreground">Pris</p>
+                <p className="mt-0.5 text-sm font-semibold text-foreground tabular-nums truncate">{priceSummary}</p>
               </div>
               <CompactStat label="Interval" value={intervalSummary} />
               <CompactStat label="Bestillinger" value={orderCount.toString()} numeric />
@@ -840,18 +837,18 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
 
             {/* Regnskabsstribe — kun synlig hvis et regnskabsprogram er forbundet */}
             {provider && (
-              <div className="mt-3 flex flex-wrap items-center gap-1.5 rounded-lg border border-dashed border-border bg-secondary/30 px-3 py-2">
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  <BookOpen className="h-3 w-3" /> {providerLabel}
+              <div className="mt-2 flex flex-wrap items-center gap-1 rounded-md border border-dashed border-border bg-secondary/30 px-2 py-1">
+                <span className="inline-flex items-center gap-1 text-[9.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  <BookOpen className="h-2.5 w-2.5" /> {providerLabel}
                 </span>
                 <AccountingChip
-                  icon={<Receipt className="h-3 w-3" />}
+                  icon={<Receipt className="h-2.5 w-2.5" />}
                   label={accountingMeta!.productLabel}
                   value={externalNo || "afventer synk"}
                   muted={!externalNo}
                 />
                 <AccountingChip
-                  icon={<Calculator className="h-3 w-3" />}
+                  icon={<Calculator className="h-2.5 w-2.5" />}
                   label={accountingMeta!.accountLabel}
                   value={accountName || "fra gruppe"}
                   muted={!accountName}
@@ -867,15 +864,15 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
 
 // Lille genbrugelig stat-celle der matcher resten af admin-fanernes look
 const CompactStat = ({ label, value, numeric }: { label: string; value: string; numeric?: boolean }) => (
-  <div className="rounded-lg border border-border bg-card px-3 py-2.5">
-    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-    <p className={`mt-1 text-sm font-medium text-foreground line-clamp-1 ${numeric ? "tabular-nums" : ""}`}>{value}</p>
+  <div className="rounded-md border border-border bg-card px-2.5 py-1.5">
+    <p className="text-[9.5px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+    <p className={`mt-0.5 text-[12px] font-medium text-foreground line-clamp-1 ${numeric ? "tabular-nums" : ""}`}>{value}</p>
   </div>
 );
 
 // Lille chip til regnskabs-info (vare-nr, gruppe, konto)
 const AccountingChip = ({ icon, label, value, muted }: { icon: React.ReactNode; label: string; value: string; muted?: boolean }) => (
-  <span className={`inline-flex max-w-full items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-[11px] ${muted ? "text-muted-foreground" : "text-foreground"}`}>
+  <span className={`inline-flex max-w-full items-center gap-1 rounded border border-border bg-card px-1.5 py-0.5 text-[10px] ${muted ? "text-muted-foreground" : "text-foreground"}`}>
     <span className="text-muted-foreground">{icon}</span>
     <span className="font-medium text-muted-foreground">{label}:</span>
     <span className="truncate font-medium">{value}</span>
