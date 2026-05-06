@@ -50,6 +50,8 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const [phone, setPhone] = useState("");
   const [title, setTitle] = useState("");
   const [commissionPct, setCommissionPct] = useState<string>("");
+  const [employeeNumber, setEmployeeNumber] = useState("");
+  const [employeeGroup, setEmployeeGroup] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "linked" | "pending">("all");
 
@@ -77,6 +79,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 
   const resetForm = () => {
     setName(""); setEmail(""); setPhone(""); setTitle(""); setCommissionPct("");
+    setEmployeeNumber(""); setEmployeeGroup("");
     setShowForm(false);
   };
 
@@ -91,7 +94,12 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
       return;
     }
     create.mutate(
-      { business_id: businessId, name, email, phone, title, commission_pct: pctNum },
+      {
+        business_id: businessId, name, email, phone, title,
+        commission_pct: pctNum,
+        employee_number: employeeNumber,
+        employee_group: employeeGroup,
+      },
       {
         onSuccess: ({ emailSent, accountAlreadyExisted }) => {
           const base = accountAlreadyExisted
