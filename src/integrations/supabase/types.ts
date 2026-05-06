@@ -411,16 +411,20 @@ export type Database = {
           contact_name: string | null
           created_at: string
           currency: string | null
+          customer_group: string | null
+          customer_number: string | null
           cvr: string | null
           ean_number: string | null
           email: string
           id: string
+          is_blocked: boolean
           latitude: number | null
           longitude: number | null
           notes: string | null
           payment_terms_days: number | null
           phone: string | null
           updated_at: string
+          vat_zone: string | null
           zip_code: string | null
         }
         Insert: {
@@ -432,16 +436,20 @@ export type Database = {
           contact_name?: string | null
           created_at?: string
           currency?: string | null
+          customer_group?: string | null
+          customer_number?: string | null
           cvr?: string | null
           ean_number?: string | null
           email: string
           id?: string
+          is_blocked?: boolean
           latitude?: number | null
           longitude?: number | null
           notes?: string | null
           payment_terms_days?: number | null
           phone?: string | null
           updated_at?: string
+          vat_zone?: string | null
           zip_code?: string | null
         }
         Update: {
@@ -453,16 +461,20 @@ export type Database = {
           contact_name?: string | null
           created_at?: string
           currency?: string | null
+          customer_group?: string | null
+          customer_number?: string | null
           cvr?: string | null
           ean_number?: string | null
           email?: string
           id?: string
+          is_blocked?: boolean
           latitude?: number | null
           longitude?: number | null
           notes?: string | null
           payment_terms_days?: number | null
           phone?: string | null
           updated_at?: string
+          vat_zone?: string | null
           zip_code?: string | null
         }
         Relationships: [
@@ -1433,8 +1445,12 @@ export type Database = {
           city: string | null
           created_at: string
           currency: string | null
+          customer_group: string | null
+          customer_number: string | null
+          ean_number: string | null
           email: string
           id: string
+          is_blocked: boolean
           latitude: number | null
           longitude: number | null
           name: string
@@ -1442,6 +1458,7 @@ export type Database = {
           payment_terms_days: number | null
           phone: string | null
           updated_at: string
+          vat_zone: string | null
           zip_code: string | null
         }
         Insert: {
@@ -1451,8 +1468,12 @@ export type Database = {
           city?: string | null
           created_at?: string
           currency?: string | null
+          customer_group?: string | null
+          customer_number?: string | null
+          ean_number?: string | null
           email: string
           id?: string
+          is_blocked?: boolean
           latitude?: number | null
           longitude?: number | null
           name: string
@@ -1460,6 +1481,7 @@ export type Database = {
           payment_terms_days?: number | null
           phone?: string | null
           updated_at?: string
+          vat_zone?: string | null
           zip_code?: string | null
         }
         Update: {
@@ -1469,8 +1491,12 @@ export type Database = {
           city?: string | null
           created_at?: string
           currency?: string | null
+          customer_group?: string | null
+          customer_number?: string | null
+          ean_number?: string | null
           email?: string
           id?: string
+          is_blocked?: boolean
           latitude?: number | null
           longitude?: number | null
           name?: string
@@ -1478,6 +1504,7 @@ export type Database = {
           payment_terms_days?: number | null
           phone?: string | null
           updated_at?: string
+          vat_zone?: string | null
           zip_code?: string | null
         }
         Relationships: [
