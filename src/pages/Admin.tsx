@@ -1950,6 +1950,68 @@ const ServiceForm = ({
             <p className="text-sm text-destructive">Vælg mindst ét interval</p>
           )}
 
+          {/* Status: aktiv/inaktiv */}
+          <div className="rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">Service er aktiv</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Inaktive services vises ikke for kunder og kan ikke bestilles.
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isActive}
+              onClick={() => setIsActive(!isActive)}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                isActive ? "bg-foreground" : "bg-muted"
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow ring-0 transition ${
+                  isActive ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Regnskabs-felter på service: vare-nr og momszone */}
+          <div className="rounded-xl border border-border bg-secondary/30 p-4 space-y-4">
+            <div>
+              <h4 className="text-sm font-semibold text-foreground">Regnskabsfelter</h4>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Bruges når denne service synkroniseres til dit regnskabsprogram (e-conomic, Billy, Dinero).
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-foreground">Vare-/produktnummer (valgfrit)</label>
+                <Input
+                  placeholder="Fx 1001"
+                  value={productNumber}
+                  onChange={(e) => setProductNumber(e.target.value)}
+                  className="bg-card"
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Lad stå tom for at lade regnskabsprogrammet tildele et nummer automatisk.
+                </p>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-foreground">Momszone</label>
+                <Select value={vatZone || "__default__"} onValueChange={(v) => setVatZone(v === "__default__" ? "" : v)}>
+                  <SelectTrigger className="bg-card"><SelectValue placeholder="Brug standard" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__default__">Brug standard fra regnskab</SelectItem>
+                    <SelectItem value="domestic">Indland (DK moms)</SelectItem>
+                    <SelectItem value="eu">EU</SelectItem>
+                    <SelectItem value="export">Eksport (uden for EU)</SelectItem>
+                    <SelectItem value="exempt">Momsfri</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
           {hasIntegration && (
             <div className="mt-6 rounded-xl border border-border bg-secondary/30 p-4 space-y-4">
               <div>
