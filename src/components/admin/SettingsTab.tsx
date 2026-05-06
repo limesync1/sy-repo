@@ -1346,26 +1346,43 @@ const SettingsTab = ({ business }: { business: any }) => {
             icon={<Bell />}
             description="Vælg hvad I vil have en e-mail om — fx når I får en ny ordre, en ny besked eller en ny anmeldelse."
           >
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
               {([
-                { key: "new_order",           label: "Nye bestillinger",       desc: "Besked når en kunde opretter en ny bestilling." },
-                { key: "upcoming_service",    label: "Kommende services",      desc: "Påmindelse når en abonnements-service skal udføres snart." },
-                { key: "subscription_change", label: "Abonnementsændringer",   desc: "Besked når en kunde pauser eller annullerer et abonnement." },
-                { key: "new_review",          label: "Nye anmeldelser",        desc: "Besked når en kunde skriver en anmeldelse." },
-                ...(leadsEnabled ? [{ key: "lead_emails", label: "Nye leads", desc: "Besked når et nyt lead matcher jer fra ‘Indhent 3 tilbud’. Slå fra hvis I kun vil se leads i dashboardet." } as const] : []),
-              ] as const).map(({ key, label, desc }) => (
-                <div key={key} className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground">{label}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
-                  </div>
-                  <ToggleSwitch
-                    checked={!!notifSettings[key]}
-                    onChange={() => setNotifSettings((prev) => ({ ...prev, [key]: !prev[key] }))}
-                  />
-                </div>
-              ))}
+                { key: "new_order",           icon: ShoppingCart,    label: "Nye bestillinger",       desc: "Besked når en kunde opretter en ny bestilling." },
+                { key: "upcoming_service",    icon: CalendarClock,   label: "Kommende services",      desc: "Påmindelse når en abonnements-service skal udføres snart." },
+                { key: "subscription_change", icon: RefreshCcw,      label: "Abonnementsændringer",   desc: "Besked når en kunde pauser eller annullerer et abonnement." },
+                { key: "new_review",          icon: Star,            label: "Nye anmeldelser",        desc: "Besked når en kunde skriver en anmeldelse." },
+                ...(leadsEnabled ? [{ key: "lead_emails", icon: Inbox, label: "Nye leads", desc: "Besked når et nyt lead matcher jer fra ‘Indhent 3 tilbud’. Slå fra hvis I kun vil se leads i dashboardet." } as const] : []),
+              ] as const).map(({ key, icon: Icon, label, desc }) => {
+                const on = !!notifSettings[key];
+                return (
+                  <label
+                    key={key}
+                    className="flex cursor-pointer items-start justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-secondary/30"
+                  >
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                        on ? "bg-accent/10 text-accent" : "bg-secondary text-muted-foreground"
+                      }`}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground">{label}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
+                      </div>
+                    </div>
+                    <ToggleSwitch
+                      checked={on}
+                      onChange={() => setNotifSettings((prev) => ({ ...prev, [key]: !prev[key] }))}
+                    />
+                  </label>
+                );
+              })}
             </div>
+            <p className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+              E-mails sendes til <span className="font-medium text-foreground">{email || "jeres kontakt-e-mail"}</span>
+            </p>
           </SectionCard>
         </div>
 
