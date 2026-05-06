@@ -502,23 +502,26 @@ export function CustomerNotificationsSettings({
     <div className="space-y-6">
       {/* ───── Globale indstillinger ───── */}
       <div className="grid gap-3 sm:grid-cols-2">
-        {/* Tid før besøg */}
+        {/* Standard-tid før besøg */}
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-start gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/5">
               <Clock className="h-4 w-4 text-foreground" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground">Påmind kunden inden besøget</p>
-              <p className="mt-0.5 text-[12px] text-muted-foreground">Vi sender en automatisk påmindelse det antal timer før, I aftaler her.</p>
+              <p className="text-sm font-semibold text-foreground">Standard-tid før besøget</p>
+              <p className="mt-0.5 text-[12px] text-muted-foreground">
+                Bruges hvis I ikke har valgt et andet tidspunkt for en bestemt besked. I kan altid overskrive det pr. e-mail og SMS længere nede.
+              </p>
               <div className="mt-3 flex items-center gap-2">
                 <Input
                   type="number" min={1} max={168} className="h-9 w-20"
                   value={upcomingHoursBefore}
                   onChange={(e) => onUpcomingHoursChange(Math.max(1, Math.min(168, Number(e.target.value) || 24)))}
                 />
-                <span className="text-sm text-foreground">timer før besøget</span>
+                <span className="text-sm text-foreground">timer før</span>
               </div>
+              <p className="mt-2 text-[11px] text-muted-foreground">Aktuelt: <span className="font-medium text-foreground">{formatLead(upcomingHoursBefore * 60)}</span> før besøget.</p>
             </div>
           </div>
         </div>
