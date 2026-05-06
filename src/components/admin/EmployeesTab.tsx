@@ -1092,7 +1092,7 @@ const EmployeeTasksDialog = ({
           .select(`
             id, status, planned_arrival, completed_at, address,
             customer_name, service_summary, duration_minutes, sequence,
-            routes ( id, name, scheduled_date )
+            routes ( id, name, route_date )
           `)
           .eq("assigned_employee_id", employeeId)
           .order("planned_arrival", { ascending: false })
@@ -1104,7 +1104,7 @@ const EmployeeTasksDialog = ({
             route_stops (
               id, status, planned_arrival, completed_at, address,
               customer_name, service_summary, duration_minutes, sequence,
-              routes ( id, name, scheduled_date )
+              routes ( id, name, route_date )
             )
           `)
           .eq("employee_id", employeeId)
@@ -1125,8 +1125,8 @@ const EmployeeTasksDialog = ({
   const upcoming = (stops || [])
     .filter((s) => s.status !== "completed" && s.status !== "skipped")
     .sort((a, b) => {
-      const av = a.planned_arrival || a.routes?.scheduled_date || "";
-      const bv = b.planned_arrival || b.routes?.scheduled_date || "";
+      const av = a.planned_arrival || a.routes?.route_date || "";
+      const bv = b.planned_arrival || b.routes?.route_date || "";
       return String(av).localeCompare(String(bv));
     });
   const completed = (stops || [])
