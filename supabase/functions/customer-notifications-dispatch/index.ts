@@ -23,6 +23,15 @@ const DEFAULTS: Record<string, { subject: string; body: string }> = {
   },
 };
 
+const SMS_DEFAULTS: Record<string, { body: string }> = {
+  service_upcoming: {
+    body: "Hej {{customer_name}}, vi kommer {{planned_arrival}} og udfører {{service_name}}. Mvh {{business_name}}",
+  },
+  service_completed: {
+    body: "Hej {{customer_name}}, vi har udført {{service_name}} i dag. Faktura sendes snarest. Mvh {{business_name}}",
+  },
+};
+
 function fmtDate(iso: string | null | undefined): string {
   if (!iso) return "";
   try {
@@ -82,11 +91,13 @@ Deno.serve(async (req) => {
       }
 
       // Find skabelon
+      const channel: "email" | "sms" = (job.channel as any) ?? "email";
       const { data: tpl } = await admin
         .from("customer_notification_templates")
         .select("subject, body, enabled")
         .eq("business_id", job.business_id)
         .eq("event_type", job.event_type)
+        .eq("channel", channel)
         .maybeSingle();
       if (tpl && tpl.enabled === false) {
         await admin.from("customer_notification_queue").update({
@@ -95,7 +106,10 @@ Deno.serve(async (req) => {
         continue;
       }
       const subjectTpl = tpl?.subject ?? DEFAULTS[job.event_type]?.subject ?? "Besked";
-      const bodyTpl = tpl?.body ?? DEFAULTS[job.event_type]?.body ?? "";
+      const defaultBody = channel === "sms"
+        ? (SMS_DEFAULTS[job.event_type]?.body ?? "")
+        : (DEFAULTS[job.event_type]?.body ?? "");
+      const bodyTpl = tpl?.body ?? defaultBody;
 
       const vars: Record<string, string> = {
         customer_name: order.customer_name ?? "kunde",
@@ -110,15 +124,38 @@ Deno.serve(async (req) => {
         attempts: (job.attempts ?? 0) + 1,
       }).eq("id", job.id);
 
-      const { error: invokeErr } = await admin.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "customer-notification",
-          recipientEmail: job.recipient_email,
-          idempotencyKey: `cust-notif-${job.id}`,
-          templateData: { subject, body, businessName: biz.name ?? "" },
-        },
-      });
-      if (invokeErr) throw new Error(invokeErr.message ?? String(invokeErr));
+      if (channel === "sms") {
+        const settings = (biz.settings as any) || {};
+        const sender = (settings.sms_sender_id ?? "").toString().trim();
+        const enabled = settings.sms_enabled === true;
+        if (!enabled || !sender) {
+          await admin.from("customer_notification_queue").update({
+            status: "cancelled", last_error: "SMS er ikke aktiveret eller mangler afsendernavn",
+          }).eq("id", job.id);
+          continue;
+        }
+        if (!job.recipient_phone) {
+          await admin.from("customer_notification_queue").update({
+            status: "cancelled", last_error: "Mangler kunde-telefonnummer",
+          }).eq("id", job.id);
+          continue;
+        }
+        const { data: smsRes, error: smsErr } = await admin.functions.invoke("send-sms", {
+          body: { to: job.recipient_phone, from: sender, message: body },
+        });
+        if (smsErr) throw new Error(smsErr.message ?? String(smsErr));
+        if (smsRes && smsRes.ok === false) throw new Error(smsRes.error ?? "Ukendt SMS-fejl");
+      } else {
+        const { error: invokeErr } = await admin.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "customer-notification",
+            recipientEmail: job.recipient_email,
+            idempotencyKey: `cust-notif-${job.id}`,
+            templateData: { subject, body, businessName: biz.name ?? "" },
+          },
+        });
+        if (invokeErr) throw new Error(invokeErr.message ?? String(invokeErr));
+      }
 
       await admin.from("customer_notification_queue").update({
         status: "sent", sent_at: new Date().toISOString(), last_error: null,
