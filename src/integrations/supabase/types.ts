@@ -1000,12 +1000,14 @@ export type Database = {
         Row: {
           attempts: number
           business_id: string
+          channel: string
           created_at: string
           event_type: string
           id: string
           last_error: string | null
           order_id: string | null
-          recipient_email: string
+          recipient_email: string | null
+          recipient_phone: string | null
           route_stop_id: string | null
           send_at: string
           sent_at: string | null
@@ -1014,12 +1016,14 @@ export type Database = {
         Insert: {
           attempts?: number
           business_id: string
+          channel?: string
           created_at?: string
           event_type: string
           id?: string
           last_error?: string | null
           order_id?: string | null
-          recipient_email: string
+          recipient_email?: string | null
+          recipient_phone?: string | null
           route_stop_id?: string | null
           send_at?: string
           sent_at?: string | null
@@ -1028,12 +1032,14 @@ export type Database = {
         Update: {
           attempts?: number
           business_id?: string
+          channel?: string
           created_at?: string
           event_type?: string
           id?: string
           last_error?: string | null
           order_id?: string | null
-          recipient_email?: string
+          recipient_email?: string | null
+          recipient_phone?: string | null
           route_stop_id?: string | null
           send_at?: string
           sent_at?: string | null
@@ -1067,31 +1073,34 @@ export type Database = {
         Row: {
           body: string
           business_id: string
+          channel: string
           created_at: string
           enabled: boolean
           event_type: string
           id: string
-          subject: string
+          subject: string | null
           updated_at: string
         }
         Insert: {
           body: string
           business_id: string
+          channel?: string
           created_at?: string
           enabled?: boolean
           event_type: string
           id?: string
-          subject: string
+          subject?: string | null
           updated_at?: string
         }
         Update: {
           body?: string
           business_id?: string
+          channel?: string
           created_at?: string
           enabled?: boolean
           event_type?: string
           id?: string
-          subject?: string
+          subject?: string | null
           updated_at?: string
         }
         Relationships: [
