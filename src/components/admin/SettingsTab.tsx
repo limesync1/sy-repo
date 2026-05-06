@@ -90,7 +90,15 @@ const TimePicker = ({ value, onChange, label }: { value: string; onChange: (v: s
 
 // Header offset i topbaren (h-14 = 56px) + lille luft, bruges både til sticky
 // sidebar og smooth-scroll så ankret lander præcist under headeren.
+// På mobil/tablet ligger der oven i købet en chip-nav (sticky top-14, ~46px)
+// — den skal tælles med, ellers forsvinder ankret under chips'ne.
 const HEADER_OFFSET = 72;
+const MOBILE_NAV_HEIGHT = 52; // chip-nav sticky højde inkl. padding
+const getScrollOffset = () => {
+  if (typeof window === "undefined") return HEADER_OFFSET;
+  const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
+  return isDesktop ? HEADER_OFFSET : HEADER_OFFSET + MOBILE_NAV_HEIGHT;
+};
 
 /* ─── Time helpers — håndterer "08:00 - 16:00" strenge ───
  * Bruges af HoursEditor til at parse eksisterende åbningstider og bygge
