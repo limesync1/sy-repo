@@ -16,6 +16,8 @@ import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupFie
 import { Building2, User, Loader2, Save, ShoppingBag, Camera, X, Upload } from "lucide-react";
 import { toast } from "sonner";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
+import CustomerContactsSection from "./CustomerContactsSection";
+import CustomerDocumentsSection from "./CustomerDocumentsSection";
 
 export type CustomerType = "private" | "business";
 
@@ -449,6 +451,20 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                 <Switch checked={isBlocked} onCheckedChange={setIsBlocked} />
               </div>
             </div>
+
+            {/* Ekstra kontaktpersoner — kun for erhvervskunder */}
+            {type === "business" && (
+              <CustomerContactsSection businessCustomerId={initial?.id ?? null} />
+            )}
+
+            {/* Dokumenter — kontrakter, tilbud, aftaler */}
+            {type === "business" && (
+              <CustomerDocumentsSection
+                businessId={businessId}
+                businessCustomerId={initial?.id ?? null}
+                customerEmail={email}
+              />
+            )}
           </div>
 
           <DialogFooter className="px-5 py-3 border-t shrink-0 gap-2 sm:gap-2 flex-row sm:justify-between">
