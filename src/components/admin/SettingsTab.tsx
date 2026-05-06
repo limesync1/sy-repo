@@ -881,9 +881,11 @@ const SettingsTab = ({ business }: { business: any }) => {
                 key={id}
                 type="button"
                 ref={(el) => {
-                  if (el && activeSection === id) {
-                    el.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-                  }
+                  if (!el || activeSection !== id) return;
+                  const parent = el.parentElement;
+                  if (!parent) return;
+                  const target = el.offsetLeft - parent.clientWidth / 2 + el.clientWidth / 2;
+                  parent.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
                 }}
                 onClick={() => scrollToSection(id)}
                 className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 ${
