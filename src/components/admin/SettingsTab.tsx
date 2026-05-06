@@ -15,7 +15,7 @@ import {
   Sparkles, Settings, Bell, Route, Contact, Image as ImageIcon, Clock,
   CheckCircle2, AlertCircle, ArrowRight, Building2, Search, Calculator,
   CreditCard, XCircle, MessageCircle, Globe, ExternalLink, Link2, Loader2, Copy,
-  UploadCloud,
+  UploadCloud, ShoppingCart, CalendarClock, RefreshCcw, Star, Inbox,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
@@ -90,7 +90,15 @@ const TimePicker = ({ value, onChange, label }: { value: string; onChange: (v: s
 
 // Header offset i topbaren (h-14 = 56px) + lille luft, bruges både til sticky
 // sidebar og smooth-scroll så ankret lander præcist under headeren.
+// På mobil/tablet ligger der oven i købet en chip-nav (sticky top-14, ~46px)
+// — den skal tælles med, ellers forsvinder ankret under chips'ne.
 const HEADER_OFFSET = 72;
+const MOBILE_NAV_HEIGHT = 52; // chip-nav sticky højde inkl. padding
+const getScrollOffset = () => {
+  if (typeof window === "undefined") return HEADER_OFFSET;
+  const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
+  return isDesktop ? HEADER_OFFSET : HEADER_OFFSET + MOBILE_NAV_HEIGHT;
+};
 
 /* ─── Time helpers — håndterer "08:00 - 16:00" strenge ───
  * Bruges af HoursEditor til at parse eksisterende åbningstider og bygge
@@ -401,7 +409,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     if (!el) return;
     setActiveSection(id);
     isProgrammaticScroll.current = true;
-    const top = el.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
+    const top = el.getBoundingClientRect().top + window.scrollY - getScrollOffset();
     window.scrollTo({ top, behavior: "smooth" });
     // Slip observerens "lock" igen efter animationen er færdig.
     window.setTimeout(() => { isProgrammaticScroll.current = false; }, 700);
@@ -436,8 +444,8 @@ const SettingsTab = ({ business }: { business: any }) => {
       },
       {
         // Top-margin matcher header-offset så vi skifter aktivt punkt præcist
-        // når sektionen krydser under headeren.
-        rootMargin: `-${HEADER_OFFSET + 8}px 0px -60% 0px`,
+        // når sektionen krydser under headeren (inkl. mobil chip-nav).
+        rootMargin: `-${getScrollOffset() + 8}px 0px -60% 0px`,
         threshold: 0,
       },
     );
@@ -872,6 +880,13 @@ const SettingsTab = ({ business }: { business: any }) => {
               <button
                 key={id}
                 type="button"
+                ref={(el) => {
+                  if (!el || activeSection !== id) return;
+                  const parent = el.parentElement;
+                  if (!parent) return;
+                  const target = el.offsetLeft - parent.clientWidth / 2 + el.clientWidth / 2;
+                  parent.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
+                }}
                 onClick={() => scrollToSection(id)}
                 className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 ${
                   activeSection === id
@@ -995,7 +1010,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       {/* ─── Hovedindhold: 1-kolonne (sidebar håndterer navigation) ─── */}
       <div className="grid gap-4">
         {/* Generelt — kun navn + beskrivelse */}
-        <div id="settings-general" className="scroll-mt-6">
+        <div id="settings-general" className="scroll-mt-32 lg:scroll-mt-24">
           <SectionCard title="Om virksomheden" icon={<Building2 />} description="Det navn og den korte beskrivelse kunderne ser øverst på jeres side.">
             <div className="space-y-4">
               <div data-tour="field-company-name">
@@ -1012,7 +1027,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Brancher — egen sektion med kategorier underneden */}
-        <div id="settings-industries" className="scroll-mt-6">
+        <div id="settings-industries" className="scroll-mt-32 lg:scroll-mt-24">
           <SectionCard
             title="Brancher & kategorier"
             icon={<Sparkles />}
@@ -1048,7 +1063,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Kontakt */}
-        <div id="settings-contact" className="scroll-mt-6">
+        <div id="settings-contact" className="scroll-mt-32 lg:scroll-mt-24">
           <SectionCard title="Kontakt og adresse" icon={<Contact />} description="Sådan kan kunderne ringe, skrive eller finde vej til jer. Bruges også på fakturaer.">
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -1094,7 +1109,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Branding */}
-        <div id="settings-branding" className="scroll-mt-6">
+        <div id="settings-branding" className="scroll-mt-32 lg:scroll-mt-24">
           <SectionCard title="Profil og webadresse" icon={<ImageIcon />} description="Logoet, det store forsidebillede og linket kunderne får, når I deler jeres profil.">
             {/* Side-om-side så cover ikke fylder hele bredden — kun en kompakt
                 preview, da fuld bannervisning ikke er nødvendig her. */}
@@ -1314,7 +1329,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Åbningstider */}
-        <div id="settings-hours" className="scroll-mt-6">
+        <div id="settings-hours" className="scroll-mt-32 lg:scroll-mt-24">
           <SectionCard
             title="Åbningstider"
             icon={<Clock />}
@@ -1325,37 +1340,54 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Notifikationer */}
-        <div id="settings-notifications" className="scroll-mt-6">
+        <div id="settings-notifications" className="scroll-mt-32 lg:scroll-mt-24">
           <SectionCard
             title="Notifikationer"
             icon={<Bell />}
             description="Vælg hvad I vil have en e-mail om — fx når I får en ny ordre, en ny besked eller en ny anmeldelse."
           >
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
               {([
-                { key: "new_order",           label: "Nye bestillinger",       desc: "Besked når en kunde opretter en ny bestilling." },
-                { key: "upcoming_service",    label: "Kommende services",      desc: "Påmindelse når en abonnements-service skal udføres snart." },
-                { key: "subscription_change", label: "Abonnementsændringer",   desc: "Besked når en kunde pauser eller annullerer et abonnement." },
-                { key: "new_review",          label: "Nye anmeldelser",        desc: "Besked når en kunde skriver en anmeldelse." },
-                ...(leadsEnabled ? [{ key: "lead_emails", label: "Nye leads", desc: "Besked når et nyt lead matcher jer fra ‘Indhent 3 tilbud’. Slå fra hvis I kun vil se leads i dashboardet." } as const] : []),
-              ] as const).map(({ key, label, desc }) => (
-                <div key={key} className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground">{label}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
-                  </div>
-                  <ToggleSwitch
-                    checked={!!notifSettings[key]}
-                    onChange={() => setNotifSettings((prev) => ({ ...prev, [key]: !prev[key] }))}
-                  />
-                </div>
-              ))}
+                { key: "new_order",           icon: ShoppingCart,    label: "Nye bestillinger",       desc: "Besked når en kunde opretter en ny bestilling." },
+                { key: "upcoming_service",    icon: CalendarClock,   label: "Kommende services",      desc: "Påmindelse når en abonnements-service skal udføres snart." },
+                { key: "subscription_change", icon: RefreshCcw,      label: "Abonnementsændringer",   desc: "Besked når en kunde pauser eller annullerer et abonnement." },
+                { key: "new_review",          icon: Star,            label: "Nye anmeldelser",        desc: "Besked når en kunde skriver en anmeldelse." },
+                ...(leadsEnabled ? [{ key: "lead_emails", icon: Inbox, label: "Nye leads", desc: "Besked når et nyt lead matcher jer fra ‘Indhent 3 tilbud’. Slå fra hvis I kun vil se leads i dashboardet." } as const] : []),
+              ] as const).map(({ key, icon: Icon, label, desc }) => {
+                const on = !!notifSettings[key];
+                return (
+                  <label
+                    key={key}
+                    className="flex cursor-pointer items-start justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-secondary/30"
+                  >
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                        on ? "bg-accent/10 text-accent" : "bg-secondary text-muted-foreground"
+                      }`}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground">{label}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
+                      </div>
+                    </div>
+                    <ToggleSwitch
+                      checked={on}
+                      onChange={() => setNotifSettings((prev) => ({ ...prev, [key]: !prev[key] }))}
+                    />
+                  </label>
+                );
+              })}
             </div>
+            <p className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+              E-mails sendes til <span className="font-medium text-foreground">{email || "jeres kontakt-e-mail"}</span>
+            </p>
           </SectionCard>
         </div>
 
         {/* Kunde-notifikationer */}
-        <div id="settings-customer-notifications" className="scroll-mt-6">
+        <div id="settings-customer-notifications" className="scroll-mt-32 lg:scroll-mt-24">
           <SectionCard
             title="Kunde-notifikationer"
             icon={<MessageCircle />}
@@ -1372,7 +1404,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Fakturering */}
-        <div id="settings-billing" className="scroll-mt-6">
+        <div id="settings-billing" className="scroll-mt-32 lg:scroll-mt-24">
           <SectionCard
             title="Priser og betaling"
             icon={<CreditCard />}
@@ -1599,7 +1631,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Avanceret */}
-        <div id="settings-advanced" className="scroll-mt-6">
+        <div id="settings-advanced" className="scroll-mt-32 lg:scroll-mt-24">
           <SectionCard title="Ekstra funktioner" icon={<Settings />} description="Slå tilvalg til som ruteplanlægger eller livechat. Prisen opdateres automatisk under ”Pris og betaling” ovenfor.">
             <div className="space-y-3">
               <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
