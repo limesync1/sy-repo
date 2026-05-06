@@ -1086,13 +1086,13 @@ const EmployeeTasksDialog = ({
     queryFn: async () => {
       // Hent alle stops hvor medarbejderen er tildelt — enten via assigned_employee_id
       // eller via route_stop_assignees (lead/team).
-      const [{ data: directRows }, { data: assigneeRows }] = await Promise.all([
+      const [{ data: directRows, error: dErr }, { data: assigneeRows, error: aErr }] = await Promise.all([
         supabase
           .from("route_stops")
           .select(`
             id, status, planned_arrival, completed_at, address,
             customer_name, service_summary, duration_minutes, sequence,
-            routes!inner ( id, name, scheduled_date )
+            routes ( id, name, scheduled_date )
           `)
           .eq("assigned_employee_id", employeeId)
           .order("planned_arrival", { ascending: false })
@@ -1101,16 +1101,17 @@ const EmployeeTasksDialog = ({
           .from("route_stop_assignees")
           .select(`
             stop_id, is_lead,
-            route_stops!inner (
+            route_stops (
               id, status, planned_arrival, completed_at, address,
               customer_name, service_summary, duration_minutes, sequence,
-              routes!inner ( id, name, scheduled_date )
+              routes ( id, name, scheduled_date )
             )
           `)
           .eq("employee_id", employeeId)
           .limit(200),
       ]);
-
+      if (dErr) console.error("employee-tasks direct error:", dErr);
+      if (aErr) console.error("employee-tasks assignee error:", aErr);
       const map = new Map<string, any>();
       (directRows || []).forEach((r: any) => map.set(r.id, r));
       (assigneeRows || []).forEach((row: any) => {
@@ -1123,10 +1124,11 @@ const EmployeeTasksDialog = ({
 
   const upcoming = (stops || [])
     .filter((s) => s.status !== "completed" && s.status !== "skipped")
-    .sort((a, b) =>
-      String(a.planned_arrival || a.routes?.scheduled_date || "")
-        .localeCompare(String(b.planned_arrival || b.routes?.scheduled_date || ""))
-    );
+    .sort((a, b) => {
+      const av = a.planned_arrival || a.routes?.scheduled_date || "";
+      const bv = b.planned_arrival || b.routes?.scheduled_date || "";
+      return String(av).localeCompare(String(bv));
+    });
   const completed = (stops || [])
     .filter((s) => s.status === "completed")
     .sort((a, b) =>
