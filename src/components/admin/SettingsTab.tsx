@@ -876,7 +876,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       </div>
 
       {/* ─── Sub-nav chips (mobil/tablet) — sticky sidebar bruges på lg ─── */}
-      <div className="sticky top-14 z-20 -mx-4 sm:-mx-6 lg:hidden border-b border-border bg-background/95 px-4 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-6">
+      <div data-settings-chipnav className="sticky top-14 z-20 -mx-4 sm:-mx-6 lg:hidden border-b border-border bg-background/95 px-4 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-6">
         <div className="flex flex-nowrap gap-2 overflow-x-auto pb-0.5">
           {SECTIONS.map(({ id, label, icon: Icon }) => {
             const sectionDone = completeness.checks.filter((c) => c.section === id);
