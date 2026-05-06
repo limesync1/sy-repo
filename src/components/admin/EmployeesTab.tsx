@@ -327,6 +327,27 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   Andel af omsætningen for udførte opgaver. Lad være tom for 0 %.
                 </p>
               </div>
+              <div>
+                <FieldLabel>Medarbejder-nr.</FieldLabel>
+                <Input
+                  value={employeeNumber}
+                  onChange={(e) => setEmployeeNumber(e.target.value)}
+                  placeholder="Auto"
+                  className="h-10"
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Bruges når lønsystemet (fx Zenegy) er forbundet.
+                </p>
+              </div>
+              <div>
+                <FieldLabel>Medarbejdergruppe / afdeling</FieldLabel>
+                <Input
+                  value={employeeGroup}
+                  onChange={(e) => setEmployeeGroup(e.target.value)}
+                  placeholder="fx Service Øst"
+                  className="h-10"
+                />
+              </div>
             </div>
             <p className="text-xs text-muted-foreground">
               Der genereres automatisk en sikker adgangskode, og medarbejderen
