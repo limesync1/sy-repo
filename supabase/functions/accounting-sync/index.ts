@@ -1010,3 +1010,73 @@ async function ensureCustomerLink(admin: SupabaseClient, integ: Integration, ada
       : `private_customer_id.eq.${internalId}`).maybeSingle();
   return link2?.external_id ?? null;
 }
+
+// ─── INVOICE BOOKING ─────────────────────────────────────────────────────
+// Når et rute-stop markeres som udført, køes en 'invoice' job. Her bogfører
+// vi den eksisterende ordre som faktura i regnskabsprogrammet og forsøger
+// at sende den til kunden. Hvis ordren ikke er pushed endnu, gør vi det
+// først så vi har et external_id at bogføre fra.
+async function bookInvoiceForOrder(
+  admin: SupabaseClient,
+  integ: Integration,
+  adapter: AccountingAdapter,
+  orderId: string,
+) {
+  if (typeof adapter.bookInvoice !== "function") {
+    throw new Error(`Provider ${integ.provider} understøtter ikke fakturabogføring`);
+  }
+  // Sørg for at ordren er pushed først
+  let { data: link } = await admin.from("accounting_order_links")
+    .select("external_id, external_type")
+    .eq("business_id", integ.business_id)
+    .eq("provider", integ.provider)
+    .eq("order_id", orderId)
+    .maybeSingle();
+  if (!link) {
+    await pushOrder(admin, integ, adapter, orderId, "upsert");
+    const reread = await admin.from("accounting_order_links")
+      .select("external_id, external_type")
+      .eq("business_id", integ.business_id)
+      .eq("provider", integ.provider)
+      .eq("order_id", orderId)
+      .maybeSingle();
+    link = reread.data ?? null;
+  }
+  if (!link) throw new Error("Kunne ikke pushe ordre før fakturabogføring");
+
+  const { data: order } = await admin.from("orders")
+    .select("customer_email").eq("id", orderId).maybeSingle();
+
+  const result = await adapter.bookInvoice({
+    external_id: link.external_id,
+    external_type: (link.external_type as any) ?? "order",
+    customer_email: order?.customer_email ?? null,
+  });
+
+  // Opdater orders med faktura-info
+  await admin.from("orders").update({
+    invoice_status: result.sent ? "sent" : "booked",
+    invoiced_at: new Date().toISOString(),
+    invoice_external_id: result.invoice_external_id,
+  }).eq("id", orderId);
+
+  // Gem link til faktura (samme tabel, men nu external_type = invoice)
+  await admin.from("accounting_order_links").update({
+    external_id: result.invoice_external_id,
+    external_number: result.invoice_external_number,
+    external_type: "invoice_draft",
+    last_pushed_at: new Date().toISOString(),
+    last_status_synced: result.sent ? "sent" : "booked",
+  })
+    .eq("business_id", integ.business_id)
+    .eq("provider", integ.provider)
+    .eq("order_id", orderId);
+
+  await logSync(admin, {
+    business_id: integ.business_id, provider: integ.provider, direction: "push",
+    entity_type: "invoice", entity_id: orderId,
+    external_id: result.invoice_external_id,
+    status: "success",
+    message: result.sent ? "Faktura bogført og sendt" : "Faktura bogført",
+  });
+}
