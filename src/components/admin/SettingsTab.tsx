@@ -330,6 +330,12 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [customerNotifUpcomingHours, setCustomerNotifUpcomingHours] = useState<number>(
     Number((business.settings as any)?.customer_notif_upcoming_hours ?? 24)
   );
+  const [smsEnabled, setSmsEnabled] = useState<boolean>(
+    !!(business.settings as any)?.sms_enabled
+  );
+  const [smsSenderId, setSmsSenderId] = useState<string>(
+    ((business.settings as any)?.sms_sender_id as string) || ""
+  );
   // Custom domæne — virksomhedens eget domæne (fx "ready2clean.dk") som
   // bruges som kanonisk URL på den offentlige virksomhedsside, så Google
   // indekserer deres eget domæne fremfor serviceydere.dk/v/slug. Selve
@@ -593,6 +599,8 @@ const SettingsTab = ({ business }: { business: any }) => {
       leads_enabled: leadsEnabled,
       livechat_enabled: livechatEnabled,
       customer_notif_upcoming_hours: customerNotifUpcomingHours,
+      sms_enabled: smsEnabled,
+      sms_sender_id: smsSenderId.trim().slice(0, 11),
       // Domæne gemmes normaliseret. Når brugeren ændrer domænet,
       // nulstiller vi verifikations-status så vi ikke fejlagtigt påstår
       // det stadig er aktivt — det skal verificeres igen.
@@ -1312,6 +1320,10 @@ const SettingsTab = ({ business }: { business: any }) => {
               businessId={business.id}
               upcomingHoursBefore={customerNotifUpcomingHours}
               onUpcomingHoursChange={setCustomerNotifUpcomingHours}
+              smsEnabled={smsEnabled}
+              smsSenderId={smsSenderId}
+              onSmsEnabledChange={setSmsEnabled}
+              onSmsSenderIdChange={setSmsSenderId}
             />
           </SectionCard>
         </div>
