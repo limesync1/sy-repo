@@ -682,6 +682,17 @@ export function CustomerNotificationsSettings({
                   />
                 </label>
 
+                {activeEvent === "service_upcoming" && (
+                  <LeadTimePicker
+                    label="Hvornår skal e-mailen sendes?"
+                    channel="email"
+                    value={drafts[activeEvent].leadMinutes ?? upcomingHoursBefore * 60}
+                    defaultMinutes={upcomingHoursBefore * 60}
+                    onChange={(m) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: m } }))}
+                    onReset={() => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: null } }))}
+                  />
+                )}
+
                 <div className="space-y-2">
                   <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Emnelinje</Label>
                   <Input
@@ -760,6 +771,17 @@ export function CustomerNotificationsSettings({
                     onCheckedChange={(v) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: v } }))}
                   />
                 </label>
+
+                {activeEvent === "service_upcoming" && (
+                  <LeadTimePicker
+                    label="Hvornår skal SMS'en sendes?"
+                    channel="sms"
+                    value={smsDrafts[activeEvent].leadMinutes ?? upcomingHoursBefore * 60}
+                    defaultMinutes={upcomingHoursBefore * 60}
+                    onChange={(m) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: m } }))}
+                    onReset={() => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: null } }))}
+                  />
+                )}
 
                 <div className="space-y-2">
                   <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">SMS-tekst</Label>
