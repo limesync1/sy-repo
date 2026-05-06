@@ -88,16 +88,21 @@ const TimePicker = ({ value, onChange, label }: { value: string; onChange: (v: s
   );
 };
 
-// Header offset i topbaren (h-14 = 56px) + lille luft, bruges både til sticky
-// sidebar og smooth-scroll så ankret lander præcist under headeren.
-// På mobil/tablet ligger der oven i købet en chip-nav (sticky top-14, ~46px)
-// — den skal tælles med, ellers forsvinder ankret under chips'ne.
-const HEADER_OFFSET = 72;
-const MOBILE_NAV_HEIGHT = 52; // chip-nav sticky højde inkl. padding
+// Topbaren i AdminShell er h-14 = 56px. Vi lægger 8px luft til, så ankret
+// lander pænt UNDER headeren (ikke skjult bag den). På mobil/tablet kommer
+// der en sticky chip-nav under headeren — så den måler vi op dynamisk så
+// ankret rammer præcis under begge stickies, uafhængigt af zoom/skala.
+const HEADER_HEIGHT = 56;
+const SCROLL_PADDING = 12;
 const getScrollOffset = () => {
-  if (typeof window === "undefined") return HEADER_OFFSET;
+  if (typeof window === "undefined") return HEADER_HEIGHT + SCROLL_PADDING;
   const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
-  return isDesktop ? HEADER_OFFSET : HEADER_OFFSET + MOBILE_NAV_HEIGHT;
+  let extra = 0;
+  if (!isDesktop) {
+    const chipNav = document.querySelector<HTMLElement>("[data-settings-chipnav]");
+    extra = chipNav?.offsetHeight ?? 52;
+  }
+  return HEADER_HEIGHT + SCROLL_PADDING + extra;
 };
 
 /* ─── Time helpers — håndterer "08:00 - 16:00" strenge ───
