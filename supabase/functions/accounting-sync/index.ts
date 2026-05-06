@@ -93,21 +93,6 @@ Deno.serve(async (req) => {
       const seeded = await seedQueue(admin, business_id);
       return json({ ok: true, seeded });
     }
-    if (mode === "list_groups") {
-      try {
-        const groups = await adapter.listGroups();
-        return json({ ok: true, ...groups });
-      } catch (e) {
-        return json({
-          ok: false,
-          customer_groups: [],
-          product_groups: [],
-          income_accounts: [],
-          labels: {},
-          error: e instanceof Error ? e.message : String(e),
-        });
-      }
-    }
     // default: drain queue. Auto-seed if empty so first sync actually
     // pushes existing customers/services/orders to the provider.
     let seeded = 0;
