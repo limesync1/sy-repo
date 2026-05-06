@@ -631,7 +631,7 @@ export function CustomerNotificationsSettings({
                     {e.key === "service_upcoming" && (
                       <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground" title="Hvornår beskederne sendes før besøget">
                         <AlarmClock className="h-2.5 w-2.5" />
-                        {formatLead(drafts[e.key].leadMinutes ?? upcomingHoursBefore * 60)}
+                        {formatLead(drafts[e.key].leadMinutes ?? upcomingMinutesBefore)}
                       </span>
                     )}
                   </div>
@@ -715,8 +715,8 @@ export function CustomerNotificationsSettings({
                   <LeadTimePicker
                     label="Hvornår skal e-mailen sendes?"
                     channel="email"
-                    value={drafts[activeEvent].leadMinutes ?? upcomingHoursBefore * 60}
-                    defaultMinutes={upcomingHoursBefore * 60}
+                    value={drafts[activeEvent].leadMinutes ?? upcomingMinutesBefore}
+                    defaultMinutes={upcomingMinutesBefore}
                     onChange={(m) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: m } }))}
                     onReset={() => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: null } }))}
                   />
@@ -805,8 +805,8 @@ export function CustomerNotificationsSettings({
                   <LeadTimePicker
                     label="Hvornår skal SMS'en sendes?"
                     channel="sms"
-                    value={smsDrafts[activeEvent].leadMinutes ?? upcomingHoursBefore * 60}
-                    defaultMinutes={upcomingHoursBefore * 60}
+                    value={smsDrafts[activeEvent].leadMinutes ?? upcomingMinutesBefore}
+                    defaultMinutes={upcomingMinutesBefore}
                     onChange={(m) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: m } }))}
                     onReset={() => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: null } }))}
                   />
