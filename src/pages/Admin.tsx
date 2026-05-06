@@ -973,6 +973,9 @@ const ServiceForm = ({
   const [accountingIncomeAccount, setAccountingIncomeAccount] = useState<string>(
     existingService?.accounting_income_account || existingService?.accounting_account_number || ""
   );
+  const [productNumber, setProductNumber] = useState<string>(existingService?.product_number || "");
+  const [vatZone, setVatZone] = useState<string>(existingService?.vat_zone || "");
+  const [isActive, setIsActive] = useState<boolean>(existingService?.is_active !== false);
   const [hasIntegration, setHasIntegration] = useState(false);
   const [integrationProvider, setIntegrationProvider] = useState<string | null>(null);
   const [accountingGroups, setAccountingGroups] = useState<{
@@ -1096,11 +1099,16 @@ const ServiceForm = ({
 
   const ALL_INTERVALS = [
     { value: "engangskøb", label: "Engangskøb" },
+    { value: "10_min", label: "Hver 10. minut (test)" },
     { value: "daglig", label: "Daglig" },
     { value: "ugentlig", label: "Ugentlig" },
     { value: "hver_14_dag", label: "Hver 14. dag" },
+    { value: "hver_4_uge", label: "Hver 4. uge" },
+    { value: "hver_8_uge", label: "Hver 8. uge" },
     { value: "månedlig", label: "Månedlig" },
     { value: "kvartalsvis", label: "Kvartalsvis" },
+    { value: "halvårlig", label: "Halvårlig" },
+    { value: "årlig", label: "Årlig" },
   ];
 
   const toggleInterval = (v: string) => {
@@ -1426,6 +1434,9 @@ const ServiceForm = ({
         interval_options: intervalOptions.length > 0 ? intervalOptions : ["engangskøb"],
         accounting_product_group: accountingProductGroup || null,
         accounting_income_account: accountingIncomeAccount || null,
+        product_number: productNumber.trim() || null,
+        vat_zone: vatZone || null,
+        is_active: isActive,
       };
 
       if (existingService) {
