@@ -1,7 +1,7 @@
 // SettingsTab — virksomhedens indstillinger, opbygget med samme designsprog
 // som Overblik / Aftaler / Kunder / Medarbejdere / Anmeldelser:
 // PageHeader, surface-admin cards, sub-nav chips og konsistent spacing.
-import { useState, useMemo, useEffect, useRef, useCallback, forwardRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback, forwardRef, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -169,7 +169,7 @@ const GroupHeader = ({
   title,
   hint,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   hint?: string;
 }) => (
