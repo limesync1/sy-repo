@@ -890,6 +890,112 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_contacts: {
+        Row: {
+          business_customer_id: string
+          created_at: string
+          email: string | null
+          id: string
+          is_billing: boolean
+          is_primary: boolean
+          name: string
+          notes: string | null
+          phone: string | null
+          role: string | null
+          updated_at: string
+        }
+        Insert: {
+          business_customer_id: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_billing?: boolean
+          is_primary?: boolean
+          name: string
+          notes?: string | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          business_customer_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_billing?: boolean
+          is_primary?: boolean
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_contacts_business_customer_id_fkey"
+            columns: ["business_customer_id"]
+            isOneToOne: false
+            referencedRelation: "business_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_documents: {
+        Row: {
+          business_customer_id: string | null
+          business_id: string
+          created_at: string
+          customer_email: string | null
+          document_type: string
+          file_size: number | null
+          id: string
+          is_visible_to_customer: boolean
+          mime_type: string | null
+          storage_path: string
+          title: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          business_customer_id?: string | null
+          business_id: string
+          created_at?: string
+          customer_email?: string | null
+          document_type?: string
+          file_size?: number | null
+          id?: string
+          is_visible_to_customer?: boolean
+          mime_type?: string | null
+          storage_path: string
+          title: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          business_customer_id?: string | null
+          business_id?: string
+          created_at?: string
+          customer_email?: string | null
+          document_type?: string
+          file_size?: number | null
+          id?: string
+          is_visible_to_customer?: boolean
+          mime_type?: string | null
+          storage_path?: string
+          title?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_documents_business_customer_id_fkey"
+            columns: ["business_customer_id"]
+            isOneToOne: false
+            referencedRelation: "business_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_notification_queue: {
         Row: {
           attempts: number
