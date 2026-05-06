@@ -610,7 +610,7 @@ export function CustomerNotificationsSettings({
                   <p className="text-sm font-semibold text-foreground">SMS er slået fra</p>
                   <p className="mt-1 text-[12px] text-muted-foreground">
                     Slå SMS til for at sende korte beskeder direkte til kundens telefon.
-                    Afsenderen står som "Serviceyder", og vi tilføjer automatisk jeres firmanavn og telefonnummer.
+                    Afsenderen står som "Serviceydere", og vi tilføjer automatisk jeres firmanavn og telefonnummer.
                   </p>
                 </div>
                 <Button size="sm" onClick={() => onSmsEnabledChange(true)}>
