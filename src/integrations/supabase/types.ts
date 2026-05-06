@@ -1077,6 +1077,8 @@ export type Database = {
           commission_pct: number
           created_at: string
           email: string
+          employee_group: string | null
+          employee_number: string | null
           home_address: string | null
           home_latitude: number | null
           home_longitude: number | null
@@ -1098,6 +1100,8 @@ export type Database = {
           commission_pct?: number
           created_at?: string
           email: string
+          employee_group?: string | null
+          employee_number?: string | null
           home_address?: string | null
           home_latitude?: number | null
           home_longitude?: number | null
@@ -1119,6 +1123,8 @@ export type Database = {
           commission_pct?: number
           created_at?: string
           email?: string
+          employee_group?: string | null
+          employee_number?: string | null
           home_address?: string | null
           home_latitude?: number | null
           home_longitude?: number | null
