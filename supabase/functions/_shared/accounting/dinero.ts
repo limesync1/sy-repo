@@ -306,6 +306,39 @@ export function makeDineroAdapter(
       await dineroRequest(creds, orgId, `/invoices/${externalId}`, { method: "DELETE" });
     },
 
+    async bookInvoice(input) {
+      // Dinero: book → POST /invoices/{guid}/book — returnerer Number.
+      let invoiceNumber: string | null = null;
+      try {
+        const booked = await dineroRequest(creds, orgId, `/invoices/${input.external_id}/book`, {
+          method: "POST",
+          body: JSON.stringify({ Number: 0 }),
+        });
+        invoiceNumber = booked?.Number ? String(booked.Number) : null;
+      } catch (_) { /* allerede booket eller fejlede — fortsæt */ }
+
+      // Send pr. e-mail hvis vi har modtager.
+      let sent = false;
+      if (input.customer_email) {
+        try {
+          await dineroRequest(creds, orgId, `/invoices/${input.external_id}/email`, {
+            method: "POST",
+            body: JSON.stringify({
+              Receiver: input.customer_email,
+              Sender: "",
+              Message: "",
+            }),
+          });
+          sent = true;
+        } catch (_) { /* ignore */ }
+      }
+      return {
+        invoice_external_id: input.external_id,
+        invoice_external_number: invoiceNumber,
+        sent,
+      };
+    },
+
     async getInvoiceStates(externalIds: string[]): Promise<ExternalInvoiceState[]> {
       const out: ExternalInvoiceState[] = [];
       for (const id of externalIds) {
