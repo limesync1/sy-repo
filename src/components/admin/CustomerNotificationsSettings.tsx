@@ -361,7 +361,7 @@ function useInsertAtCursor<T extends HTMLInputElement | HTMLTextAreaElement>(
 /* ─────────────────────── MAIN ─────────────────────── */
 
 export function CustomerNotificationsSettings({
-  businessId, upcomingHoursBefore, onUpcomingHoursChange,
+  businessId, upcomingMinutesBefore, onUpcomingMinutesChange,
   smsEnabled, onSmsEnabledChange,
 }: Props) {
   const qc = useQueryClient();
