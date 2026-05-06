@@ -327,6 +327,9 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [livechatEnabled, setLivechatEnabled] = useState<boolean>(
     !!(business.settings as any)?.livechat_enabled
   );
+  const [customerNotifUpcomingHours, setCustomerNotifUpcomingHours] = useState<number>(
+    Number((business.settings as any)?.customer_notif_upcoming_hours ?? 24)
+  );
   // Custom domæne — virksomhedens eget domæne (fx "ready2clean.dk") som
   // bruges som kanonisk URL på den offentlige virksomhedsside, så Google
   // indekserer deres eget domæne fremfor serviceydere.dk/v/slug. Selve
@@ -589,6 +592,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       accounting_integration_enabled: accountingIntegrationEnabled,
       leads_enabled: leadsEnabled,
       livechat_enabled: livechatEnabled,
+      customer_notif_upcoming_hours: customerNotifUpcomingHours,
       // Domæne gemmes normaliseret. Når brugeren ændrer domænet,
       // nulstiller vi verifikations-status så vi ikke fejlagtigt påstår
       // det stadig er aktivt — det skal verificeres igen.
