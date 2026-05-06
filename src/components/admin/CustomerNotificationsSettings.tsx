@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Mail, MessageSquare, Clock, Bell, CheckCircle2, Smartphone, RotateCcw, Phone, Plus, AlertCircle, Power } from "lucide-react";
+import { Loader2, Mail, MessageSquare, Clock, Bell, CheckCircle2, Smartphone, RotateCcw, Phone, Plus, Power } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
