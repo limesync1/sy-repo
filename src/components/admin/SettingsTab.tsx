@@ -1015,7 +1015,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       {/* ─── Hovedindhold: 1-kolonne (sidebar håndterer navigation) ─── */}
       <div className="grid gap-4">
         {/* Generelt — kun navn + beskrivelse */}
-        <div id="settings-general" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-general" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard title="Om virksomheden" icon={<Building2 />} description="Det navn og den korte beskrivelse kunderne ser øverst på jeres side.">
             <div className="space-y-4">
               <div data-tour="field-company-name">
@@ -1032,7 +1032,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Brancher — egen sektion med kategorier underneden */}
-        <div id="settings-industries" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-industries" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard
             title="Brancher & kategorier"
             icon={<Sparkles />}
@@ -1068,7 +1068,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Kontakt */}
-        <div id="settings-contact" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-contact" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard title="Kontakt og adresse" icon={<Contact />} description="Sådan kan kunderne ringe, skrive eller finde vej til jer. Bruges også på fakturaer.">
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -1114,7 +1114,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Branding */}
-        <div id="settings-branding" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-branding" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard title="Profil og webadresse" icon={<ImageIcon />} description="Logoet, det store forsidebillede og linket kunderne får, når I deler jeres profil.">
             {/* Side-om-side så cover ikke fylder hele bredden — kun en kompakt
                 preview, da fuld bannervisning ikke er nødvendig her. */}
@@ -1334,7 +1334,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Åbningstider */}
-        <div id="settings-hours" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-hours" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard
             title="Åbningstider"
             icon={<Clock />}
@@ -1345,7 +1345,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Notifikationer */}
-        <div id="settings-notifications" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-notifications" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard
             title="Notifikationer"
             icon={<Bell />}
@@ -1392,7 +1392,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Kunde-notifikationer */}
-        <div id="settings-customer-notifications" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-customer-notifications" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard
             title="Kunde-notifikationer"
             icon={<MessageCircle />}
@@ -1409,7 +1409,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Fakturering */}
-        <div id="settings-billing" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-billing" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard
             title="Pris og betaling"
             icon={<CreditCard />}
@@ -1655,7 +1655,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Avanceret */}
-        <div id="settings-advanced" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-advanced" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard title="Ekstra funktioner" icon={<Settings />} description="Slå tilvalg til som ruteplanlægger eller livechat. Prisen opdateres automatisk under ”Pris og betaling” ovenfor.">
             <div className="space-y-3">
               <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">
