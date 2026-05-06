@@ -206,6 +206,54 @@ async function seedQueue(admin: SupabaseClient, business_id: string): Promise<nu
   return rows.length;
 }
 
+// Find services/customers/orders that never got pushed (no link row) and
+// enqueue them. Safe to call repeatedly — the unique index on the queue
+// prevents duplicates.
+async function seedMissing(admin: SupabaseClient, business_id: string): Promise<number> {
+  const rows: any[] = [];
+
+  // Services without a product link
+  const [{ data: svcs }, { data: prodLinks }] = await Promise.all([
+    admin.from("services").select("id").eq("business_id", business_id),
+    admin.from("accounting_product_links").select("service_id").eq("business_id", business_id),
+  ]);
+  const linkedSvc = new Set((prodLinks ?? []).map((r: any) => r.service_id));
+  for (const s of svcs ?? []) {
+    if (!linkedSvc.has(s.id)) {
+      rows.push({ business_id, entity_type: "product", entity_id: s.id, operation: "create" });
+    }
+  }
+
+  // Customers without a customer link
+  const [{ data: bcs }, { data: pcs }, { data: custLinks }] = await Promise.all([
+    admin.from("business_customers").select("id").eq("business_id", business_id),
+    admin.from("private_customers").select("id").eq("business_id", business_id),
+    admin.from("accounting_customer_links").select("business_customer_id, private_customer_id")
+      .eq("business_id", business_id),
+  ]);
+  const linkedBC = new Set((custLinks ?? []).map((r: any) => r.business_customer_id).filter(Boolean));
+  const linkedPC = new Set((custLinks ?? []).map((r: any) => r.private_customer_id).filter(Boolean));
+  for (const c of bcs ?? []) {
+    if (!linkedBC.has(c.id)) {
+      rows.push({ business_id, entity_type: "customer", entity_id: c.id, operation: "create" });
+    }
+  }
+  for (const c of pcs ?? []) {
+    if (!linkedPC.has(c.id)) {
+      rows.push({ business_id, entity_type: "customer", entity_id: c.id, operation: "create" });
+    }
+  }
+
+  if (rows.length === 0) return 0;
+  // Insert one-by-one to silently skip rows that already exist in the queue
+  let inserted = 0;
+  for (const r of rows) {
+    const { error } = await admin.from("accounting_sync_queue").insert(r);
+    if (!error) inserted++;
+  }
+  return inserted;
+}
+
 // ─── helpers ────────────────────────────────────────────────────────────
 
 interface Integration {
