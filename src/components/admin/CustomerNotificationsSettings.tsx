@@ -85,6 +85,124 @@ function renderPreview(tpl: string): string {
   });
 }
 
+/* ─────────────────────── LEAD TIME HELPERS ─────────────────────── */
+
+type LeadParts = { d: number; h: number; m: number };
+
+const minutesToParts = (mins: number | null | undefined): LeadParts => {
+  const total = Math.max(0, Math.floor(mins ?? 0));
+  const d = Math.floor(total / (24 * 60));
+  const h = Math.floor((total - d * 24 * 60) / 60);
+  const m = total - d * 24 * 60 - h * 60;
+  return { d, h, m };
+};
+const partsToMinutes = (p: LeadParts): number => Math.max(0, (p.d || 0) * 24 * 60 + (p.h || 0) * 60 + (p.m || 0));
+const formatLead = (mins: number): string => {
+  if (!mins || mins <= 0) return "med det samme";
+  const { d, h, m } = minutesToParts(mins);
+  const parts: string[] = [];
+  if (d) parts.push(`${d} dag${d > 1 ? "e" : ""}`);
+  if (h) parts.push(`${h} time${h > 1 ? "r" : ""}`);
+  if (m) parts.push(`${m} min`);
+  return parts.join(" og ");
+};
+
+const LEAD_PRESETS: { label: string; minutes: number }[] = [
+  { label: "30 min", minutes: 30 },
+  { label: "1 time", minutes: 60 },
+  { label: "2 timer", minutes: 120 },
+  { label: "4 timer", minutes: 240 },
+  { label: "1 dag", minutes: 24 * 60 },
+  { label: "2 dage", minutes: 48 * 60 },
+  { label: "1 uge", minutes: 7 * 24 * 60 },
+];
+
+function LeadTimePicker({
+  value, onChange, defaultMinutes, onReset, label, channel,
+}: {
+  value: number; onChange: (m: number) => void;
+  defaultMinutes: number; onReset: () => void;
+  label: string; channel: "email" | "sms";
+}) {
+  const parts = minutesToParts(value);
+  const usingDefault = value === defaultMinutes;
+  const setPart = (k: keyof LeadParts, v: number) => {
+    const max = k === "m" ? 59 : k === "h" ? 23 : 30;
+    const next: LeadParts = { ...parts, [k]: Math.max(0, Math.min(max, Number.isFinite(v) ? v : 0)) };
+    onChange(partsToMinutes(next));
+  };
+  return (
+    <div className="rounded-lg border border-border bg-muted/20 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <AlarmClock className="h-3.5 w-3.5 text-muted-foreground" />
+          <p className="text-[12px] font-semibold text-foreground">{label}</p>
+        </div>
+        <span className="rounded-md bg-background px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">
+          {channel === "email" ? "E-mail" : "SMS"}
+        </span>
+      </div>
+      <p className="mt-1 text-[11px] text-muted-foreground">
+        Sendes <span className="font-medium text-foreground">{formatLead(value)}</span> før det planlagte tidspunkt.
+      </p>
+
+      <div className="mt-2.5 flex flex-wrap gap-1.5">
+        {LEAD_PRESETS.map((p) => {
+          const active = value === p.minutes;
+          return (
+            <button
+              key={p.minutes}
+              type="button"
+              onClick={() => onChange(p.minutes)}
+              className={cn(
+                "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                active
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border bg-background text-foreground hover:border-foreground/50",
+              )}
+            >
+              {p.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        {([
+          { k: "d" as const, label: "Dage" , max: 30 },
+          { k: "h" as const, label: "Timer", max: 23 },
+          { k: "m" as const, label: "Min"  , max: 59 },
+        ]).map((f) => (
+          <label key={f.k} className="flex flex-col gap-1">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{f.label}</span>
+            <Input
+              type="number" min={0} max={f.max}
+              value={parts[f.k]}
+              className="h-9"
+              onChange={(e) => setPart(f.k, Number(e.target.value))}
+            />
+          </label>
+        ))}
+      </div>
+
+      <div className="mt-2.5 flex items-center justify-between">
+        <span className="text-[10.5px] text-muted-foreground">
+          {usingDefault ? "Bruger jeres standard" : `Standard: ${formatLead(defaultMinutes)}`}
+        </span>
+        {!usingDefault && (
+          <button
+            type="button"
+            onClick={onReset}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground"
+          >
+            <RotateCcw className="h-3 w-3" /> Brug standard
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ─────────────────────── PREVIEWS ─────────────────────── */
 
 function EmailPreview({ subject, body, businessName }: { subject: string; body: string; businessName: string }) {
