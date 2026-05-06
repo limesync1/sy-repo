@@ -21,6 +21,7 @@ import { template as manualOrderConfirmed } from './manual-order-confirmed.tsx'
 import { template as employeePasswordReset } from './employee-password-reset.tsx'
 import { template as newLead } from './new-lead.tsx'
 import { template as newChatMessage } from './new-chat-message.tsx'
+import { template as customerNotification } from './customer-notification.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'welcome': welcome,
@@ -35,4 +36,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'employee-password-reset': employeePasswordReset,
   'new-lead': newLead,
   'new-chat-message': newChatMessage,
+  'customer-notification': customerNotification,
 }

@@ -21,6 +21,7 @@ import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
 import AddressAutocomplete from "@/components/admin/AddressAutocomplete";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
+import { CustomerNotificationsSettings } from "@/components/admin/CustomerNotificationsSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -117,6 +118,7 @@ const SECTIONS = [
   { id: "branding",      label: "Profil og webadresse", icon: ImageIcon, hint: "Logo, billede og link" },
   { id: "hours",         label: "Åbningstider",       icon: Clock,     hint: "Hvornår I tager telefonen" },
   { id: "notifications", label: "E-mail-beskeder",    icon: Bell,      hint: "Hvad I vil have besked om" },
+  { id: "customer-notifications", label: "Kunde-notifikationer", icon: MessageCircle, hint: "Beskeder til jeres kunder" },
   { id: "billing",       label: "Pris og betaling",   icon: CreditCard, hint: "Pakke og betalingskort" },
   { id: "advanced",      label: "Ekstra funktioner",  icon: Route,     hint: "Tilvalg som ruteplan m.m." },
 ] as const;
@@ -324,6 +326,9 @@ const SettingsTab = ({ business }: { business: any }) => {
   // admin-panelet hvor virksomheden kan svare på henvendelser.
   const [livechatEnabled, setLivechatEnabled] = useState<boolean>(
     !!(business.settings as any)?.livechat_enabled
+  );
+  const [customerNotifUpcomingHours, setCustomerNotifUpcomingHours] = useState<number>(
+    Number((business.settings as any)?.customer_notif_upcoming_hours ?? 24)
   );
   // Custom domæne — virksomhedens eget domæne (fx "ready2clean.dk") som
   // bruges som kanonisk URL på den offentlige virksomhedsside, så Google
@@ -587,6 +592,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       accounting_integration_enabled: accountingIntegrationEnabled,
       leads_enabled: leadsEnabled,
       livechat_enabled: livechatEnabled,
+      customer_notif_upcoming_hours: customerNotifUpcomingHours,
       // Domæne gemmes normaliseret. Når brugeren ændrer domænet,
       // nulstiller vi verifikations-status så vi ikke fejlagtigt påstår
       // det stadig er aktivt — det skal verificeres igen.
@@ -605,7 +611,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     business.id, business.name, business.settings, origCustomDomain,
     name, description, phone, email, address, city, zipCode,
     logoUrl, coverUrl, selectedCategories, selectedSubcategories,
-    openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled, livechatEnabled, customDomain,
+    openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled, livechatEnabled, customDomain, customerNotifUpcomingHours,
   ]);
 
   useEffect(() => {
@@ -1292,6 +1298,21 @@ const SettingsTab = ({ business }: { business: any }) => {
                 </div>
               ))}
             </div>
+          </SectionCard>
+        </div>
+
+        {/* Kunde-notifikationer */}
+        <div id="settings-customer-notifications" className="scroll-mt-6">
+          <SectionCard
+            title="Kunde-notifikationer"
+            icon={<MessageCircle />}
+            description="Automatiske e-mails til jeres kunder — fx ‘Vi kommer i morgen’ og ‘Vi har udført aftalen’. Rediger emne og tekst, eller slå dem fra."
+          >
+            <CustomerNotificationsSettings
+              businessId={business.id}
+              upcomingHoursBefore={customerNotifUpcomingHours}
+              onUpcomingHoursChange={setCustomerNotifUpcomingHours}
+            />
           </SectionCard>
         </div>
 

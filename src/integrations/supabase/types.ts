@@ -890,6 +890,114 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_notification_queue: {
+        Row: {
+          attempts: number
+          business_id: string
+          created_at: string
+          event_type: string
+          id: string
+          last_error: string | null
+          order_id: string | null
+          recipient_email: string
+          route_stop_id: string | null
+          send_at: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          business_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          last_error?: string | null
+          order_id?: string | null
+          recipient_email: string
+          route_stop_id?: string | null
+          send_at?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          business_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          last_error?: string | null
+          order_id?: string | null
+          recipient_email?: string
+          route_stop_id?: string | null
+          send_at?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_notification_queue_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_notification_queue_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_notification_queue_route_stop_id_fkey"
+            columns: ["route_stop_id"]
+            isOneToOne: false
+            referencedRelation: "route_stops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_notification_templates: {
+        Row: {
+          body: string
+          business_id: string
+          created_at: string
+          enabled: boolean
+          event_type: string
+          id: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          business_id: string
+          created_at?: string
+          enabled?: boolean
+          event_type: string
+          id?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          business_id?: string
+          created_at?: string
+          enabled?: boolean
+          event_type?: string
+          id?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_notification_templates_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
