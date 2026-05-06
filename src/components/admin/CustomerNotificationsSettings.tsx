@@ -263,78 +263,40 @@ function SmsPreview({ body, businessName, businessPhone }: { body: string; busin
   const full = rendered + footer;
   const charCount = full.length;
   const smsCount = Math.max(1, Math.ceil(charCount / 160));
-  // Authentisk iOS-look: mørk bezel med dynamic island, status-bar med ur+ikoner,
-  // navigation-bar med tilbage-knap + kontakt-avatar, modtaget-besked som grå
-  // boble til venstre med "tail" og afsender-label/timestamp ovenover.
+  // Forenklet SMS-preview: en lille kortlignende ramme med afsender-header
+  // og en grå besked-boble. Skalerer pænt på mobil/tablet (ingen fast bredde,
+  // ingen tung iOS-chrome som dynamic island, status-bar eller home indicator).
   return (
-    <div className="flex flex-col items-center">
+    <div className="mx-auto flex w-full max-w-sm flex-col gap-3">
       <div
-        className="relative overflow-hidden rounded-[44px] bg-[#0a0a0a] p-[10px] shadow-[0_30px_60px_-20px_rgba(0,0,0,0.4)]"
-        style={{ width: 300 }}
+        className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm"
+        style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif' }}
       >
-        {/* Phone screen */}
-        <div className="relative overflow-hidden rounded-[34px] bg-white" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif' }}>
-          {/* Status bar */}
-          <div className="relative flex items-center justify-between bg-white px-6 pb-1 pt-2 text-[12px] font-semibold text-black">
-            <span>9:41</span>
-            {/* Dynamic island */}
-            <div className="absolute left-1/2 top-1.5 h-[22px] w-[88px] -translate-x-1/2 rounded-full bg-black" />
-            <div className="flex items-center gap-1">
-              <Signal className="h-3 w-3" strokeWidth={2.5} />
-              <Wifi className="h-3 w-3" strokeWidth={2.5} />
-              <BatteryFull className="h-3.5 w-3.5" strokeWidth={2} />
-            </div>
+        {/* Afsender-header */}
+        <div className="flex items-center gap-2.5 border-b border-[#e5e5ea] bg-[#f6f6f6] px-3 py-2">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1c1c1e] text-[11px] font-semibold text-white">
+            {(businessName || "S").slice(0, 1).toUpperCase()}
           </div>
-
-          {/* Navigation bar — Messages style */}
-          <div className="relative flex items-center justify-between border-b border-[#e5e5ea] bg-[#f6f6f6]/95 px-2 py-2 backdrop-blur">
-            <button type="button" className="flex items-center gap-0.5 text-[#007aff]">
-              <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
-              <span className="rounded-full bg-[#ff3b30] px-1.5 text-[10px] font-semibold text-white">3</span>
-            </button>
-            <div className="flex flex-1 flex-col items-center gap-0.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-b from-[#3a3a3c] to-[#1c1c1e] text-[11px] font-semibold text-white">
-                {(businessName || "S").slice(0, 1).toUpperCase()}
-              </div>
-              <div className="flex items-center gap-0.5 text-[9.5px] font-medium text-[#1c1c1e]">
-                Serviceydere
-                <ChevronLeft className="h-2.5 w-2.5 -rotate-90 text-[#8e8e93]" />
-              </div>
-            </div>
-            <Video className="h-5 w-5 text-[#007aff]" strokeWidth={2} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[12px] font-semibold text-[#1c1c1e]">{businessName || "Din virksomhed"}</p>
+            <p className="text-[10.5px] text-[#8e8e93]">SMS · i dag 9.41</p>
           </div>
+        </div>
 
-          {/* Conversation */}
-          <div className="min-h-[220px] bg-white px-3 pb-4 pt-3">
-            <div className="mb-2 text-center text-[10px] font-semibold text-[#8e8e93]">
-              <span className="font-bold text-[#3c3c43]">Tekstbesked</span>
-              <span className="ml-1.5 font-normal">i dag 9.41</span>
+        {/* Besked */}
+        <div className="bg-white px-3 py-3 sm:px-4 sm:py-4">
+          <div className="flex max-w-[90%]">
+            <div className="whitespace-pre-wrap break-words rounded-[18px] bg-[#e9e9eb] px-3 py-2 text-[13px] leading-[1.4] text-black">
+              {full}
             </div>
-            {/* Modtaget besked — grå boble venstre med tail */}
-            <div className="relative flex max-w-[82%] items-end">
-              <div className="relative whitespace-pre-wrap rounded-[18px] bg-[#e9e9eb] px-3 py-2 text-[12.5px] leading-[1.35] text-[#000000]">
-                {full}
-                {/* Bubble tail (venstre side, lille kurve) */}
-                <span
-                  aria-hidden
-                  className="absolute -bottom-[1px] -left-[6px] h-[18px] w-[14px] bg-[#e9e9eb]"
-                  style={{ clipPath: "path('M14 18 C 6 18 0 12 0 0 L 14 0 Z')" }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Home indicator */}
-          <div className="flex justify-center bg-white pb-1.5 pt-1">
-            <div className="h-1 w-24 rounded-full bg-black/80" />
           </div>
         </div>
       </div>
 
       {/* Stats nedenunder */}
-      <div className="mt-3 flex w-full max-w-[300px] items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-[10.5px] text-muted-foreground">
+      <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-[11px] text-muted-foreground">
         <span><span className="font-semibold text-foreground">{charCount}</span> tegn</span>
-        <span><span className="font-semibold text-foreground">{smsCount}</span> SMS{smsCount > 1 ? "'er" : ""} <span className="text-[#a3a3a3]">(160/SMS)</span></span>
+        <span><span className="font-semibold text-foreground">{smsCount}</span> SMS{smsCount > 1 ? "'er" : ""} <span className="opacity-70">(160/SMS)</span></span>
       </div>
     </div>
   );
