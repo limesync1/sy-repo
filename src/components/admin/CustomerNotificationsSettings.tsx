@@ -446,10 +446,10 @@ export function CustomerNotificationsSettings({
 
   const resetEmail = (key: EventKey) => {
     const ev = EVENTS.find((e) => e.key === key)!;
-    setDrafts((p) => ({ ...p, [key]: { subject: ev.defaults.subject, body: ev.defaults.body, enabled: p[key].enabled } }));
+    setDrafts((p) => ({ ...p, [key]: { subject: ev.defaults.subject, body: ev.defaults.body, enabled: p[key].enabled, leadMinutes: p[key].leadMinutes } }));
   };
   const resetSms = (key: EventKey) => {
-    setSmsDrafts((p) => ({ ...p, [key]: { body: SMS_DEFAULTS[key], enabled: p[key].enabled } }));
+    setSmsDrafts((p) => ({ ...p, [key]: { body: SMS_DEFAULTS[key], enabled: p[key].enabled, leadMinutes: p[key].leadMinutes } }));
   };
 
   // Cursor-aware inserts for active editor
@@ -473,16 +473,20 @@ export function CustomerNotificationsSettings({
   const smsDirty = isSmsDirty(activeEvent);
   const anyDirty = EVENTS.some((e) => isEmailDirty(e.key) || isSmsDirty(e.key));
 
-  // Advar hvis brugeren forlader siden med ugemte ændringer
+  // Auto-gem (debounced) når brugeren ændrer noget. Vi kører pr. event/kanal
+  // hver gang den specifikke draft adskiller sig fra det gemte snapshot,
+  // så hver besked gemmer uafhængigt og ingen "Gem"-knap er nødvendig.
   useEffect(() => {
-    if (!anyDirty) return;
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [anyDirty]);
+    if (!savedSnapshot) return;
+    const t = setTimeout(() => {
+      EVENTS.forEach((e) => {
+        if (isEmailDirty(e.key)) saveEmailNow(e.key, drafts[e.key]);
+        if (isSmsDirty(e.key))   saveSmsNow(e.key, smsDrafts[e.key]);
+      });
+    }, 700);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drafts, smsDrafts, savedSnapshot]);
 
   if (isLoading) {
     return <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
