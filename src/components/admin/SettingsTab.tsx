@@ -611,7 +611,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     business.id, business.name, business.settings, origCustomDomain,
     name, description, phone, email, address, city, zipCode,
     logoUrl, coverUrl, selectedCategories, selectedSubcategories,
-    openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled, livechatEnabled, customDomain,
+    openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled, livechatEnabled, customDomain, customerNotifUpcomingHours,
   ]);
 
   useEffect(() => {
