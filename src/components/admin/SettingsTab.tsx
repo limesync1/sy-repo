@@ -215,6 +215,65 @@ const StatusPill = ({
   );
 };
 
+/* ─── FeatureRow — ensartet rækkelayout til "Tilvalg og ekstra funktioner".
+ * Ikon, titel, prismærke, beskrivelse, status og toggle — alt på en linje
+ * der opfører sig konsistent på tværs af alle moduler. */
+const FeatureRow = ({
+  icon,
+  title,
+  priceLabel,
+  badge,
+  description,
+  active,
+  activeLabel,
+  inactiveLabel,
+  onToggle,
+  toggle,
+}: {
+  icon: ReactNode;
+  title: string;
+  priceLabel?: string;
+  badge?: ReactNode;
+  description: string;
+  active: boolean;
+  activeLabel: string;
+  inactiveLabel: string;
+  onToggle?: () => void;
+  toggle?: ReactNode;
+}) => (
+  <div
+    className={`group relative flex items-start justify-between gap-4 rounded-xl border p-4 transition-colors ${
+      active ? "border-foreground/20 bg-foreground/[0.02]" : "border-border bg-card hover:border-foreground/20"
+    }`}
+  >
+    <div className="flex min-w-0 items-start gap-3">
+      <div
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg [&_svg]:h-5 [&_svg]:w-5 ${
+          active ? "bg-foreground text-background" : "bg-muted text-foreground"
+        }`}
+      >
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <p className="text-sm font-semibold text-foreground">{title}</p>
+          {priceLabel && (
+            <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10.5px] font-semibold text-muted-foreground tabular-nums">
+              {priceLabel}
+            </span>
+          )}
+          {badge}
+        </div>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{description}</p>
+        <StatusPill active={active} activeLabel={activeLabel} inactiveLabel={inactiveLabel} />
+      </div>
+    </div>
+    <div className="shrink-0 pt-0.5">
+      {toggle ?? (onToggle ? <ToggleSwitch checked={active} onChange={onToggle} /> : null)}
+    </div>
+  </div>
+);
+
 /* ─── Reveal — collapser børn ind/ud (height + fade). Holdt minimal: ingen
  * blur, slide eller overshoot — det sender altid samme rolige signal. */
 const Reveal = ({
