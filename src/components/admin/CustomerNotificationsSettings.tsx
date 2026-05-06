@@ -164,7 +164,7 @@ function SmsPreview({ body, businessName, businessPhone }: { body: string; busin
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
               S
             </div>
-            <div className="text-[11px] font-semibold text-[#212121]">Serviceyder</div>
+            <div className="text-[11px] font-semibold text-[#212121]">Serviceydere</div>
             <div className="text-[9px] text-[#a3a3a3]">Tekstbesked</div>
           </div>
           {/* Conversation */}
@@ -413,7 +413,7 @@ export function CustomerNotificationsSettings({
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-foreground">Send også SMS</p>
-                <p className="text-[11px] text-muted-foreground">Afsender: "Serviceyder"</p>
+                <p className="text-[11px] text-muted-foreground">Afsender vises som "Serviceydere"</p>
               </div>
             </div>
             <Switch checked={smsEnabled} onCheckedChange={onSmsEnabledChange} />
@@ -454,13 +454,13 @@ export function CustomerNotificationsSettings({
                       "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium",
                       eOn ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground",
                     )}>
-                      <Mail className="h-2.5 w-2.5" /> {eOn ? "På" : "Fra"}
+                      <Mail className="h-2.5 w-2.5" /> {eOn ? "Til" : "Fra"}
                     </span>
                     <span className={cn(
                       "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium",
                       sOn ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground",
                     )}>
-                      <MessageSquare className="h-2.5 w-2.5" /> {sOn ? "På" : "Fra"}
+                      <MessageSquare className="h-2.5 w-2.5" /> {sOn ? "Til" : "Fra"}
                     </span>
                   </div>
                 </div>
@@ -496,11 +496,13 @@ export function CustomerNotificationsSettings({
                 setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
                 setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
               }}
-              title="Slår både e-mail og SMS til/fra på én gang"
+              title="Slår både e-mail og SMS til eller fra på én gang"
               className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted"
             >
               <Power className="h-3 w-3" />
-              {drafts[activeEvent].enabled || (smsEnabled && smsDrafts[activeEvent].enabled) ? "Slå alt fra" : "Slå alt til"}
+              {drafts[activeEvent].enabled || (smsEnabled && smsDrafts[activeEvent].enabled)
+                ? "Stop alle beskeder for denne hændelse"
+                : "Send alle beskeder for denne hændelse"}
             </button>
           </div>
 
@@ -526,7 +528,7 @@ export function CustomerNotificationsSettings({
                     "ml-1 inline-flex h-5 items-center rounded-full px-1.5 text-[10px] font-medium",
                     enabled ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground",
                   )}>
-                    {enabled ? "På" : "Fra"}
+                    {enabled ? "Til" : "Fra"}
                   </span>
                   {dirty && <span className="ml-0.5 h-1.5 w-1.5 rounded-full bg-amber-500" title="Ikke gemt" />}
                   {active && <span className="absolute inset-x-2 -bottom-px h-0.5 bg-foreground" />}
@@ -577,7 +579,12 @@ export function CustomerNotificationsSettings({
                 </div>
 
                 <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
-                  <Button variant="ghost" size="sm" onClick={() => resetEmail(activeEvent)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetEmail(activeEvent)}
+                    className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  >
                     <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Nulstil tekst
                   </Button>
                   <Button size="sm" onClick={() => save(activeEvent)} disabled={!emailDirty || saving === `email-${activeEvent}`}>
@@ -647,7 +654,12 @@ export function CustomerNotificationsSettings({
                 </div>
 
                 <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
-                  <Button variant="ghost" size="sm" onClick={() => resetSms(activeEvent)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetSms(activeEvent)}
+                    className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  >
                     <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Nulstil tekst
                   </Button>
                   <Button size="sm" disabled={!smsEnabled || !smsDirty || saving === `sms-${activeEvent}`} onClick={() => saveSms(activeEvent)}>
