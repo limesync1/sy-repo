@@ -587,6 +587,12 @@ export function CustomerNotificationsSettings({
                     )}>
                       <MessageSquare className="h-2.5 w-2.5" /> SMS {sOn ? "til" : "fra"}
                     </span>
+                    {e.key === "service_upcoming" && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground" title="Hvornår beskederne sendes før besøget">
+                        <AlarmClock className="h-2.5 w-2.5" />
+                        {formatLead(drafts[e.key].leadMinutes ?? upcomingHoursBefore * 60)}
+                      </span>
+                    )}
                   </div>
                 </div>
               </button>
