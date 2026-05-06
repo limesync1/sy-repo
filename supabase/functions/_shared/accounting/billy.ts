@@ -7,6 +7,7 @@ import type {
   AccountingSettings,
   ExternalCustomer,
   ExternalGroups,
+  ExternalInvoice,
   ExternalInvoiceState,
   ExternalProduct,
   UpsertCustomerInput,
