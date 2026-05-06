@@ -88,16 +88,21 @@ const TimePicker = ({ value, onChange, label }: { value: string; onChange: (v: s
   );
 };
 
-// Header offset i topbaren (h-14 = 56px) + lille luft, bruges både til sticky
-// sidebar og smooth-scroll så ankret lander præcist under headeren.
-// På mobil/tablet ligger der oven i købet en chip-nav (sticky top-14, ~46px)
-// — den skal tælles med, ellers forsvinder ankret under chips'ne.
-const HEADER_OFFSET = 72;
-const MOBILE_NAV_HEIGHT = 52; // chip-nav sticky højde inkl. padding
+// Topbaren i AdminShell er h-14 = 56px. Vi lægger 8px luft til, så ankret
+// lander pænt UNDER headeren (ikke skjult bag den). På mobil/tablet kommer
+// der en sticky chip-nav under headeren — så den måler vi op dynamisk så
+// ankret rammer præcis under begge stickies, uafhængigt af zoom/skala.
+const HEADER_HEIGHT = 56;
+const SCROLL_PADDING = 12;
 const getScrollOffset = () => {
-  if (typeof window === "undefined") return HEADER_OFFSET;
+  if (typeof window === "undefined") return HEADER_HEIGHT + SCROLL_PADDING;
   const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
-  return isDesktop ? HEADER_OFFSET : HEADER_OFFSET + MOBILE_NAV_HEIGHT;
+  let extra = 0;
+  if (!isDesktop) {
+    const chipNav = document.querySelector<HTMLElement>("[data-settings-chipnav]");
+    extra = chipNav?.offsetHeight ?? 52;
+  }
+  return HEADER_HEIGHT + SCROLL_PADDING + extra;
 };
 
 /* ─── Time helpers — håndterer "08:00 - 16:00" strenge ───
@@ -871,7 +876,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       </div>
 
       {/* ─── Sub-nav chips (mobil/tablet) — sticky sidebar bruges på lg ─── */}
-      <div className="sticky top-14 z-20 -mx-4 sm:-mx-6 lg:hidden border-b border-border bg-background/95 px-4 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-6">
+      <div data-settings-chipnav className="sticky top-14 z-20 -mx-4 sm:-mx-6 lg:hidden border-b border-border bg-background/95 px-4 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-6">
         <div className="flex flex-nowrap gap-2 overflow-x-auto pb-0.5">
           {SECTIONS.map(({ id, label, icon: Icon }) => {
             const sectionDone = completeness.checks.filter((c) => c.section === id);
@@ -908,7 +913,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         {/* Sticky sidebar nav (kun lg+) — top-offset matcher den sticky topbar
             (h-14 = 56px) + lille luft, så den klistrer fast lige under headeren
             mens man scroller. */}
-        <aside className="hidden lg:sticky lg:top-[72px] lg:block lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto">
+        <aside className="hidden lg:sticky lg:top-[68px] lg:block lg:max-h-[calc(100vh-80px)] lg:overflow-y-auto pr-1">
           <nav className="rounded-xl border border-border/80 bg-card p-2 shadow-sm">
             {(() => {
               const groups: { title: string; ids: string[] }[] = [
@@ -1010,7 +1015,7 @@ const SettingsTab = ({ business }: { business: any }) => {
       {/* ─── Hovedindhold: 1-kolonne (sidebar håndterer navigation) ─── */}
       <div className="grid gap-4">
         {/* Generelt — kun navn + beskrivelse */}
-        <div id="settings-general" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-general" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard title="Om virksomheden" icon={<Building2 />} description="Det navn og den korte beskrivelse kunderne ser øverst på jeres side.">
             <div className="space-y-4">
               <div data-tour="field-company-name">
@@ -1027,7 +1032,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Brancher — egen sektion med kategorier underneden */}
-        <div id="settings-industries" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-industries" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard
             title="Brancher & kategorier"
             icon={<Sparkles />}
@@ -1063,7 +1068,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Kontakt */}
-        <div id="settings-contact" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-contact" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard title="Kontakt og adresse" icon={<Contact />} description="Sådan kan kunderne ringe, skrive eller finde vej til jer. Bruges også på fakturaer.">
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -1109,7 +1114,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Branding */}
-        <div id="settings-branding" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-branding" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard title="Profil og webadresse" icon={<ImageIcon />} description="Logoet, det store forsidebillede og linket kunderne får, når I deler jeres profil.">
             {/* Side-om-side så cover ikke fylder hele bredden — kun en kompakt
                 preview, da fuld bannervisning ikke er nødvendig her. */}
@@ -1329,7 +1334,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Åbningstider */}
-        <div id="settings-hours" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-hours" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard
             title="Åbningstider"
             icon={<Clock />}
@@ -1340,11 +1345,11 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Notifikationer */}
-        <div id="settings-notifications" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-notifications" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard
-            title="Notifikationer"
+            title="E-mail-beskeder til jer"
             icon={<Bell />}
-            description="Vælg hvad I vil have en e-mail om — fx når I får en ny ordre, en ny besked eller en ny anmeldelse."
+            description="Vælg hvilke e-mails I vil modtage — fx når der kommer en ny bestilling, en ny anmeldelse eller en ændring i et abonnement."
           >
             <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
               {([
@@ -1387,7 +1392,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Kunde-notifikationer */}
-        <div id="settings-customer-notifications" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-customer-notifications" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard
             title="Kunde-notifikationer"
             icon={<MessageCircle />}
@@ -1404,7 +1409,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Fakturering */}
-        <div id="settings-billing" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-billing" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard
             title="Pris og betaling"
             icon={<CreditCard />}
@@ -1650,7 +1655,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Avanceret */}
-        <div id="settings-advanced" className="scroll-mt-32 lg:scroll-mt-24">
+        <div id="settings-advanced" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
           <SectionCard title="Ekstra funktioner" icon={<Settings />} description="Slå tilvalg til som ruteplanlægger eller livechat. Prisen opdateres automatisk under ”Pris og betaling” ovenfor.">
             <div className="space-y-3">
               <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4">

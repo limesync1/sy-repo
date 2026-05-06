@@ -382,43 +382,47 @@ export function CustomerNotificationsSettings({
 
   return (
     <div className="space-y-6">
-      {/* ───── Slank topbar med globale indstillinger ───── */}
-      <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground/5">
+      {/* ───── Globale indstillinger ───── */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        {/* Tid før besøg */}
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/5">
               <Clock className="h-4 w-4 text-foreground" />
             </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-foreground">Påmindelse inden besøg</p>
-              <p className="text-[11px] text-muted-foreground">Hvor lang tid i forvejen kunden får besked.</p>
-            </div>
-            <div className="ml-auto flex items-center gap-1.5 sm:ml-3">
-              <Input
-                type="number" min={1} max={168} className="h-8 w-16"
-                value={upcomingHoursBefore}
-                onChange={(e) => onUpcomingHoursChange(Math.max(1, Math.min(168, Number(e.target.value) || 24)))}
-              />
-              <span className="text-xs text-muted-foreground">timer før</span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-foreground">Hvornår får kunden besked?</p>
+              <p className="mt-0.5 text-[12px] text-muted-foreground">Påmindelsen sendes så lang tid før besøget.</p>
+              <div className="mt-3 flex items-center gap-2">
+                <Input
+                  type="number" min={1} max={168} className="h-9 w-20"
+                  value={upcomingHoursBefore}
+                  onChange={(e) => onUpcomingHoursChange(Math.max(1, Math.min(168, Number(e.target.value) || 24)))}
+                />
+                <span className="text-sm text-foreground">timer før</span>
+              </div>
             </div>
           </div>
-          <div className="hidden h-8 w-px bg-border sm:block" />
-          <label className="flex items-center justify-between gap-3 sm:justify-end">
-            <div className="flex items-center gap-2.5">
-              <div className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-lg",
-                smsEnabled ? "bg-accent/15" : "bg-foreground/5",
-              )}>
-                <MessageSquare className={cn("h-4 w-4", smsEnabled ? "text-accent" : "text-foreground")} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-foreground">Send også SMS</p>
-                <p className="text-[11px] text-muted-foreground">Afsender vises som "Serviceydere"</p>
-              </div>
-            </div>
-            <Switch checked={smsEnabled} onCheckedChange={onSmsEnabledChange} />
-          </label>
         </div>
+
+        {/* SMS toggle */}
+        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-muted/30">
+          <div className={cn(
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+            smsEnabled ? "bg-accent/15" : "bg-foreground/5",
+          )}>
+            <MessageSquare className={cn("h-4 w-4", smsEnabled ? "text-accent" : "text-foreground")} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-foreground">Send også SMS</p>
+              <Switch checked={smsEnabled} onCheckedChange={onSmsEnabledChange} />
+            </div>
+            <p className="mt-0.5 text-[12px] text-muted-foreground">
+              Afsender vises som <span className="font-medium text-foreground">Serviceydere</span>. Korte beskeder direkte til kundens telefon.
+            </p>
+          </div>
+        </label>
       </div>
 
       {/* ───── Two column: list + editor ───── */}
@@ -451,16 +455,16 @@ export function CustomerNotificationsSettings({
                   <p className="mt-0.5 text-[11px] text-muted-foreground">{e.shortLabel}</p>
                   <div className="mt-2 flex flex-wrap gap-1">
                     <span className={cn(
-                      "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+                      "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium",
                       eOn ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground",
                     )}>
-                      <Mail className="h-2.5 w-2.5" /> {eOn ? "Til" : "Fra"}
+                      <Mail className="h-2.5 w-2.5" /> E-mail {eOn ? "til" : "fra"}
                     </span>
                     <span className={cn(
-                      "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+                      "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium",
                       sOn ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground",
                     )}>
-                      <MessageSquare className="h-2.5 w-2.5" /> {sOn ? "Til" : "Fra"}
+                      <MessageSquare className="h-2.5 w-2.5" /> SMS {sOn ? "til" : "fra"}
                     </span>
                   </div>
                 </div>
@@ -489,21 +493,28 @@ export function CustomerNotificationsSettings({
               </div>
               <p className="mt-0.5 text-[11px] text-muted-foreground">{event.help}</p>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                const anyOn = drafts[activeEvent].enabled || (smsEnabled && smsDrafts[activeEvent].enabled);
-                setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
-                setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
-              }}
-              title="Slår både e-mail og SMS til eller fra på én gang"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted"
-            >
-              <Power className="h-3 w-3" />
-              {drafts[activeEvent].enabled || (smsEnabled && smsDrafts[activeEvent].enabled)
-                ? "Stop alle beskeder for denne hændelse"
-                : "Send alle beskeder for denne hændelse"}
-            </button>
+            {(() => {
+              const anyOn = drafts[activeEvent].enabled || (smsEnabled && smsDrafts[activeEvent].enabled);
+              return (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
+                    setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
+                  }}
+                  title="Slår både e-mail og SMS til eller fra på én gang"
+                  className={cn(
+                    "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors",
+                    anyOn
+                      ? "border-border bg-background text-muted-foreground hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+                      : "border-foreground bg-foreground text-background hover:bg-foreground/90",
+                  )}
+                >
+                  <Power className="h-3 w-3" />
+                  {anyOn ? "Slå alle beskeder fra" : "Slå alle beskeder til"}
+                </button>
+              );
+            })()}
           </div>
 
           {/* Channel tabs */}
@@ -542,16 +553,16 @@ export function CustomerNotificationsSettings({
             <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
               {/* Editor */}
               <div className="space-y-4 p-5">
-                <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3">
+                <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/50 transition-colors">
                   <div>
-                    <p className="text-xs font-semibold text-foreground">Send denne e-mail</p>
-                    <p className="text-[11px] text-muted-foreground">Slå fra for at undlade at sende.</p>
+                    <p className="text-xs font-semibold text-foreground">Send denne e-mail til kunden</p>
+                    <p className="text-[11px] text-muted-foreground">Slå fra hvis I ikke vil sende e-mail for denne hændelse.</p>
                   </div>
                   <Switch
                     checked={drafts[activeEvent].enabled}
                     onCheckedChange={(v) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: v } }))}
                   />
-                </div>
+                </label>
 
                 <div className="space-y-2">
                   <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Emnelinje</Label>
@@ -620,17 +631,17 @@ export function CustomerNotificationsSettings({
             ) : (
             <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
               <div className="space-y-4 p-5">
-                <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3">
+                <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/50 transition-colors">
                   <div>
-                    <p className="text-xs font-semibold text-foreground">Send denne SMS</p>
-                    <p className="text-[11px] text-muted-foreground">Slå fra for at undlade at sende.</p>
+                    <p className="text-xs font-semibold text-foreground">Send denne SMS til kunden</p>
+                    <p className="text-[11px] text-muted-foreground">Slå fra hvis I ikke vil sende SMS for denne hændelse.</p>
                   </div>
                   <Switch
                     checked={smsDrafts[activeEvent].enabled}
                     disabled={!smsEnabled}
                     onCheckedChange={(v) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: v } }))}
                   />
-                </div>
+                </label>
 
                 <div className="space-y-2">
                   <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">SMS-tekst</Label>
