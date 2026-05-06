@@ -1255,6 +1255,9 @@ export type Database = {
           estimated_duration_minutes: number | null
           external_order_number: string | null
           id: string
+          invoice_external_id: string | null
+          invoice_status: string | null
+          invoiced_at: string | null
           latitude: number | null
           longitude: number | null
           next_service_date: string | null
@@ -1302,6 +1305,9 @@ export type Database = {
           estimated_duration_minutes?: number | null
           external_order_number?: string | null
           id?: string
+          invoice_external_id?: string | null
+          invoice_status?: string | null
+          invoiced_at?: string | null
           latitude?: number | null
           longitude?: number | null
           next_service_date?: string | null
@@ -1349,6 +1355,9 @@ export type Database = {
           estimated_duration_minutes?: number | null
           external_order_number?: string | null
           id?: string
+          invoice_external_id?: string | null
+          invoice_status?: string | null
+          invoiced_at?: string | null
           latitude?: number | null
           longitude?: number | null
           next_service_date?: string | null

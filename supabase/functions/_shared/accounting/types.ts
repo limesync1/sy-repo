@@ -176,6 +176,23 @@ export interface AccountingAdapter {
    * from the accounting provider, never set manually inside Serviceydere.
    */
   getInvoiceStates?(externalIds: string[]): Promise<ExternalInvoiceState[]>;
+
+  /**
+   * Book an existing draft/order as a real invoice and (best-effort) send it
+   * to the customer via the provider. Called when a route_stop is completed.
+   * Returns the booked invoice id/number so we can poll status later.
+   * Implementations may throw when the provider does not support invoicing
+   * (e.g. Zenegy is payroll-only).
+   */
+  bookInvoice?(input: {
+    external_id: string;
+    external_type: "order" | "invoice_draft" | "quote";
+    customer_email?: string | null;
+  }): Promise<{
+    invoice_external_id: string;
+    invoice_external_number?: string | null;
+    sent: boolean;
+  }>;
 }
 
 export type AdapterFactory = (

@@ -14,11 +14,9 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-// MIDLERTIDIG TESTFASE: vi synkroniserer KUN kunder mellem Serviceydere og
-// regnskabsprogrammerne, indtil alle 4 udbydere (Billy, Dinero, e-conomic,
-// Zenegy) er bekræftet stabile på kunde-synk. Når alle er grønne fjerner
-// vi denne gate, så produkter/ordrer/fakturaer også synker igen.
-const CUSTOMERS_ONLY = true;
+// Test-gate slået fra: vi synker nu fuldt flow (kunder, produkter, ordrer
+// OG fakturaer). Sæt til true igen midlertidigt hvis en provider er ustabil.
+const CUSTOMERS_ONLY = false;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -655,6 +653,7 @@ async function drainQueue(admin: SupabaseClient, integ: Integration, adapter: Ac
       if (job.entity_type === "customer") await pushCustomer(admin, integ, adapter, job.entity_id);
       else if (job.entity_type === "product") await pushProduct(admin, integ, adapter, job.entity_id);
       else if (job.entity_type === "order") await pushOrder(admin, integ, adapter, job.entity_id, job.operation);
+      else if (job.entity_type === "invoice") await bookInvoiceForOrder(admin, integ, adapter, job.entity_id);
       await admin.from("accounting_sync_queue").update({
         status: "done", processed_at: new Date().toISOString(), last_error: null,
       }).eq("id", job.id);
@@ -1010,4 +1009,74 @@ async function ensureCustomerLink(admin: SupabaseClient, integ: Integration, ada
       ? `business_customer_id.eq.${internalId}`
       : `private_customer_id.eq.${internalId}`).maybeSingle();
   return link2?.external_id ?? null;
+}
+
+// ─── INVOICE BOOKING ─────────────────────────────────────────────────────
+// Når et rute-stop markeres som udført, køes en 'invoice' job. Her bogfører
+// vi den eksisterende ordre som faktura i regnskabsprogrammet og forsøger
+// at sende den til kunden. Hvis ordren ikke er pushed endnu, gør vi det
+// først så vi har et external_id at bogføre fra.
+async function bookInvoiceForOrder(
+  admin: SupabaseClient,
+  integ: Integration,
+  adapter: AccountingAdapter,
+  orderId: string,
+) {
+  if (typeof adapter.bookInvoice !== "function") {
+    throw new Error(`Provider ${integ.provider} understøtter ikke fakturabogføring`);
+  }
+  // Sørg for at ordren er pushed først
+  let { data: link } = await admin.from("accounting_order_links")
+    .select("external_id, external_type")
+    .eq("business_id", integ.business_id)
+    .eq("provider", integ.provider)
+    .eq("order_id", orderId)
+    .maybeSingle();
+  if (!link) {
+    await pushOrder(admin, integ, adapter, orderId, "upsert");
+    const reread = await admin.from("accounting_order_links")
+      .select("external_id, external_type")
+      .eq("business_id", integ.business_id)
+      .eq("provider", integ.provider)
+      .eq("order_id", orderId)
+      .maybeSingle();
+    link = reread.data ?? null;
+  }
+  if (!link) throw new Error("Kunne ikke pushe ordre før fakturabogføring");
+
+  const { data: order } = await admin.from("orders")
+    .select("customer_email").eq("id", orderId).maybeSingle();
+
+  const result = await adapter.bookInvoice({
+    external_id: link.external_id,
+    external_type: (link.external_type as any) ?? "order",
+    customer_email: order?.customer_email ?? null,
+  });
+
+  // Opdater orders med faktura-info
+  await admin.from("orders").update({
+    invoice_status: result.sent ? "sent" : "booked",
+    invoiced_at: new Date().toISOString(),
+    invoice_external_id: result.invoice_external_id,
+  }).eq("id", orderId);
+
+  // Gem link til faktura (samme tabel, men nu external_type = invoice)
+  await admin.from("accounting_order_links").update({
+    external_id: result.invoice_external_id,
+    external_number: result.invoice_external_number,
+    external_type: "invoice_draft",
+    last_pushed_at: new Date().toISOString(),
+    last_status_synced: result.sent ? "sent" : "booked",
+  })
+    .eq("business_id", integ.business_id)
+    .eq("provider", integ.provider)
+    .eq("order_id", orderId);
+
+  await logSync(admin, {
+    business_id: integ.business_id, provider: integ.provider, direction: "push",
+    entity_type: "invoice", entity_id: orderId,
+    external_id: result.invoice_external_id,
+    status: "success",
+    message: result.sent ? "Faktura bogført og sendt" : "Faktura bogført",
+  });
 }

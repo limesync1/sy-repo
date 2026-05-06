@@ -494,6 +494,31 @@ export function makeBillyAdapter(
       await billyRequest(creds, `/invoices/${externalId}`, { method: "DELETE" });
     },
 
+    async bookInvoice(input) {
+      // Billy: opdater state → 'approved' for at bogføre.
+      const approved = await billyRequest(creds, `/invoices/${input.external_id}`, {
+        method: "PUT",
+        body: JSON.stringify({ invoice: { state: "approved" } }),
+      });
+      const inv = approved?.invoices?.[0] ?? approved?.invoice;
+      const id = String(inv?.id ?? input.external_id);
+      const num = inv?.invoiceNo ?? null;
+      // Forsøg at sende fakturaen pr. e-mail hvis vi har en modtager.
+      let sent = false;
+      if (input.customer_email) {
+        try {
+          await billyRequest(creds, `/invoices/${id}/send`, {
+            method: "POST",
+            body: JSON.stringify({
+              email: { recipient: input.customer_email },
+            }),
+          });
+          sent = true;
+        } catch (_) { /* hvis Billy ikke understøtter send-endpoint, ignorer */ }
+      }
+      return { invoice_external_id: id, invoice_external_number: num, sent };
+    },
+
     async getInvoiceStates(externalIds: string[]): Promise<ExternalInvoiceState[]> {
       const out: ExternalInvoiceState[] = [];
       for (const id of externalIds) {
