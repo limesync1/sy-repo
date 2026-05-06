@@ -1584,11 +1584,18 @@ const SettingsTab = ({ business }: { business: any }) => {
               <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
                 {/* Hovedkort: faktureringsinterval + linje-specifikation */}
                 <div className="overflow-hidden rounded-xl border border-border bg-card">
-                  <div className="border-b border-border bg-secondary/30 px-5 py-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Vælg faktureringsinterval</p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground">Spar penge ved at betale forud — du kan altid skifte igen.</p>
+                  <div className="flex items-center justify-between gap-3 border-b border-border bg-secondary/30 px-5 py-3">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Faktureringsinterval</p>
+                      <p className="mt-0.5 text-[11.5px] text-muted-foreground">Spar penge ved at betale forud — du kan altid skifte igen.</p>
+                    </div>
+                    {pricing && (
+                      <span className="hidden sm:inline-flex rounded-full bg-accent/10 px-2.5 py-1 text-[10.5px] font-semibold text-accent">
+                        Spar op til {pricing.discount_yearly_pct}%
+                      </span>
+                    )}
                   </div>
-                  <div className="p-4 space-y-4">
+                  <div className="p-4 space-y-5">
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                       {([
                         { key: "monthly", label: "Hver måned", desc: "Mest fleksibelt", hint: "" },
@@ -1602,10 +1609,10 @@ const SettingsTab = ({ business }: { business: any }) => {
                             type="button"
                             onClick={() => handleBillingPeriodChange(opt.key)}
                             disabled={updatePlan.isPending}
-                            className={`relative flex flex-col items-start rounded-lg border p-3 text-left transition-all ${
+                            className={`relative flex flex-col items-start rounded-xl border p-3.5 text-left transition-all ${
                               isOn
-                                ? "border-foreground bg-foreground/[0.03] shadow-sm"
-                                : "border-border bg-card hover:border-foreground/30"
+                                ? "border-foreground bg-foreground/[0.04] shadow-sm ring-1 ring-foreground/10"
+                                : "border-border bg-card hover:border-foreground/30 hover:bg-muted/30"
                             }`}
                           >
                             <div className="flex w-full items-center justify-between gap-2">
@@ -1625,11 +1632,11 @@ const SettingsTab = ({ business }: { business: any }) => {
                       })}
                     </div>
 
-                    <div className="rounded-lg border border-border bg-secondary/20 p-3">
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Hvad du betaler for</p>
-                      <ul className="mt-2 space-y-1.5">
+                    <div className="rounded-xl border border-border bg-secondary/20 p-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Hvad du betaler for</p>
+                      <ul className="mt-2.5 divide-y divide-border/60">
                         {priceBreakdown.lines.map((l) => (
-                          <li key={l.key} className="flex items-baseline justify-between gap-3 text-sm">
+                          <li key={l.key} className="flex items-baseline justify-between gap-3 py-1.5 text-sm first:pt-0">
                             <span className="text-foreground">{l.label}</span>
                             <span className="shrink-0 font-medium text-foreground tabular-nums">
                               {Math.round(l.amount).toLocaleString("da-DK")} kr/md
@@ -1638,7 +1645,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                         ))}
                       </ul>
                       {priceBreakdown.discountPct > 0 && (
-                        <div className="mt-2 border-t border-border/60 pt-2 space-y-1">
+                        <div className="mt-3 border-t border-border/60 pt-2.5 space-y-1.5">
                           <div className="flex items-baseline justify-between text-xs text-muted-foreground">
                             <span>Subtotal</span>
                             <span className="tabular-nums">{Math.round(priceBreakdown.subtotal).toLocaleString("da-DK")} kr/md</span>
@@ -1654,34 +1661,43 @@ const SettingsTab = ({ business }: { business: any }) => {
                         </div>
                       )}
                     </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      💡 Slå tilvalg til eller fra under <span className="font-medium text-foreground">Ekstra funktioner</span> — prisen opdateres automatisk her.
+                    <p className="flex items-start gap-1.5 text-[11.5px] text-muted-foreground">
+                      <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <span>Slå tilvalg til eller fra under <span className="font-medium text-foreground">Tilvalg og ekstra funktioner</span> — prisen opdateres automatisk her.</span>
                     </p>
                   </div>
                 </div>
 
-                {/* Sidekort: stor pris-fremhævning */}
-                <div className="overflow-hidden rounded-xl border border-foreground bg-foreground text-background">
-                  <div className="flex h-full flex-col justify-between p-5">
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70">Du betaler</p>
-                      <p className="mt-2 flex items-baseline gap-1">
-                        <span className="text-3xl font-bold tabular-nums">
-                          {Math.round(priceBreakdown.monthlyAfterDiscount).toLocaleString("da-DK")}
-                        </span>
-                        <span className="text-sm font-medium opacity-80">kr/md</span>
-                      </p>
-                      <p className="mt-2 text-[11px] opacity-70">
-                        {planBilling === "yearly" ? "Faktureres én gang om året."
-                          : planBilling === "quarterly" ? "Faktureres hvert kvartal."
-                          : "Faktureres hver måned."}
-                      </p>
+                {/* Sidekort: stor pris-fremhævning (sticky på desktop) */}
+                <div className="lg:sticky lg:top-4 lg:self-start">
+                  <div className="overflow-hidden rounded-xl border border-foreground bg-foreground text-background shadow-md">
+                    <div className="flex h-full flex-col justify-between p-5">
+                      <div>
+                        <p className="text-[10.5px] font-semibold uppercase tracking-wider opacity-70">Du betaler</p>
+                        <p className="mt-2 flex items-baseline gap-1.5">
+                          <span className="text-4xl font-bold tabular-nums leading-none">
+                            {Math.round(priceBreakdown.monthlyAfterDiscount).toLocaleString("da-DK")}
+                          </span>
+                          <span className="text-sm font-medium opacity-80">kr/md</span>
+                        </p>
+                        <p className="mt-2 text-[11.5px] opacity-70">
+                          {planBilling === "yearly" ? "Faktureres én gang om året."
+                            : planBilling === "quarterly" ? "Faktureres hvert kvartal."
+                            : "Faktureres hver måned."}
+                        </p>
+                        {priceBreakdown.discountPct > 0 && (
+                          <p className="mt-2 text-[11px] opacity-70">
+                            <span className="line-through opacity-70">{Math.round(priceBreakdown.subtotal).toLocaleString("da-DK")} kr/md</span>
+                            <span className="ml-1.5 inline-flex items-center rounded-full bg-background/15 px-1.5 py-0.5 text-[10px] font-semibold">−{priceBreakdown.discountPct}%</span>
+                          </p>
+                        )}
+                      </div>
+                      {(plan?.status === "trialing" || plan?.status === "trial_ending") && (
+                        <p className="mt-4 rounded-md bg-background/10 px-2.5 py-1.5 text-[11px] opacity-90">
+                          Prisen opkræves først når din prøveperiode er slut.
+                        </p>
+                      )}
                     </div>
-                    {(plan?.status === "trialing" || plan?.status === "trial_ending") && (
-                      <p className="mt-4 rounded-md bg-background/10 px-2.5 py-1.5 text-[11px] opacity-90">
-                        Prisen opkræves først når din prøveperiode er slut.
-                      </p>
-                    )}
                   </div>
                 </div>
               </div>
@@ -1689,33 +1705,38 @@ const SettingsTab = ({ business }: { business: any }) => {
 
             {/* Aktivt kort — vis brand + last4, og lad brugeren fjerne det */}
             {plan?.has_payment_method && (
-              <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card">
-                <div className="flex flex-wrap items-center justify-between gap-3 p-4">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex h-11 w-16 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-foreground to-foreground/80 text-background text-[10px] font-bold uppercase tracking-wider shadow-sm">
-                      {plan.payment_brand || "Kort"}
+              <div className="mt-5">
+                <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Betalingsmetode</p>
+                <div className="overflow-hidden rounded-xl border border-border bg-card">
+                  <div className="flex flex-wrap items-center justify-between gap-3 p-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex h-11 w-16 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-foreground to-foreground/80 text-background text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                        {plan.payment_brand || "Kort"}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground tabular-nums">•••• {plan.payment_last4}</p>
+                        <p className="inline-flex items-center gap-1 text-[11px] text-success">
+                          <CheckCircle2 className="h-3 w-3" /> Aktivt — næste opkrævning sker automatisk
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-foreground tabular-nums">•••• {plan.payment_last4}</p>
-                      <p className="text-xs text-muted-foreground">Aktivt betalingskort</p>
-                    </div>
+                    <Button size="sm" variant="outline" onClick={openCustomerPortal} disabled={openingPortal}>
+                      {openingPortal ? "Åbner..." : "Administrér"}
+                    </Button>
                   </div>
-                  <Button size="sm" variant="outline" onClick={openCustomerPortal} disabled={openingPortal}>
-                    {openingPortal ? "Åbner..." : "Administrér"}
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between gap-3 border-t border-border bg-secondary/20 px-4 py-2.5">
-                  <p className="text-[11px] text-muted-foreground">
-                    Skift kort, se fakturaer eller opsig dit abonnement
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleRemoveCard}
-                    disabled={removeCard.isPending}
-                    className="text-[11px] font-medium text-muted-foreground hover:text-destructive transition-colors"
-                  >
-                    Fjern kort
-                  </button>
+                  <div className="flex items-center justify-between gap-3 border-t border-border bg-secondary/20 px-4 py-2.5">
+                    <p className="text-[11px] text-muted-foreground">
+                      Skift kort, se fakturaer eller opsig dit abonnement
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCard}
+                      disabled={removeCard.isPending}
+                      className="text-[11px] font-medium text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                      Fjern kort
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
