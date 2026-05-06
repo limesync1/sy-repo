@@ -464,26 +464,19 @@ export function CustomerNotificationsSettings({
               </div>
               <p className="mt-0.5 text-[11px] text-muted-foreground">{event.help}</p>
             </div>
-            {/* Master on/off for hele beskeden (begge kanaler) */}
-            <Tooltip>
-              <TooltipProvider delayDuration={200}>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const anyOn = drafts[activeEvent].enabled || (smsEnabled && smsDrafts[activeEvent].enabled);
-                      setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
-                      setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
-                    }}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted"
-                  >
-                    <Power className="h-3 w-3" />
-                    {drafts[activeEvent].enabled || (smsEnabled && smsDrafts[activeEvent].enabled) ? "Slå hele beskeden fra" : "Slå hele beskeden til"}
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="left">Slår både e-mail og SMS til/fra på én gang.</TooltipContent>
-              </TooltipProvider>
-            </Tooltip>
+            <button
+              type="button"
+              onClick={() => {
+                const anyOn = drafts[activeEvent].enabled || (smsEnabled && smsDrafts[activeEvent].enabled);
+                setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
+                setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: !anyOn } }));
+              }}
+              title="Slår både e-mail og SMS til/fra på én gang"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted"
+            >
+              <Power className="h-3 w-3" />
+              {drafts[activeEvent].enabled || (smsEnabled && smsDrafts[activeEvent].enabled) ? "Slå alt fra" : "Slå alt til"}
+            </button>
           </div>
 
           {/* Channel tabs */}
