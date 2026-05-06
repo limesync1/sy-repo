@@ -13,8 +13,8 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   businessId: string;
-  upcomingHoursBefore: number;
-  onUpcomingHoursChange: (hrs: number) => void;
+  upcomingMinutesBefore: number;
+  onUpcomingMinutesChange: (mins: number) => void;
   smsEnabled: boolean;
   onSmsEnabledChange: (v: boolean) => void;
 }
