@@ -21,6 +21,7 @@ import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
 import AddressAutocomplete from "@/components/admin/AddressAutocomplete";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
+import { CustomerNotificationsSettings } from "@/components/admin/CustomerNotificationsSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -117,6 +118,7 @@ const SECTIONS = [
   { id: "branding",      label: "Profil og webadresse", icon: ImageIcon, hint: "Logo, billede og link" },
   { id: "hours",         label: "Åbningstider",       icon: Clock,     hint: "Hvornår I tager telefonen" },
   { id: "notifications", label: "E-mail-beskeder",    icon: Bell,      hint: "Hvad I vil have besked om" },
+  { id: "customer-notifications", label: "Kunde-notifikationer", icon: MessageCircle, hint: "Beskeder til jeres kunder" },
   { id: "billing",       label: "Pris og betaling",   icon: CreditCard, hint: "Pakke og betalingskort" },
   { id: "advanced",      label: "Ekstra funktioner",  icon: Route,     hint: "Tilvalg som ruteplan m.m." },
 ] as const;
