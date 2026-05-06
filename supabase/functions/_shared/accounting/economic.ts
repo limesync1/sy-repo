@@ -172,13 +172,21 @@ export function makeEconomicAdapter(
         city: clean(input.city),
         country: "Danmark",
         currency: input.currency ?? "DKK",
-        customerGroup: { customerGroupNumber: Number(settings.default_customer_group ?? 1) },
+        customerGroup: {
+          customerGroupNumber: Number(input.customer_group ?? settings.default_customer_group ?? 1),
+        },
         paymentTerms: {
           paymentTermsNumber: 1,
           daysOfCredit: input.payment_terms_days ?? settings.default_payment_terms_days ?? 14,
         },
-        vatZone: { vatZoneNumber: 1 },
+        vatZone: { vatZoneNumber: vatZoneToEconomic(input.vat_zone) },
+        barred: input.is_blocked === true ? true : undefined,
       };
+
+      // Brug eksplicit kundenummer ved oprettelse hvis brugeren har angivet et
+      if (!input.external_id && input.customer_number && /^\d+$/.test(input.customer_number)) {
+        (body as any).customerNumber = Number(input.customer_number);
+      }
 
       // Fjern undefined nøgler så vi ikke sender dem (e-conomic er pedantisk)
       for (const k of Object.keys(body)) if (body[k] === undefined) delete body[k];
