@@ -495,6 +495,70 @@ export function makeBillyAdapter(
       await billyRequest(creds, `/invoices/${externalId}`, { method: "DELETE" });
     },
 
+    async sendReminder({ invoice_external_id, type }) {
+      // Billy: POST /invoices/{id}/send med template=reminder. Billy beregner
+      // selv gebyr ud fra organisationens standardindstilling.
+      const tpl = type === "collection" ? "collectionLetter" : "reminder";
+      const res = await billyRequest(creds, `/invoices/${invoice_external_id}/send`, {
+        method: "POST",
+        body: JSON.stringify({ email: { template: tpl } }),
+      }).catch((e) => {
+        const msg = e instanceof Error ? e.message : String(e);
+        throw new Error(`Kunne ikke sende rykker via Billy: ${msg}`);
+      });
+      return {
+        sent_at: new Date().toISOString(),
+        type: type ?? "reminder1",
+        fee: typeof res?.fee === "number" ? res.fee : null,
+        external_id: res?.id ? String(res.id) : null,
+      };
+    },
+
+    async creditInvoice({ invoice_external_id }) {
+      // Billy: POST /invoices/{id}/creditNote — opretter (og bogfører) en
+      // kreditnota for hele fakturaen.
+      const res = await billyRequest(creds, `/invoices/${invoice_external_id}/creditNote`, {
+        method: "POST",
+        body: JSON.stringify({}),
+      }).catch((e) => {
+        const msg = e instanceof Error ? e.message : String(e);
+        throw new Error(`Kunne ikke kreditere faktura i Billy: ${msg}`);
+      });
+      const inv = res?.invoices?.[0] ?? res?.invoice ?? res;
+      return {
+        credit_note_external_id: String(inv?.id ?? invoice_external_id),
+        credit_note_external_number: inv?.invoiceNo ?? null,
+      };
+    },
+
+    async voidDraft({ external_id }) {
+      // Billy: kun kladder kan slettes — godkendte fakturaer skal krediteres.
+      await billyRequest(creds, `/invoices/${external_id}`, { method: "DELETE" })
+        .catch((e) => {
+          const msg = e instanceof Error ? e.message : String(e);
+          throw new Error(`Kunne ikke annullere kladden i Billy: ${msg}`);
+        });
+    },
+
+    async markInvoicePaid({ invoice_external_id, amount, paid_at }) {
+      // Billy: opret en bilagspostering der matcher fakturaen.
+      // Bruger /bankPayments hvis tilgængeligt, ellers /payments.
+      const body = {
+        bankPayment: {
+          entryDate: (paid_at ?? new Date().toISOString()).slice(0, 10),
+          amount,
+          associations: [{ subjectReference: `invoice:${invoice_external_id}` }],
+        },
+      };
+      await billyRequest(creds, "/bankPayments", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }).catch((e) => {
+        const msg = e instanceof Error ? e.message : String(e);
+        throw new Error(`Kunne ikke registrere betaling i Billy: ${msg}`);
+      });
+    },
+
     async bookInvoice(input) {
       // Billy: opdater state → 'approved' for at bogføre.
       const approved = await billyRequest(creds, `/invoices/${input.external_id}`, {
