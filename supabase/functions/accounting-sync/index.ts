@@ -609,6 +609,14 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
             paid_amount: s.paid_amount ?? null,
             payment_status_synced_at: new Date().toISOString(),
             due_date: s.due_date ?? null,
+            reminder_count: s.reminder_count ?? 0,
+            last_reminder_at: s.last_reminder_at ?? null,
+            last_reminder_type: s.last_reminder_type ?? null,
+            reminder_history: s.reminder_history ?? [],
+            credited_at: s.credited ? (s.credited_at ?? new Date().toISOString()) : null,
+            credit_note_external_id: s.credit_note_external_id ?? null,
+            credit_note_external_number: s.credit_note_external_number ?? null,
+            voided_at: s.voided ? (s.voided_at ?? new Date().toISOString()) : null,
           }).eq("id", l.order_id);
           invoicesPulled++;
         }
