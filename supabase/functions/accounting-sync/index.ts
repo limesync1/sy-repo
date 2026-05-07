@@ -1254,18 +1254,34 @@ async function bookInvoiceForOrder(
     customer_email: order?.customer_email ?? null,
   });
 
+  let paymentUpdate: Record<string, unknown> = {};
+  if (typeof adapter.getInvoiceStates === "function") {
+    const states = await adapter.getInvoiceStates([result.invoice_external_id]).catch(() => []);
+    const state = states[0];
+    if (state) {
+      paymentUpdate = {
+        payment_status: state.status,
+        paid_at: state.paid_at,
+        paid_amount: state.paid_amount ?? null,
+        payment_status_synced_at: new Date().toISOString(),
+        due_date: state.due_date ?? null,
+      };
+    }
+  }
+
   // Opdater orders med faktura-info
   await admin.from("orders").update({
     invoice_status: result.sent ? "sent" : "booked",
     invoiced_at: new Date().toISOString(),
     invoice_external_id: result.invoice_external_id,
+    ...paymentUpdate,
   }).eq("id", orderId);
 
   // Gem link til faktura (samme tabel, men nu external_type = invoice)
   await admin.from("accounting_order_links").update({
     external_id: result.invoice_external_id,
     external_number: result.invoice_external_number,
-    external_type: "invoice_draft",
+    external_type: "invoice",
     last_pushed_at: new Date().toISOString(),
     last_status_synced: result.sent ? "sent" : "booked",
   })
