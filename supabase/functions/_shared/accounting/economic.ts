@@ -726,31 +726,30 @@ export function makeEconomicAdapter(
     },
 
     async markInvoicePaid({ invoice_external_id, amount, paid_at }) {
-      // Registrér betaling som kassekladde-post mod fakturaens debitor.
-      // Dette kræver et journalNumber som vi ikke kender på forhånd —
-      // forsøg /journals og brug første aktive journal.
-      const journals = await ecRequest(creds, "/journals?pagesize=10").catch(() => ({ collection: [] }));
-      const journal = (journals?.collection ?? [])[0];
-      if (!journal?.journalNumber) {
-        throw new Error("Ingen kassekladde tilgængelig i e-conomic — opret en først.");
-      }
+      // Registrér betaling som kundebetaling i kassekladden mod den bogførte faktura.
+      const paidDate = paid_at?.slice(0, 10) ?? new Date().toISOString().slice(0, 10);
+      const { journalNumber, contraAccountNumber } = await resolveCustomerPaymentJournal(creds, settings);
+      const accountingYear = await resolveAccountingYear(creds, paidDate);
       const inv = await ecRequest(creds, `/invoices/booked/${invoice_external_id}`).catch(() => null);
       if (!inv?.customer?.customerNumber) {
         throw new Error("Kunne ikke finde kunden på fakturaen.");
       }
-      await ecRequest(creds, `/journals/${journal.journalNumber}/vouchers`, {
+      const payment: Record<string, unknown> = {
+        text: `Betaling for faktura ${invoice_external_id}`,
+        amount,
+        date: paidDate,
+        currency: { code: inv.currency ?? "DKK" },
+        customer: { customerNumber: inv.customer.customerNumber },
+        customerInvoice: Number(invoice_external_id),
+      };
+      if (contraAccountNumber) payment.contraAccount = { accountNumber: contraAccountNumber };
+      await ecRequest(creds, `/journals/${journalNumber}/vouchers`, {
         method: "POST",
         body: JSON.stringify({
-          accountingYear: { year: new Date().getFullYear().toString() },
+          accountingYear: { year: accountingYear },
+          journal: { journalNumber },
           entries: {
-            customerPayments: [{
-              text: `Betaling for faktura ${invoice_external_id}`,
-              amount,
-              date: paid_at?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
-              currency: { code: "DKK" },
-              customer: { customerNumber: inv.customer.customerNumber },
-              customerInvoice: Number(invoice_external_id),
-            }],
+            customerPayments: [payment],
           },
         }),
       });
