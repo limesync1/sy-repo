@@ -87,6 +87,10 @@ export type RouteStop = {
   lead_employee_id?: string | null;
   /** Betalings-/ordrestatus til medarbejderens aftaleliste. */
   order_status?: string | null;
+  /** Betalingsstatus synkroniseret fra regnskabsprogrammet. */
+  order_payment_status?: string | null;
+  /** Faktura-status synkroniseret fra regnskabsprogrammet. */
+  order_invoice_status?: string | null;
   /** Aftalens fulde beløb, inkl. evt. justering. */
   order_amount?: number | null;
   /** Vej + postnr + by — beregnet i useMyDayStops så listen ikke kun viser gaden. */
