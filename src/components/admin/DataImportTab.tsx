@@ -41,6 +41,7 @@ const FIELD_DEFS: Record<EntityType, { key: string; label: string; required?: bo
     { key: "description", label: "Beskrivelse" },
     { key: "base_price", label: "Pris" },
     { key: "unit", label: "Enhed (stk, time, m²)" },
+    { key: "interval", label: "Interval (engangskøb, ugentligt, mdr.)" },
     { key: "product_number", label: "Varenummer" },
     { key: "service_category", label: "Kategori" },
     { key: "subcategory", label: "Underkategori" },
@@ -59,6 +60,8 @@ const FIELD_DEFS: Record<EntityType, { key: string; label: string; required?: bo
     { key: "city", label: "By" },
     { key: "service_name", label: "Produkt/service" },
     { key: "quantity", label: "Antal" },
+    { key: "unit", label: "Enhed (stk, time, m²)" },
+    { key: "interval", label: "Interval (engangskøb, ugentligt, mdr.)" },
     { key: "unit_price", label: "Stykpris" },
     { key: "total_amount", label: "Beløb i alt" },
     { key: "preferred_date", label: "Aftaledato" },
@@ -83,6 +86,33 @@ const get = (row: Row, mapping: Mapping, key: string): string | undefined => {
 
 const cleanPhone = (s?: string) => s ? s.replace(/\s+/g, "").replace(/^\+45/, "") : undefined;
 const parseDays = (s?: string) => { if (!s) return undefined; const m = String(s).match(/\d+/); return m ? Number(m[0]) : undefined; };
+// Normalisér interval til et af de værdier vi bruger i resten af systemet.
+const parseInterval = (s?: string): string | undefined => {
+  if (!s) return undefined;
+  const v = s.toLowerCase().trim();
+  if (!v) return undefined;
+  if (/(eng|once|engang|enkelt)/.test(v)) return "engangskøb";
+  if (/(uge|week|ugentlig)/.test(v)) return "ugentligt";
+  if (/(14|hver.*anden.*uge|biweek|fortnight)/.test(v)) return "hver 14. dag";
+  if (/(måned|maaned|month|mdr|md\.)/.test(v)) return "månedligt";
+  if (/(kvartal|quarter|3.*måned)/.test(v)) return "kvartalsvis";
+  if (/(halvår|halvaar|6.*måned|semi)/.test(v)) return "halvårligt";
+  if (/(år|aar|year|annual)/.test(v)) return "årligt";
+  return v;
+};
+// Normalisér enheder.
+const parseUnit = (s?: string): string | undefined => {
+  if (!s) return undefined;
+  const v = s.toLowerCase().trim();
+  if (!v) return undefined;
+  if (/(time|hour|t\.|hr)/.test(v)) return "time";
+  if (/(m2|m²|kvm|kvadrat)/.test(v)) return "m²";
+  if (/(m3|m³|kubik)/.test(v)) return "m³";
+  if (/(stk|stk\.|pcs|piece|enhed)/.test(v)) return "stk";
+  if (/(km|kilometer)/.test(v)) return "km";
+  if (/(dag|day)/.test(v)) return "dag";
+  return s.trim();
+};
 const parseNum = (s?: string) => { if (!s) return undefined; const n = Number(String(s).replace(/\./g, "").replace(",", ".").replace(/[^\d.\-]/g, "")); return isFinite(n) ? n : undefined; };
 const parseDate = (s?: string) => {
   if (!s) return undefined;
@@ -123,7 +153,7 @@ const FIELD_GROUPS: Record<EntityType, { title: string; keys: string[] }[]> = {
   ],
   services: [
     { title: "Produkt", keys: ["name", "description", "product_number"] },
-    { title: "Pris & enhed", keys: ["base_price", "unit", "default_vat_rate"] },
+    { title: "Pris & enhed", keys: ["base_price", "unit", "interval", "default_vat_rate"] },
     { title: "Kategorisering", keys: ["service_category", "subcategory"] },
     { title: "Bogføring", keys: ["accounting_account_number"] },
   ],
@@ -131,7 +161,7 @@ const FIELD_GROUPS: Record<EntityType, { title: string; keys: string[] }[]> = {
     { title: "Ordre", keys: ["external_order_number", "preferred_date", "status", "payment_terms_days", "notes"] },
     { title: "Kunde", keys: ["customer_email", "customer_name", "customer_phone", "company_name", "cvr"] },
     { title: "Adresse", keys: ["address", "zip_code", "city"] },
-    { title: "Linje", keys: ["service_name", "quantity", "unit_price", "total_amount"] },
+    { title: "Linje", keys: ["service_name", "quantity", "unit", "interval", "unit_price", "total_amount"] },
   ],
 };
 
@@ -480,7 +510,8 @@ const ImportPanel = ({
           name: name || "",
           description: get(row, mapping, "description"),
           base_price: parseNum(get(row, mapping, "base_price")),
-          unit: get(row, mapping, "unit"),
+          unit: parseUnit(get(row, mapping, "unit")),
+          interval: parseInterval(get(row, mapping, "interval")),
           product_number,
           service_category: final_category,
           subcategory: final_subcategory,
@@ -535,6 +566,8 @@ const ImportPanel = ({
         city: get(row, mapping, "city"),
         service_name: get(row, mapping, "service_name") || "Importeret ordrelinje",
         quantity: qty,
+        unit: parseUnit(get(row, mapping, "unit")) || matchedService?.unit || undefined,
+        interval: parseInterval(get(row, mapping, "interval")),
         unit_price: unit_price ?? total_amount / Math.max(qty, 1),
         total_amount,
         preferred_date: parseDate(get(row, mapping, "preferred_date")),
@@ -618,6 +651,7 @@ const ImportPanel = ({
           description: r.description || null,
           base_price: r.base_price ?? null,
           unit: r.unit || null,
+          interval_options: r.interval ? [r.interval] : ["engangskøb"],
           product_number: r.product_number || null,
           service_category: r.service_category || null,
           subcategory: r.subcategory || null,
@@ -649,7 +683,8 @@ const ImportPanel = ({
                   business_id: businessId,
                   name: r.service_name,
                   base_price: r.unit_price ?? null,
-                  unit: "stk",
+                  unit: r.unit || "stk",
+                  interval_options: r.interval ? [r.interval] : ["engangskøb"],
                   pricing_type: "fast_pris" as const,
                   default_vat_rate: 25,
                   is_active: true,
@@ -685,6 +720,7 @@ const ImportPanel = ({
             quantity: r.quantity,
             unit_price: r.unit_price,
             total_price: r.total_amount,
+            details: { unit: r.unit || null, interval: r.interval || null },
           } as any);
           if (itemErr) throw itemErr;
           created += 1;
@@ -973,6 +1009,7 @@ const ImportPanel = ({
                 <th className="px-2 py-1.5 font-medium">Navn</th>
                 <th className="px-2 py-1.5 font-medium">Pris</th>
                 <th className="px-2 py-1.5 font-medium">Enhed</th>
+                <th className="px-2 py-1.5 font-medium">Interval</th>
                 <th className="px-2 py-1.5 font-medium">Varenr.</th>
                 <th className="px-2 py-1.5 font-medium">Kategori → Underkategori</th>
               </>}
@@ -980,6 +1017,7 @@ const ImportPanel = ({
                 <th className="px-2 py-1.5 font-medium">Ordrenr.</th>
                 <th className="px-2 py-1.5 font-medium">Kunde</th>
                 <th className="px-2 py-1.5 font-medium">Linje</th>
+                <th className="px-2 py-1.5 font-medium">Enhed / interval</th>
                 <th className="px-2 py-1.5 font-medium">Beløb</th>
                 <th className="px-2 py-1.5 font-medium">Dato</th>
               </>}
@@ -1031,6 +1069,7 @@ const ImportPanel = ({
                   <td className="px-2 py-1.5 text-foreground">{r.name || "—"}</td>
                   <td className="px-2 py-1.5 text-foreground">{r.base_price != null ? r.base_price.toLocaleString("da-DK") + " kr" : "—"}</td>
                   <td className="px-2 py-1.5 text-muted-foreground">{r.unit || "—"}</td>
+                  <td className="px-2 py-1.5 text-muted-foreground">{r.interval || "engangskøb"}</td>
                   <td className="px-2 py-1.5 text-muted-foreground">{r.product_number || "—"}</td>
                   <td className="px-2 py-1.5">
                     {r.service_category ? (
@@ -1068,7 +1107,7 @@ const ImportPanel = ({
                   </td>
                   <td className="px-2 py-1.5">
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-foreground">{r.service_name} × {r.quantity}</span>
+                      <span className="text-foreground">{r.service_name} × {r.quantity}{r.unit ? ` ${r.unit}` : ""}</span>
                       {r.matched_service_id ? (
                         <Badge className="w-fit bg-accent/15 text-accent hover:bg-accent/20 text-[10px]" title={r.service_match_reason}>
                           <CheckCircle2 className="mr-1 h-2.5 w-2.5" /> {r.matched_service_name || "Eksisterende"}{typeof r.service_confidence === "number" ? ` · ${r.service_confidence}%` : ""}
@@ -1076,6 +1115,12 @@ const ImportPanel = ({
                       ) : (
                         <Badge variant="outline" className="w-fit text-[10px]"><Sparkles className="mr-1 h-2.5 w-2.5" /> Service oprettes automatisk</Badge>
                       )}
+                    </div>
+                  </td>
+                  <td className="px-2 py-1.5 text-muted-foreground">
+                    <div className="flex flex-col gap-0.5">
+                      <span>{r.quantity}{r.unit ? ` ${r.unit}` : " stk"}</span>
+                      <span className="text-[10px]">{r.interval || "engangskøb"}</span>
                     </div>
                   </td>
                   <td className="px-2 py-1.5 text-foreground">{r.total_amount?.toLocaleString("da-DK")} kr</td>
