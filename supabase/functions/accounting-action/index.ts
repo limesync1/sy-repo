@@ -177,7 +177,7 @@ Deno.serve(async (req) => {
       }
 
       // Trigger en straks-pull af invoice state for at få fersk data
-      if (typeof adapter.getInvoiceStates === "function" && bookedInvoiceId) {
+      if (typeof adapter.getInvoiceStates === "function" && bookedInvoiceId && action !== "mark_paid") {
         try {
           const states = await adapter.getInvoiceStates([bookedInvoiceId]);
           const s = states[0];
