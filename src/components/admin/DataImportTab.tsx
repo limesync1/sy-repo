@@ -732,6 +732,26 @@ const ImportPanel = ({
   const runImport = async () => {
     const valid = prepared.filter((r, i) => isSelected(i, r));
     if (valid.length === 0) { toast.error("Ingen rækker valgt til import"); return; }
+    // Stop hvis nogen valgt række har valideringsfejl — vi vil ikke importere
+    // ufuldstændige interval-/enhedsdata.
+    const withErrors = valid.filter((r: any) => r.errors.length > 0);
+    if (withErrors.length > 0) {
+      toast.error(`${withErrors.length} valgte rækker har fejl — ret dem eller fravælg dem først`);
+      return;
+    }
+    const mappedCols = new Set(Object.values(mapping).filter(Boolean) as string[]);
+    const buildExtraNotes = (src: Row): string => {
+      const extras = headers
+        .filter((h) => !mappedCols.has(h))
+        .map((h) => [h, src?.[h]])
+        .filter(([, v]) => v !== undefined && v !== null && String(v).trim() !== "")
+        .map(([h, v]) => `${h}: ${String(v).trim()}`);
+      return extras.length ? extras.join("\n") : "";
+    };
+    const mergeNotes = (n: string | null | undefined, extra: string) => {
+      if (!extra) return n || null;
+      return n ? `${n}\n\n— Importeret ekstra felter —\n${extra}` : `— Importeret ekstra felter —\n${extra}`;
+    };
     setImporting(true);
     try {
       let created = 0;
@@ -742,13 +762,13 @@ const ImportPanel = ({
           business_id: businessId, company_name: r.company_name || r.name || "",
           cvr: r.cvr || null, contact_name: r.contact_name || null, email: r.email,
           phone: r.phone || null, address: r.address || null, zip_code: r.zip_code || null, city: r.city || null,
-          notes: r.notes || null, customer_number: r.customer_number || null,
+          notes: mergeNotes(r.notes, buildExtraNotes(r.source)), customer_number: r.customer_number || null,
           ean_number: r.ean_number || null, payment_terms_days: r.payment_terms_days ?? null,
         }));
         const priv = (valid as any[]).filter((r) => r.type === "private").map((r) => ({
           business_id: businessId, name: r.name || r.company_name || "Ukendt", email: r.email,
           phone: r.phone || null, address: r.address || null, zip_code: r.zip_code || null, city: r.city || null,
-          notes: r.notes || null, customer_number: r.customer_number || null,
+          notes: mergeNotes(r.notes, buildExtraNotes(r.source)), customer_number: r.customer_number || null,
           ean_number: r.ean_number || null, payment_terms_days: r.payment_terms_days ?? null,
         }));
         for (const part of chunk(biz, 100)) {
@@ -762,7 +782,10 @@ const ImportPanel = ({
       } else if (entity === "services") {
         const services = (valid as any[]).map((r) => ({
           business_id: businessId, name: r.name,
-          description: r.description || null,
+          description: (() => {
+            const extra = buildExtraNotes(r.source);
+            return r.description ? (extra ? `${r.description}\n\n— Ekstra felter —\n${extra}` : r.description) : (extra || null);
+          })(),
           base_price: r.base_price ?? null,
           unit: r.unit || null,
           interval_options: r.interval ? [r.interval] : ["engangskøb"],
@@ -824,7 +847,7 @@ const ImportPanel = ({
             external_order_number: r.external_order_number || null,
             preferred_date: r.preferred_date || null,
             payment_terms_days: r.payment_terms_days ?? null,
-            notes: r.notes || null,
+            notes: mergeNotes(r.notes, buildExtraNotes(r.source)),
           } as any).select("id").single();
           if (orderErr) throw orderErr;
           const { error: itemErr } = await supabase.from("order_items").insert({
