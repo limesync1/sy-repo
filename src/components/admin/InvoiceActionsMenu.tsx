@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -19,9 +20,12 @@ type Order = {
   invoice_external_id?: string | null;
   reminder_count?: number | null;
   total_amount?: number | null;
+  /** "economic" | "billy" | "dinero" | "zenegy" — bruges til hint-tekst. */
+  accounting_provider?: string | null;
 };
 
 type Action = "send_reminder" | "credit_invoice" | "void_draft" | "mark_paid";
+type ReminderType = "reminder1" | "reminder2" | "reminder3" | "collection" | "auto";
 
 /**
  * Faktura-handlinger der kalder accounting-action edge function.
@@ -48,12 +52,13 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
       const labels: Record<Action, string> = {
-        send_reminder: "Rykker sendt",
+        send_reminder: "Rykker registreret",
         credit_invoice: "Faktura krediteret",
         void_draft: "Kladde annulleret",
         mark_paid: "Faktura markeret som betalt",
       };
-      toast.success(labels[action]);
+      const note = (data as any)?.result?.note as string | undefined;
+      toast.success(labels[action], note ? { description: note } : undefined);
       qc.invalidateQueries({ queryKey: ["orders"] });
     } catch (e: any) {
       toast.error(e?.message ?? "Handlingen mislykkedes");
@@ -61,6 +66,10 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
       setBusy(null);
       setConfirm(null);
     }
+  }
+
+  function sendReminder(type: ReminderType) {
+    run("send_reminder", { type });
   }
 
   return (
@@ -82,9 +91,25 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
           <DropdownMenuLabel>Faktura-handlinger</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {isInvoiced && !isPaid && !isCredited && (
-            <DropdownMenuItem onSelect={() => setConfirm("send_reminder")}>
-              <Mail className="mr-2 h-3.5 w-3.5" /> {reminderLabel}
-            </DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <Mail className="mr-2 h-3.5 w-3.5" /> {reminderLabel}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem onSelect={() => sendReminder("reminder1")}>1. rykker</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => sendReminder("reminder2")}>2. rykker</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => sendReminder("reminder3")}>3. rykker</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={() => sendReminder("collection")}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    Send til inkasso
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub>
           )}
           {isInvoiced && !isPaid && !isCredited && (
             <DropdownMenuItem onSelect={() => setConfirm("mark_paid")}>
