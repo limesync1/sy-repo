@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   UploadCloud, Loader2, FileText, Sparkles, CheckCircle2, AlertTriangle,
-  Trash2, X, ArrowRight, Building2, User, HelpCircle, Mail, Users, Package, ClipboardList, FolderTree, Wand2,
+  Trash2, X, ArrowRight, Building2, User, HelpCircle, Mail, Users, Package, ClipboardList, FolderTree, Wand2, ChevronDown, ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, SectionCard, EmptyState } from "@/components/admin/shared/AdminUI";
@@ -92,14 +92,17 @@ const parseInterval = (s?: string): string | undefined => {
   const v = s.toLowerCase().trim();
   if (!v) return undefined;
   if (/(eng|once|engang|enkelt)/.test(v)) return "engangskøb";
+  if (/(daglig|daily|hver.*dag)/.test(v)) return "daglig";
   if (/(uge|week|ugentlig)/.test(v)) return "ugentligt";
   if (/(14|hver.*anden.*uge|biweek|fortnight)/.test(v)) return "hver 14. dag";
   if (/(måned|maaned|month|mdr|md\.)/.test(v)) return "månedligt";
   if (/(kvartal|quarter|3.*måned)/.test(v)) return "kvartalsvis";
   if (/(halvår|halvaar|6.*måned|semi)/.test(v)) return "halvårligt";
   if (/(år|aar|year|annual)/.test(v)) return "årligt";
-  return v;
+  return undefined; // ukendt → valideres som fejl
 };
+const VALID_INTERVALS = new Set(["engangskøb","daglig","ugentligt","hver 14. dag","månedligt","kvartalsvis","halvårligt","årligt"]);
+const VALID_UNITS = new Set(["stk","time","m²","m³","km","dag","kg","liter","pakke","gang","besøg"]);
 // Normalisér enheder.
 const parseUnit = (s?: string): string | undefined => {
   if (!s) return undefined;
@@ -111,7 +114,12 @@ const parseUnit = (s?: string): string | undefined => {
   if (/(stk|stk\.|pcs|piece|enhed)/.test(v)) return "stk";
   if (/(km|kilometer)/.test(v)) return "km";
   if (/(dag|day)/.test(v)) return "dag";
-  return s.trim();
+  if (/(kg|kilo)/.test(v)) return "kg";
+  if (/(liter|ltr|l\.)/.test(v)) return "liter";
+  if (/(pakke|pak|pkg)/.test(v)) return "pakke";
+  if (/(besøg|visit)/.test(v)) return "besøg";
+  if (/(gang)/.test(v)) return "gang";
+  return undefined; // ukendt → valideres som fejl
 };
 const parseNum = (s?: string) => { if (!s) return undefined; const n = Number(String(s).replace(/\./g, "").replace(",", ".").replace(/[^\d.\-]/g, "")); return isFinite(n) ? n : undefined; };
 const parseDate = (s?: string) => {
