@@ -896,6 +896,19 @@ const ImportPanel = ({
 
 const DataImportTab = ({ businessId, businessName }: { businessId: string; businessName: string }) => {
   const [active, setActive] = useState<EntityType>("customers");
+
+  // Lyt på events fra ImportPanel når AI foreslår at skifte til anden entitetstype.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as EntityType;
+      if (detail === "customers" || detail === "services" || detail === "orders") {
+        setActive(detail);
+      }
+    };
+    window.addEventListener("dataimport:switch-entity", handler);
+    return () => window.removeEventListener("dataimport:switch-entity", handler);
+  }, []);
+
   const [existingEmails, setExistingEmails] = useState<Set<string>>(new Set());
   const [existingProductNumbers, setExistingProductNumbers] = useState<Set<string>>(new Set());
   const [existingExternalOrderNumbers, setExistingExternalOrderNumbers] = useState<Set<string>>(new Set());
