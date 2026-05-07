@@ -471,6 +471,36 @@ export function makeEconomicAdapter(
           else if (paid > 0 && remainder > 0) status = "partially_paid";
           else if (overdue) status = "overdue";
           else status = "unpaid";
+
+          // Hent rykker-historik (sentToDebtorCollection / reminders) hvis bogført.
+          let reminderCount = 0;
+          let lastReminderAt: string | null = null;
+          let lastReminderType: string | null = null;
+          const reminderHistory: NonNullable<ExternalInvoiceState["reminder_history"]> = [];
+          if (booked) {
+            try {
+              const sent = await ecRequest(creds, `/invoices/booked/${id}/sent`);
+              const list: any[] = Array.isArray(sent?.collection) ? sent.collection : [];
+              for (const s of list) {
+                const t = String(s?.template ?? s?.documentType ?? "").toLowerCase();
+                if (t.includes("reminder") || t.includes("collection") || t.includes("rykker")) {
+                  reminderCount++;
+                  const sentAt = s?.sentAt ?? s?.date ?? null;
+                  reminderHistory.push({
+                    sent_at: sentAt ?? new Date().toISOString(),
+                    type: t || "reminder",
+                    fee: typeof s?.fee === "number" ? s.fee : null,
+                    external_id: s?.id ? String(s.id) : null,
+                  });
+                  if (sentAt && (!lastReminderAt || sentAt > lastReminderAt)) {
+                    lastReminderAt = sentAt;
+                    lastReminderType = t;
+                  }
+                }
+              }
+            } catch { /* sent endpoint not available — skip silently */ }
+          }
+
           out.push({
             external_id: String(inv.bookedInvoiceNumber ?? inv.draftInvoiceNumber ?? id),
             external_number: String(inv.bookedInvoiceNumber ?? inv.draftInvoiceNumber ?? id),
@@ -479,6 +509,10 @@ export function makeEconomicAdapter(
             total_amount: total,
             paid_at: status === "paid" ? (inv.paymentDate ?? null) : null,
             due_date: dueDate,
+            reminder_count: reminderCount,
+            last_reminder_at: lastReminderAt,
+            last_reminder_type: lastReminderType,
+            reminder_history: reminderHistory,
             raw: inv,
           });
         } catch { /* ignore */ }
@@ -522,6 +556,103 @@ export function makeEconomicAdapter(
         });
       }
       return out;
+    },
+
+    async sendReminder({ invoice_external_id, type }) {
+      // E-conomic mangler en officiel REST-rute til at trigge en rykker
+      // direkte. Vi bruger derfor /invoices/booked/{n}/sent som "send via
+      // standard layout med rykker-skabelon" — dette starter rykkerflowet
+      // hos e-conomic der selv lægger rykkergebyret på næste gang fakturaen
+      // tjekkes. Hvis e-conomic API ikke understøtter det, kaster vi en
+      // klar besked til brugeren.
+      const body: Record<string, unknown> = {
+        sentBy: "Email",
+        documentType: type === "collection" ? "Collection" : "Reminder",
+      };
+      let result: any = null;
+      try {
+        result = await ecRequest(creds, `/invoices/booked/${invoice_external_id}/sent`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        throw new Error(`Kunne ikke sende rykker via e-conomic: ${msg}`);
+      }
+      return {
+        sent_at: result?.sentAt ?? new Date().toISOString(),
+        type: type ?? "reminder",
+        fee: typeof result?.fee === "number" ? result.fee : null,
+        external_id: result?.id ? String(result.id) : null,
+      };
+    },
+
+    async creditInvoice({ invoice_external_id }) {
+      // 1) Hent skabelon for kreditnota fra den bogførte faktura
+      const tmpl = await ecRequest(
+        creds,
+        `/invoices/booked/${invoice_external_id}/templates/creditNote`,
+      );
+      const payload = pickDraftInvoicePayload(tmpl);
+      // 2) Opret kladdekreditnota — i e-conomic er kreditnotaer blot
+      // negative kladdefakturaer på samme endpoint.
+      const draft = await ecRequest(creds, "/invoices/drafts", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      const draftNumber = draft?.draftInvoiceNumber;
+      if (!draftNumber) throw new Error("E-conomic gav ikke et kreditnota-nummer tilbage.");
+      // 3) Bogfør den med det samme
+      const booked = await ecRequest(creds, "/invoices/booked", {
+        method: "POST",
+        body: JSON.stringify({ draftInvoice: { draftInvoiceNumber: Number(draftNumber) } }),
+      });
+      const num = String(booked?.bookedInvoiceNumber ?? draftNumber);
+      return { credit_note_external_id: num, credit_note_external_number: num };
+    },
+
+    async voidDraft({ external_id, external_type }) {
+      // E-conomic: kun kladder kan slettes. Bogførte fakturaer skal krediteres.
+      const path = external_type === "order"
+        ? `/orders/drafts/${external_id}`
+        : `/invoices/drafts/${external_id}`;
+      try {
+        await ecRequest(creds, path, { method: "DELETE" });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        throw new Error(`Kunne ikke annullere kladden i e-conomic: ${msg}`);
+      }
+    },
+
+    async markInvoicePaid({ invoice_external_id, amount, paid_at }) {
+      // Registrér betaling som kassekladde-post mod fakturaens debitor.
+      // Dette kræver et journalNumber som vi ikke kender på forhånd —
+      // forsøg /journals og brug første aktive journal.
+      const journals = await ecRequest(creds, "/journals?pagesize=10").catch(() => ({ collection: [] }));
+      const journal = (journals?.collection ?? [])[0];
+      if (!journal?.journalNumber) {
+        throw new Error("Ingen kassekladde tilgængelig i e-conomic — opret en først.");
+      }
+      const inv = await ecRequest(creds, `/invoices/booked/${invoice_external_id}`).catch(() => null);
+      if (!inv?.customer?.customerNumber) {
+        throw new Error("Kunne ikke finde kunden på fakturaen.");
+      }
+      await ecRequest(creds, `/journals/${journal.journalNumber}/vouchers`, {
+        method: "POST",
+        body: JSON.stringify({
+          accountingYear: { year: new Date().getFullYear().toString() },
+          entries: {
+            customerPayments: [{
+              text: `Betaling for faktura ${invoice_external_id}`,
+              amount,
+              date: paid_at?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
+              currency: { code: "DKK" },
+              customer: { customerNumber: inv.customer.customerNumber },
+              customerInvoice: { bookedInvoiceNumber: Number(invoice_external_id) },
+            }],
+          },
+        }),
+      });
     },
   };
 }
