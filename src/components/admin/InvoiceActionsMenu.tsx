@@ -116,7 +116,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
         void_draft: "Kladde annulleret",
         mark_paid: "Faktura markeret som betalt",
       };
-      const note = (data as any)?.result?.note as string | undefined;
+      const note = ((data as any)?.result?.note ?? (data as any)?.note) as string | undefined;
       toast.success(labels[action], note ? { description: note } : undefined);
       qc.invalidateQueries({ queryKey: ["orders"] });
     } catch (e: any) {
