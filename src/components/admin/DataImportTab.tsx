@@ -513,13 +513,24 @@ const ImportPanel = ({
         const rawSub = get(row, mapping, "subcategory");
         const final_category = rawCat || ai?.service_category || undefined;
         const final_subcategory = rawSub || ai?.subcategory || undefined;
+        const rawUnit = get(row, mapping, "unit");
+        const rawInterval = get(row, mapping, "interval");
+        const unit = parseUnit(rawUnit);
+        const interval = parseInterval(rawInterval);
+        if (rawUnit && !unit) errors.push(`Ukendt enhed "${rawUnit}" — brug fx stk, time, m², m³, km, dag, kg, liter`);
+        if (rawInterval && !interval) errors.push(`Ukendt interval "${rawInterval}" — brug fx engangskøb, ugentligt, hver 14. dag, månedligt, kvartalsvis, halvårligt, årligt`);
+        const basePrice = parseNum(get(row, mapping, "base_price"));
+        if (basePrice == null && rawUnit) errors.push("Mangler pris (kræves når enhed er angivet)");
+        if (interval && interval !== "engangskøb" && !unit) errors.push("Mangler enhed (kræves når der er et tilbagevendende interval)");
         return {
           source: row, kind: "service" as const,
           name: name || "",
           description: get(row, mapping, "description"),
-          base_price: parseNum(get(row, mapping, "base_price")),
-          unit: parseUnit(get(row, mapping, "unit")),
-          interval: parseInterval(get(row, mapping, "interval")),
+          base_price: basePrice,
+          unit,
+          interval,
+          raw_unit: rawUnit,
+          raw_interval: rawInterval,
           product_number,
           service_category: final_category,
           subcategory: final_subcategory,
@@ -561,6 +572,14 @@ const ImportPanel = ({
       const total_amount = parseNum(get(row, mapping, "total_amount")) ?? (unit_price ? unit_price * qty : 0);
       const matchedCustomer = match?.customer_id ? existingCustomers.find((c) => c.id === match.customer_id) : undefined;
       const matchedService = match?.service_id ? existingServices.find((s) => s.id === match.service_id) : undefined;
+      const rawUnitO = get(row, mapping, "unit");
+      const rawIntervalO = get(row, mapping, "interval");
+      const unitO = parseUnit(rawUnitO) || matchedService?.unit || undefined;
+      const intervalO = parseInterval(rawIntervalO);
+      if (rawUnitO && !parseUnit(rawUnitO)) errors.push(`Ukendt enhed "${rawUnitO}" — brug fx stk, time, m², m³, km, dag, kg, liter`);
+      if (rawIntervalO && !intervalO) errors.push(`Ukendt interval "${rawIntervalO}" — brug fx engangskøb, ugentligt, månedligt, årligt`);
+      if (intervalO && intervalO !== "engangskøb" && !unitO) errors.push("Mangler enhed på aftalelinjen (kræves ved tilbagevendende interval)");
+      if (qty > 1 && !unitO) errors.push("Mangler enhed (når antal > 1, skal enhed angives)");
       return {
         source: row, kind: "order" as const,
         external_order_number: ext,
@@ -574,8 +593,10 @@ const ImportPanel = ({
         city: get(row, mapping, "city"),
         service_name: get(row, mapping, "service_name") || "Importeret ordrelinje",
         quantity: qty,
-        unit: parseUnit(get(row, mapping, "unit")) || matchedService?.unit || undefined,
-        interval: parseInterval(get(row, mapping, "interval")),
+        unit: unitO,
+        interval: intervalO,
+        raw_unit: rawUnitO,
+        raw_interval: rawIntervalO,
         unit_price: unit_price ?? total_amount / Math.max(qty, 1),
         total_amount,
         preferred_date: parseDate(get(row, mapping, "preferred_date")),
