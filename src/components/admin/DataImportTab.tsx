@@ -343,21 +343,26 @@ const ImportPanel = ({
       // orders
       const customer_email = (get(row, mapping, "customer_email") || "").toLowerCase();
       const ext = get(row, mapping, "external_order_number");
-      if (!customer_email) errors.push("Mangler kunde e-mail");
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer_email)) errors.push("Ugyldig kunde e-mail");
+      const idxOrd = rows.indexOf(row);
+      const match = orderMatches[idxOrd];
+      if (!customer_email && !match?.customer_id) errors.push("Mangler kunde e-mail eller match");
+      else if (customer_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer_email)) errors.push("Ugyldig kunde e-mail");
       const dupKey = ext?.toLowerCase();
       if (dupKey && existingExternalOrderNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = "Ordrenr. findes"; }
       else if (dupKey && seenOrderNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = "Dublet i fil"; }
       if (dupKey) seenOrderNumbers.add(dupKey);
 
       const qty = parseNum(get(row, mapping, "quantity")) ?? 1;
-      const unit_price = parseNum(get(row, mapping, "unit_price"));
+      const rawUnitPrice = parseNum(get(row, mapping, "unit_price"));
+      const unit_price = rawUnitPrice ?? (match?.inferred_unit_price ?? undefined);
       const total_amount = parseNum(get(row, mapping, "total_amount")) ?? (unit_price ? unit_price * qty : 0);
+      const matchedCustomer = match?.customer_id ? existingCustomers.find((c) => c.id === match.customer_id) : undefined;
+      const matchedService = match?.service_id ? existingServices.find((s) => s.id === match.service_id) : undefined;
       return {
         source: row, kind: "order" as const,
         external_order_number: ext,
-        customer_email,
-        customer_name: get(row, mapping, "customer_name") || get(row, mapping, "company_name") || "Ukendt",
+        customer_email: customer_email || matchedCustomer?.email || "",
+        customer_name: get(row, mapping, "customer_name") || get(row, mapping, "company_name") || matchedCustomer?.name || "Ukendt",
         customer_phone: cleanPhone(get(row, mapping, "customer_phone")),
         company_name: get(row, mapping, "company_name"),
         cvr: get(row, mapping, "cvr")?.replace(/\D/g, "") || undefined,
@@ -372,10 +377,18 @@ const ImportPanel = ({
         status: (get(row, mapping, "status") || "completed").toLowerCase(),
         payment_terms_days: parseDays(get(row, mapping, "payment_terms_days")),
         notes: get(row, mapping, "notes"),
+        matched_customer_id: match?.customer_id || null,
+        matched_customer_name: matchedCustomer?.name,
+        customer_match_reason: match?.customer_match_reason,
+        customer_confidence: match?.customer_confidence,
+        matched_service_id: match?.service_id || null,
+        matched_service_name: matchedService?.name,
+        service_match_reason: match?.service_match_reason,
+        service_confidence: match?.service_confidence,
         errors, isDuplicate, duplicateReason,
       };
     });
-  }, [rows, mapping, defaultType, entity, existingEmails, existingProductNumbers, existingExternalOrderNumbers, classifications]);
+  }, [rows, mapping, defaultType, entity, existingEmails, existingProductNumbers, existingExternalOrderNumbers, classifications, orderMatches, existingCustomers, existingServices]);
 
   const stats = useMemo(() => ({
     total: prepared.length,
