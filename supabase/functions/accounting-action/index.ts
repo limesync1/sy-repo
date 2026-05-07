@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
           last_reminder_type: res.type,
           reminder_history: history,
         }).eq("id", order_id);
-        result = { ok: true, reminder: res };
+        result = { ok: true, result: res, reminder: res };
       } else if (action === "credit_invoice") {
         if (typeof adapter.creditInvoice !== "function") {
           return json({ error: `${integ.provider} understøtter ikke kreditering via API` }, 400);
