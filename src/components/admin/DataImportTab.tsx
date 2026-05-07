@@ -354,7 +354,7 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
             title="2. AI har analyseret jeres fil"
             icon={<Sparkles />}
             description="Tjek at felterne er matchet korrekt. Du kan ændre mapping nedenfor."
-            actions={
+            action={
               <Button variant="ghost" size="sm" onClick={reset}>
                 <X className="mr-1.5 h-3.5 w-3.5" /> Skift fil
               </Button>
