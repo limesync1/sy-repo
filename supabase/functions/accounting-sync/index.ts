@@ -1129,6 +1129,7 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
     external_id: existing?.external_id,
     external_type: sendAs,
     customer_external_id: customerExtId,
+    customer_name: order.customer_name,
     status: order.status,
     notes: order.notes ?? order.accounting_notes,
     payment_terms_days: order.payment_terms_days,
