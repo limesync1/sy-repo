@@ -97,6 +97,8 @@ const parseDate = (s?: string) => {
   return undefined;
 };
 
+// Hvad gør en række til en erhvervskunde? Et CVR-nummer.
+// Eksplicit type-kolonne (hvis den findes) trumfer alt; ellers: CVR ⇒ erhverv, intet CVR ⇒ privat.
 const detectCustomerType = (row: Row, mapping: Mapping, fallback: "private" | "business"): "private" | "business" => {
   const explicit = get(row, mapping, "type");
   if (explicit) {
@@ -104,8 +106,32 @@ const detectCustomerType = (row: Row, mapping: Mapping, fallback: "private" | "b
     if (["business", "erhverv", "virksomhed", "company", "b2b"].some((s) => v.includes(s))) return "business";
     if (["private", "privat", "person", "b2c"].some((s) => v.includes(s))) return "private";
   }
-  if (get(row, mapping, "cvr") || get(row, mapping, "company_name") || get(row, mapping, "ean_number")) return "business";
+  // Trim cifre fra CVR — vi accepterer kun rigtige CVR-numre (mindst 6 cifre for at undgå støj).
+  const cvr = (get(row, mapping, "cvr") || "").replace(/\D/g, "");
+  if (cvr.length >= 6) return "business";
   return fallback;
+};
+
+// ---------- Mapping field-grupper (smartere layout) ----------
+const FIELD_GROUPS: Record<EntityType, { title: string; keys: string[] }[]> = {
+  customers: [
+    { title: "Identitet", keys: ["type", "name", "company_name", "cvr", "contact_name", "customer_number", "ean_number"] },
+    { title: "Kontakt", keys: ["email", "phone"] },
+    { title: "Adresse", keys: ["address", "zip_code", "city"] },
+    { title: "Andet", keys: ["payment_terms_days", "notes"] },
+  ],
+  services: [
+    { title: "Produkt", keys: ["name", "description", "product_number"] },
+    { title: "Pris & enhed", keys: ["base_price", "unit", "default_vat_rate"] },
+    { title: "Kategorisering", keys: ["service_category", "subcategory"] },
+    { title: "Bogføring", keys: ["accounting_account_number"] },
+  ],
+  orders: [
+    { title: "Ordre", keys: ["external_order_number", "preferred_date", "status", "payment_terms_days", "notes"] },
+    { title: "Kunde", keys: ["customer_email", "customer_name", "customer_phone", "company_name", "cvr"] },
+    { title: "Adresse", keys: ["address", "zip_code", "city"] },
+    { title: "Linje", keys: ["service_name", "quantity", "unit_price", "total_amount"] },
+  ],
 };
 
 // ---------- Per-entity import-panel ----------
