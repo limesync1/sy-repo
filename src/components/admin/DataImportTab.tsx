@@ -612,6 +612,51 @@ const ImportPanel = ({
       </div>
       {aiNotes && <p className="text-xs italic text-muted-foreground">"{aiNotes}"</p>}
 
+      {detection && (
+        <div className="flex flex-wrap items-start gap-2 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2 text-xs">
+          <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-foreground">
+              {detection.is_mixed
+                ? "Filen indeholder flere typer data"
+                : `Filen ser ud til at indeholde ${detection.primary === "customers" ? "kunder" : detection.primary === "services" ? "produkter/services" : "ordrer/aftaler"}`}
+              {typeof detection.confidence === "number" && <span className="ml-1.5 font-normal text-muted-foreground">({detection.confidence}%)</span>}
+            </p>
+            {detection.summary && <p className="mt-0.5 text-muted-foreground">{detection.summary}</p>}
+            {detection.is_mixed && detection.recommendations.length > 0 && (
+              <p className="mt-1 text-muted-foreground">
+                Vi anbefaler at du importerer den både som{" "}
+                {detection.recommendations.map((r, i) => (
+                  <span key={r}>
+                    {i > 0 && (i === detection.recommendations.length - 1 ? " og " : ", ")}
+                    <button
+                      onClick={() => { /* skift håndteres af parent — vi sender event via custom event */
+                        window.dispatchEvent(new CustomEvent("dataimport:switch-entity", { detail: r }));
+                      }}
+                      className="font-semibold text-accent underline-offset-2 hover:underline"
+                    >
+                      {r === "customers" ? "kunder" : r === "services" ? "produkter/services" : "ordrer/aftaler"}
+                    </button>
+                  </span>
+                ))}
+                — kør én import ad gangen.
+              </p>
+            )}
+            {!detection.is_mixed && detection.primary !== entity && (
+              <p className="mt-1 text-muted-foreground">
+                Du har valgt <span className="font-semibold text-foreground">{ENTITY_META[entity].label.toLowerCase()}</span>.{" "}
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent("dataimport:switch-entity", { detail: detection.primary }))}
+                  className="font-semibold text-accent underline-offset-2 hover:underline"
+                >
+                  Skift til {ENTITY_META[detection.primary].label.toLowerCase()} →
+                </button>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {entity === "services" && (
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2 text-xs">
           <FolderTree className="h-3.5 w-3.5 text-accent" />
@@ -680,15 +725,19 @@ const ImportPanel = ({
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {[
-          { label: "Klar", value: stats.ok, tone: "ok" },
-          { label: "Total", value: stats.total, tone: "neutral" },
-          { label: "Dubletter", value: stats.duplicates, tone: "warn" },
-          { label: "Fejl", value: stats.errors, tone: stats.errors > 0 ? "err" : "neutral" },
+          { label: "Klar", value: stats.ok, tone: "ok", filter: "ok" as const },
+          { label: "Total", value: stats.total, tone: "neutral", filter: "all" as const },
+          { label: "Dubletter", value: stats.duplicates, tone: "warn", filter: "dup" as const },
+          { label: "Fejl", value: stats.errors, tone: stats.errors > 0 ? "err" : "neutral", filter: "err" as const },
         ].map((s) => (
-          <div key={s.label} className="rounded-lg border border-border bg-background px-3 py-2">
+          <button
+            key={s.label}
+            onClick={() => setRowFilter(s.filter)}
+            className={`rounded-lg border px-3 py-2 text-left transition-colors ${rowFilter === s.filter ? "border-foreground bg-foreground/5" : "border-border bg-background hover:bg-secondary/40"}`}
+          >
             <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{s.label}</p>
             <p className={`text-lg font-bold ${s.tone === "ok" ? "text-accent" : s.tone === "warn" ? "text-amber-600" : s.tone === "err" ? "text-destructive" : "text-foreground"}`}>{s.value}</p>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -721,13 +770,17 @@ const ImportPanel = ({
             </tr>
           </thead>
           <tbody>
-            {prepared.slice(0, 25).map((r: any, i) => (
-              <tr key={i} className="border-t border-border hover:bg-secondary/30">
+            {visibleRows.map((r: any, i) => (
+              <tr key={safePage * PAGE_SIZE + i} className="border-t border-border hover:bg-secondary/30">
                 <td className="px-2 py-1.5">
                   {r.errors.length > 0 ? (
-                    <Badge variant="destructive" className="text-[10px]" title={r.errors.join(", ")}>Fejl</Badge>
+                    <Badge variant="destructive" className="text-[10px]" title={r.errors.join(" · ")}>
+                      Fejl: {r.errors.join(", ")}
+                    </Badge>
                   ) : r.isDuplicate ? (
-                    <Badge variant="secondary" className="text-[10px]" title={r.duplicateReason}>Dublet</Badge>
+                    <Badge variant="secondary" className="text-[10px] max-w-[280px] truncate" title={r.duplicateReason}>
+                      Dublet — {r.duplicateReason}
+                    </Badge>
                   ) : (
                     <Badge className="bg-accent/15 text-accent hover:bg-accent/20 text-[10px]">Klar</Badge>
                   )}
@@ -800,7 +853,24 @@ const ImportPanel = ({
           </tbody>
         </table>
       </div>
-      {prepared.length > 25 && <p className="text-center text-[11px] text-muted-foreground">Viser 25 af {prepared.length} rækker</p>}
+      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
+        <span>
+          Viser {filteredRows.length === 0 ? 0 : safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, filteredRows.length)} af {filteredRows.length}
+          {rowFilter !== "all" && <> ({prepared.length} i alt)</>}
+          {rowFilter !== "all" && (
+            <button onClick={() => setRowFilter("all")} className="ml-2 font-medium text-foreground underline-offset-2 hover:underline">Vis alle</button>
+          )}
+        </span>
+        {pageCount > 1 && (
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage(0)} disabled={safePage === 0}>«</Button>
+            <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={safePage === 0}>‹</Button>
+            <span className="px-2 text-foreground">Side {safePage + 1} af {pageCount}</span>
+            <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))} disabled={safePage >= pageCount - 1}>›</Button>
+            <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage(pageCount - 1)} disabled={safePage >= pageCount - 1}>»</Button>
+          </div>
+        )}
+      </div>
 
       {done ? (
         <div className="flex items-center gap-3 rounded-lg border border-accent/40 bg-accent/10 px-4 py-3">
