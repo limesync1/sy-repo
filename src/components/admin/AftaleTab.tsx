@@ -42,6 +42,7 @@ import {
   type PricingSnapshot,
   type ServiceStepDetail,
 } from "@/lib/service-pricing";
+import { relativeFromNow } from "@/lib/relative-time";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 
 /* ─── Types ─── */
