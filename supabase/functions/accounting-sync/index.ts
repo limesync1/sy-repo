@@ -1226,6 +1226,19 @@ async function bookInvoiceForOrder(
   if (typeof adapter.bookInvoice !== "function") {
     throw new Error(`Provider ${integ.provider} understøtter ikke fakturabogføring`);
   }
+  // Hvis ordren er slettet i mellemtiden er der intet at bogføre — log og afslut
+  // pænt så jobbet ikke retries i det uendelige.
+  const { data: orderExists } = await admin.from("orders")
+    .select("id").eq("id", orderId).maybeSingle();
+  if (!orderExists) {
+    await logSync(admin, {
+      business_id: integ.business_id, provider: integ.provider, direction: "push",
+      entity_type: "invoice", entity_id: orderId,
+      status: "success",
+      message: "Ordre er slettet — fakturabogføring sprunget over",
+    });
+    return;
+  }
   // Sørg for at ordren er pushed først
   let { data: link } = await admin.from("accounting_order_links")
     .select("external_id, external_type")
@@ -1243,7 +1256,20 @@ async function bookInvoiceForOrder(
       .maybeSingle();
     link = reread.data ?? null;
   }
-  if (!link) throw new Error("Kunne ikke pushe ordre før fakturabogføring");
+  if (!link) {
+    // Læs ordren for at give en bedre fejlbesked
+    const { data: o } = await admin.from("orders")
+      .select("status, customer_email, customer_name, total_amount").eq("id", orderId).maybeSingle();
+    const reasons: string[] = [];
+    if (!o) reasons.push("ordre findes ikke længere");
+    else {
+      if (!o.customer_email) reasons.push("kunden mangler e-mail");
+      if (!o.total_amount || Number(o.total_amount) <= 0) reasons.push("ordre-beløbet er 0");
+      if (o.status === "cancelled") reasons.push("ordren er annulleret");
+    }
+    const detail = reasons.length ? ` (${reasons.join(", ")})` : "";
+    throw new Error(`Kunne ikke pushe ordre før fakturabogføring${detail}`);
+  }
 
   const { data: order } = await admin.from("orders")
     .select("customer_email").eq("id", orderId).maybeSingle();
