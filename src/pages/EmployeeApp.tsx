@@ -34,13 +34,28 @@ const todayStr = () => format(new Date(), "yyyy-MM-dd");
 // Vis ALTID ører — så medarbejderen ser præcist beløb i hele appen.
 const formatKr = (n?: number | null) => formatKrShared(Number(n) || 0);
 
-const paymentMeta = (status?: string | null) => {
-  // Diskrete outline-badges — matcher virksomhedspanelets sprog så
-  // status-chips ikke "skriger" i en ellers rolig liste.
-  if (status === "completed") return { label: "Betalt", className: "border-feature-cool/40 bg-feature-cool/10 text-feature-cool-foreground" };
-  if (status === "confirmed" || status === "in_progress") return { label: "Afregnes", className: "border-feature-lilac/40 bg-feature-lilac/10 text-feature-lilac-foreground" };
-  if (status === "pending") return { label: "Afventer", className: "border-feature-warm/40 bg-feature-warm/10 text-feature-warm-foreground" };
-  return { label: "Status ukendt", className: "border-border bg-secondary/50 text-muted-foreground" };
+// Status-badge til medarbejderens aftaleliste. Betaling/faktura kommer
+// udelukkende fra det integrerede regnskabsprogram (orders.payment_status /
+// invoice_status synces af accounting-cron). Vi blander ALDRIG ordre-status
+// ind i betalingsvisningen, da en aftale kan være "completed" uden faktura
+// endnu.
+const paymentMeta = (
+  orderStatus?: string | null,
+  paymentStatus?: string | null,
+  invoiceStatus?: string | null,
+) => {
+  // Aftale endnu ikke udført → vis blot "Planlagt".
+  if (orderStatus !== "completed") {
+    if (orderStatus === "pending") return { label: "Afventer godkendelse", className: "border-feature-warm/40 bg-feature-warm/10 text-feature-warm-foreground" };
+    return { label: "Planlagt", className: "border-border bg-secondary/50 text-muted-foreground" };
+  }
+  // Aftale udført → spejl regnskabsprogrammets betalingsstatus.
+  if (paymentStatus === "paid") return { label: "Betalt", className: "border-feature-cool/40 bg-feature-cool/10 text-feature-cool-foreground" };
+  if (paymentStatus === "overdue") return { label: "Forfalden", className: "border-destructive/40 bg-destructive/10 text-destructive" };
+  if (paymentStatus === "unpaid") return { label: "Afventer betaling", className: "border-feature-lilac/40 bg-feature-lilac/10 text-feature-lilac-foreground" };
+  if (invoiceStatus === "booked" || invoiceStatus === "draft") return { label: "Faktureret", className: "border-feature-lilac/40 bg-feature-lilac/10 text-feature-lilac-foreground" };
+  // Udført, men endnu ingen sync fra regnskabsprogrammet.
+  return { label: "Afventer fakturering", className: "border-border bg-secondary/50 text-muted-foreground" };
 };
 
 const miniStopIcon = (n: number, color: string, done: boolean) =>
@@ -694,7 +709,7 @@ const EmployeeApp = () => {
                         const arrivalLabel = s.planned_arrival
                           ? format(new Date(s.planned_arrival), "HH:mm")
                           : null;
-                        const pay = paymentMeta(s.order_status);
+                        const pay = paymentMeta(s.order_status, (s as any).order_payment_status, (s as any).order_invoice_status);
                         return (
                           <button
                             key={s.id}
