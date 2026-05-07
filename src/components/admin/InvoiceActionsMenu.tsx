@@ -106,11 +106,11 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
       onClick={(e) => e.stopPropagation()}
     >
       {/* Synkronisér nu */}
-      <Tooltip>
+      <Tooltip delayDuration={150}>
         <TooltipTrigger asChild>
           <Button
             variant="ghost" size="sm"
-            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-secondary"
+            className="h-8 w-8 p-0 border border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
             disabled={busy !== null}
             onClick={() => run("sync_now")}
             aria-label="Synkronisér med regnskabsprogram"
@@ -118,7 +118,7 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
             <Spinner a="sync_now" fallback={<RefreshCw className="h-3.5 w-3.5" />} />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="top">
+        <TooltipContent side="top" className="bg-popover border-border">
           <div className="text-xs">Hent friske data fra regnskabsprogrammet</div>
           <div className="text-[10px] opacity-70">Sidst synket: {syncedLabel}</div>
         </TooltipContent>
@@ -127,14 +127,14 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
       {/* Send rykker — split-knap. Skjules når alle rykkere er sendt */}
       {isInvoiced && !isPaid && !isCredited && !allRemindersSent && (
         <div className="inline-flex rounded-md shadow-sm">
-          <Tooltip>
+          <Tooltip delayDuration={150}>
             <TooltipTrigger asChild>
               <Button
                 variant="outline" size="sm"
                 className={`h-8 rounded-r-none border-r-0 px-2.5 text-xs font-medium ${
                   isOverdue
-                    ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15"
-                    : "border-amber-300/70 bg-amber-50 text-amber-900 hover:bg-amber-100 hover:text-amber-950"
+                    ? "border-destructive/50 bg-destructive/15 text-destructive hover:bg-destructive/25 hover:text-destructive"
+                    : "border-amber-400 bg-amber-100 text-amber-900 hover:bg-amber-200 hover:text-amber-950"
                 }`}
                 disabled={busy !== null}
                 onClick={() => sendReminder(`reminder${nextReminderNumber}` as ReminderType)}
@@ -143,7 +143,7 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
                 <span className="ml-1.5">Send {reminderLabel}</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="top" className="max-w-[260px]">
+            <TooltipContent side="top" className="max-w-[260px] bg-popover border-border">
               <div className="text-xs font-medium">Send {reminderLabel} via dit regnskabsprogram</div>
               {sentCount > 0 && (
                 <div className="mt-1 text-[11px] opacity-80">
@@ -164,8 +164,8 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
                 variant="outline" size="sm"
                 className={`h-8 rounded-l-none px-1.5 ${
                   isOverdue
-                    ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15"
-                    : "border-amber-300/70 bg-amber-50 text-amber-900 hover:bg-amber-100"
+                    ? "border-destructive/50 bg-destructive/15 text-destructive hover:bg-destructive/25 hover:text-destructive"
+                    : "border-amber-400 bg-amber-100 text-amber-900 hover:bg-amber-200 hover:text-amber-950"
                 }`}
                 disabled={busy !== null}
                 aria-label="Flere rykker-typer"
@@ -173,7 +173,7 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
                 <ChevronDown className="h-3.5 w-3.5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-60 bg-popover border-border shadow-lg">
               <DropdownMenuLabel className="text-[10px] uppercase tracking-wide text-muted-foreground">
                 Rykker-historik &amp; valg
               </DropdownMenuLabel>
@@ -219,11 +219,11 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
 
       {/* Når alle 3 rykkere er sendt vis kun "Send til inkasso" */}
       {isInvoiced && !isPaid && !isCredited && allRemindersSent && (
-        <Tooltip>
+        <Tooltip delayDuration={150}>
           <TooltipTrigger asChild>
             <Button
               variant="outline" size="sm"
-              className="h-8 px-2.5 text-xs font-medium border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20"
+              className="h-8 px-2.5 text-xs font-medium border-destructive/50 bg-destructive/15 text-destructive hover:bg-destructive/25 hover:text-destructive"
               disabled={busy !== null}
               onClick={() => sendReminder("collection")}
             >
@@ -231,17 +231,17 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
               <span className="ml-1.5">Send til inkasso</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="top">Alle 3 rykkere er sendt — næste skridt er inkasso</TooltipContent>
+          <TooltipContent side="top" className="bg-popover border-border">Alle 3 rykkere er sendt — næste skridt er inkasso</TooltipContent>
         </Tooltip>
       )}
 
       {/* Markér som betalt */}
       {isInvoiced && !isPaid && !isCredited && (
-        <Tooltip>
+        <Tooltip delayDuration={150}>
           <TooltipTrigger asChild>
             <Button
               variant="outline" size="sm"
-              className="h-8 px-2.5 text-xs font-medium border-success/30 bg-success/5 text-success hover:bg-success/10 hover:text-success"
+              className="h-8 px-2.5 text-xs font-medium border-success/40 bg-success/10 text-success hover:bg-success/20 hover:text-success"
               disabled={busy !== null}
               onClick={() => setConfirm("mark_paid")}
             >
@@ -249,17 +249,17 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
               <span className="ml-1.5">Markér betalt</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="top">Bogfør betaling i regnskabsprogrammet</TooltipContent>
+          <TooltipContent side="top" className="bg-popover border-border">Bogfør betaling i regnskabsprogrammet</TooltipContent>
         </Tooltip>
       )}
 
       {/* Krediter faktura */}
       {isInvoiced && !isCredited && (
-        <Tooltip>
+        <Tooltip delayDuration={150}>
           <TooltipTrigger asChild>
             <Button
               variant="ghost" size="sm"
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              className="h-8 w-8 p-0 border border-border bg-card text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:border-destructive/40"
               disabled={busy !== null}
               onClick={() => setConfirm("credit_invoice")}
               aria-label="Krediter faktura"
@@ -267,17 +267,17 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
               <Spinner a="credit_invoice" fallback={<Receipt className="h-3.5 w-3.5" />} />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="top">Opret kreditnota for hele fakturaen</TooltipContent>
+          <TooltipContent side="top" className="bg-popover border-border">Opret kreditnota for hele fakturaen</TooltipContent>
         </Tooltip>
       )}
 
       {/* Annullér kladde */}
       {!isInvoiced && (
-        <Tooltip>
+        <Tooltip delayDuration={150}>
           <TooltipTrigger asChild>
             <Button
               variant="ghost" size="sm"
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              className="h-8 w-8 p-0 border border-border bg-card text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:border-destructive/40"
               disabled={busy !== null}
               onClick={() => setConfirm("void_draft")}
               aria-label="Annullér kladde"
@@ -285,7 +285,7 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
               <Spinner a="void_draft" fallback={<Ban className="h-3.5 w-3.5" />} />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="top">Slet faktura-kladden</TooltipContent>
+          <TooltipContent side="top" className="bg-popover border-border">Slet faktura-kladden</TooltipContent>
         </Tooltip>
       )}
 
