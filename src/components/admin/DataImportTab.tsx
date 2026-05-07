@@ -110,7 +110,7 @@ const detectCustomerType = (row: Row, mapping: Mapping, fallback: "private" | "b
 
 // ---------- Per-entity import-panel ----------
 const ImportPanel = ({
-  entity, businessId, existingEmails, existingProductNumbers, existingExternalOrderNumbers, existingCategories,
+  entity, businessId, existingEmails, existingProductNumbers, existingExternalOrderNumbers, existingCategories, existingCustomers, existingServices,
 }: {
   entity: EntityType;
   businessId: string;
@@ -118,6 +118,8 @@ const ImportPanel = ({
   existingProductNumbers: Set<string>;
   existingExternalOrderNumbers: Set<string>;
   existingCategories: { category: string; subcategories: string[] }[];
+  existingCustomers: { id: string; name: string; email: string; cvr?: string | null; phone?: string | null; zip_code?: string | null }[];
+  existingServices: { id: string; name: string; product_number?: string | null; unit?: string | null; base_price?: number | null }[];
 }) => {
   const fields = FIELD_DEFS[entity];
   const [file, setFile] = useState<File | null>(null);
@@ -134,12 +136,16 @@ const ImportPanel = ({
   // services: AI-klassificering pr. række index → resultat
   const [classifications, setClassifications] = useState<Record<number, { service_category?: string; subcategory?: string; is_new_category?: boolean; is_new_subcategory?: boolean; confidence?: number }>>({});
   const [classifying, setClassifying] = useState(false);
+  // orders: AI-match pr. række index
+  const [orderMatches, setOrderMatches] = useState<Record<number, { customer_id?: string | null; customer_match_reason?: string; customer_confidence?: number; service_id?: string | null; service_match_reason?: string; service_confidence?: number; inferred_unit_price?: number | null }>>({});
+  const [matching, setMatching] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const reset = () => {
     setFile(null); setRows([]); setHeaders([]); setMapping({});
     setAiNotes(null); setConfidence(null); setDone(null);
     setClassifications({});
+    setOrderMatches({});
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -220,6 +226,49 @@ const ImportPanel = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapping.name, mapping.description, mapping.service_category, mapping.subcategory, rows.length]);
 
+  // Match ordrer mod eksisterende kunder + services
+  const matchOrders = async (currentMapping: Mapping, currentRows: Row[]) => {
+    if (entity !== "orders" || currentRows.length === 0) return;
+    setMatching(true);
+    try {
+      const items = currentRows.slice(0, 200).map((r) => ({
+        customer_email: get(r, currentMapping, "customer_email") || "",
+        customer_name: get(r, currentMapping, "customer_name") || "",
+        company_name: get(r, currentMapping, "company_name") || "",
+        cvr: get(r, currentMapping, "cvr") || "",
+        phone: get(r, currentMapping, "customer_phone") || "",
+        zip_code: get(r, currentMapping, "zip_code") || "",
+        service_name: get(r, currentMapping, "service_name") || "",
+        product_number: get(r, currentMapping, "product_number") || "",
+        unit: get(r, currentMapping, "unit") || "",
+        unit_price: get(r, currentMapping, "unit_price") || "",
+      }));
+      const lightCustomers = existingCustomers.slice(0, 800).map((c) => ({
+        id: c.id, name: c.name, email: c.email, cvr: c.cvr || null, phone: c.phone || null, zip_code: c.zip_code || null,
+      }));
+      const lightServices = existingServices.slice(0, 400).map((s) => ({
+        id: s.id, name: s.name, product_number: s.product_number || null, unit: s.unit || null, base_price: s.base_price ?? null,
+      }));
+      const { data, error } = await supabase.functions.invoke("import-customers-ai", {
+        body: { mode: "match_orders", items, customers: lightCustomers, services: lightServices },
+      });
+      if (error) throw error;
+      const arr: any[] = data?.matches || [];
+      const map: Record<number, any> = {};
+      arr.forEach((m, i) => { if (m) map[i] = m; });
+      setOrderMatches(map);
+    } catch {
+      // stille fejl
+    } finally { setMatching(false); }
+  };
+
+  useEffect(() => {
+    if (entity === "orders" && rows.length > 0 && Object.keys(mapping).length > 0 && !aiLoading) {
+      matchOrders(mapping, rows);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapping.customer_email, mapping.customer_name, mapping.company_name, mapping.cvr, mapping.service_name, mapping.product_number, rows.length]);
+
   // ---------- prepared rækker afhængigt af entity ----------
   const prepared = useMemo(() => {
     const seenEmails = new Set<string>();
@@ -294,21 +343,26 @@ const ImportPanel = ({
       // orders
       const customer_email = (get(row, mapping, "customer_email") || "").toLowerCase();
       const ext = get(row, mapping, "external_order_number");
-      if (!customer_email) errors.push("Mangler kunde e-mail");
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer_email)) errors.push("Ugyldig kunde e-mail");
+      const idxOrd = rows.indexOf(row);
+      const match = orderMatches[idxOrd];
+      if (!customer_email && !match?.customer_id) errors.push("Mangler kunde e-mail eller match");
+      else if (customer_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer_email)) errors.push("Ugyldig kunde e-mail");
       const dupKey = ext?.toLowerCase();
       if (dupKey && existingExternalOrderNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = "Ordrenr. findes"; }
       else if (dupKey && seenOrderNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = "Dublet i fil"; }
       if (dupKey) seenOrderNumbers.add(dupKey);
 
       const qty = parseNum(get(row, mapping, "quantity")) ?? 1;
-      const unit_price = parseNum(get(row, mapping, "unit_price"));
+      const rawUnitPrice = parseNum(get(row, mapping, "unit_price"));
+      const unit_price = rawUnitPrice ?? (match?.inferred_unit_price ?? undefined);
       const total_amount = parseNum(get(row, mapping, "total_amount")) ?? (unit_price ? unit_price * qty : 0);
+      const matchedCustomer = match?.customer_id ? existingCustomers.find((c) => c.id === match.customer_id) : undefined;
+      const matchedService = match?.service_id ? existingServices.find((s) => s.id === match.service_id) : undefined;
       return {
         source: row, kind: "order" as const,
         external_order_number: ext,
-        customer_email,
-        customer_name: get(row, mapping, "customer_name") || get(row, mapping, "company_name") || "Ukendt",
+        customer_email: customer_email || matchedCustomer?.email || "",
+        customer_name: get(row, mapping, "customer_name") || get(row, mapping, "company_name") || matchedCustomer?.name || "Ukendt",
         customer_phone: cleanPhone(get(row, mapping, "customer_phone")),
         company_name: get(row, mapping, "company_name"),
         cvr: get(row, mapping, "cvr")?.replace(/\D/g, "") || undefined,
@@ -323,10 +377,18 @@ const ImportPanel = ({
         status: (get(row, mapping, "status") || "completed").toLowerCase(),
         payment_terms_days: parseDays(get(row, mapping, "payment_terms_days")),
         notes: get(row, mapping, "notes"),
+        matched_customer_id: match?.customer_id || null,
+        matched_customer_name: matchedCustomer?.name,
+        customer_match_reason: match?.customer_match_reason,
+        customer_confidence: match?.customer_confidence,
+        matched_service_id: match?.service_id || null,
+        matched_service_name: matchedService?.name,
+        service_match_reason: match?.service_match_reason,
+        service_confidence: match?.service_confidence,
         errors, isDuplicate, duplicateReason,
       };
     });
-  }, [rows, mapping, defaultType, entity, existingEmails, existingProductNumbers, existingExternalOrderNumbers, classifications]);
+  }, [rows, mapping, defaultType, entity, existingEmails, existingProductNumbers, existingExternalOrderNumbers, classifications, orderMatches, existingCustomers, existingServices]);
 
   const stats = useMemo(() => ({
     total: prepared.length,
@@ -388,6 +450,7 @@ const ImportPanel = ({
         for (const r of valid as any[]) {
           const { data: orderRow, error: orderErr } = await supabase.from("orders").insert({
             business_id: businessId,
+            customer_id: r.matched_customer_id || null,
             customer_name: r.customer_name,
             customer_email: r.customer_email,
             customer_phone: r.customer_phone || null,
@@ -406,6 +469,7 @@ const ImportPanel = ({
           if (orderErr) throw orderErr;
           const { error: itemErr } = await supabase.from("order_items").insert({
             order_id: orderRow.id,
+            service_id: r.matched_service_id || null,
             service_name: r.service_name,
             quantity: r.quantity,
             unit_price: r.unit_price,
@@ -481,6 +545,22 @@ const ImportPanel = ({
           {!classifying && Object.keys(classifications).length > 0 && (
             <span className="ml-auto inline-flex items-center gap-1.5 text-foreground">
               <Wand2 className="h-3 w-3 text-accent" /> {Object.keys(classifications).length} klassificeret
+            </span>
+          )}
+        </div>
+      )}
+
+      {entity === "orders" && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2 text-xs">
+          <Wand2 className="h-3.5 w-3.5 text-accent" />
+          <span className="font-medium text-foreground">Smart matching</span>
+          <span className="text-muted-foreground">
+            AI kobler hver ordre til eksisterende kunder ({existingCustomers.length}) og services ({existingServices.length}) — på email, CVR, varenummer eller navn.
+          </span>
+          {matching && <span className="ml-auto inline-flex items-center gap-1.5 text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Matcher…</span>}
+          {!matching && Object.keys(orderMatches).length > 0 && (
+            <span className="ml-auto inline-flex items-center gap-1.5 text-foreground">
+              <CheckCircle2 className="h-3 w-3 text-accent" /> {Object.values(orderMatches).filter((m: any) => m.customer_id).length} kunder · {Object.values(orderMatches).filter((m: any) => m.service_id).length} services matchet
             </span>
           )}
         </div>
@@ -610,8 +690,30 @@ const ImportPanel = ({
                 </>}
                 {entity === "orders" && <>
                   <td className="px-2 py-1.5 text-foreground">{r.external_order_number || "—"}</td>
-                  <td className="px-2 py-1.5 text-muted-foreground">{r.customer_name} <span className="text-[10px]">({r.customer_email})</span></td>
-                  <td className="px-2 py-1.5 text-muted-foreground">{r.service_name} × {r.quantity}</td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-foreground">{r.customer_name} <span className="text-[10px] text-muted-foreground">({r.customer_email || "—"})</span></span>
+                      {r.matched_customer_id ? (
+                        <Badge className="w-fit bg-accent/15 text-accent hover:bg-accent/20 text-[10px]" title={r.customer_match_reason}>
+                          <CheckCircle2 className="mr-1 h-2.5 w-2.5" /> Eksisterende kunde{typeof r.customer_confidence === "number" ? ` · ${r.customer_confidence}%` : ""}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="w-fit text-[10px]"><Sparkles className="mr-1 h-2.5 w-2.5" /> Ny kunde</Badge>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-foreground">{r.service_name} × {r.quantity}</span>
+                      {r.matched_service_id ? (
+                        <Badge className="w-fit bg-accent/15 text-accent hover:bg-accent/20 text-[10px]" title={r.service_match_reason}>
+                          <CheckCircle2 className="mr-1 h-2.5 w-2.5" /> {r.matched_service_name || "Eksisterende"}{typeof r.service_confidence === "number" ? ` · ${r.service_confidence}%` : ""}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="w-fit text-[10px]"><Sparkles className="mr-1 h-2.5 w-2.5" /> Ny linje</Badge>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-2 py-1.5 text-foreground">{r.total_amount?.toLocaleString("da-DK")} kr</td>
                   <td className="px-2 py-1.5 text-muted-foreground">{r.preferred_date || "—"}</td>
                 </>}
@@ -650,14 +752,16 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
   const [existingProductNumbers, setExistingProductNumbers] = useState<Set<string>>(new Set());
   const [existingExternalOrderNumbers, setExistingExternalOrderNumbers] = useState<Set<string>>(new Set());
   const [existingCategories, setExistingCategories] = useState<{ category: string; subcategories: string[] }[]>([]);
+  const [existingCustomers, setExistingCustomers] = useState<{ id: string; name: string; email: string; cvr?: string | null; phone?: string | null; zip_code?: string | null }[]>([]);
+  const [existingServices, setExistingServices] = useState<{ id: string; name: string; product_number?: string | null; unit?: string | null; base_price?: number | null }[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const [biz, priv, svc, ord] = await Promise.all([
-        supabase.from("business_customers").select("email").eq("business_id", businessId),
-        supabase.from("private_customers").select("email").eq("business_id", businessId),
-        supabase.from("services").select("product_number,service_category,subcategory").eq("business_id", businessId),
+        supabase.from("business_customers").select("id,company_name,contact_name,email,cvr,phone,zip_code").eq("business_id", businessId),
+        supabase.from("private_customers").select("id,name,email,phone,zip_code").eq("business_id", businessId),
+        supabase.from("services").select("id,name,product_number,service_category,subcategory,unit,base_price").eq("business_id", businessId),
         supabase.from("orders").select("external_order_number").eq("business_id", businessId),
       ]);
       if (cancelled) return;
@@ -665,9 +769,15 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
       (biz.data || []).forEach((r: any) => r.email && emails.add(String(r.email).toLowerCase()));
       (priv.data || []).forEach((r: any) => r.email && emails.add(String(r.email).toLowerCase()));
       setExistingEmails(emails);
+      const customers = [
+        ...((biz.data || []) as any[]).map((c) => ({ id: c.id, name: c.company_name || c.contact_name || c.email, email: c.email, cvr: c.cvr, phone: c.phone, zip_code: c.zip_code })),
+        ...((priv.data || []) as any[]).map((c) => ({ id: c.id, name: c.name || c.email, email: c.email, cvr: null, phone: c.phone, zip_code: c.zip_code })),
+      ];
+      setExistingCustomers(customers);
       const prods = new Set<string>();
       (svc.data || []).forEach((r: any) => r.product_number && prods.add(String(r.product_number).toLowerCase()));
       setExistingProductNumbers(prods);
+      setExistingServices(((svc.data || []) as any[]).map((s) => ({ id: s.id, name: s.name, product_number: s.product_number, unit: s.unit, base_price: s.base_price })));
       const catMap = new Map<string, Set<string>>();
       (svc.data || []).forEach((r: any) => {
         const cat = (r.service_category || "").trim();
@@ -739,6 +849,8 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
           existingProductNumbers={existingProductNumbers}
           existingExternalOrderNumbers={existingExternalOrderNumbers}
           existingCategories={existingCategories}
+          existingCustomers={existingCustomers}
+          existingServices={existingServices}
         />
       </SectionCard>
     </div>
