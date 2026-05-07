@@ -773,13 +773,12 @@ export function CustomerNotificationsSettings({
                 </label>
 
                 {activeEvent === "service_upcoming" && (
-                  <LeadTimePicker
+                  <SchedulePicker
                     label="Hvornår skal SMS'en sendes?"
                     channel="sms"
-                    value={smsDrafts[activeEvent].leadMinutes ?? upcomingMinutesBefore}
-                    defaultMinutes={upcomingMinutesBefore}
-                    onChange={(m) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: m } }))}
-                    onReset={() => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: null } }))}
+                    days={smsDrafts[activeEvent].days}
+                    time={smsDrafts[activeEvent].time}
+                    onChange={(s) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], days: s.days, time: s.time } }))}
                   />
                 )}
 
