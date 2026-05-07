@@ -716,7 +716,7 @@ export function makeEconomicAdapter(
               date: paid_at?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
               currency: { code: "DKK" },
               customer: { customerNumber: inv.customer.customerNumber },
-              customerInvoice: { bookedInvoiceNumber: Number(invoice_external_id) },
+              customerInvoice: Number(invoice_external_id),
             }],
           },
         }),
