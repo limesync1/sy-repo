@@ -1180,24 +1180,28 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
       </Card>
 
       <SectionCard
-        title="Upload din fil"
+        title={sharedFile ? "Gennemgå og importér" : "Upload din fil"}
         icon={<UploadCloud />}
-        description="Træk én fil ind — vi finder selv ud af om det er kunder, produkter/services eller aftaler/ordrer (eller alt på én gang). Du kan altid skifte fane bagefter for at importere et andet aspekt af samme fil."
+        description={sharedFile
+          ? "Vi har analyseret filen. Skift mellem kunder, produkter og ordrer for at importere hvert aspekt — det er den samme fil."
+          : "Træk én fil ind — vi finder selv ud af om det er kunder, produkter/services eller aftaler/ordrer (eller alt på én gang)."}
       >
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Vises som:</span>
-          <div className="inline-flex rounded-lg border border-border bg-background p-0.5">
-          {tabs.map((t) => {
-            const m = ENTITY_META[t]; const Icon = m.icon;
-            return (
-              <button key={t} onClick={() => setActive(t)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${active === t ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}>
-                <Icon className="h-3.5 w-3.5" /> {m.label}
-              </button>
-            );
-          })}
+        {sharedFile && (
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Vises som:</span>
+            <div className="inline-flex rounded-lg border border-border bg-background p-0.5">
+              {tabs.map((t) => {
+                const m = ENTITY_META[t]; const Icon = m.icon;
+                return (
+                  <button key={t} onClick={() => setActive(t)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${active === t ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}>
+                    <Icon className="h-3.5 w-3.5" /> {m.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         <ImportPanel
           key={active}
