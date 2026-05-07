@@ -171,6 +171,15 @@ const ImportPanel = ({
   const [matching, setMatching] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  // Hvis parenten leverer en allerede uploadet fil (fx fordi auto-detect skiftede
+  // entitetstype efter upload), så indlæs den automatisk i denne panel.
+  useEffect(() => {
+    if (sharedFile && sharedFile !== file) {
+      handleFile(sharedFile);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sharedFile]);
+
   // Auto-detektion af hvilket indhold filen har (kunder/services/aftaler/blanding).
   const [detection, setDetection] = useState<{
     contains: { customers?: boolean; services?: boolean; orders?: boolean };
