@@ -7,7 +7,6 @@ const corsHeaders = {
 };
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/twilio";
-const SENDER_ID = "Serviceyder"; // alfanumerisk, 11 tegn (Twilios maksimum)
 
 function normalizeDanish(phone: string): string {
   const trimmed = phone.replace(/[\s\-()]/g, "");
@@ -26,6 +25,8 @@ Deno.serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY mangler");
     const TWILIO_API_KEY = Deno.env.get("TWILIO_API_KEY");
     if (!TWILIO_API_KEY) throw new Error("TWILIO_API_KEY mangler");
+    const FROM_NUMBER = Deno.env.get("TWILIO_FROM_NUMBER");
+    if (!FROM_NUMBER) throw new Error("TWILIO_FROM_NUMBER mangler — tilføj dit købte Twilio-nummer i E.164 format");
 
     const { to, message } = await req.json();
     if (!to || typeof to !== "string") throw new Error("'to' er påkrævet");
@@ -36,7 +37,7 @@ Deno.serve(async (req) => {
 
     const body = new URLSearchParams({
       To: toE164,
-      From: SENDER_ID,
+      From: FROM_NUMBER,
       Body: message,
     });
 

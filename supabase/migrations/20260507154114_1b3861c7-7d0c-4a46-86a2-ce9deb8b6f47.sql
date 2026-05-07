@@ -1,0 +1,1 @@
+UPDATE public.customer_notification_queue SET send_at = now(), status='pending', last_error=NULL WHERE channel='sms' AND status='pending' AND recipient_phone IS NOT NULL;
