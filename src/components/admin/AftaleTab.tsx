@@ -1241,14 +1241,16 @@ const AftaleTab = ({
           <div className="space-y-2">
             {upcomingSubs.slice(0, 4).map(sub => {
               const nextDate = new Date(sub.next_service_date!);
-              const daysUntil = Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+              const mins = Math.round((nextDate.getTime() - Date.now()) / 60000);
               const profile = (sub as any).profiles;
+              const isUrgent = mins <= 60 * 24 * 2; // ≤ 2 dage
+              const badgeLabel = relativeFromNow(nextDate, { short: true });
               return (
                 <div key={sub.id} className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5 text-sm">
                   <div className="flex items-center gap-2">
                     <span className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold ${
-                      daysUntil <= 2 ? "bg-destructive/10 text-destructive" : "bg-secondary text-foreground"
-                    }`}>{daysUntil <= 0 ? "!" : `${daysUntil}d`}</span>
+                      isUrgent ? "bg-destructive/10 text-destructive" : "bg-secondary text-foreground"
+                    }`}>{mins <= 0 ? "!" : badgeLabel}</span>
                     <span className="font-medium text-foreground">{sub.service_name}</span>
                     <span className="text-muted-foreground">— {profile?.display_name || "Kunde"}</span>
                   </div>
@@ -1317,6 +1319,7 @@ const AftaleTab = ({
               const b = new Date(nextDate); b.setHours(0,0,0,0);
               return Math.round((b.getTime() - a.getTime()) / 86400000);
             })();
+            const minutesUntilNext = nextDate ? Math.round((nextDate.getTime() - Date.now()) / 60000) : null;
             const routeStop = stopByOrder[order.id];
             const routeInfo = routeStop?.route;
             const routeDate = routeInfo?.route_date ? new Date(routeInfo.route_date) : null;
@@ -1476,7 +1479,7 @@ const AftaleTab = ({
                                 {nextDate.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" })}
                               </span>
                               <span className="opacity-80">
-                                · {daysUntilNext <= 0 ? "i dag" : daysUntilNext === 1 ? "i morgen" : `om ${daysUntilNext} dage`}
+                                · {relativeFromNow(nextDate)}
                               </span>
                             </div>
                           )}
