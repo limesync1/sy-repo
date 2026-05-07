@@ -1086,6 +1086,8 @@ const ImportPanel = ({
 
 const DataImportTab = ({ businessId, businessName }: { businessId: string; businessName: string }) => {
   const [active, setActive] = useState<EntityType>("customers");
+  // Delt fil — så auto-detect kan skifte fane uden at brugeren skal uploade igen.
+  const [sharedFile, setSharedFile] = useState<File | null>(null);
 
   // Lyt på events fra ImportPanel når AI foreslår at skifte til anden entitetstype.
   useEffect(() => {
@@ -1205,6 +1207,8 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
           existingCategories={existingCategories}
           existingCustomers={existingCustomers}
           existingServices={existingServices}
+          sharedFile={sharedFile}
+          onFileChange={setSharedFile}
         />
       </SectionCard>
     </div>
