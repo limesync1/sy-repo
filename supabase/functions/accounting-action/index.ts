@@ -107,6 +107,9 @@ Deno.serve(async (req) => {
         if (typeof adapter.voidDraft !== "function") {
           return json({ error: `${integ.provider} understøtter ikke annullering via API` }, 400);
         }
+        if (bookedInvoiceId || link?.external_type === "invoice_booked") {
+          return json({ error: "Fakturaen er allerede bogført — brug kreditering i stedet for annullering." }, 400);
+        }
         if (!link?.external_id) return json({ error: "Ingen kladde at annullere" }, 400);
         await adapter.voidDraft({
           external_id: link.external_id,
