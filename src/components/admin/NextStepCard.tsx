@@ -157,12 +157,12 @@ export default function NextStepCard({ order }: { order: Order }) {
         <Icon className={`h-4 w-4 ${cls.icon}`} />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="flex items-baseline gap-2">
+        {!step.terminal && (
           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {step.terminal ? "Status" : "Næste skridt"}
+            Næste skridt
           </span>
-        </div>
-        <p className={`mt-0.5 text-sm font-semibold ${cls.title}`}>{step.title}</p>
+        )}
+        <p className={`${step.terminal ? "" : "mt-0.5"} text-sm font-semibold ${cls.title}`}>{step.title}</p>
         <p className="mt-0.5 text-xs text-muted-foreground">{step.description}</p>
       </div>
     </div>
