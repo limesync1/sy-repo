@@ -92,13 +92,37 @@ function friendlyEconomicError(status: number, body: string): string {
     // Vi samler ALT så brugeren faktisk kan se hvilket felt der fejler.
     const parts: string[] = [];
     if (j?.message) parts.push(String(j.message));
-    const errs = Array.isArray(j?.errors) ? j.errors : [];
-    for (const e of errs) {
-      const field = e?.propertyName ?? e?.property ?? "";
-      const msg = e?.errorMessage ?? e?.message ?? "";
-      const hint = e?.developerHint ?? "";
-      const piece = [field && `[${field}]`, msg, hint && `(${hint})`].filter(Boolean).join(" ");
-      if (piece) parts.push(piece);
+    // E-conomic putter ofte detaljerne i et 'errors'-objekt (key→{errors:[...]}) ELLER
+    // i et top-level errors array. Vi rekursivt indsamler ALT så brugeren ser
+    // præcis hvilket felt der fejler — ikke bare "Schema validation failed.".
+    const collectErrs = (node: any, prefix = ""): void => {
+      if (!node) return;
+      if (Array.isArray(node)) {
+        for (const e of node) {
+          if (e && typeof e === "object") {
+            const field = e.propertyName ?? e.property ?? prefix;
+            const msg = e.errorMessage ?? e.message ?? "";
+            const hint = e.developerHint ?? "";
+            const piece = [field && `[${field}]`, msg, hint && `(${hint})`].filter(Boolean).join(" ");
+            if (piece) parts.push(piece);
+          } else if (typeof e === "string") {
+            parts.push(prefix ? `[${prefix}] ${e}` : e);
+          }
+        }
+      } else if (typeof node === "object") {
+        if (Array.isArray(node.errors)) collectErrs(node.errors, prefix);
+        for (const [k, v] of Object.entries(node)) {
+          if (k === "errors" || k === "message") continue;
+          if (v && typeof v === "object") collectErrs(v, prefix ? `${prefix}.${k}` : k);
+        }
+      }
+    };
+    collectErrs(j?.errors);
+    if (parts.length <= 1 && j && typeof j === "object") {
+      for (const [k, v] of Object.entries(j)) {
+        if (["message","errors","errorCode","developerHint","logId","logTime","httpStatusCode"].includes(k)) continue;
+        if (v && typeof v === "object") collectErrs(v, k);
+      }
     }
     if (parts.length) return `E-conomic: ${parts.join(" — ")}`;
   } catch { /* ignore */ }
