@@ -599,6 +599,14 @@ const ImportPanel = ({
   const meta = ENTITY_META[entity];
   const Icon = meta.icon;
 
+  // Smarte stats: privat vs erhverv (skal stå før evt. early return for at hooks-rækkefølgen er stabil).
+  const customerSplit = useMemo(() => {
+    if (entity !== "customers") return null;
+    let priv = 0, biz = 0;
+    prepared.forEach((r: any) => { if (r.type === "business") biz++; else priv++; });
+    return { priv, biz };
+  }, [prepared, entity]);
+
   if (!file) {
     return (
       <div
@@ -628,14 +636,6 @@ const ImportPanel = ({
       </div>
     );
   }
-
-  // Smarte stats: privat vs erhverv, kategori-distribution m.m.
-  const customerSplit = useMemo(() => {
-    if (entity !== "customers") return null;
-    let priv = 0, biz = 0;
-    prepared.forEach((r: any) => { if (r.type === "business") biz++; else priv++; });
-    return { priv, biz };
-  }, [prepared, entity]);
 
   const fileSizeKb = file ? Math.round(file.size / 1024) : 0;
   const mappedCount = Object.values(mapping).filter(Boolean).length;
