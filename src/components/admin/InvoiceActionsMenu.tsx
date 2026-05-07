@@ -121,7 +121,6 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
         credit_invoice: "Faktura krediteret",
         void_draft: "Kladde annulleret",
         mark_paid: "Faktura markeret som betalt",
-        sync_now: "Synkroniseret med regnskabsprogram",
       };
       const note = (data as any)?.result?.note as string | undefined;
       toast.success(labels[action], note ? { description: note } : undefined);
@@ -297,25 +296,6 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
       className="flex flex-wrap items-center gap-1.5"
       onClick={(e) => e.stopPropagation()}
     >
-      {/* Synkronisér nu */}
-      <Tooltip delayDuration={150}>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost" size="sm"
-            className="h-8 w-8 p-0 border border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
-            disabled={busy !== null}
-            onClick={() => run("sync_now")}
-            aria-label="Synkronisér med regnskabsprogram"
-          >
-            <Spinner a="sync_now" fallback={<RefreshCw className="h-3.5 w-3.5" />} />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="top" className="bg-popover border-border">
-          <div className="text-xs">Hent friske data fra regnskabsprogrammet</div>
-          <div className="text-[10px] opacity-70">Sidst synket: {syncedLabel}</div>
-        </TooltipContent>
-      </Tooltip>
-
       {/* Send rykker — split-knap. Skjules når alle rykkere er sendt */}
       {isInvoiced && !isPaid && !isCredited && !allRemindersSent && (
         <div className="inline-flex rounded-md shadow-sm">
