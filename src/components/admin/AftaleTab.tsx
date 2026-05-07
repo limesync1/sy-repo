@@ -1469,36 +1469,31 @@ const AftaleTab = ({
                 id={`order-${order.id}`}
                 className={`surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden transition-shadow hover:shadow-md ${
                   draggingOrderId === order.id ? "opacity-60" : ""
-                } ${isExpanded ? "ring-1 ring-primary/20" : ""}`}
+                } ${isExpanded ? "ring-1 ring-accent/30 border-accent/30" : ""}`}
               >
                 {/* Header — kompakt 3-kolonne layout: identitet · status/meta · beløb.
                     Designet så hele aftalen kan scannes på én række på desktop. */}
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setExpandedOrder(isExpanded ? null : order.id);
-                    }
-                  }}
-                  className="block w-full cursor-pointer text-left transition-colors hover:bg-secondary/30"
-                >
-                  <div className="flex items-start gap-3 p-3 sm:p-3.5">
+                <div className={`group/card relative flex items-start gap-3 p-3 sm:p-3.5 transition-colors ${isExpanded ? "bg-secondary/40" : "hover:bg-secondary/30"}`}>
+                  {/* Hele headeren er klikbar (bag indholdet) — separate knap-elementer ovenpå er stadig interaktive */}
+                  <button
+                    type="button"
+                    aria-label={isExpanded ? "Skjul detaljer" : "Vis detaljer"}
+                    onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
+                    className="absolute inset-0 z-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded-xl"
+                  />
                     {/* Drag-håndtag */}
-                    {canDragToRoute && <div className="pt-1"><OrderDragHandle orderId={order.id} order={order} /></div>}
+                    {canDragToRoute && <div className="relative z-10 pt-1"><OrderDragHandle orderId={order.id} order={order} /></div>}
 
                     {/* Ikon-badge */}
                     <div
-                      className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-secondary/40 text-foreground"
+                      className="relative z-10 mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground"
                       title={primaryCategory || "Aftale"}
                     >
                       <span className="text-base leading-none">{categoryIcon}</span>
                     </div>
 
                     {/* Midte: identitet + meta — to faste linjer, status-pills på linje 1 */}
-                    <div className="min-w-0 flex-1 space-y-1">
+                    <div className="relative z-10 min-w-0 flex-1 space-y-1 pointer-events-none">
                       {/* Linje 1: navn + alle status-pills inline */}
                       <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
                         <h3 className="truncate text-sm font-semibold text-foreground">{order.customer_name}</h3>
@@ -1615,9 +1610,9 @@ const AftaleTab = ({
                     </div>
 
                     {/* Højre kolonne: beløb stablet over handlinger + chevron */}
-                    <div className="flex shrink-0 flex-col items-end gap-1.5 pl-2">
-                      <div className="flex items-center gap-2">
-                        <div className="flex flex-col items-end leading-none">
+                    <div className="relative z-10 flex shrink-0 flex-col items-end gap-1.5 pl-2">
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-end leading-none pointer-events-none">
                           <span className="text-lg font-bold tabular-nums text-foreground">
                             {currentTotal.toLocaleString("da-DK")}
                             <span className="ml-0.5 text-xs font-medium text-muted-foreground">kr</span>
@@ -1628,15 +1623,19 @@ const AftaleTab = ({
                             </span>
                           )}
                         </div>
-                        <span className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setExpandedOrder(isExpanded ? null : order.id); }}
+                          aria-label={isExpanded ? "Skjul" : "Vis detaljer"}
+                          className="relative z-10 flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground hover:border-border"
+                        >
                           {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                        </span>
+                        </button>
                       </div>
-                      {((order as any).invoice_external_id || (order as any).accounting_synced_at) && (
+                      {((order as any).invoice_external_id || (order as any).accounting_synced_at) && order.status !== "cancelled" && (
                         <InvoiceActionsMenu order={order as any} compact />
                       )}
                     </div>
-                  </div>
                 </div>
 
                 {/* Expanded content */}
