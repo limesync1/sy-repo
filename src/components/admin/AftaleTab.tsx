@@ -943,6 +943,14 @@ const AftaleTab = ({
   };
 
   const handleResponse = async (orderId: string) => {
+    void handleResponse;
+  };
+  // placeholder removed by next patch
+  // eslint-disable-next-line
+  const _noop = () => {};
+  const handleMarkPaidStub = async () => {};
+  // restore original
+  async function _origHandleResponse(orderId: string) {
     try {
       const adjustedData = responseType === "adjusted" ? adjustedItems[orderId] : null;
       const adjustedTotal = adjustedData ? adjustedData.reduce((sum, i) => sum + i.total_price, 0) : null;
