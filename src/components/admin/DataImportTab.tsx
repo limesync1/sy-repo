@@ -552,7 +552,7 @@ const ImportPanel = ({
         errors, isDuplicate, duplicateReason,
       };
     });
-  }, [rows, mapping, defaultType, entity, existingEmails, existingProductNumbers, existingExternalOrderNumbers, classifications, orderMatches, existingCustomers, existingServices]);
+  }, [rows, mapping, defaultType, entity, existingEmails, existingProductNumbers, existingExternalOrderNumbers, classifications, orderMatches, existingCustomers, existingServices, existingByEmail, existingByCvr, existingByCustomerNumber, existingByEan, existingByOrderNumber, existingByProductNumber, existingServiceNames]);
 
   // Hvilke rækker er valgt til import? Default = alle uden fejl/dublet (minus
   // dem brugeren manuelt har fravalgt) plus dem brugeren har tvunget med.
