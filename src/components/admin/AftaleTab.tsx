@@ -17,7 +17,7 @@ import {
   ChevronDown, ChevronUp, Clock, Mail, Phone, ArrowRight,
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
   Play, Pause, Search, Route as RouteIcon, MapPin, Plus as PlusIcon,
-  GripVertical, Loader2, Tag, Palette, Trash2,
+  GripVertical, Loader2, Tag, Palette, Trash2, ArrowUpDown, AlertCircle,
 } from "lucide-react";
 import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
@@ -202,12 +202,12 @@ const buildAdjustmentItem = (item: any, service?: BusinessService): AdjustmentIt
    completed  → Udført / afsluttet
    cancelled  → Annulleret
 */
-const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; color: string; bg: string; dot: string }> = {
-  pending: { label: "Ny bestilling", icon: Clock, color: "text-foreground", bg: "bg-secondary", dot: "bg-amber-500" },
-  confirmed: { label: "Aftalt", icon: CheckCircle2, color: "text-foreground", bg: "bg-secondary", dot: "bg-blue-500" },
-  in_progress: { label: "I gang", icon: RefreshCw, color: "text-foreground", bg: "bg-secondary", dot: "bg-violet-500" },
-  completed: { label: "Udført", icon: CheckCircle2, color: "text-foreground", bg: "bg-secondary", dot: "bg-emerald-500" },
-  cancelled: { label: "Annulleret", icon: XCircle, color: "text-foreground", bg: "bg-secondary", dot: "bg-destructive" },
+const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; cls: string; dot: string }> = {
+  pending:     { label: "Ny bestilling", icon: AlertCircle,   cls: "border-amber-300/60 bg-amber-50 text-amber-800",      dot: "bg-amber-500" },
+  confirmed:   { label: "Aftalt",        icon: CheckCircle2,  cls: "border-blue-300/60 bg-blue-50 text-blue-800",         dot: "bg-blue-500" },
+  in_progress: { label: "I gang",        icon: RefreshCw,     cls: "border-violet-300/60 bg-violet-50 text-violet-800",   dot: "bg-violet-500" },
+  completed:   { label: "Udført",        icon: CheckCircle2,  cls: "border-success/30 bg-success/10 text-success",        dot: "bg-success" },
+  cancelled:   { label: "Annulleret",    icon: XCircle,       cls: "border-border bg-secondary text-muted-foreground",    dot: "bg-muted-foreground" },
 };
 
 const PRICING_LABELS: Record<string, string> = {
