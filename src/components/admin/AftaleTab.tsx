@@ -1713,6 +1713,9 @@ const AftaleTab = ({
                     {/* Linked subscriptions (recurring service schedule) */}
                     <LinkedSubscriptionInfo orderId={order.id} subscriptions={allSubs} />
 
+                    {/* Tidslinje — viser bestilling, faktura, rykkere, betalinger og status-skift */}
+                    <OrderTimeline order={order as any} />
+
                     {/* Customer note */}
                     {order.notes && (
                       <div className="flex gap-2 rounded-xl bg-card border border-border px-3.5 py-2.5">
