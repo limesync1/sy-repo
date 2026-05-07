@@ -649,6 +649,7 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
   const [existingEmails, setExistingEmails] = useState<Set<string>>(new Set());
   const [existingProductNumbers, setExistingProductNumbers] = useState<Set<string>>(new Set());
   const [existingExternalOrderNumbers, setExistingExternalOrderNumbers] = useState<Set<string>>(new Set());
+  const [existingCategories, setExistingCategories] = useState<{ category: string; subcategories: string[] }[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -656,7 +657,7 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
       const [biz, priv, svc, ord] = await Promise.all([
         supabase.from("business_customers").select("email").eq("business_id", businessId),
         supabase.from("private_customers").select("email").eq("business_id", businessId),
-        supabase.from("services").select("product_number").eq("business_id", businessId),
+        supabase.from("services").select("product_number,service_category,subcategory").eq("business_id", businessId),
         supabase.from("orders").select("external_order_number").eq("business_id", businessId),
       ]);
       if (cancelled) return;
@@ -667,6 +668,15 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
       const prods = new Set<string>();
       (svc.data || []).forEach((r: any) => r.product_number && prods.add(String(r.product_number).toLowerCase()));
       setExistingProductNumbers(prods);
+      const catMap = new Map<string, Set<string>>();
+      (svc.data || []).forEach((r: any) => {
+        const cat = (r.service_category || "").trim();
+        if (!cat) return;
+        if (!catMap.has(cat)) catMap.set(cat, new Set());
+        const sub = (r.subcategory || "").trim();
+        if (sub) catMap.get(cat)!.add(sub);
+      });
+      setExistingCategories(Array.from(catMap.entries()).map(([category, subs]) => ({ category, subcategories: Array.from(subs) })));
       const ords = new Set<string>();
       (ord.data || []).forEach((r: any) => r.external_order_number && ords.add(String(r.external_order_number).toLowerCase()));
       setExistingExternalOrderNumbers(ords);
@@ -728,6 +738,7 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
           existingEmails={existingEmails}
           existingProductNumbers={existingProductNumbers}
           existingExternalOrderNumbers={existingExternalOrderNumbers}
+          existingCategories={existingCategories}
         />
       </SectionCard>
     </div>
