@@ -651,6 +651,7 @@ const ImportPanel = ({
           description: r.description || null,
           base_price: r.base_price ?? null,
           unit: r.unit || null,
+          interval_options: r.interval ? [r.interval] : ["engangskøb"],
           product_number: r.product_number || null,
           service_category: r.service_category || null,
           subcategory: r.subcategory || null,
@@ -682,7 +683,8 @@ const ImportPanel = ({
                   business_id: businessId,
                   name: r.service_name,
                   base_price: r.unit_price ?? null,
-                  unit: "stk",
+                  unit: r.unit || "stk",
+                  interval_options: r.interval ? [r.interval] : ["engangskøb"],
                   pricing_type: "fast_pris" as const,
                   default_vat_rate: 25,
                   is_active: true,
@@ -718,6 +720,7 @@ const ImportPanel = ({
             quantity: r.quantity,
             unit_price: r.unit_price,
             total_price: r.total_amount,
+            details: { unit: r.unit || null, interval: r.interval || null },
           } as any);
           if (itemErr) throw itemErr;
           created += 1;
