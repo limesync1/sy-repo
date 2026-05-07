@@ -940,6 +940,12 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                       <div className="mt-0.5 text-xs text-muted-foreground truncate">
                         {metaParts.join(" · ") || "Ingen aftaler endnu"}
                       </div>
+                      {/* Aggregeret regnskabsstatus: viser fx "1 forfalden · 1 rykker · 3 betalt" */}
+                      {c.accounting_summary && (
+                        <div className="mt-1.5">
+                          <CustomerOrderStatusSummary summary={c.accounting_summary} />
+                        </div>
+                      )}
                     </button>
 
                     {/* Aftaler */}
