@@ -28,6 +28,11 @@ import SEO from "@/components/SEO";
 import CustomerShell from "@/components/customer/CustomerShell";
 import { PageHeader } from "@/components/admin/shared/AdminUI";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AccountingStatusRow,
+  derivePaymentStatus,
+  type OrderForStatus,
+} from "@/components/shared/OrderStatusBadges";
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "Afventer godkendelse", variant: "outline" },
@@ -440,6 +445,11 @@ const OrderCard = ({ order, onRespond }: {
                 )}
               </div>
             </div>
+          </div>
+          {/* Regnskabsstatus — viser præcis samme betalings-/rykker-/kreditstatus
+              som virksomheden ser, og opdateres automatisk fra deres regnskabsprogram. */}
+          <div className="mt-2">
+            <AccountingStatusRow order={order as OrderForStatus} size="xs" />
           </div>
         </button>
 
