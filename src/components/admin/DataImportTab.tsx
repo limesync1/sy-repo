@@ -550,6 +550,22 @@ const ImportPanel = ({
         </div>
       )}
 
+      {entity === "orders" && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2 text-xs">
+          <Wand2 className="h-3.5 w-3.5 text-accent" />
+          <span className="font-medium text-foreground">Smart matching</span>
+          <span className="text-muted-foreground">
+            AI kobler hver ordre til eksisterende kunder ({existingCustomers.length}) og services ({existingServices.length}) — på email, CVR, varenummer eller navn.
+          </span>
+          {matching && <span className="ml-auto inline-flex items-center gap-1.5 text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Matcher…</span>}
+          {!matching && Object.keys(orderMatches).length > 0 && (
+            <span className="ml-auto inline-flex items-center gap-1.5 text-foreground">
+              <CheckCircle2 className="h-3 w-3 text-accent" /> {Object.values(orderMatches).filter((m: any) => m.customer_id).length} kunder · {Object.values(orderMatches).filter((m: any) => m.service_id).length} services matchet
+            </span>
+          )}
+        </div>
+      )}
+
       {entity === "customers" && (
         <div>
           <p className="mb-2 text-xs font-semibold text-foreground">Standard kundetype (når ikke angivet)</p>
