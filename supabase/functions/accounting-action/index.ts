@@ -61,7 +61,11 @@ Deno.serve(async (req) => {
     let result: any = { ok: true };
 
     try {
-      if (action === "send_reminder") {
+      if (action === "sync_now") {
+        // No-op her — selve pull'en kører i fælles "fresh pull" blokken
+        // nedenfor. Vi sætter blot et flag så vi ikke fejler.
+        result = { ok: true, sync: true };
+      } else if (action === "send_reminder") {
         if (!order.invoice_external_id && !link?.external_id) {
           return json({ error: "Faktura er ikke bogført endnu — kan ikke sende rykker." }, 400);
         }
