@@ -1859,7 +1859,6 @@ const SettingsTab = ({ business }: { business: any }) => {
                       <ToggleSwitch
                         checked={!!plan?.data_import_requested}
                         onChange={() => {
-                          if (!plan?.id) return;
                           const next = !plan.data_import_requested;
                           updatePlan.mutate(
                             { businessId: business.id, patch: { data_import_requested: next } },
