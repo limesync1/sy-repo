@@ -1060,7 +1060,9 @@ const ImportPanel = ({
             {visibleRows.map((r: any, i) => {
               const realIdx = prepared.indexOf(r);
               const sel = isSelected(realIdx, r);
+              const isOpen = expanded.has(realIdx);
               return (
+              <>
               <tr key={safePage * PAGE_SIZE + i} className={`border-t border-border hover:bg-secondary/30 ${!sel ? "opacity-50" : ""}`}>
                 <td className="px-2 py-1.5">
                   <Checkbox
@@ -1075,6 +1077,11 @@ const ImportPanel = ({
                       }
                     }}
                   />
+                </td>
+                <td className="px-1 py-1.5">
+                  <button onClick={() => toggleExpand(realIdx)} className="rounded p-0.5 text-muted-foreground hover:bg-secondary hover:text-foreground" title="Vis alle detaljer">
+                    {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                  </button>
                 </td>
                 <td className="px-2 py-1.5">
                   {r.errors.length > 0 ? (
@@ -1160,6 +1167,14 @@ const ImportPanel = ({
                   <td className="px-2 py-1.5 text-muted-foreground">{r.preferred_date || "—"}</td>
                 </>}
               </tr>
+              {isOpen && (
+                <tr className="bg-secondary/20">
+                  <td colSpan={20} className="px-4 py-3">
+                    <RowDetails row={r} entity={entity} headers={headers} mapping={mapping} />
+                  </td>
+                </tr>
+              )}
+              </>
               );
             })}
           </tbody>
