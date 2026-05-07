@@ -1580,9 +1580,20 @@ const SettingsTab = ({ business }: { business: any }) => {
                     ) : (
                       <>
                         <p className="text-sm font-semibold text-foreground">
-                          {plan.days_left === 1
-                            ? "Sidste dag af din prøveperiode"
-                            : `${plan.days_left} dage tilbage af din prøveperiode`}
+                          {(() => {
+                            const ms = plan.trial_ends_at ? new Date(plan.trial_ends_at).getTime() - Date.now() : null;
+                            if (ms !== null && ms > 0 && ms < 24 * 60 * 60 * 1000) {
+                              const tot = Math.max(1, Math.floor(ms / 60_000));
+                              const h = Math.floor(tot / 60);
+                              const m = tot % 60;
+                              if (h > 0 && m > 0) return `${h} ${h === 1 ? "time" : "timer"} og ${m} min tilbage af din prøveperiode`;
+                              if (h > 0) return `${h} ${h === 1 ? "time" : "timer"} tilbage af din prøveperiode`;
+                              return `${m} ${m === 1 ? "minut" : "minutter"} tilbage af din prøveperiode`;
+                            }
+                            return plan.days_left === 1
+                              ? "Sidste dag af din prøveperiode"
+                              : `${plan.days_left} dage tilbage af din prøveperiode`;
+                          })()}
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
                           Husk at tilføje et betalingskort inden 3 dage — ellers bliver din virksomhed deaktiveret fra Serviceydere.
