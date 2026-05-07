@@ -1009,6 +1009,7 @@ const ImportPanel = ({
                 <th className="px-2 py-1.5 font-medium">Navn</th>
                 <th className="px-2 py-1.5 font-medium">Pris</th>
                 <th className="px-2 py-1.5 font-medium">Enhed</th>
+                <th className="px-2 py-1.5 font-medium">Interval</th>
                 <th className="px-2 py-1.5 font-medium">Varenr.</th>
                 <th className="px-2 py-1.5 font-medium">Kategori → Underkategori</th>
               </>}
@@ -1016,6 +1017,7 @@ const ImportPanel = ({
                 <th className="px-2 py-1.5 font-medium">Ordrenr.</th>
                 <th className="px-2 py-1.5 font-medium">Kunde</th>
                 <th className="px-2 py-1.5 font-medium">Linje</th>
+                <th className="px-2 py-1.5 font-medium">Enhed / interval</th>
                 <th className="px-2 py-1.5 font-medium">Beløb</th>
                 <th className="px-2 py-1.5 font-medium">Dato</th>
               </>}
