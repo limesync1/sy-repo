@@ -85,9 +85,14 @@ export interface BusinessInfo {
 
 export const INTERVAL_LABELS: Record<string, string> = {
   engangskøb: "Engangskøb",
+  "10_min": "Hver 10. minut",
   daglig: "Daglig",
   ugentlig: "Ugentlig",
   hver_14_dag: "Hver 14. dag",
+  hver_4_uge: "Hver 4. uge",
+  hver_8_uge: "Hver 8. uge",
   månedlig: "Månedlig",
   kvartalsvis: "Kvartalsvis",
+  halvårlig: "Halvårlig",
+  årlig: "Årlig",
 };
