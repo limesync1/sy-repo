@@ -1218,34 +1218,107 @@ const AftaleTab = ({
         })()}
       </div>
 
-      {/* Upcoming services alert */}
+      {/* Kommende aftaler — viser de næste planlagte udførelser med kundenavn,
+          status og rute/stop-info så man straks kan se hvor det står. */}
       {upcomingSubs.length > 0 && (
         <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
           <CardContent className="p-4">
-          <div className="mb-2 flex items-center gap-2">
-            <CalendarClock className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-semibold text-foreground">Kommende services</span>
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CalendarClock className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-semibold text-foreground">Kommende aftaler</span>
+            </div>
+            {upcomingSubs.length > 4 && (
+              <span className="text-xs text-muted-foreground">{upcomingSubs.length} i alt</span>
+            )}
           </div>
           <div className="space-y-2">
             {upcomingSubs.slice(0, 4).map(sub => {
               const nextDate = new Date(sub.next_service_date!);
               const mins = Math.round((nextDate.getTime() - Date.now()) / 60000);
-              const profile = (sub as any).profiles;
-              const isUrgent = mins <= 60 * 24 * 2; // ≤ 2 dage
-              const badgeLabel = relativeFromNow(nextDate, { short: true });
+              const isUrgent = mins <= 60 * 24; // ≤ 24 timer
+              const badgeLabel = mins <= 0 ? "Nu" : relativeFromNow(nextDate, { short: true });
+              const linkedOrder = (orders || []).find((o: any) => o.id === (sub as any).order_id);
+              const customerName = linkedOrder?.customer_name
+                || linkedOrder?.company_name
+                || (sub as any).profiles?.display_name
+                || "Ukendt kunde";
+              const orderStatus = linkedOrder?.status as string | undefined;
+              const statusCfg = orderStatus ? (STATUS_CONFIG[orderStatus] || STATUS_CONFIG.pending) : null;
+              const stop = linkedOrder ? stopByOrder[linkedOrder.id] : null;
+              const routeName = stop?.route?.name as string | undefined;
+              const routeColor = (stop?.route?.color as string | undefined) || "#64748b";
+              const stopSeq = stop?.sequence;
+              const stopStatus = formatStopStatus(stop?.status);
+              const isClickable = !!linkedOrder;
               return (
-                <div key={sub.id} className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold ${
-                      isUrgent ? "bg-destructive/10 text-destructive" : "bg-secondary text-foreground"
-                    }`}>{mins <= 0 ? "!" : badgeLabel}</span>
-                    <span className="font-medium text-foreground">{sub.service_name}</span>
-                    <span className="text-muted-foreground">— {profile?.display_name || "Kunde"}</span>
+                <button
+                  key={sub.id}
+                  type="button"
+                  onClick={() => {
+                    if (!linkedOrder) return;
+                    setFilter("active");
+                    setExpandedOrder(linkedOrder.id);
+                    requestAnimationFrame(() => {
+                      const el = document.getElementById(`order-${linkedOrder.id}`);
+                      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+                    });
+                  }}
+                  disabled={!isClickable}
+                  className={`w-full rounded-lg border border-border bg-card px-3 py-2.5 text-left text-sm transition-colors ${
+                    isClickable ? "hover:bg-secondary/60 cursor-pointer" : "cursor-default"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 flex-1 items-start gap-2">
+                      <span className={`mt-0.5 inline-flex h-5 min-w-[36px] items-center justify-center rounded-full px-2 text-[10px] font-bold tabular-nums ${
+                        isUrgent ? "bg-destructive/10 text-destructive" : "bg-secondary text-foreground"
+                      }`}>{badgeLabel}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                          <span className="font-medium text-foreground truncate">{customerName}</span>
+                          {statusCfg && (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-foreground">
+                              <span className={`h-1.5 w-1.5 rounded-full ${statusCfg.dot}`} />
+                              {statusCfg.label}
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                          {sub.service_name}
+                        </div>
+                        {routeName && (
+                          <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                            <RouteIcon className="h-3 w-3" />
+                            <span
+                              className="inline-block h-2 w-2 rounded-full"
+                              style={{ backgroundColor: routeColor }}
+                              aria-hidden
+                            />
+                            <span className="truncate">
+                              {routeName}
+                              {typeof stopSeq === "number" ? ` · stop #${stopSeq + 1}` : ""}
+                              {stopStatus ? ` · ${stopStatus}` : ""}
+                            </span>
+                          </div>
+                        )}
+                        {!routeName && routePlanningEnabled && linkedOrder && (
+                          <div className="mt-1 text-[11px] text-amber-600">
+                            Ikke tildelt en rute endnu
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <div className="text-xs font-medium text-foreground">
+                        {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">
+                        {nextDate.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
+                      </div>
+                    </div>
                   </div>
-                  <span className="text-xs text-muted-foreground">
-                    {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
-                  </span>
-                </div>
+                </button>
               );
             })}
           </div>
