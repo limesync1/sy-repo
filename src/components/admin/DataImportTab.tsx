@@ -1,6 +1,6 @@
 // DataImportTab — intelligent CSV-import til kunder, services/produkter og ordrer/aftaler.
 // Hver entity-type har sin egen drop-zone, AI-mapping og preview.
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Papa from "papaparse";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
