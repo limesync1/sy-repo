@@ -97,6 +97,8 @@ const parseDate = (s?: string) => {
   return undefined;
 };
 
+// Hvad gør en række til en erhvervskunde? Et CVR-nummer.
+// Eksplicit type-kolonne (hvis den findes) trumfer alt; ellers: CVR ⇒ erhverv, intet CVR ⇒ privat.
 const detectCustomerType = (row: Row, mapping: Mapping, fallback: "private" | "business"): "private" | "business" => {
   const explicit = get(row, mapping, "type");
   if (explicit) {
@@ -104,8 +106,32 @@ const detectCustomerType = (row: Row, mapping: Mapping, fallback: "private" | "b
     if (["business", "erhverv", "virksomhed", "company", "b2b"].some((s) => v.includes(s))) return "business";
     if (["private", "privat", "person", "b2c"].some((s) => v.includes(s))) return "private";
   }
-  if (get(row, mapping, "cvr") || get(row, mapping, "company_name") || get(row, mapping, "ean_number")) return "business";
+  // Trim cifre fra CVR — vi accepterer kun rigtige CVR-numre (mindst 6 cifre for at undgå støj).
+  const cvr = (get(row, mapping, "cvr") || "").replace(/\D/g, "");
+  if (cvr.length >= 6) return "business";
   return fallback;
+};
+
+// ---------- Mapping field-grupper (smartere layout) ----------
+const FIELD_GROUPS: Record<EntityType, { title: string; keys: string[] }[]> = {
+  customers: [
+    { title: "Identitet", keys: ["type", "name", "company_name", "cvr", "contact_name", "customer_number", "ean_number"] },
+    { title: "Kontakt", keys: ["email", "phone"] },
+    { title: "Adresse", keys: ["address", "zip_code", "city"] },
+    { title: "Andet", keys: ["payment_terms_days", "notes"] },
+  ],
+  services: [
+    { title: "Produkt", keys: ["name", "description", "product_number"] },
+    { title: "Pris & enhed", keys: ["base_price", "unit", "default_vat_rate"] },
+    { title: "Kategorisering", keys: ["service_category", "subcategory"] },
+    { title: "Bogføring", keys: ["accounting_account_number"] },
+  ],
+  orders: [
+    { title: "Ordre", keys: ["external_order_number", "preferred_date", "status", "payment_terms_days", "notes"] },
+    { title: "Kunde", keys: ["customer_email", "customer_name", "customer_phone", "company_name", "cvr"] },
+    { title: "Adresse", keys: ["address", "zip_code", "city"] },
+    { title: "Linje", keys: ["service_name", "quantity", "unit_price", "total_amount"] },
+  ],
 };
 
 // ---------- Per-entity import-panel ----------
@@ -580,168 +606,228 @@ const ImportPanel = ({
         onDragLeave={() => setDragActive(false)}
         onDrop={onDrop}
         onClick={() => inputRef.current?.click()}
-        className={`relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-10 text-center cursor-pointer transition-colors ${dragActive ? "border-accent bg-accent/5" : "border-border bg-secondary/30 hover:bg-secondary/60"}`}
+        className={`group relative flex flex-col items-center justify-center gap-4 overflow-hidden rounded-2xl border-2 border-dashed px-6 py-14 text-center cursor-pointer transition-all ${dragActive ? "border-accent bg-accent/5 scale-[1.01]" : "border-border bg-secondary/20 hover:bg-secondary/40"}`}
       >
         <input ref={inputRef} type="file" accept=".csv,text/csv" className="hidden"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-foreground/5">
-          <Icon className="h-5 w-5 text-foreground/70" />
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-foreground text-background shadow-sm transition-transform group-hover:scale-105">
+          <UploadCloud className="h-6 w-6" />
         </div>
-        <div>
-          <p className="text-sm font-semibold text-foreground">Træk {meta.label.toLowerCase()}-CSV hertil</p>
-          <p className="text-xs text-muted-foreground">{meta.desc}</p>
+        <div className="max-w-md space-y-1">
+          <p className="text-base font-semibold text-foreground">Træk din CSV-fil hertil</p>
+          <p className="text-xs text-muted-foreground">
+            Vi finder selv ud af om det er <span className="font-medium text-foreground">kunder</span>, <span className="font-medium text-foreground">produkter</span> eller <span className="font-medium text-foreground">aftaler</span> — og om det er privat- eller erhvervskunder ud fra CVR.
+          </p>
         </div>
-        <Badge variant="secondary" className="text-[10.5px]">Maks. 10.000 rækker · UTF-8 anbefalet</Badge>
+        <div className="flex flex-wrap justify-center gap-1.5">
+          <Badge variant="secondary" className="text-[10.5px]"><Sparkles className="mr-1 h-2.5 w-2.5" /> Auto-detektion</Badge>
+          <Badge variant="secondary" className="text-[10.5px]"><Wand2 className="mr-1 h-2.5 w-2.5" /> AI-mapping</Badge>
+          <Badge variant="secondary" className="text-[10.5px]">Op til 10.000 rækker</Badge>
+          <Badge variant="secondary" className="text-[10.5px]">UTF-8 / Windows-1252</Badge>
+        </div>
       </div>
     );
   }
 
+  // Smarte stats: privat vs erhverv, kategori-distribution m.m.
+  const customerSplit = useMemo(() => {
+    if (entity !== "customers") return null;
+    let priv = 0, biz = 0;
+    prepared.forEach((r: any) => { if (r.type === "business") biz++; else priv++; });
+    return { priv, biz };
+  }, [prepared, entity]);
+
+  const fileSizeKb = file ? Math.round(file.size / 1024) : 0;
+  const mappedCount = Object.values(mapping).filter(Boolean).length;
+  const totalFields = fields.length;
+  const requiredMissing = fields.filter((f) => f.required && !mapping[f.key]).length;
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-secondary/40 px-3 py-2 text-xs">
-        <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-        <span className="font-medium text-foreground">{file.name}</span>
-        <span className="text-muted-foreground">· {rows.length} rækker · {headers.length} kolonner</span>
-        {aiLoading && <span className="ml-auto inline-flex items-center gap-1.5 text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Analyserer…</span>}
-        {!aiLoading && confidence !== null && (
-          <span className="ml-auto inline-flex items-center gap-1.5 text-foreground">
-            <CheckCircle2 className="h-3 w-3 text-accent" /> Sikkerhed: {confidence}%
-          </span>
-        )}
-        <Button variant="ghost" size="sm" onClick={reset} className="h-6 px-2"><X className="h-3 w-3" /></Button>
-      </div>
-      {aiNotes && <p className="text-xs italic text-muted-foreground">"{aiNotes}"</p>}
-
-      {detection && (
-        <div className="flex flex-wrap items-start gap-2 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2 text-xs">
-          <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-foreground">
-              {detection.is_mixed
-                ? "Filen indeholder flere typer data"
-                : `Filen ser ud til at indeholde ${detection.primary === "customers" ? "kunder" : detection.primary === "services" ? "produkter/services" : "ordrer/aftaler"}`}
-              {typeof detection.confidence === "number" && <span className="ml-1.5 font-normal text-muted-foreground">({detection.confidence}%)</span>}
+    <div className="space-y-5">
+      {/* ─── Hero topbar — alt vigtigt på ét sted ─── */}
+      <div className="overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-secondary/40 via-background to-background">
+        <div className="flex flex-wrap items-start gap-4 p-4">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-foreground text-background">
+            <FileText className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-foreground">{file.name}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {rows.length.toLocaleString("da-DK")} rækker · {headers.length} kolonner · {fileSizeKb} KB
             </p>
-            {detection.summary && <p className="mt-0.5 text-muted-foreground">{detection.summary}</p>}
-            {detection.is_mixed && detection.recommendations.length > 0 && (
-              <p className="mt-1 text-muted-foreground">
-                Vi anbefaler at du importerer den både som{" "}
-                {detection.recommendations.map((r, i) => (
-                  <span key={r}>
-                    {i > 0 && (i === detection.recommendations.length - 1 ? " og " : ", ")}
-                    <button
-                      onClick={() => { /* skift håndteres af parent — vi sender event via custom event */
-                        window.dispatchEvent(new CustomEvent("dataimport:switch-entity", { detail: r }));
-                      }}
-                      className="font-semibold text-accent underline-offset-2 hover:underline"
-                    >
-                      {r === "customers" ? "kunder" : r === "services" ? "produkter/services" : "ordrer/aftaler"}
-                    </button>
-                  </span>
+            {detection && (
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <Badge className="bg-accent/15 text-accent hover:bg-accent/20 text-[10.5px]">
+                  <Sparkles className="mr-1 h-2.5 w-2.5" />
+                  {detection.is_mixed
+                    ? "Blandet indhold"
+                    : `${detection.primary === "customers" ? "Kunder" : detection.primary === "services" ? "Produkter" : "Aftaler"} fundet`}
+                  {typeof detection.confidence === "number" && <span className="ml-1 opacity-60">{detection.confidence}%</span>}
+                </Badge>
+                {detection.is_mixed && detection.recommendations.map((r) => r !== entity && (
+                  <button key={r}
+                    onClick={() => window.dispatchEvent(new CustomEvent("dataimport:switch-entity", { detail: r }))}
+                    className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-[10.5px] font-medium text-foreground hover:bg-secondary/60">
+                    <ArrowRight className="h-2.5 w-2.5" /> Importér også som {r === "customers" ? "kunder" : r === "services" ? "produkter" : "aftaler"}
+                  </button>
                 ))}
-                — kør én import ad gangen.
-              </p>
+                {!detection.is_mixed && detection.primary !== entity && (
+                  <button onClick={() => window.dispatchEvent(new CustomEvent("dataimport:switch-entity", { detail: detection.primary }))}
+                    className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent/5 px-2 py-0.5 text-[10.5px] font-medium text-accent hover:bg-accent/10">
+                    Skift til {detection.primary === "customers" ? "kunder" : detection.primary === "services" ? "produkter" : "aftaler"} →
+                  </button>
+                )}
+              </div>
             )}
-            {!detection.is_mixed && detection.primary !== entity && (
-              <p className="mt-1 text-muted-foreground">
-                Du har valgt <span className="font-semibold text-foreground">{ENTITY_META[entity].label.toLowerCase()}</span>.{" "}
-                <button
-                  onClick={() => window.dispatchEvent(new CustomEvent("dataimport:switch-entity", { detail: detection.primary }))}
-                  className="font-semibold text-accent underline-offset-2 hover:underline"
-                >
-                  Skift til {ENTITY_META[detection.primary].label.toLowerCase()} →
-                </button>
-              </p>
+            {aiNotes && <p className="mt-2 text-xs italic text-muted-foreground">"{aiNotes}"</p>}
+          </div>
+          <div className="flex items-center gap-2">
+            {aiLoading ? (
+              <Badge variant="secondary" className="text-[10.5px]"><Loader2 className="mr-1 h-2.5 w-2.5 animate-spin" /> Analyserer…</Badge>
+            ) : confidence !== null && (
+              <Badge variant="secondary" className="text-[10.5px]"><CheckCircle2 className="mr-1 h-2.5 w-2.5 text-accent" /> Mapping {confidence}%</Badge>
             )}
+            <Button variant="ghost" size="sm" onClick={reset} className="h-7 px-2 text-muted-foreground hover:text-destructive">
+              <X className="h-3.5 w-3.5" />
+            </Button>
           </div>
         </div>
-      )}
 
-      {entity === "services" && (
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2 text-xs">
-          <FolderTree className="h-3.5 w-3.5 text-accent" />
-          <span className="font-medium text-foreground">Smart kategorisering</span>
-          <span className="text-muted-foreground">
-            AI matcher hver række ind i jeres {existingCategories.length} eksisterende kategorier — eller foreslår nye markeret med <Sparkles className="inline h-2.5 w-2.5" />.
-          </span>
-          {classifying && <span className="ml-auto inline-flex items-center gap-1.5 text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Klassificerer…</span>}
-          {!classifying && Object.keys(classifications).length > 0 && (
-            <span className="ml-auto inline-flex items-center gap-1.5 text-foreground">
-              <Wand2 className="h-3 w-3 text-accent" /> {Object.keys(classifications).length} klassificeret
+        {/* AI status-bar nederst i hero */}
+        {(entity === "services" || entity === "orders" || (entity === "customers" && customerSplit)) && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border bg-background/60 px-4 py-2 text-[11px]">
+            {entity === "customers" && customerSplit && (
+              <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                <Building2 className="h-3 w-3 text-foreground" /> <span className="font-semibold text-foreground">{customerSplit.biz}</span> erhverv (med CVR)
+                <span className="mx-1 text-border">·</span>
+                <User className="h-3 w-3 text-foreground" /> <span className="font-semibold text-foreground">{customerSplit.priv}</span> privat (uden CVR)
+              </span>
+            )}
+            {entity === "services" && (
+              <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                <FolderTree className="h-3 w-3 text-foreground" />
+                {classifying ? <><Loader2 className="h-3 w-3 animate-spin" /> Klassificerer…</> : (
+                  <>AI matcher mod jeres <span className="font-semibold text-foreground">{existingCategories.length}</span> kategorier · <span className="font-semibold text-foreground">{Object.keys(classifications).length}</span> klassificeret</>
+                )}
+              </span>
+            )}
+            {entity === "orders" && (
+              <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                <Wand2 className="h-3 w-3 text-foreground" />
+                {matching ? <><Loader2 className="h-3 w-3 animate-spin" /> Matcher…</> : (
+                  <>Matchet <span className="font-semibold text-foreground">{Object.values(orderMatches).filter((m: any) => m.customer_id).length}</span> kunder · <span className="font-semibold text-foreground">{Object.values(orderMatches).filter((m: any) => m.service_id).length}</span> services</>
+                )}
+              </span>
+            )}
+            <span className="ml-auto inline-flex items-center gap-1.5 text-muted-foreground">
+              <Wand2 className="h-3 w-3" /> {mappedCount}/{totalFields} felter mappet
+              {requiredMissing > 0 && <span className="ml-1 text-destructive">· {requiredMissing} påkrævet mangler</span>}
             </span>
-          )}
-        </div>
-      )}
-
-      {entity === "orders" && (
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2 text-xs">
-          <Wand2 className="h-3.5 w-3.5 text-accent" />
-          <span className="font-medium text-foreground">Smart matching</span>
-          <span className="text-muted-foreground">
-            AI kobler hver ordre til eksisterende kunder ({existingCustomers.length}) og services ({existingServices.length}) — på email, CVR, varenummer eller navn.
-          </span>
-          {matching && <span className="ml-auto inline-flex items-center gap-1.5 text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Matcher…</span>}
-          {!matching && Object.keys(orderMatches).length > 0 && (
-            <span className="ml-auto inline-flex items-center gap-1.5 text-foreground">
-              <CheckCircle2 className="h-3 w-3 text-accent" /> {Object.values(orderMatches).filter((m: any) => m.customer_id).length} kunder · {Object.values(orderMatches).filter((m: any) => m.service_id).length} services matchet
-            </span>
-          )}
-        </div>
-      )}
-
-      {entity === "customers" && (
-        <div>
-          <p className="mb-2 text-xs font-semibold text-foreground">Standard kundetype (når ikke angivet)</p>
-          <div className="inline-flex rounded-lg border border-border bg-background p-0.5">
-            {(["private", "business"] as const).map((t) => (
-              <button key={t} onClick={() => setDefaultType(t)}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${defaultType === t ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}>
-                {t === "private" ? "Privat" : "Erhverv"}
-              </button>
-            ))}
           </div>
-        </div>
-      )}
-
-      <div className="grid gap-2 sm:grid-cols-2">
-        {fields.map((f) => (
-          <div key={f.key} className="flex items-center gap-2 rounded-md border border-border bg-background px-2 py-1.5">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-medium text-foreground">
-                {f.label}{f.required && <span className="ml-1 text-destructive">*</span>}
-              </p>
-            </div>
-            <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground" />
-            <Select value={mapping[f.key] || "__none__"} onValueChange={(v) => setMapping((m) => ({ ...m, [f.key]: v === "__none__" ? undefined : v }))}>
-              <SelectTrigger className="h-7 w-[160px] text-xs"><SelectValue placeholder="—" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__" className="text-xs">— Ingen —</SelectItem>
-                {headers.map((h) => <SelectItem key={h} value={h} className="text-xs">{h}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-        ))}
+        )}
       </div>
 
+      {/* ─── Statistik-kort (klikbare filtre) ─── */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {[
-          { label: "Klar", value: stats.ok, tone: "ok", filter: "ok" as const },
-          { label: "Total", value: stats.total, tone: "neutral", filter: "all" as const },
-          { label: "Dubletter", value: stats.duplicates, tone: "warn", filter: "dup" as const },
-          { label: "Fejl", value: stats.errors, tone: stats.errors > 0 ? "err" : "neutral", filter: "err" as const },
-        ].map((s) => (
-          <button
-            key={s.label}
-            onClick={() => setRowFilter(s.filter)}
-            className={`rounded-lg border px-3 py-2 text-left transition-colors ${rowFilter === s.filter ? "border-foreground bg-foreground/5" : "border-border bg-background hover:bg-secondary/40"}`}
-          >
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{s.label}</p>
-            <p className={`text-lg font-bold ${s.tone === "ok" ? "text-accent" : s.tone === "warn" ? "text-amber-600" : s.tone === "err" ? "text-destructive" : "text-foreground"}`}>{s.value}</p>
-          </button>
-        ))}
+          { label: "Klar til import", value: stats.ok, tone: "ok", filter: "ok" as const, icon: CheckCircle2 },
+          { label: "I alt", value: stats.total, tone: "neutral", filter: "all" as const, icon: FileText },
+          { label: "Dubletter", value: stats.duplicates, tone: "warn", filter: "dup" as const, icon: AlertTriangle },
+          { label: "Fejl", value: stats.errors, tone: stats.errors > 0 ? "err" : "neutral", filter: "err" as const, icon: AlertTriangle },
+        ].map((s) => {
+          const SI = s.icon;
+          return (
+            <button
+              key={s.label}
+              onClick={() => setRowFilter(s.filter)}
+              className={`flex items-center justify-between rounded-xl border px-3 py-2.5 text-left transition-all ${rowFilter === s.filter ? "border-foreground bg-foreground/5 shadow-sm" : "border-border bg-background hover:bg-secondary/40"}`}
+            >
+              <div>
+                <p className="text-[10.5px] uppercase tracking-wide text-muted-foreground">{s.label}</p>
+                <p className={`text-xl font-bold ${s.tone === "ok" ? "text-accent" : s.tone === "warn" ? "text-amber-600" : s.tone === "err" ? "text-destructive" : "text-foreground"}`}>{s.value.toLocaleString("da-DK")}</p>
+              </div>
+              <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${s.tone === "ok" ? "bg-accent/10 text-accent" : s.tone === "warn" ? "bg-amber-500/10 text-amber-600" : s.tone === "err" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>
+                <SI className="h-4 w-4" />
+              </div>
+            </button>
+          );
+        })}
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-border">
+      {/* ─── Felt-mapping (grupperet i kolonner) ─── */}
+      <details open className="group rounded-xl border border-border bg-background">
+        <summary className="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm font-semibold text-foreground">
+          <Wand2 className="h-4 w-4 text-accent" />
+          Felt-mapping
+          <span className="ml-1 text-xs font-normal text-muted-foreground">{mappedCount}/{totalFields} mappet</span>
+          <ArrowRight className="ml-auto h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-90" />
+        </summary>
+        <div className="border-t border-border p-4">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {FIELD_GROUPS[entity].map((group) => (
+              <div key={group.title} className="space-y-1.5">
+                <p className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">{group.title}</p>
+                {group.keys.map((k) => {
+                  const f = fields.find((x) => x.key === k);
+                  if (!f) return null;
+                  const mapped = !!mapping[f.key];
+                  return (
+                    <div key={f.key} className={`flex items-center gap-2 rounded-md border px-2 py-1.5 transition-colors ${mapped ? "border-accent/30 bg-accent/5" : "border-border bg-secondary/20"}`}>
+                      <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${mapped ? "bg-accent" : f.required ? "bg-destructive" : "bg-muted-foreground/30"}`} />
+                      <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
+                        {f.label}{f.required && <span className="ml-0.5 text-destructive">*</span>}
+                      </p>
+                      <Select value={mapping[f.key] || "__none__"} onValueChange={(v) => setMapping((m) => ({ ...m, [f.key]: v === "__none__" ? undefined : v }))}>
+                        <SelectTrigger className="h-7 w-[140px] text-xs"><SelectValue placeholder="—" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__" className="text-xs">— Ingen —</SelectItem>
+                          {headers.map((h) => <SelectItem key={h} value={h} className="text-xs">{h}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+
+          {entity === "customers" && (
+            <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-xs">
+              <span className="text-muted-foreground">Privat eller erhverv?</span>
+              <Badge variant="secondary" className="text-[10.5px]">CVR udfyldt → erhverv · ellers privat</Badge>
+              <span className="ml-auto text-muted-foreground">Standard når ikke entydigt:</span>
+              <div className="inline-flex rounded-md border border-border bg-background p-0.5">
+                {(["private", "business"] as const).map((t) => (
+                  <button key={t} onClick={() => setDefaultType(t)}
+                    className={`px-2 py-0.5 text-[11px] font-medium rounded ${defaultType === t ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}>
+                    {t === "private" ? "Privat" : "Erhverv"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </details>
+
+      {/* ─── Preview-tabel ─── */}
+      <div className="overflow-hidden rounded-xl border border-border bg-background">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-secondary/30 px-3 py-2 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-foreground">Forhåndsvisning</span>
+            {rowFilter !== "all" && (
+              <Badge variant="outline" className="text-[10px]">
+                Filter: {rowFilter === "ok" ? "Klar" : rowFilter === "dup" ? "Dubletter" : "Fejl"}
+                <button onClick={() => setRowFilter("all")} className="ml-1 hover:text-destructive">
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              </Badge>
+            )}
+          </div>
+          <span className="text-muted-foreground">
+            {filteredRows.length === 0 ? 0 : safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, filteredRows.length)} af {filteredRows.length.toLocaleString("da-DK")}
+          </span>
+        </div>
+        <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead className="bg-secondary/60">
             <tr className="text-left">
@@ -852,22 +938,16 @@ const ImportPanel = ({
             ))}
           </tbody>
         </table>
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
-        <span>
-          Viser {filteredRows.length === 0 ? 0 : safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, filteredRows.length)} af {filteredRows.length}
-          {rowFilter !== "all" && <> ({prepared.length} i alt)</>}
-          {rowFilter !== "all" && (
-            <button onClick={() => setRowFilter("all")} className="ml-2 font-medium text-foreground underline-offset-2 hover:underline">Vis alle</button>
-          )}
-        </span>
+        </div>
         {pageCount > 1 && (
-          <div className="flex items-center gap-1">
-            <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage(0)} disabled={safePage === 0}>«</Button>
-            <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={safePage === 0}>‹</Button>
-            <span className="px-2 text-foreground">Side {safePage + 1} af {pageCount}</span>
-            <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))} disabled={safePage >= pageCount - 1}>›</Button>
-            <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage(pageCount - 1)} disabled={safePage >= pageCount - 1}>»</Button>
+          <div className="flex items-center justify-between gap-2 border-t border-border bg-secondary/20 px-3 py-2 text-[11px] text-muted-foreground">
+            <span>Side <span className="font-semibold text-foreground">{safePage + 1}</span> af {pageCount}</span>
+            <div className="flex items-center gap-1">
+              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage(0)} disabled={safePage === 0}>«</Button>
+              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={safePage === 0}>‹ Forrige</Button>
+              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))} disabled={safePage >= pageCount - 1}>Næste ›</Button>
+              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage(pageCount - 1)} disabled={safePage >= pageCount - 1}>»</Button>
+            </div>
           </div>
         )}
       </div>
