@@ -150,23 +150,28 @@ Deno.serve(async (req) => {
           .eq("business_id", order.business_id).eq("provider", integ.provider).eq("order_id", order_id);
         result = { ok: true, voided: true };
       } else if (action === "mark_paid") {
-        if (typeof adapter.markInvoicePaid !== "function") {
-          return json({ error: `${integ.provider} understøtter ikke manuel betalingsmarkering via API` }, 400);
-        }
         const amount = Number(params?.amount ?? order.total_amount ?? 0);
         if (!amount || amount <= 0) return json({ error: "Mangler beløb" }, 400);
-        if (!bookedInvoiceId) return json({ error: "Faktura er ikke bogført endnu — kan ikke markeres som betalt." }, 400);
-        await adapter.markInvoicePaid({
-          invoice_external_id: bookedInvoiceId,
-          amount,
-          paid_at: params?.paid_at ?? new Date().toISOString(),
-        });
-        await admin.from("orders").update({
-          payment_status: "paid",
-          paid_at: params?.paid_at ?? new Date().toISOString(),
-          paid_amount: amount,
-        }).eq("id", order_id);
-        result = { ok: true, marked_paid: true };
+        const paidAt = params?.paid_at ?? new Date().toISOString();
+        if (!bookedInvoiceId) {
+          result = await markPaidLocally(amount, paidAt, "Betalingen er registreret i Serviceydere. Fakturaen er ikke bogført endnu, så der var intet at markere i regnskabsprogrammet.");
+        } else {
+          if (typeof adapter.markInvoicePaid !== "function") {
+            return json({ error: `${integ.provider} understøtter ikke manuel betalingsmarkering via API` }, 400);
+          }
+          await adapter.markInvoicePaid({
+            invoice_external_id: bookedInvoiceId,
+            amount,
+            paid_at: paidAt,
+          });
+          await admin.from("orders").update({
+            payment_status: "paid",
+            paid_at: paidAt,
+            paid_amount: amount,
+            payment_status_synced_at: new Date().toISOString(),
+          }).eq("id", order_id);
+          result = { ok: true, marked_paid: true };
+        }
       } else {
         return json({ error: `Ukendt handling: ${action}` }, 400);
       }
