@@ -3,6 +3,7 @@
 // betalingskort skifter banneret til en advarsel, der minder brugeren om at
 // tilføje kort i Indstillinger inden virksomheden deaktiveres.
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { AlertTriangle, Clock, CreditCard, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { BusinessPlanInfo } from "@/hooks/useBusinessPlan";
@@ -14,23 +15,48 @@ type Props = {
 };
 
 const TrialBanner = ({ plan, hideAction }: Props) => {
+  // Tikker hvert minut, så "X timer Y min tilbage" forbliver præcis.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const i = setInterval(() => setTick((t) => t + 1), 60_000);
+    return () => clearInterval(i);
+  }, []);
   if (!plan) return null;
   if (plan.status === "active" || plan.status === "unknown") return null;
 
   const daysLeft = plan.days_left ?? 0;
   const isWarning = plan.status === "trial_ending" || plan.status === "expired";
 
+  // Beregn præcis tilbageværende tid hvis vi er under én dag.
+  const msLeft = plan.trial_ends_at
+    ? new Date(plan.trial_ends_at).getTime() - Date.now()
+    : null;
+  const useFineGrained = msLeft !== null && msLeft > 0 && msLeft < 24 * 60 * 60 * 1000;
+  let fineLabel = "";
+  if (useFineGrained) {
+    const totalMinutes = Math.max(1, Math.floor(msLeft! / 60_000));
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+    if (h > 0 && m > 0) fineLabel = `${h} ${h === 1 ? "time" : "timer"} og ${m} min tilbage af din prøveperiode`;
+    else if (h > 0) fineLabel = `${h} ${h === 1 ? "time" : "timer"} tilbage af din prøveperiode`;
+    else fineLabel = `${m} ${m === 1 ? "minut" : "minutter"} tilbage af din prøveperiode`;
+  }
+
   const title = plan.status === "expired"
     ? "Din prøveperiode er udløbet"
-    : daysLeft === 1
-      ? "Sidste dag af din prøveperiode"
-      : `${daysLeft} dage tilbage af din prøveperiode`;
+    : useFineGrained
+      ? fineLabel
+      : daysLeft === 1
+        ? "Sidste dag af din prøveperiode"
+        : `${daysLeft} dage tilbage af din prøveperiode`;
 
   const description = plan.status === "expired"
     ? "Tilføj et betalingskort i indstillingerne for at genaktivere din virksomhed på Serviceydere."
-    : isWarning
-      ? "Husk at tilføje et betalingskort inden 3 dage — ellers bliver din virksomhed deaktiveret fra Serviceydere."
-      : "Du har gratis adgang til alle funktioner. Tilføj et betalingskort i indstillingerne, før prøven udløber.";
+    : useFineGrained
+      ? "Tilføj et betalingskort nu, så din virksomhed ikke bliver deaktiveret når prøveperioden udløber."
+      : isWarning
+        ? "Husk at tilføje et betalingskort inden 3 dage — ellers bliver din virksomhed deaktiveret fra Serviceydere."
+        : "Du har gratis adgang til alle funktioner. Tilføj et betalingskort i indstillingerne, før prøven udløber.";
 
   return (
     <div
