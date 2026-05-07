@@ -278,7 +278,7 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
           .order("created_at", { ascending: false }),
         supabase
           .from("subscriptions")
-          .select("id, service_name, interval, status, next_service_date, total_price, preferred_route_id, order_id, customer_id")
+          .select("id, service_name, interval, status, next_service_date, total_price, preferred_route_id, order_id, customer_id, created_at")
           .eq("business_id", businessId)
           .order("created_at", { ascending: false }),
       ]);
@@ -304,11 +304,33 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
           }));
       }
 
-      // Filter subs to this customer
+      // Filter subs to this customer + skil dem fra annullerede ordrer fra
+      // (de er reelt døde abonnementer). Dedupliker også på (order_id,
+      // service_id) — der kan være race-conditions der har skabt flere
+      // subscriptions for samme service på samme ordre.
       const customerIds = new Set((ordersRes.data || []).map((o: any) => o.customer_id).filter(Boolean));
-      const filteredSubs = (subsRes.data || []).filter((s: any) =>
+      const orderById = new Map((ordersRes.data || []).map((o: any) => [o.id, o]));
+      const allSubs = (subsRes.data || []).filter((s: any) =>
         customerIds.size === 0 || customerIds.has(s.customer_id)
       ) as SubRow[];
+      // Drop subs hvis tilknyttede ordre er cancelled
+      const livingSubs = allSubs.filter(s => {
+        if (!s.order_id) return true;
+        const o = orderById.get(s.order_id);
+        if (!o) return true;
+        return o.status !== "cancelled";
+      });
+      // Dedupe — behold nyeste pr. (order_id, service_id-eller-name)
+      const seen = new Map<string, SubRow>();
+      for (const s of livingSubs) {
+        const key = `${s.order_id || "none"}::${(s as any).service_id || s.service_name}`;
+        const existing = seen.get(key);
+        if (!existing) { seen.set(key, s); continue; }
+        // foretræk active > paused > cancelled, dernæst nyeste
+        const rank = (st: string) => st === "active" ? 3 : st === "paused" ? 2 : st === "pending" ? 1 : 0;
+        if (rank(s.status) > rank(existing.status)) seen.set(key, s);
+      }
+      const filteredSubs = Array.from(seen.values());
 
       // Look up preferred route names
       const prefIds = Array.from(new Set(filteredSubs.map(s => s.preferred_route_id).filter(Boolean))) as string[];
