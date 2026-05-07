@@ -2824,6 +2824,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      interval_to_duration: { Args: { _interval: string }; Returns: string }
       is_route_assigned_employee: {
         Args: { _route_id: string; _user_id: string }
         Returns: boolean

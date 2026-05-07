@@ -43,6 +43,14 @@ function makeHeaders(creds: AccountingCredentials): HeadersInit {
   };
 }
 
+async function resolveLayoutNumber(creds: AccountingCredentials, settings: AccountingSettings): Promise<number | null> {
+  const configured = Number((settings as any).default_layout_number ?? (settings as any).default_layout);
+  if (Number.isFinite(configured) && configured > 0) return configured;
+  const layouts = await ecRequest(creds, "/layouts?pagesize=100").catch(() => ({ collection: [] }));
+  const first = (layouts?.collection ?? []).find((l: any) => l?.layoutNumber);
+  return first?.layoutNumber ? Number(first.layoutNumber) : null;
+}
+
 function friendlyEconomicError(status: number, body: string): string {
   const lower = body.toLowerCase();
   if (status === 401 || status === 403 || lower.includes("unauthorized") || lower.includes("invalid token")) {
@@ -294,9 +302,10 @@ export function makeEconomicAdapter(
     },
 
     async upsertOrder(input: UpsertOrderInput) {
-      // E-conomic uses /sales-orders for "ordrer" — fallback to invoice-drafts otherwise.
+      // E-conomic bruger /orders/drafts til ordrekladder. /sales-orders findes
+      // ikke i REST API'et og gav derfor 404 på Ready2Clean.
       const sendAs = input.external_type ?? settings.send_order_as ?? "order";
-      const path = sendAs === "order" ? "/sales-orders" : "/invoices/drafts";
+      const path = sendAs === "order" ? "/orders/drafts" : "/invoices/drafts";
       const date = (input.date ?? new Date().toISOString()).slice(0, 10);
       const body: Record<string, unknown> = {
         date,
@@ -331,6 +340,9 @@ export function makeEconomicAdapter(
         if (cust?.vatZone?.vatZoneNumber) {
           (body as any).recipient = {
             name: cust.name ?? "",
+            address: cust.address ?? undefined,
+            zip: cust.zip ?? undefined,
+            city: cust.city ?? undefined,
             vatZone: { vatZoneNumber: cust.vatZone.vatZoneNumber },
           };
         }
@@ -340,6 +352,10 @@ export function makeEconomicAdapter(
       } catch (_) {
         // Hvis kunden ikke kan slås op er det rigtige fejlpunkt customer-feltet
         // — lad serveren returnere 404 så vi kan logge det.
+      }
+      if (!(body as any).layout?.layoutNumber) {
+        const layoutNumber = await resolveLayoutNumber(creds, settings);
+        if (layoutNumber) (body as any).layout = { layoutNumber };
       }
 
       if (input.external_id) {
@@ -368,32 +384,37 @@ export function makeEconomicAdapter(
 
     async deleteOrder(externalId: string) {
       const sendAs = settings.send_order_as ?? "order";
-      const path = sendAs === "order" ? "/sales-orders" : "/invoices/drafts";
+      const path = sendAs === "order" ? "/orders/drafts" : "/invoices/drafts";
       await ecRequest(creds, `${path}/${externalId}`, { method: "DELETE" });
     },
 
     async bookInvoice(input) {
-      // Hvis det er sendt som sales-order, konverter først til kladde-faktura.
+      // Hvis det er sendt som ordrekladde, konverter først til kladde-faktura.
       let draftNumber: string | number = input.external_id;
       if (input.external_type === "order") {
-        try {
-          const conv = await ecRequest(
-            creds,
-            `/sales-orders/${input.external_id}/upgrade-instructions/draft-invoice`,
-            { method: "POST", body: "{}" },
-          );
-          draftNumber = conv?.draftInvoiceNumber ?? conv?.draftInvoice?.draftInvoiceNumber ?? draftNumber;
-        } catch (_) { /* fallback: prøv at booke direkte */ }
+        const instruction = await ecRequest(
+          creds,
+          `/orders/drafts/${input.external_id}/templates/upgrade-instructions/draftInvoice`,
+        );
+        const draft = await ecRequest(creds, "/invoices/drafts", {
+          method: "POST",
+          body: JSON.stringify(instruction),
+        });
+        draftNumber = draft?.draftInvoiceNumber ?? instruction?.draftInvoiceNumber ?? draftNumber;
       }
-      // Bog kladde-faktura → bookedInvoiceNumber
-      const booked = await ecRequest(creds, `/invoices/drafts/${draftNumber}/book`, {
+
+      // Bog kladde-faktura → bookedInvoiceNumber. Hvis e-mail findes, beder vi
+      // e-conomic sende fakturaen med deres standard e-mail-skabelon.
+      const bookBody: Record<string, unknown> = {
+        draftInvoice: { draftInvoiceNumber: Number(draftNumber) },
+      };
+      if (input.customer_email) bookBody.sendBy = "Email";
+      const booked = await ecRequest(creds, "/invoices/booked", {
         method: "POST",
-        body: "{}",
+        body: JSON.stringify(bookBody),
       });
       const invNo = String(booked?.bookedInvoiceNumber ?? booked?.invoiceNumber ?? draftNumber);
-      // E-conomic sender automatisk faktura via valgte layout/distribution; vi
-      // kan ikke garantere e-mail er sendt fra her, så vi rapporterer sent=false.
-      return { invoice_external_id: invNo, invoice_external_number: invNo, sent: false };
+      return { invoice_external_id: invNo, invoice_external_number: invNo, sent: !!input.customer_email };
     },
 
     async getInvoiceStates(externalIds: string[]): Promise<ExternalInvoiceState[]> {
