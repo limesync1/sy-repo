@@ -41,6 +41,7 @@ const FIELD_DEFS: Record<EntityType, { key: string; label: string; required?: bo
     { key: "description", label: "Beskrivelse" },
     { key: "base_price", label: "Pris" },
     { key: "unit", label: "Enhed (stk, time, m²)" },
+    { key: "interval", label: "Interval (engangskøb, ugentligt, mdr.)" },
     { key: "product_number", label: "Varenummer" },
     { key: "service_category", label: "Kategori" },
     { key: "subcategory", label: "Underkategori" },
@@ -59,6 +60,8 @@ const FIELD_DEFS: Record<EntityType, { key: string; label: string; required?: bo
     { key: "city", label: "By" },
     { key: "service_name", label: "Produkt/service" },
     { key: "quantity", label: "Antal" },
+    { key: "unit", label: "Enhed (stk, time, m²)" },
+    { key: "interval", label: "Interval (engangskøb, ugentligt, mdr.)" },
     { key: "unit_price", label: "Stykpris" },
     { key: "total_amount", label: "Beløb i alt" },
     { key: "preferred_date", label: "Aftaledato" },
@@ -123,7 +126,7 @@ const FIELD_GROUPS: Record<EntityType, { title: string; keys: string[] }[]> = {
   ],
   services: [
     { title: "Produkt", keys: ["name", "description", "product_number"] },
-    { title: "Pris & enhed", keys: ["base_price", "unit", "default_vat_rate"] },
+    { title: "Pris & enhed", keys: ["base_price", "unit", "interval", "default_vat_rate"] },
     { title: "Kategorisering", keys: ["service_category", "subcategory"] },
     { title: "Bogføring", keys: ["accounting_account_number"] },
   ],
@@ -131,7 +134,7 @@ const FIELD_GROUPS: Record<EntityType, { title: string; keys: string[] }[]> = {
     { title: "Ordre", keys: ["external_order_number", "preferred_date", "status", "payment_terms_days", "notes"] },
     { title: "Kunde", keys: ["customer_email", "customer_name", "customer_phone", "company_name", "cvr"] },
     { title: "Adresse", keys: ["address", "zip_code", "city"] },
-    { title: "Linje", keys: ["service_name", "quantity", "unit_price", "total_amount"] },
+    { title: "Linje", keys: ["service_name", "quantity", "unit", "interval", "unit_price", "total_amount"] },
   ],
 };
 
