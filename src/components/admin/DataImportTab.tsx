@@ -110,13 +110,14 @@ const detectCustomerType = (row: Row, mapping: Mapping, fallback: "private" | "b
 
 // ---------- Per-entity import-panel ----------
 const ImportPanel = ({
-  entity, businessId, existingEmails, existingProductNumbers, existingExternalOrderNumbers,
+  entity, businessId, existingEmails, existingProductNumbers, existingExternalOrderNumbers, existingCategories,
 }: {
   entity: EntityType;
   businessId: string;
   existingEmails: Set<string>;
   existingProductNumbers: Set<string>;
   existingExternalOrderNumbers: Set<string>;
+  existingCategories: { category: string; subcategories: string[] }[];
 }) => {
   const fields = FIELD_DEFS[entity];
   const [file, setFile] = useState<File | null>(null);
@@ -130,11 +131,15 @@ const ImportPanel = ({
   const [importing, setImporting] = useState(false);
   const [done, setDone] = useState<{ created: number; skipped: number } | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  // services: AI-klassificering pr. række index → resultat
+  const [classifications, setClassifications] = useState<Record<number, { service_category?: string; subcategory?: string; is_new_category?: boolean; is_new_subcategory?: boolean; confidence?: number }>>({});
+  const [classifying, setClassifying] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const reset = () => {
     setFile(null); setRows([]); setHeaders([]); setMapping({});
     setAiNotes(null); setConfidence(null); setDone(null);
+    setClassifications({});
     if (inputRef.current) inputRef.current.value = "";
   };
 
