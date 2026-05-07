@@ -122,6 +122,64 @@ Array-længden skal være præcis ${items.length}, i samme rækkefølge som inpu
       });
     }
 
+    // ---------- MODE: match_orders ----------
+    // Matcher importerede ordre-rækker mod virksomhedens eksisterende kunder + services.
+    if (body.mode === "match_orders") {
+      const items = Array.isArray(body.items) ? body.items.slice(0, 200) : [];
+      const customers = Array.isArray(body.customers) ? body.customers.slice(0, 800) : [];
+      const services = Array.isArray(body.services) ? body.services.slice(0, 400) : [];
+      if (items.length === 0) {
+        return new Response(JSON.stringify({ matches: [] }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const sys = `Du matcher importerede ordrer/aftaler mod en virksomheds eksisterende kunder og services.
+
+EKSISTERENDE KUNDER (id, navn/firma, email, cvr, telefon):
+${JSON.stringify(customers)}
+
+EKSISTERENDE SERVICES/PRODUKTER (id, navn, varenummer, enhed, basispris):
+${JSON.stringify(services)}
+
+For HVER ordre-række skal du finde:
+- customer_id: id på den bedste eksisterende kunde-match (email > CVR > navn+postnr > navn). null hvis ingen passer.
+- customer_match_reason: kort dansk forklaring ("matchet på email", "matchet på CVR", "ny kunde" osv.).
+- customer_confidence: 0-100.
+- service_id: id på den bedste eksisterende service-match (varenummer > eksakt navn > fuzzy navn). null hvis ny.
+- service_match_reason: kort dansk forklaring.
+- service_confidence: 0-100.
+- inferred_unit_price: hvis ordrelinjen mangler stykpris men matcher en kendt service, brug servicens basispris (ellers null).
+
+Returnér KUN JSON: { "matches": [ { "customer_id": "..."|null, "customer_match_reason": "...", "customer_confidence": 0-100, "service_id": "..."|null, "service_match_reason": "...", "service_confidence": 0-100, "inferred_unit_price": number|null } ] }
+Array-længden skal være præcis ${items.length} i samme rækkefølge.`;
+
+      const user = `Ordre-rækker:\n${JSON.stringify(items, null, 2)}`;
+
+      const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [{ role: "system", content: sys }, { role: "user", content: user }],
+          response_format: { type: "json_object" },
+        }),
+      });
+      if (!aiResp.ok) {
+        const txt = await aiResp.text();
+        return new Response(JSON.stringify({ error: "AI fejlede", details: txt }), {
+          status: aiResp.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const aiJson = await aiResp.json();
+      const content = aiJson.choices?.[0]?.message?.content || "{}";
+      let parsed: any = { matches: [] };
+      try { parsed = JSON.parse(content); } catch { /* ignore */ }
+      return new Response(JSON.stringify(parsed), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // ---------- MODE: mapping (default) ----------
     const { headers, sample, defaultType, entityType } = body;
     const type = (entityType as string) || "customers";
