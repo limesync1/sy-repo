@@ -356,12 +356,25 @@ const EmployeeApp = () => {
               cta: { label: "Stop dag", icon: StopCircle, onClick: () => endDay.mutate(date) },
             };
           } else if (dayEnded && routes.length > 0) {
-            suggestion = {
+            // Hvis der er kommet nye, ikke-udførte stop ind på en rute efter
+            // medarbejderen har afsluttet dagen → tilbyd at genoptage dagen,
+            // så ruten ikke bliver "låst" med pending besøg.
+            const pendingAfterEnd = totalStops > 0 && completedStops < totalStops;
+            if (pendingAfterEnd) {
+              suggestion = {
+                tone: "primary",
+                title: "Nye stop er kommet til ruten",
+                description: `Der er ${totalStops - completedStops} stop tilbage. Genoptag arbejdsdagen for at fortsætte tidsregistreringen.`,
+                cta: { label: "Genoptag dag", icon: PlayCircle, onClick: () => startDay.mutate(date) },
+              };
+            } else {
+              suggestion = {
               tone: "calm",
               title: "Dagen er afsluttet",
               description: "Du kan udskrive en kvittering for dagens ruter til arkivet.",
               cta: { label: "Vis kvittering", icon: Eye, onClick: () => setPreviewRouteId(sortedRoutes[0].id) },
-            };
+              };
+            }
           }
 
           if (!suggestion) return null;
