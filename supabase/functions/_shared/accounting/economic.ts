@@ -135,6 +135,7 @@ async function ecRequest(
   creds: AccountingCredentials,
   path: string,
   init: RequestInit = {},
+  opts: { silent404?: boolean } = {},
 ): Promise<any> {
   if (!creds.api_secret || !creds.api_token) {
     throw new Error("Mangler App Secret Token eller Agreement Grant Token.");
@@ -145,12 +146,14 @@ async function ecRequest(
   });
   if (!res.ok) {
     const text = await res.text();
-    console.error("[economic] request failed", {
-      method: init.method ?? "GET",
-      path,
-      status: res.status,
-      body: text.slice(0, 500),
-    });
+    if (!(opts.silent404 && res.status === 404)) {
+      console.error("[economic] request failed", {
+        method: init.method ?? "GET",
+        path,
+        status: res.status,
+        body: text.slice(0, 500),
+      });
+    }
     throw new Error(friendlyEconomicError(res.status, text));
   }
   if (res.status === 204) return null;
@@ -476,10 +479,10 @@ export function makeEconomicAdapter(
           let inv: any = null;
           let booked = true;
           try {
-            inv = await ecRequest(creds, `/invoices/booked/${id}`);
+            inv = await ecRequest(creds, `/invoices/booked/${id}`, {}, { silent404: true });
           } catch {
             try {
-              inv = await ecRequest(creds, `/invoices/drafts/${id}`);
+              inv = await ecRequest(creds, `/invoices/drafts/${id}`, {}, { silent404: true });
               booked = false;
             } catch { /* not found */ }
           }
