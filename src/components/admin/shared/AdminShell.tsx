@@ -12,14 +12,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   LogOut, LayoutDashboard, Wrench, ShoppingCart, Star, Settings,
-  Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles, MessageCircle, Calculator,
+  Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles, MessageCircle, Calculator, Upload,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 export type AdminTabKey =
   | "dashboard" | "services" | "orders" | "customers"
-  | "routes" | "employees" | "reviews" | "leads" | "livechat" | "accounting" | "settings";
+  | "routes" | "employees" | "reviews" | "leads" | "livechat" | "accounting" | "dataimport" | "settings";
 
 /**
  * Animeret sidebar-item: collapser stille ind/ud når en feature toggles
@@ -127,6 +127,7 @@ const TAB_PREFETCH: Partial<Record<AdminTabKey, () => Promise<unknown>>> = {
   routes:    () => import("@/pages/RoutePlanner"),
   accounting: () => import("@/components/admin/AccountingTab"),
 };
+TAB_PREFETCH.dataimport = () => import("@/components/admin/DataImportTab");
 const prefetched = new Set<AdminTabKey>();
 const prefetchTab = (key: AdminTabKey) => {
   if (prefetched.has(key)) return;
@@ -143,6 +144,7 @@ type NavItem = {
   requiresLeads?: boolean;
   requiresLivechat?: boolean;
   requiresAccounting?: boolean;
+  requiresDataImport?: boolean;
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -156,6 +158,7 @@ const NAV_ITEMS: NavItem[] = [
   { value: "reviews", label: "Anmeldelser", icon: Star },
   { value: "livechat", label: "Livechat", icon: MessageCircle, requiresLivechat: true },
   { value: "accounting", label: "Regnskab", icon: Calculator, requiresAccounting: true },
+  { value: "dataimport", label: "Dataimport", icon: Upload, requiresDataImport: true },
   { value: "settings", label: "Indstillinger", icon: Settings },
 ];
 
