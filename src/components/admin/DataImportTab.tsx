@@ -183,6 +183,12 @@ const ImportPanel = ({
   const PAGE_SIZE = 50;
   // Filter: vis kun fejl, dubletter eller alle
   const [rowFilter, setRowFilter] = useState<"all" | "ok" | "dup" | "err">("all");
+  // Rækker brugeren manuelt har fravalgt (index i prepared). Som standard er
+  // alle gyldige rækker valgt (= ikke i settet).
+  const [excluded, setExcluded] = useState<Set<number>>(new Set());
+  // Rækker med fejl/dubletter brugeren manuelt vil tvinge med (selvom de ellers
+  // ikke ville blive importeret). Pt. bruger vi det ikke, men holder muligheden åben.
+  const [forceInclude, setForceInclude] = useState<Set<number>>(new Set());
 
   const reset = () => {
     setFile(null); setRows([]); setHeaders([]); setMapping({});
@@ -191,6 +197,7 @@ const ImportPanel = ({
     setOrderMatches({});
     setDetection(null);
     setPage(0); setRowFilter("all");
+    setExcluded(new Set()); setForceInclude(new Set());
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -200,6 +207,8 @@ const ImportPanel = ({
       return;
     }
     setFile(f); setDone(null);
+    // Reset selektion når en ny fil læses ind
+    setExcluded(new Set()); setForceInclude(new Set());
 
     // Læs filen som bytes så vi selv kan håndtere encoding. SkvizBiz og en
     // del andre danske eksport-værktøjer gemmer som Windows-1252/ISO-8859-1,
