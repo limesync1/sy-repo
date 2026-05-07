@@ -882,6 +882,29 @@ const ImportPanel = ({
         <table className="w-full text-xs">
           <thead className="bg-secondary/60">
             <tr className="text-left">
+              <th className="px-2 py-1.5 font-medium w-8">
+                <Checkbox
+                  checked={visibleRows.length > 0 && visibleRows.every((r: any) => isSelected(prepared.indexOf(r), r))}
+                  onCheckedChange={(v) => {
+                    setExcluded((prev) => {
+                      const n = new Set(prev);
+                      const fi = new Set(forceInclude);
+                      visibleRows.forEach((r: any) => {
+                        const i = prepared.indexOf(r);
+                        if (v) {
+                          n.delete(i);
+                          if (r.errors.length > 0 || r.isDuplicate) fi.add(i);
+                        } else {
+                          n.add(i);
+                          fi.delete(i);
+                        }
+                      });
+                      setForceInclude(fi);
+                      return n;
+                    });
+                  }}
+                />
+              </th>
               <th className="px-2 py-1.5 font-medium">Status</th>
               {entity === "customers" && <>
                 <th className="px-2 py-1.5 font-medium">Type</th>
@@ -907,8 +930,25 @@ const ImportPanel = ({
             </tr>
           </thead>
           <tbody>
-            {visibleRows.map((r: any, i) => (
-              <tr key={safePage * PAGE_SIZE + i} className="border-t border-border hover:bg-secondary/30">
+            {visibleRows.map((r: any, i) => {
+              const realIdx = prepared.indexOf(r);
+              const sel = isSelected(realIdx, r);
+              return (
+              <tr key={safePage * PAGE_SIZE + i} className={`border-t border-border hover:bg-secondary/30 ${!sel ? "opacity-50" : ""}`}>
+                <td className="px-2 py-1.5">
+                  <Checkbox
+                    checked={sel}
+                    onCheckedChange={(v) => {
+                      if (v) {
+                        setExcluded((p) => { const n = new Set(p); n.delete(realIdx); return n; });
+                        if (r.errors.length > 0 || r.isDuplicate) setForceInclude((p) => new Set(p).add(realIdx));
+                      } else {
+                        setForceInclude((p) => { const n = new Set(p); n.delete(realIdx); return n; });
+                        setExcluded((p) => new Set(p).add(realIdx));
+                      }
+                    }}
+                  />
+                </td>
                 <td className="px-2 py-1.5">
                   {r.errors.length > 0 ? (
                     <Badge variant="destructive" className="text-[10px]" title={r.errors.join(" · ")}>
@@ -978,7 +1018,7 @@ const ImportPanel = ({
                           <CheckCircle2 className="mr-1 h-2.5 w-2.5" /> {r.matched_service_name || "Eksisterende"}{typeof r.service_confidence === "number" ? ` · ${r.service_confidence}%` : ""}
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="w-fit text-[10px]"><Sparkles className="mr-1 h-2.5 w-2.5" /> Ny linje</Badge>
+                        <Badge variant="outline" className="w-fit text-[10px]"><Sparkles className="mr-1 h-2.5 w-2.5" /> Service oprettes automatisk</Badge>
                       )}
                     </div>
                   </td>
@@ -986,7 +1026,8 @@ const ImportPanel = ({
                   <td className="px-2 py-1.5 text-muted-foreground">{r.preferred_date || "—"}</td>
                 </>}
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
         </div>
