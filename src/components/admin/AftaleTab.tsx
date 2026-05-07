@@ -785,7 +785,7 @@ const AftaleTab = ({
 
   // Søgning på kundenavn, e-mail, telefon, adresse og service-navne
   const q = search.trim().toLowerCase();
-  const filteredOrders = !q ? baseFilteredOrders : baseFilteredOrders?.filter((o: any) => {
+  const searchedOrders = !q ? baseFilteredOrders : baseFilteredOrders?.filter((o: any) => {
     if ((o.customer_name || "").toLowerCase().includes(q)) return true;
     if ((o.customer_email || "").toLowerCase().includes(q)) return true;
     if ((o.customer_phone || "").toLowerCase().includes(q)) return true;
@@ -794,6 +794,40 @@ const AftaleTab = ({
     if ((o.company_name || "").toLowerCase().includes(q)) return true;
     const items = (o.order_items || []) as any[];
     return items.some((it: any) => (it.service_name || "").toLowerCase().includes(q));
+  });
+
+  // Sortering
+  const needsActionScore = (o: any) => {
+    // Højere score = vigtigere/mere presserende
+    if (o.status === "pending" && (!o.business_response || (o.business_response === "adjusted" && o.customer_response === "rejected"))) return 1000;
+    if ((o.payment_status === "overdue") || ((o.reminder_count ?? 0) > 0 && o.payment_status !== "paid")) return 900;
+    if (o.status === "pending" && o.business_response === "adjusted") return 700;
+    if (o.status === "in_progress") return 500;
+    if (o.status === "confirmed") return 300;
+    return 0;
+  };
+  const filteredOrders = (searchedOrders || []).slice().sort((a: any, b: any) => {
+    switch (sortBy) {
+      case "oldest":
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case "amount_desc":
+        return (b.adjusted_amount ?? b.total_amount ?? 0) - (a.adjusted_amount ?? a.total_amount ?? 0);
+      case "amount_asc":
+        return (a.adjusted_amount ?? a.total_amount ?? 0) - (b.adjusted_amount ?? b.total_amount ?? 0);
+      case "next_service": {
+        const ad = a.next_service_date ? new Date(a.next_service_date).getTime() : Infinity;
+        const bd = b.next_service_date ? new Date(b.next_service_date).getTime() : Infinity;
+        return ad - bd;
+      }
+      case "needs_action": {
+        const diff = needsActionScore(b) - needsActionScore(a);
+        if (diff !== 0) return diff;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+      case "newest":
+      default:
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
   });
 
   const initAdjustedItems = (order: any) => {
