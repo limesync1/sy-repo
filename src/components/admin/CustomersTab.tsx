@@ -1309,12 +1309,14 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                                   </p>
                                 )}
                               </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                {o.is_paused
-                                  ? <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-amber-300 text-amber-700 bg-amber-50">På pause</Badge>
-                                  : <StatusBadge status={o.status} />}
-                                <PaymentBadge status={o.payment_status} syncedAt={o.payment_status_synced_at} />
-                                <span className="text-sm font-bold text-foreground tabular-nums">{fmtKr(o.total_amount)}</span>
+                              <div className="flex flex-col items-end gap-1.5 shrink-0">
+                                <div className="flex items-center gap-2">
+                                  {o.is_paused
+                                    ? <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-amber-300 text-amber-700 bg-amber-50">På pause</Badge>
+                                    : <StatusBadge status={o.status} />}
+                                  <span className="text-sm font-bold text-foreground tabular-nums">{fmtKr(o.total_amount)}</span>
+                                </div>
+                                <AccountingStatusRow order={o as OrderForStatus} size="xs" />
                               </div>
                             </div>
                             {o.order_items && o.order_items.length > 0 && (
