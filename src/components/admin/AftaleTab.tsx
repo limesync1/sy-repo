@@ -1402,6 +1402,7 @@ const AftaleTab = ({
             return (
               <Card
                 key={order.id}
+                id={`order-${order.id}`}
                 className={`surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden ${
                   draggingOrderId === order.id ? "opacity-60" : ""
                 }`}
