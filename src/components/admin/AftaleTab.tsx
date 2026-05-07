@@ -45,6 +45,8 @@ import {
 import { relativeFromNow } from "@/lib/relative-time";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 import InvoiceActionsMenu from "@/components/admin/InvoiceActionsMenu";
+import OrderTimeline from "@/components/admin/OrderTimeline";
+import NextStepCard from "@/components/admin/NextStepCard";
 
 /* ─── Types ─── */
 type BusinessService = Service & { calculator_steps?: CalculatorStep[] };
@@ -1651,6 +1653,9 @@ const AftaleTab = ({
                       )}
                     </div>
 
+                    {/* Næste skridt — smart kontekstuel guide */}
+                    <NextStepCard order={order as any} />
+
                     {/* Rute-info — vis på hvilken rute denne aftale er placeret.
                         Hele blokken skjules når ruteplanlægning er deaktiveret. */}
                     {routePlanningEnabled && routeInfo ? (
@@ -1707,6 +1712,9 @@ const AftaleTab = ({
 
                     {/* Linked subscriptions (recurring service schedule) */}
                     <LinkedSubscriptionInfo orderId={order.id} subscriptions={allSubs} />
+
+                    {/* Tidslinje — viser bestilling, faktura, rykkere, betalinger og status-skift */}
+                    <OrderTimeline order={order as any} />
 
                     {/* Customer note */}
                     {order.notes && (
