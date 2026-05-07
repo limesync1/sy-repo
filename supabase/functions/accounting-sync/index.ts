@@ -1098,6 +1098,10 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
     .select("external_id, external_type").eq("business_id", integ.business_id)
     .eq("provider", integ.provider).eq("order_id", orderId).maybeSingle();
 
+  // Når ordren allerede er bogført som faktura, må vi ikke længere forsøge at
+  // opdatere den som ordrekladde i e-conomic — bogførte fakturaer er låste.
+  if (existing?.external_type === "invoice_booked") return;
+
   if (operation === "delete") {
     if (existing && adapter.deleteOrder) {
       try { await adapter.deleteOrder(existing.external_id); } catch (_) { /* ignore */ }
@@ -1296,24 +1300,26 @@ async function bookInvoiceForOrder(
   }
 
   // Opdater orders med faktura-info
-  await admin.from("orders").update({
+  const { error: orderUpdateError } = await admin.from("orders").update({
     invoice_status: result.sent ? "sent" : "booked",
     invoiced_at: new Date().toISOString(),
     invoice_external_id: result.invoice_external_id,
     ...paymentUpdate,
   }).eq("id", orderId);
+  if (orderUpdateError) throw orderUpdateError;
 
   // Gem link til faktura (samme tabel, men nu external_type = invoice)
-  await admin.from("accounting_order_links").update({
+  const { error: linkUpdateError } = await admin.from("accounting_order_links").update({
     external_id: result.invoice_external_id,
     external_number: result.invoice_external_number,
-    external_type: "invoice",
+    external_type: "invoice_booked",
     last_pushed_at: new Date().toISOString(),
     last_status_synced: result.sent ? "sent" : "booked",
   })
     .eq("business_id", integ.business_id)
     .eq("provider", integ.provider)
     .eq("order_id", orderId);
+  if (linkUpdateError) throw linkUpdateError;
 
   await logSync(admin, {
     business_id: integ.business_id, provider: integ.provider, direction: "push",
