@@ -566,6 +566,8 @@ const ImportPanel = ({
         city: get(row, mapping, "city"),
         service_name: get(row, mapping, "service_name") || "Importeret ordrelinje",
         quantity: qty,
+        unit: parseUnit(get(row, mapping, "unit")) || matchedService?.unit || undefined,
+        interval: parseInterval(get(row, mapping, "interval")),
         unit_price: unit_price ?? total_amount / Math.max(qty, 1),
         total_amount,
         preferred_date: parseDate(get(row, mapping, "preferred_date")),
