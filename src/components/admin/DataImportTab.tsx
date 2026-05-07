@@ -141,11 +141,29 @@ const ImportPanel = ({
   const [matching, setMatching] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  // Auto-detektion af hvilket indhold filen har (kunder/services/aftaler/blanding).
+  const [detection, setDetection] = useState<{
+    contains: { customers?: boolean; services?: boolean; orders?: boolean };
+    primary: EntityType;
+    is_mixed: boolean;
+    confidence?: number;
+    summary?: string;
+    recommendations: EntityType[];
+  } | null>(null);
+
+  // Paginering — vis ALLE rækker, men 50 ad gangen så browseren ikke fryser.
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 50;
+  // Filter: vis kun fejl, dubletter eller alle
+  const [rowFilter, setRowFilter] = useState<"all" | "ok" | "dup" | "err">("all");
+
   const reset = () => {
     setFile(null); setRows([]); setHeaders([]); setMapping({});
     setAiNotes(null); setConfidence(null); setDone(null);
     setClassifications({});
     setOrderMatches({});
+    setDetection(null);
+    setPage(0); setRowFilter("all");
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -186,10 +204,34 @@ const ImportPanel = ({
         if (parsed.length === 0) { toast.error("CSV-filen er tom"); return; }
         const hdrs = result.meta.fields || Object.keys(parsed[0] || {});
         setHeaders(hdrs); setRows(parsed);
-        await runAi(hdrs, parsed.slice(0, 5));
+        // Kør detektion + mapping parallelt
+        await Promise.all([
+          detectContent(hdrs, parsed.slice(0, 5)),
+          runAi(hdrs, parsed.slice(0, 5)),
+        ]);
       },
       error: (err: any) => toast.error("Kunne ikke læse CSV: " + err.message),
     });
+  };
+
+  const detectContent = async (hdrs: string[], sample: Row[]) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("import-customers-ai", {
+        body: { mode: "detect", headers: hdrs, sample },
+      });
+      if (error) throw error;
+      const det = {
+        contains: data?.contains || {},
+        primary: (data?.primary || "customers") as EntityType,
+        is_mixed: !!data?.is_mixed,
+        confidence: typeof data?.confidence === "number" ? data.confidence : undefined,
+        summary: data?.summary || undefined,
+        recommendations: (Array.isArray(data?.recommendations) ? data.recommendations : [data?.primary || "customers"]) as EntityType[],
+      };
+      setDetection(det);
+    } catch {
+      // stille fejl — manuelt skift muligt
+    }
   };
 
   const runAi = async (hdrs: string[], sample: Row[]) => {
@@ -420,6 +462,18 @@ const ImportPanel = ({
     duplicates: prepared.filter((r) => r.isDuplicate).length,
     errors: prepared.filter((r) => r.errors.length > 0).length,
   }), [prepared]);
+
+  // Filtrér rækker til tabellen + nulstil side når filter ændres.
+  const filteredRows = useMemo(() => {
+    if (rowFilter === "ok") return prepared.filter((r) => r.errors.length === 0 && !r.isDuplicate);
+    if (rowFilter === "dup") return prepared.filter((r) => r.isDuplicate);
+    if (rowFilter === "err") return prepared.filter((r) => r.errors.length > 0);
+    return prepared;
+  }, [prepared, rowFilter]);
+  const pageCount = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount - 1);
+  const visibleRows = filteredRows.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
+  useEffect(() => { setPage(0); }, [rowFilter, prepared.length]);
 
   const runImport = async () => {
     const valid = prepared.filter((r) => r.errors.length === 0 && !r.isDuplicate);
