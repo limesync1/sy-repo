@@ -44,6 +44,7 @@ import {
 } from "@/lib/service-pricing";
 import { relativeFromNow } from "@/lib/relative-time";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
+import InvoiceActionsMenu from "@/components/admin/InvoiceActionsMenu";
 
 /* ─── Types ─── */
 type BusinessService = Service & { calculator_steps?: CalculatorStep[] };
