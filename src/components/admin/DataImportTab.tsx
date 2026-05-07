@@ -1106,6 +1106,15 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
   const [existingEmails, setExistingEmails] = useState<Set<string>>(new Set());
   const [existingProductNumbers, setExistingProductNumbers] = useState<Set<string>>(new Set());
   const [existingExternalOrderNumbers, setExistingExternalOrderNumbers] = useState<Set<string>>(new Set());
+  // Indeks fra "match-værdi" → læselig identifikation af eksisterende post,
+  // så vi kan forklare præcis hvilket felt en dublet blev genkendt på.
+  const [existingByEmail, setExistingByEmail] = useState<Record<string, string>>({});
+  const [existingByCvr, setExistingByCvr] = useState<Record<string, string>>({});
+  const [existingByCustomerNumber, setExistingByCustomerNumber] = useState<Record<string, string>>({});
+  const [existingByEan, setExistingByEan] = useState<Record<string, string>>({});
+  const [existingByOrderNumber, setExistingByOrderNumber] = useState<Record<string, string>>({});
+  const [existingByProductNumber, setExistingByProductNumber] = useState<Record<string, string>>({});
+  const [existingServiceNames, setExistingServiceNames] = useState<Record<string, string>>({});
   const [existingCategories, setExistingCategories] = useState<{ category: string; subcategories: string[] }[]>([]);
   const [existingCustomers, setExistingCustomers] = useState<{ id: string; name: string; email: string; cvr?: string | null; phone?: string | null; zip_code?: string | null }[]>([]);
   const [existingServices, setExistingServices] = useState<{ id: string; name: string; product_number?: string | null; unit?: string | null; base_price?: number | null }[]>([]);
@@ -1114,24 +1123,49 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
     let cancelled = false;
     (async () => {
       const [biz, priv, svc, ord] = await Promise.all([
-        supabase.from("business_customers").select("id,company_name,contact_name,email,cvr,phone,zip_code").eq("business_id", businessId),
-        supabase.from("private_customers").select("id,name,email,phone,zip_code").eq("business_id", businessId),
+        supabase.from("business_customers").select("id,company_name,contact_name,email,cvr,phone,zip_code,customer_number,ean_number").eq("business_id", businessId),
+        supabase.from("private_customers").select("id,name,email,phone,zip_code,customer_number").eq("business_id", businessId),
         supabase.from("services").select("id,name,product_number,service_category,subcategory,unit,base_price").eq("business_id", businessId),
-        supabase.from("orders").select("external_order_number").eq("business_id", businessId),
+        supabase.from("orders").select("external_order_number,customer_name,customer_email").eq("business_id", businessId),
       ]);
       if (cancelled) return;
       const emails = new Set<string>();
-      (biz.data || []).forEach((r: any) => r.email && emails.add(String(r.email).toLowerCase()));
-      (priv.data || []).forEach((r: any) => r.email && emails.add(String(r.email).toLowerCase()));
+      const byEmail: Record<string, string> = {};
+      const byCvr: Record<string, string> = {};
+      const byCustNum: Record<string, string> = {};
+      const byEan: Record<string, string> = {};
+      (biz.data || []).forEach((r: any) => {
+        const label = r.company_name || r.contact_name || r.email || "Erhvervskunde";
+        if (r.email) { const k = String(r.email).toLowerCase(); emails.add(k); byEmail[k] = label; }
+        if (r.cvr) { const k = String(r.cvr).replace(/\D/g, ""); if (k) byCvr[k] = label; }
+        if (r.customer_number) byCustNum[String(r.customer_number).toLowerCase()] = label;
+        if (r.ean_number) byEan[String(r.ean_number).replace(/\D/g, "")] = label;
+      });
+      (priv.data || []).forEach((r: any) => {
+        const label = r.name || r.email || "Privatkunde";
+        if (r.email) { const k = String(r.email).toLowerCase(); emails.add(k); byEmail[k] = label; }
+        if (r.customer_number) byCustNum[String(r.customer_number).toLowerCase()] = label;
+      });
       setExistingEmails(emails);
+      setExistingByEmail(byEmail);
+      setExistingByCvr(byCvr);
+      setExistingByCustomerNumber(byCustNum);
+      setExistingByEan(byEan);
       const customers = [
         ...((biz.data || []) as any[]).map((c) => ({ id: c.id, name: c.company_name || c.contact_name || c.email, email: c.email, cvr: c.cvr, phone: c.phone, zip_code: c.zip_code })),
         ...((priv.data || []) as any[]).map((c) => ({ id: c.id, name: c.name || c.email, email: c.email, cvr: null, phone: c.phone, zip_code: c.zip_code })),
       ];
       setExistingCustomers(customers);
       const prods = new Set<string>();
-      (svc.data || []).forEach((r: any) => r.product_number && prods.add(String(r.product_number).toLowerCase()));
+      const byProd: Record<string, string> = {};
+      const svcNames: Record<string, string> = {};
+      (svc.data || []).forEach((r: any) => {
+        if (r.product_number) { const k = String(r.product_number).toLowerCase(); prods.add(k); byProd[k] = r.name || r.product_number; }
+        if (r.name) svcNames[String(r.name).toLowerCase()] = r.name;
+      });
       setExistingProductNumbers(prods);
+      setExistingByProductNumber(byProd);
+      setExistingServiceNames(svcNames);
       setExistingServices(((svc.data || []) as any[]).map((s) => ({ id: s.id, name: s.name, product_number: s.product_number, unit: s.unit, base_price: s.base_price })));
       const catMap = new Map<string, Set<string>>();
       (svc.data || []).forEach((r: any) => {
@@ -1143,8 +1177,16 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
       });
       setExistingCategories(Array.from(catMap.entries()).map(([category, subs]) => ({ category, subcategories: Array.from(subs) })));
       const ords = new Set<string>();
-      (ord.data || []).forEach((r: any) => r.external_order_number && ords.add(String(r.external_order_number).toLowerCase()));
+      const byOrd: Record<string, string> = {};
+      (ord.data || []).forEach((r: any) => {
+        if (r.external_order_number) {
+          const k = String(r.external_order_number).toLowerCase();
+          ords.add(k);
+          byOrd[k] = r.customer_name || r.customer_email || r.external_order_number;
+        }
+      });
       setExistingExternalOrderNumbers(ords);
+      setExistingByOrderNumber(byOrd);
     })();
     return () => { cancelled = true; };
   }, [businessId]);
