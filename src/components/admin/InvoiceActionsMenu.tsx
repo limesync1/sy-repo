@@ -95,10 +95,10 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
 
   const toneCls = (tone: "warning" | "danger" | "success" | "neutral") => {
     switch (tone) {
-      case "danger":  return "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15 hover:border-destructive/60";
-      case "warning": return "border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 hover:border-amber-400 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/15";
-      case "success": return "border-success/40 bg-success/10 text-success hover:bg-success/15 hover:border-success/60";
-      default:        return "border-border bg-card text-foreground hover:bg-secondary hover:border-border";
+      case "danger":  return "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive hover:border-destructive/50";
+      case "warning": return "border-amber-300/80 bg-amber-50 text-amber-900 hover:bg-amber-100 hover:text-amber-950 hover:border-amber-300 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200 dark:hover:bg-amber-500/15 dark:hover:text-amber-100";
+      case "success": return "border-success/40 bg-success/10 text-success hover:bg-success/15 hover:text-success hover:border-success/50";
+      default:        return "border-border bg-card text-foreground hover:bg-secondary hover:text-foreground";
     }
   };
 
@@ -149,7 +149,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
             <Button
               variant="outline"
               size="sm"
-              className={`h-8 px-2.5 text-xs font-medium ${toneCls(primary.tone)}`}
+              className={`h-7 px-2 text-[11px] font-medium leading-none transition-colors ${toneCls(primary.tone)}`}
               disabled={busy !== null}
               onClick={primary.onClick}
             >
@@ -163,7 +163,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
                 }
                 fallback={primary.icon}
               />
-              <span className="ml-1.5 hidden sm:inline">{primary.label}</span>
+              <span className="ml-1 hidden sm:inline">{primary.label}</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent side="top" className="bg-popover border-border">
@@ -184,7 +184,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 w-8 p-0 border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground hover:border-foreground/20 data-[state=open]:bg-secondary data-[state=open]:text-foreground data-[state=open]:border-foreground/20"
+                  className="h-7 w-7 p-0 border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground hover:border-foreground/20 data-[state=open]:bg-secondary data-[state=open]:text-foreground data-[state=open]:border-foreground/20"
                   disabled={busy !== null}
                   aria-label="Flere handlinger"
                 >
