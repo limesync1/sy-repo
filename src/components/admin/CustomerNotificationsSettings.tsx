@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Mail, MessageSquare, Clock, Bell, CheckCircle2, RotateCcw, Phone, Plus, AlarmClock, Signal, Wifi, BatteryFull, ChevronLeft, Video } from "lucide-react";
+import { Loader2, Mail, MessageSquare, Clock, Bell, CheckCircle2, RotateCcw, Phone, Plus, AlarmClock, CalendarDays } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -85,57 +85,48 @@ function renderPreview(tpl: string): string {
   });
 }
 
-/* ─────────────────────── LEAD TIME HELPERS ─────────────────────── */
+/* ─────────────────────── SCHEDULE HELPERS ─────────────────────── */
+// Påmindelser sendes på et bestemt klokkeslæt N dage før selve aftalen.
+// Beregnes ud fra den planlagte ankomst-dato på rutekalenderen.
 
-type LeadParts = { d: number; h: number; m: number };
-
-const minutesToParts = (mins: number | null | undefined): LeadParts => {
-  const total = Math.max(0, Math.floor(mins ?? 0));
-  const d = Math.floor(total / (24 * 60));
-  const h = Math.floor((total - d * 24 * 60) / 60);
-  const m = total - d * 24 * 60 - h * 60;
-  return { d, h, m };
-};
-const partsToMinutes = (p: LeadParts): number => Math.max(0, (p.d || 0) * 24 * 60 + (p.h || 0) * 60 + (p.m || 0));
-const formatLead = (mins: number): string => {
-  if (!mins || mins <= 0) return "med det samme";
-  const { d, h, m } = minutesToParts(mins);
-  const parts: string[] = [];
-  if (d) parts.push(`${d} dag${d > 1 ? "e" : ""}`);
-  if (h) parts.push(`${h} time${h > 1 ? "r" : ""}`);
-  if (m) parts.push(`${m} min`);
-  return parts.join(" og ");
-};
-
-const LEAD_PRESETS: { label: string; minutes: number }[] = [
-  { label: "30 min", minutes: 30 },
-  { label: "1 time", minutes: 60 },
-  { label: "2 timer", minutes: 120 },
-  { label: "4 timer", minutes: 240 },
-  { label: "1 dag", minutes: 24 * 60 },
-  { label: "2 dage", minutes: 48 * 60 },
-  { label: "1 uge", minutes: 7 * 24 * 60 },
+type ScheduleDays = 0 | 1 | 2 | 7;
+const DAY_OPTIONS: { value: ScheduleDays; label: string; short: string }[] = [
+  { value: 0, label: "Samme dag",     short: "i dag" },
+  { value: 1, label: "Dagen før",     short: "1 dag før" },
+  { value: 2, label: "2 dage før",    short: "2 dage før" },
+  { value: 7, label: "1 uge før",     short: "1 uge før" },
 ];
+const DEFAULT_SCHEDULE: { days: ScheduleDays; time: string } = { days: 1, time: "09:00" };
+const TIME_PRESETS = ["08:00", "09:00", "12:00", "16:00", "18:00"];
 
-function LeadTimePicker({
-  value, onChange, defaultMinutes, onReset, label, channel,
+const formatSchedule = (days: ScheduleDays, time: string): string => {
+  const d = DAY_OPTIONS.find((o) => o.value === days)?.label ?? `${days} dage før`;
+  return `${d} kl. ${time}`;
+};
+
+// Kompatibilitet: hvis en gammel række kun har lead_time_minutes (gammelt
+// design), så approximér til { days, time } så brugeren får et rimeligt
+// udgangspunkt at justere fra.
+const minutesToSchedule = (mins: number | null | undefined): { days: ScheduleDays; time: string } => {
+  if (mins == null) return { ...DEFAULT_SCHEDULE };
+  if (mins >= 7 * 24 * 60) return { days: 7, time: "09:00" };
+  if (mins >= 2 * 24 * 60) return { days: 2, time: "09:00" };
+  if (mins >= 24 * 60)     return { days: 1, time: "09:00" };
+  return { days: 0, time: "08:00" };
+};
+
+function SchedulePicker({
+  days, time, onChange, label, channel,
 }: {
-  value: number; onChange: (m: number) => void;
-  defaultMinutes: number; onReset: () => void;
+  days: ScheduleDays; time: string;
+  onChange: (next: { days: ScheduleDays; time: string }) => void;
   label: string; channel: "email" | "sms";
 }) {
-  const parts = minutesToParts(value);
-  const usingDefault = value === defaultMinutes;
-  const setPart = (k: keyof LeadParts, v: number) => {
-    const max = k === "m" ? 59 : k === "h" ? 23 : 30;
-    const next: LeadParts = { ...parts, [k]: Math.max(0, Math.min(max, Number.isFinite(v) ? v : 0)) };
-    onChange(partsToMinutes(next));
-  };
   return (
     <div className="rounded-lg border border-border bg-muted/20 p-3">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <AlarmClock className="h-3.5 w-3.5 text-muted-foreground" />
+          <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
           <p className="text-[12px] font-semibold text-foreground">{label}</p>
         </div>
         <span className="rounded-md bg-background px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">
@@ -143,61 +134,61 @@ function LeadTimePicker({
         </span>
       </div>
       <p className="mt-1 text-[11px] text-muted-foreground">
-        Sendes <span className="font-medium text-foreground">{formatLead(value)}</span> før det planlagte tidspunkt.
+        Sendes <span className="font-medium text-foreground">{formatSchedule(days, time)}</span> ud fra aftalens dato på rutekalenderen.
       </p>
 
-      <div className="mt-2.5 flex flex-wrap gap-1.5">
-        {LEAD_PRESETS.map((p) => {
-          const active = value === p.minutes;
-          return (
-            <button
-              key={p.minutes}
-              type="button"
-              onClick={() => onChange(p.minutes)}
-              className={cn(
-                "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
-                active
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border bg-background text-foreground hover:border-foreground/50",
-              )}
-            >
-              {p.label}
-            </button>
-          );
-        })}
+      <div className="mt-2.5">
+        <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Hvornår</p>
+        <div className="flex flex-wrap gap-1.5">
+          {DAY_OPTIONS.map((o) => {
+            const active = days === o.value;
+            return (
+              <button
+                key={o.value}
+                type="button"
+                onClick={() => onChange({ days: o.value, time })}
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                  active
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border bg-background text-foreground hover:border-foreground/50",
+                )}
+              >
+                {o.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-3 gap-2">
-        {([
-          { k: "d" as const, label: "Dage" , max: 30 },
-          { k: "h" as const, label: "Timer", max: 23 },
-          { k: "m" as const, label: "Min"  , max: 59 },
-        ]).map((f) => (
-          <label key={f.k} className="flex flex-col gap-1">
-            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{f.label}</span>
-            <Input
-              type="number" min={0} max={f.max}
-              value={parts[f.k]}
-              className="h-9"
-              onChange={(e) => setPart(f.k, Number(e.target.value))}
-            />
-          </label>
-        ))}
-      </div>
-
-      <div className="mt-2.5 flex items-center justify-between">
-        <span className="text-[10.5px] text-muted-foreground">
-          {usingDefault ? "Bruger jeres standard" : `Standard: ${formatLead(defaultMinutes)}`}
-        </span>
-        {!usingDefault && (
-          <button
-            type="button"
-            onClick={onReset}
-            className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground"
-          >
-            <RotateCcw className="h-3 w-3" /> Brug standard
-          </button>
-        )}
+      <div className="mt-3">
+        <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Klokkeslæt</p>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {TIME_PRESETS.map((t) => {
+            const active = time === t;
+            return (
+              <button
+                key={t}
+                type="button"
+                onClick={() => onChange({ days, time: t })}
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors tabular-nums",
+                  active
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border bg-background text-foreground hover:border-foreground/50",
+                )}
+              >
+                kl. {t}
+              </button>
+            );
+          })}
+          <Input
+            type="time"
+            value={time}
+            onChange={(e) => onChange({ days, time: e.target.value || "09:00" })}
+            className="h-8 w-[110px] tabular-nums"
+          />
+        </div>
       </div>
     </div>
   );
@@ -383,14 +374,16 @@ export function CustomerNotificationsSettings({
     },
   });
 
-  const [drafts, setDrafts] = useState<Record<EventKey, { subject: string; body: string; enabled: boolean; leadMinutes: number | null }>>(() => {
+  type EmailDraft = { subject: string; body: string; enabled: boolean; days: ScheduleDays; time: string };
+  type SmsDraft   = { body: string; enabled: boolean; days: ScheduleDays; time: string };
+  const [drafts, setDrafts] = useState<Record<EventKey, EmailDraft>>(() => {
     const o = {} as any;
-    EVENTS.forEach((e) => { o[e.key] = { subject: e.defaults.subject, body: e.defaults.body, enabled: true, leadMinutes: null }; });
+    EVENTS.forEach((e) => { o[e.key] = { subject: e.defaults.subject, body: e.defaults.body, enabled: true, ...DEFAULT_SCHEDULE }; });
     return o;
   });
-  const [smsDrafts, setSmsDrafts] = useState<Record<EventKey, { body: string; enabled: boolean; leadMinutes: number | null }>>(() => {
+  const [smsDrafts, setSmsDrafts] = useState<Record<EventKey, SmsDraft>>(() => {
     const o = {} as any;
-    EVENTS.forEach((e) => { o[e.key] = { body: SMS_DEFAULTS[e.key], enabled: true, leadMinutes: null }; });
+    EVENTS.forEach((e) => { o[e.key] = { body: SMS_DEFAULTS[e.key], enabled: true, ...DEFAULT_SCHEDULE }; });
     return o;
   });
   const [savedSnapshot, setSavedSnapshot] = useState<{ email: typeof drafts; sms: typeof smsDrafts } | null>(null);
@@ -405,9 +398,23 @@ export function CustomerNotificationsSettings({
     const nextSms = { ...smsDrafts };
     for (const e of EVENTS) {
       const eRow = rows.find((r: any) => r.event_type === e.key && (r.channel ?? "email") === "email");
-      if (eRow) nextEmail[e.key] = { subject: eRow.subject, body: eRow.body, enabled: eRow.enabled, leadMinutes: eRow.lead_time_minutes ?? null };
+      if (eRow) {
+        const fallback = minutesToSchedule(eRow.lead_time_minutes);
+        nextEmail[e.key] = {
+          subject: eRow.subject, body: eRow.body, enabled: eRow.enabled,
+          days: (eRow.days_before ?? fallback.days) as ScheduleDays,
+          time: (eRow.send_at_time ? String(eRow.send_at_time).slice(0, 5) : fallback.time),
+        };
+      }
       const sRow = rows.find((r: any) => r.event_type === e.key && r.channel === "sms");
-      if (sRow) nextSms[e.key] = { body: sRow.body, enabled: sRow.enabled, leadMinutes: sRow.lead_time_minutes ?? null };
+      if (sRow) {
+        const fallback = minutesToSchedule(sRow.lead_time_minutes);
+        nextSms[e.key] = {
+          body: sRow.body, enabled: sRow.enabled,
+          days: (sRow.days_before ?? fallback.days) as ScheduleDays,
+          time: (sRow.send_at_time ? String(sRow.send_at_time).slice(0, 5) : fallback.time),
+        };
+      }
     }
     setDrafts(nextEmail);
     setSmsDrafts(nextSms);
@@ -418,38 +425,48 @@ export function CustomerNotificationsSettings({
   const isEmailDirty = (k: EventKey) => {
     const a = drafts[k]; const b = savedSnapshot?.email[k];
     if (!b) return true;
-    return a.subject !== b.subject || a.body !== b.body || a.enabled !== b.enabled || a.leadMinutes !== b.leadMinutes;
+    return a.subject !== b.subject || a.body !== b.body || a.enabled !== b.enabled || a.days !== b.days || a.time !== b.time;
   };
   const isSmsDirty = (k: EventKey) => {
     const a = smsDrafts[k]; const b = savedSnapshot?.sms[k];
     if (!b) return true;
-    return a.body !== b.body || a.enabled !== b.enabled || a.leadMinutes !== b.leadMinutes;
+    return a.body !== b.body || a.enabled !== b.enabled || a.days !== b.days || a.time !== b.time;
   };
 
-  const saveEmailNow = async (key: EventKey, d: { subject: string; body: string; enabled: boolean; leadMinutes: number | null }) => {
+  const saveEmailNow = async (key: EventKey, d: EmailDraft) => {
+    const leadMinutes = key === "service_upcoming" ? (d.days * 24 * 60) : null;
     const { error } = await supabase
       .from("customer_notification_templates")
       .upsert({ business_id: businessId, event_type: key, channel: "email",
-        subject: d.subject, body: d.body, enabled: d.enabled, lead_time_minutes: d.leadMinutes }, { onConflict: "business_id,event_type,channel" });
+        subject: d.subject, body: d.body, enabled: d.enabled,
+        lead_time_minutes: leadMinutes,
+        days_before: key === "service_upcoming" ? d.days : null,
+        send_at_time: key === "service_upcoming" ? d.time : null,
+      } as any, { onConflict: "business_id,event_type,channel" });
     if (error) { toast.error(error.message); return; }
     setSavedSnapshot((s) => ({ email: { ...(s?.email ?? drafts), [key]: d }, sms: s?.sms ?? smsDrafts }));
   };
 
-  const saveSmsNow = async (key: EventKey, d: { body: string; enabled: boolean; leadMinutes: number | null }) => {
+  const saveSmsNow = async (key: EventKey, d: SmsDraft) => {
+    const leadMinutes = key === "service_upcoming" ? (d.days * 24 * 60) : null;
     const { error } = await supabase
       .from("customer_notification_templates")
       .upsert({ business_id: businessId, event_type: key, channel: "sms",
-        subject: null, body: d.body, enabled: d.enabled, lead_time_minutes: d.leadMinutes }, { onConflict: "business_id,event_type,channel" });
+        subject: null, body: d.body, enabled: d.enabled,
+        lead_time_minutes: leadMinutes,
+        days_before: key === "service_upcoming" ? d.days : null,
+        send_at_time: key === "service_upcoming" ? d.time : null,
+      } as any, { onConflict: "business_id,event_type,channel" });
     if (error) { toast.error(error.message); return; }
     setSavedSnapshot((s) => ({ email: s?.email ?? drafts, sms: { ...(s?.sms ?? smsDrafts), [key]: d } }));
   };
 
   const resetEmail = (key: EventKey) => {
     const ev = EVENTS.find((e) => e.key === key)!;
-    setDrafts((p) => ({ ...p, [key]: { subject: ev.defaults.subject, body: ev.defaults.body, enabled: p[key].enabled, leadMinutes: p[key].leadMinutes } }));
+    setDrafts((p) => ({ ...p, [key]: { ...p[key], subject: ev.defaults.subject, body: ev.defaults.body } }));
   };
   const resetSms = (key: EventKey) => {
-    setSmsDrafts((p) => ({ ...p, [key]: { body: SMS_DEFAULTS[key], enabled: p[key].enabled, leadMinutes: p[key].leadMinutes } }));
+    setSmsDrafts((p) => ({ ...p, [key]: { ...p[key], body: SMS_DEFAULTS[key] } }));
   };
 
   // Cursor-aware inserts for active editor
@@ -496,66 +513,24 @@ export function CustomerNotificationsSettings({
     <div className="space-y-6">
       {/* ───── Globale indstillinger ───── */}
       <div className="grid gap-3 sm:grid-cols-2">
-        {/* Standard-tid før besøg — bruger samme presets som per-besked LeadTimePicker
-            men rundes til hele timer fordi parent gemmer i timer (1–168). */}
+        {/* Hvordan-virker-det info-card — erstatter den gamle "Standardtid før besøget"-knapsalat,
+            fordi tidspunktet nu sættes pr. besked længere nede (klokkeslæt + dage før). */}
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-start gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/5">
-              <Clock className="h-4 w-4 text-foreground" />
+              <CalendarDays className="h-4 w-4 text-foreground" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground">Standardtid før besøget</p>
+              <p className="text-sm font-semibold text-foreground">Sådan beregnes afsendelsestidspunktet</p>
               <p className="mt-0.5 text-[12px] text-muted-foreground">
-                Bruges som udgangspunkt for alle påmindelser. I kan altid vælge en anden tid for hver enkelt e-mail og SMS længere nede.
+                For hver påmindelse vælger I et <span className="font-medium text-foreground">klokkeslæt</span> og hvor mange <span className="font-medium text-foreground">dage før</span> aftalen
+                den skal sendes (samme dag, dagen før, 2 dage før eller 1 uge før).
               </p>
-              <p className="mt-2 text-[12px] text-foreground">
-                Sender påmindelser <span className="font-semibold">{formatLead(upcomingMinutesBefore)}</span> før det planlagte besøg.
+              <p className="mt-2 text-[12px] text-muted-foreground">
+                Vi finder selv aftalens dato på rutekalenderen og sender beskeden på det rigtige tidspunkt — ingen manuel timing nødvendig.
               </p>
-              {/* Presets */}
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {LEAD_PRESETS.map((p) => {
-                  const active = upcomingMinutesBefore === p.minutes;
-                  return (
-                    <button
-                      key={p.minutes}
-                      type="button"
-                      onClick={() => onUpcomingMinutesChange(p.minutes)}
-                      className={cn(
-                        "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
-                        active
-                          ? "border-foreground bg-foreground text-background"
-                          : "border-border bg-background text-foreground hover:border-foreground/50",
-                      )}
-                    >
-                      {p.label}
-                    </button>
-                  );
-                })}
-              </div>
-              {/* Brugerdefineret: dage / timer / minutter */}
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                {(() => {
-                  const parts = minutesToParts(upcomingMinutesBefore);
-                  const setPart = (k: "d" | "h" | "m", v: number) => {
-                    const max = k === "m" ? 59 : k === "h" ? 23 : 30;
-                    const next = { ...parts, [k]: Math.max(0, Math.min(max, Number.isFinite(v) ? v : 0)) };
-                    onUpcomingMinutesChange(Math.max(1, partsToMinutes(next)));
-                  };
-                  return ([
-                    { k: "d" as const, label: "Dage", max: 30 },
-                    { k: "h" as const, label: "Timer", max: 23 },
-                    { k: "m" as const, label: "Min", max: 59 },
-                  ]).map((f) => (
-                    <label key={f.k} className="flex flex-col gap-1">
-                      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{f.label}</span>
-                      <Input
-                        type="number" min={0} max={f.max} className="h-9"
-                        value={parts[f.k]}
-                        onChange={(e) => setPart(f.k, Number(e.target.value))}
-                      />
-                    </label>
-                  ));
-                })()}
+              <div className="mt-3 rounded-lg bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
+                <span className="font-semibold text-foreground">Eksempel:</span> Aftale tirsdag d. 14. → "Dagen før kl. 16:00" sender mandag d. 13. kl. 16:00.
               </div>
             </div>
           </div>
@@ -625,7 +600,7 @@ export function CustomerNotificationsSettings({
                     {e.key === "service_upcoming" && (
                       <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground" title="Hvornår beskederne sendes før besøget">
                         <AlarmClock className="h-2.5 w-2.5" />
-                        {formatLead(drafts[e.key].leadMinutes ?? upcomingMinutesBefore)}
+                        {formatSchedule(drafts[e.key].days, drafts[e.key].time)}
                       </span>
                     )}
                   </div>
@@ -706,13 +681,12 @@ export function CustomerNotificationsSettings({
                 </label>
 
                 {activeEvent === "service_upcoming" && (
-                  <LeadTimePicker
+                  <SchedulePicker
                     label="Hvornår skal e-mailen sendes?"
                     channel="email"
-                    value={drafts[activeEvent].leadMinutes ?? upcomingMinutesBefore}
-                    defaultMinutes={upcomingMinutesBefore}
-                    onChange={(m) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: m } }))}
-                    onReset={() => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: null } }))}
+                    days={drafts[activeEvent].days}
+                    time={drafts[activeEvent].time}
+                    onChange={(s) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], days: s.days, time: s.time } }))}
                   />
                 )}
 
@@ -799,13 +773,12 @@ export function CustomerNotificationsSettings({
                 </label>
 
                 {activeEvent === "service_upcoming" && (
-                  <LeadTimePicker
+                  <SchedulePicker
                     label="Hvornår skal SMS'en sendes?"
                     channel="sms"
-                    value={smsDrafts[activeEvent].leadMinutes ?? upcomingMinutesBefore}
-                    defaultMinutes={upcomingMinutesBefore}
-                    onChange={(m) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: m } }))}
-                    onReset={() => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: null } }))}
+                    days={smsDrafts[activeEvent].days}
+                    time={smsDrafts[activeEvent].time}
+                    onChange={(s) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], days: s.days, time: s.time } }))}
                   />
                 )}
 
