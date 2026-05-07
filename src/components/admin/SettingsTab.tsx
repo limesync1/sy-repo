@@ -1590,9 +1590,10 @@ const SettingsTab = ({ business }: { business: any }) => {
                               if (h > 0) return `${h} ${h === 1 ? "time" : "timer"} tilbage af din prøveperiode`;
                               return `${m} ${m === 1 ? "minut" : "minutter"} tilbage af din prøveperiode`;
                             }
-                            return plan.days_left === 1
+                            const dl = plan.days_left ?? 0;
+                            return dl <= 1
                               ? "Sidste dag af din prøveperiode"
-                              : `${plan.days_left} dage tilbage af din prøveperiode`;
+                              : `${dl} dage tilbage af din prøveperiode`;
                           })()}
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
