@@ -24,6 +24,8 @@ type Order = {
   last_reminder_at?: string | null;
   total_amount?: number | null;
   accounting_synced_at?: string | null;
+  reminder_history?: unknown;
+  due_date?: string | null;
 };
 
 type Action = "send_reminder" | "credit_invoice" | "void_draft" | "mark_paid" | "sync_now";
@@ -42,10 +44,22 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
   const isInvoiced = !!order.invoice_external_id;
   const isPaid = order.payment_status === "paid";
   const isCredited = order.payment_status === "credited";
-  const nextReminderNumber = Math.min((order.reminder_count ?? 0) + 1, 3);
+  const sentCount = order.reminder_count ?? 0;
+  const nextReminderNumber = Math.min(sentCount + 1, 3);
+  const allRemindersSent = sentCount >= 3;
   const reminderLabel = nextReminderNumber === 1
     ? "1. rykker"
     : `${nextReminderNumber}. rykker`;
+  const sentTypes = (() => {
+    const arr = Array.isArray(order.reminder_history) ? (order.reminder_history as any[]) : [];
+    return new Set(arr.map((r) => r?.type).filter(Boolean));
+  })();
+  const isOverdue = order.due_date
+    ? new Date(order.due_date).getTime() < Date.now() && !isPaid && !isCredited
+    : false;
+  const lastSent = order.last_reminder_at
+    ? new Date(order.last_reminder_at).toLocaleDateString("da-DK", { day: "numeric", month: "short" })
+    : null;
   const syncedLabel = order.accounting_synced_at
     ? new Date(order.accounting_synced_at).toLocaleString("da-DK", {
         day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
@@ -110,14 +124,18 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
         </TooltipContent>
       </Tooltip>
 
-      {/* Send rykker — split-knap */}
-      {isInvoiced && !isPaid && !isCredited && (
+      {/* Send rykker — split-knap. Skjules når alle rykkere er sendt */}
+      {isInvoiced && !isPaid && !isCredited && !allRemindersSent && (
         <div className="inline-flex rounded-md shadow-sm">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="outline" size="sm"
-                className="h-8 rounded-r-none border-r-0 px-2.5 text-xs font-medium border-amber-300/70 bg-amber-50 text-amber-900 hover:bg-amber-100 hover:text-amber-950"
+                className={`h-8 rounded-r-none border-r-0 px-2.5 text-xs font-medium ${
+                  isOverdue
+                    ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15"
+                    : "border-amber-300/70 bg-amber-50 text-amber-900 hover:bg-amber-100 hover:text-amber-950"
+                }`}
                 disabled={busy !== null}
                 onClick={() => sendReminder(`reminder${nextReminderNumber}` as ReminderType)}
               >
@@ -125,35 +143,68 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
                 <span className="ml-1.5">Send {reminderLabel}</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="top">
-              Send {reminderLabel} via dit regnskabsprogram
+            <TooltipContent side="top" className="max-w-[260px]">
+              <div className="text-xs font-medium">Send {reminderLabel} via dit regnskabsprogram</div>
+              {sentCount > 0 && (
+                <div className="mt-1 text-[11px] opacity-80">
+                  {sentCount} {sentCount === 1 ? "rykker" : "rykkere"} allerede sendt
+                  {lastSent ? ` (sidst ${lastSent})` : ""}
+                </div>
+              )}
+              {isOverdue && (
+                <div className="mt-1 text-[11px] font-medium text-destructive">
+                  Forfaldsdato er overskredet
+                </div>
+              )}
             </TooltipContent>
           </Tooltip>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline" size="sm"
-                className="h-8 rounded-l-none px-1.5 border-amber-300/70 bg-amber-50 text-amber-900 hover:bg-amber-100"
+                className={`h-8 rounded-l-none px-1.5 ${
+                  isOverdue
+                    ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15"
+                    : "border-amber-300/70 bg-amber-50 text-amber-900 hover:bg-amber-100"
+                }`}
                 disabled={busy !== null}
                 aria-label="Flere rykker-typer"
               >
                 <ChevronDown className="h-3.5 w-3.5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                Vælg rykker-type
+                Rykker-historik &amp; valg
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => sendReminder("reminder1")} className="gap-2">
-                <Bell className="h-3.5 w-3.5 text-amber-600" /> 1. rykker
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => sendReminder("reminder2")} className="gap-2">
-                <Bell className="h-3.5 w-3.5 text-amber-700" /> 2. rykker
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => sendReminder("reminder3")} className="gap-2">
-                <Bell className="h-3.5 w-3.5 text-orange-700" /> 3. rykker
-              </DropdownMenuItem>
+              {[1, 2, 3].map((n) => {
+                const key = `reminder${n}`;
+                const sent = sentTypes.has(key) || sentCount >= n;
+                const isNext = n === nextReminderNumber;
+                return (
+                  <DropdownMenuItem
+                    key={key}
+                    onSelect={() => sendReminder(key as ReminderType)}
+                    className="flex items-center justify-between gap-2"
+                  >
+                    <span className="flex items-center gap-2">
+                      {sent ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                      ) : (
+                        <Bell className={`h-3.5 w-3.5 ${n === 3 ? "text-orange-700" : n === 2 ? "text-amber-700" : "text-amber-600"}`} />
+                      )}
+                      <span className={sent ? "text-muted-foreground" : ""}>{n}. rykker</span>
+                    </span>
+                    {sent && (
+                      <span className="text-[10px] font-medium text-success">Sendt</span>
+                    )}
+                    {!sent && isNext && (
+                      <span className="text-[10px] font-semibold text-foreground">Næste</span>
+                    )}
+                  </DropdownMenuItem>
+                );
+              })}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onSelect={() => sendReminder("collection")}
@@ -164,6 +215,24 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+      )}
+
+      {/* Når alle 3 rykkere er sendt vis kun "Send til inkasso" */}
+      {isInvoiced && !isPaid && !isCredited && allRemindersSent && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline" size="sm"
+              className="h-8 px-2.5 text-xs font-medium border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20"
+              disabled={busy !== null}
+              onClick={() => sendReminder("collection")}
+            >
+              <Spinner a="send_reminder" fallback={<Gavel className="h-3.5 w-3.5" />} />
+              <span className="ml-1.5">Send til inkasso</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">Alle 3 rykkere er sendt — næste skridt er inkasso</TooltipContent>
+        </Tooltip>
       )}
 
       {/* Markér som betalt */}
