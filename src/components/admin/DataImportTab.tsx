@@ -170,6 +170,7 @@ const ImportPanel = ({
   const [orderMatches, setOrderMatches] = useState<Record<number, { customer_id?: string | null; customer_match_reason?: string; customer_confidence?: number; service_id?: string | null; service_match_reason?: string; service_confidence?: number; inferred_unit_price?: number | null }>>({});
   const [matching, setMatching] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const autoSwitchedRef = useRef(false);
 
   // Hvis parenten leverer en allerede uploadet fil (fx fordi auto-detect skiftede
   // entitetstype efter upload), så indlæs den automatisk i denne panel.
@@ -279,8 +280,9 @@ const ImportPanel = ({
         recommendations: (Array.isArray(data?.recommendations) ? data.recommendations : [data?.primary || "customers"]) as EntityType[],
       };
       setDetection(det);
-      // Auto-skift til den primære entitet hvis vi er på en anden fane.
-      if (det.primary && det.primary !== entity) {
+      // Auto-skift til den primære entitet hvis vi er på en anden fane (kun én gang pr. fil).
+      if (det.primary && det.primary !== entity && !autoSwitchedRef.current) {
+        autoSwitchedRef.current = true;
         window.dispatchEvent(new CustomEvent("dataimport:switch-entity", { detail: det.primary }));
       }
     } catch {
