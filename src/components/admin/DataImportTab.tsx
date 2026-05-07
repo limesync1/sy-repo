@@ -714,14 +714,16 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
   const [existingProductNumbers, setExistingProductNumbers] = useState<Set<string>>(new Set());
   const [existingExternalOrderNumbers, setExistingExternalOrderNumbers] = useState<Set<string>>(new Set());
   const [existingCategories, setExistingCategories] = useState<{ category: string; subcategories: string[] }[]>([]);
+  const [existingCustomers, setExistingCustomers] = useState<{ id: string; name: string; email: string; cvr?: string | null; phone?: string | null; zip_code?: string | null }[]>([]);
+  const [existingServices, setExistingServices] = useState<{ id: string; name: string; product_number?: string | null; unit?: string | null; base_price?: number | null }[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const [biz, priv, svc, ord] = await Promise.all([
-        supabase.from("business_customers").select("email").eq("business_id", businessId),
-        supabase.from("private_customers").select("email").eq("business_id", businessId),
-        supabase.from("services").select("product_number,service_category,subcategory").eq("business_id", businessId),
+        supabase.from("business_customers").select("id,company_name,contact_name,email,cvr,phone,zip_code").eq("business_id", businessId),
+        supabase.from("private_customers").select("id,name,email,phone,zip_code").eq("business_id", businessId),
+        supabase.from("services").select("id,name,product_number,service_category,subcategory,unit,base_price").eq("business_id", businessId),
         supabase.from("orders").select("external_order_number").eq("business_id", businessId),
       ]);
       if (cancelled) return;
@@ -729,9 +731,15 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
       (biz.data || []).forEach((r: any) => r.email && emails.add(String(r.email).toLowerCase()));
       (priv.data || []).forEach((r: any) => r.email && emails.add(String(r.email).toLowerCase()));
       setExistingEmails(emails);
+      const customers = [
+        ...((biz.data || []) as any[]).map((c) => ({ id: c.id, name: c.company_name || c.contact_name || c.email, email: c.email, cvr: c.cvr, phone: c.phone, zip_code: c.zip_code })),
+        ...((priv.data || []) as any[]).map((c) => ({ id: c.id, name: c.name || c.email, email: c.email, cvr: null, phone: c.phone, zip_code: c.zip_code })),
+      ];
+      setExistingCustomers(customers);
       const prods = new Set<string>();
       (svc.data || []).forEach((r: any) => r.product_number && prods.add(String(r.product_number).toLowerCase()));
       setExistingProductNumbers(prods);
+      setExistingServices(((svc.data || []) as any[]).map((s) => ({ id: s.id, name: s.name, product_number: s.product_number, unit: s.unit, base_price: s.base_price })));
       const catMap = new Map<string, Set<string>>();
       (svc.data || []).forEach((r: any) => {
         const cat = (r.service_category || "").trim();
@@ -803,6 +811,8 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
           existingProductNumbers={existingProductNumbers}
           existingExternalOrderNumbers={existingExternalOrderNumbers}
           existingCategories={existingCategories}
+          existingCustomers={existingCustomers}
+          existingServices={existingServices}
         />
       </SectionCard>
     </div>
