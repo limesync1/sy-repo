@@ -210,11 +210,11 @@ const buildAdjustmentItem = (item: any, service?: BusinessService): AdjustmentIt
    cancelled  → Annulleret
 */
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; cls: string; dot: string }> = {
-  pending:     { label: "Ny bestilling", icon: AlertCircle,   cls: "border-amber-300 bg-amber-100 text-amber-900",        dot: "bg-amber-500" },
-  confirmed:   { label: "Aftalt",        icon: CheckCircle2,  cls: "border-blue-300 bg-blue-100 text-blue-900",           dot: "bg-blue-500" },
-  in_progress: { label: "I gang",        icon: RefreshCw,     cls: "border-violet-300 bg-violet-100 text-violet-900",     dot: "bg-violet-500" },
-  completed:   { label: "Udført",        icon: CheckCircle2,  cls: "border-success/40 bg-success/15 text-success",        dot: "bg-success" },
-  cancelled:   { label: "Annulleret",    icon: XCircle,       cls: "border-border bg-secondary text-muted-foreground",    dot: "bg-muted-foreground" },
+  pending:     { label: "Ny bestilling", icon: AlertCircle,   cls: "border-amber-300/70 bg-amber-50 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200",       dot: "bg-amber-500" },
+  confirmed:   { label: "Aftalt",        icon: CheckCircle2,  cls: "border-blue-300/70 bg-blue-50 text-blue-900 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-200",            dot: "bg-blue-500" },
+  in_progress: { label: "I gang",        icon: RefreshCw,     cls: "border-violet-300/70 bg-violet-50 text-violet-900 dark:border-violet-500/40 dark:bg-violet-500/10 dark:text-violet-200", dot: "bg-violet-500" },
+  completed:   { label: "Udført",        icon: CheckCircle2,  cls: "border-success/40 bg-success/10 text-success",                                                                          dot: "bg-success" },
+  cancelled:   { label: "Annulleret",    icon: XCircle,       cls: "border-destructive/30 bg-destructive/5 text-destructive/80",                                                            dot: "bg-destructive/70" },
 };
 
 const PRICING_LABELS: Record<string, string> = {
