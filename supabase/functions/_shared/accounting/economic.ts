@@ -92,13 +92,37 @@ function friendlyEconomicError(status: number, body: string): string {
     // Vi samler ALT så brugeren faktisk kan se hvilket felt der fejler.
     const parts: string[] = [];
     if (j?.message) parts.push(String(j.message));
-    const errs = Array.isArray(j?.errors) ? j.errors : [];
-    for (const e of errs) {
-      const field = e?.propertyName ?? e?.property ?? "";
-      const msg = e?.errorMessage ?? e?.message ?? "";
-      const hint = e?.developerHint ?? "";
-      const piece = [field && `[${field}]`, msg, hint && `(${hint})`].filter(Boolean).join(" ");
-      if (piece) parts.push(piece);
+    // E-conomic putter ofte detaljerne i et 'errors'-objekt (key→{errors:[...]}) ELLER
+    // i et top-level errors array. Vi rekursivt indsamler ALT så brugeren ser
+    // præcis hvilket felt der fejler — ikke bare "Schema validation failed.".
+    const collectErrs = (node: any, prefix = ""): void => {
+      if (!node) return;
+      if (Array.isArray(node)) {
+        for (const e of node) {
+          if (e && typeof e === "object") {
+            const field = e.propertyName ?? e.property ?? prefix;
+            const msg = e.errorMessage ?? e.message ?? "";
+            const hint = e.developerHint ?? "";
+            const piece = [field && `[${field}]`, msg, hint && `(${hint})`].filter(Boolean).join(" ");
+            if (piece) parts.push(piece);
+          } else if (typeof e === "string") {
+            parts.push(prefix ? `[${prefix}] ${e}` : e);
+          }
+        }
+      } else if (typeof node === "object") {
+        if (Array.isArray(node.errors)) collectErrs(node.errors, prefix);
+        for (const [k, v] of Object.entries(node)) {
+          if (k === "errors" || k === "message") continue;
+          if (v && typeof v === "object") collectErrs(v, prefix ? `${prefix}.${k}` : k);
+        }
+      }
+    };
+    collectErrs(j?.errors);
+    if (parts.length <= 1 && j && typeof j === "object") {
+      for (const [k, v] of Object.entries(j)) {
+        if (["message","errors","errorCode","developerHint","logId","logTime","httpStatusCode"].includes(k)) continue;
+        if (v && typeof v === "object") collectErrs(v, k);
+      }
     }
     if (parts.length) return `E-conomic: ${parts.join(" — ")}`;
   } catch { /* ignore */ }
@@ -111,6 +135,7 @@ async function ecRequest(
   creds: AccountingCredentials,
   path: string,
   init: RequestInit = {},
+  opts: { silent404?: boolean } = {},
 ): Promise<any> {
   if (!creds.api_secret || !creds.api_token) {
     throw new Error("Mangler App Secret Token eller Agreement Grant Token.");
@@ -121,12 +146,14 @@ async function ecRequest(
   });
   if (!res.ok) {
     const text = await res.text();
-    console.error("[economic] request failed", {
-      method: init.method ?? "GET",
-      path,
-      status: res.status,
-      body: text.slice(0, 500),
-    });
+    if (!(opts.silent404 && res.status === 404)) {
+      console.error("[economic] request failed", {
+        method: init.method ?? "GET",
+        path,
+        status: res.status,
+        body: text.slice(0, 500),
+      });
+    }
     throw new Error(friendlyEconomicError(res.status, text));
   }
   if (res.status === 204) return null;
@@ -333,15 +360,21 @@ export function makeEconomicAdapter(
       const sendAs = input.external_type ?? settings.send_order_as ?? "order";
       const path = sendAs === "order" ? "/orders/drafts" : "/invoices/drafts";
       const date = (input.date ?? new Date().toISOString()).slice(0, 10);
+      // Recipient.name er PÅKRÆVET af e-conomic — tom string giver
+      // "Schema validation failed." Vi sætter et fornuftigt fallback fra
+      // input og overskriver hvis customer-opslaget lykkes.
+      const fallbackRecipientName =
+        (input as any).customer_name?.toString().trim() ||
+        `Kunde ${input.customer_external_id}`;
       const body: Record<string, unknown> = {
         date,
         currency: input.currency ?? "DKK",
         customer: { customerNumber: Number(input.customer_external_id) },
-        recipient: { name: "", vatZone: { vatZoneNumber: 1 } },
+        recipient: { name: fallbackRecipientName, vatZone: { vatZoneNumber: 1 } },
         notes: { textLine1: (input.notes ?? "").slice(0, 200) },
         lines: input.lines.map((l, idx) => ({
           lineNumber: idx + 1,
-          description: l.description,
+          description: (l.description ?? "").toString().trim() || "Ydelse",
           quantity: l.quantity,
           unitNetPrice: l.unit_price,
           product: l.product_external_id
@@ -365,7 +398,7 @@ export function makeEconomicAdapter(
         }
         if (cust?.vatZone?.vatZoneNumber) {
           (body as any).recipient = {
-            name: cust.name ?? "",
+            name: (cust.name ?? "").toString().trim() || fallbackRecipientName,
             address: cust.address ?? undefined,
             zip: cust.zip ?? undefined,
             city: cust.city ?? undefined,
@@ -382,6 +415,19 @@ export function makeEconomicAdapter(
       if (!(body as any).layout?.layoutNumber) {
         const layoutNumber = await resolveLayoutNumber(creds, settings);
         if (layoutNumber) (body as any).layout = { layoutNumber };
+      }
+
+      // paymentTerms er PÅKRÆVET af e-conomic. Hvis kunde-opslaget ikke gav et
+      // paymentTermsNumber (fx ny kunde uden default), så hent første aktive
+      // paymentTerm fra aftalen som fallback — så ordren ikke fejler.
+      if (!(body as any).paymentTerms?.paymentTermsNumber) {
+        try {
+          const pts = await ecRequest(creds, "/payment-terms?pagesize=20");
+          const first = (pts?.collection ?? []).find((p: any) => p?.paymentTermsNumber);
+          if (first?.paymentTermsNumber) {
+            (body as any).paymentTerms = { paymentTermsNumber: first.paymentTermsNumber };
+          }
+        } catch { /* ignore — vil fejle med tydelig besked nedenfor */ }
       }
 
       if (input.external_id) {
@@ -452,10 +498,10 @@ export function makeEconomicAdapter(
           let inv: any = null;
           let booked = true;
           try {
-            inv = await ecRequest(creds, `/invoices/booked/${id}`);
+            inv = await ecRequest(creds, `/invoices/booked/${id}`, {}, { silent404: true });
           } catch {
             try {
-              inv = await ecRequest(creds, `/invoices/drafts/${id}`);
+              inv = await ecRequest(creds, `/invoices/drafts/${id}`, {}, { silent404: true });
               booked = false;
             } catch { /* not found */ }
           }
