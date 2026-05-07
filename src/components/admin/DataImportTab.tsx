@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   UploadCloud, Loader2, FileText, Sparkles, CheckCircle2, AlertTriangle,
@@ -25,7 +26,7 @@ const FIELD_DEFS: Record<EntityType, { key: string; label: string; required?: bo
     { key: "company_name", label: "Virksomhedsnavn" },
     { key: "cvr", label: "CVR-nummer" },
     { key: "contact_name", label: "Kontaktperson" },
-    { key: "email", label: "E-mail", required: true },
+    { key: "email", label: "E-mail" },
     { key: "phone", label: "Telefon" },
     { key: "address", label: "Adresse" },
     { key: "zip_code", label: "Postnummer" },
@@ -48,7 +49,7 @@ const FIELD_DEFS: Record<EntityType, { key: string; label: string; required?: bo
   ],
   orders: [
     { key: "external_order_number", label: "Ordre-/fakturanr." },
-    { key: "customer_email", label: "Kunde e-mail", required: true },
+    { key: "customer_email", label: "Kunde e-mail" },
     { key: "customer_name", label: "Kundenavn" },
     { key: "customer_phone", label: "Kunde telefon" },
     { key: "company_name", label: "Virksomhedsnavn" },
@@ -137,6 +138,7 @@ const FIELD_GROUPS: Record<EntityType, { title: string; keys: string[] }[]> = {
 // ---------- Per-entity import-panel ----------
 const ImportPanel = ({
   entity, businessId, existingEmails, existingProductNumbers, existingExternalOrderNumbers, existingCategories, existingCustomers, existingServices,
+  sharedFile, onFileChange,
 }: {
   entity: EntityType;
   businessId: string;
@@ -146,6 +148,8 @@ const ImportPanel = ({
   existingCategories: { category: string; subcategories: string[] }[];
   existingCustomers: { id: string; name: string; email: string; cvr?: string | null; phone?: string | null; zip_code?: string | null }[];
   existingServices: { id: string; name: string; product_number?: string | null; unit?: string | null; base_price?: number | null }[];
+  sharedFile: File | null;
+  onFileChange: (f: File | null) => void;
 }) => {
   const fields = FIELD_DEFS[entity];
   const [file, setFile] = useState<File | null>(null);
@@ -166,6 +170,16 @@ const ImportPanel = ({
   const [orderMatches, setOrderMatches] = useState<Record<number, { customer_id?: string | null; customer_match_reason?: string; customer_confidence?: number; service_id?: string | null; service_match_reason?: string; service_confidence?: number; inferred_unit_price?: number | null }>>({});
   const [matching, setMatching] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const autoSwitchedRef = useRef(false);
+
+  // Hvis parenten leverer en allerede uploadet fil (fx fordi auto-detect skiftede
+  // entitetstype efter upload), så indlæs den automatisk i denne panel.
+  useEffect(() => {
+    if (sharedFile && sharedFile !== file) {
+      handleFile(sharedFile);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sharedFile]);
 
   // Auto-detektion af hvilket indhold filen har (kunder/services/aftaler/blanding).
   const [detection, setDetection] = useState<{
@@ -182,6 +196,12 @@ const ImportPanel = ({
   const PAGE_SIZE = 50;
   // Filter: vis kun fejl, dubletter eller alle
   const [rowFilter, setRowFilter] = useState<"all" | "ok" | "dup" | "err">("all");
+  // Rækker brugeren manuelt har fravalgt (index i prepared). Som standard er
+  // alle gyldige rækker valgt (= ikke i settet).
+  const [excluded, setExcluded] = useState<Set<number>>(new Set());
+  // Rækker med fejl/dubletter brugeren manuelt vil tvinge med (selvom de ellers
+  // ikke ville blive importeret). Pt. bruger vi det ikke, men holder muligheden åben.
+  const [forceInclude, setForceInclude] = useState<Set<number>>(new Set());
 
   const reset = () => {
     setFile(null); setRows([]); setHeaders([]); setMapping({});
@@ -190,7 +210,9 @@ const ImportPanel = ({
     setOrderMatches({});
     setDetection(null);
     setPage(0); setRowFilter("all");
+    setExcluded(new Set()); setForceInclude(new Set());
     if (inputRef.current) inputRef.current.value = "";
+    onFileChange(null);
   };
 
   const handleFile = async (f: File) => {
@@ -199,6 +221,9 @@ const ImportPanel = ({
       return;
     }
     setFile(f); setDone(null);
+    onFileChange(f);
+    // Reset selektion når en ny fil læses ind
+    setExcluded(new Set()); setForceInclude(new Set());
 
     // Læs filen som bytes så vi selv kan håndtere encoding. SkvizBiz og en
     // del andre danske eksport-værktøjer gemmer som Windows-1252/ISO-8859-1,
@@ -255,6 +280,11 @@ const ImportPanel = ({
         recommendations: (Array.isArray(data?.recommendations) ? data.recommendations : [data?.primary || "customers"]) as EntityType[],
       };
       setDetection(det);
+      // Auto-skift til den primære entitet hvis vi er på en anden fane (kun én gang pr. fil).
+      if (det.primary && det.primary !== entity && !autoSwitchedRef.current) {
+        autoSwitchedRef.current = true;
+        window.dispatchEvent(new CustomEvent("dataimport:switch-entity", { detail: det.primary }));
+      }
     } catch {
       // stille fejl — manuelt skift muligt
     }
@@ -373,10 +403,12 @@ const ImportPanel = ({
       if (entity === "customers") {
         const type = detectCustomerType(row, mapping, defaultType);
         const email = (get(row, mapping, "email") || "").toLowerCase();
-        if (!email) errors.push("Mangler e-mail");
-        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push("Ugyldig e-mail");
-        if (type === "private" && !get(row, mapping, "name")) errors.push("Mangler navn");
-        if (type === "business" && !get(row, mapping, "company_name")) errors.push("Mangler virksomhedsnavn");
+        // E-mail og telefon er valgfri — vi tillader oprettelse uden.
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push("Ugyldig e-mail");
+        const hasName = !!get(row, mapping, "name");
+        const hasCompany = !!get(row, mapping, "company_name");
+        if (type === "private" && !hasName && !hasCompany) errors.push("Mangler navn eller virksomhedsnavn");
+        if (type === "business" && !hasCompany && !hasName) errors.push("Mangler virksomhedsnavn eller navn");
         if (email && existingEmails.has(email)) { isDuplicate = true; duplicateReason = `Kunde med e-mail "${email}" findes allerede i jeres kartotek — den bliver sprunget over.`; }
         else if (email && seenEmails.has(email)) { isDuplicate = true; duplicateReason = `E-mailen "${email}" optræder flere gange i denne CSV-fil — kun første række importeres.`; }
         if (email) seenEmails.add(email);
@@ -437,8 +469,12 @@ const ImportPanel = ({
       const ext = get(row, mapping, "external_order_number");
       const idxOrd = rows.indexOf(row);
       const match = orderMatches[idxOrd];
-      if (!customer_email && !match?.customer_id) errors.push("Mangler kunde e-mail eller match");
-      else if (customer_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer_email)) errors.push("Ugyldig kunde e-mail");
+      const cName = get(row, mapping, "customer_name") || get(row, mapping, "company_name");
+      // Vi accepterer ordrer uden e-mail så længe vi kan identificere kunden på navn/firma/CVR/match.
+      if (customer_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer_email)) errors.push("Ugyldig kunde e-mail");
+      if (!customer_email && !match?.customer_id && !cName && !get(row, mapping, "cvr")) {
+        errors.push("Mangler kundeoplysning (navn, e-mail eller CVR)");
+      }
       const dupKey = ext?.toLowerCase();
       if (dupKey && existingExternalOrderNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = `Ordre/aftale med nr. "${ext}" findes allerede i systemet.`; }
       else if (dupKey && seenOrderNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = `Ordrenr. "${ext}" optræder flere gange i denne CSV-fil — kun første række importeres.`; }
@@ -482,12 +518,21 @@ const ImportPanel = ({
     });
   }, [rows, mapping, defaultType, entity, existingEmails, existingProductNumbers, existingExternalOrderNumbers, classifications, orderMatches, existingCustomers, existingServices]);
 
+  // Hvilke rækker er valgt til import? Default = alle uden fejl/dublet (minus
+  // dem brugeren manuelt har fravalgt) plus dem brugeren har tvunget med.
+  const isSelected = (idx: number, r: any) => {
+    if (excluded.has(idx)) return false;
+    if (forceInclude.has(idx)) return true;
+    return r.errors.length === 0 && !r.isDuplicate;
+  };
+
   const stats = useMemo(() => ({
     total: prepared.length,
     ok: prepared.filter((r) => r.errors.length === 0 && !r.isDuplicate).length,
     duplicates: prepared.filter((r) => r.isDuplicate).length,
     errors: prepared.filter((r) => r.errors.length > 0).length,
-  }), [prepared]);
+    selected: prepared.filter((r, i) => isSelected(i, r)).length,
+  }), [prepared, excluded, forceInclude]);
 
   // Filtrér rækker til tabellen + nulstil side når filter ændres.
   const filteredRows = useMemo(() => {
@@ -502,8 +547,8 @@ const ImportPanel = ({
   useEffect(() => { setPage(0); }, [rowFilter, prepared.length]);
 
   const runImport = async () => {
-    const valid = prepared.filter((r) => r.errors.length === 0 && !r.isDuplicate);
-    if (valid.length === 0) { toast.error("Ingen gyldige rækker"); return; }
+    const valid = prepared.filter((r, i) => isSelected(i, r));
+    if (valid.length === 0) { toast.error("Ingen rækker valgt til import"); return; }
     setImporting(true);
     try {
       let created = 0;
@@ -550,13 +595,39 @@ const ImportPanel = ({
           if (error) throw error; created += data?.length || 0;
         }
       } else {
-        // orders — opret order + 1 line per række
+        // orders — opret order + 1 line per række. Hvis en ordre refererer til en
+        // service der ikke findes endnu, opretter vi den automatisk så ordren
+        // ikke står med en tom linje.
+        const serviceCache = new Map<string, string>(); // navn (lowercase) → id
+        existingServices.forEach((s) => { if (s.name) serviceCache.set(s.name.toLowerCase(), s.id); });
         for (const r of valid as any[]) {
+          // Find / opret service hvis nødvendigt
+          let serviceId: string | null = r.matched_service_id || null;
+          if (!serviceId && r.service_name) {
+            const key = String(r.service_name).toLowerCase().trim();
+            if (serviceCache.has(key)) serviceId = serviceCache.get(key)!;
+            else {
+              const { data: newSvc, error: svcErr } = await supabase
+                .from("services")
+                .insert({
+                  business_id: businessId,
+                  name: r.service_name,
+                  base_price: r.unit_price ?? null,
+                  unit: "stk",
+                  pricing_type: "fast_pris" as const,
+                  default_vat_rate: 25,
+                  is_active: true,
+                } as any)
+                .select("id")
+                .single();
+              if (!svcErr && newSvc) { serviceId = newSvc.id; serviceCache.set(key, newSvc.id); }
+            }
+          }
           const { data: orderRow, error: orderErr } = await supabase.from("orders").insert({
             business_id: businessId,
             customer_id: r.matched_customer_id || null,
             customer_name: r.customer_name,
-            customer_email: r.customer_email,
+            customer_email: r.customer_email || null,
             customer_phone: r.customer_phone || null,
             company_name: r.company_name || null,
             cvr: r.cvr || null,
@@ -573,7 +644,7 @@ const ImportPanel = ({
           if (orderErr) throw orderErr;
           const { error: itemErr } = await supabase.from("order_items").insert({
             order_id: orderRow.id,
-            service_id: r.matched_service_id || null,
+            service_id: serviceId,
             service_name: r.service_name,
             quantity: r.quantity,
             unit_price: r.unit_price,
@@ -831,6 +902,29 @@ const ImportPanel = ({
         <table className="w-full text-xs">
           <thead className="bg-secondary/60">
             <tr className="text-left">
+              <th className="px-2 py-1.5 font-medium w-8">
+                <Checkbox
+                  checked={visibleRows.length > 0 && visibleRows.every((r: any) => isSelected(prepared.indexOf(r), r))}
+                  onCheckedChange={(v) => {
+                    setExcluded((prev) => {
+                      const n = new Set(prev);
+                      const fi = new Set(forceInclude);
+                      visibleRows.forEach((r: any) => {
+                        const i = prepared.indexOf(r);
+                        if (v) {
+                          n.delete(i);
+                          if (r.errors.length > 0 || r.isDuplicate) fi.add(i);
+                        } else {
+                          n.add(i);
+                          fi.delete(i);
+                        }
+                      });
+                      setForceInclude(fi);
+                      return n;
+                    });
+                  }}
+                />
+              </th>
               <th className="px-2 py-1.5 font-medium">Status</th>
               {entity === "customers" && <>
                 <th className="px-2 py-1.5 font-medium">Type</th>
@@ -856,8 +950,25 @@ const ImportPanel = ({
             </tr>
           </thead>
           <tbody>
-            {visibleRows.map((r: any, i) => (
-              <tr key={safePage * PAGE_SIZE + i} className="border-t border-border hover:bg-secondary/30">
+            {visibleRows.map((r: any, i) => {
+              const realIdx = prepared.indexOf(r);
+              const sel = isSelected(realIdx, r);
+              return (
+              <tr key={safePage * PAGE_SIZE + i} className={`border-t border-border hover:bg-secondary/30 ${!sel ? "opacity-50" : ""}`}>
+                <td className="px-2 py-1.5">
+                  <Checkbox
+                    checked={sel}
+                    onCheckedChange={(v) => {
+                      if (v) {
+                        setExcluded((p) => { const n = new Set(p); n.delete(realIdx); return n; });
+                        if (r.errors.length > 0 || r.isDuplicate) setForceInclude((p) => new Set(p).add(realIdx));
+                      } else {
+                        setForceInclude((p) => { const n = new Set(p); n.delete(realIdx); return n; });
+                        setExcluded((p) => new Set(p).add(realIdx));
+                      }
+                    }}
+                  />
+                </td>
                 <td className="px-2 py-1.5">
                   {r.errors.length > 0 ? (
                     <Badge variant="destructive" className="text-[10px]" title={r.errors.join(" · ")}>
@@ -927,7 +1038,7 @@ const ImportPanel = ({
                           <CheckCircle2 className="mr-1 h-2.5 w-2.5" /> {r.matched_service_name || "Eksisterende"}{typeof r.service_confidence === "number" ? ` · ${r.service_confidence}%` : ""}
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="w-fit text-[10px]"><Sparkles className="mr-1 h-2.5 w-2.5" /> Ny linje</Badge>
+                        <Badge variant="outline" className="w-fit text-[10px]"><Sparkles className="mr-1 h-2.5 w-2.5" /> Service oprettes automatisk</Badge>
                       )}
                     </div>
                   </td>
@@ -935,7 +1046,8 @@ const ImportPanel = ({
                   <td className="px-2 py-1.5 text-muted-foreground">{r.preferred_date || "—"}</td>
                 </>}
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
         </div>
@@ -964,9 +1076,9 @@ const ImportPanel = ({
       ) : (
         <div className="flex flex-wrap items-center justify-end gap-2">
           <Button variant="ghost" onClick={reset} disabled={importing}>Annullér</Button>
-          <Button onClick={runImport} disabled={importing || stats.ok === 0}>
+          <Button onClick={runImport} disabled={importing || stats.selected === 0}>
             {importing ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1.5 h-4 w-4" />}
-            Importér {stats.ok}
+            Importér {stats.selected}
           </Button>
         </div>
       )}
@@ -976,6 +1088,8 @@ const ImportPanel = ({
 
 const DataImportTab = ({ businessId, businessName }: { businessId: string; businessName: string }) => {
   const [active, setActive] = useState<EntityType>("customers");
+  // Delt fil — så auto-detect kan skifte fane uden at brugeren skal uploade igen.
+  const [sharedFile, setSharedFile] = useState<File | null>(null);
 
   // Lyt på events fra ImportPanel når AI foreslår at skifte til anden entitetstype.
   useEffect(() => {
@@ -1066,11 +1180,13 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
       </Card>
 
       <SectionCard
-        title="Vælg hvad du vil importere"
+        title="Upload din fil"
         icon={<UploadCloud />}
-        description="Du kan importere kunder, produkter/services og ordrer/aftaler hver for sig."
+        description="Træk én fil ind — vi finder selv ud af om det er kunder, produkter/services eller aftaler/ordrer (eller alt på én gang). Du kan altid skifte fane bagefter for at importere et andet aspekt af samme fil."
       >
-        <div className="mb-4 inline-flex rounded-lg border border-border bg-background p-0.5">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Vises som:</span>
+          <div className="inline-flex rounded-lg border border-border bg-background p-0.5">
           {tabs.map((t) => {
             const m = ENTITY_META[t]; const Icon = m.icon;
             return (
@@ -1080,6 +1196,7 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
               </button>
             );
           })}
+          </div>
         </div>
 
         <ImportPanel
@@ -1092,6 +1209,8 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
           existingCategories={existingCategories}
           existingCustomers={existingCustomers}
           existingServices={existingServices}
+          sharedFile={sharedFile}
+          onFileChange={setSharedFile}
         />
       </SectionCard>
     </div>
