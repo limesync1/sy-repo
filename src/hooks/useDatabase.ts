@@ -413,7 +413,9 @@ export const useMyOrders = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select("*, order_items(*), businesses(name, slug, logo_url)")
+        .select(
+          "*, order_items(*), businesses(name, slug, logo_url)"
+        )
         .eq("customer_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
