@@ -25,40 +25,41 @@ const TrialBanner = ({ plan, hideAction }: Props) => {
   if (plan.status === "active" || plan.status === "unknown") return null;
 
   const daysLeft = plan.days_left;
-  const isLastDay = daysLeft !== null && daysLeft <= 1;
-  const isWarning = plan.status === "trial_ending" || plan.status === "expired" || isLastDay;
-
-  // Beregn præcis tilbageværende tid hvis vi er under én dag.
   const msLeft = plan.trial_ends_at
     ? new Date(plan.trial_ends_at).getTime() - Date.now()
     : null;
-  const useFineGrained = msLeft !== null && msLeft > 0 && msLeft < 24 * 60 * 60 * 1000;
-  let fineLabel = "";
-  if (useFineGrained) {
-    const totalMinutes = Math.max(1, Math.floor(msLeft! / 60_000));
-    const h = Math.floor(totalMinutes / 60);
+  const isLastDay = msLeft !== null && msLeft > 0 && msLeft < 24 * 60 * 60 * 1000;
+  const isWarning = plan.status === "trial_ending" || plan.status === "expired" || isLastDay;
+
+  // Byg en præcis label fra trial_ends_at: "X dage, Y timer og Z min tilbage".
+  const buildPreciseLabel = (ms: number) => {
+    const totalMinutes = Math.max(1, Math.floor(ms / 60_000));
+    const d = Math.floor(totalMinutes / (60 * 24));
+    const h = Math.floor((totalMinutes % (60 * 24)) / 60);
     const m = totalMinutes % 60;
-    if (h > 0 && m > 0) fineLabel = `${h} ${h === 1 ? "time" : "timer"} og ${m} min tilbage af din prøveperiode`;
-    else if (h > 0) fineLabel = `${h} ${h === 1 ? "time" : "timer"} tilbage af din prøveperiode`;
-    else fineLabel = `${m} ${m === 1 ? "minut" : "minutter"} tilbage af din prøveperiode`;
-  }
+    const parts: string[] = [];
+    if (d > 0) parts.push(`${d} ${d === 1 ? "dag" : "dage"}`);
+    if (h > 0) parts.push(`${h} ${h === 1 ? "time" : "timer"}`);
+    if (m > 0 && d === 0) parts.push(`${m} min`);
+    if (parts.length === 0) parts.push(`${m} min`);
+    const joined = parts.length > 1
+      ? `${parts.slice(0, -1).join(", ")} og ${parts[parts.length - 1]}`
+      : parts[0];
+    return `${joined} tilbage af din prøveperiode`;
+  };
 
   const title = plan.status === "expired"
     ? "Din prøveperiode er udløbet"
-    : useFineGrained
-      ? fineLabel
+    : msLeft !== null && msLeft > 0
+      ? buildPreciseLabel(msLeft)
       : daysLeft === null
         ? "Din prøveperiode er aktiv"
-      : daysLeft <= 1
-        ? "Sidste dag af din prøveperiode"
         : `${daysLeft} dage tilbage af din prøveperiode`;
 
   const description = plan.status === "expired"
     ? "Tilføj et betalingskort i indstillingerne for at genaktivere din virksomhed på Serviceydere."
-    : useFineGrained
+    : isLastDay
       ? "Tilføj et betalingskort nu, så din virksomhed ikke bliver deaktiveret når prøveperioden udløber."
-      : isLastDay
-        ? "Tilføj et betalingskort i dag, så din virksomhed ikke bliver deaktiveret når prøveperioden udløber."
       : isWarning
         ? "Husk at tilføje et betalingskort inden 3 dage — ellers bliver din virksomhed deaktiveret fra Serviceydere."
         : "Du har gratis adgang til alle funktioner. Tilføj et betalingskort i indstillingerne, før prøven udløber.";
