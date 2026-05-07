@@ -944,23 +944,12 @@ const AftaleTab = ({
 
   const handleMarkPaid = async (order: any) => {
     try {
-      const hasInvoice = !!order.invoice_external_id;
-      if (hasInvoice) {
-        const { data, error } = await supabase.functions.invoke("accounting-action", {
-          body: { order_id: order.id, action: "mark_paid", params: { amount: Number(order.total_amount || 0) } },
-        });
-        if (error) throw error;
-        if ((data as any)?.error) throw new Error((data as any).error);
-      } else {
-        const nowIso = new Date().toISOString();
-        const { error } = await supabase.from("orders").update({
-          payment_status: "paid",
-          paid_at: nowIso,
-          paid_amount: Number(order.total_amount || 0),
-        } as any).eq("id", order.id);
-        if (error) throw error;
-      }
-      toast.success("Aftalen er markeret som betalt");
+      const { data, error } = await supabase.functions.invoke("accounting-action", {
+        body: { order_id: order.id, action: "mark_paid", params: { amount: Number(order.total_amount || 0) } },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success("Aftalen er markeret som betalt", (data as any)?.note ? { description: (data as any).note } : undefined);
       qc.invalidateQueries({ queryKey: ["orders"] });
       qc.invalidateQueries({ queryKey: ["my-orders"] });
     } catch (e: any) {
