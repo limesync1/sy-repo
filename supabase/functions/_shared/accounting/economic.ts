@@ -559,31 +559,24 @@ export function makeEconomicAdapter(
     },
 
     async sendReminder({ invoice_external_id, type }) {
-      // E-conomic mangler en officiel REST-rute til at trigge en rykker
-      // direkte. Vi bruger derfor /invoices/booked/{n}/sent som "send via
-      // standard layout med rykker-skabelon" — dette starter rykkerflowet
-      // hos e-conomic der selv lægger rykkergebyret på næste gang fakturaen
-      // tjekkes. Hvis e-conomic API ikke understøtter det, kaster vi en
-      // klar besked til brugeren.
-      const body: Record<string, unknown> = {
-        sentBy: "Email",
-        documentType: type === "collection" ? "Collection" : "Reminder",
-      };
-      let result: any = null;
+      // E-conomic's REST-API understøtter IKKE at trigge rykker programmatisk
+      // (rykkere genereres via deres rykkerkørsel i UI'et eller automatisk
+      // baseret på fakturaens forfaldsdato + rykker-skabelon).
+      // Vi verificerer derfor blot at fakturaen findes og er bogført, og
+      // registrerer rykkeren lokalt så brugeren har historik. Den faktiske
+      // udsendelse skal ske i e-conomic's rykkerkørsel.
       try {
-        result = await ecRequest(creds, `/invoices/booked/${invoice_external_id}/sent`, {
-          method: "POST",
-          body: JSON.stringify(body),
-        });
+        await ecRequest(creds, `/invoices/booked/${invoice_external_id}`);
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
-        throw new Error(`Kunne ikke sende rykker via e-conomic: ${msg}`);
+        throw new Error(`Kunne ikke verificere faktura i e-conomic: ${msg}`);
       }
       return {
-        sent_at: result?.sentAt ?? new Date().toISOString(),
+        sent_at: new Date().toISOString(),
         type: type ?? "reminder",
-        fee: typeof result?.fee === "number" ? result.fee : null,
-        external_id: result?.id ? String(result.id) : null,
+        fee: null,
+        external_id: null,
+        note: "Registreret lokalt — kør rykkerkørsel i e-conomic for at sende",
       };
     },
 

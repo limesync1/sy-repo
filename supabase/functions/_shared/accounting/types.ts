@@ -250,6 +250,7 @@ export interface AccountingAdapter {
     type: string;
     fee?: number | null;
     external_id?: string | null;
+    note?: string | null;
   }>;
 
   /**
