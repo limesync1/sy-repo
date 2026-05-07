@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { useBusinessPlan } from "@/hooks/useBusinessPlan";
 
 export type AdminTabKey =
   | "dashboard" | "services" | "orders" | "customers"
@@ -163,6 +164,7 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 type Business = {
+  id?: string;
   name: string;
   slug: string;
   logo_url?: string | null;
@@ -194,16 +196,19 @@ export const AdminShell = ({
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { data: plan } = useBusinessPlan(business.id);
 
   const routePlanningEnabled = !!(business.settings as any)?.route_planning_enabled;
   const leadsEnabled = !!(business.settings as any)?.leads_enabled;
   const livechatEnabled = !!(business.settings as any)?.livechat_enabled;
   const accountingEnabled = !!(business.settings as any)?.accounting_integration_enabled;
+  const dataImportEnabled = !!plan?.data_import_requested;
   const visibleNav = NAV_ITEMS.filter((n) => {
     if (n.requiresRoutePlanning && !routePlanningEnabled) return false;
     if (n.requiresLeads && !leadsEnabled) return false;
     if (n.requiresLivechat && !livechatEnabled) return false;
     if (n.requiresAccounting && !accountingEnabled) return false;
+    if ((n as any).requiresDataImport && !dataImportEnabled) return false;
     return true;
   });
   const currentNav = visibleNav.find((n) => n.value === activeTab) ?? NAV_ITEMS.find((n) => n.value === activeTab);
@@ -291,7 +296,8 @@ export const AdminShell = ({
               !(item.requiresRoutePlanning && !routePlanningEnabled) &&
               !(item.requiresLeads && !leadsEnabled) &&
               !(item.requiresLivechat && !livechatEnabled) &&
-              !(item.requiresAccounting && !accountingEnabled);
+              !(item.requiresAccounting && !accountingEnabled) &&
+              !((item as any).requiresDataImport && !dataImportEnabled);
             return (
               <AnimatedNavItem
                 key={item.value}
