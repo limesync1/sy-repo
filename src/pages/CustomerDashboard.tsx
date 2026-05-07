@@ -846,7 +846,9 @@ const ReviewForm = ({ businessId, subscriptionId, onDone }: { businessId: string
 const InvoicesView = () => {
   const { data: orders, isLoading } = useMyOrders();
 
-  const invoiced = (orders || []).filter((o: any) => o.invoice_status || o.invoiced_at);
+  const invoiced = (orders || []).filter(
+    (o: any) => o.invoice_status || o.invoiced_at || o.invoice_external_id || o.payment_status,
+  );
 
   if (isLoading) return <Skeleton className="h-32 rounded-2xl" />;
 
@@ -868,21 +870,6 @@ const InvoicesView = () => {
     <div className="space-y-2">
       {invoiced.map((o: any) => {
         const biz = o.businesses || {};
-        const status = o.invoice_status || (o.invoiced_at ? "booked" : "pending");
-        const statusLabel: Record<string, string> = {
-          pending: "Afventer",
-          booked: "Bogført",
-          sent: "Sendt",
-          paid: "Betalt",
-          overdue: "Forfalden",
-        };
-        const statusColor: Record<string, string> = {
-          pending: "bg-amber-50 text-amber-700 border-amber-200",
-          booked: "bg-blue-50 text-blue-700 border-blue-200",
-          sent: "bg-blue-50 text-blue-700 border-blue-200",
-          paid: "bg-green-50 text-green-700 border-green-200",
-          overdue: "bg-destructive/5 text-destructive border-destructive/20",
-        };
         return (
           <Card key={o.id} className="rounded-xl">
             <CardContent className="flex items-center gap-3 p-3">
@@ -900,10 +887,11 @@ const InvoicesView = () => {
                     : new Date(o.created_at).toLocaleDateString("da-DK")}
                   {o.due_date && <> · Forfald {new Date(o.due_date).toLocaleDateString("da-DK")}</>}
                 </p>
+                {/* Status-badges synkroniseres automatisk fra virksomhedens regnskabsprogram */}
+                <div className="mt-1.5">
+                  <AccountingStatusRow order={o as OrderForStatus} size="xs" />
+                </div>
               </div>
-              <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${statusColor[status] || "bg-secondary text-foreground border-border"}`}>
-                {statusLabel[status] || status}
-              </span>
               <span className="text-sm font-bold whitespace-nowrap">{Number(o.total_amount).toLocaleString("da-DK")} kr</span>
             </CardContent>
           </Card>
