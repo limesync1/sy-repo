@@ -59,6 +59,7 @@ Deno.serve(async (req) => {
 
     const adapter = makeAdapter(integ.provider, integ as any, integ.settings ?? {});
     let result: any = { ok: true };
+    const bookedInvoiceId = order.invoice_external_id ?? (link?.external_type === "invoice_booked" ? link.external_id : null);
 
     try {
       if (action === "sync_now") {
@@ -66,14 +67,14 @@ Deno.serve(async (req) => {
         // nedenfor. Vi sætter blot et flag så vi ikke fejler.
         result = { ok: true, sync: true };
       } else if (action === "send_reminder") {
-        if (!order.invoice_external_id && !link?.external_id) {
+        if (!bookedInvoiceId) {
           return json({ error: "Faktura er ikke bogført endnu — kan ikke sende rykker." }, 400);
         }
         if (typeof adapter.sendReminder !== "function") {
           return json({ error: `${integ.provider} understøtter ikke rykkere via API` }, 400);
         }
         const res = await adapter.sendReminder({
-          invoice_external_id: order.invoice_external_id ?? link!.external_id,
+          invoice_external_id: bookedInvoiceId,
           type: params?.type ?? "auto",
         });
         // Append til reminder_history straks så UI'et opdateres uden at vente
@@ -90,8 +91,9 @@ Deno.serve(async (req) => {
         if (typeof adapter.creditInvoice !== "function") {
           return json({ error: `${integ.provider} understøtter ikke kreditering via API` }, 400);
         }
+        if (!bookedInvoiceId) return json({ error: "Faktura er ikke bogført endnu — kan ikke krediteres." }, 400);
         const res = await adapter.creditInvoice({
-          invoice_external_id: order.invoice_external_id ?? link!.external_id,
+          invoice_external_id: bookedInvoiceId,
           reason: params?.reason ?? null,
         });
         await admin.from("orders").update({
@@ -123,8 +125,9 @@ Deno.serve(async (req) => {
         }
         const amount = Number(params?.amount ?? order.total_amount ?? 0);
         if (!amount || amount <= 0) return json({ error: "Mangler beløb" }, 400);
+        if (!bookedInvoiceId) return json({ error: "Faktura er ikke bogført endnu — kan ikke markeres som betalt." }, 400);
         await adapter.markInvoicePaid({
-          invoice_external_id: order.invoice_external_id ?? link!.external_id,
+          invoice_external_id: bookedInvoiceId,
           amount,
           paid_at: params?.paid_at ?? new Date().toISOString(),
         });
@@ -139,22 +142,25 @@ Deno.serve(async (req) => {
       }
 
       // Trigger en straks-pull af invoice state for at få fersk data
-      if (typeof adapter.getInvoiceStates === "function" && (order.invoice_external_id || link?.external_id)) {
+      if (typeof adapter.getInvoiceStates === "function" && bookedInvoiceId) {
         try {
-          const states = await adapter.getInvoiceStates([order.invoice_external_id ?? link!.external_id]);
+          const states = await adapter.getInvoiceStates([bookedInvoiceId]);
           const s = states[0];
           if (s) {
-            await admin.from("orders").update({
+            const freshUpdate: Record<string, unknown> = {
               payment_status: s.status,
               paid_at: s.paid_at,
               paid_amount: s.paid_amount ?? null,
               payment_status_synced_at: new Date().toISOString(),
               due_date: s.due_date ?? null,
-              reminder_count: s.reminder_count ?? undefined,
-              last_reminder_at: s.last_reminder_at ?? undefined,
-              last_reminder_type: s.last_reminder_type ?? undefined,
-              reminder_history: s.reminder_history ?? undefined,
-            }).eq("id", order_id);
+            };
+            if (Array.isArray(s.reminder_history) && s.reminder_history.length > 0) {
+              freshUpdate.reminder_count = s.reminder_count ?? s.reminder_history.length;
+              freshUpdate.last_reminder_at = s.last_reminder_at ?? undefined;
+              freshUpdate.last_reminder_type = s.last_reminder_type ?? undefined;
+              freshUpdate.reminder_history = s.reminder_history;
+            }
+            await admin.from("orders").update(freshUpdate).eq("id", order_id);
           }
         } catch { /* ignore — UI vil opdateres ved næste cron */ }
       }
@@ -162,7 +168,7 @@ Deno.serve(async (req) => {
       await admin.from("accounting_sync_log").insert({
         business_id: order.business_id, provider: integ.provider,
         direction: "push", entity_type: "invoice", entity_id: order_id,
-        external_id: order.invoice_external_id ?? link?.external_id ?? null,
+        external_id: bookedInvoiceId ?? link?.external_id ?? null,
         status: "success", message: `Manuel handling: ${action}`,
       });
 
