@@ -275,7 +275,7 @@ async function loadIntegration(admin: SupabaseClient, business_id: string): Prom
 
 async function logSync(admin: SupabaseClient, opts: {
   business_id: string; provider: string; direction: "push"|"pull";
-  entity_type: "customer"|"product"|"order"|"connection";
+  entity_type: "customer"|"product"|"order"|"invoice"|"connection";
   entity_id?: string|null; external_id?: string|null;
   status: "success"|"error"|"skipped"; message?: string|null; payload?: any;
 }) {
