@@ -372,6 +372,11 @@ export function makeEconomicAdapter(
         customer: { customerNumber: Number(input.customer_external_id) },
         recipient: { name: fallbackRecipientName, vatZone: { vatZoneNumber: 1 } },
         notes: { textLine1: (input.notes ?? "").slice(0, 200) },
+        // paymentTerms er PÅKRÆVET af e-conomic. Sæt en sikker default
+        // straks så ordren aldrig fejler med "Required properties are
+        // missing from object: paymentTerms" — overskrives senere fra
+        // kunde-opslag eller aftalens default hvis tilgængeligt.
+        paymentTerms: { paymentTermsNumber: 1 },
         lines: input.lines.map((l, idx) => ({
           lineNumber: idx + 1,
           description: (l.description ?? "").toString().trim() || "Ydelse",
@@ -386,10 +391,13 @@ export function makeEconomicAdapter(
       // Lookup the actual customer to copy paymentTerms, vatZone, layout og navn
       // — så vi ikke fejler med 404 på hardkodede ID'er der ikke findes i denne
       // e-conomic-aftale.
+      let customerExists = true;
       try {
         const cust = await ecRequest(
           creds,
           `/customers/${Number(input.customer_external_id)}`,
+          {},
+          { silent404: true },
         );
         if (cust?.paymentTerms?.paymentTermsNumber) {
           (body as any).paymentTerms = {
@@ -408,10 +416,19 @@ export function makeEconomicAdapter(
         if (cust?.layout?.layoutNumber) {
           (body as any).layout = { layoutNumber: cust.layout.layoutNumber };
         }
-      } catch (_) {
-        // Hvis kunden ikke kan slås op er det rigtige fejlpunkt customer-feltet
-        // — lad serveren returnere 404 så vi kan logge det.
+      } catch (e) {
+        // Hvis kunden ikke findes i e-conomic, så er vores lokale link forældet.
+        // Vi smider en velkendt fejl så drainQueue kan rydde linket og prøve igen.
+        const msg = e instanceof Error ? e.message : String(e);
+        if (/kunne ikke finde|not found|404/i.test(msg)) {
+          customerExists = false;
+          throw new Error(
+            `ECONOMIC_CUSTOMER_NOT_FOUND:${input.customer_external_id}`,
+          );
+        }
+        throw e;
       }
+      if (!customerExists) return { external_id: "", external_number: "", external_type: sendAs };
       if (!(body as any).layout?.layoutNumber) {
         const layoutNumber = await resolveLayoutNumber(creds, settings);
         if (layoutNumber) (body as any).layout = { layoutNumber };

@@ -876,6 +876,24 @@ async function drainQueue(admin: SupabaseClient, integ: Integration, adapter: Ac
       const msg = e instanceof Error ? e.message : String(e);
       const isProviderDown = /svarer ikke|503|502|504|timeout|ECONNRESET|rate.?limit|429/i.test(msg);
       if (isProviderDown) providerDown = true;
+      // Special-case: kunden findes ikke længere i e-conomic. Ryd det forældede
+      // link så næste forsøg opretter kunden på ny — i stedet for at fejle igen.
+      const staleCustomerMatch = msg.match(/ECONOMIC_CUSTOMER_NOT_FOUND:(\d+)/);
+      if (staleCustomerMatch) {
+        const staleExt = staleCustomerMatch[1];
+        await admin.from("accounting_customer_links")
+          .delete()
+          .eq("business_id", integ.business_id)
+          .eq("provider", integ.provider)
+          .eq("external_id", staleExt);
+        // Re-queue jobbet straks så det forsøges igen med en frisk kunde
+        await admin.from("accounting_sync_queue").update({
+          status: "pending",
+          last_error: `Kunde #${staleExt} fandtes ikke i regnskabsprogrammet — linket ryddet, prøver igen`,
+          scheduled_for: new Date(Date.now() + 5_000).toISOString(),
+        }).eq("id", job.id);
+        continue;
+      }
       failedThisRun.add(dedupeKey);
       const failedFinal = job.attempts + 1 >= 5;
       // Backoff: provider-fejl venter længere så vi ikke spammer
