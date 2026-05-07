@@ -1062,8 +1062,8 @@ const ImportPanel = ({
               const sel = isSelected(realIdx, r);
               const isOpen = expanded.has(realIdx);
               return (
-              <>
-              <tr key={safePage * PAGE_SIZE + i} className={`border-t border-border hover:bg-secondary/30 ${!sel ? "opacity-50" : ""}`}>
+              <React.Fragment key={safePage * PAGE_SIZE + i}>
+              <tr className={`border-t border-border hover:bg-secondary/30 ${!sel ? "opacity-50" : ""}`}>
                 <td className="px-2 py-1.5">
                   <Checkbox
                     checked={sel}
@@ -1174,7 +1174,7 @@ const ImportPanel = ({
                   </td>
                 </tr>
               )}
-              </>
+              </React.Fragment>
               );
             })}
           </tbody>
