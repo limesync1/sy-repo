@@ -809,25 +809,25 @@ const ImportPanel = ({
         </div>
       </details>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {[
-          { label: "Klar", value: stats.ok, tone: "ok", filter: "ok" as const },
-          { label: "Total", value: stats.total, tone: "neutral", filter: "all" as const },
-          { label: "Dubletter", value: stats.duplicates, tone: "warn", filter: "dup" as const },
-          { label: "Fejl", value: stats.errors, tone: stats.errors > 0 ? "err" : "neutral", filter: "err" as const },
-        ].map((s) => (
-          <button
-            key={s.label}
-            onClick={() => setRowFilter(s.filter)}
-            className={`rounded-lg border px-3 py-2 text-left transition-colors ${rowFilter === s.filter ? "border-foreground bg-foreground/5" : "border-border bg-background hover:bg-secondary/40"}`}
-          >
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{s.label}</p>
-            <p className={`text-lg font-bold ${s.tone === "ok" ? "text-accent" : s.tone === "warn" ? "text-amber-600" : s.tone === "err" ? "text-destructive" : "text-foreground"}`}>{s.value}</p>
-          </button>
-        ))}
-      </div>
-
-      <div className="overflow-x-auto rounded-lg border border-border">
+      {/* ─── Preview-tabel ─── */}
+      <div className="overflow-hidden rounded-xl border border-border bg-background">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-secondary/30 px-3 py-2 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-foreground">Forhåndsvisning</span>
+            {rowFilter !== "all" && (
+              <Badge variant="outline" className="text-[10px]">
+                Filter: {rowFilter === "ok" ? "Klar" : rowFilter === "dup" ? "Dubletter" : "Fejl"}
+                <button onClick={() => setRowFilter("all")} className="ml-1 hover:text-destructive">
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              </Badge>
+            )}
+          </div>
+          <span className="text-muted-foreground">
+            {filteredRows.length === 0 ? 0 : safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, filteredRows.length)} af {filteredRows.length.toLocaleString("da-DK")}
+          </span>
+        </div>
+        <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead className="bg-secondary/60">
             <tr className="text-left">
