@@ -25,7 +25,8 @@ const TrialBanner = ({ plan, hideAction }: Props) => {
   if (plan.status === "active" || plan.status === "unknown") return null;
 
   const daysLeft = plan.days_left;
-  const isWarning = plan.status === "trial_ending" || plan.status === "expired";
+  const isLastDay = daysLeft !== null && daysLeft <= 1;
+  const isWarning = plan.status === "trial_ending" || plan.status === "expired" || isLastDay;
 
   // Beregn præcis tilbageværende tid hvis vi er under én dag.
   const msLeft = plan.trial_ends_at
@@ -56,6 +57,8 @@ const TrialBanner = ({ plan, hideAction }: Props) => {
     ? "Tilføj et betalingskort i indstillingerne for at genaktivere din virksomhed på Serviceydere."
     : useFineGrained
       ? "Tilføj et betalingskort nu, så din virksomhed ikke bliver deaktiveret når prøveperioden udløber."
+      : isLastDay
+        ? "Tilføj et betalingskort i dag, så din virksomhed ikke bliver deaktiveret når prøveperioden udløber."
       : isWarning
         ? "Husk at tilføje et betalingskort inden 3 dage — ellers bliver din virksomhed deaktiveret fra Serviceydere."
         : "Du har gratis adgang til alle funktioner. Tilføj et betalingskort i indstillingerne, før prøven udløber.";
