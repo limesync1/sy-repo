@@ -1467,12 +1467,12 @@ const AftaleTab = ({
               <Card
                 key={order.id}
                 id={`order-${order.id}`}
-                className={`surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden ${
+                className={`surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden transition-shadow hover:shadow-md ${
                   draggingOrderId === order.id ? "opacity-60" : ""
-                }`}
+                } ${isExpanded ? "ring-1 ring-primary/20" : ""}`}
               >
-                {/* Header — samme struktur som ServiceRow på Services-fanen:
-                    ikon + navn + meta i én kolonne; status, beløb og chevron i højre side. */}
+                {/* Header — kompakt 3-kolonne layout: identitet · status/meta · beløb.
+                    Designet så hele aftalen kan scannes på én række på desktop. */}
                 <div
                   role="button"
                   tabIndex={0}
@@ -1483,163 +1483,157 @@ const AftaleTab = ({
                       setExpandedOrder(isExpanded ? null : order.id);
                     }
                   }}
-                  className="block w-full cursor-pointer text-left transition-colors hover:bg-secondary/40"
+                  className="block w-full cursor-pointer text-left transition-colors hover:bg-secondary/30"
                 >
-                  <div className="grid gap-2.5 p-3.5 sm:p-4">
-                    <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="flex min-w-0 items-start gap-2.5">
-                        {/* Drag-håndtag (samme @dnd-kit-mønster som Ruteplanlæggeren). */}
-                        {canDragToRoute && <OrderDragHandle orderId={order.id} order={order} />}
-                        {/* Ikon-badge — viser service-kategori-ikon (samme som Services-fanen) */}
-                        <div
-                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground"
-                          title={primaryCategory || "Aftale"}
-                        >
-                          <span className="text-sm leading-none">{categoryIcon}</span>
-                        </div>
+                  <div className="flex items-center gap-3 p-3 sm:p-3.5">
+                    {/* Drag-håndtag */}
+                    {canDragToRoute && <OrderDragHandle orderId={order.id} order={order} />}
 
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="truncate text-sm font-semibold text-foreground">{order.customer_name}</h3>
-                            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${cfg.cls}`}>
-                              <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
-                              {cfg.label}
+                    {/* Ikon-badge */}
+                    <div
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-secondary/40 text-foreground"
+                      title={primaryCategory || "Aftale"}
+                    >
+                      <span className="text-base leading-none">{categoryIcon}</span>
+                    </div>
+
+                    {/* Midte: identitet + meta — ét tæt blok */}
+                    <div className="min-w-0 flex-1">
+                      {/* Linje 1: navn + status-pill + payment-pill + rykker */}
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <h3 className="truncate text-sm font-semibold text-foreground">{order.customer_name}</h3>
+                        <span className={`inline-flex items-center gap-1.5 rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${cfg.cls}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
+                          {cfg.label}
+                        </span>
+                        {(() => {
+                          const ps = (order as any).payment_status as string | null | undefined;
+                          if (!ps) return null;
+                          const PAY: Record<string, { label: string; cls: string; dot: string }> = {
+                            paid:           { label: "Betalt",           cls: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
+                            partially_paid: { label: "Delvist betalt",   cls: "bg-amber-50 text-amber-800 border-amber-200",       dot: "bg-amber-500" },
+                            overdue:        { label: "Forfalden",        cls: "bg-destructive/10 text-destructive border-destructive/30", dot: "bg-destructive" },
+                            credited:       { label: "Krediteret",       cls: "bg-secondary text-muted-foreground border-border",  dot: "bg-muted-foreground" },
+                            unpaid:         { label: "Ubetalt",          cls: "bg-secondary text-foreground border-border",        dot: "bg-muted-foreground" },
+                          };
+                          const p = PAY[ps];
+                          if (!p) return null;
+                          const syncedAt = (order as any).payment_status_synced_at
+                            ? new Date((order as any).payment_status_synced_at)
+                            : null;
+                          const syncedLabel = syncedAt
+                            ? syncedAt.toLocaleString("da-DK", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+                            : "endnu ikke";
+                          return (
+                            <span
+                              className={`inline-flex items-center gap-1.5 rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${p.cls}`}
+                              title={`Betalingsstatus hentes automatisk fra dit regnskabsprogram hvert 5. minut.\nSidst opdateret: ${syncedLabel}.`}
+                            >
+                              <span className={`h-1.5 w-1.5 rounded-full ${p.dot}`} />
+                              {p.label}
                             </span>
-                            {(() => {
-                              const ps = (order as any).payment_status as string | null | undefined;
-                              if (!ps) return null;
-                              const PAY: Record<string, { label: string; cls: string; dot: string }> = {
-                                paid:           { label: "Betalt",           cls: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
-                                partially_paid: { label: "Delvist betalt",   cls: "bg-amber-50 text-amber-800 border-amber-200",       dot: "bg-amber-500" },
-                                overdue:        { label: "Forfalden",        cls: "bg-destructive/10 text-destructive border-destructive/30", dot: "bg-destructive" },
-                                credited:       { label: "Krediteret",       cls: "bg-secondary text-muted-foreground border-border",  dot: "bg-muted-foreground" },
-                                unpaid:         { label: "Ubetalt",          cls: "bg-secondary text-foreground border-border",        dot: "bg-muted-foreground" },
-                              };
-                              const p = PAY[ps];
-                              if (!p) return null;
-                              const syncedAt = (order as any).payment_status_synced_at
-                                ? new Date((order as any).payment_status_synced_at)
-                                : null;
-                              const syncedLabel = syncedAt
-                                ? syncedAt.toLocaleString("da-DK", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
-                                : "endnu ikke";
-                              return (
-                                <span
-                                  className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${p.cls}`}
-                                  title={`Betalingsstatus hentes automatisk fra dit regnskabsprogram hvert 5. minut.\nSidst opdateret: ${syncedLabel}.`}
-                                >
-                                  <span className={`h-1.5 w-1.5 rounded-full ${p.dot}`} />
-                                  {p.label}
-                                </span>
-                              );
-                            })()}
-                            {(() => {
-                              const rc = Number((order as any).reminder_count ?? 0);
-                              if (rc <= 0) return null;
-                              const last = (order as any).last_reminder_at
-                                ? new Date((order as any).last_reminder_at)
-                                : null;
-                              return (
-                                <span
-                                  className="inline-flex items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-800"
-                                  title={last ? `Sidste rykker sendt ${last.toLocaleString("da-DK")}` : "Rykker sendt"}
-                                >
-                                  Rykker {rc}
-                                </span>
-                              );
-                            })()}
-                            {hasRecurring && (
-                              <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                                <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
-                                {cycles > 0 && <span className="ml-0.5">· #{cycles}</span>}
-                              </span>
+                          );
+                        })()}
+                        {(() => {
+                          const rc = Number((order as any).reminder_count ?? 0);
+                          if (rc <= 0) return null;
+                          const last = (order as any).last_reminder_at
+                            ? new Date((order as any).last_reminder_at)
+                            : null;
+                          return (
+                            <span
+                              className="inline-flex items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800"
+                              title={last ? `Sidste rykker sendt ${last.toLocaleString("da-DK")}` : "Rykker sendt"}
+                            >
+                              Rykker {rc}/3
+                            </span>
+                          );
+                        })()}
+                        {hasRecurring && (
+                          <span
+                            className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/70 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+                            title={`Tilbagevendende: ${INTERVAL_LABELS[interval] || interval}${cycles > 0 ? ` · gennemført ${cycles} gange` : ""}`}
+                          >
+                            <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
+                            {cycles > 0 && <span className="opacity-70">· #{cycles}</span>}
+                          </span>
+                        )}
+                        {routePlanningEnabled && routeInfo && (
+                          <span
+                            className="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium"
+                            style={{
+                              borderColor: `${routeInfo.color}55`,
+                              backgroundColor: `${routeInfo.color}14`,
+                              color: routeInfo.color,
+                            }}
+                            title={`Rute ${routeInfo.name || ""} · ${routeDate?.toLocaleDateString("da-DK")}`}
+                          >
+                            <RouteIcon className="h-2.5 w-2.5" />
+                            {routeInfo.name || "Rute"}
+                            {typeof routeStop.sequence === "number" && (
+                              <span className="opacity-80">· #{routeStop.sequence + 1}</span>
                             )}
-                            {routePlanningEnabled && routeInfo && (
-                              <span
-                                className="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-medium"
-                                style={{
-                                  borderColor: `${routeInfo.color}40`,
-                                  backgroundColor: `${routeInfo.color}14`,
-                                  color: routeInfo.color,
-                                }}
-                                title={`Rute ${routeInfo.name || ""} · ${routeDate?.toLocaleDateString("da-DK")}`}
-                              >
-                                <RouteIcon className="h-2.5 w-2.5" />
-                                {routeInfo.name || "Rute"}
-                                {routeDate && (
-                                  <span className="opacity-80">
-                                    · {routeIsToday ? "i dag" : routeDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
-                                  </span>
-                                )}
-                                {typeof routeStop.sequence === "number" && (
-                                  <span className="opacity-80">· Stop #{routeStop.sequence + 1}</span>
-                                )}
-                              </span>
-                            )}
-                          </div>
+                          </span>
+                        )}
+                      </div>
 
-                          {/* Service-sammendrag — vises direkte i headeren, så det er
-                              tydeligt hvad aftalen omfatter. */}
-                          <p className="mt-1 truncate text-xs text-foreground/80">
-                            <span className="text-muted-foreground">Services: </span>
-                            {serviceSummary}
-                          </p>
-
-                          {/* Service-adresse — den fysiske adresse hvor opgaven skal
-                              udføres. Vises sammen med by/postnr så virksomhedsejeren
-                              hurtigt kan vurdere geografi inden ruteplanlægning. */}
-                          {(order.address || order.city || order.zip_code) && (
-                            <p className="mt-1 flex items-start gap-1.5 text-xs text-muted-foreground">
-                              <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
-                              <span className="truncate text-foreground/75">
-                                {[order.address, [order.zip_code, order.city].filter(Boolean).join(" ")]
-                                  .filter(Boolean).join(", ")}
-                              </span>
-                            </p>
-                          )}
-
-                          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                            <span>{date.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}</span>
-                          </div>
-
-                          {/* Næste udførelse — fremhævet blok så det er nemt at se hvornår
-                              kunden skal serviceres næste gang. */}
-                          {nextDate && daysUntilNext !== null && (
-                            <div className={`mt-1.5 inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium ${
+                      {/* Linje 2: services · adresse · dato — alt på én tæt linje */}
+                      <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                        <span className="inline-flex min-w-0 items-center gap-1 truncate text-foreground/80">
+                          <span className="opacity-70">📋</span>
+                          <span className="truncate">{serviceSummary}</span>
+                        </span>
+                        {(order.address || order.city || order.zip_code) && (
+                          <span className="inline-flex min-w-0 items-center gap-1 truncate">
+                            <MapPin className="h-3 w-3 shrink-0 opacity-70" />
+                            <span className="truncate">
+                              {[order.address, [order.zip_code, order.city].filter(Boolean).join(" ")]
+                                .filter(Boolean).join(", ")}
+                            </span>
+                          </span>
+                        )}
+                        <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
+                          <CalendarClock className="h-3 w-3 opacity-70" />
+                          {date.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
+                        </span>
+                        {nextDate && daysUntilNext !== null && (
+                          <span
+                            className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${
                               daysUntilNext <= 0
                                 ? "border-destructive/30 bg-destructive/10 text-destructive"
                                 : daysUntilNext <= 3
-                                ? "border-amber-300/50 bg-amber-50 text-amber-700"
-                                : "border-border bg-secondary/60 text-foreground"
+                                ? "border-amber-300/50 bg-amber-50 text-amber-800"
+                                : "border-border bg-secondary/70 text-foreground"
                             }`}
-                            title="Når dagen er nået oprettes ordren automatisk kl. 06:00 og sendes til dit regnskabsprogram."
-                            >
-                              <CalendarClock className="h-3.5 w-3.5" />
-                              <span className="opacity-80">Næste udførelse:</span>
-                              <span className="font-semibold">
-                                {nextDate.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" })}
-                              </span>
-                              <span className="opacity-80">
-                                · {relativeFromNow(nextDate)}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Højre side: beløb + chevron */}
-                      <div className="flex items-center justify-end gap-3 sm:flex-col sm:items-end sm:gap-1">
-                        <span className="text-base font-semibold tabular-nums text-foreground">{currentTotal} kr</span>
-                        {/* Faktura-handlinger: rykker, kreditér, annullér, markér betalt.
-                            Kun synligt når ordren har en aktiv regnskabsintegration —
-                            menuen viser selv hvilke handlinger der giver mening. */}
-                        {((order as any).invoice_external_id || (order as any).accounting_synced_at) && (
-                          <InvoiceActionsMenu order={order as any} />
+                            title="Næste udførelse — ordren oprettes automatisk på dagen kl. 06:00."
+                          >
+                            Næste: {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })} · {relativeFromNow(nextDate)}
+                          </span>
                         )}
-                        <span className="text-muted-foreground">
-                          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                        </span>
                       </div>
+                    </div>
+
+                    {/* Højre kolonne: beløb (stort) + handlinger + chevron */}
+                    <div className="flex shrink-0 items-center gap-2 pl-2">
+                      <div className="flex flex-col items-end leading-tight">
+                        <span className="text-base font-bold tabular-nums text-foreground sm:text-lg">
+                          {currentTotal.toLocaleString("da-DK")}
+                          <span className="ml-0.5 text-xs font-medium text-muted-foreground">kr</span>
+                        </span>
+                        {order.adjusted_amount && order.customer_response === "accepted" && originalTotal !== currentTotal && (
+                          <span className="text-[10px] text-muted-foreground line-through tabular-nums">
+                            {originalTotal.toLocaleString("da-DK")} kr
+                          </span>
+                        )}
+                      </div>
+                      {((order as any).invoice_external_id || (order as any).accounting_synced_at) && (
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <InvoiceActionsMenu order={order as any} />
+                        </div>
+                      )}
+                      <span className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                        {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </span>
                     </div>
                   </div>
                 </div>
