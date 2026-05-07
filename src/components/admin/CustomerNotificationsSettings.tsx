@@ -681,13 +681,12 @@ export function CustomerNotificationsSettings({
                 </label>
 
                 {activeEvent === "service_upcoming" && (
-                  <LeadTimePicker
+                  <SchedulePicker
                     label="Hvornår skal e-mailen sendes?"
                     channel="email"
-                    value={drafts[activeEvent].leadMinutes ?? upcomingMinutesBefore}
-                    defaultMinutes={upcomingMinutesBefore}
-                    onChange={(m) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: m } }))}
-                    onReset={() => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], leadMinutes: null } }))}
+                    days={drafts[activeEvent].days}
+                    time={drafts[activeEvent].time}
+                    onChange={(s) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], days: s.days, time: s.time } }))}
                   />
                 )}
 
