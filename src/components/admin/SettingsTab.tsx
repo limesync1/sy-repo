@@ -313,7 +313,13 @@ const SettingsTab = ({ business }: { business: any }) => {
   // Stripe Embedded Checkout-dialog samt loading-state for "Administrér kort".
   const [showCheckout, setShowCheckout] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
+  const [, setTrialTick] = useState(0);
   const location = useLocation();
+
+  useEffect(() => {
+    const i = setInterval(() => setTrialTick((t) => t + 1), 60_000);
+    return () => clearInterval(i);
+  }, []);
 
   // Hvis brugeren ankommer fra prøveperiode-banneret med ?openCheckout=1,
   // åbner vi automatisk Stripe Embedded Checkout — men kun hvis virksomheden
@@ -1590,7 +1596,8 @@ const SettingsTab = ({ business }: { business: any }) => {
                               if (h > 0) return `${h} ${h === 1 ? "time" : "timer"} tilbage af din prøveperiode`;
                               return `${m} ${m === 1 ? "minut" : "minutter"} tilbage af din prøveperiode`;
                             }
-                            const dl = plan.days_left ?? 0;
+                            const dl = plan.days_left;
+                            if (dl === null) return "Din prøveperiode er aktiv";
                             return dl <= 1
                               ? "Sidste dag af din prøveperiode"
                               : `${dl} dage tilbage af din prøveperiode`;
