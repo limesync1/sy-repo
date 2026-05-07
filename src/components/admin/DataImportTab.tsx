@@ -186,6 +186,40 @@ const ImportPanel = ({
     } finally { setAiLoading(false); }
   };
 
+  // Klassificér produkter ind i virksomhedens kategorier (kun services-entity).
+  const classifyServices = async (currentMapping: Mapping, currentRows: Row[]) => {
+    if (entity !== "services" || currentRows.length === 0) return;
+    setClassifying(true);
+    try {
+      const items = currentRows.slice(0, 200).map((r) => ({
+        name: get(r, currentMapping, "name") || "",
+        description: get(r, currentMapping, "description") || "",
+        raw_category: get(r, currentMapping, "service_category") || "",
+        raw_subcategory: get(r, currentMapping, "subcategory") || "",
+        product_number: get(r, currentMapping, "product_number") || "",
+        unit: get(r, currentMapping, "unit") || "",
+      }));
+      const { data, error } = await supabase.functions.invoke("import-customers-ai", {
+        body: { mode: "classify_services", items, existing: existingCategories },
+      });
+      if (error) throw error;
+      const arr: any[] = data?.classifications || [];
+      const map: Record<number, any> = {};
+      arr.forEach((c, i) => { if (c) map[i] = c; });
+      setClassifications(map);
+    } catch {
+      // stille fejl — manuelt udfyld muligt
+    } finally { setClassifying(false); }
+  };
+
+  // Når mapping ændrer sig for services, kør klassificering automatisk
+  useEffect(() => {
+    if (entity === "services" && rows.length > 0 && Object.keys(mapping).length > 0 && !aiLoading) {
+      classifyServices(mapping, rows);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapping.name, mapping.description, mapping.service_category, mapping.subcategory, rows.length]);
+
   // ---------- prepared rækker afhængigt af entity ----------
   const prepared = useMemo(() => {
     const seenEmails = new Set<string>();
