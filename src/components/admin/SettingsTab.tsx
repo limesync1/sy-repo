@@ -1588,19 +1588,24 @@ const SettingsTab = ({ business }: { business: any }) => {
                         <p className="text-sm font-semibold text-foreground">
                           {(() => {
                             const ms = plan.trial_ends_at ? new Date(plan.trial_ends_at).getTime() - Date.now() : null;
-                            if (ms !== null && ms > 0 && ms < 24 * 60 * 60 * 1000) {
+                            if (ms !== null && ms > 0) {
                               const tot = Math.max(1, Math.floor(ms / 60_000));
-                              const h = Math.floor(tot / 60);
+                              const d = Math.floor(tot / (60 * 24));
+                              const h = Math.floor((tot % (60 * 24)) / 60);
                               const m = tot % 60;
-                              if (h > 0 && m > 0) return `${h} ${h === 1 ? "time" : "timer"} og ${m} min tilbage af din prøveperiode`;
-                              if (h > 0) return `${h} ${h === 1 ? "time" : "timer"} tilbage af din prøveperiode`;
-                              return `${m} ${m === 1 ? "minut" : "minutter"} tilbage af din prøveperiode`;
+                              const parts: string[] = [];
+                              if (d > 0) parts.push(`${d} ${d === 1 ? "dag" : "dage"}`);
+                              if (h > 0) parts.push(`${h} ${h === 1 ? "time" : "timer"}`);
+                              if (m > 0 && d === 0) parts.push(`${m} min`);
+                              if (parts.length === 0) parts.push(`${m} min`);
+                              const joined = parts.length > 1
+                                ? `${parts.slice(0, -1).join(", ")} og ${parts[parts.length - 1]}`
+                                : parts[0];
+                              return `${joined} tilbage af din prøveperiode`;
                             }
                             const dl = plan.days_left;
                             if (dl === null) return "Din prøveperiode er aktiv";
-                            return dl <= 1
-                              ? "Sidste dag af din prøveperiode"
-                              : `${dl} dage tilbage af din prøveperiode`;
+                            return `${dl} dage tilbage af din prøveperiode`;
                           })()}
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
