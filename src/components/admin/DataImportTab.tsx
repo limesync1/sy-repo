@@ -110,7 +110,7 @@ const detectCustomerType = (row: Row, mapping: Mapping, fallback: "private" | "b
 
 // ---------- Per-entity import-panel ----------
 const ImportPanel = ({
-  entity, businessId, existingEmails, existingProductNumbers, existingExternalOrderNumbers, existingCategories,
+  entity, businessId, existingEmails, existingProductNumbers, existingExternalOrderNumbers, existingCategories, existingCustomers, existingServices,
 }: {
   entity: EntityType;
   businessId: string;
@@ -118,6 +118,8 @@ const ImportPanel = ({
   existingProductNumbers: Set<string>;
   existingExternalOrderNumbers: Set<string>;
   existingCategories: { category: string; subcategories: string[] }[];
+  existingCustomers: { id: string; name: string; email: string; cvr?: string | null; phone?: string | null; zip_code?: string | null }[];
+  existingServices: { id: string; name: string; product_number?: string | null; unit?: string | null; base_price?: number | null }[];
 }) => {
   const fields = FIELD_DEFS[entity];
   const [file, setFile] = useState<File | null>(null);
@@ -134,12 +136,16 @@ const ImportPanel = ({
   // services: AI-klassificering pr. række index → resultat
   const [classifications, setClassifications] = useState<Record<number, { service_category?: string; subcategory?: string; is_new_category?: boolean; is_new_subcategory?: boolean; confidence?: number }>>({});
   const [classifying, setClassifying] = useState(false);
+  // orders: AI-match pr. række index
+  const [orderMatches, setOrderMatches] = useState<Record<number, { customer_id?: string | null; customer_match_reason?: string; customer_confidence?: number; service_id?: string | null; service_match_reason?: string; service_confidence?: number; inferred_unit_price?: number | null }>>({});
+  const [matching, setMatching] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const reset = () => {
     setFile(null); setRows([]); setHeaders([]); setMapping({});
     setAiNotes(null); setConfidence(null); setDone(null);
     setClassifications({});
+    setOrderMatches({});
     if (inputRef.current) inputRef.current.value = "";
   };
 
