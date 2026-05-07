@@ -22,7 +22,7 @@ import {
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
   Play, Pause, Search, Route as RouteIcon, MapPin, Plus as PlusIcon,
   GripVertical, Loader2, Tag, Palette, Trash2, ArrowUpDown, AlertCircle,
-  Filter as FilterIcon, Inbox, Hourglass, ListChecks,
+  Filter as FilterIcon, Inbox, Hourglass, ListChecks, CreditCard,
 } from "lucide-react";
 import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
@@ -942,6 +942,32 @@ const AftaleTab = ({
     qc.invalidateQueries({ queryKey: ["my-orders"] });
   };
 
+  const handleMarkPaid = async (order: any) => {
+    try {
+      const hasInvoice = !!order.invoice_external_id;
+      if (hasInvoice) {
+        const { data, error } = await supabase.functions.invoke("accounting-action", {
+          body: { order_id: order.id, action: "mark_paid", params: { amount: Number(order.total_amount || 0) } },
+        });
+        if (error) throw error;
+        if ((data as any)?.error) throw new Error((data as any).error);
+      } else {
+        const nowIso = new Date().toISOString();
+        const { error } = await supabase.from("orders").update({
+          payment_status: "paid",
+          paid_at: nowIso,
+          paid_amount: Number(order.total_amount || 0),
+        } as any).eq("id", order.id);
+        if (error) throw error;
+      }
+      toast.success("Aftalen er markeret som betalt");
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["my-orders"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Kunne ikke markere som betalt");
+    }
+  };
+
   const handleResponse = async (orderId: string) => {
     try {
       const adjustedData = responseType === "adjusted" ? adjustedItems[orderId] : null;
@@ -1788,6 +1814,22 @@ const AftaleTab = ({
                             <XCircle className="h-3.5 w-3.5" /> Annuller
                           </Button>
                         )}
+
+                        {/* Markér som betalt — tilgængelig så snart aftalen er bekræftet
+                            og endnu ikke registreret som betalt/krediteret/annulleret.
+                            Virker både med og uden regnskabsintegration. */}
+                        {(order.status === "confirmed" || order.status === "in_progress" || order.status === "completed") &&
+                          (order as any).payment_status !== "paid" &&
+                          (order as any).payment_status !== "credited" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => { e.stopPropagation(); handleMarkPaid(order); }}
+                              className="gap-1.5 rounded-lg border-success/40 bg-success/10 text-success text-xs hover:bg-success/15 hover:text-success hover:border-success/50"
+                            >
+                              <CreditCard className="h-3.5 w-3.5" /> Markér som betalt
+                            </Button>
+                          )}
                       </div>
                     )}
 
