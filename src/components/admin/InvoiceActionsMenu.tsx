@@ -184,7 +184,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 w-8 p-0 border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  className="h-8 w-8 p-0 border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground hover:border-foreground/20 data-[state=open]:bg-secondary data-[state=open]:text-foreground data-[state=open]:border-foreground/20"
                   disabled={busy !== null}
                   aria-label="Flere handlinger"
                 >
@@ -194,14 +194,32 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
             </TooltipTrigger>
             <TooltipContent side="top" className="bg-popover border-border">Flere handlinger</TooltipContent>
           </Tooltip>
-          <DropdownMenuContent align="end" className="w-56 bg-popover border-border shadow-lg">
-            <DropdownMenuLabel className="text-[10px] uppercase tracking-wide text-muted-foreground">
-              Faktura-handlinger
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
+          <DropdownMenuContent
+            align="end"
+            sideOffset={6}
+            className="w-72 bg-popover border-border shadow-xl rounded-lg p-1.5 animate-in fade-in-0 zoom-in-95 slide-in-from-top-1"
+          >
+            <div className="px-2 pt-1.5 pb-2">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Faktura-handlinger
+              </div>
+              {isInvoiced && !isPaid && !isCredited && (
+                <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <span className={`inline-block h-1.5 w-1.5 rounded-full ${isOverdue ? "bg-destructive" : "bg-amber-500"}`} />
+                  <span>
+                    {sentCount}/3 rykkere sendt
+                    {lastSent ? ` · sidst ${lastSent}` : ""}
+                    {isOverdue ? " · forfalden" : ""}
+                  </span>
+                </div>
+              )}
+            </div>
+
             {isInvoiced && !isPaid && !isCredited && !allRemindersSent && (
               <>
-                <DropdownMenuLabel className="text-[10px] uppercase tracking-wide text-muted-foreground">Rykkere ({sentCount}/3)</DropdownMenuLabel>
+                <DropdownMenuLabel className="px-2 pt-1 pb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                  Rykkere
+                </DropdownMenuLabel>
                 {[1, 2, 3].map((n) => {
                   const key = `reminder${n}`;
                   const sent = sentTypes.has(key) || sentCount >= n;
@@ -209,43 +227,102 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
                   return (
                     <DropdownMenuItem
                       key={key}
-                      onSelect={() => sendReminder(key as ReminderType)}
-                      className="flex items-center justify-between gap-2"
+                      onSelect={() => !sent && sendReminder(key as ReminderType)}
+                      className="group flex items-center gap-2.5 rounded-md px-2 py-2 text-sm cursor-pointer focus:bg-accent/60 data-[disabled]:opacity-60"
                       disabled={sent}
                     >
-                      <span className="flex items-center gap-2">
+                      <span className={`flex h-7 w-7 items-center justify-center rounded-md ${
+                        sent
+                          ? "bg-success/10 text-success"
+                          : isNext
+                          ? "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"
+                          : "bg-muted text-muted-foreground"
+                      }`}>
                         {sent
-                          ? <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-                          : <Bell className="h-3.5 w-3.5 text-amber-600" />}
-                        <span className={sent ? "text-muted-foreground" : ""}>{n}. rykker</span>
+                          ? <CheckCircle2 className="h-3.5 w-3.5" />
+                          : <Bell className="h-3.5 w-3.5" />}
                       </span>
-                      {sent && <span className="text-[10px] font-medium text-success">Sendt</span>}
-                      {!sent && isNext && <span className="text-[10px] font-semibold">Næste</span>}
+                      <span className="flex-1 leading-tight">
+                        <span className={`block font-medium ${sent ? "text-muted-foreground line-through" : "text-foreground"}`}>
+                          {n}. rykker
+                        </span>
+                        <span className="block text-[11px] text-muted-foreground">
+                          {sent ? "Allerede sendt" : isNext ? "Næste skridt" : "Afventer tidligere rykker"}
+                        </span>
+                      </span>
+                      {!sent && isNext && (
+                        <span className="rounded-full bg-foreground px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-background">Næste</span>
+                      )}
                     </DropdownMenuItem>
                   );
                 })}
-                <DropdownMenuItem onSelect={() => sendReminder("collection")} className="gap-2 text-destructive focus:text-destructive">
-                  <Gavel className="h-3.5 w-3.5" /> Send til inkasso
+                <DropdownMenuItem
+                  onSelect={() => sendReminder("collection")}
+                  className="group flex items-center gap-2.5 rounded-md px-2 py-2 text-sm cursor-pointer focus:bg-destructive/10 focus:text-destructive"
+                >
+                  <span className="flex h-7 w-7 items-center justify-center rounded-md bg-destructive/10 text-destructive">
+                    <Gavel className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="flex-1 leading-tight">
+                    <span className="block font-medium">Send til inkasso</span>
+                    <span className="block text-[11px] text-muted-foreground group-focus:text-destructive/80">Sidste udvej</span>
+                  </span>
                 </DropdownMenuItem>
               </>
             )}
-            {isInvoiced && !isPaid && !isCredited && (
+
+            {((isInvoiced && !isPaid && !isCredited) || (isInvoiced && !isCredited) || !isInvoiced) && (
               <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => setConfirm("mark_paid")} className="gap-2 text-success focus:text-success">
-                  <CheckCircle2 className="h-3.5 w-3.5" /> Markér som betalt
-                </DropdownMenuItem>
+                <DropdownMenuSeparator className="my-1" />
+                <DropdownMenuLabel className="px-2 pt-1 pb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                  Status
+                </DropdownMenuLabel>
+
+                {isInvoiced && !isPaid && !isCredited && (
+                  <DropdownMenuItem
+                    onSelect={() => setConfirm("mark_paid")}
+                    className="group flex items-center gap-2.5 rounded-md px-2 py-2 text-sm cursor-pointer focus:bg-success/10 focus:text-success"
+                  >
+                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-success/10 text-success">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="flex-1 leading-tight">
+                      <span className="block font-medium">Markér som betalt</span>
+                      <span className="block text-[11px] text-muted-foreground group-focus:text-success/80">Bogfør betaling manuelt</span>
+                    </span>
+                  </DropdownMenuItem>
+                )}
+
+                {isInvoiced && !isCredited && (
+                  <DropdownMenuItem
+                    onSelect={() => setConfirm("credit_invoice")}
+                    className="group flex items-center gap-2.5 rounded-md px-2 py-2 text-sm cursor-pointer focus:bg-destructive/10 focus:text-destructive"
+                  >
+                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-destructive/10 text-destructive">
+                      <Receipt className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="flex-1 leading-tight">
+                      <span className="block font-medium">Krediter faktura</span>
+                      <span className="block text-[11px] text-muted-foreground group-focus:text-destructive/80">Opret kreditnota for hele beløbet</span>
+                    </span>
+                  </DropdownMenuItem>
+                )}
+
+                {!isInvoiced && (
+                  <DropdownMenuItem
+                    onSelect={() => setConfirm("void_draft")}
+                    className="group flex items-center gap-2.5 rounded-md px-2 py-2 text-sm cursor-pointer focus:bg-destructive/10 focus:text-destructive"
+                  >
+                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-destructive/10 text-destructive">
+                      <Ban className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="flex-1 leading-tight">
+                      <span className="block font-medium">Annullér kladde</span>
+                      <span className="block text-[11px] text-muted-foreground group-focus:text-destructive/80">Slet kladden i regnskabsprogrammet</span>
+                    </span>
+                  </DropdownMenuItem>
+                )}
               </>
-            )}
-            {isInvoiced && !isCredited && (
-              <DropdownMenuItem onSelect={() => setConfirm("credit_invoice")} className="gap-2 text-destructive focus:text-destructive">
-                <Receipt className="h-3.5 w-3.5" /> Krediter faktura
-              </DropdownMenuItem>
-            )}
-            {!isInvoiced && (
-              <DropdownMenuItem onSelect={() => setConfirm("void_draft")} className="gap-2 text-destructive focus:text-destructive">
-                <Ban className="h-3.5 w-3.5" /> Annullér kladde
-              </DropdownMenuItem>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
