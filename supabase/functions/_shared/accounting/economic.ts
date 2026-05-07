@@ -77,6 +77,39 @@ async function resolveLayoutNumber(creds: AccountingCredentials, settings: Accou
   return first?.layoutNumber ? Number(first.layoutNumber) : null;
 }
 
+async function resolveAccountingYear(creds: AccountingCredentials, dateIso: string): Promise<string> {
+  const date = dateIso.slice(0, 10);
+  const years = await ecRequest(creds, "/accounting-years?pagesize=100").catch(() => ({ collection: [] }));
+  const match = (years?.collection ?? []).find((y: any) => {
+    const from = String(y?.fromDate ?? "").slice(0, 10);
+    const to = String(y?.toDate ?? "").slice(0, 10);
+    return y?.year && from && to && from <= date && date <= to && y.closed !== true;
+  });
+  return String(match?.year ?? new Date(date).getFullYear());
+}
+
+async function resolveCustomerPaymentJournal(creds: AccountingCredentials, settings: AccountingSettings): Promise<{ journalNumber: number; contraAccountNumber: number | null }> {
+  const configured = Number((settings as any).payment_journal_number ?? (settings as any).default_journal_number);
+  const journals = await ecRequest(creds, "/journals?pagesize=100").catch(() => ({ collection: [] }));
+  const list = (journals?.collection ?? []) as any[];
+  const candidates = Number.isFinite(configured) && configured > 0
+    ? list.filter((j) => Number(j?.journalNumber) === configured)
+    : list;
+  const journal = candidates.find((j) => {
+    const restricted = String(j?.settings?.entryTypeRestrictedTo ?? "");
+    return !restricted || restricted === "customerPayment";
+  }) ?? candidates[0];
+  if (!journal?.journalNumber) throw new Error("Ingen kassekladde til kundebetalinger er tilgængelig i e-conomic — opret eller vælg en først.");
+  const configuredContra = Number((settings as any).payment_account_number ?? (settings as any).default_payment_account);
+  const journalContra = Number(journal?.settings?.contraAccounts?.customerPayments?.accountNumber);
+  return {
+    journalNumber: Number(journal.journalNumber),
+    contraAccountNumber: Number.isFinite(configuredContra) && configuredContra > 0
+      ? configuredContra
+      : Number.isFinite(journalContra) && journalContra > 0 ? journalContra : null,
+  };
+}
+
 function friendlyEconomicError(status: number, body: string): string {
   const lower = body.toLowerCase();
   if (status === 401 || status === 403 || lower.includes("unauthorized") || lower.includes("invalid token")) {
@@ -693,31 +726,30 @@ export function makeEconomicAdapter(
     },
 
     async markInvoicePaid({ invoice_external_id, amount, paid_at }) {
-      // Registrér betaling som kassekladde-post mod fakturaens debitor.
-      // Dette kræver et journalNumber som vi ikke kender på forhånd —
-      // forsøg /journals og brug første aktive journal.
-      const journals = await ecRequest(creds, "/journals?pagesize=10").catch(() => ({ collection: [] }));
-      const journal = (journals?.collection ?? [])[0];
-      if (!journal?.journalNumber) {
-        throw new Error("Ingen kassekladde tilgængelig i e-conomic — opret en først.");
-      }
+      // Registrér betaling som kundebetaling i kassekladden mod den bogførte faktura.
+      const paidDate = paid_at?.slice(0, 10) ?? new Date().toISOString().slice(0, 10);
+      const { journalNumber, contraAccountNumber } = await resolveCustomerPaymentJournal(creds, settings);
+      const accountingYear = await resolveAccountingYear(creds, paidDate);
       const inv = await ecRequest(creds, `/invoices/booked/${invoice_external_id}`).catch(() => null);
       if (!inv?.customer?.customerNumber) {
         throw new Error("Kunne ikke finde kunden på fakturaen.");
       }
-      await ecRequest(creds, `/journals/${journal.journalNumber}/vouchers`, {
+      const payment: Record<string, unknown> = {
+        text: `Betaling for faktura ${invoice_external_id}`,
+        amount,
+        date: paidDate,
+        currency: { code: inv.currency ?? "DKK" },
+        customer: { customerNumber: inv.customer.customerNumber },
+        customerInvoice: Number(invoice_external_id),
+      };
+      if (contraAccountNumber) payment.contraAccount = { accountNumber: contraAccountNumber };
+      await ecRequest(creds, `/journals/${journalNumber}/vouchers`, {
         method: "POST",
         body: JSON.stringify({
-          accountingYear: { year: new Date().getFullYear().toString() },
+          accountingYear: { year: accountingYear },
+          journal: { journalNumber },
           entries: {
-            customerPayments: [{
-              text: `Betaling for faktura ${invoice_external_id}`,
-              amount,
-              date: paid_at?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
-              currency: { code: "DKK" },
-              customer: { customerNumber: inv.customer.customerNumber },
-              customerInvoice: Number(invoice_external_id),
-            }],
+            customerPayments: [payment],
           },
         }),
       });

@@ -611,10 +611,14 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
         for (const l of links!) {
           const s = byExt.get(String(l.external_id));
           if (!s) continue;
+          const { data: currentOrder } = await admin.from("orders")
+            .select("payment_status, paid_at, paid_amount")
+            .eq("id", l.order_id).maybeSingle();
+          const keepManualPaid = currentOrder?.payment_status === "paid" && s.status !== "paid";
           await admin.from("orders").update({
-            payment_status: s.status,
-            paid_at: s.paid_at,
-            paid_amount: s.paid_amount ?? null,
+            payment_status: keepManualPaid ? "paid" : s.status,
+            paid_at: keepManualPaid ? currentOrder.paid_at : s.paid_at,
+            paid_amount: keepManualPaid ? currentOrder.paid_amount : (s.paid_amount ?? null),
             payment_status_synced_at: new Date().toISOString(),
             due_date: s.due_date ?? null,
             reminder_count: s.reminder_count ?? 0,
@@ -654,10 +658,14 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
             .maybeSingle();
           if (existingLink) {
             // Opdater betalingsstatus og total
+            const { data: currentOrder } = await admin.from("orders")
+              .select("payment_status, paid_at, paid_amount")
+              .eq("id", existingLink.order_id).maybeSingle();
+            const keepManualPaid = currentOrder?.payment_status === "paid" && inv.status !== "paid";
             await admin.from("orders").update({
-              payment_status: inv.status,
-              paid_at: inv.paid_at,
-              paid_amount: inv.paid_amount ?? null,
+              payment_status: keepManualPaid ? "paid" : inv.status,
+              paid_at: keepManualPaid ? currentOrder.paid_at : inv.paid_at,
+              paid_amount: keepManualPaid ? currentOrder.paid_amount : (inv.paid_amount ?? null),
               payment_status_synced_at: new Date().toISOString(),
               due_date: inv.due_date ?? null,
             }).eq("id", existingLink.order_id);
