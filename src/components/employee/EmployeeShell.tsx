@@ -109,7 +109,7 @@ export const EmployeeShell = ({
   const accentColor = employee?.color || "hsl(var(--foreground))";
 
   return (
-    <div className="isolate flex min-h-screen overflow-x-hidden bg-secondary/50">
+    <div className="isolate flex min-h-screen bg-secondary/50">
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
