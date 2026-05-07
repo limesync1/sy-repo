@@ -68,7 +68,7 @@ const FIELD_DEFS: Record<EntityType, { key: string; label: string; required?: bo
 };
 
 const ENTITY_META: Record<EntityType, { label: string; icon: any; desc: string }> = {
-  customers: { label: "Kunder", icon: Users, desc: "Privatkunder og erhvervskunder fra fx e-conomic, Billy, SkvizBiz." },
+  customers: { label: "Kunder", icon: Users, desc: "Privatkunder og erhvervskunder fra fx SkvizBiz, Fenster og lignende brancheprogrammer." },
   services: { label: "Produkter / services", icon: Package, desc: "Varekartotek, prislister og services." },
   orders: { label: "Ordrer / aftaler", icon: ClipboardList, desc: "Eksisterende ordrer, aftaler eller fakturaer." },
 };
@@ -179,7 +179,7 @@ const ImportPanel = ({
 
     Papa.parse<Row>(text, {
       header: true, skipEmptyLines: true, dynamicTyping: false,
-      // Auto-detekter delimiter — SkvizBiz bruger ';', e-conomic/Billy ofte ','
+      // Auto-detekter delimiter — SkvizBiz/Fenster bruger ofte ';', andre ','
       delimiter: "",
       complete: async (result) => {
         const parsed = (result.data || []).filter((r) => r && Object.values(r).some((v) => v));

@@ -196,7 +196,7 @@ Array-længden skal være præcis ${items.length} i samme rækkefølge.`;
     const entityLabel = type === "services" ? "produkter/services"
       : type === "orders" ? "ordrer/aftaler"
       : "kundedata";
-    const systemPrompt = `Du hjælper en dansk SaaS-platform (Serviceydere) med at importere ${entityLabel} fra CSV-filer eksporteret fra fx SkvizBiz, Fenster, Billy, Dinero, e-conomic, Excel m.fl.
+    const systemPrompt = `Du hjælper en dansk SaaS-platform (Serviceydere) med at importere ${entityLabel} fra CSV-filer eksporteret fra brancheprogrammer for service- og håndværksvirksomheder — typisk SkvizBiz, Fenster, Ordrestyring, Minuba, Håndværkertilbud, Servicemind og lignende. Sjældnere fra rene regnskabsprogrammer.
 
 Du skal mappe CSV-kolonner til Serviceydere's standardfelter:
 ${fieldList}
@@ -231,8 +231,10 @@ SkvizBiz (semikolon-separeret, ofte Windows-1252):
 - For services/aftaler: "Opgavebeskrivelse" → name/description, "Pris ekskl. moms" eller "Pris per enhed" → price, "Enhed" → unit, "Antal" → quantity, "Faktureringsinterval"/"Interval" → recurrence, "Ruter" → route, "Moms-sats i %" → vat_rate, "Tidsforbrug" (sekunder) → duration_minutes (omregn /60).
 - En SkvizBiz-eksport kan indeholde BÅDE kunde- OG aftalefelter på samme række — map kun de felter der hører til den valgte entitetstype.
 
-e-conomic / Billy / Dinero (komma-separeret, UTF-8):
-- Typisk engelske eller danske kolonnenavne ("Customer number", "Name", "VAT number", "Email", "Phone", "Address", "Zip", "City").
+Fenster / Ordrestyring / Minuba og lignende brancheprogrammer:
+- Typisk danske kolonnenavne ("Kundenr", "Firmanavn"/"Navn", "Kontakt", "Adresse", "Postnr", "By", "Email"/"E-mail", "Telefon"/"Mobil", "CVR").
+- Aftaler/opgaver: "Opgave", "Beskrivelse", "Interval"/"Frekvens", "Pris", "Enhed", "Antal", "Rute"/"Distrikt", "Næste besøg", "Sidste besøg", "Varighed".
+- Hvis du er i tvivl mellem to lignende kolonnenavne, vælg den der har flest udfyldte værdier i sample-rækkerne.
 
 Hvis et SkvizBiz-felt har værdien "Følg standard", "-", "Nej" eller tom — det er stadig OK at mappe kolonnen, vi filtrerer tomme værdier server-side.`;
 
