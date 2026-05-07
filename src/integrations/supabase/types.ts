@@ -366,6 +366,7 @@ export type Database = {
           id: string
           last_error: string | null
           operation: string
+          payload: Json
           processed_at: string | null
           scheduled_for: string
           status: string
@@ -380,6 +381,7 @@ export type Database = {
           id?: string
           last_error?: string | null
           operation: string
+          payload?: Json
           processed_at?: string | null
           scheduled_for?: string
           status?: string
@@ -394,6 +396,7 @@ export type Database = {
           id?: string
           last_error?: string | null
           operation?: string
+          payload?: Json
           processed_at?: string | null
           scheduled_for?: string
           status?: string
@@ -1540,6 +1543,9 @@ export type Database = {
           company_name: string | null
           completed_cycles: number
           created_at: string
+          credit_note_external_id: string | null
+          credit_note_external_number: string | null
+          credited_at: string | null
           customer_email: string
           customer_id: string | null
           customer_name: string
@@ -1553,6 +1559,8 @@ export type Database = {
           invoice_external_id: string | null
           invoice_status: string | null
           invoiced_at: string | null
+          last_reminder_at: string | null
+          last_reminder_type: string | null
           latitude: number | null
           longitude: number | null
           next_service_date: string | null
@@ -1569,10 +1577,13 @@ export type Database = {
           preferred_time_end: string | null
           preferred_time_start: string | null
           recurrence_cycle: number | null
+          reminder_count: number
+          reminder_history: Json
           requires_customer_approval: boolean
           status: Database["public"]["Enums"]["order_status"]
           total_amount: number
           updated_at: string
+          voided_at: string | null
           zip_code: string | null
         }
         Insert: {
@@ -1590,6 +1601,9 @@ export type Database = {
           company_name?: string | null
           completed_cycles?: number
           created_at?: string
+          credit_note_external_id?: string | null
+          credit_note_external_number?: string | null
+          credited_at?: string | null
           customer_email: string
           customer_id?: string | null
           customer_name: string
@@ -1603,6 +1617,8 @@ export type Database = {
           invoice_external_id?: string | null
           invoice_status?: string | null
           invoiced_at?: string | null
+          last_reminder_at?: string | null
+          last_reminder_type?: string | null
           latitude?: number | null
           longitude?: number | null
           next_service_date?: string | null
@@ -1619,10 +1635,13 @@ export type Database = {
           preferred_time_end?: string | null
           preferred_time_start?: string | null
           recurrence_cycle?: number | null
+          reminder_count?: number
+          reminder_history?: Json
           requires_customer_approval?: boolean
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
           updated_at?: string
+          voided_at?: string | null
           zip_code?: string | null
         }
         Update: {
@@ -1640,6 +1659,9 @@ export type Database = {
           company_name?: string | null
           completed_cycles?: number
           created_at?: string
+          credit_note_external_id?: string | null
+          credit_note_external_number?: string | null
+          credited_at?: string | null
           customer_email?: string
           customer_id?: string | null
           customer_name?: string
@@ -1653,6 +1675,8 @@ export type Database = {
           invoice_external_id?: string | null
           invoice_status?: string | null
           invoiced_at?: string | null
+          last_reminder_at?: string | null
+          last_reminder_type?: string | null
           latitude?: number | null
           longitude?: number | null
           next_service_date?: string | null
@@ -1669,10 +1693,13 @@ export type Database = {
           preferred_time_end?: string | null
           preferred_time_start?: string | null
           recurrence_cycle?: number | null
+          reminder_count?: number
+          reminder_history?: Json
           requires_customer_approval?: boolean
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
           updated_at?: string
+          voided_at?: string | null
           zip_code?: string | null
         }
         Relationships: [
