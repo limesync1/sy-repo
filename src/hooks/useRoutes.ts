@@ -1330,7 +1330,7 @@ export const useMyDayStops = (date: string) => {
 
       const { data: orderRows } = await supabase
         .from("orders")
-        .select("id,status,total_amount,adjusted_amount,zip_code,city")
+        .select("id,status,total_amount,adjusted_amount,zip_code,city,payment_status,invoice_status")
         .in("id", orderIds);
       const orderMap = new Map(
         (orderRows || []).map((o: any) => [
@@ -1340,6 +1340,8 @@ export const useMyDayStops = (date: string) => {
             amount: Number(o.adjusted_amount ?? o.total_amount ?? 0),
             zip_code: (o.zip_code as string | null) ?? null,
             city: (o.city as string | null) ?? null,
+            payment_status: (o.payment_status as string | null) ?? null,
+            invoice_status: (o.invoice_status as string | null) ?? null,
           },
         ]),
       );
@@ -1361,6 +1363,8 @@ export const useMyDayStops = (date: string) => {
         return {
           ...s,
           order_status: order?.status ?? null,
+          order_payment_status: order?.payment_status ?? null,
+          order_invoice_status: order?.invoice_status ?? null,
           order_amount: order?.amount ?? null,
           full_address: fullAddress,
         };
