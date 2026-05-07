@@ -138,6 +138,7 @@ const FIELD_GROUPS: Record<EntityType, { title: string; keys: string[] }[]> = {
 // ---------- Per-entity import-panel ----------
 const ImportPanel = ({
   entity, businessId, existingEmails, existingProductNumbers, existingExternalOrderNumbers, existingCategories, existingCustomers, existingServices,
+  sharedFile, onFileChange,
 }: {
   entity: EntityType;
   businessId: string;
@@ -147,6 +148,8 @@ const ImportPanel = ({
   existingCategories: { category: string; subcategories: string[] }[];
   existingCustomers: { id: string; name: string; email: string; cvr?: string | null; phone?: string | null; zip_code?: string | null }[];
   existingServices: { id: string; name: string; product_number?: string | null; unit?: string | null; base_price?: number | null }[];
+  sharedFile: File | null;
+  onFileChange: (f: File | null) => void;
 }) => {
   const fields = FIELD_DEFS[entity];
   const [file, setFile] = useState<File | null>(null);
@@ -199,6 +202,7 @@ const ImportPanel = ({
     setPage(0); setRowFilter("all");
     setExcluded(new Set()); setForceInclude(new Set());
     if (inputRef.current) inputRef.current.value = "";
+    onFileChange(null);
   };
 
   const handleFile = async (f: File) => {
@@ -207,6 +211,7 @@ const ImportPanel = ({
       return;
     }
     setFile(f); setDone(null);
+    onFileChange(f);
     // Reset selektion når en ny fil læses ind
     setExcluded(new Set()); setForceInclude(new Set());
 
