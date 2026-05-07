@@ -99,6 +99,7 @@ export interface UpsertOrderInput {
   external_id?: string | null;
   external_type?: "order" | "invoice_draft" | "quote";
   customer_external_id: string;
+  customer_name?: string | null;
   status: string; // serviceydere status
   notes?: string | null;
   payment_terms_days?: number | null;
