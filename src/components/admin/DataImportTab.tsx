@@ -174,6 +174,88 @@ const FIELD_GROUPS: Record<EntityType, { title: string; keys: string[] }[]> = {
 };
 
 // ---------- Per-entity import-panel ----------
+// Detaljevisning af én række — viser alle felter inkl. uudfyldte mappede felter
+// og rå CSV-kolonner som ikke blev mappet (så intet data går tabt).
+const RowDetails = ({ row, entity, headers, mapping }: { row: any; entity: EntityType; headers: string[]; mapping: Mapping }) => {
+  const fields = FIELD_DEFS[entity];
+  const mappedCols = new Set(Object.values(mapping).filter(Boolean) as string[]);
+  const unmapped = headers.filter((h) => !mappedCols.has(h)).filter((h) => {
+    const v = row.source?.[h];
+    return v !== undefined && v !== null && String(v).trim() !== "";
+  });
+  return (
+    <div className="space-y-3">
+      {row.errors.length > 0 && (
+        <div className="rounded-md border border-destructive/40 bg-destructive/5 p-2 text-[11px] text-destructive">
+          <p className="font-semibold">Validerings­fejl ({row.errors.length})</p>
+          <ul className="ml-4 list-disc">{row.errors.map((e: string, i: number) => <li key={i}>{e}</li>)}</ul>
+        </div>
+      )}
+      {row.isDuplicate && (
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-2 text-[11px] text-amber-700">
+          <span className="font-semibold">Dublet:</span> {row.duplicateReason}
+        </div>
+      )}
+      <div className="grid gap-4 md:grid-cols-2">
+        <div>
+          <p className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">Mappede felter</p>
+          <div className="grid grid-cols-[140px_1fr] gap-x-3 gap-y-1 text-[11px]">
+            {fields.map((f) => {
+              const v = (row as any)[f.key];
+              const display = v == null || v === "" ? <span className="text-muted-foreground">—</span> : String(v);
+              return (
+                <React.Fragment key={f.key}>
+                  <span className="text-muted-foreground">{f.label}</span>
+                  <span className="font-medium text-foreground break-all">{display}</span>
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+        <div>
+          <p className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Øvrige CSV-kolonner ({unmapped.length}) <span className="font-normal normal-case text-muted-foreground">— gemmes som noter ved import</span>
+          </p>
+          {unmapped.length === 0 ? (
+            <p className="text-[11px] text-muted-foreground">Alle kolonner er mappet.</p>
+          ) : (
+            <div className="grid grid-cols-[140px_1fr] gap-x-3 gap-y-1 text-[11px]">
+              {unmapped.map((h) => (
+                <React.Fragment key={h}>
+                  <span className="truncate text-muted-foreground" title={h}>{h}</span>
+                  <span className="break-all text-foreground">{String(row.source[h])}</span>
+                </React.Fragment>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      {entity === "orders" && (
+        <div className="rounded-md border border-border bg-background p-2 text-[11px]">
+          <p className="mb-1 font-semibold text-foreground">Aftale-/ordre­detaljer</p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 md:grid-cols-3">
+            <div><span className="text-muted-foreground">Ordrenr.:</span> <span className="text-foreground">{row.external_order_number || "—"}</span></div>
+            <div><span className="text-muted-foreground">Service:</span> <span className="text-foreground">{row.service_name}</span></div>
+            <div><span className="text-muted-foreground">Antal:</span> <span className="text-foreground">{row.quantity}{row.unit ? ` ${row.unit}` : ""}</span></div>
+            <div><span className="text-muted-foreground">Stykpris:</span> <span className="text-foreground">{row.unit_price?.toLocaleString("da-DK")} kr</span></div>
+            <div><span className="text-muted-foreground">Total:</span> <span className="text-foreground">{row.total_amount?.toLocaleString("da-DK")} kr</span></div>
+            <div><span className="text-muted-foreground">Interval:</span> <span className="text-foreground">{row.interval || "engangskøb"}</span></div>
+            <div><span className="text-muted-foreground">Dato:</span> <span className="text-foreground">{row.preferred_date || "—"}</span></div>
+            <div><span className="text-muted-foreground">Status:</span> <span className="text-foreground">{row.status}</span></div>
+            <div><span className="text-muted-foreground">Betalingsfrist:</span> <span className="text-foreground">{row.payment_terms_days != null ? `${row.payment_terms_days} dage` : "—"}</span></div>
+          </div>
+          {(row.customer_match_reason || row.service_match_reason) && (
+            <div className="mt-2 space-y-0.5 border-t border-border pt-1.5">
+              {row.customer_match_reason && <div><span className="text-muted-foreground">Kunde-match:</span> <span className="text-foreground">{row.customer_match_reason}</span></div>}
+              {row.service_match_reason && <div><span className="text-muted-foreground">Service-match:</span> <span className="text-foreground">{row.service_match_reason}</span></div>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ImportPanel = ({
   entity, businessId, existingEmails, existingProductNumbers, existingExternalOrderNumbers, existingCategories, existingCustomers, existingServices,
   existingByEmail, existingByCvr, existingByCustomerNumber, existingByEan, existingByOrderNumber, existingByProductNumber, existingServiceNames,
