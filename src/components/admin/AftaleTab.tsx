@@ -44,6 +44,7 @@ import {
 } from "@/lib/service-pricing";
 import { relativeFromNow } from "@/lib/relative-time";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
+import InvoiceActionsMenu from "@/components/admin/InvoiceActionsMenu";
 
 /* ─── Types ─── */
 type BusinessService = Service & { calculator_steps?: CalculatorStep[] };
@@ -1462,10 +1463,25 @@ const AftaleTab = ({
                               return (
                                 <span
                                   className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${p.cls}`}
-                                  title={`Betalingsstatus hentes automatisk fra dit regnskabsprogram hvert 15. minut.\nSidst opdateret: ${syncedLabel}.`}
+                                  title={`Betalingsstatus hentes automatisk fra dit regnskabsprogram hvert 5. minut.\nSidst opdateret: ${syncedLabel}.`}
                                 >
                                   <span className={`h-1.5 w-1.5 rounded-full ${p.dot}`} />
                                   {p.label}
+                                </span>
+                              );
+                            })()}
+                            {(() => {
+                              const rc = Number((order as any).reminder_count ?? 0);
+                              if (rc <= 0) return null;
+                              const last = (order as any).last_reminder_at
+                                ? new Date((order as any).last_reminder_at)
+                                : null;
+                              return (
+                                <span
+                                  className="inline-flex items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-800"
+                                  title={last ? `Sidste rykker sendt ${last.toLocaleString("da-DK")}` : "Rykker sendt"}
+                                >
+                                  Rykker {rc}
                                 </span>
                               );
                             })()}
@@ -1551,6 +1567,12 @@ const AftaleTab = ({
                       {/* Højre side: beløb + chevron */}
                       <div className="flex items-center justify-end gap-3 sm:flex-col sm:items-end sm:gap-1">
                         <span className="text-base font-semibold tabular-nums text-foreground">{currentTotal} kr</span>
+                        {/* Faktura-handlinger: rykker, kreditér, annullér, markér betalt.
+                            Kun synligt når ordren har en aktiv regnskabsintegration —
+                            menuen viser selv hvilke handlinger der giver mening. */}
+                        {((order as any).invoice_external_id || (order as any).accounting_synced_at) && (
+                          <InvoiceActionsMenu order={order as any} />
+                        )}
                         <span className="text-muted-foreground">
                           {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </span>

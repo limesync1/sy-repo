@@ -307,6 +307,72 @@ export function makeDineroAdapter(
       await dineroRequest(creds, orgId, `/invoices/${externalId}`, { method: "DELETE" });
     },
 
+    async sendReminder({ invoice_external_id, type }) {
+      // Dinero: POST /invoices/{guid}/reminder/email — Dinero håndterer selv
+      // gebyr og rykker-niveau ud fra fakturaens historik.
+      const res = await dineroRequest(creds, orgId, `/invoices/${invoice_external_id}/reminder/email`, {
+        method: "POST",
+        body: JSON.stringify({ Receiver: "", Sender: "", Message: "" }),
+      }).catch((e) => {
+        const msg = e instanceof Error ? e.message : String(e);
+        throw new Error(`Kunne ikke sende rykker via Dinero: ${msg}`);
+      });
+      return {
+        sent_at: new Date().toISOString(),
+        type: type ?? "reminder1",
+        fee: typeof res?.Fee === "number" ? res.Fee : null,
+        external_id: res?.Guid ? String(res.Guid) : null,
+      };
+    },
+
+    async creditInvoice({ invoice_external_id }) {
+      // Dinero: POST /invoices/{guid}/creditnote — opretter kreditnota-kladde
+      // og bogfører den straks.
+      const res = await dineroRequest(creds, orgId, `/invoices/${invoice_external_id}/creditnote`, {
+        method: "POST",
+        body: JSON.stringify({ AutomaticInvoiceLayout: true }),
+      }).catch((e) => {
+        const msg = e instanceof Error ? e.message : String(e);
+        throw new Error(`Kunne ikke kreditere faktura i Dinero: ${msg}`);
+      });
+      const guid = String(res?.Guid ?? "");
+      try {
+        await dineroRequest(creds, orgId, `/invoices/${guid}/book`, {
+          method: "POST",
+          body: JSON.stringify({ Number: 0 }),
+        });
+      } catch { /* ignore — kreditnota kan allerede være bogført */ }
+      return {
+        credit_note_external_id: guid,
+        credit_note_external_number: res?.Number ? String(res.Number) : null,
+      };
+    },
+
+    async voidDraft({ external_id }) {
+      await dineroRequest(creds, orgId, `/invoices/${external_id}`, { method: "DELETE" })
+        .catch((e) => {
+          const msg = e instanceof Error ? e.message : String(e);
+          throw new Error(`Kunne ikke annullere kladden i Dinero: ${msg}`);
+        });
+    },
+
+    async markInvoicePaid({ invoice_external_id, amount, paid_at }) {
+      // Dinero: POST /invoices/{guid}/payments
+      const body = {
+        Amount: amount,
+        PaymentDate: (paid_at ?? new Date().toISOString()).slice(0, 10),
+        DepositAccountNumber: 55000, // Dineros standard "Bank" — kan overstyres pr. virksomhed senere
+        Description: `Manuel betaling registreret fra Serviceydere`,
+      };
+      await dineroRequest(creds, orgId, `/invoices/${invoice_external_id}/payments`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }).catch((e) => {
+        const msg = e instanceof Error ? e.message : String(e);
+        throw new Error(`Kunne ikke registrere betaling i Dinero: ${msg}`);
+      });
+    },
+
     async bookInvoice(input) {
       // Dinero: book → POST /invoices/{guid}/book — returnerer Number.
       let invoiceNumber: string | null = null;
