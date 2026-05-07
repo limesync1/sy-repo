@@ -265,6 +265,10 @@ const ImportPanel = ({
         recommendations: (Array.isArray(data?.recommendations) ? data.recommendations : [data?.primary || "customers"]) as EntityType[],
       };
       setDetection(det);
+      // Auto-skift til den primære entitet hvis vi er på en anden fane.
+      if (det.primary && det.primary !== entity) {
+        window.dispatchEvent(new CustomEvent("dataimport:switch-entity", { detail: det.primary }));
+      }
     } catch {
       // stille fejl — manuelt skift muligt
     }
