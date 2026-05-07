@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   UploadCloud, Loader2, FileText, Sparkles, CheckCircle2, AlertTriangle,
-  Trash2, X, ArrowRight, Building2, User, HelpCircle, Mail, Users, Package, ClipboardList,
+  Trash2, X, ArrowRight, Building2, User, HelpCircle, Mail, Users, Package, ClipboardList, FolderTree, Wand2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, SectionCard, EmptyState } from "@/components/admin/shared/AdminUI";
@@ -110,13 +110,14 @@ const detectCustomerType = (row: Row, mapping: Mapping, fallback: "private" | "b
 
 // ---------- Per-entity import-panel ----------
 const ImportPanel = ({
-  entity, businessId, existingEmails, existingProductNumbers, existingExternalOrderNumbers,
+  entity, businessId, existingEmails, existingProductNumbers, existingExternalOrderNumbers, existingCategories,
 }: {
   entity: EntityType;
   businessId: string;
   existingEmails: Set<string>;
   existingProductNumbers: Set<string>;
   existingExternalOrderNumbers: Set<string>;
+  existingCategories: { category: string; subcategories: string[] }[];
 }) => {
   const fields = FIELD_DEFS[entity];
   const [file, setFile] = useState<File | null>(null);
@@ -130,11 +131,15 @@ const ImportPanel = ({
   const [importing, setImporting] = useState(false);
   const [done, setDone] = useState<{ created: number; skipped: number } | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  // services: AI-klassificering pr. række index → resultat
+  const [classifications, setClassifications] = useState<Record<number, { service_category?: string; subcategory?: string; is_new_category?: boolean; is_new_subcategory?: boolean; confidence?: number }>>({});
+  const [classifying, setClassifying] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const reset = () => {
     setFile(null); setRows([]); setHeaders([]); setMapping({});
     setAiNotes(null); setConfidence(null); setDone(null);
+    setClassifications({});
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -181,6 +186,40 @@ const ImportPanel = ({
     } finally { setAiLoading(false); }
   };
 
+  // Klassificér produkter ind i virksomhedens kategorier (kun services-entity).
+  const classifyServices = async (currentMapping: Mapping, currentRows: Row[]) => {
+    if (entity !== "services" || currentRows.length === 0) return;
+    setClassifying(true);
+    try {
+      const items = currentRows.slice(0, 200).map((r) => ({
+        name: get(r, currentMapping, "name") || "",
+        description: get(r, currentMapping, "description") || "",
+        raw_category: get(r, currentMapping, "service_category") || "",
+        raw_subcategory: get(r, currentMapping, "subcategory") || "",
+        product_number: get(r, currentMapping, "product_number") || "",
+        unit: get(r, currentMapping, "unit") || "",
+      }));
+      const { data, error } = await supabase.functions.invoke("import-customers-ai", {
+        body: { mode: "classify_services", items, existing: existingCategories },
+      });
+      if (error) throw error;
+      const arr: any[] = data?.classifications || [];
+      const map: Record<number, any> = {};
+      arr.forEach((c, i) => { if (c) map[i] = c; });
+      setClassifications(map);
+    } catch {
+      // stille fejl — manuelt udfyld muligt
+    } finally { setClassifying(false); }
+  };
+
+  // Når mapping ændrer sig for services, kør klassificering automatisk
+  useEffect(() => {
+    if (entity === "services" && rows.length > 0 && Object.keys(mapping).length > 0 && !aiLoading) {
+      classifyServices(mapping, rows);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapping.name, mapping.description, mapping.service_category, mapping.subcategory, rows.length]);
+
   // ---------- prepared rækker afhængigt af entity ----------
   const prepared = useMemo(() => {
     const seenEmails = new Set<string>();
@@ -226,6 +265,12 @@ const ImportPanel = ({
         if (dupKey && existingProductNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = "Varenr. findes"; }
         else if (dupKey && seenProductNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = "Dublet i fil"; }
         if (dupKey) seenProductNumbers.add(dupKey);
+        const idx = rows.indexOf(row);
+        const ai = classifications[idx];
+        const rawCat = get(row, mapping, "service_category");
+        const rawSub = get(row, mapping, "subcategory");
+        const final_category = rawCat || ai?.service_category || undefined;
+        const final_subcategory = rawSub || ai?.subcategory || undefined;
         return {
           source: row, kind: "service" as const,
           name: name || "",
@@ -233,8 +278,13 @@ const ImportPanel = ({
           base_price: parseNum(get(row, mapping, "base_price")),
           unit: get(row, mapping, "unit"),
           product_number,
-          service_category: get(row, mapping, "service_category"),
-          subcategory: get(row, mapping, "subcategory"),
+          service_category: final_category,
+          subcategory: final_subcategory,
+          ai_category: ai?.service_category,
+          ai_subcategory: ai?.subcategory,
+          ai_is_new_category: ai?.is_new_category,
+          ai_is_new_subcategory: ai?.is_new_subcategory,
+          ai_confidence: ai?.confidence,
           default_vat_rate: parseNum(get(row, mapping, "default_vat_rate")),
           accounting_account_number: get(row, mapping, "accounting_account_number"),
           errors, isDuplicate, duplicateReason,
@@ -276,7 +326,7 @@ const ImportPanel = ({
         errors, isDuplicate, duplicateReason,
       };
     });
-  }, [rows, mapping, defaultType, entity, existingEmails, existingProductNumbers, existingExternalOrderNumbers]);
+  }, [rows, mapping, defaultType, entity, existingEmails, existingProductNumbers, existingExternalOrderNumbers, classifications]);
 
   const stats = useMemo(() => ({
     total: prepared.length,
@@ -420,6 +470,22 @@ const ImportPanel = ({
       </div>
       {aiNotes && <p className="text-xs italic text-muted-foreground">"{aiNotes}"</p>}
 
+      {entity === "services" && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2 text-xs">
+          <FolderTree className="h-3.5 w-3.5 text-accent" />
+          <span className="font-medium text-foreground">Smart kategorisering</span>
+          <span className="text-muted-foreground">
+            AI matcher hver række ind i jeres {existingCategories.length} eksisterende kategorier — eller foreslår nye markeret med <Sparkles className="inline h-2.5 w-2.5" />.
+          </span>
+          {classifying && <span className="ml-auto inline-flex items-center gap-1.5 text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Klassificerer…</span>}
+          {!classifying && Object.keys(classifications).length > 0 && (
+            <span className="ml-auto inline-flex items-center gap-1.5 text-foreground">
+              <Wand2 className="h-3 w-3 text-accent" /> {Object.keys(classifications).length} klassificeret
+            </span>
+          )}
+        </div>
+      )}
+
       {entity === "customers" && (
         <div>
           <p className="mb-2 text-xs font-semibold text-foreground">Standard kundetype (når ikke angivet)</p>
@@ -485,7 +551,7 @@ const ImportPanel = ({
                 <th className="px-2 py-1.5 font-medium">Pris</th>
                 <th className="px-2 py-1.5 font-medium">Enhed</th>
                 <th className="px-2 py-1.5 font-medium">Varenr.</th>
-                <th className="px-2 py-1.5 font-medium">Kategori</th>
+                <th className="px-2 py-1.5 font-medium">Kategori → Underkategori</th>
               </>}
               {entity === "orders" && <>
                 <th className="px-2 py-1.5 font-medium">Ordrenr.</th>
@@ -522,7 +588,25 @@ const ImportPanel = ({
                   <td className="px-2 py-1.5 text-foreground">{r.base_price != null ? r.base_price.toLocaleString("da-DK") + " kr" : "—"}</td>
                   <td className="px-2 py-1.5 text-muted-foreground">{r.unit || "—"}</td>
                   <td className="px-2 py-1.5 text-muted-foreground">{r.product_number || "—"}</td>
-                  <td className="px-2 py-1.5 text-muted-foreground">{r.service_category || "—"}</td>
+                  <td className="px-2 py-1.5">
+                    {r.service_category ? (
+                      <span className="inline-flex flex-wrap items-center gap-1">
+                        <Badge variant={r.ai_is_new_category ? "outline" : "secondary"} className="text-[10px]">
+                          {r.ai_is_new_category && <Sparkles className="mr-1 h-2.5 w-2.5" />}
+                          {r.service_category}
+                        </Badge>
+                        {r.subcategory && (
+                          <>
+                            <ArrowRight className="h-2.5 w-2.5 text-muted-foreground" />
+                            <Badge variant={r.ai_is_new_subcategory ? "outline" : "secondary"} className="text-[10px]">
+                              {r.ai_is_new_subcategory && <Sparkles className="mr-1 h-2.5 w-2.5" />}
+                              {r.subcategory}
+                            </Badge>
+                          </>
+                        )}
+                      </span>
+                    ) : <span className="text-muted-foreground">—</span>}
+                  </td>
                 </>}
                 {entity === "orders" && <>
                   <td className="px-2 py-1.5 text-foreground">{r.external_order_number || "—"}</td>
@@ -565,6 +649,7 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
   const [existingEmails, setExistingEmails] = useState<Set<string>>(new Set());
   const [existingProductNumbers, setExistingProductNumbers] = useState<Set<string>>(new Set());
   const [existingExternalOrderNumbers, setExistingExternalOrderNumbers] = useState<Set<string>>(new Set());
+  const [existingCategories, setExistingCategories] = useState<{ category: string; subcategories: string[] }[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -572,7 +657,7 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
       const [biz, priv, svc, ord] = await Promise.all([
         supabase.from("business_customers").select("email").eq("business_id", businessId),
         supabase.from("private_customers").select("email").eq("business_id", businessId),
-        supabase.from("services").select("product_number").eq("business_id", businessId),
+        supabase.from("services").select("product_number,service_category,subcategory").eq("business_id", businessId),
         supabase.from("orders").select("external_order_number").eq("business_id", businessId),
       ]);
       if (cancelled) return;
@@ -583,6 +668,15 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
       const prods = new Set<string>();
       (svc.data || []).forEach((r: any) => r.product_number && prods.add(String(r.product_number).toLowerCase()));
       setExistingProductNumbers(prods);
+      const catMap = new Map<string, Set<string>>();
+      (svc.data || []).forEach((r: any) => {
+        const cat = (r.service_category || "").trim();
+        if (!cat) return;
+        if (!catMap.has(cat)) catMap.set(cat, new Set());
+        const sub = (r.subcategory || "").trim();
+        if (sub) catMap.get(cat)!.add(sub);
+      });
+      setExistingCategories(Array.from(catMap.entries()).map(([category, subs]) => ({ category, subcategories: Array.from(subs) })));
       const ords = new Set<string>();
       (ord.data || []).forEach((r: any) => r.external_order_number && ords.add(String(r.external_order_number).toLowerCase()));
       setExistingExternalOrderNumbers(ords);
@@ -644,6 +738,7 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
           existingEmails={existingEmails}
           existingProductNumbers={existingProductNumbers}
           existingExternalOrderNumbers={existingExternalOrderNumbers}
+          existingCategories={existingCategories}
         />
       </SectionCard>
     </div>

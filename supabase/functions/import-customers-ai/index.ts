@@ -59,19 +59,76 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { headers, sample, defaultType, entityType } = await req.json();
+    const body = await req.json();
+    const apiKey = Deno.env.get("LOVABLE_API_KEY");
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: "LOVABLE_API_KEY mangler" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ---------- MODE: classify_services ----------
+    // Klassificér produkt-/service-rækker ind i virksomhedens eksisterende kategorier/underkategorier.
+    if (body.mode === "classify_services") {
+      const items = Array.isArray(body.items) ? body.items.slice(0, 300) : [];
+      const existing = Array.isArray(body.existing) ? body.existing : [];
+      if (items.length === 0) {
+        return new Response(JSON.stringify({ classifications: [] }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const existingStr = existing.length
+        ? existing.map((c: any) => `- ${c.category}${(c.subcategories || []).length ? ` → [${(c.subcategories || []).join(", ")}]` : ""}`).join("\n")
+        : "(ingen kategorier oprettet endnu)";
+
+      const sys = `Du klassificerer produkter/services for en dansk virksomhed på Serviceydere-platformen.
+Virksomhedens EKSISTERENDE kategorier og underkategorier:
+${existingStr}
+
+For HVER række skal du vælge:
+- service_category: helst en EKSISTERENDE hovedkategori. Kun hvis ingen passer godt, foreslå en ny på dansk.
+- subcategory: helst en eksisterende underkategori under den valgte hovedkategori. Ellers foreslå en passende ny.
+- is_new_category / is_new_subcategory: true hvis du foreslår noget der ikke findes i listen.
+- confidence: 0-100. Sæt lavt (<50) hvis du er i tvivl.
+
+Brug rækkens navn, beskrivelse, evt. rå kategori-tekst, varenummer m.m. Tænk på dansk service-branche (rengøring, VVS, elektriker, gartner, håndværker, transport mv.).
+Returnér KUN JSON: { "classifications": [ { "service_category": "...", "subcategory": "..." | null, "is_new_category": bool, "is_new_subcategory": bool, "confidence": 0-100 } ] }
+Array-længden skal være præcis ${items.length}, i samme rækkefølge som input.`;
+
+      const user = `Rækker:\n${JSON.stringify(items, null, 2)}`;
+
+      const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [{ role: "system", content: sys }, { role: "user", content: user }],
+          response_format: { type: "json_object" },
+        }),
+      });
+      if (!aiResp.ok) {
+        const txt = await aiResp.text();
+        return new Response(JSON.stringify({ error: "AI fejlede", details: txt }), {
+          status: aiResp.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const aiJson = await aiResp.json();
+      const content = aiJson.choices?.[0]?.message?.content || "{}";
+      let parsed: any = { classifications: [] };
+      try { parsed = JSON.parse(content); } catch { /* ignore */ }
+      return new Response(JSON.stringify(parsed), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ---------- MODE: mapping (default) ----------
+    const { headers, sample, defaultType, entityType } = body;
     const type = (entityType as string) || "customers";
     const TARGET_FIELDS = FIELD_SETS[type] || FIELD_SETS.customers;
     if (!Array.isArray(headers) || headers.length === 0) {
       return new Response(JSON.stringify({ error: "headers påkrævet" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: "LOVABLE_API_KEY mangler" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
