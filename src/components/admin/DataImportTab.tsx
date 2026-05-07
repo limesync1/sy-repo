@@ -1069,6 +1069,7 @@ const ImportPanel = ({
                   <td className="px-2 py-1.5 text-foreground">{r.name || "—"}</td>
                   <td className="px-2 py-1.5 text-foreground">{r.base_price != null ? r.base_price.toLocaleString("da-DK") + " kr" : "—"}</td>
                   <td className="px-2 py-1.5 text-muted-foreground">{r.unit || "—"}</td>
+                  <td className="px-2 py-1.5 text-muted-foreground">{r.interval || "engangskøb"}</td>
                   <td className="px-2 py-1.5 text-muted-foreground">{r.product_number || "—"}</td>
                   <td className="px-2 py-1.5">
                     {r.service_category ? (
@@ -1106,7 +1107,7 @@ const ImportPanel = ({
                   </td>
                   <td className="px-2 py-1.5">
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-foreground">{r.service_name} × {r.quantity}</span>
+                      <span className="text-foreground">{r.service_name} × {r.quantity}{r.unit ? ` ${r.unit}` : ""}</span>
                       {r.matched_service_id ? (
                         <Badge className="w-fit bg-accent/15 text-accent hover:bg-accent/20 text-[10px]" title={r.service_match_reason}>
                           <CheckCircle2 className="mr-1 h-2.5 w-2.5" /> {r.matched_service_name || "Eksisterende"}{typeof r.service_confidence === "number" ? ` · ${r.service_confidence}%` : ""}
@@ -1114,6 +1115,12 @@ const ImportPanel = ({
                       ) : (
                         <Badge variant="outline" className="w-fit text-[10px]"><Sparkles className="mr-1 h-2.5 w-2.5" /> Service oprettes automatisk</Badge>
                       )}
+                    </div>
+                  </td>
+                  <td className="px-2 py-1.5 text-muted-foreground">
+                    <div className="flex flex-col gap-0.5">
+                      <span>{r.quantity}{r.unit ? ` ${r.unit}` : " stk"}</span>
+                      <span className="text-[10px]">{r.interval || "engangskøb"}</span>
                     </div>
                   </td>
                   <td className="px-2 py-1.5 text-foreground">{r.total_amount?.toLocaleString("da-DK")} kr</td>
