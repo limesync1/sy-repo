@@ -26,6 +26,7 @@ type Order = {
   accounting_synced_at?: string | null;
   reminder_history?: unknown;
   due_date?: string | null;
+  status?: string | null;
 };
 
 type Action = "send_reminder" | "credit_invoice" | "void_draft" | "mark_paid" | "sync_now";
@@ -44,6 +45,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
   const isInvoiced = !!order.invoice_external_id;
   const isPaid = order.payment_status === "paid";
   const isCredited = order.payment_status === "credited";
+  const isCancelled = order.status === "cancelled";
   const sentCount = order.reminder_count ?? 0;
   const nextReminderNumber = Math.min(sentCount + 1, 3);
   const allRemindersSent = sentCount >= 3;
@@ -77,6 +79,10 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
     | { kind: "sync"; label: string; tone: "neutral"; icon: React.ReactNode; onClick: () => void };
 
   const primary: PrimaryAction = (() => {
+    // For annullerede ordrer er ingen handling relevant udover synkronisering.
+    if (isCancelled) {
+      return { kind: "sync", label: "Synkronisér", tone: "neutral", icon: <RefreshCw className="h-3.5 w-3.5" />, onClick: () => run("sync_now") };
+    }
     if (isInvoiced && !isPaid && !isCredited) {
       if (allRemindersSent) {
         return { kind: "collection", label: "Send til inkasso", tone: "danger", icon: <Gavel className="h-3.5 w-3.5" />, onClick: () => sendReminder("collection") };
@@ -97,10 +103,10 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
 
   const toneCls = (tone: PrimaryAction["tone"]) => {
     switch (tone) {
-      case "danger":  return "border-destructive/50 bg-destructive/10 text-destructive hover:bg-destructive/20";
-      case "warning": return "border-amber-400 bg-amber-100 text-amber-900 hover:bg-amber-200";
-      case "success": return "border-success/40 bg-success/10 text-success hover:bg-success/20";
-      default:        return "border-border bg-card text-foreground hover:bg-secondary";
+      case "danger":  return "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15 hover:border-destructive/60";
+      case "warning": return "border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 hover:border-amber-400 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/15";
+      case "success": return "border-success/40 bg-success/10 text-success hover:bg-success/15 hover:border-success/60";
+      default:        return "border-border bg-card text-foreground hover:bg-secondary hover:border-border";
     }
   };
 

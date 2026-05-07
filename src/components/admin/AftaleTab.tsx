@@ -210,11 +210,11 @@ const buildAdjustmentItem = (item: any, service?: BusinessService): AdjustmentIt
    cancelled  → Annulleret
 */
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; cls: string; dot: string }> = {
-  pending:     { label: "Ny bestilling", icon: AlertCircle,   cls: "border-amber-300 bg-amber-100 text-amber-900",        dot: "bg-amber-500" },
-  confirmed:   { label: "Aftalt",        icon: CheckCircle2,  cls: "border-blue-300 bg-blue-100 text-blue-900",           dot: "bg-blue-500" },
-  in_progress: { label: "I gang",        icon: RefreshCw,     cls: "border-violet-300 bg-violet-100 text-violet-900",     dot: "bg-violet-500" },
-  completed:   { label: "Udført",        icon: CheckCircle2,  cls: "border-success/40 bg-success/15 text-success",        dot: "bg-success" },
-  cancelled:   { label: "Annulleret",    icon: XCircle,       cls: "border-border bg-secondary text-muted-foreground",    dot: "bg-muted-foreground" },
+  pending:     { label: "Ny bestilling", icon: AlertCircle,   cls: "border-amber-300/70 bg-amber-50 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200",       dot: "bg-amber-500" },
+  confirmed:   { label: "Aftalt",        icon: CheckCircle2,  cls: "border-blue-300/70 bg-blue-50 text-blue-900 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-200",            dot: "bg-blue-500" },
+  in_progress: { label: "I gang",        icon: RefreshCw,     cls: "border-violet-300/70 bg-violet-50 text-violet-900 dark:border-violet-500/40 dark:bg-violet-500/10 dark:text-violet-200", dot: "bg-violet-500" },
+  completed:   { label: "Udført",        icon: CheckCircle2,  cls: "border-success/40 bg-success/10 text-success",                                                                          dot: "bg-success" },
+  cancelled:   { label: "Annulleret",    icon: XCircle,       cls: "border-destructive/30 bg-destructive/5 text-destructive/80",                                                            dot: "bg-destructive/70" },
 };
 
 const PRICING_LABELS: Record<string, string> = {
@@ -1469,7 +1469,7 @@ const AftaleTab = ({
                 id={`order-${order.id}`}
                 className={`surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden transition-shadow hover:shadow-md ${
                   draggingOrderId === order.id ? "opacity-60" : ""
-                } ${isExpanded ? "ring-1 ring-primary/20" : ""}`}
+                } ${isExpanded ? "ring-1 ring-accent/30 border-accent/30" : ""}`}
               >
                 {/* Header — kompakt 3-kolonne layout: identitet · status/meta · beløb.
                     Designet så hele aftalen kan scannes på én række på desktop. */}
@@ -1483,15 +1483,14 @@ const AftaleTab = ({
                       setExpandedOrder(isExpanded ? null : order.id);
                     }
                   }}
-                  className="block w-full cursor-pointer text-left transition-colors hover:bg-secondary/30"
+                  className={`flex items-start gap-3 p-3 sm:p-3.5 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${isExpanded ? "bg-secondary/40" : "hover:bg-secondary/30"}`}
                 >
-                  <div className="flex items-start gap-3 p-3 sm:p-3.5">
                     {/* Drag-håndtag */}
                     {canDragToRoute && <div className="pt-1"><OrderDragHandle orderId={order.id} order={order} /></div>}
 
                     {/* Ikon-badge */}
                     <div
-                      className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-secondary/40 text-foreground"
+                      className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground"
                       title={primaryCategory || "Aftale"}
                     >
                       <span className="text-base leading-none">{categoryIcon}</span>
@@ -1616,7 +1615,7 @@ const AftaleTab = ({
 
                     {/* Højre kolonne: beløb stablet over handlinger + chevron */}
                     <div className="flex shrink-0 flex-col items-end gap-1.5 pl-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <div className="flex flex-col items-end leading-none">
                           <span className="text-lg font-bold tabular-nums text-foreground">
                             {currentTotal.toLocaleString("da-DK")}
@@ -1628,15 +1627,19 @@ const AftaleTab = ({
                             </span>
                           )}
                         </div>
-                        <span className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setExpandedOrder(isExpanded ? null : order.id); }}
+                          aria-label={isExpanded ? "Skjul" : "Vis detaljer"}
+                          className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:bg-accent/10 hover:text-foreground hover:border-accent/40"
+                        >
                           {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                        </span>
+                        </button>
                       </div>
-                      {((order as any).invoice_external_id || (order as any).accounting_synced_at) && (
+                      {((order as any).invoice_external_id || (order as any).accounting_synced_at) && order.status !== "cancelled" && (
                         <InvoiceActionsMenu order={order as any} compact />
                       )}
                     </div>
-                  </div>
                 </div>
 
                 {/* Expanded content */}
