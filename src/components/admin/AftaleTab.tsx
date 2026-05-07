@@ -210,10 +210,10 @@ const buildAdjustmentItem = (item: any, service?: BusinessService): AdjustmentIt
    cancelled  → Annulleret
 */
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; cls: string; dot: string }> = {
-  pending:     { label: "Ny bestilling", icon: AlertCircle,   cls: "border-amber-300/60 bg-amber-50 text-amber-800",      dot: "bg-amber-500" },
-  confirmed:   { label: "Aftalt",        icon: CheckCircle2,  cls: "border-blue-300/60 bg-blue-50 text-blue-800",         dot: "bg-blue-500" },
-  in_progress: { label: "I gang",        icon: RefreshCw,     cls: "border-violet-300/60 bg-violet-50 text-violet-800",   dot: "bg-violet-500" },
-  completed:   { label: "Udført",        icon: CheckCircle2,  cls: "border-success/30 bg-success/10 text-success",        dot: "bg-success" },
+  pending:     { label: "Ny bestilling", icon: AlertCircle,   cls: "border-amber-300 bg-amber-100 text-amber-900",        dot: "bg-amber-500" },
+  confirmed:   { label: "Aftalt",        icon: CheckCircle2,  cls: "border-blue-300 bg-blue-100 text-blue-900",           dot: "bg-blue-500" },
+  in_progress: { label: "I gang",        icon: RefreshCw,     cls: "border-violet-300 bg-violet-100 text-violet-900",     dot: "bg-violet-500" },
+  completed:   { label: "Udført",        icon: CheckCircle2,  cls: "border-success/40 bg-success/15 text-success",        dot: "bg-success" },
   cancelled:   { label: "Annulleret",    icon: XCircle,       cls: "border-border bg-secondary text-muted-foreground",    dot: "bg-muted-foreground" },
 };
 
