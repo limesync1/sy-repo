@@ -87,6 +87,12 @@ async function ecRequest(
   });
   if (!res.ok) {
     const text = await res.text();
+    console.error("[economic] request failed", {
+      method: init.method ?? "GET",
+      path,
+      status: res.status,
+      body: text.slice(0, 500),
+    });
     throw new Error(friendlyEconomicError(res.status, text));
   }
   if (res.status === 204) return null;
