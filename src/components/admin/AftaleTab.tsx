@@ -1216,10 +1216,8 @@ const AftaleTab = ({
           </Select>
         </div>
 
-      {/* Filtre — opdelt i tre logiske grupper:
-          1) Status-overblik (Aktive/Alle), 2) Hvad kræver din opmærksomhed,
-          3) Planlægning og lifecycle. Tomme tællinger skjules ikke for fast layout. */}
-      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
+      {/* Filtre — segmenteret kontrol opdelt i tre logiske grupper. */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
         {(() => {
           type Chip = { key: string; label: string; count: number; tone?: "danger" | "warning" };
           const groups: Chip[][] = [
@@ -1246,8 +1244,7 @@ const AftaleTab = ({
           ].filter(g => g.length > 0);
 
           return groups.map((group, gi) => (
-            <div key={gi} className="flex flex-wrap items-center gap-1.5">
-              {gi > 0 && <span aria-hidden className="mx-1 h-5 w-px bg-border/80" />}
+            <div key={gi} className="inline-flex flex-wrap items-center gap-0 rounded-lg border border-border bg-card p-0.5 shadow-sm">
               {group.map(({ key, label, count, tone }) => {
                 const isActive = filter === key;
                 const toneDot =
@@ -1256,24 +1253,24 @@ const AftaleTab = ({
                   "";
                 const activeCls =
                   tone === "danger" && count > 0
-                    ? "border-destructive bg-destructive text-destructive-foreground shadow-sm"
+                    ? "bg-destructive text-destructive-foreground"
                     : tone === "warning" && count > 0
-                    ? "border-amber-500 bg-amber-500 text-white shadow-sm"
-                    : "border-foreground bg-foreground text-background shadow-sm";
+                    ? "bg-amber-500 text-white"
+                    : "bg-foreground text-background";
                 return (
                   <button
                     key={key}
                     onClick={() => setFilter(key)}
-                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
+                    className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                       isActive
                         ? activeCls
-                        : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground hover:border-foreground/30"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                     }`}
                   >
                     {toneDot && !isActive && <span className={`h-1.5 w-1.5 rounded-full ${toneDot}`} aria-hidden />}
                     <span>{label}</span>
                     <span className={`tabular-nums rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
-                      isActive ? "bg-white/20 text-current" : "bg-secondary text-foreground/70"
+                      isActive ? "bg-black/15 text-current" : "bg-secondary text-foreground/70"
                     }`}>
                       {count}
                     </span>
