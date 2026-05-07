@@ -1255,6 +1255,13 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
           existingCategories={existingCategories}
           existingCustomers={existingCustomers}
           existingServices={existingServices}
+          existingByEmail={existingByEmail}
+          existingByCvr={existingByCvr}
+          existingByCustomerNumber={existingByCustomerNumber}
+          existingByEan={existingByEan}
+          existingByOrderNumber={existingByOrderNumber}
+          existingByProductNumber={existingByProductNumber}
+          existingServiceNames={existingServiceNames}
           sharedFile={sharedFile}
           onFileChange={setSharedFile}
         />
