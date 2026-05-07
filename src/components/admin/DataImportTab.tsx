@@ -1205,7 +1205,23 @@ const ImportPanel = ({
                   <td className="px-2 py-1.5">{r.type === "business"
                     ? <span className="inline-flex items-center gap-1 text-foreground"><Building2 className="h-3 w-3" /> Erhverv</span>
                     : <span className="inline-flex items-center gap-1 text-foreground"><User className="h-3 w-3" /> Privat</span>}</td>
-                  <td className="px-2 py-1.5 text-foreground">{r.company_name || r.name || "—"}</td>
+                  <td className="px-2 py-1.5 text-foreground">
+                    <div className="flex flex-col gap-0.5">
+                      <span>{r.company_name || r.name || "—"}</span>
+                      {(() => {
+                        // Hvis filen er blandet (kunde + aftale på samme række), vis aftalelinje
+                        const svc = r.source?.[mapping["service_name" as any] || ""] || r.source?.["Opgavebeskrivelse"] || r.source?.["Opgave"] || r.source?.["Service"];
+                        const interval = r.source?.["Faktureringsinterval"] || r.source?.["Interval"] || r.source?.["Frekvens"];
+                        const price = r.source?.["Pris"] || r.source?.["Pris ekskl. moms"] || r.source?.["Pris per enhed"];
+                        if (!svc && !interval && !price) return null;
+                        return (
+                          <Badge variant="outline" className="w-fit text-[10px]" title={`${svc || ""} · ${interval || ""} · ${price || ""}`}>
+                            <ClipboardList className="mr-1 h-2.5 w-2.5" /> Aftale: {String(svc || "ydelse").slice(0, 30)}{interval ? ` (${interval})` : ""}
+                          </Badge>
+                        );
+                      })()}
+                    </div>
+                  </td>
                   <td className="px-2 py-1.5 text-muted-foreground">{r.email || "—"}</td>
                   <td className="px-2 py-1.5 text-muted-foreground">{r.phone || "—"}</td>
                   <td className="px-2 py-1.5 text-muted-foreground">{r.city || "—"}</td>
