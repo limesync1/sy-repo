@@ -87,6 +87,12 @@ async function ecRequest(
   });
   if (!res.ok) {
     const text = await res.text();
+    console.error("[economic] request failed", {
+      method: init.method ?? "GET",
+      path,
+      status: res.status,
+      body: text.slice(0, 500),
+    });
     throw new Error(friendlyEconomicError(res.status, text));
   }
   if (res.status === 204) return null;
@@ -295,13 +301,8 @@ export function makeEconomicAdapter(
       const body: Record<string, unknown> = {
         date,
         currency: input.currency ?? "DKK",
-        paymentTerms: {
-          paymentTermsNumber: 1,
-          daysOfCredit: input.payment_terms_days ?? settings.default_payment_terms_days ?? 14,
-        },
         customer: { customerNumber: Number(input.customer_external_id) },
         recipient: { name: "", vatZone: { vatZoneNumber: 1 } },
-        layout: { layoutNumber: 19 },
         notes: { textLine1: (input.notes ?? "").slice(0, 200) },
         lines: input.lines.map((l, idx) => ({
           lineNumber: idx + 1,
@@ -313,6 +314,33 @@ export function makeEconomicAdapter(
             : undefined,
         })),
       };
+
+      // Lookup the actual customer to copy paymentTerms, vatZone, layout og navn
+      // — så vi ikke fejler med 404 på hardkodede ID'er der ikke findes i denne
+      // e-conomic-aftale.
+      try {
+        const cust = await ecRequest(
+          creds,
+          `/customers/${Number(input.customer_external_id)}`,
+        );
+        if (cust?.paymentTerms?.paymentTermsNumber) {
+          (body as any).paymentTerms = {
+            paymentTermsNumber: cust.paymentTerms.paymentTermsNumber,
+          };
+        }
+        if (cust?.vatZone?.vatZoneNumber) {
+          (body as any).recipient = {
+            name: cust.name ?? "",
+            vatZone: { vatZoneNumber: cust.vatZone.vatZoneNumber },
+          };
+        }
+        if (cust?.layout?.layoutNumber) {
+          (body as any).layout = { layoutNumber: cust.layout.layoutNumber };
+        }
+      } catch (_) {
+        // Hvis kunden ikke kan slås op er det rigtige fejlpunkt customer-feltet
+        // — lad serveren returnere 404 så vi kan logge det.
+      }
 
       if (input.external_id) {
         await ecRequest(creds, `${path}/${input.external_id}`, {
