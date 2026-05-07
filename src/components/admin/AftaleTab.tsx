@@ -1463,10 +1463,25 @@ const AftaleTab = ({
                               return (
                                 <span
                                   className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${p.cls}`}
-                                  title={`Betalingsstatus hentes automatisk fra dit regnskabsprogram hvert 15. minut.\nSidst opdateret: ${syncedLabel}.`}
+                                  title={`Betalingsstatus hentes automatisk fra dit regnskabsprogram hvert 5. minut.\nSidst opdateret: ${syncedLabel}.`}
                                 >
                                   <span className={`h-1.5 w-1.5 rounded-full ${p.dot}`} />
                                   {p.label}
+                                </span>
+                              );
+                            })()}
+                            {(() => {
+                              const rc = Number((order as any).reminder_count ?? 0);
+                              if (rc <= 0) return null;
+                              const last = (order as any).last_reminder_at
+                                ? new Date((order as any).last_reminder_at)
+                                : null;
+                              return (
+                                <span
+                                  className="inline-flex items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-800"
+                                  title={last ? `Sidste rykker sendt ${last.toLocaleString("da-DK")}` : "Rykker sendt"}
+                                >
+                                  Rykker {rc}
                                 </span>
                               );
                             })()}
