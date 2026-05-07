@@ -417,6 +417,19 @@ export function makeEconomicAdapter(
         if (layoutNumber) (body as any).layout = { layoutNumber };
       }
 
+      // paymentTerms er PÅKRÆVET af e-conomic. Hvis kunde-opslaget ikke gav et
+      // paymentTermsNumber (fx ny kunde uden default), så hent første aktive
+      // paymentTerm fra aftalen som fallback — så ordren ikke fejler.
+      if (!(body as any).paymentTerms?.paymentTermsNumber) {
+        try {
+          const pts = await ecRequest(creds, "/payment-terms?pagesize=20");
+          const first = (pts?.collection ?? []).find((p: any) => p?.paymentTermsNumber);
+          if (first?.paymentTermsNumber) {
+            (body as any).paymentTerms = { paymentTermsNumber: first.paymentTermsNumber };
+          }
+        } catch { /* ignore — vil fejle med tydelig besked nedenfor */ }
+      }
+
       if (input.external_id) {
         await ecRequest(creds, `${path}/${input.external_id}`, {
           method: "PUT",
