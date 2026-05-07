@@ -226,6 +226,49 @@ const ImportPanel = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapping.name, mapping.description, mapping.service_category, mapping.subcategory, rows.length]);
 
+  // Match ordrer mod eksisterende kunder + services
+  const matchOrders = async (currentMapping: Mapping, currentRows: Row[]) => {
+    if (entity !== "orders" || currentRows.length === 0) return;
+    setMatching(true);
+    try {
+      const items = currentRows.slice(0, 200).map((r) => ({
+        customer_email: get(r, currentMapping, "customer_email") || "",
+        customer_name: get(r, currentMapping, "customer_name") || "",
+        company_name: get(r, currentMapping, "company_name") || "",
+        cvr: get(r, currentMapping, "cvr") || "",
+        phone: get(r, currentMapping, "customer_phone") || "",
+        zip_code: get(r, currentMapping, "zip_code") || "",
+        service_name: get(r, currentMapping, "service_name") || "",
+        product_number: get(r, currentMapping, "product_number") || "",
+        unit: get(r, currentMapping, "unit") || "",
+        unit_price: get(r, currentMapping, "unit_price") || "",
+      }));
+      const lightCustomers = existingCustomers.slice(0, 800).map((c) => ({
+        id: c.id, name: c.name, email: c.email, cvr: c.cvr || null, phone: c.phone || null, zip_code: c.zip_code || null,
+      }));
+      const lightServices = existingServices.slice(0, 400).map((s) => ({
+        id: s.id, name: s.name, product_number: s.product_number || null, unit: s.unit || null, base_price: s.base_price ?? null,
+      }));
+      const { data, error } = await supabase.functions.invoke("import-customers-ai", {
+        body: { mode: "match_orders", items, customers: lightCustomers, services: lightServices },
+      });
+      if (error) throw error;
+      const arr: any[] = data?.matches || [];
+      const map: Record<number, any> = {};
+      arr.forEach((m, i) => { if (m) map[i] = m; });
+      setOrderMatches(map);
+    } catch {
+      // stille fejl
+    } finally { setMatching(false); }
+  };
+
+  useEffect(() => {
+    if (entity === "orders" && rows.length > 0 && Object.keys(mapping).length > 0 && !aiLoading) {
+      matchOrders(mapping, rows);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapping.customer_email, mapping.customer_name, mapping.company_name, mapping.cvr, mapping.service_name, mapping.product_number, rows.length]);
+
   // ---------- prepared rækker afhængigt af entity ----------
   const prepared = useMemo(() => {
     const seenEmails = new Set<string>();
