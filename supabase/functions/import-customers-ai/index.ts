@@ -68,6 +68,71 @@ Deno.serve(async (req) => {
     }
 
     // ---------- MODE: classify_services ----------
+    // ---------- MODE: detect ----------
+    // Auto-detektér hvad CSV-filen indeholder: kunder, services, ordrer/aftaler eller en blanding.
+    if (body.mode === "detect") {
+      const headers = Array.isArray(body.headers) ? body.headers : [];
+      const sample = Array.isArray(body.sample) ? body.sample.slice(0, 5) : [];
+      if (headers.length === 0) {
+        return new Response(JSON.stringify({ error: "headers påkrævet" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const sys = `Du analyserer en CSV-fil eksporteret fra et dansk service-/håndværker-program (fx SkvizBiz, Fenster, Minuba, Ordrestyring) og afgør hvad filen indeholder.
+
+Mulige indholdstyper:
+- "customers": kundekartotek (navn, email, telefon, adresse, CVR osv.)
+- "services": produkt-/prisliste (navn, pris, enhed, varenummer)
+- "orders": ordrer / aftaler / fakturaer / serviceaftaler (linjer med kunde + ydelse + pris/dato/interval)
+
+Mange brancheprogrammer (især SkvizBiz) eksporterer ALT på én række — både kunde- OG aftaledata. Det kalder vi "mixed".
+
+Returnér KUN JSON med præcist denne form:
+{
+  "contains": { "customers": bool, "services": bool, "orders": bool },
+  "primary": "customers" | "services" | "orders",
+  "is_mixed": bool,
+  "confidence": 0-100,
+  "summary": "1-2 korte danske sætninger om hvad filen indeholder",
+  "recommendations": ["customers", "orders"]
+}
+
+'primary' = det vigtigste indhold (typisk kunder hvis filen har både kunder og aftaler).
+'is_mixed' = true hvis filen meningsfuldt kan importeres som mere end én entitetstype.
+'recommendations' = liste af entitetstyper du anbefaler at importere fra denne fil (i prioriteret rækkefølge).`;
+
+      const user = `CSV-headers (${headers.length}):
+${JSON.stringify(headers)}
+
+Eksempel-rækker:
+${JSON.stringify(sample, null, 2)}`;
+
+      const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [{ role: "system", content: sys }, { role: "user", content: user }],
+          response_format: { type: "json_object" },
+        }),
+      });
+      if (!aiResp.ok) {
+        const txt = await aiResp.text();
+        return new Response(JSON.stringify({ error: "AI fejlede", details: txt }), {
+          status: aiResp.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const aiJson = await aiResp.json();
+      const content = aiJson.choices?.[0]?.message?.content || "{}";
+      let parsed: any = { contains: {}, primary: "customers", is_mixed: false, confidence: 0, recommendations: ["customers"] };
+      try { parsed = JSON.parse(content); } catch { /* ignore */ }
+      return new Response(JSON.stringify(parsed), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ---------- MODE: classify_services (legacy duplicate label kept) ----------
     // Klassificér produkt-/service-rækker ind i virksomhedens eksisterende kategorier/underkategorier.
     if (body.mode === "classify_services") {
       const items = Array.isArray(body.items) ? body.items.slice(0, 300) : [];
