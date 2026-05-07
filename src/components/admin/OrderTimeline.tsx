@@ -43,7 +43,7 @@ const REMINDER_TONE: Record<string, string> = {
   reminder1: "border-amber-300 bg-amber-50 text-amber-800",
   reminder2: "border-orange-300 bg-orange-50 text-orange-800",
   reminder3: "border-orange-400 bg-orange-100 text-orange-900",
-  collection: "border-destructive/40 bg-destructive/10 text-destructive",
+  collection: "border-destructive/40 bg-rose-50 text-destructive",
 };
 
 const fmtDate = (iso?: string | null) =>
