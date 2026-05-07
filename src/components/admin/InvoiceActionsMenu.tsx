@@ -167,22 +167,17 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
         )}
 
         <DropdownMenu>
-          <Tooltip delayDuration={150}>
-            <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 w-7 p-0 border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground hover:border-foreground/20 data-[state=open]:bg-secondary data-[state=open]:text-foreground data-[state=open]:border-foreground/20"
-                  disabled={busy !== null}
-                  aria-label="Flere handlinger"
-                >
-                  <MoreHorizontal className="h-3.5 w-3.5" />
-                </Button>
-              </DropdownMenuTrigger>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="bg-popover border-border">Flere handlinger</TooltipContent>
-          </Tooltip>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 w-7 p-0 border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground hover:border-foreground/20 data-[state=open]:bg-secondary data-[state=open]:text-foreground data-[state=open]:border-foreground/20"
+              disabled={busy !== null}
+              aria-label="Flere handlinger"
+            >
+              <MoreHorizontal className="h-3.5 w-3.5" />
+            </Button>
+          </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
             sideOffset={6}
