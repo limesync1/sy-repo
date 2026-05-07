@@ -1292,7 +1292,14 @@ const AftaleTab = ({
             const cycles = (order as any).completed_cycles || 0;
             const nextDate = (order as any).next_service_date ? new Date((order as any).next_service_date) : null;
             const interval = getOrderInterval(order);
-            const daysUntilNext = nextDate ? Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+            // Dage til næste udførelse — beregnes fra midnat-til-midnat så
+            // "i dag" og "i morgen" er korrekte uanset klokkeslæt.
+            const daysUntilNext = (() => {
+              if (!nextDate) return null;
+              const a = new Date(); a.setHours(0,0,0,0);
+              const b = new Date(nextDate); b.setHours(0,0,0,0);
+              return Math.round((b.getTime() - a.getTime()) / 86400000);
+            })();
             const routeStop = stopByOrder[order.id];
             const routeInfo = routeStop?.route;
             const routeDate = routeInfo?.route_date ? new Date(routeInfo.route_date) : null;
