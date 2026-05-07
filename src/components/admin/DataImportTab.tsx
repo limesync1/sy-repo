@@ -149,14 +149,38 @@ const ImportPanel = ({
     if (inputRef.current) inputRef.current.value = "";
   };
 
-  const handleFile = (f: File) => {
+  const handleFile = async (f: File) => {
     if (!f.name.toLowerCase().endsWith(".csv")) {
       toast.error("Vælg en CSV-fil (.csv)");
       return;
     }
     setFile(f); setDone(null);
-    Papa.parse<Row>(f, {
+
+    // Læs filen som bytes så vi selv kan håndtere encoding. SkvizBiz og en
+    // del andre danske eksport-værktøjer gemmer som Windows-1252/ISO-8859-1,
+    // hvilket ellers giver "�" i stedet for æøå.
+    let text = "";
+    try {
+      const buf = await f.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      // Prøv UTF-8 strikt først
+      try {
+        text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+      } catch {
+        // Fald tilbage til Windows-1252 (dækker også ISO-8859-1)
+        text = new TextDecoder("windows-1252").decode(bytes);
+      }
+      // Fjern eventuel BOM
+      if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+    } catch (e: any) {
+      toast.error("Kunne ikke læse fil: " + (e?.message || "ukendt fejl"));
+      return;
+    }
+
+    Papa.parse<Row>(text, {
       header: true, skipEmptyLines: true, dynamicTyping: false,
+      // Auto-detekter delimiter — SkvizBiz bruger ';', e-conomic/Billy ofte ','
+      delimiter: "",
       complete: async (result) => {
         const parsed = (result.data || []).filter((r) => r && Object.values(r).some((v) => v));
         if (parsed.length === 0) { toast.error("CSV-filen er tom"); return; }
@@ -164,7 +188,7 @@ const ImportPanel = ({
         setHeaders(hdrs); setRows(parsed);
         await runAi(hdrs, parsed.slice(0, 5));
       },
-      error: (err) => toast.error("Kunne ikke læse CSV: " + err.message),
+      error: (err: any) => toast.error("Kunne ikke læse CSV: " + err.message),
     });
   };
 

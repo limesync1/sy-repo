@@ -209,7 +209,32 @@ Returnér KUN gyldig JSON med formatet:
   "notes": "kort dansk forklaring"
 }
 
-${type === "customers" ? `Brug 'default_type' = 'business' hvis kolonner som CVR, virksomhedsnavn, EAN, kontaktperson tyder på erhvervskunder. Ellers 'private'.\n` : ""}Kolonnenavne skal matche EKSAKT som de står i CSV-headers (case-sensitive).`;
+${type === "customers" ? `Brug 'default_type' = 'business' hvis kolonner som CVR, virksomhedsnavn, EAN, kontaktperson tyder på erhvervskunder. Ellers 'private'.\n` : ""}Kolonnenavne skal matche EKSAKT som de står i CSV-headers (case-sensitive).
+
+VIGTIGE HINTS for kendte eksport-formater:
+
+SkvizBiz (semikolon-separeret, ofte Windows-1252):
+- "Kundenummer" → customer_number
+- "Navn" → name (firma- eller personnavn)
+- "Kontaktperson" → contact_person
+- "CVR-nummer" → cvr
+- "EAN-nummer" → ean
+- "Adresse" + "Adresselinje 2" → address (slå sammen hvis muligt; ellers brug "Adresse")
+- "Postnummer" → postal_code, "By" → city
+- "Email-adresse" → email
+- "Telefonnummer" → phone, "Mobiltelefonnummer" → mobile (foretræk mobil hvis kun ét felt)
+- "Faktureringsadresse"/"Faktureringsemail-adresse"/... → billing_*
+- "Notat" → note (intern), "Notat - udskrives ikke" → internal_note
+- "Kundegruppe" → customer_group/tag
+- "Betalingsfrist" → payment_terms
+- "Oprettet" → created_at (format dd-mm-yyyy hh:mm)
+- For services/aftaler: "Opgavebeskrivelse" → name/description, "Pris ekskl. moms" eller "Pris per enhed" → price, "Enhed" → unit, "Antal" → quantity, "Faktureringsinterval"/"Interval" → recurrence, "Ruter" → route, "Moms-sats i %" → vat_rate, "Tidsforbrug" (sekunder) → duration_minutes (omregn /60).
+- En SkvizBiz-eksport kan indeholde BÅDE kunde- OG aftalefelter på samme række — map kun de felter der hører til den valgte entitetstype.
+
+e-conomic / Billy / Dinero (komma-separeret, UTF-8):
+- Typisk engelske eller danske kolonnenavne ("Customer number", "Name", "VAT number", "Email", "Phone", "Address", "Zip", "City").
+
+Hvis et SkvizBiz-felt har værdien "Følg standard", "-", "Nej" eller tom — det er stadig OK at mappe kolonnen, vi filtrerer tomme værdier server-side.`;
 
     const userPrompt = `CSV-headers: ${JSON.stringify(headers)}
 
