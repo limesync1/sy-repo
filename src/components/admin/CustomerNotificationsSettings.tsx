@@ -374,14 +374,16 @@ export function CustomerNotificationsSettings({
     },
   });
 
-  const [drafts, setDrafts] = useState<Record<EventKey, { subject: string; body: string; enabled: boolean; leadMinutes: number | null }>>(() => {
+  type EmailDraft = { subject: string; body: string; enabled: boolean; days: ScheduleDays; time: string };
+  type SmsDraft   = { body: string; enabled: boolean; days: ScheduleDays; time: string };
+  const [drafts, setDrafts] = useState<Record<EventKey, EmailDraft>>(() => {
     const o = {} as any;
-    EVENTS.forEach((e) => { o[e.key] = { subject: e.defaults.subject, body: e.defaults.body, enabled: true, leadMinutes: null }; });
+    EVENTS.forEach((e) => { o[e.key] = { subject: e.defaults.subject, body: e.defaults.body, enabled: true, ...DEFAULT_SCHEDULE }; });
     return o;
   });
-  const [smsDrafts, setSmsDrafts] = useState<Record<EventKey, { body: string; enabled: boolean; leadMinutes: number | null }>>(() => {
+  const [smsDrafts, setSmsDrafts] = useState<Record<EventKey, SmsDraft>>(() => {
     const o = {} as any;
-    EVENTS.forEach((e) => { o[e.key] = { body: SMS_DEFAULTS[e.key], enabled: true, leadMinutes: null }; });
+    EVENTS.forEach((e) => { o[e.key] = { body: SMS_DEFAULTS[e.key], enabled: true, ...DEFAULT_SCHEDULE }; });
     return o;
   });
   const [savedSnapshot, setSavedSnapshot] = useState<{ email: typeof drafts; sms: typeof smsDrafts } | null>(null);
@@ -396,9 +398,23 @@ export function CustomerNotificationsSettings({
     const nextSms = { ...smsDrafts };
     for (const e of EVENTS) {
       const eRow = rows.find((r: any) => r.event_type === e.key && (r.channel ?? "email") === "email");
-      if (eRow) nextEmail[e.key] = { subject: eRow.subject, body: eRow.body, enabled: eRow.enabled, leadMinutes: eRow.lead_time_minutes ?? null };
+      if (eRow) {
+        const fallback = minutesToSchedule(eRow.lead_time_minutes);
+        nextEmail[e.key] = {
+          subject: eRow.subject, body: eRow.body, enabled: eRow.enabled,
+          days: (eRow.days_before ?? fallback.days) as ScheduleDays,
+          time: (eRow.send_at_time ? String(eRow.send_at_time).slice(0, 5) : fallback.time),
+        };
+      }
       const sRow = rows.find((r: any) => r.event_type === e.key && r.channel === "sms");
-      if (sRow) nextSms[e.key] = { body: sRow.body, enabled: sRow.enabled, leadMinutes: sRow.lead_time_minutes ?? null };
+      if (sRow) {
+        const fallback = minutesToSchedule(sRow.lead_time_minutes);
+        nextSms[e.key] = {
+          body: sRow.body, enabled: sRow.enabled,
+          days: (sRow.days_before ?? fallback.days) as ScheduleDays,
+          time: (sRow.send_at_time ? String(sRow.send_at_time).slice(0, 5) : fallback.time),
+        };
+      }
     }
     setDrafts(nextEmail);
     setSmsDrafts(nextSms);
@@ -409,38 +425,48 @@ export function CustomerNotificationsSettings({
   const isEmailDirty = (k: EventKey) => {
     const a = drafts[k]; const b = savedSnapshot?.email[k];
     if (!b) return true;
-    return a.subject !== b.subject || a.body !== b.body || a.enabled !== b.enabled || a.leadMinutes !== b.leadMinutes;
+    return a.subject !== b.subject || a.body !== b.body || a.enabled !== b.enabled || a.days !== b.days || a.time !== b.time;
   };
   const isSmsDirty = (k: EventKey) => {
     const a = smsDrafts[k]; const b = savedSnapshot?.sms[k];
     if (!b) return true;
-    return a.body !== b.body || a.enabled !== b.enabled || a.leadMinutes !== b.leadMinutes;
+    return a.body !== b.body || a.enabled !== b.enabled || a.days !== b.days || a.time !== b.time;
   };
 
-  const saveEmailNow = async (key: EventKey, d: { subject: string; body: string; enabled: boolean; leadMinutes: number | null }) => {
+  const saveEmailNow = async (key: EventKey, d: EmailDraft) => {
+    const leadMinutes = key === "service_upcoming" ? (d.days * 24 * 60) : null;
     const { error } = await supabase
       .from("customer_notification_templates")
       .upsert({ business_id: businessId, event_type: key, channel: "email",
-        subject: d.subject, body: d.body, enabled: d.enabled, lead_time_minutes: d.leadMinutes }, { onConflict: "business_id,event_type,channel" });
+        subject: d.subject, body: d.body, enabled: d.enabled,
+        lead_time_minutes: leadMinutes,
+        days_before: key === "service_upcoming" ? d.days : null,
+        send_at_time: key === "service_upcoming" ? d.time : null,
+      } as any, { onConflict: "business_id,event_type,channel" });
     if (error) { toast.error(error.message); return; }
     setSavedSnapshot((s) => ({ email: { ...(s?.email ?? drafts), [key]: d }, sms: s?.sms ?? smsDrafts }));
   };
 
-  const saveSmsNow = async (key: EventKey, d: { body: string; enabled: boolean; leadMinutes: number | null }) => {
+  const saveSmsNow = async (key: EventKey, d: SmsDraft) => {
+    const leadMinutes = key === "service_upcoming" ? (d.days * 24 * 60) : null;
     const { error } = await supabase
       .from("customer_notification_templates")
       .upsert({ business_id: businessId, event_type: key, channel: "sms",
-        subject: null, body: d.body, enabled: d.enabled, lead_time_minutes: d.leadMinutes }, { onConflict: "business_id,event_type,channel" });
+        subject: null, body: d.body, enabled: d.enabled,
+        lead_time_minutes: leadMinutes,
+        days_before: key === "service_upcoming" ? d.days : null,
+        send_at_time: key === "service_upcoming" ? d.time : null,
+      } as any, { onConflict: "business_id,event_type,channel" });
     if (error) { toast.error(error.message); return; }
     setSavedSnapshot((s) => ({ email: s?.email ?? drafts, sms: { ...(s?.sms ?? smsDrafts), [key]: d } }));
   };
 
   const resetEmail = (key: EventKey) => {
     const ev = EVENTS.find((e) => e.key === key)!;
-    setDrafts((p) => ({ ...p, [key]: { subject: ev.defaults.subject, body: ev.defaults.body, enabled: p[key].enabled, leadMinutes: p[key].leadMinutes } }));
+    setDrafts((p) => ({ ...p, [key]: { ...p[key], subject: ev.defaults.subject, body: ev.defaults.body } }));
   };
   const resetSms = (key: EventKey) => {
-    setSmsDrafts((p) => ({ ...p, [key]: { body: SMS_DEFAULTS[key], enabled: p[key].enabled, leadMinutes: p[key].leadMinutes } }));
+    setSmsDrafts((p) => ({ ...p, [key]: { ...p[key], body: SMS_DEFAULTS[key] } }));
   };
 
   // Cursor-aware inserts for active editor
