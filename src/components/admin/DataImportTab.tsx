@@ -1,6 +1,6 @@
 // DataImportTab — intelligent CSV-import til kunder, services/produkter og ordrer/aftaler.
 // Hver entity-type har sin egen drop-zone, AI-mapping og preview.
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Papa from "papaparse";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   UploadCloud, Loader2, FileText, Sparkles, CheckCircle2, AlertTriangle,
-  Trash2, X, ArrowRight, Building2, User, HelpCircle, Mail, Users, Package, ClipboardList, FolderTree, Wand2,
+  Trash2, X, ArrowRight, Building2, User, HelpCircle, Mail, Users, Package, ClipboardList, FolderTree, Wand2, ChevronDown, ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, SectionCard, EmptyState } from "@/components/admin/shared/AdminUI";
@@ -92,14 +92,17 @@ const parseInterval = (s?: string): string | undefined => {
   const v = s.toLowerCase().trim();
   if (!v) return undefined;
   if (/(eng|once|engang|enkelt)/.test(v)) return "engangskøb";
+  if (/(daglig|daily|hver.*dag)/.test(v)) return "daglig";
   if (/(uge|week|ugentlig)/.test(v)) return "ugentligt";
   if (/(14|hver.*anden.*uge|biweek|fortnight)/.test(v)) return "hver 14. dag";
   if (/(måned|maaned|month|mdr|md\.)/.test(v)) return "månedligt";
   if (/(kvartal|quarter|3.*måned)/.test(v)) return "kvartalsvis";
   if (/(halvår|halvaar|6.*måned|semi)/.test(v)) return "halvårligt";
   if (/(år|aar|year|annual)/.test(v)) return "årligt";
-  return v;
+  return undefined; // ukendt → valideres som fejl
 };
+const VALID_INTERVALS = new Set(["engangskøb","daglig","ugentligt","hver 14. dag","månedligt","kvartalsvis","halvårligt","årligt"]);
+const VALID_UNITS = new Set(["stk","time","m²","m³","km","dag","kg","liter","pakke","gang","besøg"]);
 // Normalisér enheder.
 const parseUnit = (s?: string): string | undefined => {
   if (!s) return undefined;
@@ -111,7 +114,12 @@ const parseUnit = (s?: string): string | undefined => {
   if (/(stk|stk\.|pcs|piece|enhed)/.test(v)) return "stk";
   if (/(km|kilometer)/.test(v)) return "km";
   if (/(dag|day)/.test(v)) return "dag";
-  return s.trim();
+  if (/(kg|kilo)/.test(v)) return "kg";
+  if (/(liter|ltr|l\.)/.test(v)) return "liter";
+  if (/(pakke|pak|pkg)/.test(v)) return "pakke";
+  if (/(besøg|visit)/.test(v)) return "besøg";
+  if (/(gang)/.test(v)) return "gang";
+  return undefined; // ukendt → valideres som fejl
 };
 const parseNum = (s?: string) => { if (!s) return undefined; const n = Number(String(s).replace(/\./g, "").replace(",", ".").replace(/[^\d.\-]/g, "")); return isFinite(n) ? n : undefined; };
 const parseDate = (s?: string) => {
@@ -166,6 +174,88 @@ const FIELD_GROUPS: Record<EntityType, { title: string; keys: string[] }[]> = {
 };
 
 // ---------- Per-entity import-panel ----------
+// Detaljevisning af én række — viser alle felter inkl. uudfyldte mappede felter
+// og rå CSV-kolonner som ikke blev mappet (så intet data går tabt).
+const RowDetails = ({ row, entity, headers, mapping }: { row: any; entity: EntityType; headers: string[]; mapping: Mapping }) => {
+  const fields = FIELD_DEFS[entity];
+  const mappedCols = new Set(Object.values(mapping).filter(Boolean) as string[]);
+  const unmapped = headers.filter((h) => !mappedCols.has(h)).filter((h) => {
+    const v = row.source?.[h];
+    return v !== undefined && v !== null && String(v).trim() !== "";
+  });
+  return (
+    <div className="space-y-3">
+      {row.errors.length > 0 && (
+        <div className="rounded-md border border-destructive/40 bg-destructive/5 p-2 text-[11px] text-destructive">
+          <p className="font-semibold">Validerings­fejl ({row.errors.length})</p>
+          <ul className="ml-4 list-disc">{row.errors.map((e: string, i: number) => <li key={i}>{e}</li>)}</ul>
+        </div>
+      )}
+      {row.isDuplicate && (
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-2 text-[11px] text-amber-700">
+          <span className="font-semibold">Dublet:</span> {row.duplicateReason}
+        </div>
+      )}
+      <div className="grid gap-4 md:grid-cols-2">
+        <div>
+          <p className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">Mappede felter</p>
+          <div className="grid grid-cols-[140px_1fr] gap-x-3 gap-y-1 text-[11px]">
+            {fields.map((f) => {
+              const v = (row as any)[f.key];
+              const display = v == null || v === "" ? <span className="text-muted-foreground">—</span> : String(v);
+              return (
+                <React.Fragment key={f.key}>
+                  <span className="text-muted-foreground">{f.label}</span>
+                  <span className="font-medium text-foreground break-all">{display}</span>
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+        <div>
+          <p className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Øvrige CSV-kolonner ({unmapped.length}) <span className="font-normal normal-case text-muted-foreground">— gemmes som noter ved import</span>
+          </p>
+          {unmapped.length === 0 ? (
+            <p className="text-[11px] text-muted-foreground">Alle kolonner er mappet.</p>
+          ) : (
+            <div className="grid grid-cols-[140px_1fr] gap-x-3 gap-y-1 text-[11px]">
+              {unmapped.map((h) => (
+                <React.Fragment key={h}>
+                  <span className="truncate text-muted-foreground" title={h}>{h}</span>
+                  <span className="break-all text-foreground">{String(row.source[h])}</span>
+                </React.Fragment>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      {entity === "orders" && (
+        <div className="rounded-md border border-border bg-background p-2 text-[11px]">
+          <p className="mb-1 font-semibold text-foreground">Aftale-/ordre­detaljer</p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 md:grid-cols-3">
+            <div><span className="text-muted-foreground">Ordrenr.:</span> <span className="text-foreground">{row.external_order_number || "—"}</span></div>
+            <div><span className="text-muted-foreground">Service:</span> <span className="text-foreground">{row.service_name}</span></div>
+            <div><span className="text-muted-foreground">Antal:</span> <span className="text-foreground">{row.quantity}{row.unit ? ` ${row.unit}` : ""}</span></div>
+            <div><span className="text-muted-foreground">Stykpris:</span> <span className="text-foreground">{row.unit_price?.toLocaleString("da-DK")} kr</span></div>
+            <div><span className="text-muted-foreground">Total:</span> <span className="text-foreground">{row.total_amount?.toLocaleString("da-DK")} kr</span></div>
+            <div><span className="text-muted-foreground">Interval:</span> <span className="text-foreground">{row.interval || "engangskøb"}</span></div>
+            <div><span className="text-muted-foreground">Dato:</span> <span className="text-foreground">{row.preferred_date || "—"}</span></div>
+            <div><span className="text-muted-foreground">Status:</span> <span className="text-foreground">{row.status}</span></div>
+            <div><span className="text-muted-foreground">Betalingsfrist:</span> <span className="text-foreground">{row.payment_terms_days != null ? `${row.payment_terms_days} dage` : "—"}</span></div>
+          </div>
+          {(row.customer_match_reason || row.service_match_reason) && (
+            <div className="mt-2 space-y-0.5 border-t border-border pt-1.5">
+              {row.customer_match_reason && <div><span className="text-muted-foreground">Kunde-match:</span> <span className="text-foreground">{row.customer_match_reason}</span></div>}
+              {row.service_match_reason && <div><span className="text-muted-foreground">Service-match:</span> <span className="text-foreground">{row.service_match_reason}</span></div>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ImportPanel = ({
   entity, businessId, existingEmails, existingProductNumbers, existingExternalOrderNumbers, existingCategories, existingCustomers, existingServices,
   existingByEmail, existingByCvr, existingByCustomerNumber, existingByEan, existingByOrderNumber, existingByProductNumber, existingServiceNames,
@@ -240,6 +330,9 @@ const ImportPanel = ({
   // Rækker med fejl/dubletter brugeren manuelt vil tvinge med (selvom de ellers
   // ikke ville blive importeret). Pt. bruger vi det ikke, men holder muligheden åben.
   const [forceInclude, setForceInclude] = useState<Set<number>>(new Set());
+  // Hvilke rækker er udfoldet (vis alle CSV-felter + aftaledetaljer)
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const toggleExpand = (i: number) => setExpanded((p) => { const n = new Set(p); n.has(i) ? n.delete(i) : n.add(i); return n; });
 
   const reset = () => {
     setFile(null); setRows([]); setHeaders([]); setMapping({});
@@ -505,13 +598,24 @@ const ImportPanel = ({
         const rawSub = get(row, mapping, "subcategory");
         const final_category = rawCat || ai?.service_category || undefined;
         const final_subcategory = rawSub || ai?.subcategory || undefined;
+        const rawUnit = get(row, mapping, "unit");
+        const rawInterval = get(row, mapping, "interval");
+        const unit = parseUnit(rawUnit);
+        const interval = parseInterval(rawInterval);
+        if (rawUnit && !unit) errors.push(`Ukendt enhed "${rawUnit}" — brug fx stk, time, m², m³, km, dag, kg, liter`);
+        if (rawInterval && !interval) errors.push(`Ukendt interval "${rawInterval}" — brug fx engangskøb, ugentligt, hver 14. dag, månedligt, kvartalsvis, halvårligt, årligt`);
+        const basePrice = parseNum(get(row, mapping, "base_price"));
+        if (basePrice == null && rawUnit) errors.push("Mangler pris (kræves når enhed er angivet)");
+        if (interval && interval !== "engangskøb" && !unit) errors.push("Mangler enhed (kræves når der er et tilbagevendende interval)");
         return {
           source: row, kind: "service" as const,
           name: name || "",
           description: get(row, mapping, "description"),
-          base_price: parseNum(get(row, mapping, "base_price")),
-          unit: parseUnit(get(row, mapping, "unit")),
-          interval: parseInterval(get(row, mapping, "interval")),
+          base_price: basePrice,
+          unit,
+          interval,
+          raw_unit: rawUnit,
+          raw_interval: rawInterval,
           product_number,
           service_category: final_category,
           subcategory: final_subcategory,
@@ -553,6 +657,14 @@ const ImportPanel = ({
       const total_amount = parseNum(get(row, mapping, "total_amount")) ?? (unit_price ? unit_price * qty : 0);
       const matchedCustomer = match?.customer_id ? existingCustomers.find((c) => c.id === match.customer_id) : undefined;
       const matchedService = match?.service_id ? existingServices.find((s) => s.id === match.service_id) : undefined;
+      const rawUnitO = get(row, mapping, "unit");
+      const rawIntervalO = get(row, mapping, "interval");
+      const unitO = parseUnit(rawUnitO) || matchedService?.unit || undefined;
+      const intervalO = parseInterval(rawIntervalO);
+      if (rawUnitO && !parseUnit(rawUnitO)) errors.push(`Ukendt enhed "${rawUnitO}" — brug fx stk, time, m², m³, km, dag, kg, liter`);
+      if (rawIntervalO && !intervalO) errors.push(`Ukendt interval "${rawIntervalO}" — brug fx engangskøb, ugentligt, månedligt, årligt`);
+      if (intervalO && intervalO !== "engangskøb" && !unitO) errors.push("Mangler enhed på aftalelinjen (kræves ved tilbagevendende interval)");
+      if (qty > 1 && !unitO) errors.push("Mangler enhed (når antal > 1, skal enhed angives)");
       return {
         source: row, kind: "order" as const,
         external_order_number: ext,
@@ -566,8 +678,10 @@ const ImportPanel = ({
         city: get(row, mapping, "city"),
         service_name: get(row, mapping, "service_name") || "Importeret ordrelinje",
         quantity: qty,
-        unit: parseUnit(get(row, mapping, "unit")) || matchedService?.unit || undefined,
-        interval: parseInterval(get(row, mapping, "interval")),
+        unit: unitO,
+        interval: intervalO,
+        raw_unit: rawUnitO,
+        raw_interval: rawIntervalO,
         unit_price: unit_price ?? total_amount / Math.max(qty, 1),
         total_amount,
         preferred_date: parseDate(get(row, mapping, "preferred_date")),
@@ -618,6 +732,26 @@ const ImportPanel = ({
   const runImport = async () => {
     const valid = prepared.filter((r, i) => isSelected(i, r));
     if (valid.length === 0) { toast.error("Ingen rækker valgt til import"); return; }
+    // Stop hvis nogen valgt række har valideringsfejl — vi vil ikke importere
+    // ufuldstændige interval-/enhedsdata.
+    const withErrors = valid.filter((r: any) => r.errors.length > 0);
+    if (withErrors.length > 0) {
+      toast.error(`${withErrors.length} valgte rækker har fejl — ret dem eller fravælg dem først`);
+      return;
+    }
+    const mappedCols = new Set(Object.values(mapping).filter(Boolean) as string[]);
+    const buildExtraNotes = (src: Row): string => {
+      const extras = headers
+        .filter((h) => !mappedCols.has(h))
+        .map((h) => [h, src?.[h]])
+        .filter(([, v]) => v !== undefined && v !== null && String(v).trim() !== "")
+        .map(([h, v]) => `${h}: ${String(v).trim()}`);
+      return extras.length ? extras.join("\n") : "";
+    };
+    const mergeNotes = (n: string | null | undefined, extra: string) => {
+      if (!extra) return n || null;
+      return n ? `${n}\n\n— Importeret ekstra felter —\n${extra}` : `— Importeret ekstra felter —\n${extra}`;
+    };
     setImporting(true);
     try {
       let created = 0;
@@ -628,13 +762,13 @@ const ImportPanel = ({
           business_id: businessId, company_name: r.company_name || r.name || "",
           cvr: r.cvr || null, contact_name: r.contact_name || null, email: r.email,
           phone: r.phone || null, address: r.address || null, zip_code: r.zip_code || null, city: r.city || null,
-          notes: r.notes || null, customer_number: r.customer_number || null,
+          notes: mergeNotes(r.notes, buildExtraNotes(r.source)), customer_number: r.customer_number || null,
           ean_number: r.ean_number || null, payment_terms_days: r.payment_terms_days ?? null,
         }));
         const priv = (valid as any[]).filter((r) => r.type === "private").map((r) => ({
           business_id: businessId, name: r.name || r.company_name || "Ukendt", email: r.email,
           phone: r.phone || null, address: r.address || null, zip_code: r.zip_code || null, city: r.city || null,
-          notes: r.notes || null, customer_number: r.customer_number || null,
+          notes: mergeNotes(r.notes, buildExtraNotes(r.source)), customer_number: r.customer_number || null,
           ean_number: r.ean_number || null, payment_terms_days: r.payment_terms_days ?? null,
         }));
         for (const part of chunk(biz, 100)) {
@@ -648,7 +782,10 @@ const ImportPanel = ({
       } else if (entity === "services") {
         const services = (valid as any[]).map((r) => ({
           business_id: businessId, name: r.name,
-          description: r.description || null,
+          description: (() => {
+            const extra = buildExtraNotes(r.source);
+            return r.description ? (extra ? `${r.description}\n\n— Ekstra felter —\n${extra}` : r.description) : (extra || null);
+          })(),
           base_price: r.base_price ?? null,
           unit: r.unit || null,
           interval_options: r.interval ? [r.interval] : ["engangskøb"],
@@ -710,7 +847,7 @@ const ImportPanel = ({
             external_order_number: r.external_order_number || null,
             preferred_date: r.preferred_date || null,
             payment_terms_days: r.payment_terms_days ?? null,
-            notes: r.notes || null,
+            notes: mergeNotes(r.notes, buildExtraNotes(r.source)),
           } as any).select("id").single();
           if (orderErr) throw orderErr;
           const { error: itemErr } = await supabase.from("order_items").insert({
@@ -997,6 +1134,7 @@ const ImportPanel = ({
                   }}
                 />
               </th>
+              <th className="px-1 py-1.5 font-medium w-6"></th>
               <th className="px-2 py-1.5 font-medium">Status</th>
               {entity === "customers" && <>
                 <th className="px-2 py-1.5 font-medium">Type</th>
@@ -1027,8 +1165,10 @@ const ImportPanel = ({
             {visibleRows.map((r: any, i) => {
               const realIdx = prepared.indexOf(r);
               const sel = isSelected(realIdx, r);
+              const isOpen = expanded.has(realIdx);
               return (
-              <tr key={safePage * PAGE_SIZE + i} className={`border-t border-border hover:bg-secondary/30 ${!sel ? "opacity-50" : ""}`}>
+              <React.Fragment key={safePage * PAGE_SIZE + i}>
+              <tr className={`border-t border-border hover:bg-secondary/30 ${!sel ? "opacity-50" : ""}`}>
                 <td className="px-2 py-1.5">
                   <Checkbox
                     checked={sel}
@@ -1042,6 +1182,11 @@ const ImportPanel = ({
                       }
                     }}
                   />
+                </td>
+                <td className="px-1 py-1.5">
+                  <button onClick={() => toggleExpand(realIdx)} className="rounded p-0.5 text-muted-foreground hover:bg-secondary hover:text-foreground" title="Vis alle detaljer">
+                    {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                  </button>
                 </td>
                 <td className="px-2 py-1.5">
                   {r.errors.length > 0 ? (
@@ -1060,7 +1205,23 @@ const ImportPanel = ({
                   <td className="px-2 py-1.5">{r.type === "business"
                     ? <span className="inline-flex items-center gap-1 text-foreground"><Building2 className="h-3 w-3" /> Erhverv</span>
                     : <span className="inline-flex items-center gap-1 text-foreground"><User className="h-3 w-3" /> Privat</span>}</td>
-                  <td className="px-2 py-1.5 text-foreground">{r.company_name || r.name || "—"}</td>
+                  <td className="px-2 py-1.5 text-foreground">
+                    <div className="flex flex-col gap-0.5">
+                      <span>{r.company_name || r.name || "—"}</span>
+                      {(() => {
+                        // Hvis filen er blandet (kunde + aftale på samme række), vis aftalelinje
+                        const svc = r.source?.[mapping["service_name" as any] || ""] || r.source?.["Opgavebeskrivelse"] || r.source?.["Opgave"] || r.source?.["Service"];
+                        const interval = r.source?.["Faktureringsinterval"] || r.source?.["Interval"] || r.source?.["Frekvens"];
+                        const price = r.source?.["Pris"] || r.source?.["Pris ekskl. moms"] || r.source?.["Pris per enhed"];
+                        if (!svc && !interval && !price) return null;
+                        return (
+                          <Badge variant="outline" className="w-fit text-[10px]" title={`${svc || ""} · ${interval || ""} · ${price || ""}`}>
+                            <ClipboardList className="mr-1 h-2.5 w-2.5" /> Aftale: {String(svc || "ydelse").slice(0, 30)}{interval ? ` (${interval})` : ""}
+                          </Badge>
+                        );
+                      })()}
+                    </div>
+                  </td>
                   <td className="px-2 py-1.5 text-muted-foreground">{r.email || "—"}</td>
                   <td className="px-2 py-1.5 text-muted-foreground">{r.phone || "—"}</td>
                   <td className="px-2 py-1.5 text-muted-foreground">{r.city || "—"}</td>
@@ -1127,6 +1288,14 @@ const ImportPanel = ({
                   <td className="px-2 py-1.5 text-muted-foreground">{r.preferred_date || "—"}</td>
                 </>}
               </tr>
+              {isOpen && (
+                <tr className="bg-secondary/20">
+                  <td colSpan={20} className="px-4 py-3">
+                    <RowDetails row={r} entity={entity} headers={headers} mapping={mapping} />
+                  </td>
+                </tr>
+              )}
+              </React.Fragment>
               );
             })}
           </tbody>
