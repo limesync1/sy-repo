@@ -938,22 +938,16 @@ const ImportPanel = ({
             ))}
           </tbody>
         </table>
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
-        <span>
-          Viser {filteredRows.length === 0 ? 0 : safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, filteredRows.length)} af {filteredRows.length}
-          {rowFilter !== "all" && <> ({prepared.length} i alt)</>}
-          {rowFilter !== "all" && (
-            <button onClick={() => setRowFilter("all")} className="ml-2 font-medium text-foreground underline-offset-2 hover:underline">Vis alle</button>
-          )}
-        </span>
+        </div>
         {pageCount > 1 && (
-          <div className="flex items-center gap-1">
-            <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage(0)} disabled={safePage === 0}>«</Button>
-            <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={safePage === 0}>‹</Button>
-            <span className="px-2 text-foreground">Side {safePage + 1} af {pageCount}</span>
-            <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))} disabled={safePage >= pageCount - 1}>›</Button>
-            <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage(pageCount - 1)} disabled={safePage >= pageCount - 1}>»</Button>
+          <div className="flex items-center justify-between gap-2 border-t border-border bg-secondary/20 px-3 py-2 text-[11px] text-muted-foreground">
+            <span>Side <span className="font-semibold text-foreground">{safePage + 1}</span> af {pageCount}</span>
+            <div className="flex items-center gap-1">
+              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage(0)} disabled={safePage === 0}>«</Button>
+              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={safePage === 0}>‹ Forrige</Button>
+              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))} disabled={safePage >= pageCount - 1}>Næste ›</Button>
+              <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => setPage(pageCount - 1)} disabled={safePage >= pageCount - 1}>»</Button>
+            </div>
           </div>
         )}
       </div>
