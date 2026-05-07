@@ -17,6 +17,32 @@ import type {
 
 const BASE = "https://restapi.e-conomic.com";
 
+function pickDraftInvoicePayload(template: any): Record<string, unknown> {
+  const candidates = [
+    template?.draftInvoice,
+    template?.draft_invoice,
+    template?.invoice,
+    template?.data?.draftInvoice,
+    template,
+  ];
+
+  const payload = candidates.find((candidate) =>
+    candidate && typeof candidate === "object" &&
+    (candidate.date || candidate.currency || candidate.customer || candidate.paymentTerms || candidate.recipient || candidate.layout)
+  );
+
+  if (!payload || typeof payload !== "object") {
+    const keys = template && typeof template === "object" ? Object.keys(template).join(", ") : "ingen felter";
+    throw new Error(`E-conomic returnerede en ugyldig faktura-skabelon (${keys})`);
+  }
+
+  const copy = { ...payload };
+  delete (copy as any).draftInvoiceNumber;
+  delete (copy as any).bookedInvoiceNumber;
+  delete (copy as any).self;
+  return copy;
+}
+
 /**
  * Maps Serviceydere vat_zone values to e-conomic vatZoneNumber.
  * E-conomic standard: 1 = indland, 2 = EU, 3 = eksport (3. land), 4 = momsfri.
@@ -396,11 +422,12 @@ export function makeEconomicAdapter(
           creds,
           `/orders/drafts/${input.external_id}/templates/upgrade-instructions/draftInvoice`,
         );
+        const draftPayload = pickDraftInvoicePayload(instruction);
         const draft = await ecRequest(creds, "/invoices/drafts", {
           method: "POST",
-          body: JSON.stringify(instruction),
+          body: JSON.stringify(draftPayload),
         });
-        draftNumber = draft?.draftInvoiceNumber ?? instruction?.draftInvoiceNumber ?? draftNumber;
+        draftNumber = draft?.draftInvoiceNumber ?? (draftPayload as any)?.draftInvoiceNumber ?? draftNumber;
       }
 
       // Bog kladde-faktura → bookedInvoiceNumber. Hvis e-mail findes, beder vi
