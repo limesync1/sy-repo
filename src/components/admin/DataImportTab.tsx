@@ -1029,6 +1029,7 @@ const ImportPanel = ({
                   }}
                 />
               </th>
+              <th className="px-1 py-1.5 font-medium w-6"></th>
               <th className="px-2 py-1.5 font-medium">Status</th>
               {entity === "customers" && <>
                 <th className="px-2 py-1.5 font-medium">Type</th>
