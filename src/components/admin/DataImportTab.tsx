@@ -138,6 +138,7 @@ const FIELD_GROUPS: Record<EntityType, { title: string; keys: string[] }[]> = {
 // ---------- Per-entity import-panel ----------
 const ImportPanel = ({
   entity, businessId, existingEmails, existingProductNumbers, existingExternalOrderNumbers, existingCategories, existingCustomers, existingServices,
+  existingByEmail, existingByCvr, existingByCustomerNumber, existingByEan, existingByOrderNumber, existingByProductNumber, existingServiceNames,
   sharedFile, onFileChange,
 }: {
   entity: EntityType;
@@ -148,6 +149,13 @@ const ImportPanel = ({
   existingCategories: { category: string; subcategories: string[] }[];
   existingCustomers: { id: string; name: string; email: string; cvr?: string | null; phone?: string | null; zip_code?: string | null }[];
   existingServices: { id: string; name: string; product_number?: string | null; unit?: string | null; base_price?: number | null }[];
+  existingByEmail: Record<string, string>;
+  existingByCvr: Record<string, string>;
+  existingByCustomerNumber: Record<string, string>;
+  existingByEan: Record<string, string>;
+  existingByOrderNumber: Record<string, string>;
+  existingByProductNumber: Record<string, string>;
+  existingServiceNames: Record<string, string>;
   sharedFile: File | null;
   onFileChange: (f: File | null) => void;
 }) => {
