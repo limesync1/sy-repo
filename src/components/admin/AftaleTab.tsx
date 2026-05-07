@@ -669,6 +669,7 @@ const AftaleTab = ({
   // listen ikke bliver overvældet af afsluttede sager.
   const [filter, setFilter] = useState<string>("active");
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "amount_desc" | "amount_asc" | "next_service" | "needs_action">("needs_action");
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const [responseType, setResponseType] = useState<"accepted" | "rejected" | "adjusted">("accepted");
