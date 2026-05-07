@@ -353,6 +353,10 @@ export function makeEconomicAdapter(
         // Hvis kunden ikke kan slås op er det rigtige fejlpunkt customer-feltet
         // — lad serveren returnere 404 så vi kan logge det.
       }
+      if (!(body as any).layout?.layoutNumber) {
+        const layoutNumber = await resolveLayoutNumber(creds, settings);
+        if (layoutNumber) (body as any).layout = { layoutNumber };
+      }
 
       if (input.external_id) {
         await ecRequest(creds, `${path}/${input.external_id}`, {
