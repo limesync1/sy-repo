@@ -144,37 +144,26 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
     return (
       <div className="inline-flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
         {primary && (
-        <Tooltip delayDuration={150}>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className={`h-7 px-2 text-[11px] font-medium leading-none transition-colors ${toneCls(primary.tone)}`}
-              disabled={busy !== null}
-              onClick={primary.onClick}
-            >
-              <Spinner
-                a={
-                  primary.kind === "reminder" || primary.kind === "collection"
-                    ? "send_reminder"
-                    : primary.kind === "void"
-                    ? "void_draft"
-                    : "mark_paid"
-                }
-                fallback={primary.icon}
-              />
-              <span className="ml-1 hidden sm:inline">{primary.label}</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="bg-popover border-border">
-            <div className="text-xs">{primary.label}</div>
-            {primary.kind === "reminder" && sentCount > 0 && (
-              <div className="text-[10px] opacity-80">
-                {sentCount}/3 sendt{lastSent ? ` · sidst ${lastSent}` : ""}
-              </div>
-            )}
-          </TooltipContent>
-        </Tooltip>
+          <Button
+            variant="outline"
+            size="sm"
+            className={`h-7 px-2 text-[11px] font-medium leading-none transition-colors ${toneCls(primary.tone)}`}
+            disabled={busy !== null}
+            onClick={primary.onClick}
+            aria-label={primary.label}
+          >
+            <Spinner
+              a={
+                primary.kind === "reminder" || primary.kind === "collection"
+                  ? "send_reminder"
+                  : primary.kind === "void"
+                  ? "void_draft"
+                  : "mark_paid"
+              }
+              fallback={primary.icon}
+            />
+            <span className="ml-1 hidden sm:inline">{primary.label}</span>
+          </Button>
         )}
 
         <DropdownMenu>
@@ -197,29 +186,19 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
           <DropdownMenuContent
             align="end"
             sideOffset={6}
-            className="w-72 bg-popover border-border shadow-xl rounded-lg p-1.5 animate-in fade-in-0 zoom-in-95 slide-in-from-top-1"
+            className="w-60 bg-popover border-border shadow-xl rounded-lg p-1 animate-in fade-in-0 zoom-in-95 slide-in-from-top-1"
           >
-            <div className="px-2 pt-1.5 pb-2">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Faktura-handlinger
+            {isInvoiced && !isPaid && !isCredited && (
+              <div className="flex items-center gap-1.5 px-2 py-1.5 text-[11px] text-muted-foreground">
+                <span className={`inline-block h-1.5 w-1.5 rounded-full ${isOverdue ? "bg-destructive" : "bg-amber-500"}`} />
+                <span>
+                  {sentCount}/3 rykkere{lastSent ? ` · sidst ${lastSent}` : ""}{isOverdue ? " · forfalden" : ""}
+                </span>
               </div>
-              {isInvoiced && !isPaid && !isCredited && (
-                <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                  <span className={`inline-block h-1.5 w-1.5 rounded-full ${isOverdue ? "bg-destructive" : "bg-amber-500"}`} />
-                  <span>
-                    {sentCount}/3 rykkere sendt
-                    {lastSent ? ` · sidst ${lastSent}` : ""}
-                    {isOverdue ? " · forfalden" : ""}
-                  </span>
-                </div>
-              )}
-            </div>
+            )}
 
             {isInvoiced && !isPaid && !isCredited && !allRemindersSent && (
               <>
-                <DropdownMenuLabel className="px-2 pt-1 pb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                  Rykkere
-                </DropdownMenuLabel>
                 {[1, 2, 3].map((n) => {
                   const key = `reminder${n}`;
                   const sent = sentTypes.has(key) || sentCount >= n;
@@ -228,10 +207,10 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
                     <DropdownMenuItem
                       key={key}
                       onSelect={() => !sent && sendReminder(key as ReminderType)}
-                      className="group flex items-center gap-2.5 rounded-md px-2 py-2 text-sm cursor-pointer focus:bg-accent/60 data-[disabled]:opacity-60"
+                      className="group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm cursor-pointer focus:bg-secondary focus:text-foreground data-[disabled]:opacity-60 data-[disabled]:cursor-not-allowed"
                       disabled={sent}
                     >
-                      <span className={`flex h-7 w-7 items-center justify-center rounded-md ${
+                      <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${
                         sent
                           ? "bg-success/10 text-success"
                           : isNext
@@ -239,87 +218,71 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
                           : "bg-muted text-muted-foreground"
                       }`}>
                         {sent
-                          ? <CheckCircle2 className="h-3.5 w-3.5" />
-                          : <Bell className="h-3.5 w-3.5" />}
+                          ? <CheckCircle2 className="h-3 w-3" />
+                          : <Bell className="h-3 w-3" />}
                       </span>
-                      <span className="flex-1 leading-tight">
-                        <span className={`block font-medium ${sent ? "text-muted-foreground line-through" : "text-foreground"}`}>
-                          {n}. rykker
-                        </span>
-                        <span className="block text-[11px] text-muted-foreground">
-                          {sent ? "Allerede sendt" : isNext ? "Næste skridt" : "Afventer tidligere rykker"}
-                        </span>
+                      <span className={`flex-1 text-[13px] leading-none ${sent ? "text-muted-foreground line-through" : "text-foreground"}`}>
+                        {n}. rykker
                       </span>
                       {!sent && isNext && (
-                        <span className="rounded-full bg-foreground px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-background">Næste</span>
+                        <span className="rounded-full bg-foreground px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-background">Næste</span>
                       )}
                     </DropdownMenuItem>
                   );
                 })}
-                <DropdownMenuItem
-                  onSelect={() => sendReminder("collection")}
-                  className="group flex items-center gap-2.5 rounded-md px-2 py-2 text-sm cursor-pointer focus:bg-destructive/10 focus:text-destructive"
-                >
-                  <span className="flex h-7 w-7 items-center justify-center rounded-md bg-destructive/10 text-destructive">
-                    <Gavel className="h-3.5 w-3.5" />
-                  </span>
-                  <span className="flex-1 leading-tight">
-                    <span className="block font-medium">Send til inkasso</span>
-                    <span className="block text-[11px] text-muted-foreground group-focus:text-destructive/80">Sidste udvej</span>
-                  </span>
-                </DropdownMenuItem>
+                {allRemindersSent ? null : null}
               </>
+            )}
+
+            {isInvoiced && !isPaid && !isCredited && allRemindersSent && (
+              <DropdownMenuItem
+                onSelect={() => sendReminder("collection")}
+                className="group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm cursor-pointer focus:bg-destructive/10 focus:text-destructive"
+              >
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-destructive/10 text-destructive">
+                  <Gavel className="h-3 w-3" />
+                </span>
+                <span className="flex-1 text-[13px] leading-none">Send til inkasso</span>
+              </DropdownMenuItem>
             )}
 
             {((isInvoiced && !isPaid && !isCredited) || (isInvoiced && !isCredited) || !isInvoiced) && (
               <>
                 <DropdownMenuSeparator className="my-1" />
-                <DropdownMenuLabel className="px-2 pt-1 pb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                  Status
-                </DropdownMenuLabel>
 
                 {isInvoiced && !isPaid && !isCredited && (
                   <DropdownMenuItem
                     onSelect={() => setConfirm("mark_paid")}
-                    className="group flex items-center gap-2.5 rounded-md px-2 py-2 text-sm cursor-pointer focus:bg-success/10 focus:text-success"
+                    className="group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm cursor-pointer focus:bg-success/10 focus:text-success"
                   >
-                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-success/10 text-success">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-success/10 text-success">
+                      <CheckCircle2 className="h-3 w-3" />
                     </span>
-                    <span className="flex-1 leading-tight">
-                      <span className="block font-medium">Markér som betalt</span>
-                      <span className="block text-[11px] text-muted-foreground group-focus:text-success/80">Bogfør betaling manuelt</span>
-                    </span>
+                    <span className="flex-1 text-[13px] leading-none">Markér som betalt</span>
                   </DropdownMenuItem>
                 )}
 
                 {isInvoiced && !isCredited && (
                   <DropdownMenuItem
                     onSelect={() => setConfirm("credit_invoice")}
-                    className="group flex items-center gap-2.5 rounded-md px-2 py-2 text-sm cursor-pointer focus:bg-destructive/10 focus:text-destructive"
+                    className="group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm cursor-pointer focus:bg-destructive/10 focus:text-destructive"
                   >
-                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-destructive/10 text-destructive">
-                      <Receipt className="h-3.5 w-3.5" />
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-destructive/10 text-destructive">
+                      <Receipt className="h-3 w-3" />
                     </span>
-                    <span className="flex-1 leading-tight">
-                      <span className="block font-medium">Krediter faktura</span>
-                      <span className="block text-[11px] text-muted-foreground group-focus:text-destructive/80">Opret kreditnota for hele beløbet</span>
-                    </span>
+                    <span className="flex-1 text-[13px] leading-none">Krediter faktura</span>
                   </DropdownMenuItem>
                 )}
 
                 {!isInvoiced && (
                   <DropdownMenuItem
                     onSelect={() => setConfirm("void_draft")}
-                    className="group flex items-center gap-2.5 rounded-md px-2 py-2 text-sm cursor-pointer focus:bg-destructive/10 focus:text-destructive"
+                    className="group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm cursor-pointer focus:bg-destructive/10 focus:text-destructive"
                   >
-                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-destructive/10 text-destructive">
-                      <Ban className="h-3.5 w-3.5" />
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-destructive/10 text-destructive">
+                      <Ban className="h-3 w-3" />
                     </span>
-                    <span className="flex-1 leading-tight">
-                      <span className="block font-medium">Annullér kladde</span>
-                      <span className="block text-[11px] text-muted-foreground group-focus:text-destructive/80">Slet kladden i regnskabsprogrammet</span>
-                    </span>
+                    <span className="flex-1 text-[13px] leading-none">Annullér kladde</span>
                   </DropdownMenuItem>
                 )}
               </>
