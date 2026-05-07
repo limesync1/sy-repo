@@ -1485,24 +1485,24 @@ const AftaleTab = ({
                   }}
                   className="block w-full cursor-pointer text-left transition-colors hover:bg-secondary/30"
                 >
-                  <div className="flex items-center gap-3 p-3 sm:p-3.5">
+                  <div className="flex items-start gap-3 p-3 sm:p-3.5">
                     {/* Drag-håndtag */}
-                    {canDragToRoute && <OrderDragHandle orderId={order.id} order={order} />}
+                    {canDragToRoute && <div className="pt-1"><OrderDragHandle orderId={order.id} order={order} /></div>}
 
                     {/* Ikon-badge */}
                     <div
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-secondary/40 text-foreground"
+                      className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-secondary/40 text-foreground"
                       title={primaryCategory || "Aftale"}
                     >
                       <span className="text-base leading-none">{categoryIcon}</span>
                     </div>
 
-                    {/* Midte: identitet + meta — ét tæt blok */}
-                    <div className="min-w-0 flex-1">
-                      {/* Linje 1: navn + status-pill + payment-pill + rykker */}
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    {/* Midte: identitet + meta — to faste linjer, status-pills på linje 1 */}
+                    <div className="min-w-0 flex-1 space-y-1">
+                      {/* Linje 1: navn + alle status-pills inline */}
+                      <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
                         <h3 className="truncate text-sm font-semibold text-foreground">{order.customer_name}</h3>
-                        <span className={`inline-flex items-center gap-1.5 rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${cfg.cls}`}>
+                        <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${cfg.cls}`}>
                           <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
                           {cfg.label}
                         </span>
@@ -1526,7 +1526,7 @@ const AftaleTab = ({
                             : "endnu ikke";
                           return (
                             <span
-                              className={`inline-flex items-center gap-1.5 rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${p.cls}`}
+                              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${p.cls}`}
                               title={`Betalingsstatus hentes automatisk fra dit regnskabsprogram hvert 5. minut.\nSidst opdateret: ${syncedLabel}.`}
                             >
                               <span className={`h-1.5 w-1.5 rounded-full ${p.dot}`} />
@@ -1542,7 +1542,7 @@ const AftaleTab = ({
                             : null;
                           return (
                             <span
-                              className="inline-flex items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800"
+                              className="inline-flex shrink-0 items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-800"
                               title={last ? `Sidste rykker sendt ${last.toLocaleString("da-DK")}` : "Rykker sendt"}
                             >
                               Rykker {rc}/3
@@ -1551,16 +1551,15 @@ const AftaleTab = ({
                         })()}
                         {hasRecurring && (
                           <span
-                            className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/70 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+                            className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-secondary/70 px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
                             title={`Tilbagevendende: ${INTERVAL_LABELS[interval] || interval}${cycles > 0 ? ` · gennemført ${cycles} gange` : ""}`}
                           >
                             <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
-                            {cycles > 0 && <span className="opacity-70">· #{cycles}</span>}
                           </span>
                         )}
                         {routePlanningEnabled && routeInfo && (
                           <span
-                            className="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium"
+                            className="inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium"
                             style={{
                               borderColor: `${routeInfo.color}55`,
                               backgroundColor: `${routeInfo.color}14`,
@@ -1570,70 +1569,72 @@ const AftaleTab = ({
                           >
                             <RouteIcon className="h-2.5 w-2.5" />
                             {routeInfo.name || "Rute"}
-                            {typeof routeStop.sequence === "number" && (
-                              <span className="opacity-80">· #{routeStop.sequence + 1}</span>
-                            )}
                           </span>
                         )}
                       </div>
 
-                      {/* Linje 2: services · adresse · dato — alt på én tæt linje */}
-                      <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-                        <span className="inline-flex min-w-0 items-center gap-1 truncate text-foreground/80">
-                          <span className="opacity-70">📋</span>
-                          <span className="truncate">{serviceSummary}</span>
-                        </span>
+                      {/* Linje 2: services + adresse — primær info */}
+                      <div className="flex min-w-0 items-center gap-1.5 text-xs text-foreground/75">
+                        <span className="truncate">{serviceSummary}</span>
                         {(order.address || order.city || order.zip_code) && (
-                          <span className="inline-flex min-w-0 items-center gap-1 truncate">
-                            <MapPin className="h-3 w-3 shrink-0 opacity-70" />
+                          <>
+                            <span className="text-border">·</span>
+                            <MapPin className="h-3 w-3 shrink-0 opacity-60" />
                             <span className="truncate">
                               {[order.address, [order.zip_code, order.city].filter(Boolean).join(" ")]
                                 .filter(Boolean).join(", ")}
                             </span>
-                          </span>
+                          </>
                         )}
-                        <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
+                      </div>
+
+                      {/* Linje 3: dato-meta — sekundær */}
+                      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+                        <span className="inline-flex items-center gap-1">
                           <CalendarClock className="h-3 w-3 opacity-70" />
                           {date.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
                         </span>
                         {nextDate && daysUntilNext !== null && (
-                          <span
-                            className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${
-                              daysUntilNext <= 0
-                                ? "border-destructive/30 bg-destructive/10 text-destructive"
-                                : daysUntilNext <= 3
-                                ? "border-amber-300/50 bg-amber-50 text-amber-800"
-                                : "border-border bg-secondary/70 text-foreground"
-                            }`}
-                            title="Næste udførelse — ordren oprettes automatisk på dagen kl. 06:00."
-                          >
-                            Næste: {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })} · {relativeFromNow(nextDate)}
-                          </span>
+                          <>
+                            <span className="text-border">·</span>
+                            <span
+                              className={
+                                daysUntilNext <= 0
+                                  ? "font-medium text-destructive"
+                                  : daysUntilNext <= 3
+                                  ? "font-medium text-amber-700"
+                                  : ""
+                              }
+                              title="Næste udførelse — ordren oprettes automatisk på dagen kl. 06:00."
+                            >
+                              Næste: {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })} · {relativeFromNow(nextDate)}
+                            </span>
+                          </>
                         )}
                       </div>
                     </div>
 
-                    {/* Højre kolonne: beløb (stort) + handlinger + chevron */}
-                    <div className="flex shrink-0 items-center gap-2 pl-2">
-                      <div className="flex flex-col items-end leading-tight">
-                        <span className="text-base font-bold tabular-nums text-foreground sm:text-lg">
-                          {currentTotal.toLocaleString("da-DK")}
-                          <span className="ml-0.5 text-xs font-medium text-muted-foreground">kr</span>
-                        </span>
-                        {order.adjusted_amount && order.customer_response === "accepted" && originalTotal !== currentTotal && (
-                          <span className="text-[10px] text-muted-foreground line-through tabular-nums">
-                            {originalTotal.toLocaleString("da-DK")} kr
+                    {/* Højre kolonne: beløb stablet over handlinger + chevron */}
+                    <div className="flex shrink-0 flex-col items-end gap-1.5 pl-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex flex-col items-end leading-none">
+                          <span className="text-lg font-bold tabular-nums text-foreground">
+                            {currentTotal.toLocaleString("da-DK")}
+                            <span className="ml-0.5 text-xs font-medium text-muted-foreground">kr</span>
                           </span>
-                        )}
+                          {order.adjusted_amount && order.customer_response === "accepted" && originalTotal !== currentTotal && (
+                            <span className="mt-0.5 text-[10px] text-muted-foreground line-through tabular-nums">
+                              {originalTotal.toLocaleString("da-DK")} kr
+                            </span>
+                          )}
+                        </div>
+                        <span className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        </span>
                       </div>
                       {((order as any).invoice_external_id || (order as any).accounting_synced_at) && (
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <InvoiceActionsMenu order={order as any} />
-                        </div>
+                        <InvoiceActionsMenu order={order as any} compact />
                       )}
-                      <span className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
-                        {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                      </span>
                     </div>
                   </div>
                 </div>
