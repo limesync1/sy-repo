@@ -77,6 +77,39 @@ async function resolveLayoutNumber(creds: AccountingCredentials, settings: Accou
   return first?.layoutNumber ? Number(first.layoutNumber) : null;
 }
 
+async function resolveAccountingYear(creds: AccountingCredentials, dateIso: string): Promise<string> {
+  const date = dateIso.slice(0, 10);
+  const years = await ecRequest(creds, "/accounting-years?pagesize=100").catch(() => ({ collection: [] }));
+  const match = (years?.collection ?? []).find((y: any) => {
+    const from = String(y?.fromDate ?? "").slice(0, 10);
+    const to = String(y?.toDate ?? "").slice(0, 10);
+    return y?.year && from && to && from <= date && date <= to && y.closed !== true;
+  });
+  return String(match?.year ?? new Date(date).getFullYear());
+}
+
+async function resolveCustomerPaymentJournal(creds: AccountingCredentials, settings: AccountingSettings): Promise<{ journalNumber: number; contraAccountNumber: number | null }> {
+  const configured = Number((settings as any).payment_journal_number ?? (settings as any).default_journal_number);
+  const journals = await ecRequest(creds, "/journals?pagesize=100").catch(() => ({ collection: [] }));
+  const list = (journals?.collection ?? []) as any[];
+  const candidates = Number.isFinite(configured) && configured > 0
+    ? list.filter((j) => Number(j?.journalNumber) === configured)
+    : list;
+  const journal = candidates.find((j) => {
+    const restricted = String(j?.settings?.entryTypeRestrictedTo ?? "");
+    return !restricted || restricted === "customerPayment";
+  }) ?? candidates[0];
+  if (!journal?.journalNumber) throw new Error("Ingen kassekladde til kundebetalinger er tilgængelig i e-conomic — opret eller vælg en først.");
+  const configuredContra = Number((settings as any).payment_account_number ?? (settings as any).default_payment_account);
+  const journalContra = Number(journal?.settings?.contraAccounts?.customerPayments?.accountNumber);
+  return {
+    journalNumber: Number(journal.journalNumber),
+    contraAccountNumber: Number.isFinite(configuredContra) && configuredContra > 0
+      ? configuredContra
+      : Number.isFinite(journalContra) && journalContra > 0 ? journalContra : null,
+  };
+}
+
 function friendlyEconomicError(status: number, body: string): string {
   const lower = body.toLowerCase();
   if (status === 401 || status === 403 || lower.includes("unauthorized") || lower.includes("invalid token")) {
