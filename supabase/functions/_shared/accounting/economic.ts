@@ -43,6 +43,14 @@ function makeHeaders(creds: AccountingCredentials): HeadersInit {
   };
 }
 
+async function resolveLayoutNumber(creds: AccountingCredentials, settings: AccountingSettings): Promise<number | null> {
+  const configured = Number((settings as any).default_layout_number ?? (settings as any).default_layout);
+  if (Number.isFinite(configured) && configured > 0) return configured;
+  const layouts = await ecRequest(creds, "/layouts?pagesize=100").catch(() => ({ collection: [] }));
+  const first = (layouts?.collection ?? []).find((l: any) => l?.layoutNumber);
+  return first?.layoutNumber ? Number(first.layoutNumber) : null;
+}
+
 function friendlyEconomicError(status: number, body: string): string {
   const lower = body.toLowerCase();
   if (status === 401 || status === 403 || lower.includes("unauthorized") || lower.includes("invalid token")) {
