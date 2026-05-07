@@ -1239,25 +1239,30 @@ const AftaleTab = ({
               {gi > 0 && <span aria-hidden className="mx-1 h-5 w-px bg-border/80" />}
               {group.map(({ key, label, count, tone }) => {
                 const isActive = filter === key;
-                const toneRing =
-                  tone === "danger" && count > 0 ? "before:bg-destructive" :
-                  tone === "warning" && count > 0 ? "before:bg-amber-500" :
+                const toneDot =
+                  tone === "danger" && count > 0 ? "bg-destructive" :
+                  tone === "warning" && count > 0 ? "bg-amber-500" :
                   "";
+                const activeCls =
+                  tone === "danger" && count > 0
+                    ? "border-destructive bg-destructive text-destructive-foreground shadow-sm"
+                    : tone === "warning" && count > 0
+                    ? "border-amber-500 bg-amber-500 text-white shadow-sm"
+                    : "border-foreground bg-foreground text-background shadow-sm";
                 return (
                   <button
                     key={key}
                     onClick={() => setFilter(key)}
-                    className={`relative inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
-                      toneRing ? `before:absolute before:left-2 before:top-1/2 before:h-1.5 before:w-1.5 before:-translate-y-1/2 before:rounded-full ${toneRing} pl-5` : ""
-                    } ${
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
                       isActive
-                        ? "border-foreground/30 bg-foreground text-background shadow-sm"
-                        : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+                        ? activeCls
+                        : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground hover:border-foreground/30"
                     }`}
                   >
+                    {toneDot && !isActive && <span className={`h-1.5 w-1.5 rounded-full ${toneDot}`} aria-hidden />}
                     <span>{label}</span>
-                    <span className={`tabular-nums rounded-md px-1.5 text-[10px] font-semibold ${
-                      isActive ? "bg-background/15 text-background" : "bg-secondary text-foreground/70"
+                    <span className={`tabular-nums rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
+                      isActive ? "bg-white/20 text-current" : "bg-secondary text-foreground/70"
                     }`}>
                       {count}
                     </span>
