@@ -1162,11 +1162,13 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
       </Card>
 
       <SectionCard
-        title="Vælg hvad du vil importere"
+        title="Upload din fil"
         icon={<UploadCloud />}
-        description="Du kan importere kunder, produkter/services og ordrer/aftaler hver for sig."
+        description="Træk én fil ind — vi finder selv ud af om det er kunder, produkter/services eller aftaler/ordrer (eller alt på én gang). Du kan altid skifte fane bagefter for at importere et andet aspekt af samme fil."
       >
-        <div className="mb-4 inline-flex rounded-lg border border-border bg-background p-0.5">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Vises som:</span>
+          <div className="inline-flex rounded-lg border border-border bg-background p-0.5">
           {tabs.map((t) => {
             const m = ENTITY_META[t]; const Icon = m.icon;
             return (
@@ -1176,6 +1178,7 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
               </button>
             );
           })}
+          </div>
         </div>
 
         <ImportPanel
