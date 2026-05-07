@@ -142,6 +142,21 @@ export interface ExternalInvoiceState {
   total_amount?: number | null;
   paid_at?: string | null; // ISO
   due_date?: string | null; // ISO date
+  reminder_count?: number | null;
+  last_reminder_at?: string | null;
+  last_reminder_type?: string | null;
+  reminder_history?: Array<{
+    sent_at: string;            // ISO
+    type?: string | null;       // "reminder1" | "reminder2" | ... | "collection"
+    fee?: number | null;        // gebyr opkrævet
+    external_id?: string | null;
+  }>;
+  voided?: boolean;
+  voided_at?: string | null;
+  credited?: boolean;
+  credited_at?: string | null;
+  credit_note_external_id?: string | null;
+  credit_note_external_number?: string | null;
   raw?: unknown;
 }
 
@@ -221,6 +236,52 @@ export interface AccountingAdapter {
     invoice_external_number?: string | null;
     sent: boolean;
   }>;
+
+  /**
+   * Send en rykker (reminder) for en bogført faktura via udbyderens egen
+   * rykkerflow. Vi lader udbyderen håndtere gebyrer og e-mail-skabelon —
+   * Serviceydere registrerer bare at rykkeren blev sendt.
+   */
+  sendReminder?(input: {
+    invoice_external_id: string;
+    type?: "reminder1" | "reminder2" | "reminder3" | "collection" | "auto";
+  }): Promise<{
+    sent_at: string;
+    type: string;
+    fee?: number | null;
+    external_id?: string | null;
+  }>;
+
+  /**
+   * Krediter en bogført faktura. Returnerer kreditnotaens eksterne id.
+   * Bruges når aftalen blev afsluttet, men kunden skal have pengene tilbage.
+   */
+  creditInvoice?(input: {
+    invoice_external_id: string;
+    reason?: string | null;
+  }): Promise<{
+    credit_note_external_id: string;
+    credit_note_external_number?: string | null;
+  }>;
+
+  /**
+   * Annullér en kladde-faktura/ordre der endnu ikke er bogført. Bogførte
+   * fakturaer kan ikke annulleres — brug creditInvoice i stedet.
+   */
+  voidDraft?(input: {
+    external_id: string;
+    external_type: "order" | "invoice_draft" | "quote";
+  }): Promise<void>;
+
+  /**
+   * Markér en faktura som betalt manuelt (kontant, MobilePay osv.).
+   * Bogføres i regnskabsprogrammet som indbetaling på fakturaen.
+   */
+  markInvoicePaid?(input: {
+    invoice_external_id: string;
+    amount: number;
+    paid_at?: string | null; // ISO date
+  }): Promise<void>;
 }
 
 export type AdapterFactory = (
