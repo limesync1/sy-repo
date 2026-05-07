@@ -360,15 +360,21 @@ export function makeEconomicAdapter(
       const sendAs = input.external_type ?? settings.send_order_as ?? "order";
       const path = sendAs === "order" ? "/orders/drafts" : "/invoices/drafts";
       const date = (input.date ?? new Date().toISOString()).slice(0, 10);
+      // Recipient.name er PÅKRÆVET af e-conomic — tom string giver
+      // "Schema validation failed." Vi sætter et fornuftigt fallback fra
+      // input og overskriver hvis customer-opslaget lykkes.
+      const fallbackRecipientName =
+        (input as any).customer_name?.toString().trim() ||
+        `Kunde ${input.customer_external_id}`;
       const body: Record<string, unknown> = {
         date,
         currency: input.currency ?? "DKK",
         customer: { customerNumber: Number(input.customer_external_id) },
-        recipient: { name: "", vatZone: { vatZoneNumber: 1 } },
+        recipient: { name: fallbackRecipientName, vatZone: { vatZoneNumber: 1 } },
         notes: { textLine1: (input.notes ?? "").slice(0, 200) },
         lines: input.lines.map((l, idx) => ({
           lineNumber: idx + 1,
-          description: l.description,
+          description: (l.description ?? "").toString().trim() || "Ydelse",
           quantity: l.quantity,
           unitNetPrice: l.unit_price,
           product: l.product_external_id
@@ -392,7 +398,7 @@ export function makeEconomicAdapter(
         }
         if (cust?.vatZone?.vatZoneNumber) {
           (body as any).recipient = {
-            name: cust.name ?? "",
+            name: (cust.name ?? "").toString().trim() || fallbackRecipientName,
             address: cust.address ?? undefined,
             zip: cust.zip ?? undefined,
             city: cust.city ?? undefined,
