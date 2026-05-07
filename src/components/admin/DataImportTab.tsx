@@ -265,6 +265,12 @@ const ImportPanel = ({
         if (dupKey && existingProductNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = "Varenr. findes"; }
         else if (dupKey && seenProductNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = "Dublet i fil"; }
         if (dupKey) seenProductNumbers.add(dupKey);
+        const idx = rows.indexOf(row);
+        const ai = classifications[idx];
+        const rawCat = get(row, mapping, "service_category");
+        const rawSub = get(row, mapping, "subcategory");
+        const final_category = rawCat || ai?.service_category || undefined;
+        const final_subcategory = rawSub || ai?.subcategory || undefined;
         return {
           source: row, kind: "service" as const,
           name: name || "",
@@ -272,8 +278,13 @@ const ImportPanel = ({
           base_price: parseNum(get(row, mapping, "base_price")),
           unit: get(row, mapping, "unit"),
           product_number,
-          service_category: get(row, mapping, "service_category"),
-          subcategory: get(row, mapping, "subcategory"),
+          service_category: final_category,
+          subcategory: final_subcategory,
+          ai_category: ai?.service_category,
+          ai_subcategory: ai?.subcategory,
+          ai_is_new_category: ai?.is_new_category,
+          ai_is_new_subcategory: ai?.is_new_subcategory,
+          ai_confidence: ai?.confidence,
           default_vat_rate: parseNum(get(row, mapping, "default_vat_rate")),
           accounting_account_number: get(row, mapping, "accounting_account_number"),
           errors, isDuplicate, duplicateReason,
@@ -315,7 +326,7 @@ const ImportPanel = ({
         errors, isDuplicate, duplicateReason,
       };
     });
-  }, [rows, mapping, defaultType, entity, existingEmails, existingProductNumbers, existingExternalOrderNumbers]);
+  }, [rows, mapping, defaultType, entity, existingEmails, existingProductNumbers, existingExternalOrderNumbers, classifications]);
 
   const stats = useMemo(() => ({
     total: prepared.length,
