@@ -374,10 +374,12 @@ const ImportPanel = ({
       if (entity === "customers") {
         const type = detectCustomerType(row, mapping, defaultType);
         const email = (get(row, mapping, "email") || "").toLowerCase();
-        if (!email) errors.push("Mangler e-mail");
-        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push("Ugyldig e-mail");
-        if (type === "private" && !get(row, mapping, "name")) errors.push("Mangler navn");
-        if (type === "business" && !get(row, mapping, "company_name")) errors.push("Mangler virksomhedsnavn");
+        // E-mail og telefon er valgfri — vi tillader oprettelse uden.
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push("Ugyldig e-mail");
+        const hasName = !!get(row, mapping, "name");
+        const hasCompany = !!get(row, mapping, "company_name");
+        if (type === "private" && !hasName && !hasCompany) errors.push("Mangler navn eller virksomhedsnavn");
+        if (type === "business" && !hasCompany && !hasName) errors.push("Mangler virksomhedsnavn eller navn");
         if (email && existingEmails.has(email)) { isDuplicate = true; duplicateReason = `Kunde med e-mail "${email}" findes allerede i jeres kartotek — den bliver sprunget over.`; }
         else if (email && seenEmails.has(email)) { isDuplicate = true; duplicateReason = `E-mailen "${email}" optræder flere gange i denne CSV-fil — kun første række importeres.`; }
         if (email) seenEmails.add(email);
@@ -438,8 +440,12 @@ const ImportPanel = ({
       const ext = get(row, mapping, "external_order_number");
       const idxOrd = rows.indexOf(row);
       const match = orderMatches[idxOrd];
-      if (!customer_email && !match?.customer_id) errors.push("Mangler kunde e-mail eller match");
-      else if (customer_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer_email)) errors.push("Ugyldig kunde e-mail");
+      const cName = get(row, mapping, "customer_name") || get(row, mapping, "company_name");
+      // Vi accepterer ordrer uden e-mail så længe vi kan identificere kunden på navn/firma/CVR/match.
+      if (customer_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer_email)) errors.push("Ugyldig kunde e-mail");
+      if (!customer_email && !match?.customer_id && !cName && !get(row, mapping, "cvr")) {
+        errors.push("Mangler kundeoplysning (navn, e-mail eller CVR)");
+      }
       const dupKey = ext?.toLowerCase();
       if (dupKey && existingExternalOrderNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = `Ordre/aftale med nr. "${ext}" findes allerede i systemet.`; }
       else if (dupKey && seenOrderNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = `Ordrenr. "${ext}" optræder flere gange i denne CSV-fil — kun første række importeres.`; }
