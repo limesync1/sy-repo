@@ -565,18 +565,30 @@ export function makeEconomicAdapter(
       // Vi verificerer derfor blot at fakturaen findes og er bogført, og
       // registrerer rykkeren lokalt så brugeren har historik. Den faktiske
       // udsendelse skal ske i e-conomic's rykkerkørsel.
+      let found = false;
       try {
         await ecRequest(creds, `/invoices/booked/${invoice_external_id}`);
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e);
-        throw new Error(`Kunne ikke verificere faktura i e-conomic: ${msg}`);
+        found = true;
+      } catch { /* not booked — try draft */ }
+      if (!found) {
+        try {
+          await ecRequest(creds, `/invoices/drafts/${invoice_external_id}`);
+          found = true;
+        } catch { /* not found anywhere */ }
+      }
+      if (!found) {
+        // Fakturaen kunne ikke findes — registrér alligevel så brugeren ikke
+        // står fast. E-conomic-skygge-fakturaer eller slettede numre må ikke
+        // blokere historikken i Serviceydere.
       }
       return {
         sent_at: new Date().toISOString(),
         type: type ?? "reminder",
         fee: null,
         external_id: null,
-        note: "Registreret lokalt — kør rykkerkørsel i e-conomic for at sende",
+        note: found
+          ? "Rykker registreret. Kør e-conomics rykkerkørsel for at sende den."
+          : "Rykker registreret lokalt. Fakturaen blev ikke fundet i e-conomic — tjek at den stadig findes der.",
       };
     },
 
