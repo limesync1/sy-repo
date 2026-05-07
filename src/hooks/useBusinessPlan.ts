@@ -49,7 +49,15 @@ export const useBusinessPlan = (businessId: string | null | undefined) => {
         };
       }
       const hasCard = !!data.stripe_payment_method_last4;
-      const trialEnd = data.trial_ends_at ? new Date(data.trial_ends_at) : null;
+      // Hvis trial_ends_at mangler, regn et fallback ud fra created_at + 14 dage
+      // så banneret altid kan vise "X dage, Y timer tilbage" i stedet for blot
+      // "Din prøveperiode er aktiv".
+      let trialEnd = data.trial_ends_at ? new Date(data.trial_ends_at) : null;
+      if (!trialEnd && data.created_at) {
+        const created = new Date(data.created_at);
+        trialEnd = new Date(created.getTime() + 14 * 24 * 60 * 60 * 1000);
+      }
+      const trialEndIso = trialEnd ? trialEnd.toISOString() : null;
       const daysLeft = trialEnd
         ? Math.ceil((trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
         : null;
@@ -63,7 +71,7 @@ export const useBusinessPlan = (businessId: string | null | undefined) => {
       return {
         id: data.id,
         status,
-        trial_ends_at: data.trial_ends_at,
+        trial_ends_at: trialEndIso,
         days_left: daysLeft,
         has_payment_method: hasCard,
         monthly_price_dkk: Number(data.monthly_price_dkk) || 0,
