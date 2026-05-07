@@ -17,7 +17,7 @@ import {
   ChevronDown, ChevronUp, Clock, Mail, Phone, ArrowRight,
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
   Play, Pause, Search, Route as RouteIcon, MapPin, Plus as PlusIcon,
-  GripVertical, Loader2, Tag, Palette, Trash2,
+  GripVertical, Loader2, Tag, Palette, Trash2, ArrowUpDown, AlertCircle,
 } from "lucide-react";
 import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
@@ -202,12 +202,12 @@ const buildAdjustmentItem = (item: any, service?: BusinessService): AdjustmentIt
    completed  → Udført / afsluttet
    cancelled  → Annulleret
 */
-const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; color: string; bg: string; dot: string }> = {
-  pending: { label: "Ny bestilling", icon: Clock, color: "text-foreground", bg: "bg-secondary", dot: "bg-amber-500" },
-  confirmed: { label: "Aftalt", icon: CheckCircle2, color: "text-foreground", bg: "bg-secondary", dot: "bg-blue-500" },
-  in_progress: { label: "I gang", icon: RefreshCw, color: "text-foreground", bg: "bg-secondary", dot: "bg-violet-500" },
-  completed: { label: "Udført", icon: CheckCircle2, color: "text-foreground", bg: "bg-secondary", dot: "bg-emerald-500" },
-  cancelled: { label: "Annulleret", icon: XCircle, color: "text-foreground", bg: "bg-secondary", dot: "bg-destructive" },
+const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; cls: string; dot: string }> = {
+  pending:     { label: "Ny bestilling", icon: AlertCircle,   cls: "border-amber-300/60 bg-amber-50 text-amber-800",      dot: "bg-amber-500" },
+  confirmed:   { label: "Aftalt",        icon: CheckCircle2,  cls: "border-blue-300/60 bg-blue-50 text-blue-800",         dot: "bg-blue-500" },
+  in_progress: { label: "I gang",        icon: RefreshCw,     cls: "border-violet-300/60 bg-violet-50 text-violet-800",   dot: "bg-violet-500" },
+  completed:   { label: "Udført",        icon: CheckCircle2,  cls: "border-success/30 bg-success/10 text-success",        dot: "bg-success" },
+  cancelled:   { label: "Annulleret",    icon: XCircle,       cls: "border-border bg-secondary text-muted-foreground",    dot: "bg-muted-foreground" },
 };
 
 const PRICING_LABELS: Record<string, string> = {
@@ -669,6 +669,7 @@ const AftaleTab = ({
   // listen ikke bliver overvældet af afsluttede sager.
   const [filter, setFilter] = useState<string>("active");
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "amount_desc" | "amount_asc" | "next_service" | "needs_action">("needs_action");
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const [responseType, setResponseType] = useState<"accepted" | "rejected" | "adjusted">("accepted");
@@ -784,7 +785,7 @@ const AftaleTab = ({
 
   // Søgning på kundenavn, e-mail, telefon, adresse og service-navne
   const q = search.trim().toLowerCase();
-  const filteredOrders = !q ? baseFilteredOrders : baseFilteredOrders?.filter((o: any) => {
+  const searchedOrders = !q ? baseFilteredOrders : baseFilteredOrders?.filter((o: any) => {
     if ((o.customer_name || "").toLowerCase().includes(q)) return true;
     if ((o.customer_email || "").toLowerCase().includes(q)) return true;
     if ((o.customer_phone || "").toLowerCase().includes(q)) return true;
@@ -793,6 +794,40 @@ const AftaleTab = ({
     if ((o.company_name || "").toLowerCase().includes(q)) return true;
     const items = (o.order_items || []) as any[];
     return items.some((it: any) => (it.service_name || "").toLowerCase().includes(q));
+  });
+
+  // Sortering
+  const needsActionScore = (o: any) => {
+    // Højere score = vigtigere/mere presserende
+    if (o.status === "pending" && (!o.business_response || (o.business_response === "adjusted" && o.customer_response === "rejected"))) return 1000;
+    if ((o.payment_status === "overdue") || ((o.reminder_count ?? 0) > 0 && o.payment_status !== "paid")) return 900;
+    if (o.status === "pending" && o.business_response === "adjusted") return 700;
+    if (o.status === "in_progress") return 500;
+    if (o.status === "confirmed") return 300;
+    return 0;
+  };
+  const filteredOrders = (searchedOrders || []).slice().sort((a: any, b: any) => {
+    switch (sortBy) {
+      case "oldest":
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case "amount_desc":
+        return (b.adjusted_amount ?? b.total_amount ?? 0) - (a.adjusted_amount ?? a.total_amount ?? 0);
+      case "amount_asc":
+        return (a.adjusted_amount ?? a.total_amount ?? 0) - (b.adjusted_amount ?? b.total_amount ?? 0);
+      case "next_service": {
+        const ad = a.next_service_date ? new Date(a.next_service_date).getTime() : Infinity;
+        const bd = b.next_service_date ? new Date(b.next_service_date).getTime() : Infinity;
+        return ad - bd;
+      }
+      case "needs_action": {
+        const diff = needsActionScore(b) - needsActionScore(a);
+        if (diff !== 0) return diff;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+      case "newest":
+      default:
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
   });
 
   const initAdjustedItems = (order: any) => {
@@ -1142,17 +1177,32 @@ const AftaleTab = ({
         </Card>
       </div>
 
-      {/* Søgefelt — leder efter kunde, service, adresse osv. */}
+      {/* Søgefelt + sortering */}
       <div className={`grid gap-5 ${routePlanningEnabled ? "lg:grid-cols-[7fr_3fr]" : ""}`}>
         <div className="space-y-5 min-w-0">
-        <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Søg efter kunde, e-mail, service eller adresse..."
-          className="h-10 pl-9 rounded-lg"
-        />
+        <div className="flex flex-wrap gap-2">
+          <div className="relative flex-1 min-w-[240px]">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Søg kunde, e-mail, service, adresse…"
+              className="h-10 pl-9 rounded-lg"
+            />
+          </div>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+            aria-label="Sortér aftaler"
+            className="h-10 rounded-lg border border-border bg-card px-3 pr-8 text-sm font-medium text-foreground hover:bg-secondary cursor-pointer outline-none focus:ring-2 focus:ring-ring/30"
+          >
+            <option value="needs_action">Smart: Vigtigst først</option>
+            <option value="newest">Nyeste først</option>
+            <option value="oldest">Ældste først</option>
+            <option value="next_service">Næste udførelse</option>
+            <option value="amount_desc">Højeste beløb</option>
+            <option value="amount_asc">Laveste beløb</option>
+          </select>
         </div>
 
       {/* Filtre — opdelt i tre logiske grupper:
@@ -1189,25 +1239,30 @@ const AftaleTab = ({
               {gi > 0 && <span aria-hidden className="mx-1 h-5 w-px bg-border/80" />}
               {group.map(({ key, label, count, tone }) => {
                 const isActive = filter === key;
-                const toneRing =
-                  tone === "danger" && count > 0 ? "before:bg-destructive" :
-                  tone === "warning" && count > 0 ? "before:bg-amber-500" :
+                const toneDot =
+                  tone === "danger" && count > 0 ? "bg-destructive" :
+                  tone === "warning" && count > 0 ? "bg-amber-500" :
                   "";
+                const activeCls =
+                  tone === "danger" && count > 0
+                    ? "border-destructive bg-destructive text-destructive-foreground shadow-sm"
+                    : tone === "warning" && count > 0
+                    ? "border-amber-500 bg-amber-500 text-white shadow-sm"
+                    : "border-foreground bg-foreground text-background shadow-sm";
                 return (
                   <button
                     key={key}
                     onClick={() => setFilter(key)}
-                    className={`relative inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
-                      toneRing ? `before:absolute before:left-2 before:top-1/2 before:h-1.5 before:w-1.5 before:-translate-y-1/2 before:rounded-full ${toneRing} pl-5` : ""
-                    } ${
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
                       isActive
-                        ? "border-foreground/30 bg-foreground text-background shadow-sm"
-                        : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+                        ? activeCls
+                        : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground hover:border-foreground/30"
                     }`}
                   >
+                    {toneDot && !isActive && <span className={`h-1.5 w-1.5 rounded-full ${toneDot}`} aria-hidden />}
                     <span>{label}</span>
-                    <span className={`tabular-nums rounded-md px-1.5 text-[10px] font-semibold ${
-                      isActive ? "bg-background/15 text-background" : "bg-secondary text-foreground/70"
+                    <span className={`tabular-nums rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
+                      isActive ? "bg-white/20 text-current" : "bg-secondary text-foreground/70"
                     }`}>
                       {count}
                     </span>
@@ -1438,7 +1493,7 @@ const AftaleTab = ({
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <h3 className="truncate text-sm font-semibold text-foreground">{order.customer_name}</h3>
-                            <span className={`inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-[10px] font-medium ${cfg.bg} ${cfg.color}`}>
+                            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${cfg.cls}`}>
                               <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
                               {cfg.label}
                             </span>
