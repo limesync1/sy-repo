@@ -1437,11 +1437,11 @@ export const useMyRouteData = (routeId: string | undefined) => {
       const orderIds = Array.from(
         new Set(filteredStops.map((s: any) => s.order_id).filter(Boolean)),
       );
-      const orderMap = new Map<string, { status: string | null; amount: number; zip_code: string | null; city: string | null }>();
+      const orderMap = new Map<string, { status: string | null; amount: number; zip_code: string | null; city: string | null; payment_status: string | null; invoice_status: string | null }>();
       if (orderIds.length > 0) {
         const { data: orderRows } = await supabase
           .from("orders")
-          .select("id,status,total_amount,adjusted_amount,zip_code,city")
+          .select("id,status,total_amount,adjusted_amount,zip_code,city,payment_status,invoice_status")
           .in("id", orderIds);
         (orderRows || []).forEach((o: any) => {
           orderMap.set(o.id, {
@@ -1449,6 +1449,8 @@ export const useMyRouteData = (routeId: string | undefined) => {
             amount: Number(o.adjusted_amount ?? o.total_amount ?? 0),
             zip_code: (o.zip_code as string | null) ?? null,
             city: (o.city as string | null) ?? null,
+            payment_status: (o.payment_status as string | null) ?? null,
+            invoice_status: (o.invoice_status as string | null) ?? null,
           });
         });
       }
@@ -1469,6 +1471,8 @@ export const useMyRouteData = (routeId: string | undefined) => {
           assignee_ids: entry?.ids || (s.assigned_employee_id ? [s.assigned_employee_id] : []),
           lead_employee_id: entry?.lead ?? s.assigned_employee_id ?? null,
           order_status: order?.status ?? null,
+          order_payment_status: order?.payment_status ?? null,
+          order_invoice_status: order?.invoice_status ?? null,
           order_amount: order?.amount ?? null,
           full_address: fullAddress,
         };
