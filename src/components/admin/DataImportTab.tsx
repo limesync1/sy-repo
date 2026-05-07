@@ -417,8 +417,22 @@ const ImportPanel = ({
         const hasCompany = !!get(row, mapping, "company_name");
         if (type === "private" && !hasName && !hasCompany) errors.push("Mangler navn eller virksomhedsnavn");
         if (type === "business" && !hasCompany && !hasName) errors.push("Mangler virksomhedsnavn eller navn");
-        if (email && existingEmails.has(email)) { isDuplicate = true; duplicateReason = `Kunde med e-mail "${email}" findes allerede i jeres kartotek — den bliver sprunget over.`; }
-        else if (email && seenEmails.has(email)) { isDuplicate = true; duplicateReason = `E-mailen "${email}" optræder flere gange i denne CSV-fil — kun første række importeres.`; }
+        // Smart dublet-detektion: tjek e-mail, CVR, kundenummer og EAN.
+        const cvrKey = (get(row, mapping, "cvr") || "").replace(/\D/g, "");
+        const custNum = (get(row, mapping, "customer_number") || "").toLowerCase();
+        const eanKey = (get(row, mapping, "ean_number") || "").replace(/\D/g, "");
+        const dupHits: string[] = [];
+        if (email && existingByEmail[email]) dupHits.push(`e-mail (${email}) → "${existingByEmail[email]}"`);
+        if (cvrKey && existingByCvr[cvrKey]) dupHits.push(`CVR (${cvrKey}) → "${existingByCvr[cvrKey]}"`);
+        if (custNum && existingByCustomerNumber[custNum]) dupHits.push(`kundenr. (${custNum}) → "${existingByCustomerNumber[custNum]}"`);
+        if (eanKey && existingByEan[eanKey]) dupHits.push(`EAN (${eanKey}) → "${existingByEan[eanKey]}"`);
+        if (dupHits.length) {
+          isDuplicate = true;
+          duplicateReason = `Findes allerede i jeres kartotek — matchet på ${dupHits.join(" og ")}.`;
+        } else if (email && seenEmails.has(email)) {
+          isDuplicate = true;
+          duplicateReason = `E-mailen "${email}" optræder flere gange i denne CSV-fil — kun første række importeres.`;
+        }
         if (email) seenEmails.add(email);
         return {
           source: row, kind: "customer" as const, type, email,
@@ -443,8 +457,17 @@ const ImportPanel = ({
         const product_number = get(row, mapping, "product_number");
         if (!name) errors.push("Mangler navn");
         const dupKey = product_number?.toLowerCase();
-        if (dupKey && existingProductNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = `Et produkt med varenr. "${product_number}" findes allerede i jeres katalog.`; }
-        else if (dupKey && seenProductNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = `Varenummer "${product_number}" optræder flere gange i CSV-filen — kun første række importeres.`; }
+        const nameKey = name?.toLowerCase();
+        const dupHits: string[] = [];
+        if (dupKey && existingByProductNumber[dupKey]) dupHits.push(`varenr. (${product_number}) → "${existingByProductNumber[dupKey]}"`);
+        if (nameKey && existingServiceNames[nameKey]) dupHits.push(`navn ("${existingServiceNames[nameKey]}")`);
+        if (dupHits.length) {
+          isDuplicate = true;
+          duplicateReason = `Findes allerede i jeres katalog — matchet på ${dupHits.join(" og ")}.`;
+        } else if (dupKey && seenProductNumbers.has(dupKey)) {
+          isDuplicate = true;
+          duplicateReason = `Varenummer "${product_number}" optræder flere gange i CSV-filen — kun første række importeres.`;
+        }
         if (dupKey) seenProductNumbers.add(dupKey);
         const idx = rows.indexOf(row);
         const ai = classifications[idx];
@@ -484,8 +507,13 @@ const ImportPanel = ({
         errors.push("Mangler kundeoplysning (navn, e-mail eller CVR)");
       }
       const dupKey = ext?.toLowerCase();
-      if (dupKey && existingExternalOrderNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = `Ordre/aftale med nr. "${ext}" findes allerede i systemet.`; }
-      else if (dupKey && seenOrderNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = `Ordrenr. "${ext}" optræder flere gange i denne CSV-fil — kun første række importeres.`; }
+      if (dupKey && existingByOrderNumber[dupKey]) {
+        isDuplicate = true;
+        duplicateReason = `Findes allerede — matchet på ordre-/fakturanr. (${ext}) tilhørende "${existingByOrderNumber[dupKey]}".`;
+      } else if (dupKey && seenOrderNumbers.has(dupKey)) {
+        isDuplicate = true;
+        duplicateReason = `Ordrenr. "${ext}" optræder flere gange i denne CSV-fil — kun første række importeres.`;
+      }
       if (dupKey) seenOrderNumbers.add(dupKey);
 
       const qty = parseNum(get(row, mapping, "quantity")) ?? 1;
