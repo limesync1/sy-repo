@@ -27,6 +27,13 @@ import { PageHeader, PrimaryButton, SearchInput, EmptyState } from "@/components
 import { ListCardSkeleton, DialogDetailsSkeleton } from "@/components/admin/shared/Skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import {
+  AccountingStatusRow,
+  CustomerOrderStatusSummary,
+  summarizeCustomerOrders,
+  type CustomerOrderSummary,
+  type OrderForStatus,
+} from "@/components/shared/OrderStatusBadges";
 
 type Customer = {
   email: string;
@@ -51,6 +58,8 @@ type Customer = {
   contact_name?: string | null;
   notes?: string | null;
   avatar_url?: string | null;
+  /** Aggregeret faktura-/betalingsstatus på tværs af alle kundens aftaler */
+  accounting_summary?: CustomerOrderSummary;
 };
 
 type OrderRow = {
@@ -67,6 +76,16 @@ type OrderRow = {
   payment_status?: string | null;
   paid_at?: string | null;
   payment_status_synced_at?: string | null;
+  due_date?: string | null;
+  invoice_external_id?: string | null;
+  invoiced_at?: string | null;
+  invoice_status?: string | null;
+  reminder_count?: number | null;
+  last_reminder_at?: string | null;
+  last_reminder_type?: string | null;
+  reminder_history?: any;
+  credited_at?: string | null;
+  voided_at?: string | null;
   order_items: Array<{ service_name: string; quantity: number; total_price: number; details: any }>;
 };
 
@@ -104,7 +123,7 @@ const useCustomers = (businessId: string) => {
       const [ordersRes, subsRes, privRes, bizRes] = await Promise.all([
         supabase
           .from("orders")
-          .select("id, customer_name, customer_email, customer_phone, customer_id, address, zip_code, city, total_amount, created_at, company_name, cvr")
+          .select("id, customer_name, customer_email, customer_phone, customer_id, address, zip_code, city, total_amount, created_at, company_name, cvr, payment_status, paid_at, due_date, invoice_external_id, invoiced_at, reminder_count, last_reminder_at, last_reminder_type, credited_at, voided_at")
           .eq("business_id", businessId)
           .order("created_at", { ascending: false }),
         supabase
@@ -135,8 +154,24 @@ const useCustomers = (businessId: string) => {
       });
 
       const grouped = new Map<string, Customer>();
+      const ordersByCustomer = new Map<string, OrderForStatus[]>();
       orders.forEach(o => {
         const key = o.customer_email.toLowerCase();
+        const accOrder: OrderForStatus = {
+          payment_status: (o as any).payment_status,
+          paid_at: (o as any).paid_at,
+          due_date: (o as any).due_date,
+          invoice_external_id: (o as any).invoice_external_id,
+          invoiced_at: (o as any).invoiced_at,
+          reminder_count: (o as any).reminder_count,
+          last_reminder_at: (o as any).last_reminder_at,
+          last_reminder_type: (o as any).last_reminder_type,
+          credited_at: (o as any).credited_at,
+          voided_at: (o as any).voided_at,
+        };
+        const arr = ordersByCustomer.get(key) || [];
+        arr.push(accOrder);
+        ordersByCustomer.set(key, arr);
         const existing = grouped.get(key);
         if (existing) {
           existing.total_revenue += Number(o.total_amount || 0);
@@ -172,6 +207,12 @@ const useCustomers = (businessId: string) => {
             type: o.company_name || o.cvr ? "business" : "unknown",
           });
         }
+      });
+
+      // Beregn summary pr. kunde efter alle ordrer er talt op.
+      grouped.forEach((c, key) => {
+        const list = ordersByCustomer.get(key) || [];
+        c.accounting_summary = summarizeCustomerOrders(list);
       });
 
       // Merge privat-kartotek
@@ -272,7 +313,7 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
       const [ordersRes, subsRes] = await Promise.all([
         supabase
           .from("orders")
-          .select("id, status, total_amount, preferred_date, created_at, notes, address, zip_code, city, payment_status, paid_at, payment_status_synced_at, order_items(service_name, quantity, total_price, details)")
+          .select("id, status, total_amount, preferred_date, created_at, notes, address, zip_code, city, payment_status, paid_at, payment_status_synced_at, due_date, invoice_external_id, invoiced_at, invoice_status, reminder_count, last_reminder_at, last_reminder_type, reminder_history, credited_at, voided_at, order_items(service_name, quantity, total_price, details)")
           .eq("business_id", businessId)
           .ilike("customer_email", email!)
           .order("created_at", { ascending: false }),
@@ -899,6 +940,12 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                       <div className="mt-0.5 text-xs text-muted-foreground truncate">
                         {metaParts.join(" · ") || "Ingen aftaler endnu"}
                       </div>
+                      {/* Aggregeret regnskabsstatus: viser fx "1 forfalden · 1 rykker · 3 betalt" */}
+                      {c.accounting_summary && (
+                        <div className="mt-1.5">
+                          <CustomerOrderStatusSummary summary={c.accounting_summary} />
+                        </div>
+                      )}
                     </button>
 
                     {/* Aftaler */}
@@ -1262,12 +1309,14 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                                   </p>
                                 )}
                               </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                {o.is_paused
-                                  ? <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-amber-300 text-amber-700 bg-amber-50">På pause</Badge>
-                                  : <StatusBadge status={o.status} />}
-                                <PaymentBadge status={o.payment_status} syncedAt={o.payment_status_synced_at} />
-                                <span className="text-sm font-bold text-foreground tabular-nums">{fmtKr(o.total_amount)}</span>
+                              <div className="flex flex-col items-end gap-1.5 shrink-0">
+                                <div className="flex items-center gap-2">
+                                  {o.is_paused
+                                    ? <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-amber-300 text-amber-700 bg-amber-50">På pause</Badge>
+                                    : <StatusBadge status={o.status} />}
+                                  <span className="text-sm font-bold text-foreground tabular-nums">{fmtKr(o.total_amount)}</span>
+                                </div>
+                                <AccountingStatusRow order={o as OrderForStatus} size="xs" />
                               </div>
                             </div>
                             {o.order_items && o.order_items.length > 0 && (
