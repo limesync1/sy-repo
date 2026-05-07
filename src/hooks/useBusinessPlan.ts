@@ -140,11 +140,25 @@ export const useUpdateBusinessPlan = () => {
         monthly_price_dkk?: number;
       };
     }) => {
-      const { error } = await supabase
+      // Upsert så toggle virker selv hvis virksomheden endnu ikke har en
+      // plan-række (fx ældre virksomheder oprettet før business_plans blev tilføjet).
+      const { data: existing } = await supabase
         .from("business_plans")
-        .update(patch)
-        .eq("business_id", businessId);
-      if (error) throw error;
+        .select("id")
+        .eq("business_id", businessId)
+        .maybeSingle();
+      if (existing?.id) {
+        const { error } = await supabase
+          .from("business_plans")
+          .update(patch)
+          .eq("business_id", businessId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("business_plans")
+          .insert({ business_id: businessId, ...patch } as any);
+        if (error) throw error;
+      }
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["business-plan", vars.businessId] });
