@@ -24,7 +24,7 @@ const TrialBanner = ({ plan, hideAction }: Props) => {
   if (!plan) return null;
   if (plan.status === "active" || plan.status === "unknown") return null;
 
-  const daysLeft = plan.days_left ?? 0;
+  const daysLeft = plan.days_left;
   const isWarning = plan.status === "trial_ending" || plan.status === "expired";
 
   // Beregn præcis tilbageværende tid hvis vi er under én dag.
@@ -46,7 +46,9 @@ const TrialBanner = ({ plan, hideAction }: Props) => {
     ? "Din prøveperiode er udløbet"
     : useFineGrained
       ? fineLabel
-      : daysLeft === 1
+      : daysLeft === null
+        ? "Din prøveperiode er aktiv"
+      : daysLeft <= 1
         ? "Sidste dag af din prøveperiode"
         : `${daysLeft} dage tilbage af din prøveperiode`;
 
