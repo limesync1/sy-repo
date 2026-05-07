@@ -9,6 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -18,6 +22,7 @@ import {
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
   Play, Pause, Search, Route as RouteIcon, MapPin, Plus as PlusIcon,
   GripVertical, Loader2, Tag, Palette, Trash2, ArrowUpDown, AlertCircle,
+  Filter as FilterIcon, Inbox, Hourglass, ListChecks,
 } from "lucide-react";
 import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
@@ -205,10 +210,10 @@ const buildAdjustmentItem = (item: any, service?: BusinessService): AdjustmentIt
    cancelled  → Annulleret
 */
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; cls: string; dot: string }> = {
-  pending:     { label: "Ny bestilling", icon: AlertCircle,   cls: "border-amber-300/60 bg-amber-50 text-amber-800",      dot: "bg-amber-500" },
-  confirmed:   { label: "Aftalt",        icon: CheckCircle2,  cls: "border-blue-300/60 bg-blue-50 text-blue-800",         dot: "bg-blue-500" },
-  in_progress: { label: "I gang",        icon: RefreshCw,     cls: "border-violet-300/60 bg-violet-50 text-violet-800",   dot: "bg-violet-500" },
-  completed:   { label: "Udført",        icon: CheckCircle2,  cls: "border-success/30 bg-success/10 text-success",        dot: "bg-success" },
+  pending:     { label: "Ny bestilling", icon: AlertCircle,   cls: "border-amber-300 bg-amber-100 text-amber-900",        dot: "bg-amber-500" },
+  confirmed:   { label: "Aftalt",        icon: CheckCircle2,  cls: "border-blue-300 bg-blue-100 text-blue-900",           dot: "bg-blue-500" },
+  in_progress: { label: "I gang",        icon: RefreshCw,     cls: "border-violet-300 bg-violet-100 text-violet-900",     dot: "bg-violet-500" },
+  completed:   { label: "Udført",        icon: CheckCircle2,  cls: "border-success/40 bg-success/15 text-success",        dot: "bg-success" },
   cancelled:   { label: "Annulleret",    icon: XCircle,       cls: "border-border bg-secondary text-muted-foreground",    dot: "bg-muted-foreground" },
 };
 
@@ -1192,25 +1197,27 @@ const AftaleTab = ({
               className="h-10 pl-9 rounded-lg"
             />
           </div>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            aria-label="Sortér aftaler"
-            className="h-10 rounded-lg border border-border bg-card px-3 pr-8 text-sm font-medium text-foreground hover:bg-secondary cursor-pointer outline-none focus:ring-2 focus:ring-ring/30"
-          >
-            <option value="needs_action">Smart: Vigtigst først</option>
-            <option value="newest">Nyeste først</option>
-            <option value="oldest">Ældste først</option>
-            <option value="next_service">Næste udførelse</option>
-            <option value="amount_desc">Højeste beløb</option>
-            <option value="amount_asc">Laveste beløb</option>
-          </select>
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+            <SelectTrigger
+              aria-label="Sortér aftaler"
+              className="h-10 w-auto min-w-[200px] gap-2 rounded-lg border-border bg-card text-sm font-medium hover:bg-secondary"
+            >
+              <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end">
+              <SelectItem value="needs_action">✨ Smart: Vigtigst først</SelectItem>
+              <SelectItem value="newest">Nyeste først</SelectItem>
+              <SelectItem value="oldest">Ældste først</SelectItem>
+              <SelectItem value="next_service">Næste udførelse</SelectItem>
+              <SelectItem value="amount_desc">Højeste beløb</SelectItem>
+              <SelectItem value="amount_asc">Laveste beløb</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-      {/* Filtre — opdelt i tre logiske grupper:
-          1) Status-overblik (Aktive/Alle), 2) Hvad kræver din opmærksomhed,
-          3) Planlægning og lifecycle. Tomme tællinger skjules ikke for fast layout. */}
-      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
+      {/* Filtre — segmenteret kontrol opdelt i tre logiske grupper. */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
         {(() => {
           type Chip = { key: string; label: string; count: number; tone?: "danger" | "warning" };
           const groups: Chip[][] = [
@@ -1237,8 +1244,7 @@ const AftaleTab = ({
           ].filter(g => g.length > 0);
 
           return groups.map((group, gi) => (
-            <div key={gi} className="flex flex-wrap items-center gap-1.5">
-              {gi > 0 && <span aria-hidden className="mx-1 h-5 w-px bg-border/80" />}
+            <div key={gi} className="inline-flex flex-wrap items-center gap-0 rounded-lg border border-border bg-card p-0.5 shadow-sm">
               {group.map(({ key, label, count, tone }) => {
                 const isActive = filter === key;
                 const toneDot =
@@ -1247,24 +1253,24 @@ const AftaleTab = ({
                   "";
                 const activeCls =
                   tone === "danger" && count > 0
-                    ? "border-destructive bg-destructive text-destructive-foreground shadow-sm"
+                    ? "bg-destructive text-destructive-foreground"
                     : tone === "warning" && count > 0
-                    ? "border-amber-500 bg-amber-500 text-white shadow-sm"
-                    : "border-foreground bg-foreground text-background shadow-sm";
+                    ? "bg-amber-500 text-white"
+                    : "bg-foreground text-background";
                 return (
                   <button
                     key={key}
                     onClick={() => setFilter(key)}
-                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
+                    className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                       isActive
                         ? activeCls
-                        : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground hover:border-foreground/30"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                     }`}
                   >
                     {toneDot && !isActive && <span className={`h-1.5 w-1.5 rounded-full ${toneDot}`} aria-hidden />}
                     <span>{label}</span>
                     <span className={`tabular-nums rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
-                      isActive ? "bg-white/20 text-current" : "bg-secondary text-foreground/70"
+                      isActive ? "bg-black/15 text-current" : "bg-secondary text-foreground/70"
                     }`}>
                       {count}
                     </span>
