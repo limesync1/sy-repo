@@ -1197,19 +1197,23 @@ const AftaleTab = ({
               className="h-10 pl-9 rounded-lg"
             />
           </div>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            aria-label="Sortér aftaler"
-            className="h-10 rounded-lg border border-border bg-card px-3 pr-8 text-sm font-medium text-foreground hover:bg-secondary cursor-pointer outline-none focus:ring-2 focus:ring-ring/30"
-          >
-            <option value="needs_action">Smart: Vigtigst først</option>
-            <option value="newest">Nyeste først</option>
-            <option value="oldest">Ældste først</option>
-            <option value="next_service">Næste udførelse</option>
-            <option value="amount_desc">Højeste beløb</option>
-            <option value="amount_asc">Laveste beløb</option>
-          </select>
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+            <SelectTrigger
+              aria-label="Sortér aftaler"
+              className="h-10 w-auto min-w-[200px] gap-2 rounded-lg border-border bg-card text-sm font-medium hover:bg-secondary"
+            >
+              <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end">
+              <SelectItem value="needs_action">✨ Smart: Vigtigst først</SelectItem>
+              <SelectItem value="newest">Nyeste først</SelectItem>
+              <SelectItem value="oldest">Ældste først</SelectItem>
+              <SelectItem value="next_service">Næste udførelse</SelectItem>
+              <SelectItem value="amount_desc">Højeste beløb</SelectItem>
+              <SelectItem value="amount_asc">Laveste beløb</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
       {/* Filtre — opdelt i tre logiske grupper:
