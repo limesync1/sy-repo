@@ -1653,6 +1653,9 @@ const AftaleTab = ({
                       )}
                     </div>
 
+                    {/* Næste skridt — smart kontekstuel guide */}
+                    <NextStepCard order={order as any} />
+
                     {/* Rute-info — vis på hvilken rute denne aftale er placeret.
                         Hele blokken skjules når ruteplanlægning er deaktiveret. */}
                     {routePlanningEnabled && routeInfo ? (
